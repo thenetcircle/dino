@@ -1,0 +1,10 @@
+*.pyc
+.idea/
+build/
+dist/
+env/
+setup.cfg
+*.egg-info
+*.iml
+*.sql
+.eggs
