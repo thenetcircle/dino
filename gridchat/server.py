@@ -39,12 +39,14 @@ def chat():
 
 @socketio.on('connect', namespace='/chat')
 def connect():
+    print('got connect')
     pprint(request)
     emit('response', {'data': 'Connected'})
 
 
 @socketio.on('user_connection', namespace='/chat')
 def user_connection(data):
+    print('got user_connection')
     pprint(data)
     user_id = data['user_id']
     join_room(user_id)
@@ -53,9 +55,11 @@ def user_connection(data):
 
 @socketio.on('disconnect', namespace='/chat')
 def disconnect():
+    print('got disconnect')
     pprint(request)
     #user_id = data['user_id']
     #leave_room(user_id)
+    emit('response', {'data': 'Disconnected'})
 
 
 @socketio.on('text', namespace='/chat')
@@ -65,6 +69,7 @@ def on_message(data):
         pprint(kwargs)
 
     from uuid import uuid4 as uuid
+    print('got message')
     pprint(data)
     target = data['target']
     send(data, json=True, namespace='/chat', room=target)#, callback=callback, broadcast=False)
