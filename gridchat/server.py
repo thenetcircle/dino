@@ -7,11 +7,11 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, send
 from flask import Blueprint
 from pprint import pprint
 
-async_mode = None
+async_mode = 'gevent_uwsgi'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, async_mode=async_mode)
+socketio = SocketIO(app, async_mode=async_mode, message_queue='redis://maggie-kafka-3')
 
 
 @app.route('/', methods=['GET', 'POST'])
