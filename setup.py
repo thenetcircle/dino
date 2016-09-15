@@ -27,6 +27,8 @@ setup(
         'flask-socketio==2.7.1',
         'flask_wtf',
         'wtforms',
+        'eventlet',
+        'gunicorn',
     ],
     entry_points={
         'console_scripts': [

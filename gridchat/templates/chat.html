@@ -7,27 +7,94 @@
             var socket;
             $(document).ready(function(){
                 socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
+
                 socket.on('connect', function() {
                     socket.emit('user_connection', {user_id: '{{ user_id }}'});
                 });
+
                 socket.on('status', function(data) {
                     $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
+
+                socket.on('history', function(response) {
+                    data = response.history
+                    $('#chat').val('');
+                    for (i = 0; i < data.length; i++) {
+                        $('#chat').val($('#chat').val() + data[i].timestamp + ' - ' + data[i].origin + ': ' + data[i].msg + '\n');
+                    }
+                    console.log(data);
+                });
+
                 socket.on('message', function(data) {
-                    $('#chat').val($('#chat').val() + data.msg + '\n');
+                    console.log(data);
+                    if (typeof data === 'string' || data instanceof String) {
+                        $('#chat').val($('#chat').val() + '<< ' + data + ' >>\n');
+                        return;
+                    }
+
+                    $('#chat').val($('#chat').val() + data.strftime + ' - ' + data.origin + ': ' + data.msg + '\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
+
+                socket.on('sent', function(data) {
+                    $('#chat').val($('#chat').val() + data.strftime + ' - ' + data.origin + ': ' + data.msg + '\n');
+                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                });
+
+                socket.on('users_in_room', function(data) {
+                    console.log(data);
+                    users = data.users
+                    if (users == null || users.length == 0) {
+                        $('#chat').val('<new room created>');
+                        return;
+                    }
+                    $('#users_in_room').html('');
+                    for (i = 0; i < users.length; i++) {
+                        console.log(users[i]);
+                        $('#users_in_room').html('<a href="#" class="user">' + users[i] + '</a>' + ', ' + $('#users_in_room').html());
+                    }
+
+                    $('a.user').click(function() {
+                        $('#target').val($(this).text());
+                        $('#private').attr('checked', true);
+                        socket.emit('view', {target: $(this).text(), actor: '{{ user_id }}'});
+                    });
+                });
+
+                socket.on('room_list', function(data) {
+                    console.log(data);
+                    rooms = data.rooms
+                    $('#rooms').html('');
+                    for (i = 0; i < rooms.length; i++) {
+                        $('#rooms').html('<a href="#" class="room">' + rooms[i] + '</a>' + ', ' + $('#rooms').html());
+                    }
+
+                    $('a.room').click(function() {
+                        $('#chat').val('');
+                        $('#target').val($(this).text());
+                        $('#private').attr('checked', false);
+                        socket.emit('join', {actor: '{{ user_id }}', room: $(this).text()});
+                    })
+                });
+
                 $('#text').keypress(function(e) {
                     var code = e.keyCode || e.which;
                     if (code == 13) {
                         text = $('#text').val();
                         user = $('#target').val();
                         $('#text').val('');
-                        socket.emit('text', {msg: text, target: user});
+
+                        is_private = 'false';
+                        if ($('#private').attr('checked')) {
+                            is_private = 'true';
+                        }
+
+                        socket.emit('text', {msg: text, target: user, private: is_private, actor: '{{ room }}'});
                     }
                 });
             });
+
             function leave_room() {
                 socket.emit('disconnect', {}, function() {
                     socket.disconnect();
@@ -40,8 +107,16 @@
     <body>
         <h1>Flask-SocketIO-Chat: {{ room }}</h1>
         <textarea id="chat" cols="80" rows="20"></textarea><br><br>
-        <input id="text" size="80" placeholder="Enter your message here"><br><br>
-        <input id="target" size="80" placeholder="Enter your message here"><br><br>
+        <input id="text" size="80" placeholder="Enter your message here and press enter to send" /><br><br>
+        <input id="target" size="80" placeholder="target user/room" /><br><br>
+        <input id="private" type="checkbox" /><br><br>
+
+        Users in current room:
+        <div id="users_in_room" style="margin: 5px; border: 1px solid black;"></div>
+
+        All rooms:
+        <div id="rooms" style="margin: 5px; border: 1px solid black;"></div>
+
         <a href="#" onclick="leave_room();">Leave this room</a>
     </body>
 </html>
