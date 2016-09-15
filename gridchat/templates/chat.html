@@ -28,13 +28,19 @@
 
                 socket.on('message', function(data) {
                     console.log(data);
-                    if (typeof data === 'string' || data instanceof String) {
-                        $('#chat').val($('#chat').val() + '<< ' + data + ' >>\n');
-                        return;
-                    }
 
-                    $('#chat').val($('#chat').val() + data.strftime + ' - ' + data.origin + ': ' + data.msg + '\n');
-                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                    if (data.action == 'user_joined') {
+                        $('#users_in_room').html($('#users_in_room').html() + ' <a href="#" id="user-' + data.actor + '" class="user">' + data.actor + '</a>');
+                        $('#chat').val($('#chat').val() + '<< ' + data.actor + ' has joined the room >>\n');
+                    }
+                    else if (data.action == 'user_left') {
+                        $('a#user-' + data.actor).remove();
+                        $('#chat').val($('#chat').val() + '<< ' + data.actor + ' has left the room >>\n');
+                    }
+                    else {
+                        $('#chat').val($('#chat').val() + data.strftime + ' - ' + data.origin + ': ' + data.msg + '\n');
+                        $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                    }
                 });
 
                 socket.on('sent', function(data) {
@@ -52,7 +58,7 @@
                     $('#users_in_room').html('');
                     for (i = 0; i < users.length; i++) {
                         console.log(users[i]);
-                        $('#users_in_room').html('<a href="#" class="user">' + users[i] + '</a>' + ', ' + $('#users_in_room').html());
+                        $('#users_in_room').html('<a href="#" id="user-' + users[i] + '" class="user">' + users[i] + '</a>' + ' ' + $('#users_in_room').html());
                     }
 
                     $('a.user').click(function() {
@@ -67,7 +73,7 @@
                     rooms = data.rooms
                     $('#rooms').html('');
                     for (i = 0; i < rooms.length; i++) {
-                        $('#rooms').html('<a href="#" class="room">' + rooms[i] + '</a>' + ', ' + $('#rooms').html());
+                        $('#rooms').html('<a href="#" class="room">' + rooms[i] + '</a>' + ' ' + $('#rooms').html());
                     }
 
                     $('a.room').click(function() {
@@ -93,15 +99,14 @@
                         socket.emit('text', {msg: text, target: user, private: is_private, actor: '{{ room }}'});
                     }
                 });
-            });
 
-            function leave_room() {
-                socket.emit('disconnect', {}, function() {
-                    socket.disconnect();
-                    // go back to the login page
-                    window.location.href = "{{ url_for('.index') }}";
+                $('a#leave').click(function() {
+                    socket.emit('leave', {actor: '{{ user_id }}', room: $('#target').val()});
+                    $('#users_in_room').html('')
+                    $('#chat').val('');
+                    $('#target').val('');
                 });
-            }
+            });
         </script>
     </head>
     <body>
@@ -117,6 +122,6 @@
         All rooms:
         <div id="rooms" style="margin: 5px; border: 1px solid black;"></div>
 
-        <a href="#" onclick="leave_room();">Leave this room</a>
+        <a id="leave" href="#">Leave this room</a>
     </body>
 </html>

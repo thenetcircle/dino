@@ -78,22 +78,24 @@ def on_join(data):
     redis_key = 'room:' + room_name
     redis.sadd(redis_key, actor)
     redis.sadd('rooms', room_name)
+
     users_in_room = redis.smembers(redis_key)
     users = list()
     for user in users_in_room:
         users.append(str(user.decode('utf-8')))
 
-    send(actor + ' has entered the room.', room=room_name)
+    send({'action': 'user_joined', 'actor': actor, 'target': room_name}, room=room_name)
     emit('users_in_room', {'status_code': 200, 'users': users})
 
 
-@socketio.on('leave')
+@socketio.on('leave', namespace='/chat')
 def on_leave(data):
+    pprint(data)
     actor = data['actor']
     room_name = data['room']
-    leave_room(room_name)
-    redis.srem('room:' + room_name, actor)
-    send(actor + ' has left the room.', room=room_name)
+    remove_user_from_room(actor, room_name)
+
+    send({'action': 'user_left', 'actor': actor, 'target': room_name}, room=room_name)
     emit('response', {'status_code': 200, 'data': 'Left'})
 
 
@@ -123,6 +125,12 @@ def view_history(data):
     emit('history', response)
 
 
+def remove_user_from_room(user_id, room_name):
+    leave_room(room_name)
+    redis.srem('room:' + room_name, user_id)
+    redis.srem('user:rooms:' + user_id, room_name)
+
+
 @socketio.on('disconnect', namespace='/chat')
 def disconnect():
     print('got disconnect')
@@ -131,8 +139,8 @@ def disconnect():
     rooms = redis.smembers('user:rooms:' + user_id)
     for room in rooms:
         room_name = room.decode('utf-8')
-        redis.srem('room:' + room_name, user_id)
-        send(user_id + ' has left the room.', room=room_name)
+        remove_user_from_room(user_id, room_name)
+        send({'action': 'user_left', 'actor': user_id, 'target': room_name}, room=room_name)
         leave_room(room_name)
 
     redis.delete('user:rooms:' + user_id)
@@ -157,6 +165,7 @@ def on_message(data):
         'msg': msg,
         'origin': origin,
         'target': target,
+        'private': data['private']
     }
 
     redis_value = '%s,%s,%s,%s,%s' % (msg_id, timestamp, origin, target, msg)
