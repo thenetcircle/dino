@@ -2,10 +2,11 @@ from flask_socketio import emit, join_room, leave_room
 from uuid import uuid4 as uuid
 
 
-def activity_for_leave(user_id, room_id, room_name):
+def activity_for_leave(user_id, user_name, room_id, room_name):
     return {
         'actor': {
-            'id': user_id
+            'id': user_id,
+            'summary': user_name
         },
         'target': {
             'id': room_id,
@@ -15,10 +16,11 @@ def activity_for_leave(user_id, room_id, room_name):
     }
 
 
-def activity_for_join(user_id, room_id, room_name):
+def activity_for_join(user_id, user_name, room_id, room_name):
     return {
         'actor': {
-            'id': user_id
+            'id': user_id,
+            'summary': user_name
         },
         'target': {
             'id': room_id,
