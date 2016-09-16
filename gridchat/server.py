@@ -9,6 +9,7 @@ from pprint import pprint
 from uuid import uuid4 as uuid
 from redis import Redis
 from time import time
+#import activitystreams as as_parser
 from datetime import datetime
 
 app = Flask(__name__)
@@ -210,6 +211,16 @@ def disconnect():
 
     emit('user-disconnected', response, broadcast=True, include_self=False)
     emit('response', {'status_code': 200, 'data': 'Disconnected'})
+
+
+"""
+@socketio.on('message', namespace='/chat')
+def on_message(data):
+    activity = as_parser.parse(data)
+    target = activity.target.id
+    send(data, json=True, room=target)
+    emit('response', {'status_code': 200, 'data': 'Sent'})
+"""
 
 
 @socketio.on('text', namespace='/chat')

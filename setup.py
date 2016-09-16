@@ -29,6 +29,7 @@ setup(
         'wtforms',
         'eventlet',
         'gunicorn',
+        #'activitystreams'
     ],
     entry_points={
         'console_scripts': [
