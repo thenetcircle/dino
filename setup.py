@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.1.0'
+version = '0.2.0'
 
 setup(
     name='gridchat',
@@ -29,7 +29,7 @@ setup(
         'wtforms',
         'eventlet',
         'gunicorn',
-        #'activitystreams'
+        'activitystreams'
     ],
     entry_points={
         'console_scripts': [
