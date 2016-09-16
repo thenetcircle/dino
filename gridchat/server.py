@@ -13,9 +13,9 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!fdsa'
-socketio = SocketIO(app, message_queue='redis://')
+socketio = SocketIO(app, message_queue='redis://maggie-kafka-3')
 
-redis = Redis('localhost')
+redis = Redis('maggie-kafka-3')
 
 
 @app.route('/', methods=['GET', 'POST'])
