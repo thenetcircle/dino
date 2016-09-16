@@ -65,11 +65,23 @@ def user_connection(data):
     emit('response', {'status_code': 200, 'data': 'Connected'})
 
 
+def get_room_id(room_name):
+    room_id = redis.get('room:id:' + room_name)
+    if room_id is None:
+        room_id = uuid()
+        redis.set('room:id:' + room_name, room_id)
+    else:
+        room_id = room_id.decode('utf-8')
+    return room_id
+
+
 @socketio.on('join', namespace='/chat')
 def on_join(data):
     pprint(data)
     room_name = data['room']
     actor = data['actor']
+    room_id = get_room_id(room_name)
+
     join_room(room_name)
 
     redis_key = 'user:rooms:' + actor
@@ -84,7 +96,16 @@ def on_join(data):
     for user in users_in_room:
         users.append(str(user.decode('utf-8')))
 
-    send({'action': 'user_joined', 'actor': actor, 'target': room_name}, room=room_name)
+    response = {
+        'status_code': 200,
+        'action': 'user_joined',
+        'actor': actor,
+        'target': room_name,
+        'type': 'group',
+        'group_id': room_id
+    }
+
+    send(response, room=room_name)
     emit('users_in_room', {'status_code': 200, 'users': users})
 
 
@@ -93,9 +114,18 @@ def on_leave(data):
     pprint(data)
     actor = data['actor']
     room_name = data['room']
+    room_id = get_room_id(room_name)
     remove_user_from_room(actor, room_name)
 
-    send({'action': 'user_left', 'actor': actor, 'target': room_name}, room=room_name)
+    response = {
+        'status_code': 200,
+        'action': 'user_left',
+        'actor': actor,
+        'target': room_name,
+        'group_id': room_id
+    }
+
+    send(response, room=room_name)
     emit('response', {'status_code': 200, 'data': 'Left'})
 
 
@@ -114,8 +144,10 @@ def view_history(data):
             'origin': origin,
             'target': target,
             'msg': message,
-            'id': user_id
+            'user_id': user_id
         })
+
+    history.sort(key=lambda x: x['timestamp'])
 
     response = {
         'status_code': 200,
@@ -137,10 +169,20 @@ def disconnect():
     user_id = session["user_id"]
     leave_room(user_id)
     rooms = redis.smembers('user:rooms:' + user_id)
+
     for room in rooms:
         room_name = room.decode('utf-8')
         remove_user_from_room(user_id, room_name)
-        send({'action': 'user_left', 'actor': user_id, 'target': room_name}, room=room_name)
+        room_id = get_room_id(room_name)
+
+        response = {
+            'action': 'user_left',
+            'actor': user_id,
+            'target': room_name,
+            'group_id': room_id
+        }
+
+        send(response, room=room_name)
         leave_room(room_name)
 
     redis.delete('user:rooms:' + user_id)
@@ -154,21 +196,27 @@ def on_message(data):
     origin = data['actor']
     is_private_msg = data['private'] == 'true'
     timestamp = datetime.utcnow()
+    timestamp_seconds = timestamp.strftime('%s')
     msg = data['msg']
     msg_id = str(uuid())
 
+    room_id = ''
+    if not is_private_msg:
+        room_id = get_room_id(target)
+
     response = {
-        'status_code': '200',
+        'status_code': 200,
         'id': msg_id,
-        'timestamp': timestamp.strftime('%s'),
+        'timestamp': timestamp_seconds,
         'strftime': timestamp.strftime('%Y-%m-%d %H:%m:%s'),
         'msg': msg,
         'origin': origin,
         'target': target,
-        'private': data['private']
+        'private': data['private'],
+        'group_id': room_id
     }
 
-    redis_value = '%s,%s,%s,%s,%s' % (msg_id, timestamp, origin, target, msg)
+    redis_value = '%s,%s,%s,%s,%s' % (msg_id, timestamp_seconds, origin, target, msg)
 
     rkey_origin = '%s-%s' % (origin, target)
     rkey_target = '%s-%s' % (target, origin)
