@@ -44,16 +44,23 @@ def chat():
 @socketio.on('connect', namespace='/chat')
 def connect():
     all_rooms = redis.smembers('rooms')
+    all_users = redis.smembers('users:online')
+
     rooms = list()
+    users = list()
+
     for room in all_rooms:
         rooms.append(str(room.decode('utf-8')))
+    for user in all_users:
+        users.append(str(user.decode('utf-8')))
 
     response = {
         'status_code': 200,
-        'rooms': rooms
+        'rooms': rooms,
+        'users': users
     }
 
-    emit('room_list', response)
+    emit('init', response)
 
 
 @socketio.on('user_connection', namespace='/chat')
@@ -62,13 +69,21 @@ def user_connection(data):
     pprint(data)
     user_id = data['user_id']
     join_room(user_id)
+    redis.sadd('users:online', user_id)
+
+    response = {
+        'action': 'user-connected',
+        'target': user_id
+    }
+
+    emit('user-connected', response, broadcast=True, include_self=False)
     emit('response', {'status_code': 200, 'data': 'Connected'})
 
 
 def get_room_id(room_name):
     room_id = redis.get('room:id:' + room_name)
     if room_id is None:
-        room_id = uuid()
+        room_id = str(uuid())
         redis.set('room:id:' + room_name, room_id)
     else:
         room_id = room_id.decode('utf-8')
@@ -186,6 +201,14 @@ def disconnect():
         leave_room(room_name)
 
     redis.delete('user:rooms:' + user_id)
+    redis.srem('users:online', user_id)
+
+    response = {
+        'action': 'user-disconnect',
+        'target': user_id
+    }
+
+    emit('user-disconnected', response, broadcast=True, include_self=False)
     emit('response', {'status_code': 200, 'data': 'Disconnected'})
 
 
