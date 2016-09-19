@@ -49,6 +49,8 @@ def user_connection(data):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
 
+    todo: check redis if any queued notifications, then emit and clear
+
     :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
     :return: json if ok, {'status_code': 200, 'data': 'Connected'}
     """
