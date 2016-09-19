@@ -38,22 +38,22 @@ def chat():
 
 @socketio.on('connect', namespace='/chat')
 def connect():
-    all_rooms = redis.smembers(rkeys.rooms())
-    all_users = redis.smembers(rkeys.online_users())
+    """
+    connect to the server
 
-    rooms = list()
-    users = list()
-
-    for room in all_rooms:
-        rooms.append(str(room.decode('utf-8')))
-    for user in all_users:
-        users.append(str(user.decode('utf-8')))
-
-    emit('init', {'status_code': 200, 'rooms': rooms, 'users': users})
+    :return: json if ok, {'status_code': 200}
+    """
+    emit('init', {'status_code': 200})
 
 
-@socketio.on('user_connection', namespace='/chat')
+@socketio.on('user-info', namespace='/chat')
 def user_connection(data):
+    """
+    todo: don't broadcast anything here, only on 'status' event, to handle invisible etc.
+
+    :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
+    :return: json if ok, {'status_code': 200, 'data': 'Connected'}
+    """
     activity = as_parser.parse(data)
     user_id = activity.actor.id
     join_room(user_id)
@@ -66,8 +66,42 @@ def user_connection(data):
     emit('response', {'status_code': 200, 'data': 'Connected'})
 
 
+@socketio.on('status', namespace='/chat')
+def on_status(data):
+    """
+    change online status
+
+    :param data: activity streams format, needs actor.id (user id) and verb (online/invisible/offline)
+    :return: json if ok, {'status_code': 200}
+    """
+    activity = as_parser.parse(data)
+    user_id = activity.actor.id
+    status = activity.verb
+
+    if status == 'online':
+        # todo: broadcast 'online' to friends
+        pass
+    elif status == 'invisible':
+        # todo: broadcast 'offline' to friends
+        pass
+    elif status == 'offline':
+        # todo: broadcast 'offline' to friends
+        pass
+    else:
+        # ignore
+        pass
+
+    emit('response', {'status_code': 200})
+
+
 @socketio.on('join', namespace='/chat')
 def on_join(data):
+    """
+    todo: how to deal with invisibility here?
+
+    :param data: activity streams format, need actor.id (user id), target.id (user id), actor.summary (user name)
+    :return: json if okay, {'status_code': 200, 'users': <users in the room, format: 'user_id:user_name'>}
+    """
     activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
@@ -85,8 +119,51 @@ def on_join(data):
     emit('users_in_room', {'status_code': 200, 'users': users})
 
 
+@socketio.on('users-in-room', namespace='/chat')
+def on_users_in_room(data):
+    """
+    get a list of users in a room
+
+    :param data: activity streams format, need target.id (room id)
+    :return: json if ok, {'status_code': 200, 'users': <users in the room, format: 'user_id:user_name'>}
+    """
+    activity = as_parser.parse(data)
+    room_id = activity.target.id
+
+    users_in_room = redis.smembers(rkeys.users_in_room(room_id))
+    users = list()
+    for user in users_in_room:
+        users.append(str(user.decode('utf-8')))
+
+    emit('users-in-room', {'status_code': 200, 'users': users})
+
+
+@socketio.on('list-rooms', namespace='/chat')
+def on_list_rooms(data):
+    """
+    get a list of rooms
+
+    :param data: activity streams format, currently not used, in the future should be able to specify sub-set of rooms,
+    e.g. 'rooms in berlin'
+    :return: json if ok, {'status_code': 200, 'rooms': <list of rooms, format: 'room_id:room_name'>}
+    """
+    all_rooms = redis.smembers(rkeys.rooms())
+
+    rooms = list()
+    for room in all_rooms:
+        rooms.append(str(room.decode('utf-8')))
+
+    emit('room-list', {'status_code': 200, 'users': rooms})
+
+
 @socketio.on('leave', namespace='/chat')
 def on_leave(data):
+    """
+    todo: should handle invisibility here? don't broadcast leaving a room if invisible
+
+    :param data: activity streams format, needs actor.id (user id), actor.summary (user name), target.id (room id)
+    :return: json if ok, {'status_code': 200, 'data': 'Left'}
+    """
     activity = as_parser.parse(data)
     user_id = activity.actor.id
     user_name = activity.actor.summary
@@ -101,6 +178,11 @@ def on_leave(data):
 
 @socketio.on('disconnect', namespace='/chat')
 def disconnect():
+    """
+    todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
+
+    :return json if ok, {'status_code': 200, 'data': 'Disconnected'}
+    """
     user_id = session['user_id']
     user_name = session['user_name']
     leave_room(user_id)
