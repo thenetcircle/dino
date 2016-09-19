@@ -49,7 +49,7 @@ def connect():
 @socketio.on('user-info', namespace='/chat')
 def user_connection(data):
     """
-    todo: don't broadcast anything here, only on 'status' event, to handle invisible etc.
+    event sent directly after a connection has successfully been made, to get the user_id for this connection
 
     :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
     :return: json if ok, {'status_code': 200, 'data': 'Connected'}
@@ -57,12 +57,10 @@ def user_connection(data):
     activity = as_parser.parse(data)
     user_id = activity.actor.id
     join_room(user_id)
-    redis.sadd(rkeys.online_users(), user_id)
 
     session['user_id'] = user_id
     session['user_name'] = activity.actor.summary
 
-    emit('user-connected', data, broadcast=True, include_self=False)
     emit('response', {'status_code': 200, 'data': 'Connected'})
 
 
@@ -70,23 +68,29 @@ def user_connection(data):
 def on_status(data):
     """
     change online status
+    todo: leave rooms on invisible/offline?
 
     :param data: activity streams format, needs actor.id (user id) and verb (online/invisible/offline)
     :return: json if ok, {'status_code': 200}
     """
+
     activity = as_parser.parse(data)
     user_id = activity.actor.id
+    user_name = activity.actor.summary
     status = activity.verb
 
     if status == 'online':
-        # todo: broadcast 'online' to friends
-        pass
+        set_user_online(redis, user_id)
+        emit('user-connected', activity_for_connect(user_id, user_name), broadcast=True, include_self=False)
+
     elif status == 'invisible':
-        # todo: broadcast 'offline' to friends
-        pass
+        set_user_invisible(redis, user_id)
+        emit('user-disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+
     elif status == 'offline':
-        # todo: broadcast 'offline' to friends
-        pass
+        set_user_offline(redis, user_id)
+        emit('user-disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+
     else:
         # ignore
         pass
@@ -194,7 +198,7 @@ def disconnect():
         send(activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
 
     redis.delete(rkeys.rooms_for_user(user_id))
-    redis.srem(rkeys.online_users(), user_id)
+    set_user_offline(redis, user_id)
 
     emit('user-disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
     emit('response', {'status_code': 200, 'data': 'Disconnected'})

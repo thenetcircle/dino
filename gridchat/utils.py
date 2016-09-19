@@ -1,6 +1,8 @@
 from flask_socketio import emit, join_room, leave_room
 from uuid import uuid4 as uuid
 
+from gridchat import rkeys
+
 
 def activity_for_leave(user_id, user_name, room_id, room_name):
     return {
@@ -35,9 +37,19 @@ def activity_for_disconnect(user_id, user_name):
     return {
         'actor': {
             'id': user_id,
-            'display_name': user_name
+            'summary': user_name
         },
         'verb': 'disconnect'
+    }
+
+
+def activity_for_connect(user_id, user_name):
+    return {
+        'actor': {
+            'id': user_id,
+            'summary': user_name
+        },
+        'verb': 'sconnect'
     }
 
 
@@ -62,3 +74,24 @@ def join_the_room(redis, user_id, room_id, room_name):
     redis.sadd('room:%s' % room_id, user_id)
     redis.sadd('rooms', room_id)
     join_room(room_id)
+
+
+def set_user_offline(redis, user_id):
+    redis.setbit(rkeys.online_bitmap(), int(user_id), 0)
+    redis.srem(rkeys.online_set(), int(user_id))
+    redis.srem(rkeys.users_multi_cast(), user_id)
+    redis.set(rkeys.user_status(user_id), rkeys.REDIS_STATUS_UNAVAILABLE)
+
+
+def set_user_online(redis, user_id):
+    redis.setbit(rkeys.online_bitmap(), int(user_id), 1)
+    redis.sadd(rkeys.online_set(), int(user_id))
+    redis.sadd(rkeys.users_multi_cast(), user_id)
+    redis.set(rkeys.user_status(user_id), rkeys.REDIS_STATUS_AVAILABLE)
+
+
+def set_user_invisible(redis, user_id):
+    redis.setbit(rkeys.online_bitmap(), int(user_id), 0)
+    redis.srem(rkeys.online_set(), int(user_id))
+    redis.sadd(rkeys.users_multi_cast(), user_id)
+    redis.set(rkeys.user_status(user_id), rkeys.REDIS_STATUS_INVISIBLE)
