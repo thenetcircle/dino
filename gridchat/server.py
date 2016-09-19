@@ -1,21 +1,18 @@
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
-
-from flask import Flask, render_template
-from flask import session, redirect, url_for, render_template, request
-from flask_socketio import SocketIO, emit, join_room, leave_room, send
-from redis import Redis
 import activitystreams as as_parser
-
-from gridchat.forms import LoginForm
+from flask import Flask
+from flask import session
+from flask_socketio import SocketIO, send
 from gridchat.utils import *
-from gridchat import rkeys
+from redis import Redis
+
+__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!fdsa'
 socketio = SocketIO(app, message_queue='redis://maggie-kafka-3')
 redis = Redis('maggie-kafka-3')
 
-
+"""
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = LoginForm()
@@ -34,6 +31,7 @@ def chat():
     if name == '':
         return redirect(url_for('.index'))
     return render_template('chat.html', name=name, room=name, user_id=name)
+"""
 
 
 @socketio.on('connect', namespace='/chat')
@@ -206,6 +204,12 @@ def disconnect():
 
 @socketio.on('message', namespace='/chat')
 def on_message(data):
+    """
+    send any kind of message/event to a target user/group
+
+    :param data: activity streams format, bust include at least target.id (room/user id)
+    :return: json if ok, {'status_code': 200, 'data': 'Sent'}
+    """
     activity = as_parser.parse(data)
     target = activity.target.id
     send(data, json=True, room=target)
