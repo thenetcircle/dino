@@ -7,7 +7,6 @@
         <form method="POST">
             {{ form.hidden_tag() }}
             {{ form.user_id.label }}: {{ form.user_id() }} {% for error in form.user_id.errors %}{{ error }}{% endfor %}<br>
-            {{ form.room.label }}: {{ form.room() }} {% for error in form.room.errors %}{{ error }}{% endfor %}<br>
             {{ form.submit() }}
         </form>
     </body>

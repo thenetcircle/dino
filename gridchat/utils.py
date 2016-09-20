@@ -1,7 +1,7 @@
 from flask_socketio import emit, join_room, leave_room
 from uuid import uuid4 as uuid
 
-from gridchat import rkeys
+import rkeys
 
 
 def activity_for_leave(user_id, user_name, room_id, room_name):
@@ -53,27 +53,30 @@ def activity_for_connect(user_id, user_name):
     }
 
 
-def remove_user_from_room(redis, user_id, room_id):
+def remove_user_from_room(redis, user_id, user_name, room_id):
     leave_room(room_id)
-    redis.srem('room:' + room_id, user_id)
-    redis.srem('user:rooms:' + user_id, room_id)
+    redis.srem(rkeys.users_in_room(room_id), '%s:%s' % (user_id, user_name))
+    redis.srem(rkeys.rooms_for_user(user_id), room_id)
 
 
 def get_room_name(redis, room_id):
-    room_id = redis.get('room:name:%s' % room_id)
-    if room_id is None:
-        room_id = str(uuid())
-        redis.set('room:name:%s' % room_id, room_id)
+    room_name = redis.get(rkeys.room_name_for_id(room_id))
+    if room_name is None:
+        room_name = str(uuid())
+        print('room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
+        redis.set(rkeys.room_name_for_id(room_id), room_name)
     else:
-        room_id = room_id.decode('utf-8')
-    return room_id
+        room_name = room_name.decode('utf-8')
+        print('room_name for room_id %s is %s' % (room_id, room_name))
+    return room_name
 
 
-def join_the_room(redis, user_id, room_id, room_name):
-    redis.sadd('user:rooms:%s' % user_id, '%s:%s' % (room_id, room_name))
-    redis.sadd('room:%s' % room_id, user_id)
-    redis.sadd('rooms', room_id)
+def join_the_room(redis, user_id, user_name, room_id, room_name):
+    redis.sadd(rkeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
+    redis.sadd(rkeys.users_in_room(room_id), '%s:%s' % (user_id, user_name))
+    redis.sadd(rkeys.rooms(), '%s:%s' % (room_id, room_name))
     join_room(room_id)
+    print('user %s is joining room_name %s, room_id %s' % (user_id, room_name, room_id))
 
 
 def set_user_offline(redis, user_id):

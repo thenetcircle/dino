@@ -1,24 +1,29 @@
 import activitystreams as as_parser
-from flask import Flask
+from flask import Flask, redirect, url_for, request, render_template
 from flask import session
-from flask_socketio import SocketIO, send
-from gridchat.utils import *
+from flask_socketio import SocketIO, send, emit
+from utils import *
 from redis import Redis
+from forms import LoginForm
+from datetime import datetime
+from pprint import pprint
+import time
 
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+__author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!fdsa'
-socketio = SocketIO(app, message_queue='redis://maggie-kafka-3')
-redis = Redis('maggie-kafka-3')
+socketio = SocketIO(app, message_queue='redis://')
+redis = Redis('localhost')
 
-"""
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = LoginForm()
     if form.validate_on_submit():
-        session['user_id'] = form.user_id.data
+        # temporary until we get ID from community
         session['user_name'] = form.user_id.data
+        session['user_id'] = int(float(''.join([str(ord(x)) for x in form.user_id.data])) % 1000000)
         return redirect(url_for('.chat'))
     elif request.method == 'GET':
         form.user_id.data = session.get('user_id', '')
@@ -27,11 +32,11 @@ def index():
 
 @app.route('/chat')
 def chat():
-    name = session.get('user_id', '')
-    if name == '':
+    user_id = session.get('user_id', '')
+    user_name = session.get('user_name', '')
+    if user_id == '':
         return redirect(url_for('.index'))
-    return render_template('chat.html', name=name, room=name, user_id=name)
-"""
+    return render_template('chat.html', name=user_id, room=user_id, user_id=user_id, user_name=user_name)
 
 
 @socketio.on('connect', namespace='/chat')
@@ -44,7 +49,7 @@ def connect():
     emit('init', {'status_code': 200})
 
 
-@socketio.on('user-info', namespace='/chat')
+@socketio.on('user_info', namespace='/chat')
 def user_connection(data):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
@@ -106,24 +111,26 @@ def on_join(data):
     :param data: activity streams format, need actor.id (user id), target.id (user id), actor.summary (user name)
     :return: json if okay, {'status_code': 200, 'users': <users in the room, format: 'user_id:user_name'>}
     """
+    from pprint import pprint
+    pprint(data)
     activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
     user_name = activity.actor.summary
 
     room_name = get_room_name(redis, room_id)
-    join_the_room(redis, user_id, room_id, room_name)
+    join_the_room(redis, user_id, user_name, room_id, room_name)
 
     users_in_room = redis.smembers(rkeys.users_in_room(room_id))
     users = list()
     for user in users_in_room:
         users.append(str(user.decode('utf-8')))
 
-    send(activity_for_join(user_id, user_name, room_id, room_name), room=room_id)
+    emit('user_joined', activity_for_join(user_id, user_name, room_id, room_name), room=room_id, broadcast=True, include_self=False)
     emit('users_in_room', {'status_code': 200, 'users': users})
 
 
-@socketio.on('users-in-room', namespace='/chat')
+@socketio.on('users_in_room', namespace='/chat')
 def on_users_in_room(data):
     """
     get a list of users in a room
@@ -139,10 +146,10 @@ def on_users_in_room(data):
     for user in users_in_room:
         users.append(str(user.decode('utf-8')))
 
-    emit('users-in-room', {'status_code': 200, 'users': users})
+    emit('users_in_room', {'status_code': 200, 'users': users})
 
 
-@socketio.on('list-rooms', namespace='/chat')
+@socketio.on('list_rooms', namespace='/chat')
 def on_list_rooms(data):
     """
     get a list of rooms
@@ -157,7 +164,7 @@ def on_list_rooms(data):
     for room in all_rooms:
         rooms.append(str(room.decode('utf-8')))
 
-    emit('room-list', {'status_code': 200, 'users': rooms})
+    emit('room_list', {'status_code': 200, 'rooms': rooms})
 
 
 @socketio.on('leave', namespace='/chat')
@@ -168,15 +175,23 @@ def on_leave(data):
     :param data: activity streams format, needs actor.id (user id), actor.summary (user name), target.id (room id)
     :return: json if ok, {'status_code': 200, 'data': 'Left'}
     """
+
     activity = as_parser.parse(data)
     user_id = activity.actor.id
     user_name = activity.actor.summary
     room_id = activity.target.id
+
+    if room_id is None:
+        print('warning: room_id is None when trying to leave room')
+        return
+
     room_name = get_room_name(redis, room_id)
+    remove_user_from_room(redis, user_id, user_name, room_id)
 
-    remove_user_from_room(redis, user_id, room_id)
-
-    send(activity_for_leave(user_id, user_name, room_id, room_name), room=room_id)
+    activity_left = activity_for_leave(user_id, user_name, room_id, room_name)
+    print('user %s, %s leaving room %s, %s' % (user_id, user_name, room_id, room_name))
+    pprint(activity_left)
+    emit('user_left', activity_left, room=room_id, broadcast=True, include_self=False)
     emit('response', {'status_code': 200, 'data': 'Left'})
 
 
@@ -194,13 +209,13 @@ def disconnect():
     rooms = redis.smembers(rkeys.rooms_for_user(user_id))
     for room in rooms:
         room_id, room_name = room.decode('utf-8').split(':', 1)
-        remove_user_from_room(redis, user_id, room_id)
+        remove_user_from_room(redis, user_id, user_name, room_id)
         send(activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
 
     redis.delete(rkeys.rooms_for_user(user_id))
     set_user_offline(redis, user_id)
 
-    emit('user-disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+    emit('user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
     emit('response', {'status_code': 200, 'data': 'Disconnected'})
 
 
@@ -212,6 +227,8 @@ def on_message(data):
     :param data: activity streams format, bust include at least target.id (room/user id)
     :return: json if ok, {'status_code': 200, 'data': 'Sent'}
     """
+    data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
+    pprint(data)
     activity = as_parser.parse(data)
     target = activity.target.id
     send(data, json=True, room=target)

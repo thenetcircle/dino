@@ -7,6 +7,7 @@ RKEY_ONLINE_BITMAP = 'users:online:bitmap'
 RKEY_ONLINE_SET = 'users:online:set'
 RKEY_MULTI_CAST = 'users:multicat'
 RKEY_USER_STATUS = 'user:status:%s'
+RKEY_ROOM_NAME = 'room:name:%s'
 
 REDIS_STATUS_AVAILABLE = '1'
 # REDIS_STATUS_CHAT = '2'
@@ -25,6 +26,10 @@ def users_in_room(room_id):
 
 def rooms():
     return RKEY_ROOMS
+
+
+def room_name_for_id(room_id):
+    return RKEY_ROOM_NAME % room_id
 
 
 def online_bitmap():

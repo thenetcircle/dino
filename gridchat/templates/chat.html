@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Notification System: {{ room }}</title>
+        <title>Notification System: {{ user_name }}</title>
         <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
         <script type="text/javascript" charset="utf-8">
@@ -9,64 +9,136 @@
                 socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
 
                 socket.on('connect', function() {
-                    socket.emit('user_connection', {user_id: '{{ user_id }}'});
-                });
-
-                socket.on('status', function(data) {
-                    $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
-                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
-                });
-
-                socket.on('history', function(response) {
-                    data = response.history
-                    $('#chat').val('');
-                    for (i = 0; i < data.length; i++) {
-                        $('#chat').val($('#chat').val() + data[i].timestamp + ' - ' + data[i].origin + ': ' + data[i].msg + '\n');
-                    }
-                    console.log(data);
-                });
-
-                socket.on('user-connected', function(data) {
-                    console.log(data);
-                    if ($('a#online-user-' + data.target).length > 0) {
-                        return;
-                    }
-
-                    $('#online').html($('#online').html() + '<a href="#" id="online-user-' + data.target + '">' + data.target + '</a> ');
-
-                    $('a#online-user-' + data.target).click(function() {
-                        $('#target').val($(this).text());
-                        $('#private').attr('checked', true);
-                        socket.emit('view', {target: $(this).text(), actor: '{{ user_id }}'});
+                    socket.emit('user_info', {
+                        verb: 'login',
+                        actor: {
+                            id: '{{ user_id }}',
+                            summary: '{{ user_name }}'
+                        }
                     });
                 });
 
-                socket.on('user-disconnected', function(data) {
+                socket.on('init', function(data) {
                     console.log(data);
-                    $('a#online-user-' + data.target).remove();
+                    socket.emit('list_rooms', {verb: 'list'});
+                });
+
+                socket.on('status', function(data) {
+                    $('#chat').val($('#chat').val() + '<< ' + data.msg + ' >>\n');
+                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                });
+
+                socket.on('room_list', function(data) {
+                    console.log(data);
+
+                    rooms = data.rooms
+
+                    $('#rooms').html('');
+                    for (i = 0; i < rooms.length; i++) {
+                        room_name = rooms[i].split(':', 2)[1]
+                        room_id = rooms[i].split(':', 2)[0]
+                        $('#rooms').html('<a href="#" id="room-id-' + room_id + '" class="room">' + room_name + '</a>' + ' ' + $('#rooms').html());
+                    }
+
+                    $('a.room').click(function() {
+                        room_id = $(this).attr('id').split('room-id-', 2)[1]
+                        $('#chat').val('');
+                        $('#target').val($(this).text());
+                        $('#room-id').val(room_id);
+                        $('#private').attr('checked', false);
+                        socket.emit('join', {
+                            actor: {
+                                id: '{{ user_id }}',
+                                summary: '{{ user_name }}'
+                            },
+                            verb: 'join',
+                            target: {
+                                id: room_id
+                            }
+                        });
+                    })
+                });
+
+                socket.on('users_in_room', function(data) {
+                    console.log(data);
+                    users = data.users;
+                    $('#users_in_room').html('');
+                    if (users == null || users.length == 0) {
+                        $('#chat').val('<< new room created >>\n');
+                        return;
+                    }
+
+                    for (i = 0; i < users.length; i++) {
+                        console.log(users[i]);
+                        user_id = users[i].split(':', 2)[0];
+                        user_name = users[i].split(':', 2)[1];
+
+                        if ($('#user-' + user_id).length > 0) {
+                            continue;
+                        }
+
+                        $('#users_in_room').html('<a href="#" id="user-' + user_id + '" class="user">' + user_name + '</a>' + ' ' + $('#users_in_room').html());
+                    }
+
+                    $('a.user').click(function() {
+                        $('#target').val($(this).text());
+                        $('#private').attr('checked', true);
+                        $('#room-id').val($(this).val().split('-', 2)[1])
+                        $('#chat').val('<< chatting with ' + $(this).text() + ' >>\n');
+                    });
+                });
+
+                socket.on('user_connected', function(data) {
+                    console.log(data);
+                    if ($('a#online-user-' + data.actor.id).length > 0) {
+                        return;
+                    }
+
+                    $('#online').html($('#online').html() + '<a href="#" id="online-user-' + data.actor.id + '">' + data.actor.summary + '</a> ');
+
+                    $('a#online-user-' + data.actor.id).click(function() {
+                        $('#target').val($(this).text());
+                        $('#private').attr('checked', true);
+                        $('#room-id').val($(this).val().split('-', 2)[1])
+                        $('#chat').val('<< chatting with ' + data.actor.summary + ' >>\n')
+                    });
+                });
+
+                socket.on('user_disconnected', function(data) {
+                    console.log(data);
+                    $('a#online-user-' + data.actor.id).remove();
+                    $('a#user-' + data.actor.id).remove();
+                    $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has disconnected >>\n');
+                });
+
+                socket.on('user_left', function(data) {
+                    console.log(data);
+                    $('a#user-' + data.actor.id).remove();
+                    $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has left room ' + data.target.display_name + ' >>\n');
+                });
+
+                socket.on('user_joined', function(data) {
+                    console.log(data);
+
+                    if ($('#user-' + data.actor.id).length > 0) {
+                        return;
+                    }
+
+                    $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has joined room ' + data.target.display_name + ' >>\n');
+                    $('#users_in_room').html($('#users_in_room').html() + ' <a href="#" id="user-' + data.actor.id + '" class="user">' + data.actor.summary + '</a>');
+
+                    $('a#user-' + data.actor.id).click(function() {
+                        $('#target').val(data.actor.summary);
+                        $('#private').attr('checked', true);
+                        $('#room-id').val($(this).val().split('-', 2)[1])
+                        $('#chat').val('<< chatting with ' + data.actor.summary + ' >>\n')
+                    });
                 });
 
                 socket.on('message', function(data) {
                     console.log(data);
-
-                    if (data.action == 'user_joined') {
-                        $('#users_in_room').html($('#users_in_room').html() + ' <a href="#" id="user-' + data.actor + '" class="user">' + data.actor + '</a>');
-                        $('#chat').val($('#chat').val() + '<< ' + data.actor + ' has joined the room >>\n');
-
-                        $('a#user' + data.actor).click(function() {
-                            $('#target').val($(this).text());
-                            $('#private').attr('checked', true);
-                            socket.emit('view', {target: $(this).text(), actor: '{{ user_id }}'});
-                        });
-                    }
-                    else if (data.action == 'user_left') {
-                        $('a#user-' + data.actor).remove();
-                        $('#chat').val($('#chat').val() + '<< ' + data.actor + ' has left the room >>\n');
-                    }
-                    else {
-                        $('#chat').val($('#chat').val() + data.strftime + ' - ' + data.origin + ': ' + data.msg + '\n');
-                        $('#chat').scrollTop($('#chat')[0].scrollHeight);
-                    }
+                    $('#chat').val($('#chat').val() + data.published + ' <' + data.actor.summary + '> ' + data.object.content + '\n');
+                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
 
                 socket.on('sent', function(data) {
@@ -74,68 +146,47 @@
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
 
-                socket.on('users_in_room', function(data) {
-                    console.log(data);
-                    users = data.users
-                    if (users == null || users.length == 0) {
-                        $('#chat').val('<new room created>');
-                        return;
-                    }
-                    $('#users_in_room').html('');
-                    for (i = 0; i < users.length; i++) {
-                        console.log(users[i]);
-                        $('#users_in_room').html('<a href="#" id="user-' + users[i] + '" class="user">' + users[i] + '</a>' + ' ' + $('#users_in_room').html());
-                    }
-
-                    $('a.user').click(function() {
-                        $('#target').val($(this).text());
-                        $('#private').attr('checked', true);
-                        socket.emit('view', {target: $(this).text(), actor: '{{ user_id }}'});
-                    });
-                });
-
-                socket.on('init', function(data) {
-                    console.log(data);
-
-                    rooms = data.rooms
-                    users = data.users
-
-                    $('#rooms').html('');
-                    for (i = 0; i < rooms.length; i++) {
-                        $('#rooms').html('<a href="#" class="room">' + rooms[i] + '</a>' + ' ' + $('#rooms').html());
-                    }
-
-                    $('#online').html('');
-                    for (i = 0; i < users.length; i++) {
-                        $('#online').html($('#online').html() + '<a href="#" id="online-user-' + users[i] + '">' + users[i] + '</a> ');
-                    }
-
-                    $('a.room').click(function() {
-                        $('#chat').val('');
-                        $('#target').val($(this).text());
-                        $('#private').attr('checked', false);
-                        socket.emit('join', {actor: '{{ user_id }}', room: $(this).text()});
-                    })
-                });
-
                 $('#text').keypress(function(e) {
                     var code = e.keyCode || e.which;
                     if (code == 13) {
                         text = $('#text').val();
-                        user = $('#target').val();
+                        room_name = $('#target').val();
                         $('#text').val('');
 
-                        is_private = 'false';
+                        target_type = 'group';
                         if ($('#private').attr('checked')) {
-                            is_private = 'true';
+                            target_type = 'private';
                         }
 
-                        socket.emit('text', {msg: text, target: user, private: is_private, actor: '{{ room }}'});
+                        socket.emit('message', {
+                            actor: {
+                                id: '{{ user_id }}',
+                                summary: '{{ user_name }}'
+                            },
+                            verb: 'send',
+                            target: {
+                                id: room_id,
+                                display_name: room_name
+                            },
+                            object: {
+                                content: text,
+                                object_type: target_type
+                            }
+                        });
                     }
                 });
 
                 $('a#leave').click(function() {
-                    socket.emit('leave', {actor: '{{ user_id }}', room: $('#target').val()});
+                    socket.emit('leave', {
+                        actor: {
+                            id: '{{ user_id }}',
+                            summary: '{{ user_name }}'
+                        },
+                        verb: 'leave',
+                        target: {
+                            id: $('#room-id').val()
+                        }
+                    });
                     $('#users_in_room').html('')
                     $('#chat').val('');
                     $('#target').val('');
@@ -148,7 +199,8 @@
         <textarea id="chat" cols="80" rows="20"></textarea><br><br>
         <input id="text" size="80" placeholder="Enter your message here and press enter to send" /><br><br>
         <input id="target" size="80" placeholder="target user/room" /><br><br>
-        <input id="private" type="checkbox" /><br><br>
+        <input id="room-id" type="hidden" /><br><br>
+        One-to-one? <input id="private" type="checkbox" /><br><br>
 
         Users in current room:
         <div id="users_in_room" style="margin: 5px; border: 1px solid black;"></div>
