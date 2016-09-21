@@ -4,6 +4,7 @@ from flask_socketio import SocketIO, send
 from datetime import datetime
 from pprint import pprint
 import time
+import pkg_resources
 
 from gridchat.utils import *
 from gridchat.forms import LoginForm
@@ -35,7 +36,10 @@ def chat():
     user_name = session.get('user_name', '')
     if user_id == '':
         return redirect(url_for('.index'))
-    return render_template('chat.html', name=user_id, room=user_id, user_id=user_id, user_name=user_name)
+
+    return render_template(
+            'chat.html', name=user_id, room=user_id, user_id=user_id, user_name=user_name,
+            version=pkg_resources.require('gridchat')[0].version)
 
 
 @socketio.on('connect', namespace='/chat')
