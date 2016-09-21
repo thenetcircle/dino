@@ -56,17 +56,105 @@ def user_connection(data):
 
     todo: check redis if any queued notifications, then emit and clear
 
+    example activity with required parameters:
+
+    {
+        actor: {
+            id: '1234',
+            summary: 'joe',
+            image: {
+                url: 'http://some-url.com/image.jpg',
+                width: '120px',
+                height: '120px'
+            }
+            attachments: [
+                {
+                    object_type: 'gender',
+                    content: 'm'
+                },
+                {
+                    object_type: 'age',
+                    content: '28'
+                },
+                {
+                    object_type: 'membership',
+                    content: '1'
+                },
+                {
+                    object_type: 'fake_checked',
+                    content: 'yes'
+                },
+                {
+                    object_type: 'has_webcam',
+                    content: 'no'
+                },
+                {
+                    object_type: 'country',
+                    content: 'Germany'
+                },
+                {
+                    object_type: 'city',
+                    content: 'Berlin'
+                },
+                {
+                    object_type: 'token',
+                    content: '66968fad-2336-40c9-bc6d-0ecbcd91f4da'
+                }
+            ]
+        },
+        verb: 'login'
+    }
+
     :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
     :return: json if ok, {'status_code': 200, 'data': 'Connected'}
     """
     activity = as_parser.parse(data)
     user_id = activity.actor.id
-    join_room(user_id)
 
     session['user_id'] = user_id
     session['user_name'] = activity.actor.summary
+    session['image'] = activity.actor.image.url
 
+    for attachment in activity.actor.attachments:
+        session[attachment.object_type] = attachment.content
+
+    is_valid, error_msg = validate()
+
+    if not is_valid:
+        emit('response', {'status_code': 400, 'data': error_msg})
+        return
+
+    join_room(user_id)
     emit('response', {'status_code': 200, 'data': 'Connected'})
+
+
+@socketio.on('acl', namespace='/chat')
+def on_acl(data):
+    """
+    change ACL of a room; only allowed if the user is the owner of the room
+    :param data:
+    :return:
+    """
+    activity = as_parser.parse(data)
+    user_id = activity.actor.id
+    room_id = activity.target.id
+
+    validate_request(activity)
+
+    if not redis.sismember(rkeys.room_owners(room_id), user_id):
+        emit('acl', {'status_code': 400, 'data': 'user not a owner of room'})
+        return
+
+    # validate all acls before actually changing anything
+    acls = activity.object.attachments
+    for acl in acls:
+        if acl.object_type not in USER_KEYS:
+            emit('acl', {'status_code': 400, 'data': 'invalid acl type "%s"' % acl_type})
+            return
+    for acl in acls:
+        redis.set(rkeys.room_acl(acl.object_type, room_id), acl.content)
+
+    emit('acl', {'status_code': 200, 'data': 'Updated'})
 
 
 @socketio.on('status', namespace='/chat')
@@ -75,7 +163,17 @@ def on_status(data):
     change online status
     todo: leave rooms on invisible/offline?
 
-    :param data: activity streams format, needs actor.id (user id) and verb (online/invisible/offline)
+    example activity:
+
+    {
+        actor: {
+            id: '1234',
+            summary: 'joe'
+        },
+        verb: 'online/invisible/offline'
+    }
+
+    :param data: activity streams format, needs actor.id (user id), actor.summary (user name) and verb (online/invisible/offline)
     :return: json if ok, {'status_code': 200}
     """
 
@@ -108,15 +206,28 @@ def on_join(data):
     """
     todo: how to deal with invisibility here?
 
+    example activity:
+
+    {
+        actor: {
+            id: '1234',
+            summary: 'joe'
+        },
+        verb: 'join',
+        target: {
+            id: 'd69dbfd8-95a2-4dc5-b051-8ef050e2667e'
+        }
+    }
+
     :param data: activity streams format, need actor.id (user id), target.id (user id), actor.summary (user name)
     :return: json if okay, {'status_code': 200, 'users': <users in the room, format: 'user_id:user_name'>}
     """
-    from pprint import pprint
     pprint(data)
     activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
     user_name = activity.actor.summary
+    image = session['image']
 
     room_name = get_room_name(redis, room_id)
     join_the_room(redis, user_id, user_name, room_id, room_name)
@@ -126,7 +237,7 @@ def on_join(data):
     for user in users_in_room:
         users.append(str(user.decode('utf-8')))
 
-    emit('user_joined', activity_for_join(user_id, user_name, room_id, room_name), room=room_id, broadcast=True, include_self=False)
+    emit('user_joined', activity_for_join(user_id, user_name, room_id, room_name, image), room=room_id, broadcast=True, include_self=False)
     emit('users_in_room', {'status_code': 200, 'users': users})
 
 
