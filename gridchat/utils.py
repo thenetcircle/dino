@@ -3,14 +3,29 @@ from flask import session
 from uuid import uuid4 as uuid
 from activitystreams import Activity
 from redis import Redis
+from typing import Union
+from functools import wraps
 
-import rkeys
+from gridchat import rkeys
 
 
 USER_KEYS = [
     'gender', 'membership', 'age', 'country', 'city', 'image'
     'user_id', 'user_name', 'token', 'has_webcam', 'fake_checked'
 ]
+
+
+def respond_with(gn_event_name=None):
+    def factory(view_func):
+        @wraps(view_func)
+        def decorator(*args, **kwargs):
+            status_code, data = view_func(*args, **kwargs)
+            if data is None:
+                emit(gn_event_name, {'status_code': status_code})
+            else:
+                emit(gn_event_name, {'status_code': status_code, 'data': data})
+        return decorator
+    return factory
 
 
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
@@ -61,8 +76,29 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
             'id': user_id,
             'summary': user_name
         },
-        'verb': 'sconnect'
+        'verb': 'connect'
     }
+
+
+def activity_for_get_acl(activity: Activity, acl_values: list) -> dict:
+    response = {
+        'target': {
+            'id': activity.target.id,
+            'display_name': activity.target.display_name
+        },
+        'object': {
+            'object_type': 'acl'
+        }
+    }
+
+    response['object']['attachments'] = list()
+    for acl_type, acl_value in acl_values:
+        response['object']['attachments'].append({
+            'object_type': acl_type,
+            'content': acl_value
+        })
+
+    return response
 
 
 def remove_user_from_room(r_server: Redis, user_id: str, user_name: str, room_id: str) -> None:
@@ -71,7 +107,7 @@ def remove_user_from_room(r_server: Redis, user_id: str, user_name: str, room_id
     r_server.srem(rkeys.rooms_for_user(user_id), room_id)
 
 
-def get_room_name(r_server: Redis, room_id: str) -> None:
+def get_room_name(r_server: Redis, room_id: str) -> str:
     room_name = r_server.get(rkeys.room_name_for_id(room_id))
     if room_name is None:
         room_name = str(uuid())

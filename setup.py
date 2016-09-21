@@ -23,13 +23,13 @@ setup(
         'zope.interface==4.1.3',   # interfaces
         'pyyaml==3.11',            # configuration files
         'redis==2.10.5',           # redis client
-        'mysqlclient',     # connect to mysql to save statistics
+        'mysqlclient==1.3.7',      # connect to mysql to save statistics
         'flask-socketio==2.7.1',
-        'flask_wtf',
-        'wtforms',
-        'eventlet',
-        'gunicorn',
-        'activitystreams'
+        'flask_wtf==0.12',
+        'wtforms==2.1',
+        'eventlet==0.19.0',
+        'gunicorn==19.6.0',
+        'activitystreams==0.1.4'
     ],
     entry_points={
         'console_scripts': [
