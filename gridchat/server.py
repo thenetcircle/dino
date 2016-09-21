@@ -1,8 +1,6 @@
 import activitystreams as as_parser
 from flask import Flask, redirect, url_for, request, render_template
-from flask import session
-from flask_socketio import SocketIO, send, emit
-from redis import Redis
+from flask_socketio import SocketIO, send
 from datetime import datetime
 from pprint import pprint
 import time
@@ -111,8 +109,6 @@ def user_connection(data: dict) -> (int, str):
     :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
     :return: json if ok, {'status_code': 200, 'data': 'Connected'}
     """
-    GN_EVENT_NAME = 'gn_user_info'
-
     activity = as_parser.parse(data)
     user_id = activity.actor.id
 
@@ -122,8 +118,9 @@ def user_connection(data: dict) -> (int, str):
     if activity.actor.image is not None:
         session['image'] = activity.actor.image.url
 
-    for attachment in activity.actor.attachments:
-        session[attachment.object_type] = attachment.content
+    if activity.actor.attachments is not None:
+        for attachment in activity.actor.attachments:
+            session[attachment.object_type] = attachment.content
 
     is_valid, error_msg = validate()
 
@@ -155,7 +152,7 @@ def on_message(data):
     send(data, json=True, room=target)
 
     # todo: use activity streams, say which message was delivered successfully
-    return 200, str(activity.id)
+    return 200, data
 
 
 @socketio.on('set_acl', namespace='/chat')
@@ -234,7 +231,8 @@ def on_status(data: dict) -> (int, Union[str, None]):
         verb: 'online/invisible/offline'
     }
 
-    :param data: activity streams format, needs actor.id (user id), actor.summary (user name) and verb (online/invisible/offline)
+    :param data: activity streams format, needs actor.id (user id), actor.summary (user name) and verb
+    (online/invisible/offline)
     :return: json if ok, {'status_code': 200}
     """
     activity = as_parser.parse(data)
@@ -292,7 +290,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     room_id = activity.target.id
     user_id = activity.actor.id
     user_name = activity.actor.summary
-    image = session['image']
+    image = session.get('image', '')
 
     is_valid, error_msg = validate_request(activity)
     if not is_valid:
@@ -301,7 +299,9 @@ def on_join(data: dict) -> (int, Union[str, None]):
     room_name = get_room_name(redis, room_id)
     join_the_room(redis, user_id, user_name, room_id, room_name)
 
-    emit('user_joined', activity_for_join(user_id, user_name, room_id, room_name, image), room=room_id, broadcast=True, include_self=False)
+    emit('user_joined', activity_for_join(user_id, user_name, room_id, room_name, image),
+         room=room_id, broadcast=True, include_self=False)
+
     return 200, None
 
 

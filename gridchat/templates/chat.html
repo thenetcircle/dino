@@ -20,18 +20,24 @@
 
                 socket.on('gn_connect', function(data) {
                     console.log(data);
-                    socket.emit('list_rooms', {verb: 'list'});
+                    socket.emit('list_rooms', {
+                        actor: {
+                            id: '{{ user_id }}',
+                            summary: '{{ user_name }}'
+                        },
+                        verb: 'list'
+                    });
                 });
 
-                socket.on('gn_status', function(data) {
-                    $('#chat').val($('#chat').val() + '<< ' + data.msg + ' >>\n');
+                socket.on('gn_status', function(response) {
+                    $('#chat').val($('#chat').val() + '<< ' + response.data + ' >>\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
 
-                socket.on('gn_room_list', function(data) {
-                    console.log(data);
+                socket.on('gn_list_rooms', function(response) {
+                    console.log(response);
 
-                    rooms = data.rooms
+                    rooms = response.data
 
                     $('#rooms').html('');
                     for (i = 0; i < rooms.length; i++) {
@@ -59,9 +65,9 @@
                     })
                 });
 
-                socket.on('gn_users_in_room', function(data) {
-                    console.log(data);
-                    users = data.users;
+                socket.on('gn_users_in_room', function(response) {
+                    console.log(response);
+                    users = response.data;
                     $('#users_in_room').html('');
                     if (users == null || users.length == 0) {
                         $('#chat').val('<< new room created >>\n');
@@ -88,8 +94,9 @@
                     });
                 });
 
-                socket.on('gn_user_connected', function(data) {
-                    console.log(data);
+                socket.on('gn_user_connected', function(response) {
+                    console.log(response);
+                    data = response.data
                     if ($('a#online-user-' + data.actor.id).length > 0) {
                         return;
                     }
@@ -104,21 +111,24 @@
                     });
                 });
 
-                socket.on('gn_user_disconnected', function(data) {
-                    console.log(data);
+                socket.on('gn_user_disconnected', function(response) {
+                    console.log(response);
+                    data = response.data
                     $('a#online-user-' + data.actor.id).remove();
                     $('a#user-' + data.actor.id).remove();
                     $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has disconnected >>\n');
                 });
 
-                socket.on('gn_user_left', function(data) {
-                    console.log(data);
+                socket.on('gn_user_left', function(response) {
+                    console.log(response);
+                    data = response.data
                     $('a#user-' + data.actor.id).remove();
                     $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has left room ' + data.target.display_name + ' >>\n');
                 });
 
-                socket.on('gn_user_joined', function(data) {
-                    console.log(data);
+                socket.on('gn_user_joined', function(response) {
+                    console.log(response);
+                    data = response.data
 
                     if ($('#user-' + data.actor.id).length > 0) {
                         return;
@@ -135,13 +145,15 @@
                     });
                 });
 
-                socket.on('gn_message', function(data) {
-                    console.log(data);
+                socket.on('gn_message', function(response) {
+                    console.log(response);
+                    data = response.data
                     $('#chat').val($('#chat').val() + data.published + ' <' + data.actor.summary + '> ' + data.object.content + '\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
 
-                socket.on('gn_sent', function(data) {
+                socket.on('gn_sent', function(response) {
+                    data = response.data
                     $('#chat').val($('#chat').val() + data.strftime + ' - ' + data.origin + ': ' + data.msg + '\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });

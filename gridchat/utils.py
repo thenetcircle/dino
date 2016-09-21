@@ -111,11 +111,10 @@ def get_room_name(r_server: Redis, room_id: str) -> str:
     room_name = r_server.get(rkeys.room_name_for_id(room_id))
     if room_name is None:
         room_name = str(uuid())
-        print('room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
+        print('WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
         r_server.set(rkeys.room_name_for_id(room_id), room_name)
     else:
         room_name = room_name.decode('utf-8')
-        print('room_name for room_id %s is %s' % (room_id, room_name))
     return room_name
 
 
@@ -177,7 +176,7 @@ def validate_session() -> (bool, str):
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
 
-    for key in required:
+    for key in USER_KEYS:
         if key not in session:
             return False, '"%s" is a required parameter' % key
         val = session[key]
@@ -187,6 +186,12 @@ def validate_session() -> (bool, str):
 
 
 def validate_request(activity: Activity) -> (bool, str):
+    if not hasattr(activity, 'actor'):
+        return False, 'no actor on activity'
+
+    if not hasattr(activity.actor, 'id'):
+        return False, 'no ID on actor'
+
     if activity.actor.id != session['user_id']:
         return False, "user_id in session (%s) doesn't match user_id in request (%s)" % \
                (activity.actor.id, session['user_id'])
