@@ -46,7 +46,7 @@ def connect():
 
     :return: json if ok, {'status_code': 200}
     """
-    emit('init', {'status_code': 200})
+    emit('gn_connect', {'status_code': 200})
 
 
 @socketio.on('user_info', namespace='/chat')
@@ -121,17 +121,18 @@ def user_connection(data):
     is_valid, error_msg = validate()
 
     if not is_valid:
-        emit('response', {'status_code': 400, 'data': error_msg})
+        emit('gn_user_info', {'status_code': 400, 'data': error_msg})
         return
 
     join_room(user_id)
-    emit('response', {'status_code': 200, 'data': 'Connected'})
+    emit('gn_user_info', {'status_code': 200, 'data': 'Connected'})
 
 
 @socketio.on('acl', namespace='/chat')
 def on_acl(data):
     """
     change ACL of a room; only allowed if the user is the owner of the room
+
     :param data:
     :return:
     """
@@ -139,22 +140,25 @@ def on_acl(data):
     user_id = activity.actor.id
     room_id = activity.target.id
 
-    validate_request(activity)
+    is_valid, error_msg = validate_request(activity)
+    if not is_valid:
+        emit('gn_acl', {'status_code': 400, 'data': error_msg})
+        return
 
     if not redis.sismember(rkeys.room_owners(room_id), user_id):
-        emit('acl', {'status_code': 400, 'data': 'user not a owner of room'})
+        emit('gn_acl', {'status_code': 400, 'data': 'user not a owner of room'})
         return
 
     # validate all acls before actually changing anything
     acls = activity.object.attachments
     for acl in acls:
         if acl.object_type not in USER_KEYS:
-            emit('acl', {'status_code': 400, 'data': 'invalid acl type "%s"' % acl_type})
+            emit('gn_acl', {'status_code': 400, 'data': 'invalid acl type "%s"' % acl_type})
             return
     for acl in acls:
         redis.set(rkeys.room_acl(acl.object_type, room_id), acl.content)
 
-    emit('acl', {'status_code': 200, 'data': 'Updated'})
+    emit('gn_acl', {'status_code': 200, 'data': 'Updated'})
 
 
 @socketio.on('status', namespace='/chat')
@@ -182,23 +186,28 @@ def on_status(data):
     user_name = activity.actor.summary
     status = activity.verb
 
+    is_valid, error_msg = validate_request(activity)
+    if not is_valid:
+        emit('gn_status', {'status_code': 400, 'data': error_msg})
+        return
+
     if status == 'online':
         set_user_online(redis, user_id)
-        emit('user-connected', activity_for_connect(user_id, user_name), broadcast=True, include_self=False)
+        emit('gn_user_connected', activity_for_connect(user_id, user_name), broadcast=True, include_self=False)
 
     elif status == 'invisible':
         set_user_invisible(redis, user_id)
-        emit('user-disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+        emit('gn_user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
 
     elif status == 'offline':
         set_user_offline(redis, user_id)
-        emit('user-disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+        emit('gn_user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
 
     else:
         # ignore
         pass
 
-    emit('response', {'status_code': 200})
+    emit('gn_status', {'status_code': 200})
 
 
 @socketio.on('join', namespace='/chat')
@@ -229,6 +238,11 @@ def on_join(data):
     user_name = activity.actor.summary
     image = session['image']
 
+    is_valid, error_msg = validate_request(activity)
+    if not is_valid:
+        emit('gn_users_in_room', {'status_code': 400, 'data': error_msg})
+        return
+
     room_name = get_room_name(redis, room_id)
     join_the_room(redis, user_id, user_name, room_id, room_name)
 
@@ -238,7 +252,7 @@ def on_join(data):
         users.append(str(user.decode('utf-8')))
 
     emit('user_joined', activity_for_join(user_id, user_name, room_id, room_name, image), room=room_id, broadcast=True, include_self=False)
-    emit('users_in_room', {'status_code': 200, 'users': users})
+    emit('gn_users_in_room', {'status_code': 200, 'users': users})
 
 
 @socketio.on('users_in_room', namespace='/chat')
@@ -252,12 +266,17 @@ def on_users_in_room(data):
     activity = as_parser.parse(data)
     room_id = activity.target.id
 
+    is_valid, error_msg = validate_request(activity)
+    if not is_valid:
+        emit('gn_users_in_room', {'status_code': 400, 'data': error_msg})
+        return
+
     users_in_room = redis.smembers(rkeys.users_in_room(room_id))
     users = list()
     for user in users_in_room:
         users.append(str(user.decode('utf-8')))
 
-    emit('users_in_room', {'status_code': 200, 'users': users})
+    emit('gn_users_in_room', {'status_code': 200, 'users': users})
 
 
 @socketio.on('list_rooms', namespace='/chat')
@@ -265,17 +284,24 @@ def on_list_rooms(data):
     """
     get a list of rooms
 
-    :param data: activity streams format, currently not used, in the future should be able to specify sub-set of rooms,
-    e.g. 'rooms in berlin'
+    :param data: activity streams format, needs actor.id (user id), in the future should be able to specify sub-set of
+    rooms, e.g. 'rooms in berlin'
     :return: json if ok, {'status_code': 200, 'rooms': <list of rooms, format: 'room_id:room_name'>}
     """
+    activity = as_parser.parse(data)
+
+    is_valid, error_msg = validate_request(activity)
+    if not is_valid:
+        emit('gn_room_list', {'status_code': 400, 'data': error_msg})
+        return
+
     all_rooms = redis.smembers(rkeys.rooms())
 
     rooms = list()
     for room in all_rooms:
         rooms.append(str(room.decode('utf-8')))
 
-    emit('room_list', {'status_code': 200, 'rooms': rooms})
+    emit('gn_room_list', {'status_code': 200, 'rooms': rooms})
 
 
 @socketio.on('leave', namespace='/chat')
@@ -292,6 +318,11 @@ def on_leave(data):
     user_name = activity.actor.summary
     room_id = activity.target.id
 
+    is_valid, error_msg = validate_request(activity)
+    if not is_valid:
+        emit('gn_leave', {'status_code': 400, 'data': error_msg})
+        return
+
     if room_id is None:
         print('warning: room_id is None when trying to leave room')
         return
@@ -303,7 +334,7 @@ def on_leave(data):
     print('user %s, %s leaving room %s, %s' % (user_id, user_name, room_id, room_name))
     pprint(activity_left)
     emit('user_left', activity_left, room=room_id, broadcast=True, include_self=False)
-    emit('response', {'status_code': 200, 'data': 'Left'})
+    emit('gn_leave', {'status_code': 200, 'data': 'Left'})
 
 
 @socketio.on('disconnect', namespace='/chat')
@@ -327,7 +358,7 @@ def disconnect():
     set_user_offline(redis, user_id)
 
     emit('user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
-    emit('response', {'status_code': 200, 'data': 'Disconnected'})
+    emit('gn_disconnect', {'status_code': 200, 'data': 'Disconnected'})
 
 
 @socketio.on('message', namespace='/chat')
@@ -338,12 +369,18 @@ def on_message(data):
     :param data: activity streams format, bust include at least target.id (room/user id)
     :return: json if ok, {'status_code': 200, 'data': 'Sent'}
     """
-    data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
     pprint(data)
+    data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
     activity = as_parser.parse(data)
+
+    is_valid, error_msg = validate_request(activity)
+    if not is_valid:
+        emit('gn_message', {'status_code': 400, 'data': error_msg})
+        return
+
     target = activity.target.id
     send(data, json=True, room=target)
-    emit('response', {'status_code': 200, 'data': 'Sent'})
+    emit('gn_message', {'status_code': 200, 'data': 'Sent'})
 
 
 if __name__ == '__main__':

@@ -18,17 +18,17 @@
                     });
                 });
 
-                socket.on('init', function(data) {
+                socket.on('gn_connect', function(data) {
                     console.log(data);
                     socket.emit('list_rooms', {verb: 'list'});
                 });
 
-                socket.on('status', function(data) {
+                socket.on('gn_status', function(data) {
                     $('#chat').val($('#chat').val() + '<< ' + data.msg + ' >>\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
 
-                socket.on('room_list', function(data) {
+                socket.on('gn_room_list', function(data) {
                     console.log(data);
 
                     rooms = data.rooms
@@ -59,7 +59,7 @@
                     })
                 });
 
-                socket.on('users_in_room', function(data) {
+                socket.on('gn_users_in_room', function(data) {
                     console.log(data);
                     users = data.users;
                     $('#users_in_room').html('');
@@ -88,7 +88,7 @@
                     });
                 });
 
-                socket.on('user_connected', function(data) {
+                socket.on('gn_user_connected', function(data) {
                     console.log(data);
                     if ($('a#online-user-' + data.actor.id).length > 0) {
                         return;
@@ -104,20 +104,20 @@
                     });
                 });
 
-                socket.on('user_disconnected', function(data) {
+                socket.on('gn_user_disconnected', function(data) {
                     console.log(data);
                     $('a#online-user-' + data.actor.id).remove();
                     $('a#user-' + data.actor.id).remove();
                     $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has disconnected >>\n');
                 });
 
-                socket.on('user_left', function(data) {
+                socket.on('gn_user_left', function(data) {
                     console.log(data);
                     $('a#user-' + data.actor.id).remove();
                     $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has left room ' + data.target.display_name + ' >>\n');
                 });
 
-                socket.on('user_joined', function(data) {
+                socket.on('gn_user_joined', function(data) {
                     console.log(data);
 
                     if ($('#user-' + data.actor.id).length > 0) {
@@ -135,13 +135,13 @@
                     });
                 });
 
-                socket.on('message', function(data) {
+                socket.on('gn_message', function(data) {
                     console.log(data);
                     $('#chat').val($('#chat').val() + data.published + ' <' + data.actor.summary + '> ' + data.object.content + '\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
 
-                socket.on('sent', function(data) {
+                socket.on('gn_sent', function(data) {
                     $('#chat').val($('#chat').val() + data.strftime + ' - ' + data.origin + ': ' + data.msg + '\n');
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });

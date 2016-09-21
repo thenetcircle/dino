@@ -13,7 +13,7 @@ USER_KEYS = [
 ]
 
 
-def activity_for_leave(user_id, user_name, room_id, room_name):
+def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
@@ -65,13 +65,13 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     }
 
 
-def remove_user_from_room(r_server: Redis, user_id: str, user_name: str, room_id: str):
+def remove_user_from_room(r_server: Redis, user_id: str, user_name: str, room_id: str) -> None:
     leave_room(room_id)
     r_server.srem(rkeys.users_in_room(room_id), '%s:%s' % (user_id, user_name))
     r_server.srem(rkeys.rooms_for_user(user_id), room_id)
 
 
-def get_room_name(r_server: Redis, room_id: str):
+def get_room_name(r_server: Redis, room_id: str) -> None:
     room_name = r_server.get(rkeys.room_name_for_id(room_id))
     if room_name is None:
         room_name = str(uuid())
@@ -83,7 +83,7 @@ def get_room_name(r_server: Redis, room_id: str):
     return room_name
 
 
-def join_the_room(r_server: Redis, user_id: str, user_name: str, room_id: str, room_name: str):
+def join_the_room(r_server: Redis, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
     r_server.sadd(rkeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
     r_server.sadd(rkeys.users_in_room(room_id), '%s:%s' % (user_id, user_name))
     r_server.sadd(rkeys.rooms(), '%s:%s' % (room_id, room_name))
@@ -91,7 +91,7 @@ def join_the_room(r_server: Redis, user_id: str, user_name: str, room_id: str, r
     print('user %s is joining room_name %s, room_id %s' % (user_id, room_name, room_id))
 
 
-def set_user_offline(r_server: Redis, user_id: str):
+def set_user_offline(r_server: Redis, user_id: str) -> None:
     r_server.setbit(rkeys.online_bitmap(), int(user_id), 0)
     r_server.srem(rkeys.online_set(), int(user_id))
     r_server.srem(rkeys.users_multi_cast(), user_id)
