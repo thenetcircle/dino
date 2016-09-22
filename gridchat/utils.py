@@ -124,4 +124,3 @@ def set_user_invisible(r_server: Redis, user_id: str):
     r_server.srem(rkeys.online_set(), int(user_id))
     r_server.sadd(rkeys.users_multi_cast(), user_id)
     r_server.set(rkeys.user_status(user_id), rkeys.REDIS_STATUS_INVISIBLE)
-
