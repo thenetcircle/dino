@@ -6,7 +6,7 @@ import re
 class Validator:
     @staticmethod
     def is_digit(val: str):
-        if val is None or not isinstance(val, str):
+        if not Validator._is_string(val) or len(val) == 0:
             return False
         if val[0] in ('-', '+'):
             return val[1:].isdigit()
@@ -82,10 +82,10 @@ class Validator:
             lambda v: Validator.is_digit(v),
 
         'user_name':
-            lambda v: Validator._is_string(v),
+            lambda v: Validator._is_string(v) and len(v) > 0,
 
         'token':
-            lambda v: Validator._is_string(v),
+            lambda v: Validator._is_string(v) and len(v) > 0,
 
         'has_webcam':
             lambda v: Validator._true_false_all(v),
