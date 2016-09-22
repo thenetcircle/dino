@@ -14,6 +14,8 @@ app.config['SECRET_KEY'] = 'secret!fdsa'
 socketio = SocketIO(app, logger=env.config.get(ConfigKeys.LOGGER),
                     message_queue='redis://%s' % env.config.get(ConfigKeys.REDIS_HOST))
 
+env.config[ConfigKeys.SESSION] = session
+
 
 def respond_with(gn_event_name=None):
     def factory(view_func):

@@ -15,12 +15,14 @@ class ConfigKeys:
     REDIS_HOST = 'redis_host'
     LOG_FORMAT = 'log_format'
     DEBUG = 'debug'
+    TESTING = 'testing'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = 'environment'
     VERSION = 'version'
     LOGGER = 'logger'
     REDIS = 'redis'
+    SESSION = 'session'
 
     DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)-18s - %(levelname)-7s - %(message)s"
     DEFAULT_LOG_LEVEL = 'INFO'
@@ -63,6 +65,12 @@ def create_env() -> GNEnvironment:
     config_dict = None
     config_path = None
 
+    gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
+
+    # assuming tests are running
+    if gn_environment is None:
+        return GNEnvironment(None, config_dict)
+
     for conf in config_paths:
         path = os.path.join(os.getcwd(), conf)
 
@@ -87,11 +95,6 @@ def create_env() -> GNEnvironment:
     if not config_dict:
         error("No configuration found: {0}\n".format(", ".join(config_paths)))
         sys.exit(1)
-
-    gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
-
-    if gn_environment is None:
-        raise RuntimeError('no environment specified, use environment variable ENVIRONMENT')
 
     if gn_environment not in config_dict:
         raise RuntimeError('no configuration found for environment "%s"' % gn_environment)

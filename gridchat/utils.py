@@ -14,7 +14,7 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
         },
         'target': {
             'id': room_id,
-            'display_name': room_name
+            'displayName': room_name
         },
         'verb': 'leave'
     }
@@ -31,8 +31,8 @@ def activity_for_join(user_id: str, user_name: str, room_id: str, room_name: str
         },
         'target': {
             'id': room_id,
-            'display_name': room_name,
-            'object_type': 'group'
+            'displayName': room_name,
+            'objectType': 'group'
         },
         'verb': 'join'
     }
@@ -62,10 +62,10 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     response = {
         'target': {
             'id': activity.target.id,
-            'display_name': activity.target.display_name
+            'displayName': activity.target.display_name
         },
         'object': {
-            'object_type': 'acl'
+            'objectType': 'acl'
         },
         'verb': 'get'
     }
@@ -73,8 +73,8 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     response['object']['attachments'] = list()
     for acl_type, acl_value in acl_values.items():
         response['object']['attachments'].append({
-            'object_type': acl_type,
-            'content': acl_value
+            'objectType': str(acl_type, 'utf-8'),
+            'content': str(acl_value, 'utf-8')
         })
 
     return response

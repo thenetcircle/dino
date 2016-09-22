@@ -2,6 +2,8 @@ from flask import session
 from activitystreams import Activity
 import re
 
+from gridchat.env import env, ConfigKeys
+
 
 class Validator:
     @staticmethod
@@ -139,9 +141,10 @@ def validate_request(activity: Activity) -> (bool, str):
     if not hasattr(activity.actor, 'id'):
         return False, 'no ID on actor'
 
-    if activity.actor.id != session['user_id']:
+    if activity.actor.id != env.config.get(ConfigKeys.SESSION).get('user_id', ''):
         return False, "user_id in session (%s) doesn't match user_id in request (%s)" % \
                (activity.actor.id, session['user_id'])
+
     return True, None
 
 
