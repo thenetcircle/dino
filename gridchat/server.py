@@ -1,17 +1,18 @@
-from flask import Flask, redirect, url_for, request, render_template, session
-from flask_socketio import SocketIO, emit
+from flask import redirect, url_for, request, render_template, session, Flask
+from flask_socketio import emit, SocketIO
 from functools import wraps
 from typing import Union
-import pkg_resources
 
 from gridchat.forms import LoginForm
 from gridchat import api
+from gridchat.env import env, ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!fdsa'
-socketio = SocketIO(app, message_queue='redis://')
+socketio = SocketIO(app, logger=env.config.get(ConfigKeys.LOGGER),
+                    message_queue='redis://%s' % env.config.get(ConfigKeys.REDIS_HOST))
 
 
 def respond_with(gn_event_name=None):
@@ -49,7 +50,7 @@ def chat():
 
     return render_template(
             'chat.html', name=user_id, room=user_id, user_id=user_id, user_name=user_name,
-            version=pkg_resources.require('gridchat')[0].version)
+            version=env.config.get(ConfigKeys.VERSION))
 
 
 @socketio.on('connect', namespace='/chat')

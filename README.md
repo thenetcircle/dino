@@ -46,3 +46,37 @@ Example nginx configuration:
             proxy_set_header Connection "upgrade";
         }
     }
+
+### Requirements
+
+Some package requirements (debian/ubuntu):
+
+    $ sudo apt-get install libssl-dev libmysqlclient-dev
+    TODO: more requirements...
+
+Requires Python >=3.5. Download and install from source:
+
+    $ wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz
+    $ tar -xvf Python-3.5.2.tar.xz
+    $ cd Python-3.5.2/
+    $ ./configure --prefix=/usr/local --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+    $ make
+    $ sudo make altinstall # VERY important to use 'altinstall' instead of 'install'
+    $ sudo apt-get install virtualenv
+    
+TODO: check if docker could be useful: https://www.digitalocean.com/community/tutorials/docker-explained-how-to-containerize-python-web-applications
+
+### Running the application
+
+    $ cd grid-notify/
+    $ virtualenv --python=python3.5 env
+    $ source env/bin/activate
+    (env) $ pip install --upgrade .
+    (env) $ ENVIRONMENT=prod gunicorn \
+                --error-logfile ~/gridnotify-gunicorn-error.log \
+                --log-file ~/gridnotify-gunicorn.log \
+                --worker-class eventlet \
+                --threads 16 \
+                --worker-connections 5000 \
+                --workers 1 \
+                app:app

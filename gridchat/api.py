@@ -1,15 +1,18 @@
 import activitystreams as as_parser
-from flask_socketio import send
+import time
+
+from flask_socketio import send, emit
 from datetime import datetime
 from pprint import pprint
-import time
+from typing import Union
 
 from gridchat.utils import *
 from gridchat.validator import *
+from gridchat.env import env, ConfigKeys
+
+redis = env.config.get(ConfigKeys.REDIS)
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
-
-redis = Redis('localhost')
 
 
 def user_connection(data: dict) -> (int, str):
@@ -135,7 +138,7 @@ def on_set_acl(data: dict) -> (int, str):
     # validate all acls before actually changing anything
     acls = activity.object.attachments
     for acl in acls:
-        if acl.object_type not in USER_KEYS:
+        if acl.object_type not in Validator.USER_KEYS.keys():
             return 400, 'invalid acl type "%s"' % acl.object_type
         if not is_acl_valid(acl.object_type, acl.content):
             return 400, 'invalid acl value "%s" for type "%s"' % (acl.content, acl.object_type)
@@ -182,7 +185,6 @@ def on_status(data: dict) -> (int, Union[str, None]):
     (online/invisible/offline)
     :return: json if ok, {'status_code': 200}
     """
-
     # todo: leave rooms on invisible/offline?
 
     activity = as_parser.parse(data)

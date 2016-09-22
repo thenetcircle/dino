@@ -6,10 +6,10 @@ from setuptools import setup, find_packages
 version = '0.4.0'
 
 setup(
-    name='gridchat',
+    name='gridnotify',
     version=version,
     description="",
-    long_description="""Scalable chat server using websockets""",
+    long_description="""Scalable notification server using websockets""",
     classifiers=[],
     keywords='chat',
     author='Oscar Eriksson',
@@ -30,9 +30,4 @@ setup(
         'eventlet==0.19.0',
         'gunicorn==19.6.0',
         'activitystreams==0.1.4'
-    ],
-    entry_points={
-        'console_scripts': [
-            'gridchat = gridchat:entry',
-        ]
-    })
+    ])
