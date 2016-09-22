@@ -5,6 +5,7 @@ from pprint import pprint
 import time
 
 from gridchat.utils import *
+from gridchat.validator import *
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
