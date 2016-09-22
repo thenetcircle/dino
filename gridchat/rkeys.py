@@ -8,7 +8,7 @@ RKEY_ONLINE_SET = 'users:online:set'
 RKEY_MULTI_CAST = 'users:multicat'
 RKEY_USER_STATUS = 'user:status:%s'  # user:status:user_id
 RKEY_ROOM_NAME = 'room:name:%s'  # room:name:room_id
-RKEY_ROOM_ACL = 'room:%s:%s'  # room:acl_type:room_id
+RKEY_ROOM_ACL = 'room:acl:%s'  # room:acl:room_id
 RKEY_ROOM_OWNERS = 'room:owners:%s'  # room:owners:room_id
 
 REDIS_STATUS_AVAILABLE = '1'
@@ -50,8 +50,8 @@ def user_status(user_id: str) -> str:
     return RKEY_USER_STATUS % str(user_id)
 
 
-def room_acl(acl_type: str, room_id: str) -> str:
-    return RKEY_ROOM_ACL % (acl_type, room_id)
+def room_acl(room_id: str) -> dict:
+    return RKEY_ROOM_ACL % room_id
 
 
 def room_owners(room_id: str) -> str:

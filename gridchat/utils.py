@@ -3,29 +3,92 @@ from flask import session
 from uuid import uuid4 as uuid
 from activitystreams import Activity
 from redis import Redis
-from typing import Union
-from functools import wraps
+import re
 
 from gridchat import rkeys
 
 
-USER_KEYS = [
-    'gender', 'membership', 'age', 'country', 'city', 'image'
-    'user_id', 'user_name', 'token', 'has_webcam', 'fake_checked'
-]
+class Validator:
+    @staticmethod
+    def is_digit(val: str):
+        if val is None or not isinstance(val, str):
+            return False
+        if val[0] in ('-', '+'):
+            return val[1:].isdigit()
+        return val.isdigit()
 
+    @staticmethod
+    def _age(val: str):
+        start, end = '-1', '-1'
 
-def respond_with(gn_event_name=None):
-    def factory(view_func):
-        @wraps(view_func)
-        def decorator(*args, **kwargs):
-            status_code, data = view_func(*args, **kwargs)
-            if data is None:
-                emit(gn_event_name, {'status_code': status_code})
-            else:
-                emit(gn_event_name, {'status_code': status_code, 'data': data})
-        return decorator
-    return factory
+        if val.endswith(':'):
+            start = val[:-1]
+        elif val.startswith(':'):
+            end = val[1:]
+        elif len(val.split(':')) == 2:
+            start, end = val.split(':')
+        else:
+            return False
+
+        if not Validator.is_digit(start):
+            return False
+        if not Validator.is_digit(end):
+            return False
+
+        return True
+
+    @staticmethod
+    def _true_false_all(val: str):
+        return val in ['y', 'n', 'a']
+
+    @staticmethod
+    def _is_string(val: str):
+        return val is not None and isinstance(val, str)
+
+    @staticmethod
+    def _chars_in_list(val: str, char_list: list):
+        return len([x for x in val.split(',') if x in char_list]) == len(val.split(','))
+
+    @staticmethod
+    def _match(val: str, regex: str):
+        return re.match(regex, val) is not None
+
+    USER_KEYS = {
+        'gender':
+            lambda v: Validator._chars_in_list(v, ['m', 'f', 'ts']),
+
+        'membership':
+            lambda v: Validator._chars_in_list(v, ['0', '1', '2', '3', '4']),
+
+        'age':
+            lambda v: Validator._age(v),
+
+        # 2 character country codes, no spaces
+        'country':
+            lambda v: Validator._match(v, '^(\w{2},)*(\w{2})+$'),
+
+        # city names can have spaces and dashes in them
+        'city':
+            lambda v: Validator._match(v, '^([\w -]+,)*([\w -]+)+$'),
+
+        'image':
+            lambda v: Validator._true_false_all(v),
+
+        'user_id':
+            lambda v: Validator.is_digit(v),
+
+        'user_name':
+            lambda v: Validator._is_string(v),
+
+        'token':
+            lambda v: Validator._is_string(v),
+
+        'has_webcam':
+            lambda v: Validator._true_false_all(v),
+
+        'fake_checked':
+            lambda v: Validator._true_false_all(v),
+    }
 
 
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
@@ -80,7 +143,7 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     }
 
 
-def activity_for_get_acl(activity: Activity, acl_values: list) -> dict:
+def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     response = {
         'target': {
             'id': activity.target.id,
@@ -88,11 +151,12 @@ def activity_for_get_acl(activity: Activity, acl_values: list) -> dict:
         },
         'object': {
             'object_type': 'acl'
-        }
+        },
+        'verb': 'get'
     }
 
     response['object']['attachments'] = list()
-    for acl_type, acl_value in acl_values:
+    for acl_type, acl_value in acl_values.items():
         response['object']['attachments'].append({
             'object_type': acl_type,
             'content': acl_value
@@ -175,8 +239,7 @@ def validate_session() -> (bool, str):
 
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
-
-    for key in USER_KEYS:
+    for key in Validator.USER_KEYS.keys():
         if key not in session:
             return False, '"%s" is a required parameter' % key
         val = session[key]
@@ -196,3 +259,12 @@ def validate_request(activity: Activity) -> (bool, str):
         return False, "user_id in session (%s) doesn't match user_id in request (%s)" % \
                (activity.actor.id, session['user_id'])
     return True, None
+
+
+def is_acl_valid(acl_type, acl_value):
+    validator = Validator.USER_KEYS.get(acl_type, None)
+    if validator is None:
+        return False
+    if not callable(validator):
+        return False
+    return validator(acl_value)
