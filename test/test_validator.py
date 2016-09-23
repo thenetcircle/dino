@@ -5,52 +5,52 @@ from gridchat.validator import *
 
 class ValidatorAgeTest(unittest.TestCase):
     def test_valid_start_and_end(self):
-        self.assertTrue(Validator._age('18:49'))
+        self.assertTrue(Validator.USER_KEYS['age']('18:49'))
 
     def test_valid_start_only(self):
-        self.assertTrue(Validator._age('18:'))
+        self.assertTrue(Validator.USER_KEYS['age']('18:'))
 
     def test_valid_end_only(self):
-        self.assertTrue(Validator._age(':49'))
+        self.assertTrue(Validator.USER_KEYS['age'](':49'))
 
     def test_no_start_or_end_is_not_valid(self):
-        self.assertFalse(Validator._age(':'))
+        self.assertFalse(Validator.USER_KEYS['age'](':'))
 
     def test_empty_is_not_valid(self):
-        self.assertFalse(Validator._age(''))
+        self.assertFalse(Validator.USER_KEYS['age'](''))
 
-    def test_none_is_not_valid(self):
-        self.assertFalse(Validator._age(None))
+    def test_none_is_valid(self):
+        self.assertTrue(Validator.USER_KEYS['age'](None))
 
     def test_start_not_numeric(self):
-        self.assertFalse(Validator._age('abc:34'))
+        self.assertFalse(Validator.USER_KEYS['age']('abc:34'))
 
     def test_end_not_numeric(self):
-        self.assertFalse(Validator._age('18:def'))
+        self.assertFalse(Validator.USER_KEYS['age']('18:def'))
 
     def test_start_and_end_not_numeric(self):
-        self.assertFalse(Validator._age('abc:def'))
+        self.assertFalse(Validator.USER_KEYS['age']('abc:def'))
 
     def test_end_less_than_start_not_valid(self):
-        self.assertFalse(Validator._age('34:18'))
+        self.assertFalse(Validator.USER_KEYS['age']('34:18'))
 
     def test_start_less_than_end_is_valid(self):
-        self.assertTrue(Validator._age('18:34'))
+        self.assertTrue(Validator.USER_KEYS['age']('18:34'))
 
     def test_start_has_to_be_positive(self):
-        self.assertFalse(Validator._age('-18:34'))
+        self.assertFalse(Validator.USER_KEYS['age']('-18:34'))
 
     def test_end_has_to_be_positive(self):
-        self.assertFalse(Validator._age(':-4'))
+        self.assertFalse(Validator.USER_KEYS['age'](':-4'))
 
     def test_start_and_end_has_to_be_positive(self):
-        self.assertFalse(Validator._age('-8:-4'))
+        self.assertFalse(Validator.USER_KEYS['age']('-8:-4'))
 
     def test_start_and_end_equal_is_valid(self):
-        self.assertTrue(Validator._age('20:20'))
+        self.assertTrue(Validator.USER_KEYS['age']('20:20'))
 
     def test_needs_to_be_numeric_not_spaces(self):
-        self.assertFalse(Validator._age('  :  '))
+        self.assertFalse(Validator.USER_KEYS['age']('  :  '))
 
 
 class ValidatorGenderTest(unittest.TestCase):
@@ -81,8 +81,8 @@ class ValidatorGenderTest(unittest.TestCase):
     def test_only_comma_not_valid(self):
         self.assertFalse(Validator.USER_KEYS['gender'](','))
 
-    def test_none_not_valid(self):
-        self.assertFalse(Validator.USER_KEYS['gender'](None))
+    def test_none_is_valid(self):
+        self.assertTrue(Validator.USER_KEYS['gender'](None))
 
 
 class ValidatorMembershipTest(unittest.TestCase):
@@ -134,8 +134,8 @@ class ValidatorMembershipTest(unittest.TestCase):
     def test_only_comma_not_valid(self):
         self.assertFalse(Validator.USER_KEYS['membership'](','))
 
-    def test_none_not_valid(self):
-        self.assertFalse(Validator.USER_KEYS['membership'](None))
+    def test_none_is_valid(self):
+        self.assertTrue(Validator.USER_KEYS['membership'](None))
 
 
 class ValidatorCountryTest(unittest.TestCase):
@@ -181,8 +181,8 @@ class ValidatorCountryTest(unittest.TestCase):
     def test_only_comma_not_valid(self):
         self.assertFalse(Validator.USER_KEYS['country'](','))
 
-    def test_none_not_valid(self):
-        self.assertFalse(Validator.USER_KEYS['country'](None))
+    def test_none_is_valid(self):
+        self.assertTrue(Validator.USER_KEYS['country'](None))
 
 
 class ValidatorCityTest(unittest.TestCase):
@@ -213,8 +213,8 @@ class ValidatorCityTest(unittest.TestCase):
     def test_only_comma_not_valid(self):
         self.assertFalse(Validator.USER_KEYS['city'](','))
 
-    def test_none_not_valid(self):
-        self.assertFalse(Validator.USER_KEYS['city'](None))
+    def test_none_is_valid(self):
+        self.assertTrue(Validator.USER_KEYS['city'](None))
 
 
 class ValidatorImageTest(unittest.TestCase):
@@ -251,8 +251,8 @@ class ValidatorImageTest(unittest.TestCase):
     def test_only_comma_not_valid(self):
         self.assertFalse(Validator.USER_KEYS['image'](','))
 
-    def test_none_not_valid(self):
-        self.assertFalse(Validator.USER_KEYS['image'](None))
+    def test_none_is_valid(self):
+        self.assertTrue(Validator.USER_KEYS['image'](None))
 
 
 class ValidatorWebcamTest(unittest.TestCase):
@@ -289,8 +289,8 @@ class ValidatorWebcamTest(unittest.TestCase):
     def test_only_comma_not_valid(self):
         self.assertFalse(Validator.USER_KEYS['has_webcam'](','))
 
-    def test_none_not_valid(self):
-        self.assertFalse(Validator.USER_KEYS['has_webcam'](None))
+    def test_none_is_valid(self):
+        self.assertTrue(Validator.USER_KEYS['has_webcam'](None))
 
 
 class ValidatorFakeCheckedTest(unittest.TestCase):
@@ -327,8 +327,8 @@ class ValidatorFakeCheckedTest(unittest.TestCase):
     def test_only_comma_not_valid(self):
         self.assertFalse(Validator.USER_KEYS['fake_checked'](','))
 
-    def test_none_not_valid(self):
-        self.assertFalse(Validator.USER_KEYS['fake_checked'](None))
+    def test_none_is_valid(self):
+        self.assertTrue(Validator.USER_KEYS['fake_checked'](None))
 
 
 class ValidatorUserIdTest(unittest.TestCase):
@@ -387,5 +387,5 @@ class ValidatorTokenTest(unittest.TestCase):
     def test_empty_not_valid(self):
         self.assertFalse(Validator.USER_KEYS['token'](''))
 
-    def test_none_not_valid(self):
+    def test_none_is_not_valid(self):
         self.assertFalse(Validator.USER_KEYS['token'](None))

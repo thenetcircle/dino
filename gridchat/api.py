@@ -143,7 +143,18 @@ def on_set_acl(data: dict) -> (int, str):
         if not is_acl_valid(acl.object_type, acl.content):
             return 400, 'invalid acl value "%s" for type "%s"' % (acl.content, acl.object_type)
 
-    redis.hmset(rkeys.room_acl(room_id), acls)
+    acl_dict = dict()
+    for acl in acls:
+        # if the content is None, it means we're removing this ACL
+        if acl.content is None:
+            redis.hdel(rkeys.room_acl(room_id), acl.object_type)
+            continue
+
+        acl_dict[acl.object_type] = acl.content
+
+    # might have only removed acls, so could be size 0
+    if len(acl_dict) > 0:
+        redis.hmset(rkeys.room_acl(room_id), acl_dict)
 
     return 200, None
 

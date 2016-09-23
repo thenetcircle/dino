@@ -61,24 +61,24 @@ class Validator:
 
     USER_KEYS = {
         'gender':
-            lambda v: Validator._chars_in_list(v, ['m', 'f', 'ts']),
+            lambda v: v is None or Validator._chars_in_list(v, ['m', 'f', 'ts']),
 
         'membership':
-            lambda v: Validator._chars_in_list(v, ['0', '1', '2', '3', '4']),
+            lambda v: v is None or Validator._chars_in_list(v, ['0', '1', '2', '3', '4']),
 
         'age':
-            lambda v: Validator._age(v),
+            lambda v: v is None or Validator._age(v),
 
         # 2 character country codes, no spaces
         'country':
-            lambda v: Validator._match(v, '^([A-Za-z]{2},)*([A-Za-z]{2})+$'),
+            lambda v: v is None or Validator._match(v, '^([A-Za-z]{2},)*([A-Za-z]{2})+$'),
 
         # city names can have spaces and dashes in them
         'city':
-            lambda v: Validator._match(v, '^([\w -]+,)*([\w -]+)+$'),
+            lambda v: v is None or Validator._match(v, '^([\w -]+,)*([\w -]+)+$'),
 
         'image':
-            lambda v: Validator._true_false_all(v),
+            lambda v: v is None or Validator._true_false_all(v),
 
         'user_id':
             lambda v: Validator.is_digit(v),
@@ -90,10 +90,10 @@ class Validator:
             lambda v: Validator._is_string(v) and len(v) > 0,
 
         'has_webcam':
-            lambda v: Validator._true_false_all(v),
+            lambda v: v is None or Validator._true_false_all(v),
 
         'fake_checked':
-            lambda v: Validator._true_false_all(v),
+            lambda v: v is None or Validator._true_false_all(v),
     }
 
 
