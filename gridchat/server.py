@@ -61,15 +61,15 @@ def connect() -> (int, None):
     """
     connect to the server
 
-    :return: json if ok, {'status_code': 200}
+    :return: {'status_code': 200}
     """
     return 200, None
 
 
-@socketio.on('user_info', namespace='/chat')
-@respond_with('gn_user_info')
-def user_connection(data: dict) -> (int, str):
-    return api.user_connection(data)
+@socketio.on('login', namespace='/chat')
+@respond_with('gn_login')
+def on_login(data: dict) -> (int, str):
+    return api.on_login(data)
 
 
 @socketio.on('message', namespace='/chat')

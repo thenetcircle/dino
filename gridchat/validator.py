@@ -143,7 +143,7 @@ class Validator:
     }
 
 
-def validate() -> (bool, str):
+def validate_login() -> (bool, str):
     """
     checks whether required data was received and that it validates with community (not tampered with)
 
@@ -158,10 +158,9 @@ def validate() -> (bool, str):
 
 def validate_user_data_with_community() -> (bool, str):
     """
-    todo: ask remote community if the user data is valid (could have been manually changed in js)
-
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
+    # todo: ask remote community if the user data is valid (could have been manually changed in js)
     return True, None
 
 

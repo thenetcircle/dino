@@ -1,19 +1,19 @@
 import activitystreams as as_parser
 import time
 
-from flask_socketio import send, emit
 from datetime import datetime
-from pprint import pprint
 from typing import Union
 
-from gridchat.utils import *
-from gridchat.validator import *
+from gridchat import utils
+from gridchat import validator
+from gridchat.validator import Validator
 from gridchat.env import env
+from gridchat import rkeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 
-def user_connection(data: dict) -> (int, str):
+def on_login(data: dict) -> (int, str):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
 
@@ -25,40 +25,40 @@ def user_connection(data: dict) -> (int, str):
             summary: 'joe',
             image: {
                 url: 'http://some-url.com/image.jpg',
-                width: '120px',
-                height: '120px'
+                width: '120',
+                height: '120'
             }
             attachments: [
                 {
-                    object_type: 'gender',
+                    objectType: 'gender',
                     content: 'm'
                 },
                 {
-                    object_type: 'age',
+                    objectType: 'age',
                     content: '28'
                 },
                 {
-                    object_type: 'membership',
+                    objectType: 'membership',
                     content: '1'
                 },
                 {
-                    object_type: 'fake_checked',
+                    objectType: 'fake_checked',
                     content: 'y'
                 },
                 {
-                    object_type: 'has_webcam',
+                    objectType: 'has_webcam',
                     content: 'n'
                 },
                 {
-                    object_type: 'country',
+                    objectType: 'country',
                     content: 'de'
                 },
                 {
-                    object_type: 'city',
+                    objectType: 'city',
                     content: 'Berlin'
                 },
                 {
-                    object_type: 'token',
+                    objectType: 'token',
                     content: '66968fad-2336-40c9-bc6d-0ecbcd91f4da'
                 }
             ]
@@ -69,7 +69,7 @@ def user_connection(data: dict) -> (int, str):
     :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
-    # todo: check env.redis if any queued notifications, then emit and clear?
+    # todo: check env.redis if any queued notifications, then env.emit and clear?
 
     activity = as_parser.parse(data)
     user_id = activity.actor.id
@@ -78,13 +78,17 @@ def user_connection(data: dict) -> (int, str):
     env.session['user_name'] = activity.actor.summary
 
     if activity.actor.image is not None:
-        env.session['image'] = activity.actor.image.url
+        env.session['image_url'] = activity.actor.image.url
+        env.session['image'] = 'y'
+    else:
+        env.session['image_url'] = ''
+        env.session['image'] = 'n'
 
     if activity.actor.attachments is not None:
         for attachment in activity.actor.attachments:
             env.session[attachment.object_type] = attachment.content
 
-    is_valid, error_msg = validate()
+    is_valid, error_msg = validator.validate_login()
 
     if not is_valid:
         return 400, error_msg
@@ -104,12 +108,12 @@ def on_message(data):
     data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
     activity = as_parser.parse(data)
 
-    is_valid, error_msg = validate_request(activity)
+    is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
     target = activity.target.id
-    send(data, json=True, room=target)
+    env.send(data, json=True, room=target)
 
     # todo: use activity streams, say which message was delivered successfully
     return 200, data
@@ -126,7 +130,7 @@ def on_set_acl(data: dict) -> (int, str):
     user_id = activity.actor.id
     room_id = activity.target.id
 
-    is_valid, error_msg = validate_request(activity)
+    is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -138,7 +142,7 @@ def on_set_acl(data: dict) -> (int, str):
     for acl in acls:
         if acl.object_type not in Validator.USER_KEYS.keys():
             return 400, 'invalid acl type "%s"' % acl.object_type
-        if not is_acl_valid(acl.object_type, acl.content):
+        if not validator.is_acl_valid(acl.object_type, acl.content):
             return 400, 'invalid acl value "%s" for type "%s"' % (acl.content, acl.object_type)
 
     acl_dict = dict()
@@ -166,14 +170,14 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
     """
     activity = as_parser.parse(data)
     room_id = activity.target.id
-    activity.target.display_name = get_room_name(env.redis, room_id)
+    activity.target.display_name = utils.get_room_name(env.redis, room_id)
 
-    is_valid, error_msg = validate_request(activity)
+    is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
     values = env.redis.hgetall(rkeys.room_acl(room_id))
-    return 200, activity_for_get_acl(activity, values)
+    return 200, utils.activity_for_get_acl(activity, values)
 
 
 def on_status(data: dict) -> (int, Union[str, None]):
@@ -201,21 +205,21 @@ def on_status(data: dict) -> (int, Union[str, None]):
     user_name = activity.actor.summary
     status = activity.verb
 
-    is_valid, error_msg = validate_request(activity)
+    is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
     if status == 'online':
-        set_user_online(env.redis, user_id)
-        emit('gn_user_connected', activity_for_connect(user_id, user_name), broadcast=True, include_self=False)
+        utils.set_user_online(env.redis, user_id)
+        env.emit('gn_user_connected', utils.activity_for_connect(user_id, user_name), broadcast=True, include_self=False)
 
     elif status == 'invisible':
-        set_user_invisible(env.redis, user_id)
-        emit('gn_user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+        utils.set_user_invisible(env.redis, user_id)
+        env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
 
     elif status == 'offline':
-        set_user_offline(env.redis, user_id)
-        emit('gn_user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+        utils.set_user_offline(env.redis, user_id)
+        env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
 
     else:
         # ignore
@@ -250,18 +254,18 @@ def on_join(data: dict) -> (int, Union[str, None]):
     user_name = activity.actor.summary
     image = env.session.get('image', '')
 
-    is_valid, error_msg = validate_request(activity)
+    is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
-    is_valid, error_msg = validate_acl(activity)
+    is_valid, error_msg = validator.validate_acl(activity)
     if not is_valid:
         return 400, error_msg
 
-    room_name = get_room_name(env.redis, room_id)
-    join_the_room(env.redis, user_id, user_name, room_id, room_name)
+    room_name = utils.get_room_name(env.redis, room_id)
+    utils.join_the_room(env.redis, user_id, user_name, room_id, room_name)
 
-    env.emit('gn_user_joined', activity_for_join(user_id, user_name, room_id, room_name, image),
+    env.emit('gn_user_joined', utils.activity_for_join(user_id, user_name, room_id, room_name, image),
              room=room_id, broadcast=True, include_self=False)
 
     return 200, None
@@ -277,7 +281,7 @@ def on_users_in_room(data: dict) -> (int, Union[dict, str]):
     activity = as_parser.parse(data)
     room_id = activity.target.id
 
-    is_valid, error_msg = validate_request(activity)
+    is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -300,7 +304,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     """
     activity = as_parser.parse(data)
 
-    is_valid, error_msg = validate_request(activity)
+    is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -328,18 +332,18 @@ def on_leave(data: dict) -> (int, Union[str, None]):
     user_name = activity.actor.summary
     room_id = activity.target.id
 
-    is_valid, error_msg = validate_request(activity)
+    is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
     if room_id is None:
         return 400, 'warning: room_id is None when trying to leave room'
 
-    room_name = get_room_name(env.redis, room_id)
-    remove_user_from_room(env.redis, user_id, user_name, room_id)
+    room_name = utils.get_room_name(env.redis, room_id)
+    utils.remove_user_from_room(env.redis, user_id, user_name, room_id)
 
-    activity_left = activity_for_leave(user_id, user_name, room_id, room_name)
-    emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
+    activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
+    env.emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
 
     return 200, None
 
@@ -358,11 +362,11 @@ def on_disconnect() -> (int, None):
     rooms = env.redis.smembers(rkeys.rooms_for_user(user_id))
     for room in rooms:
         room_id, room_name = room.decode('utf-8').split(':', 1)
-        remove_user_from_room(env.redis, user_id, user_name, room_id)
-        send(activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
+        utils.remove_user_from_room(env.redis, user_id, user_name, room_id)
+        env.send(utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
 
     env.redis.delete(rkeys.rooms_for_user(user_id))
-    set_user_offline(env.redis, user_id)
+    utils.set_user_offline(env.redis, user_id)
 
-    emit('gn_user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+    env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
     return 200, None
