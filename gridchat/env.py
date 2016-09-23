@@ -6,6 +6,7 @@ import pkg_resources
 import logging
 from logging import RootLogger
 from redis import Redis
+from flask_socketio import emit as _flask_emit, send as _flask_send, join_room as _flask_join_room
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
 
@@ -37,15 +38,12 @@ class GNEnvironment(object):
         self.root_path = root_path
         self.config = config
         self.commands = dict()
-
-    def redis(self):
-        return self.config.get(ConfigKeys.REDIS, None)
-
-    def session(self):
-        return self.config.get(ConfigKeys.SESSION, None)
-
-    def logger(self):
-        return self.config.get(ConfigKeys.LOGGER, None)
+        self.emit = _flask_emit
+        self.send = _flask_send
+        self.join_room = _flask_join_room
+        self.logger = config.get(ConfigKeys.LOGGER, None)
+        self.redis = config.get(ConfigKeys.REDIS, None)
+        self.session = config.get(ConfigKeys.SESSION, None)
 
     def merge(self, config):
         self.config = self.config.sub(**config)
@@ -71,7 +69,7 @@ def create_env() -> GNEnvironment:
         return logging.getLogger(__name__)
 
     config_paths = ["grid.yaml", "grid.json"]
-    config_dict = None
+    config_dict = dict()
     config_path = None
 
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)

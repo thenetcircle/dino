@@ -8,9 +8,7 @@ from typing import Union
 
 from gridchat.utils import *
 from gridchat.validator import *
-from gridchat.env import env, ConfigKeys
-
-redis = env.config.get(ConfigKeys.REDIS)
+from gridchat.env import env
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
@@ -71,27 +69,27 @@ def user_connection(data: dict) -> (int, str):
     :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
     :return: json if ok, {'status_code': 200, 'data': 'Connected'}
     """
-    # todo: check redis if any queued notifications, then emit and clear?
+    # todo: check env.redis if any queued notifications, then emit and clear?
 
     activity = as_parser.parse(data)
     user_id = activity.actor.id
 
-    session['user_id'] = user_id
-    session['user_name'] = activity.actor.summary
+    env.session['user_id'] = user_id
+    env.session['user_name'] = activity.actor.summary
 
     if activity.actor.image is not None:
-        session['image'] = activity.actor.image.url
+        env.session['image'] = activity.actor.image.url
 
     if activity.actor.attachments is not None:
         for attachment in activity.actor.attachments:
-            session[attachment.object_type] = attachment.content
+            env.session[attachment.object_type] = attachment.content
 
     is_valid, error_msg = validate()
 
     if not is_valid:
         return 400, error_msg
 
-    join_room(user_id)
+    env.join_room(user_id)
     return 200, 'Connected'
 
 
@@ -102,7 +100,6 @@ def on_message(data):
     :param data: activity streams format, bust include at least target.id (room/user id)
     :return: json if ok, {'status_code': 200, 'data': 'Sent'}
     """
-    pprint(data)
     data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
     activity = as_parser.parse(data)
 
@@ -132,7 +129,7 @@ def on_set_acl(data: dict) -> (int, str):
     if not is_valid:
         return 400, error_msg
 
-    if not redis.sismember(rkeys.room_owners(room_id), user_id):
+    if not env.redis.sismember(rkeys.room_owners(room_id), user_id):
         return 400, 'user not a owner of room'
 
     # validate all acls before actually changing anything
@@ -147,14 +144,14 @@ def on_set_acl(data: dict) -> (int, str):
     for acl in acls:
         # if the content is None, it means we're removing this ACL
         if acl.content is None:
-            redis.hdel(rkeys.room_acl(room_id), acl.object_type)
+            env.redis.hdel(rkeys.room_acl(room_id), acl.object_type)
             continue
 
         acl_dict[acl.object_type] = acl.content
 
     # might have only removed acls, so could be size 0
     if len(acl_dict) > 0:
-        redis.hmset(rkeys.room_acl(room_id), acl_dict)
+        env.redis.hmset(rkeys.room_acl(room_id), acl_dict)
 
     return 200, None
 
@@ -168,13 +165,13 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
     """
     activity = as_parser.parse(data)
     room_id = activity.target.id
-    activity.target.display_name = get_room_name(redis, room_id)
+    activity.target.display_name = get_room_name(env.redis, room_id)
 
     is_valid, error_msg = validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
-    values = redis.hgetall(rkeys.room_acl(room_id))
+    values = env.redis.hgetall(rkeys.room_acl(room_id))
     return 200, activity_for_get_acl(activity, values)
 
 
@@ -208,15 +205,15 @@ def on_status(data: dict) -> (int, Union[str, None]):
         return 400, error_msg
 
     if status == 'online':
-        set_user_online(redis, user_id)
+        set_user_online(env.redis, user_id)
         emit('gn_user_connected', activity_for_connect(user_id, user_name), broadcast=True, include_self=False)
 
     elif status == 'invisible':
-        set_user_invisible(redis, user_id)
+        set_user_invisible(env.redis, user_id)
         emit('gn_user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
 
     elif status == 'offline':
-        set_user_offline(redis, user_id)
+        set_user_offline(env.redis, user_id)
         emit('gn_user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
 
     else:
@@ -246,12 +243,11 @@ def on_join(data: dict) -> (int, Union[str, None]):
     """
     # todo: how to deal with invisibility here?
 
-    pprint(data)
     activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
     user_name = activity.actor.summary
-    image = env.session().get('image', '')
+    image = env.session.get('image', '')
 
     is_valid, error_msg = validate_request(activity)
     if not is_valid:
@@ -261,11 +257,11 @@ def on_join(data: dict) -> (int, Union[str, None]):
     if not is_valid:
         return 400, error_msg
 
-    room_name = get_room_name(redis, room_id)
-    join_the_room(redis, user_id, user_name, room_id, room_name)
+    room_name = get_room_name(env.redis, room_id)
+    join_the_room(env.redis, user_id, user_name, room_id, room_name)
 
-    emit('gn_user_joined', activity_for_join(user_id, user_name, room_id, room_name, image),
-         room=room_id, broadcast=True, include_self=False)
+    env.emit('gn_user_joined', activity_for_join(user_id, user_name, room_id, room_name, image),
+             room=room_id, broadcast=True, include_self=False)
 
     return 200, None
 
@@ -284,7 +280,7 @@ def on_users_in_room(data: dict) -> (int, Union[dict, str]):
     if not is_valid:
         return 400, error_msg
 
-    users_in_room = redis.smembers(rkeys.users_in_room(room_id))
+    users_in_room = env.redis.smembers(rkeys.users_in_room(room_id))
     users = list()
     for user in users_in_room:
         users.append(str(user.decode('utf-8')))
@@ -307,7 +303,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     if not is_valid:
         return 400, error_msg
 
-    all_rooms = redis.smembers(rkeys.rooms())
+    all_rooms = env.redis.smembers(rkeys.rooms())
 
     rooms = list()
     for room in all_rooms:
@@ -338,8 +334,8 @@ def on_leave(data: dict) -> (int, Union[str, None]):
     if room_id is None:
         return 400, 'warning: room_id is None when trying to leave room'
 
-    room_name = get_room_name(redis, room_id)
-    remove_user_from_room(redis, user_id, user_name, room_id)
+    room_name = get_room_name(env.redis, room_id)
+    remove_user_from_room(env.redis, user_id, user_name, room_id)
 
     activity_left = activity_for_leave(user_id, user_name, room_id, room_name)
     emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
@@ -354,19 +350,18 @@ def on_disconnect() -> (int, None):
     :return json if ok, {'status_code': 200, 'data': 'Disconnected'}
     """
     # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
-    session = env.session()
-    user_id = session.get('user_id', 'NOT_FOUND_IN_SESSION')
-    user_name = session.get('user_name', 'NOT_FOUND_IN_SESSION')
-    leave_room(user_id)
+    user_id = env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
+    user_name = env.session.get('user_name', 'NOT_FOUND_IN_SESSION')
+    env.leave_room(user_id)
 
-    rooms = redis.smembers(rkeys.rooms_for_user(user_id))
+    rooms = env.redis.smembers(rkeys.rooms_for_user(user_id))
     for room in rooms:
         room_id, room_name = room.decode('utf-8').split(':', 1)
-        remove_user_from_room(redis, user_id, user_name, room_id)
+        remove_user_from_room(env.redis, user_id, user_name, room_id)
         send(activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
 
-    redis.delete(rkeys.rooms_for_user(user_id))
-    set_user_offline(redis, user_id)
+    env.redis.delete(rkeys.rooms_for_user(user_id))
+    set_user_offline(env.redis, user_id)
 
     emit('gn_user_disconnected', activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
     return 200, None

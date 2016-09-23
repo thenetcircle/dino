@@ -58,7 +58,7 @@ class Validator:
         if not Validator._age(expected) or not Validator.is_digit(actual):
             return False
 
-        expected_start, expected_end = _split_age(actual.strip())
+        expected_start, expected_end = _split_age(expected.strip())
 
         if expected_start is None and expected_end is None:
             return False
@@ -96,13 +96,13 @@ class Validator:
         'age':
             lambda expected, actual: expected is None or Validator._age_range_validate(expected, actual),
 
-        'gender': generic_validator,
-        'membership': generic_validator,
-        'country': generic_validator,
-        'city': generic_validator,
-        'image': generic_validator,
-        'has_webcam': generic_validator,
-        'fake_checked': generic_validator
+        'gender': lambda expected, actual: Validator.generic_validator(expected, actual),
+        'membership': lambda expected, actual: Validator.generic_validator(expected, actual),
+        'country': lambda expected, actual: Validator.generic_validator(expected, actual),
+        'city': lambda expected, actual: Validator.generic_validator(expected, actual),
+        'image': lambda expected, actual: Validator.generic_validator(expected, actual),
+        'has_webcam': lambda expected, actual: Validator.generic_validator(expected, actual),
+        'fake_checked': lambda expected, actual: Validator.generic_validator(expected, actual)
     }
 
     USER_KEYS = {
@@ -171,43 +171,44 @@ def validate_session() -> (bool, str):
 
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
-    session = env.session()
     for key in Validator.USER_KEYS.keys():
-        if key not in session:
+        if key not in env.session:
             return False, '"%s" is a required parameter' % key
-        val = session[key]
+        val = env.session[key]
         if val is None or val == '':
             return False, '"%s" is a required parameter' % key
     return True, None
 
 
 def validate_request(activity: Activity) -> (bool, str):
-    session = env.session()
-
     if not hasattr(activity, 'actor'):
         return False, 'no actor on activity'
 
     if not hasattr(activity.actor, 'id'):
         return False, 'no ID on actor'
 
-    if activity.actor.id != session.get('user_id', 'NOT_FOUND_IN_SESSION'):
+    if activity.actor.id != env.session.get('user_id', 'NOT_FOUND_IN_SESSION'):
         return False, "user_id in session (%s) doesn't match user_id in request (%s)" % \
-               (activity.actor.id, session.get('user_id', 'NOT_FOUND_IN_SESSION'))
+               (activity.actor.id, env.session.get('user_id', 'NOT_FOUND_IN_SESSION'))
 
     return True, None
 
 
 def validate_acl(activity: Activity) -> (bool, str):
-    session = env.session()
-    redis = env.redis()
-    logger = env.logger()
-
     room_id = activity.target.id
-    room_name = utils.get_room_name(redis, room_id)
-    user_id = session.get('user_id', 'NOT_FOUND_IN_SESSION')
-    user_name = session.get('user_name', 'NOT_FOUND_IN_SESSION')
+    room_name = utils.get_room_name(env.redis, room_id)
+    user_id = env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
+    user_name = env.session.get('user_name', 'NOT_FOUND_IN_SESSION')
 
-    encoded_acls = redis.hgetall(rkeys.room_acl(room_id))
+    # owners can always join
+    # todo: maybe not if banned? or remove owner status if banned?
+    # todo: let admins always be able to join any room
+    if env.redis.sismember(rkeys.room_owners(room_id), user_id):
+        env.logger.debug('user %s (%s) is an owner of room %s (%s), skipping ACL validation' %
+                         (user_id, user_name, room_id, room_name))
+        return True, None
+
+    encoded_acls = env.redis.hgetall(rkeys.room_acl(room_id))
     if len(encoded_acls) == 0:
         return True, None
 
@@ -215,36 +216,36 @@ def validate_acl(activity: Activity) -> (bool, str):
         acl_key = str(acl_key, 'utf-8')
         acl_val = str(acl_val, 'utf-8')
 
-        if acl_key not in session:
+        if acl_key not in env.session:
             error_msg = 'Key "%s" not in session for user "%s" (%s), cannot let join "%s" (%s)' % \
-                   (acl_key, user_id, user_name, room_id, utils.get_room_name(redis, room_id))
-            logger.error(error_msg)
+                   (acl_key, user_id, user_name, room_id, room_name)
+            env.logger.error(error_msg)
             return False, error_msg
 
-        session_value = session.get(acl_key, None)
+        session_value = env.session.get(acl_key, None)
         if session_value is None:
             error_msg = 'Value for key "%s" not in session, cannot let "%s" (%s) join "%s" (%s)' % \
                    (acl_key, user_id, user_name, room_id, room_name)
-            logger.error(error_msg)
+            env.logger.error(error_msg)
             return False, error_msg
 
         if acl_key not in Validator.ACL_VALIDATORS:
             error_msg = 'No validator for ACL type "%s", cannot let "%s" (%s) join "%s" (%s)' % \
                         (acl_key, user_id, user_name, room_id, room_name)
-            logger.error(error_msg)
+            env.logger.error(error_msg)
             return False, error_msg
 
         validator = Validator.ACL_VALIDATORS[acl_key]
         if not callable(validator):
             error_msg = 'Validator for ACL type "%s" is not callable, cannot let "%s" (%s) join "%s" (%s)' % \
                         (acl_key, user_id, user_name, room_id, room_name)
-            logger.error(error_msg)
+            env.logger.error(error_msg)
             return False, error_msg
 
         if not validator(acl_val, session_value):
             error_msg = 'Value "%s" did not validate for ACL "%s" (value "%s"), cannot let "%s" (%s) join "%s" (%s)' % \
                    (session_value, acl_key, acl_val, user_id, user_name, room_id, room_name)
-            logger.info(error_msg)
+            env.logger.info(error_msg)
             return False, error_msg
 
     return True, None

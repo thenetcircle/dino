@@ -1,9 +1,9 @@
-from flask_socketio import join_room, leave_room
 from uuid import uuid4 as uuid
 from activitystreams import Activity
 from redis import Redis
 
 from gridchat import rkeys
+from gridchat.env import env
 
 
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
@@ -81,7 +81,7 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
 
 
 def remove_user_from_room(r_server: Redis, user_id: str, user_name: str, room_id: str) -> None:
-    leave_room(room_id)
+    env.leave_room(room_id)
     r_server.srem(rkeys.users_in_room(room_id), '%s:%s' % (user_id, user_name))
     r_server.srem(rkeys.rooms_for_user(user_id), room_id)
 
@@ -101,8 +101,8 @@ def join_the_room(r_server: Redis, user_id: str, user_name: str, room_id: str, r
     r_server.sadd(rkeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
     r_server.sadd(rkeys.users_in_room(room_id), '%s:%s' % (user_id, user_name))
     r_server.sadd(rkeys.rooms(), '%s:%s' % (room_id, room_name))
-    join_room(room_id)
-    print('user %s is joining room_name %s, room_id %s' % (user_id, room_name, room_id))
+    env.join_room(room_id)
+    env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
 
 
 def set_user_offline(r_server: Redis, user_id: str) -> None:

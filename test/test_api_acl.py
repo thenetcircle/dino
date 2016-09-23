@@ -1,7 +1,7 @@
 import unittest
 import fakeredis
-from pprint import pprint
 from uuid import uuid4 as uuid
+import logging
 
 from gridchat.env import env, ConfigKeys
 from gridchat import rkeys
@@ -16,6 +16,9 @@ env.config[ConfigKeys.SESSION]['user_id'] = '1234'
 
 from gridchat import api
 
+logging.basicConfig(level='DEBUG')
+logger = logging.getLogger(__name__)
+
 
 class ApiAclTest(unittest.TestCase):
     USER_ID = '1234'
@@ -26,6 +29,9 @@ class ApiAclTest(unittest.TestCase):
         redis.flushall()
         redis.set(rkeys.room_name_for_id(ApiAclTest.ROOM_ID), ApiAclTest.ROOM_NAME)
         redis.sadd(rkeys.room_owners(ApiAclTest.ROOM_ID), ApiAclTest.USER_ID)
+        env.logger = logger
+        env.session = {'user_id': ApiAclTest.USER_ID}
+        env.redis = redis
 
     def test_get_acl(self):
         acl_type = 'gender'
