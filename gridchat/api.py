@@ -43,15 +43,15 @@ def user_connection(data: dict) -> (int, str):
                 },
                 {
                     object_type: 'fake_checked',
-                    content: 'yes'
+                    content: 'y'
                 },
                 {
                     object_type: 'has_webcam',
-                    content: 'no'
+                    content: 'n'
                 },
                 {
                     object_type: 'country',
-                    content: 'Germany'
+                    content: 'de'
                 },
                 {
                     object_type: 'city',
@@ -67,7 +67,7 @@ def user_connection(data: dict) -> (int, str):
     }
 
     :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
-    :return: json if ok, {'status_code': 200, 'data': 'Connected'}
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     # todo: check env.redis if any queued notifications, then emit and clear?
 
@@ -90,7 +90,7 @@ def user_connection(data: dict) -> (int, str):
         return 400, error_msg
 
     env.join_room(user_id)
-    return 200, 'Connected'
+    return 200, None
 
 
 def on_message(data):
@@ -98,8 +98,9 @@ def on_message(data):
     send any kind of message/event to a target user/group
 
     :param data: activity streams format, bust include at least target.id (room/user id)
-    :return: json if ok, {'status_code': 200, 'data': 'Sent'}
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<same AS as client sent, plus timestamp>'}
     """
+    # let the server determine the publishing time of the event, not the client
     data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
     activity = as_parser.parse(data)
 
@@ -119,7 +120,7 @@ def on_set_acl(data: dict) -> (int, str):
     change ACL of a room; only allowed if the user is the owner of the room
 
     :param data: activity streams, acls as attachments to object with object_type as acl name and content as acl value
-    :return (int, str): (status_code, error_message/None)
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     activity = as_parser.parse(data)
     user_id = activity.actor.id
@@ -161,7 +162,7 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
     change ACL of a room; only allowed if the user is the owner of the room
 
     :param data:
-    :return:
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<AS with acl as object.attachments>'}
     """
     activity = as_parser.parse(data)
     room_id = activity.target.id
@@ -191,7 +192,7 @@ def on_status(data: dict) -> (int, Union[str, None]):
 
     :param data: activity streams format, needs actor.id (user id), actor.summary (user name) and verb
     (online/invisible/offline)
-    :return: json if ok, {'status_code': 200}
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     # todo: leave rooms on invisible/offline?
 
@@ -239,7 +240,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     }
 
     :param data: activity streams format, need actor.id (user id), target.id (user id), actor.summary (user name)
-    :return: json if okay, {'status_code': 200, 'users': <users in the room, format: 'user_id:user_name'>}
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     # todo: how to deal with invisibility here?
 
@@ -318,7 +319,7 @@ def on_leave(data: dict) -> (int, Union[str, None]):
     leave a room
 
     :param data: activity streams format, needs actor.id (user id), actor.summary (user name), target.id (room id)
-    :return: json if ok, {'status_code': 200, 'data': 'Left'}
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     #  todo: should handle invisibility here? don't broadcast leaving a room if invisible
 
@@ -347,7 +348,7 @@ def on_disconnect() -> (int, None):
     """
     when a client disconnects or the server no longer gets a ping response from the client
 
-    :return json if ok, {'status_code': 200, 'data': 'Disconnected'}
+    :return json if ok, {'status_code': 200}
     """
     # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
     user_id = env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
