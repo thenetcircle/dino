@@ -1,8 +1,9 @@
-from flask import session
 from activitystreams import Activity
 import re
 
+from gridchat import rkeys
 from gridchat.env import env, ConfigKeys
+from gridchat import utils
 
 
 class Validator:
@@ -43,6 +44,34 @@ class Validator:
         return True
 
     @staticmethod
+    def _age_range_validate(expected: str, actual: str):
+        def _split_age(age_range: str):
+            if len(age_range) > 1 and age_range.endswith(':'):
+                return age_range[:-1], None
+            elif len(age_range) > 1 and age_range.startswith(':'):
+                return None, age_range[1:]
+            elif len(age_range.split(':')) == 2:
+                return age_range.split(':')
+            else:
+                return None, None
+
+        if not Validator._age(expected) or not Validator.is_digit(actual):
+            return False
+
+        expected_start, expected_end = _split_age(actual.strip())
+
+        if expected_start is None and expected_end is None:
+            return False
+
+        if expected_start is not None and expected_start > actual:
+            return False
+
+        if expected_end is not None and expected_end < actual:
+            return False
+
+        return True
+
+    @staticmethod
     def _true_false_all(val: str):
         return val in ['y', 'n', 'a']
 
@@ -58,6 +87,23 @@ class Validator:
     @staticmethod
     def _match(val: str, regex: str):
         return Validator._is_string(val) and re.match(regex, val) is not None
+
+    @staticmethod
+    def generic_validator(expected, actual):
+        return expected is None or actual in expected.split(',')
+
+    ACL_VALIDATORS = {
+        'age':
+            lambda expected, actual: expected is None or Validator._age_range_validate(expected, actual),
+
+        'gender': generic_validator,
+        'membership': generic_validator,
+        'country': generic_validator,
+        'city': generic_validator,
+        'image': generic_validator,
+        'has_webcam': generic_validator,
+        'fake_checked': generic_validator
+    }
 
     USER_KEYS = {
         'gender':
@@ -125,6 +171,7 @@ def validate_session() -> (bool, str):
 
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
+    session = env.session()
     for key in Validator.USER_KEYS.keys():
         if key not in session:
             return False, '"%s" is a required parameter' % key
@@ -135,15 +182,70 @@ def validate_session() -> (bool, str):
 
 
 def validate_request(activity: Activity) -> (bool, str):
+    session = env.session()
+
     if not hasattr(activity, 'actor'):
         return False, 'no actor on activity'
 
     if not hasattr(activity.actor, 'id'):
         return False, 'no ID on actor'
 
-    if activity.actor.id != env.config.get(ConfigKeys.SESSION).get('user_id', ''):
+    if activity.actor.id != session.get('user_id', 'NOT_FOUND_IN_SESSION'):
         return False, "user_id in session (%s) doesn't match user_id in request (%s)" % \
-               (activity.actor.id, session['user_id'])
+               (activity.actor.id, session.get('user_id', 'NOT_FOUND_IN_SESSION'))
+
+    return True, None
+
+
+def validate_acl(activity: Activity) -> (bool, str):
+    session = env.session()
+    redis = env.redis()
+    logger = env.logger()
+
+    room_id = activity.target.id
+    room_name = utils.get_room_name(redis, room_id)
+    user_id = session.get('user_id', 'NOT_FOUND_IN_SESSION')
+    user_name = session.get('user_name', 'NOT_FOUND_IN_SESSION')
+
+    encoded_acls = redis.hgetall(rkeys.room_acl(room_id))
+    if len(encoded_acls) == 0:
+        return True, None
+
+    for acl_key, acl_val in encoded_acls.items():
+        acl_key = str(acl_key, 'utf-8')
+        acl_val = str(acl_val, 'utf-8')
+
+        if acl_key not in session:
+            error_msg = 'Key "%s" not in session for user "%s" (%s), cannot let join "%s" (%s)' % \
+                   (acl_key, user_id, user_name, room_id, utils.get_room_name(redis, room_id))
+            logger.error(error_msg)
+            return False, error_msg
+
+        session_value = session.get(acl_key, None)
+        if session_value is None:
+            error_msg = 'Value for key "%s" not in session, cannot let "%s" (%s) join "%s" (%s)' % \
+                   (acl_key, user_id, user_name, room_id, room_name)
+            logger.error(error_msg)
+            return False, error_msg
+
+        if acl_key not in Validator.ACL_VALIDATORS:
+            error_msg = 'No validator for ACL type "%s", cannot let "%s" (%s) join "%s" (%s)' % \
+                        (acl_key, user_id, user_name, room_id, room_name)
+            logger.error(error_msg)
+            return False, error_msg
+
+        validator = Validator.ACL_VALIDATORS[acl_key]
+        if not callable(validator):
+            error_msg = 'Validator for ACL type "%s" is not callable, cannot let "%s" (%s) join "%s" (%s)' % \
+                        (acl_key, user_id, user_name, room_id, room_name)
+            logger.error(error_msg)
+            return False, error_msg
+
+        if not validator(acl_val, session_value):
+            error_msg = 'Value "%s" did not validate for ACL "%s" (value "%s"), cannot let "%s" (%s) join "%s" (%s)' % \
+                   (session_value, acl_key, acl_val, user_id, user_name, room_id, room_name)
+            logger.info(error_msg)
+            return False, error_msg
 
     return True, None
 

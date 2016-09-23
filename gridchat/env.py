@@ -38,6 +38,15 @@ class GNEnvironment(object):
         self.config = config
         self.commands = dict()
 
+    def redis(self):
+        return self.config.get(ConfigKeys.REDIS, None)
+
+    def session(self):
+        return self.config.get(ConfigKeys.SESSION, None)
+
+    def logger(self):
+        return self.config.get(ConfigKeys.LOGGER, None)
+
     def merge(self, config):
         self.config = self.config.sub(**config)
 

@@ -251,9 +251,13 @@ def on_join(data: dict) -> (int, Union[str, None]):
     room_id = activity.target.id
     user_id = activity.actor.id
     user_name = activity.actor.summary
-    image = session.get('image', '')
+    image = env.session().get('image', '')
 
     is_valid, error_msg = validate_request(activity)
+    if not is_valid:
+        return 400, error_msg
+
+    is_valid, error_msg = validate_acl(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -350,9 +354,9 @@ def on_disconnect() -> (int, None):
     :return json if ok, {'status_code': 200, 'data': 'Disconnected'}
     """
     # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
-
-    user_id = session['user_id']
-    user_name = session['user_name']
+    session = env.session()
+    user_id = session.get('user_id', 'NOT_FOUND_IN_SESSION')
+    user_name = session.get('user_name', 'NOT_FOUND_IN_SESSION')
     leave_room(user_id)
 
     rooms = redis.smembers(rkeys.rooms_for_user(user_id))
