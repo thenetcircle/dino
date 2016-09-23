@@ -106,6 +106,37 @@ class ApiLoginTest(unittest.TestCase):
         self.login()
         self.assert_in_session('age', ApiLoginTest.AGE)
 
+    def test_login_no_attachments(self):
+        data = {
+            'actor': {
+                'id': ApiLoginTest.USER_ID,
+                'summary': ApiLoginTest.USER_NAME,
+                'image': {
+                    'url': 'http://some-url.com/image.jpg',
+                    'width': '120',
+                    'height': '120'
+                }
+            },
+            'verb': 'login'
+        }
+        self.assert_login_fails(data)
+
+    def test_login_missing_all_attachments(self):
+        data = {
+            'actor': {
+                'id': ApiLoginTest.USER_ID,
+                'summary': ApiLoginTest.USER_NAME,
+                'image': {
+                    'url': 'http://some-url.com/image.jpg',
+                    'width': '120',
+                    'height': '120'
+                },
+                'attachments': list()
+            },
+            'verb': 'login'
+        }
+        self.assert_login_fails(data)
+
     def test_login_missing_user_id(self):
         data = self.activity_for_login(skip={'user_id'})
         self.assert_login_fails(data)
