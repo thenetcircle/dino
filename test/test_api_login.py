@@ -106,6 +106,14 @@ class ApiLoginTest(unittest.TestCase):
         self.login()
         self.assert_in_session('age', ApiLoginTest.AGE)
 
+    def test_login_missing_user_id(self):
+        data = self.activity_for_login(skip={'user_id'})
+        self.assert_login_fails(data)
+
+    def test_login_missing_user_name(self):
+        data = self.activity_for_login(skip={'user_name'})
+        self.assert_login_fails(data)
+
     def test_login_missing_gender(self):
         data = self.activity_for_login(skip={'gender'})
         self.assert_login_fails(data)
@@ -183,6 +191,11 @@ class ApiLoginTest(unittest.TestCase):
             },
             'verb': 'login'
         }
+
+        if skip is not None and 'user_id' in skip:
+            del data['actor']['id']
+        if skip is not None and 'user_name' in skip:
+            del data['actor']['summary']
 
         infos = {
             'gender': ApiLoginTest.GENDER,
