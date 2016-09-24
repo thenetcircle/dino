@@ -116,7 +116,6 @@ def on_message(data):
     target = activity.target.id
     env.send(data, json=True, room=target)
 
-    # todo: use activity streams, say which message was delivered successfully
     return 200, data
 
 
