@@ -58,6 +58,25 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     }
 
 
+def activity_for_list_rooms(activity: Activity, rooms: list) -> dict:
+    response = {
+        'object': {
+            'objectType': 'rooms'
+        },
+        'verb': 'list'
+    }
+
+    response['object']['attachments'] = list()
+    for room_id_and_name in rooms:
+        room_id, room_name = room_id_and_name.split(':', 1)
+        response['object']['attachments'].append({
+            'id': room_id,
+            'content': room_name
+        })
+
+    return response
+
+
 def activity_for_users_in_room(activity: Activity, users: list) -> dict:
     response = {
         'target': {

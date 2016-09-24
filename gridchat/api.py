@@ -277,7 +277,7 @@ def on_users_in_room(data: dict) -> (int, Union[dict, str]):
     get a list of users in a room
 
     :param data: activity streams format, need target.id (room id)
-    :return: json if ok, {'status_code': 200, 'users': <users in the room, format: 'user_id:user_name'>}
+    :return: if ok, {'status_code': 200, 'data': <AS with users as object.attachments>}
     """
     activity = as_parser.parse(data)
     room_id = activity.target.id
@@ -300,7 +300,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
 
     :param data: activity streams format, needs actor.id (user id), in the future should be able to specify sub-set of
     rooms, e.g. 'rooms in berlin'
-    :return: json if ok, {'status_code': 200, 'rooms': <list of rooms, format: 'room_id:room_name'>}
+    :return: if ok, {'status_code': 200, 'data': <AS with rooms as object.attachments>}
     """
     activity = as_parser.parse(data)
 
@@ -314,8 +314,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     for room in all_rooms:
         rooms.append(str(room.decode('utf-8')))
 
-    # todo: user activity streams
-    return 200, rooms
+    return 200, utils.activity_for_list_rooms(activity, rooms)
 
 
 def on_leave(data: dict) -> (int, Union[str, None]):
