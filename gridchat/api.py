@@ -252,7 +252,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
-    user_name = activity.actor.summary
+    user_name = env.session.get(SessionKeys.user_name.value)
     image = env.session.get(SessionKeys.image.value, '')
 
     is_valid, error_msg = validator.validate_request(activity)
@@ -291,8 +291,7 @@ def on_users_in_room(data: dict) -> (int, Union[dict, str]):
     for user in users_in_room:
         users.append(str(user.decode('utf-8')))
 
-    # todo: use activity streams
-    return 200, users
+    return 200, utils.activity_for_users_in_room(activity, users)
 
 
 def on_list_rooms(data: dict) -> (int, Union[dict, str]):

@@ -58,6 +58,29 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     }
 
 
+def activity_for_users_in_room(activity: Activity, users: list) -> dict:
+    response = {
+        'target': {
+            'id': activity.target.id,
+            'displayName': activity.target.display_name
+        },
+        'object': {
+            'objectType': 'users'
+        },
+        'verb': 'list'
+    }
+
+    response['object']['attachments'] = list()
+    for user_id_and_name in users:
+        user_id, user_name = user_id_and_name.split(':', 1)
+        response['object']['attachments'].append({
+            'id': user_id,
+            'content': user_name
+        })
+
+    return response
+
+
 def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     response = {
         'target': {
