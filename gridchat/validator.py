@@ -2,8 +2,9 @@ from activitystreams import Activity
 import re
 
 from gridchat import rkeys
-from gridchat.env import env, ConfigKeys
 from gridchat import utils
+from gridchat.env import env
+from gridchat.env import SessionKeys
 
 
 class Validator:
@@ -92,20 +93,33 @@ class Validator:
     def generic_validator(expected, actual):
         return expected is None or actual in expected.split(',')
 
-    ACL_VALIDATORS = {
-        'age':
+    ACL_MATCHERS = {
+        SessionKeys.age.value:
             lambda expected, actual: expected is None or Validator._age_range_validate(expected, actual),
 
-        'gender': lambda expected, actual: Validator.generic_validator(expected, actual),
-        'membership': lambda expected, actual: Validator.generic_validator(expected, actual),
-        'country': lambda expected, actual: Validator.generic_validator(expected, actual),
-        'city': lambda expected, actual: Validator.generic_validator(expected, actual),
-        'image': lambda expected, actual: Validator.generic_validator(expected, actual),
-        'has_webcam': lambda expected, actual: Validator.generic_validator(expected, actual),
-        'fake_checked': lambda expected, actual: Validator.generic_validator(expected, actual)
+        SessionKeys.age.gender.value:
+            lambda expected, actual: Validator.generic_validator(expected, actual),
+
+        SessionKeys.age.membership.value:
+            lambda expected, actual: Validator.generic_validator(expected, actual),
+
+        SessionKeys.age.country.value:
+            lambda expected, actual: Validator.generic_validator(expected, actual),
+
+        SessionKeys.age.city.value:
+            lambda expected, actual: Validator.generic_validator(expected, actual),
+
+        SessionKeys.age.image.value:
+            lambda expected, actual: Validator.generic_validator(expected, actual),
+
+        SessionKeys.age.has_webcam.value:
+            lambda expected, actual: Validator.generic_validator(expected, actual),
+
+        SessionKeys.age.fake_checked.value:
+            lambda expected, actual: Validator.generic_validator(expected, actual)
     }
 
-    USER_KEYS = {
+    ACL_VALIDATORS = {
         'gender':
             lambda v: v is None or Validator._chars_in_list(v, ['m', 'f', 'ts']),
 
@@ -170,7 +184,8 @@ def validate_session() -> (bool, str):
 
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
-    for key in Validator.USER_KEYS.keys():
+    for session_key in SessionKeys:
+        key = session_key.value
         if key not in env.session:
             return False, '"%s" is a required parameter' % key
         val = env.session[key]
@@ -186,9 +201,10 @@ def validate_request(activity: Activity) -> (bool, str):
     if not hasattr(activity.actor, 'id'):
         return False, 'no ID on actor'
 
-    if activity.actor.id != env.session.get('user_id', 'NOT_FOUND_IN_SESSION'):
-        return False, "user_id in session (%s) doesn't match user_id in request (%s)" % \
-               (activity.actor.id, env.session.get('user_id', 'NOT_FOUND_IN_SESSION'))
+    session_user_id = env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
+    if activity.actor.id != session_user_id:
+        return False, "user_id in session '%s' doesn't match user_id in request '%s'" % \
+               (session_user_id, activity.actor.id)
 
     return True, None
 
@@ -228,13 +244,13 @@ def validate_acl(activity: Activity) -> (bool, str):
             env.logger.error(error_msg)
             return False, error_msg
 
-        if acl_key not in Validator.ACL_VALIDATORS:
+        if acl_key not in Validator.ACL_MATCHERS:
             error_msg = 'No validator for ACL type "%s", cannot let "%s" (%s) join "%s" (%s)' % \
                         (acl_key, user_id, user_name, room_id, room_name)
             env.logger.error(error_msg)
             return False, error_msg
 
-        validator = Validator.ACL_VALIDATORS[acl_key]
+        validator = Validator.ACL_MATCHERS[acl_key]
         if not callable(validator):
             error_msg = 'Validator for ACL type "%s" is not callable, cannot let "%s" (%s) join "%s" (%s)' % \
                         (acl_key, user_id, user_name, room_id, room_name)
@@ -251,7 +267,7 @@ def validate_acl(activity: Activity) -> (bool, str):
 
 
 def is_acl_valid(acl_type, acl_value):
-    validator = Validator.USER_KEYS.get(acl_type, None)
+    validator = Validator.ACL_VALIDATORS.get(acl_type, None)
     if validator is None:
         return False
     if not callable(validator):

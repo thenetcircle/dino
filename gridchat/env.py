@@ -4,11 +4,29 @@ import os
 import sys
 import pkg_resources
 import logging
+from enum import Enum
 from logging import RootLogger
 from redis import Redis
-from flask_socketio import emit as _flask_emit, send as _flask_send, join_room as _flask_join_room
+from flask_socketio import emit as _flask_emit
+from flask_socketio import send as _flask_send
+from flask_socketio import join_room as _flask_join_room
+from flask_socketio import leave_room as _flask_leave_room
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
+
+
+class SessionKeys(Enum):
+    user_id = 'user_id'
+    user_name = 'user_name'
+    age = 'age'
+    gender = 'gender'
+    membership = 'membership'
+    country = 'country'
+    city = 'city'
+    image = 'image'
+    has_webcam = 'has_webcam'
+    fake_checked = 'fake_checked'
+    token = 'token'
 
 
 class ConfigKeys:
@@ -41,6 +59,7 @@ class GNEnvironment(object):
         self.emit = _flask_emit
         self.send = _flask_send
         self.join_room = _flask_join_room
+        self.leave_room = _flask_leave_room
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.redis = config.get(ConfigKeys.REDIS, None)
         self.session = config.get(ConfigKeys.SESSION, None)

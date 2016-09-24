@@ -8,6 +8,7 @@ from gridchat import utils
 from gridchat import validator
 from gridchat.validator import Validator
 from gridchat.env import env
+from gridchat.env import SessionKeys
 from gridchat import rkeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
@@ -74,15 +75,15 @@ def on_login(data: dict) -> (int, str):
     activity = as_parser.parse(data)
     user_id = activity.actor.id
 
-    env.session['user_id'] = user_id
-    env.session['user_name'] = activity.actor.summary
+    env.session[SessionKeys.user_id.value] = user_id
+    env.session[SessionKeys.user_name.value] = activity.actor.summary
 
     if activity.actor.image is not None:
         env.session['image_url'] = activity.actor.image.url
-        env.session['image'] = 'y'
+        env.session[SessionKeys.image.value] = 'y'
     else:
         env.session['image_url'] = ''
-        env.session['image'] = 'n'
+        env.session[SessionKeys.image.value] = 'n'
 
     if activity.actor.attachments is not None:
         for attachment in activity.actor.attachments:
@@ -140,7 +141,7 @@ def on_set_acl(data: dict) -> (int, str):
     # validate all acls before actually changing anything
     acls = activity.object.attachments
     for acl in acls:
-        if acl.object_type not in Validator.USER_KEYS.keys():
+        if acl.object_type not in Validator.ACL_MATCHERS.keys():
             return 400, 'invalid acl type "%s"' % acl.object_type
         if not validator.is_acl_valid(acl.object_type, acl.content):
             return 400, 'invalid acl value "%s" for type "%s"' % (acl.content, acl.object_type)
@@ -252,7 +253,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     room_id = activity.target.id
     user_id = activity.actor.id
     user_name = activity.actor.summary
-    image = env.session.get('image', '')
+    image = env.session.get(SessionKeys.image.value, '')
 
     is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
@@ -328,16 +329,17 @@ def on_leave(data: dict) -> (int, Union[str, None]):
     #  todo: should handle invisibility here? don't broadcast leaving a room if invisible
 
     activity = as_parser.parse(data)
-    user_id = activity.actor.id
-    user_name = activity.actor.summary
-    room_id = activity.target.id
 
     is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
-    if room_id is None:
-        return 400, 'warning: room_id is None when trying to leave room'
+    if not hasattr(activity, 'target') or not hasattr(activity.target, 'id'):
+        return 400, 'room_id is None when trying to leave room'
+
+    user_id = activity.actor.id
+    user_name = env.session.get(SessionKeys.user_name.value)
+    room_id = activity.target.id
 
     room_name = utils.get_room_name(env.redis, room_id)
     utils.remove_user_from_room(env.redis, user_id, user_name, room_id)
@@ -355,8 +357,8 @@ def on_disconnect() -> (int, None):
     :return json if ok, {'status_code': 200}
     """
     # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
-    user_id = env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
-    user_name = env.session.get('user_name', 'NOT_FOUND_IN_SESSION')
+    user_id = env.session.get(SessionKeys.user_id.value, 'NOT_FOUND_IN_SESSION')
+    user_name = env.session.get(SessionKeys.user_name.value, 'NOT_FOUND_IN_SESSION')
     env.leave_room(user_id)
 
     rooms = env.redis.smembers(rkeys.rooms_for_user(user_id))

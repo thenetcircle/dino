@@ -223,10 +223,13 @@ class ApiLoginTest(unittest.TestCase):
             'verb': 'login'
         }
 
-        if skip is not None and 'user_id' in skip:
-            del data['actor']['id']
-        if skip is not None and 'user_name' in skip:
-            del data['actor']['summary']
+        if skip is not None:
+            if 'user_id' in skip:
+                del data['actor']['id']
+            if 'user_name' in skip:
+                del data['actor']['summary']
+            if 'image' in skip:
+                del data['actor']['image']
 
         infos = {
             'gender': ApiLoginTest.GENDER,
