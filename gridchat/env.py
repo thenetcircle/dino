@@ -11,6 +11,7 @@ from flask_socketio import emit as _flask_emit
 from flask_socketio import send as _flask_send
 from flask_socketio import join_room as _flask_join_room
 from flask_socketio import leave_room as _flask_leave_room
+from flask import session as _flask_session
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
 
@@ -126,10 +127,17 @@ def create_env() -> GNEnvironment:
         raise RuntimeError('no configuration found for environment "%s"' % gn_environment)
 
     config_dict = config_dict[gn_environment]
+
+    redis_host = config_dict[ConfigKeys.REDIS_HOST]
+    redis_port = 'localhost', 6379
+    if ':' in redis_host:
+        redis_host, redis_port = redis_host.split(':', 1)
+
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
     config_dict[ConfigKeys.VERSION] = pkg_resources.require('gridnotify')[0].version
-    config_dict[ConfigKeys.REDIS] = Redis(config_dict[ConfigKeys.REDIS_HOST])
+    config_dict[ConfigKeys.REDIS] = Redis(redis_host, port=redis_port)
     config_dict[ConfigKeys.LOGGER] = create_logger(config_dict)
+    config_dict[ConfigKeys.SESSION] = _flask_session
 
     if ConfigKeys.LOG_FORMAT not in config_dict:
         log_format = ConfigKeys.DEFAULT_LOG_FORMAT

@@ -3,6 +3,7 @@ import time
 
 from datetime import datetime
 from typing import Union
+from uuid import uuid4 as uuid
 
 from gridchat import utils
 from gridchat import validator
@@ -102,11 +103,12 @@ def on_message(data):
     """
     send any kind of message/event to a target user/group
 
-    :param data: activity streams format, bust include at least target.id (room/user id)
+    :param data: activity streams format, must include at least target.id (room/user id)
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<same AS as client sent, plus timestamp>'}
     """
     # let the server determine the publishing time of the event, not the client
     data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
+    data['id'] = str(uuid())
     activity = as_parser.parse(data)
 
     is_valid, error_msg = validator.validate_request(activity)
@@ -114,7 +116,39 @@ def on_message(data):
         return 400, error_msg
 
     target = activity.target.id
-    env.send(data, json=True, room=target)
+    env.redis.lpush(rkeys.room_history(target), '%s,%s,%s,%s' % (
+        activity.id, activity.published, env.session.get(SessionKeys.user_name.value), activity.object.content))
+    env.redis.ltrim(rkeys.room_history(target), 0, 200)
+    env.send(data, json=True, room=target, broadcast=True)
+
+    return 200, data
+
+
+def on_create(data):
+    """
+    create a new room
+
+    :param data: activity streams format, must include at least target.id (room id)
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    # let the server determine the publishing time of the event, not the client
+    activity = as_parser.parse(data)
+
+    is_valid, error_msg = validator.validate_request(activity)
+    if not is_valid:
+        return 400, error_msg
+
+    target = activity.target.display_name
+
+    existing_rooms = env.redis.smembers(rkeys.rooms())
+    for existing_room in existing_rooms:
+        if str(existing_room, 'utf-8').split(':', 1)[1] == target:
+            return 400, 'a room with that name already exists'
+
+    room_id = str(uuid())
+    env.redis.set(rkeys.room_name_for_id(room_id), target)
+    env.redis.sadd(rkeys.room_owners(room_id), activity.actor.id)
+    env.emit('gn_room_created', utils.activity_for_create_room(room_id, target), broadcast=True, json=True, include_self=True)
 
     return 200, data
 
@@ -226,6 +260,44 @@ def on_status(data: dict) -> (int, Union[str, None]):
         pass
 
     return 200, None
+
+
+def on_history(data: dict) -> (int, Union[str, None]):
+    """
+    example activity:
+
+    {
+        actor: {
+            id: '1234'
+        },
+        verb: 'history',
+        target: {
+            id: 'd69dbfd8-95a2-4dc5-b051-8ef050e2667e'
+        }
+    }
+
+    :param data: activity streams format, need actor.id (user id), target.id (user id)
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
+    """
+
+    activity = as_parser.parse(data)
+    room_id = activity.target.id
+
+    is_valid, error_msg = validator.validate_request(activity)
+    if not is_valid:
+        return 400, error_msg
+
+    is_valid, error_msg = validator.validate_acl(activity)
+    if not is_valid:
+        return 400, error_msg
+
+    messages = env.redis.lrange(rkeys.room_history(room_id), 0, 10)
+    cleaned_messages = list()
+    for message_entry in messages:
+        message_entry = str(message_entry, 'utf-8')
+        cleaned_messages.append(message_entry.split(',', 3))
+
+    return 200, utils.activity_for_history(activity, cleaned_messages)
 
 
 def on_join(data: dict) -> (int, Union[str, None]):

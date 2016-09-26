@@ -1,4 +1,4 @@
-from flask import redirect, url_for, request, render_template, session, Flask
+from flask import redirect, url_for, request, render_template, session, Flask, send_from_directory
 from flask_socketio import emit, SocketIO
 from functools import wraps
 from typing import Union
@@ -35,11 +35,11 @@ def index():
     form = LoginForm()
     if form.validate_on_submit():
         # temporary until we get ID from community
-        session['user_name'] = form.user_id.data
-        session['user_id'] = int(float(''.join([str(ord(x)) for x in form.user_id.data])) % 1000000)
+        env.session['user_name'] = form.user_name.data
+        env.session['user_id'] = int(float(''.join([str(ord(x)) for x in form.user_name.data])) % 1000000)
         return redirect(url_for('.chat'))
     elif request.method == 'GET':
-        form.user_id.data = session.get('user_id', '')
+        form.user_name.data = env.session.get('user_name', '')
     return render_template('index.html', form=form)
 
 
@@ -53,6 +53,11 @@ def chat():
     return render_template(
             'chat.html', name=user_id, room=user_id, user_id=user_id, user_name=user_name,
             version=env.config.get(ConfigKeys.VERSION))
+
+
+@app.route('/js/<path:path>')
+def send_js(path):
+    return send_from_directory('templates/js', path)
 
 
 @socketio.on('connect', namespace='/chat')
@@ -78,6 +83,12 @@ def on_message(data):
     return api.on_message(data)
 
 
+@socketio.on('create', namespace='/chat')
+@respond_with('gn_create')
+def on_message(data):
+    return api.on_create(data)
+
+
 @socketio.on('set_acl', namespace='/chat')
 @respond_with('gn_set_acl')
 def on_set_acl(data: dict) -> (int, str):
@@ -94,6 +105,12 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
 @respond_with('gn_status')
 def on_status(data: dict) -> (int, Union[str, None]):
     return api.on_status(data)
+
+
+@socketio.on('history', namespace='/chat')
+@respond_with('gn_history')
+def on_join(data: dict) -> (int, Union[str, None]):
+    return api.on_history(data)
 
 
 @socketio.on('join', namespace='/chat')

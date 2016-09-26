@@ -58,6 +58,40 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     }
 
 
+def activity_for_create_room(room_id: str, room_name: str) -> dict:
+    return {
+        'target': {
+            'id': room_id,
+            'displayName': room_name
+        },
+        'verb': 'create'
+    }
+
+
+def activity_for_history(activity: Activity, messages: list) -> dict:
+    response = {
+        'object': {
+            'objectType': 'messages'
+        },
+        'verb': 'history',
+        'target': {
+            'id': activity.target.id,
+            'displayName': get_room_name(env.redis, activity.target.id)
+        }
+    }
+
+    response['object']['attachments'] = list()
+    for msg_id, timestamp, user_name, msg in messages:
+        response['object']['attachments'].append({
+            'id': msg_id,
+            'content': msg,
+            'summary': user_name,
+            'published': timestamp
+        })
+
+    return response
+
+
 def activity_for_list_rooms(activity: Activity, rooms: list) -> dict:
     response = {
         'object': {

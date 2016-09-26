@@ -10,6 +10,7 @@ RKEY_USER_STATUS = 'user:status:%s'  # user:status:user_id
 RKEY_ROOM_NAME = 'room:name:%s'  # room:name:room_id
 RKEY_ROOM_ACL = 'room:acl:%s'  # room:acl:room_id
 RKEY_ROOM_OWNERS = 'room:owners:%s'  # room:owners:room_id
+RKEY_ROOM_HISTORY = 'room:history:%s'  # room:history:room_id
 
 REDIS_STATUS_AVAILABLE = '1'
 # REDIS_STATUS_CHAT = '2'
@@ -47,7 +48,11 @@ def users_multi_cast() -> str:
 
 
 def user_status(user_id: str) -> str:
-    return RKEY_USER_STATUS % str(user_id)
+    return RKEY_USER_STATUS % user_id
+
+
+def room_history(room_id: str) -> str:
+    return RKEY_ROOM_HISTORY % room_id
 
 
 def room_acl(room_id: str) -> dict:

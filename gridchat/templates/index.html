@@ -6,7 +6,7 @@
         <h1>Flask-SocketIO-Chat</h1>
         <form method="POST">
             {{ form.hidden_tag() }}
-            {{ form.user_id.label }}: {{ form.user_id() }} {% for error in form.user_id.errors %}{{ error }}{% endfor %}<br>
+            {{ form.user_name.label }}: {{ form.user_name() }} {% for error in form.user_name.errors %}{{ error }}{% endfor %}<br>
             {{ form.submit() }}
         </form>
     </body>

@@ -79,4 +79,7 @@ TODO: check if docker could be useful: https://www.digitalocean.com/community/tu
                 --threads 16 \
                 --worker-connections 5000 \
                 --workers 1 \
+                --bind 0.0.0.0:5210 \
                 app:app
+                
+Add "--reload" during development.

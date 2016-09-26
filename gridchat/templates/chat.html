@@ -1,25 +1,110 @@
 <html>
     <head>
         <title>Grid Notify v{{ version }}</title>
-        <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
-        <script type="text/javascript" charset="utf-8">
+        <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+        <script type="text/javascript" src="js/socket.io-1.4.5.js"></script>
+        <script type="text/javascript" src="js/localstoragedb.min.js"></script>
+        <script type="text/javascript">
+            var lib = new localStorageDB('msgs', localStorage);
+            if (lib.isNew()) {
+                lib.createTable('messages', ['uuid', 'timestamp', 'user', 'room', 'msg']);
+                lib.commit();
+            }
+
+            show_history_for = function(room_id) {
+                msg_history = lib.queryAll('messages', {
+                    query: {room: room_id},
+                    sort: [['timestamp', 'asc']]
+                });
+
+                for (i = 0; i < msg_history.length; i++) {
+                    $('#chat').val($('#chat').val() + msg_history[i].timestamp + ' <' + msg_history[i].user + '> ' + msg_history[i].msg + '\n');
+                }
+            }
+
+            on_room_click = function() {
+                $('a.room').click(function() {
+                    room_id = $(this).attr('id').split('room-id-', 2)[1]
+                    $('#chat').val('');
+                    $('#target').val($(this).text());
+                    $('#room-id').val(room_id);
+                    $('#private').attr('checked', false);
+                    $('#current-room').html($('#target').val());
+                    socket.emit('join', {
+                        actor: {
+                            id: '{{ user_id }}',
+                            summary: '{{ user_name }}'
+                        },
+                        verb: 'join',
+                        target: {
+                            id: room_id
+                        }
+                    });
+                    show_history_for(room_id);
+                });
+            };
+
+            on_user_click = function() {
+                $('a.user').click(function() {
+                    room_id = $(this).attr('id').split('-', 2)[1];
+                    $('#target').val($(this).text());
+                    $('#private').attr('checked', true);
+                    $('#room-id').val(room_id)
+                    $('#current-room').html($('#target').val());
+                    $('#chat').val('<< chatting with ' + $(this).text() + ' >>\n');
+                    show_history_for(room_id);
+                });
+            };
+
             var socket;
             $(document).ready(function(){
                 socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
 
                 socket.on('connect', function() {
-                    socket.emit('user_info', {
+                    socket.emit('login', {
                         verb: 'login',
                         actor: {
                             id: '{{ user_id }}',
-                            summary: '{{ user_name }}'
+                            summary: '{{ user_name }}',
+                            attachments: [
+                                {
+                                    objectType: 'gender',
+                                    content: 'm'
+                                },
+                                {
+                                    objectType: 'age',
+                                    content: '28'
+                                },
+                                {
+                                    objectType: 'membership',
+                                    content: '1'
+                                },
+                                {
+                                    objectType: 'fake_checked',
+                                    content: 'y'
+                                },
+                                {
+                                    objectType: 'has_webcam',
+                                    content: 'n'
+                                },
+                                {
+                                    objectType: 'country',
+                                    content: 'de'
+                                },
+                                {
+                                    objectType: 'city',
+                                    content: 'Berlin'
+                                },
+                                {
+                                    objectType: 'token',
+                                    content: '66968fad-2336-40c9-bc6d-0ecbcd91f4da'
+                                }
+                            ]
                         }
                     });
                 });
 
                 socket.on('gn_connect', function(data) {
-                    console.log(data);
                     socket.emit('list_rooms', {
                         actor: {
                             id: '{{ user_id }}',
@@ -34,40 +119,67 @@
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
 
+                socket.on('gn_join', function(response) {
+                    $('#current-room').html($('#target').val());
+                    socket.emit('users_in_room', {
+                        actor: {
+                            id: '{{ user_id }}'
+                        },
+                        verb: 'list',
+                        target: {
+                            id: $('#room-id').val()
+                        }
+                    });
+
+                    socket.emit('history', {
+                        actor: {
+                            id: '{{ user_id }}'
+                        },
+                        verb: 'history',
+                        target: {
+                            id: $('#room-id').val()
+                        }
+                    });
+                });
+
+                socket.on('gn_history', function(response) {
+                    console.log(response);
+                    data = response.data;
+                    msgs = data.object.attachments;
+
+                    for (i = 0; i < msgs.length; i++) {
+                        msg = msgs[i];
+                        lib.insertOrUpdate('messages', {uuid: msg.id}, {
+                            uuid: msg.id,
+                            user: msg.summary,
+                            room: data.target.id,
+                            msg: msg.content,
+                            timestamp: msg.published
+                        });
+                    }
+
+                    lib.commit();
+                    show_history_for(data.target.id);
+                });
+
                 socket.on('gn_list_rooms', function(response) {
                     console.log(response);
 
-                    rooms = response.data
+                    rooms = response.data.object.attachments
 
                     $('#rooms').html('');
                     for (i = 0; i < rooms.length; i++) {
-                        room_name = rooms[i].split(':', 2)[1]
-                        room_id = rooms[i].split(':', 2)[0]
+                        room_name = rooms[i].content
+                        room_id = rooms[i].id
                         $('#rooms').html('<a href="#" id="room-id-' + room_id + '" class="room">' + room_name + '</a>' + ' ' + $('#rooms').html());
                     }
-
-                    $('a.room').click(function() {
-                        room_id = $(this).attr('id').split('room-id-', 2)[1]
-                        $('#chat').val('');
-                        $('#target').val($(this).text());
-                        $('#room-id').val(room_id);
-                        $('#private').attr('checked', false);
-                        socket.emit('join', {
-                            actor: {
-                                id: '{{ user_id }}',
-                                summary: '{{ user_name }}'
-                            },
-                            verb: 'join',
-                            target: {
-                                id: room_id
-                            }
-                        });
-                    })
+                    on_room_click();
                 });
 
                 socket.on('gn_users_in_room', function(response) {
                     console.log(response);
-                    users = response.data;
+                    users = response.data.object.attachments;
+
                     $('#users_in_room').html('');
                     if (users == null || users.length == 0) {
                         $('#chat').val('<< new room created >>\n');
@@ -75,9 +187,8 @@
                     }
 
                     for (i = 0; i < users.length; i++) {
-                        console.log(users[i]);
-                        user_id = users[i].split(':', 2)[0];
-                        user_name = users[i].split(':', 2)[1];
+                        user_id = users[i].id;
+                        user_name = users[i].content
 
                         if ($('#user-' + user_id).length > 0) {
                             continue;
@@ -85,77 +196,104 @@
 
                         $('#users_in_room').html('<a href="#" id="user-' + user_id + '" class="user">' + user_name + '</a>' + ' ' + $('#users_in_room').html());
                     }
-
-                    $('a.user').click(function() {
-                        $('#target').val($(this).text());
-                        $('#private').attr('checked', true);
-                        $('#room-id').val($(this).val().split('-', 2)[1])
-                        $('#chat').val('<< chatting with ' + $(this).text() + ' >>\n');
-                    });
+                    on_user_click();
                 });
 
-                socket.on('gn_user_connected', function(response) {
-                    console.log(response);
-                    data = response.data
+                socket.on('gn_user_connected', function(data) {
+                    console.log(data);
                     if ($('a#online-user-' + data.actor.id).length > 0) {
                         return;
                     }
 
                     $('#online').html($('#online').html() + '<a href="#" id="online-user-' + data.actor.id + '">' + data.actor.summary + '</a> ');
-
                     $('a#online-user-' + data.actor.id).click(function() {
                         $('#target').val($(this).text());
                         $('#private').attr('checked', true);
-                        $('#room-id').val($(this).val().split('-', 2)[1])
+                        $('#room-id').val($(this).attr('id').split('-', 2)[1])
+                        $('#current-room').html($('#target').val());
                         $('#chat').val('<< chatting with ' + data.actor.summary + ' >>\n')
+                        show_history_for(data.actor.id);
                     });
                 });
 
-                socket.on('gn_user_disconnected', function(response) {
-                    console.log(response);
-                    data = response.data
+                socket.on('gn_user_disconnected', function(data) {
+                    console.log(data);
                     $('a#online-user-' + data.actor.id).remove();
                     $('a#user-' + data.actor.id).remove();
                     $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has disconnected >>\n');
                 });
 
-                socket.on('gn_user_left', function(response) {
-                    console.log(response);
-                    data = response.data
-                    $('a#user-' + data.actor.id).remove();
-                    $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has left room ' + data.target.display_name + ' >>\n');
+                socket.on('gn_room_created', function(data) {
+                    console.log(data);
+                    $('#rooms').html('<a href="#" id="room-id-' + data.target.id + '" class="room">' + data.target.displayName + '</a>' + ' ' + $('#rooms').html());
+                    on_room_click();
                 });
 
-                socket.on('gn_user_joined', function(response) {
-                    console.log(response);
-                    data = response.data
+                socket.on('gn_user_left', function(data) {
+                    console.log(data);
+                    $('a#user-' + data.actor.id).remove();
+                    $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has left room ' + data.target.displayName + ' >>\n');
+                });
+
+                socket.on('gn_user_joined', function(data) {
+                    console.log(data);
 
                     if ($('#user-' + data.actor.id).length > 0) {
                         return;
                     }
 
-                    $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has joined room ' + data.target.display_name + ' >>\n');
+                    $('#chat').val($('#chat').val() + '<< ' + data.actor.summary + ' has joined room ' + data.target.displayName + ' >>\n');
                     $('#users_in_room').html($('#users_in_room').html() + ' <a href="#" id="user-' + data.actor.id + '" class="user">' + data.actor.summary + '</a>');
 
                     $('a#user-' + data.actor.id).click(function() {
                         $('#target').val(data.actor.summary);
                         $('#private').attr('checked', true);
-                        $('#room-id').val($(this).val().split('-', 2)[1])
+                        $('#room-id').val($(this).attr('id').split('-', 2)[1])
+                        $('#current-room').html($('#target').val());
                         $('#chat').val('<< chatting with ' + data.actor.summary + ' >>\n')
+                        show_history_for(data.actor.id);
                     });
                 });
+
+                handle_message = function(data) {
+                    if ($('#room-id').val() == data.target.id || $('#room-id').val() == data.actor.id) {
+                        $('#chat').val($('#chat').val() + data.published + ' <' + data.actor.summary + '> ' + data.object.content + '\n');
+                        $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                    }
+                    room_id = data.target.id
+                    if ('{{ user_id }}' === data.target.id) {
+                        room_id = data.actor.id;
+                    }
+
+                    lib.insertOrUpdate('messages', {uuid: data.id}, {
+                        uuid: data.id,
+                        user: data.actor.summary,
+                        room: room_id,
+                        msg: data.object.content,
+                        timestamp: data.published
+                    });
+                    lib.commit();
+                };
 
                 socket.on('gn_message', function(response) {
                     console.log(response);
                     data = response.data
-                    $('#chat').val($('#chat').val() + data.published + ' <' + data.actor.summary + '> ' + data.object.content + '\n');
-                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                    handle_message(data);
                 });
 
-                socket.on('gn_sent', function(response) {
-                    data = response.data
-                    $('#chat').val($('#chat').val() + data.strftime + ' - ' + data.origin + ': ' + data.msg + '\n');
-                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
+                socket.on('message', function(data) {
+                    console.log(data);
+                    if (data.actor.id == '{{ user_id }}') {
+                        return;
+                    }
+                    handle_message(data);
+                });
+
+                socket.on('gn_create', function(response) {
+                    console.log(response);
+                    if (response.status_code == 200) {
+                        $('#new-room-name').val('');
+                    }
                 });
 
                 $('#text').keypress(function(e) {
@@ -179,14 +317,27 @@
                             verb: 'send',
                             target: {
                                 id: room_id,
-                                display_name: room_name
+                                displayName: room_name
                             },
                             object: {
                                 content: text,
-                                object_type: target_type
+                                objectType: target_type
                             }
                         });
                     }
+                });
+
+                $('input#create-the-room').click(function() {
+                    socket.emit('create', {
+                        actor: {
+                            id: '{{ user_id }}',
+                            summary: '{{ user_name }}'
+                        },
+                        verb: 'create',
+                        target: {
+                            displayName: $('#new-room-name').val()
+                        }
+                    });
                 });
 
                 $('a#leave').click(function() {
@@ -200,7 +351,8 @@
                             id: $('#room-id').val()
                         }
                     });
-                    $('#users_in_room').html('')
+                    $('#current-room').html('');
+                    $('#users_in_room').html('');
                     $('#chat').val('');
                     $('#target').val('');
                 });
@@ -209,21 +361,23 @@
     </head>
     <body>
         <h1>Grid Notify <small>v{{ version }}</small>: {{ user_name }} </h1>
-        <textarea id="chat" cols="80" rows="20"></textarea><br><br>
-        <input id="text" size="80" placeholder="Enter your message here and press enter to send" /><br><br>
-        <input id="target" size="80" placeholder="target user/room" /><br><br>
-        <input id="room-id" type="hidden" /><br><br>
-        One-to-one? <input id="private" type="checkbox" /><br><br>
+        Current room: <span id="current-room" style="font-weight: bold;"></span>
+        <br />
+        <textarea id="chat" cols="80" rows="20"></textarea><br /><br />
+        <input id="text" size="80" placeholder="Enter your message here and press enter to send" /><br /><br />
+        <input id="target" type="hidden" />
+        <input id="room-id" type="hidden" />
+        <input id="private" type="checkbox" hidden />
 
         Users in current room:
         <div id="users_in_room" style="margin: 5px; border: 1px solid black;"></div>
 
         All rooms:
-        <div id="rooms" style="margin: 5px; border: 1px solid black;"></div>
+        <div id="rooms" style="margin: 5px; border: 1px solid black;"></div><br />
 
-        Online users:
-        <div id="online" style="margin: 5px; border: 1px solid black;"></div>
+        <a id="leave" href="#">Leave this room</a><br /><br /><br />
 
-        <a id="leave" href="#">Leave this room</a>
+        Create new room: <input id="new-room-name" />
+        <input type="button" id="create-the-room" value="Create" />
     </body>
 </html>
