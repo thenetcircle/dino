@@ -163,14 +163,17 @@ def activity_for_list_rooms(activity: Activity, rooms: list) -> dict:
     }
 
     response['object']['attachments'] = list()
-    for room_id_and_name in rooms:
-        room_id, room_name = room_id_and_name.split(':', 1)
+    for room_id, room_name in rooms:
         response['object']['attachments'].append({
             'id': room_id,
             'content': room_name
         })
 
     return response
+
+
+def is_user_in_room(user_id, room_id):
+    return env.redis.hexists(rkeys.users_in_room(room_id), user_id)
 
 
 def activity_for_users_in_room(activity: Activity, users: list) -> dict:
@@ -269,7 +272,7 @@ def get_room_name(r_server: Redis, room_id: str) -> str:
 def join_the_room(r_server: Redis, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
     r_server.sadd(rkeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
     r_server.hset(rkeys.users_in_room(room_id), user_id, user_name)
-    r_server.sadd(rkeys.rooms(), '%s:%s' % (room_id, room_name))
+    r_server.hset(rkeys.rooms(), room_id, room_name)
     env.join_room(room_id)
     env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
 

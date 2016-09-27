@@ -116,6 +116,15 @@ def on_message(data):
         return 400, error_msg
 
     target = activity.target.id
+    if target is None or target == '':
+        return 400, 'no target specified when sending message'
+
+    if not env.redis.hexists(rkeys.rooms(), target):
+        return 400, 'room %s does not exist' % target
+
+    if not utils.is_user_in_room(activity.actor.id, target):
+        return 400, 'user not in room, not allowed to send'
+
     env.redis.lpush(rkeys.room_history(target), '%s,%s,%s,%s' % (
         activity.id, activity.published, env.session.get(SessionKeys.user_name.value), activity.object.content))
     env.redis.ltrim(rkeys.room_history(target), 0, 200)
@@ -140,14 +149,20 @@ def on_create(data):
 
     target = activity.target.display_name
 
-    existing_rooms = env.redis.smembers(rkeys.rooms())
-    for existing_room in existing_rooms:
-        if str(existing_room, 'utf-8').split(':', 1)[1] == target:
-            return 400, 'a room with that name already exists'
+    if target is None or target.strip() == '':
+        return 400, 'got blank room name, can not create'
+
+    cleaned = set()
+    for room_name in env.redis.hvals(rkeys.rooms()):
+        cleaned.add(str(room_name, 'utf-8'))
+
+    if target in cleaned:
+        return 400, 'a room with that name already exists'
 
     room_id = str(uuid())
     env.redis.set(rkeys.room_name_for_id(room_id), target)
     env.redis.hset(rkeys.room_owners(room_id), activity.actor.id, env.session.get(SessionKeys.user_name.value))
+    env.redis.hset(rkeys.rooms(), room_id, target)
     env.emit('gn_room_created', utils.activity_for_create_room(room_id, target), broadcast=True, json=True, include_self=True)
 
     return 200, data
@@ -376,11 +391,11 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     if not is_valid:
         return 400, error_msg
 
-    all_rooms = env.redis.smembers(rkeys.rooms())
+    all_rooms = env.redis.hgetall(rkeys.rooms())
 
     rooms = list()
-    for room in all_rooms:
-        rooms.append(str(room.decode('utf-8')))
+    for room_id, room_name in all_rooms.items():
+        rooms.append((str(room_id, 'utf-8'), str(room_name, 'utf-8')))
 
     return 200, utils.activity_for_list_rooms(activity, rooms)
 

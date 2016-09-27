@@ -201,7 +201,6 @@
 
                     $('#acl-in-room').html('');
                     if (acls !== undefined && acls.length > 0) {
-                        console.log(acls);
                         for (i = 0; i < acls.length; i++) {
                             acl = acls[i];
                             $('#acl-in-room').html(acl.objectType + '=' + acl.content + ' ' + $('#acl-in-room').html());

@@ -77,7 +77,7 @@ class ApiListRoomsTest(unittest.TestCase):
 
     def test_list_rooms_status_code_200(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        self.create_and_join_room()
         self.assert_in_room(True)
 
         response_data = api.on_list_rooms(self.activity_for_list_rooms())
@@ -85,7 +85,7 @@ class ApiListRoomsTest(unittest.TestCase):
 
     def test_list_rooms_no_actor_id_status_code_400(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        self.create_and_join_room()
         self.assert_in_room(True)
 
         activity = self.activity_for_list_rooms()
@@ -95,7 +95,7 @@ class ApiListRoomsTest(unittest.TestCase):
 
     def test_list_rooms_only_one(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        self.create_and_join_room()
         self.assert_in_room(True)
 
         response_data = api.on_list_rooms(self.activity_for_list_rooms())
@@ -103,7 +103,7 @@ class ApiListRoomsTest(unittest.TestCase):
 
     def test_list_rooms_correct_id(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        self.create_and_join_room()
         self.assert_in_room(True)
 
         response_data = api.on_list_rooms(self.activity_for_list_rooms())
@@ -111,7 +111,7 @@ class ApiListRoomsTest(unittest.TestCase):
 
     def test_list_rooms_correct_name(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        self.create_and_join_room()
         self.assert_in_room(True)
 
         response_data = api.on_list_rooms(self.activity_for_list_rooms())
@@ -119,19 +119,24 @@ class ApiListRoomsTest(unittest.TestCase):
 
     def test_list_rooms_status_code_200_if_no_rooms(self):
         self.assert_in_room(False)
-
         response_data = api.on_list_rooms(self.activity_for_list_rooms())
         self.assertEqual(200, response_data[0])
 
     def test_list_rooms_attachments_empty_if_no_rooms(self):
         self.assert_in_room(False)
-
         response_data = api.on_list_rooms(self.activity_for_list_rooms())
         self.assertEqual(0, len(response_data[1]['object']['attachments']))
 
     def assert_in_room(self, is_in_room):
         self.assertEqual(is_in_room, ApiListRoomsTest.ROOM_ID in ApiListRoomsTest.users_in_room and
                          ApiListRoomsTest.USER_ID in ApiListRoomsTest.users_in_room[ApiListRoomsTest.ROOM_ID])
+
+    def create_room(self):
+        redis.hset(rkeys.rooms(), ApiListRoomsTest.ROOM_ID, ApiListRoomsTest.ROOM_NAME)
+
+    def create_and_join_room(self):
+        self.create_room()
+        api.on_join(self.activity_for_join())
 
     def activity_for_list_rooms(self):
         return {
