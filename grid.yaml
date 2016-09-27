@@ -2,7 +2,7 @@ oscar:
     redis_host: 'localhost:6379'
     log_level: 'DEBUG'
 dev:
-    redis_host: 'maggie-spark-3:6379'
+    redis_host: 'maggie-kafka-3:6379'
     log_level: 'DEBUG'
 test:
     redis_host: 'mock'
