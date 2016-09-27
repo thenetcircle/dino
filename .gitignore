@@ -8,3 +8,4 @@ setup.cfg
 *.iml
 *.sql
 .eggs
+.coverage

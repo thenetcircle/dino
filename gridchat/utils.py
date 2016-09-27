@@ -92,7 +92,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
     return response
 
 
-def activity_for_join(activity: Activity, acls: dict, messages: list, owners: dict) -> dict:
+def activity_for_join(activity: Activity, acls: dict, messages: list, owners: dict, users: list) -> dict:
     response = {
         'object': {
             'objectType': 'room',
@@ -121,6 +121,12 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
     response['object']['attachments'].append({
         'objectType': 'owner',
         'attachments': owners_activity['object']['attachments']
+    })
+
+    users_in_room_activity = activity_for_users_in_room(activity, users)
+    response['object']['attachments'].append({
+        'objectType': 'user',
+        'attachments': users_in_room_activity['object']['attachments']
     })
 
     return response
@@ -180,8 +186,7 @@ def activity_for_users_in_room(activity: Activity, users: list) -> dict:
     }
 
     response['object']['attachments'] = list()
-    for user_id_and_name in users:
-        user_id, user_name = user_id_and_name.split(':', 1)
+    for user_id, user_name in users:
         response['object']['attachments'].append({
             'id': user_id,
             'content': user_name
@@ -216,6 +221,17 @@ def is_owner(room_id: str, user_id: str) -> bool:
     return env.redis.hexists(rkeys.room_owners(room_id), user_id)
 
 
+def get_users_in_room(room_id: str) -> list:
+    users_in_room = env.redis.hgetall(rkeys.users_in_room(room_id))
+    users = list()
+    for user_id, user_name in users_in_room.items():
+        users.append((
+            str(user_id.decode('utf-8')),
+            str(user_name.decode('utf-8'))
+        ))
+    return users
+
+
 def get_acls_for_room(room_id: str) -> dict:
     return env.redis.hgetall(rkeys.room_acl(room_id))
 
@@ -235,7 +251,7 @@ def get_history_for_room(room_id: str, limit: int=10) -> list:
 
 def remove_user_from_room(r_server: Redis, user_id: str, user_name: str, room_id: str) -> None:
     env.leave_room(room_id)
-    r_server.srem(rkeys.users_in_room(room_id), '%s:%s' % (user_id, user_name))
+    r_server.hdel(rkeys.users_in_room(room_id), user_id)
     r_server.srem(rkeys.rooms_for_user(user_id), room_id)
 
 
@@ -252,7 +268,7 @@ def get_room_name(r_server: Redis, room_id: str) -> str:
 
 def join_the_room(r_server: Redis, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
     r_server.sadd(rkeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
-    r_server.sadd(rkeys.users_in_room(room_id), '%s:%s' % (user_id, user_name))
+    r_server.hset(rkeys.users_in_room(room_id), user_id, user_name)
     r_server.sadd(rkeys.rooms(), '%s:%s' % (room_id, room_name))
     env.join_room(room_id)
     env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))

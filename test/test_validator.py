@@ -1,11 +1,105 @@
 import unittest
+import fakeredis
 
+from gridchat.env import ConfigKeys
+from gridchat.env import env
 from gridchat.validator import Validator
+from gridchat.validator import validate_request
+from gridchat.validator import is_acl_valid
+from gridchat.env import SessionKeys
+
+from activitystreams import parse as as_parser
+from uuid import uuid4 as uuid
+
+redis = fakeredis.FakeStrictRedis()
+env.config = dict()
+env.config[ConfigKeys.REDIS] = redis
+env.config[ConfigKeys.TESTING] = True
+env.config[ConfigKeys.SESSION] = dict()
+
+
+class ValidatorIsAclValidTest(unittest.TestCase):
+    def test_is_valid(self):
+        self.assertTrue(is_acl_valid(SessionKeys.gender.value, 'f'))
+
+    def test_missing_is_invalid(self):
+        self.assertFalse(is_acl_valid('not-found', 'f'))
+
+    def test_not_callable_is_invalid(self):
+        invalid_key = 'not-found'
+        Validator.ACL_VALIDATORS[invalid_key] = 'not-callable'
+        self.assertFalse(is_acl_valid(invalid_key, 'f'))
+        del Validator.ACL_VALIDATORS[invalid_key]
+
+
+class ValidatorRequestTest(unittest.TestCase):
+    USER_ID = '1234'
+
+    def setUp(self):
+        env.redis.flushall()
+        env.session.clear()
+        env.session['user_id'] = '1234'
+
+    def test_no_actor(self):
+        response = validate_request(as_parser({
+            'verb': 'test',
+            'target': {
+                'id': 'foo',
+                'content': 'bar'
+            }
+        }))
+        self.assertEqual(False, response[0])
+
+    def test_with_actor(self):
+        response = validate_request(as_parser({
+            'actor': {
+                'id': ValidatorRequestTest.USER_ID
+            },
+            'verb': 'test',
+            'target': {
+                'id': 'foo',
+                'content': 'bar'
+            }
+        }))
+        self.assertEqual(True, response[0])
+
+    def test_with_wrong_actor_id(self):
+        response = validate_request(as_parser({
+            'actor': {
+                'id': str(uuid())
+            },
+            'verb': 'test',
+            'target': {
+                'id': 'foo',
+                'content': 'bar'
+            }
+        }))
+        self.assertEqual(False, response[0])
+
+
+class ValidatorAgeMatcherTest(unittest.TestCase):
+    def test_valid_no_end(self):
+        self.assertTrue(Validator.ACL_MATCHERS[SessionKeys.age.value]('18:', '20'))
+
+    def test_valid_no_start(self):
+        self.assertTrue(Validator.ACL_MATCHERS[SessionKeys.age.value](':25', '20'))
+
+    def test_valid_no_start_or_end(self):
+        self.assertTrue(Validator.ACL_MATCHERS[SessionKeys.age.value]('', '20'))
+
+    def test_valid_not_a_digit(self):
+        self.assertFalse(Validator.ACL_MATCHERS[SessionKeys.age.value]('18:30', '?'))
 
 
 class ValidatorAgeTest(unittest.TestCase):
     def test_valid_start_and_end(self):
         self.assertTrue(Validator.ACL_VALIDATORS['age']('18:49'))
+
+    def test_valid_start_after_end(self):
+        self.assertFalse(Validator.ACL_VALIDATORS['age']('49:18'))
+
+    def test_age_is_not_a_range(self):
+        self.assertFalse(Validator.ACL_VALIDATORS['age']('49'))
 
     def test_valid_start_only(self):
         self.assertTrue(Validator.ACL_VALIDATORS['age']('18:'))

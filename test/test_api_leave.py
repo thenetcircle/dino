@@ -86,6 +86,23 @@ class ApiLeaveTest(unittest.TestCase):
         self.assert_leave_succeeds()
         self.assert_in_room(False)
 
+    def test_leave_without_actor_id_status_code_400(self):
+        api.on_join(self.activity_for_join())
+        self.assert_in_room(True)
+
+        activity = self.activity_for_leave()
+        del activity['actor']['id']
+        response_data = api.on_leave(activity)
+        self.assertEqual(400, response_data[0])
+
+    def test_leave_without_actor_status_code_400(self):
+        api.on_join(self.activity_for_join())
+        self.assert_in_room(True)
+
+        activity = self.activity_for_leave(skip={'actor'})
+        response_data = api.on_leave(activity)
+        self.assertEqual(400, response_data[0])
+
     def test_leave_without_target_id(self):
         self.assert_in_room(False)
         api.on_join(self.activity_for_join())

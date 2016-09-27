@@ -56,13 +56,13 @@ class Validator:
             else:
                 return None, None
 
-        if not Validator._age(expected) or not Validator.is_digit(actual):
+        if expected != '' and not Validator._age(expected) or not Validator.is_digit(actual):
             return False
 
         expected_start, expected_end = _split_age(expected.strip())
 
         if expected_start is None and expected_end is None:
-            return False
+            return True
 
         if expected_start is not None and expected_start > actual:
             return False
@@ -195,10 +195,7 @@ def validate_session() -> (bool, str):
 
 
 def validate_request(activity: Activity) -> (bool, str):
-    if not hasattr(activity, 'actor'):
-        return False, 'no actor on activity'
-
-    if not hasattr(activity.actor, 'id'):
+    if not hasattr(activity.actor, 'id') or activity.actor.id is None:
         return False, 'no ID on actor'
 
     session_user_id = env.session.get('user_id', 'NOT_FOUND_IN_SESSION')

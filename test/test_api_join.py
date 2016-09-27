@@ -78,6 +78,12 @@ class ApiJoinTest(unittest.TestCase):
     def test_join_non_owner_no_acl(self):
         self.assert_join_succeeds()
 
+    def test_join_missing_actor_id_fails(self):
+        activity = self.activity_for_join()
+        del activity['actor']['id']
+        response = api.on_join(activity)
+        self.assertEqual(400, response[0])
+
     def test_join_owner_no_acl(self):
         self.set_owner()
         self.assert_join_succeeds()
@@ -248,6 +254,41 @@ class ApiJoinTest(unittest.TestCase):
         })
         self.assert_join_fails()
 
+    def test_join_non_owner_with_all_acls_one_missing(self):
+        self.set_acl({
+            'country': 'de,cn,dk',
+            'city': 'Beijing,Shanghai,Berlin,Copenhagen',
+            'age': '18:45',
+            'gender': 'm,f',
+            'membership': '0,1',
+            'has_webcam': 'y',
+            'fake_checked': 'y,n',
+            'image': 'n'
+        })
+        env.session['has_webcam'] = None
+        self.assert_join_fails()
+
+    def test_join_invalid_acl_in_redis(self):
+        self.set_acl({
+            'country': 'de,cn,dk'
+        })
+        invalid_key = 'invalidstuff'
+        env.session[invalid_key] = 't'
+        env.redis.hset(rkeys.room_acl(ApiJoinTest.ROOM_ID), invalid_key, 't,r,e,w')
+        self.assert_join_fails()
+
+    def test_join_acl_matcher_not_callable(self):
+        self.set_acl({
+            'country': 'de,cn,dk'
+        })
+        invalid_key = 'invalidstuff'
+        env.session[invalid_key] = 't'
+        from gridchat.validator import Validator
+        Validator.ACL_MATCHERS[invalid_key] = 'definitely-not-callable'
+        env.redis.hset(rkeys.room_acl(ApiJoinTest.ROOM_ID), invalid_key, 't,r,e,w')
+        self.assert_join_fails()
+        del Validator.ACL_MATCHERS[invalid_key]
+
     def test_join_owner_with_all_acls_one_incorrect(self):
         self.set_acl({
             'country': 'de,cn,dk',
@@ -261,39 +302,33 @@ class ApiJoinTest(unittest.TestCase):
         })
         self.assert_join_succeeds()
 
-    def test_join_returns_activity_with_3_attachments(self):
+    def test_join_returns_activity_with_4_attachments(self):
         response = api.on_join(self.activity_for_join())
-        self.assertEqual(3, len(response[1]['object']['attachments']))
+        self.assertEqual(4, len(response[1]['object']['attachments']))
 
     def test_join_returns_activity_with_acl_attachment(self):
         response = api.on_join(self.activity_for_join())
         attachments = response[1]['object']['attachments']
-
-        found_keys = set()
-        for attachment in attachments:
-            found_keys.add(attachment['objectType'])
-
-        self.assertTrue('acl' in found_keys)
+        acls = self.get_attachment_for_key(attachments, 'acl')
+        self.assertIsNotNone(acls)
 
     def test_join_returns_activity_with_history_attachment(self):
         response = api.on_join(self.activity_for_join())
         attachments = response[1]['object']['attachments']
-
-        found_keys = set()
-        for attachment in attachments:
-            found_keys.add(attachment['objectType'])
-
-        self.assertTrue('history' in found_keys)
+        history = self.get_attachment_for_key(attachments, 'history')
+        self.assertIsNotNone(history)
 
     def test_join_returns_activity_with_owner_attachment(self):
         response = api.on_join(self.activity_for_join())
         attachments = response[1]['object']['attachments']
+        owners = self.get_attachment_for_key(attachments, 'owner')
+        self.assertIsNotNone(owners)
 
-        found_keys = set()
-        for attachment in attachments:
-            found_keys.add(attachment['objectType'])
-
-        self.assertTrue('owner' in found_keys)
+    def test_join_returns_activity_with_users_attachment(self):
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        users = self.get_attachment_for_key(attachments, 'user')
+        self.assertIsNotNone(users)
 
     def test_join_returns_activity_with_empty_acl_attachment(self):
         response = api.on_join(self.activity_for_join())
@@ -309,6 +344,19 @@ class ApiJoinTest(unittest.TestCase):
         response = api.on_join(self.activity_for_join())
         attachments = response[1]['object']['attachments']
         self.assert_attachment_equals(attachments, 'owner', [])
+
+    def test_join_returns_activity_with_one_user_as_attachment(self):
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        users = self.get_attachment_for_key(attachments, 'user')
+        self.assertEqual(1, len(users))
+
+    def test_join_returns_activity_with_this_user_as_attachment(self):
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        user = self.get_attachment_for_key(attachments, 'user')[0]
+        self.assertEqual(ApiJoinTest.USER_ID, user['id'])
+        self.assertEqual(ApiJoinTest.USER_NAME, user['content'])
 
     def test_join_returns_activity_with_one_owner(self):
         self.set_owner()

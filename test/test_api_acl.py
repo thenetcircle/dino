@@ -29,10 +29,16 @@ class ApiAclTest(unittest.TestCase):
     def setUp(self):
         redis.flushall()
         redis.set(rkeys.room_name_for_id(ApiAclTest.ROOM_ID), ApiAclTest.ROOM_NAME)
-        redis.hset(rkeys.room_owners(ApiAclTest.ROOM_ID), ApiAclTest.USER_ID, ApiAclTest.USER_NAME)
+        self.set_owner()
         env.logger = logger
         env.session = {'user_id': ApiAclTest.USER_ID}
         env.redis = redis
+
+    def set_owner(self):
+        redis.hset(rkeys.room_owners(ApiAclTest.ROOM_ID), ApiAclTest.USER_ID, ApiAclTest.USER_NAME)
+
+    def remove_owner(self):
+        redis.hdel(rkeys.room_owners(ApiAclTest.ROOM_ID), ApiAclTest.USER_ID)
 
     def test_get_acl(self):
         acl_type = 'gender'
@@ -57,6 +63,23 @@ class ApiAclTest(unittest.TestCase):
         self.assertEqual(activity.object.attachments[0].object_type, acl_type)
         self.assertEqual(activity.object.attachments[0].content, acl_value)
 
+    def test_get_acl_missing_actor_id(self):
+        acl_type = 'gender'
+        acl_value = 'm,f'
+
+        redis.hmset(rkeys.room_acl(ApiAclTest.ROOM_ID), {acl_type: acl_value})
+
+        response_data = api.on_get_acl({
+            'actor': {
+            },
+            'target': {
+                'id': ApiAclTest.ROOM_ID
+            },
+            'verb': 'list'
+        })
+
+        self.assertEqual(response_data[0], 400)
+
     def test_set_acl_one_acl(self):
         acl_type = 'gender'
         acl_value = 'm,f'
@@ -69,6 +92,56 @@ class ApiAclTest(unittest.TestCase):
         self.assertEqual(len(acls_decoded), 1)
         self.assertTrue(acl_type in acls_decoded.keys())
         self.assertEqual(acls_decoded[acl_type], acl_value)
+
+    def test_set_acl_missing_actor_id_returns_400(self):
+        acl_type = 'gender'
+        acl_value = 'm,f'
+
+        activity = self.activity_for([{
+            'objectType': acl_type,
+            'content': acl_value
+        }])
+
+        del activity['actor']['id']
+        response_data = api.on_set_acl(activity)
+        self.assertEqual(response_data[0], 400)
+
+    def test_set_acl_not_owner_returns_code_400(self):
+        acl_type = 'gender'
+        acl_value = 'm,f'
+
+        activity = self.activity_for([{
+            'objectType': acl_type,
+            'content': acl_value
+        }])
+
+        self.remove_owner()
+        response_data = api.on_set_acl(activity)
+        self.assertEqual(response_data[0], 400)
+
+    def test_set_acl_unknown_type(self):
+        acl_type = 'unknown'
+        acl_value = 'm,f'
+
+        activity = self.activity_for([{
+            'objectType': acl_type,
+            'content': acl_value
+        }])
+
+        response_data = api.on_set_acl(activity)
+        self.assertEqual(response_data[0], 400)
+
+    def test_set_acl_invalid_value(self):
+        acl_type = 'gender'
+        acl_value = 'm,999'
+
+        activity = self.activity_for([{
+            'objectType': acl_type,
+            'content': acl_value
+        }])
+
+        response_data = api.on_set_acl(activity)
+        self.assertEqual(response_data[0], 400)
 
     def test_set_acl_two_acl(self):
         acl_tuples = [('gender', 'm,f'), ('image', 'y')]

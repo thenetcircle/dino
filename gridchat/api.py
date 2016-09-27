@@ -338,8 +338,9 @@ def on_join(data: dict) -> (int, Union[str, None]):
     messages = utils.get_history_for_room(room_id, 10)
     owners = utils.get_owners_for_room(room_id)
     acls = utils.get_acls_for_room(room_id)
+    users = utils.get_users_in_room(room_id)
 
-    return 200, utils.activity_for_join(activity, acls, messages, owners)
+    return 200, utils.activity_for_join(activity, acls, messages, owners, users)
 
 
 def on_users_in_room(data: dict) -> (int, Union[dict, str]):
@@ -356,10 +357,7 @@ def on_users_in_room(data: dict) -> (int, Union[dict, str]):
     if not is_valid:
         return 400, error_msg
 
-    users_in_room = env.redis.smembers(rkeys.users_in_room(room_id))
-    users = list()
-    for user in users_in_room:
-        users.append(str(user.decode('utf-8')))
+    users = utils.get_users_in_room(room_id)
 
     return 200, utils.activity_for_users_in_room(activity, users)
 

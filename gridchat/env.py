@@ -65,38 +65,32 @@ class GNEnvironment(object):
         self.redis = config.get(ConfigKeys.REDIS, None)
         self.session = config.get(ConfigKeys.SESSION, None)
 
-    def merge(self, config):
-        self.config = self.config.sub(**config)
 
-    def setup(self):
-        pass
-
-    def shutdown(self):
-        pass
+def error(text: str) -> None:
+    print(text, file=sys.stderr)
 
 
-def create_env() -> GNEnvironment:
-    def error(text: str, args=None) -> None:
-        if args is None:
-            print(text, file=sys.stderr)
-        else:
-            print(text, args, file=sys.stderr)
+def create_logger(_config_dict: dict) -> RootLogger:
+    logging.basicConfig(
+            level=getattr(logging, _config_dict.get(ConfigKeys.LOG_LEVEL, 'INFO')),
+            format=_config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
+    return logging.getLogger(__name__)
 
-    def create_logger(_config_dict: dict) -> RootLogger:
-        logging.basicConfig(
-                level=getattr(logging, _config_dict.get(ConfigKeys.LOG_LEVEL, 'INFO')),
-                format=_config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
-        return logging.getLogger(__name__)
 
-    config_paths = ["grid.yaml", "grid.json"]
-    config_dict = dict()
+def create_env(config_paths: list=None) -> GNEnvironment:
+    default_paths = ["grid.yaml", "grid.json"]
+
+    if config_paths is None:
+        config_paths = default_paths
+
+    config_dict = None
     config_path = None
 
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
 
     # assuming tests are running
     if gn_environment is None:
-        return GNEnvironment(None, config_dict)
+        return GNEnvironment(None, dict())
 
     for conf in config_paths:
         path = os.path.join(os.getcwd(), conf)
@@ -110,18 +104,15 @@ def create_env() -> GNEnvironment:
             elif conf.endswith(".json"):
                 config_dict = json.load(open(path))
             else:
-                error("Unsupported file extension: {0}".format(conf))
-                sys.exit(1)
+                raise RuntimeError("Unsupported file extension: {0}".format(conf))
         except Exception as e:
-            error("Failed to open configuration {0}: {1}".format(conf, str(e)))
-            sys.exit(1)
+            raise RuntimeError("Failed to open configuration {0}: {1}".format(conf, str(e)))
 
         config_path = path
         break
 
     if not config_dict:
-        error("No configuration found: {0}\n".format(", ".join(config_paths)))
-        sys.exit(1)
+        raise RuntimeError("No configuration found: {0}\n".format(", ".join(config_paths)))
 
     if gn_environment not in config_dict:
         raise RuntimeError('no configuration found for environment "%s"' % gn_environment)
@@ -133,9 +124,14 @@ def create_env() -> GNEnvironment:
     if ':' in redis_host:
         redis_host, redis_port = redis_host.split(':', 1)
 
+    if redis_host == 'mock':
+        from fakeredis import FakeStrictRedis
+        config_dict[ConfigKeys.REDIS] = FakeStrictRedis()
+    else:
+        config_dict[ConfigKeys.REDIS] = Redis(redis_host, port=redis_port)
+
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
     config_dict[ConfigKeys.VERSION] = pkg_resources.require('gridnotify')[0].version
-    config_dict[ConfigKeys.REDIS] = Redis(redis_host, port=redis_port)
     config_dict[ConfigKeys.LOGGER] = create_logger(config_dict)
     config_dict[ConfigKeys.SESSION] = _flask_session
 
