@@ -7,6 +7,14 @@
         <form method="POST">
             {{ form.hidden_tag() }}
             {{ form.user_name.label }}: {{ form.user_name() }} {% for error in form.user_name.errors %}{{ error }}{% endfor %}<br>
+            {{ form.gender.label }}: {{ form.gender() }} {% for error in form.gender.errors %}{{ error }}{% endfor %}<br>
+            {{ form.membership.label }}: {{ form.membership() }} {% for error in form.membership.errors %}{{ error }}{% endfor %}<br>
+            {{ form.has_webcam.label }}: {{ form.has_webcam() }} {% for error in form.has_webcam.errors %}{{ error }}{% endfor %}<br>
+            {{ form.fake_checked.label }}: {{ form.fake_checked() }} {% for error in form.fake_checked.errors %}{{ error }}{% endfor %}<br>
+            {{ form.age.label }}: {{ form.age() }} {% for error in form.age.errors %}{{ error }}{% endfor %}<br>
+            {{ form.image.label }}: {{ form.image() }} {% for error in form.image.errors %}{{ error }}{% endfor %}<br>
+            {{ form.country.label }}: {{ form.country() }} {% for error in form.country.errors %}{{ error }}{% endfor %}<br>
+            {{ form.city.label }}: {{ form.city() }} {% for error in form.city.errors %}{{ error }}{% endfor %}<br>
             {{ form.submit() }}
         </form>
     </body>

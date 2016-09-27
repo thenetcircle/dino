@@ -97,47 +97,47 @@ class Validator:
         SessionKeys.age.value:
             lambda expected, actual: expected is None or Validator._age_range_validate(expected, actual),
 
-        SessionKeys.age.gender.value:
+        SessionKeys.gender.value:
             lambda expected, actual: Validator.generic_validator(expected, actual),
 
-        SessionKeys.age.membership.value:
+        SessionKeys.membership.value:
             lambda expected, actual: Validator.generic_validator(expected, actual),
 
-        SessionKeys.age.country.value:
+        SessionKeys.country.value:
             lambda expected, actual: Validator.generic_validator(expected, actual),
 
-        SessionKeys.age.city.value:
+        SessionKeys.city.value:
             lambda expected, actual: Validator.generic_validator(expected, actual),
 
-        SessionKeys.age.image.value:
+        SessionKeys.image.value:
             lambda expected, actual: Validator.generic_validator(expected, actual),
 
-        SessionKeys.age.has_webcam.value:
+        SessionKeys.has_webcam.value:
             lambda expected, actual: Validator.generic_validator(expected, actual),
 
-        SessionKeys.age.fake_checked.value:
+        SessionKeys.fake_checked.value:
             lambda expected, actual: Validator.generic_validator(expected, actual)
     }
 
     ACL_VALIDATORS = {
-        'gender':
+        SessionKeys.gender.value:
             lambda v: v is None or Validator._chars_in_list(v, ['m', 'f', 'ts']),
 
-        'membership':
+        SessionKeys.membership.value:
             lambda v: v is None or Validator._chars_in_list(v, ['0', '1', '2', '3', '4']),
 
-        'age':
+        SessionKeys.age.value:
             lambda v: v is None or Validator._age(v),
 
         # 2 character country codes, no spaces
-        'country':
+        SessionKeys.country.value:
             lambda v: v is None or Validator._match(v, '^([A-Za-z]{2},)*([A-Za-z]{2})+$'),
 
         # city names can have spaces and dashes in them
-        'city':
+        SessionKeys.city.value:
             lambda v: v is None or Validator._match(v, '^([\w -]+,)*([\w -]+)+$'),
 
-        'image':
+        SessionKeys.image.value:
             lambda v: v is None or Validator._true_false_all(v),
 
         'user_id':
@@ -149,10 +149,10 @@ class Validator:
         'token':
             lambda v: Validator._is_string(v) and len(v) > 0,
 
-        'has_webcam':
+        SessionKeys.has_webcam.value:
             lambda v: v is None or Validator._true_false_all(v),
 
-        'fake_checked':
+        SessionKeys.fake_checked.value:
             lambda v: v is None or Validator._true_false_all(v),
     }
 
@@ -218,7 +218,7 @@ def validate_acl(activity: Activity) -> (bool, str):
     # owners can always join
     # todo: maybe not if banned? or remove owner status if banned?
     # todo: let admins always be able to join any room
-    if env.redis.sismember(rkeys.room_owners(room_id), user_id):
+    if utils.is_owner(room_id, user_id):
         env.logger.debug('user %s (%s) is an owner of room %s (%s), skipping ACL validation' %
                          (user_id, user_name, room_id, room_name))
         return True, None

@@ -22,13 +22,14 @@ logger = logging.getLogger(__name__)
 
 class ApiAclTest(unittest.TestCase):
     USER_ID = '1234'
+    USER_NAME = 'Joe'
     ROOM_ID = str(uuid())
     ROOM_NAME = 'Shanghai'
 
     def setUp(self):
         redis.flushall()
         redis.set(rkeys.room_name_for_id(ApiAclTest.ROOM_ID), ApiAclTest.ROOM_NAME)
-        redis.sadd(rkeys.room_owners(ApiAclTest.ROOM_ID), ApiAclTest.USER_ID)
+        redis.hset(rkeys.room_owners(ApiAclTest.ROOM_ID), ApiAclTest.USER_ID, ApiAclTest.USER_NAME)
         env.logger = logger
         env.session = {'user_id': ApiAclTest.USER_ID}
         env.redis = redis

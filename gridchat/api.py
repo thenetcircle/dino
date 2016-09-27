@@ -147,7 +147,7 @@ def on_create(data):
 
     room_id = str(uuid())
     env.redis.set(rkeys.room_name_for_id(room_id), target)
-    env.redis.sadd(rkeys.room_owners(room_id), activity.actor.id)
+    env.redis.hset(rkeys.room_owners(room_id), activity.actor.id, env.session.get(SessionKeys.user_name.value))
     env.emit('gn_room_created', utils.activity_for_create_room(room_id, target), broadcast=True, json=True, include_self=True)
 
     return 200, data
@@ -168,7 +168,7 @@ def on_set_acl(data: dict) -> (int, str):
     if not is_valid:
         return 400, error_msg
 
-    if not env.redis.sismember(rkeys.room_owners(room_id), user_id):
+    if not utils.is_owner(room_id, user_id):
         return 400, 'user not a owner of room'
 
     # validate all acls before actually changing anything
@@ -210,8 +210,8 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
     if not is_valid:
         return 400, error_msg
 
-    values = env.redis.hgetall(rkeys.room_acl(room_id))
-    return 200, utils.activity_for_get_acl(activity, values)
+    acls = utils.get_acls_for_room(room_id)
+    return 200, utils.activity_for_get_acl(activity, acls)
 
 
 def on_status(data: dict) -> (int, Union[str, None]):
@@ -291,13 +291,8 @@ def on_history(data: dict) -> (int, Union[str, None]):
     if not is_valid:
         return 400, error_msg
 
-    messages = env.redis.lrange(rkeys.room_history(room_id), 0, 10)
-    cleaned_messages = list()
-    for message_entry in messages:
-        message_entry = str(message_entry, 'utf-8')
-        cleaned_messages.append(message_entry.split(',', 3))
-
-    return 200, utils.activity_for_history(activity, cleaned_messages)
+    messages = utils.get_history_for_room(room_id, 10)
+    return 200, utils.activity_for_history(activity, messages)
 
 
 def on_join(data: dict) -> (int, Union[str, None]):
@@ -337,10 +332,14 @@ def on_join(data: dict) -> (int, Union[str, None]):
     room_name = utils.get_room_name(env.redis, room_id)
     utils.join_the_room(env.redis, user_id, user_name, room_id, room_name)
 
-    env.emit('gn_user_joined', utils.activity_for_join(user_id, user_name, room_id, room_name, image),
+    env.emit('gn_user_joined', utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image),
              room=room_id, broadcast=True, include_self=False)
 
-    return 200, None
+    messages = utils.get_history_for_room(room_id, 10)
+    owners = utils.get_owners_for_room(room_id)
+    acls = utils.get_acls_for_room(room_id)
+
+    return 200, utils.activity_for_join(activity, acls, messages, owners)
 
 
 def on_users_in_room(data: dict) -> (int, Union[dict, str]):

@@ -36,20 +36,30 @@ class ApiJoinTest(unittest.TestCase):
     users_in_room = set()
 
     @staticmethod
-    def emit(event, *args, **kwargs):
+    def _emit(event, *args, **kwargs):
         pass
 
     @staticmethod
-    def join_room(room):
+    def _join_room(room):
         ApiJoinTest.users_in_room.add(ApiJoinTest.USER_ID)
+
+    @staticmethod
+    def _leave_room(room):
+        ApiJoinTest.users_in_room.remove(ApiJoinTest.USER_ID)
+
+    @staticmethod
+    def _send(message, **kwargs):
+        pass
 
     def setUp(self):
         redis.flushall()
         redis.set(rkeys.room_name_for_id(ApiJoinTest.ROOM_ID), ApiJoinTest.ROOM_NAME)
         ApiJoinTest.users_in_room.clear()
 
-        env.emit = ApiJoinTest.emit
-        env.join_room = ApiJoinTest.join_room
+        env.emit = ApiJoinTest._emit
+        env.join_room = ApiJoinTest._join_room
+        env.send = ApiJoinTest._send
+        env.leave_room = ApiJoinTest._leave_room
         env.session = {
             'user_id': ApiJoinTest.USER_ID,
             'user_name': ApiJoinTest.USER_NAME,
@@ -251,6 +261,133 @@ class ApiJoinTest(unittest.TestCase):
         })
         self.assert_join_succeeds()
 
+    def test_join_returns_activity_with_3_attachments(self):
+        response = api.on_join(self.activity_for_join())
+        self.assertEqual(3, len(response[1]['object']['attachments']))
+
+    def test_join_returns_activity_with_acl_attachment(self):
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+
+        found_keys = set()
+        for attachment in attachments:
+            found_keys.add(attachment['objectType'])
+
+        self.assertTrue('acl' in found_keys)
+
+    def test_join_returns_activity_with_history_attachment(self):
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+
+        found_keys = set()
+        for attachment in attachments:
+            found_keys.add(attachment['objectType'])
+
+        self.assertTrue('history' in found_keys)
+
+    def test_join_returns_activity_with_owner_attachment(self):
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+
+        found_keys = set()
+        for attachment in attachments:
+            found_keys.add(attachment['objectType'])
+
+        self.assertTrue('owner' in found_keys)
+
+    def test_join_returns_activity_with_empty_acl_attachment(self):
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        self.assert_attachment_equals(attachments, 'acl', [])
+
+    def test_join_returns_activity_with_empty_history_attachment(self):
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        self.assert_attachment_equals(attachments, 'history', [])
+
+    def test_join_returns_activity_with_empty_owner_attachment(self):
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        self.assert_attachment_equals(attachments, 'owner', [])
+
+    def test_join_returns_activity_with_one_owner(self):
+        self.set_owner()
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        owners = self.get_attachment_for_key(attachments, 'owner')
+        self.assertEqual(1, len(owners))
+
+    def test_join_returns_activity_with_correct_owner(self):
+        self.set_owner()
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        owners = self.get_attachment_for_key(attachments, 'owner')
+        user_id, user_name = owners[0]['id'], owners[0]['content']
+        self.assertEqual(ApiJoinTest.USER_ID, user_id)
+        self.assertEqual(ApiJoinTest.USER_NAME, user_name)
+
+    def test_join_returns_correct_nr_of_acls(self):
+        correct_acls = {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}
+        self.set_acl(correct_acls)
+        self.set_owner()
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        returned_acls = self.get_attachment_for_key(attachments, 'acl')
+        self.assertEqual(len(correct_acls), len(returned_acls))
+
+    def test_join_returns_correct_acls(self):
+        correct_acls = {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}
+        self.set_acl(correct_acls)
+        self.set_owner()
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        returned_acls = self.get_attachment_for_key(attachments, 'acl')
+        for acl in returned_acls:
+            acl_key = acl['objectType']
+            acl_value = acl['content']
+            self.assertTrue(acl_key in correct_acls)
+            self.assertEqual(correct_acls[acl_key], acl_value)
+
+    def test_join_returns_history(self):
+        msg = 'this is a test message'
+        self.set_owner()
+        self.assert_join_succeeds()
+        self.send_message(msg)
+        self.assert_user_in_room(True)
+        self.leave_room()
+        self.assert_user_in_room(False)
+
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        returned_history = self.get_attachment_for_key(attachments, 'history')
+        self.assertEqual(1, len(returned_history))
+
+    def test_join_returns_correct_history(self):
+        msg = 'this is a test message'
+        self.set_owner()
+        self.assert_join_succeeds()
+        msg_response = self.send_message(msg)[1]
+        self.leave_room()
+
+        response = api.on_join(self.activity_for_join())
+        attachments = response[1]['object']['attachments']
+        history_obj = self.get_attachment_for_key(attachments, 'history')[0]
+
+        self.assertEqual(msg_response['id'], history_obj['id'])
+        self.assertEqual(msg, history_obj['content'])
+        self.assertEqual(msg_response['published'], history_obj['published'])
+        self.assertEqual(ApiJoinTest.USER_NAME, history_obj['summary'])
+
+    def assert_attachment_equals(self, attachments, key, value):
+        found = self.get_attachment_for_key(attachments, key)
+        self.assertEqual(value, found)
+
+    def get_attachment_for_key(self, attachments, key):
+        for attachment in attachments:
+            if attachment['objectType'] == key:
+                return attachment['attachments']
+        return None
+
     def assert_join_fails(self):
         self.assertEqual(400, self.response_code_for_joining())
         self.assert_user_in_room(False)
@@ -260,7 +397,7 @@ class ApiJoinTest(unittest.TestCase):
         self.assert_user_in_room(True)
 
     def set_owner(self):
-        redis.sadd(rkeys.room_owners(ApiJoinTest.ROOM_ID), ApiJoinTest.USER_ID)
+        redis.hset(rkeys.room_owners(ApiJoinTest.ROOM_ID), ApiJoinTest.USER_ID, ApiJoinTest.USER_NAME)
 
     def set_acl(self, acls):
         redis.hmset(rkeys.room_acl(ApiJoinTest.ROOM_ID), acls)
@@ -270,6 +407,38 @@ class ApiJoinTest(unittest.TestCase):
 
     def response_code_for_joining(self):
         return api.on_join(self.activity_for_join())[0]
+
+    def leave_room(self):
+        return api.on_leave(self.activity_for_leave())
+
+    def send_message(self, message: str) -> dict:
+        return api.on_message(self.activity_for_message(message))
+
+    def activity_for_message(self, message: str) -> dict:
+        return {
+            'actor': {
+                'id': ApiJoinTest.USER_ID
+            },
+            'verb': 'send',
+            'target': {
+                'id': ApiJoinTest.ROOM_ID
+            },
+            'object': {
+                'content': message
+            }
+        }
+
+    def activity_for_leave(self):
+        return {
+            'actor': {
+                'id': ApiJoinTest.USER_ID,
+                'summary': ApiJoinTest.USER_NAME
+            },
+            'verb': 'leave',
+            'target': {
+                'id': ApiJoinTest.ROOM_ID
+            }
+        }
 
     def activity_for_join(self):
         return {

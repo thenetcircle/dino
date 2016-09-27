@@ -37,27 +37,56 @@ def index():
         # temporary until we get ID from community
         env.session['user_name'] = form.user_name.data
         env.session['user_id'] = int(float(''.join([str(ord(x)) for x in form.user_name.data])) % 1000000)
+        env.session['age'] = form.age.data
+        env.session['gender'] = form.gender.data
+        env.session['membership'] = form.membership.data
+        env.session['fake_checked'] = form.fake_checked.data
+        env.session['has_webcam'] = form.has_webcam.data
+        env.session['image'] = form.image.data
+        env.session['country'] = form.country.data
+        env.session['city'] = form.city.data
         return redirect(url_for('.chat'))
     elif request.method == 'GET':
         form.user_name.data = env.session.get('user_name', '')
+        form.age.data = env.session.get('age', '')
+        form.gender.data = env.session.get('gender', '')
+        form.membership.data = env.session.get('membership', '')
+        form.fake_checked.data = env.session.get('fake_checked', '')
+        form.has_webcam.data = env.session.get('has_webcam', '')
+        form.image.data = env.session.get('image', '')
+        form.country.data = env.session.get('country', '')
+        form.city.data = env.session.get('city', '')
     return render_template('index.html', form=form)
 
 
 @app.route('/chat')
 def chat():
-    user_id = session.get('user_id', '')
-    user_name = session.get('user_name', '')
+    user_id = env.session.get('user_id', '')
+    user_name = env.session.get('user_name', '')
     if user_id == '':
         return redirect(url_for('.index'))
 
     return render_template(
             'chat.html', name=user_id, room=user_id, user_id=user_id, user_name=user_name,
+            gender=env.session.get('gender', ''),
+            age=env.session.get('age', ''),
+            membership=env.session.get('membership', ''),
+            fake_checked=env.session.get('fake_checked', ''),
+            has_webcam=env.session.get('has_webcam', ''),
+            image=env.session.get('image', ''),
+            country=env.session.get('country', ''),
+            city=env.session.get('city', ''),
             version=env.config.get(ConfigKeys.VERSION))
 
 
 @app.route('/js/<path:path>')
 def send_js(path):
     return send_from_directory('templates/js', path)
+
+
+@app.route('/css/<path:path>')
+def send_css(path):
+    return send_from_directory('templates/css', path)
 
 
 @socketio.on('connect', namespace='/chat')

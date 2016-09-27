@@ -20,7 +20,7 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
     }
 
 
-def activity_for_join(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
+def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
     return {
         'actor': {
             'id': user_id,
@@ -92,6 +92,62 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
     return response
 
 
+def activity_for_join(activity: Activity, acls: dict, messages: list, owners: dict) -> dict:
+    response = {
+        'object': {
+            'objectType': 'room',
+            'attachments': list()
+        },
+        'verb': 'join',
+        'target': {
+            'id': activity.target.id,
+            'displayName': get_room_name(env.redis, activity.target.id)
+        }
+    }
+
+    acl_activity = activity_for_get_acl(activity, acls)
+    response['object']['attachments'].append({
+        'objectType': 'acl',
+        'attachments': acl_activity['object']['attachments']
+    })
+
+    history_activity = activity_for_history(activity, messages)
+    response['object']['attachments'].append({
+        'objectType': 'history',
+        'attachments': history_activity['object']['attachments']
+    })
+
+    owners_activity = activity_for_owners(activity, owners)
+    response['object']['attachments'].append({
+        'objectType': 'owner',
+        'attachments': owners_activity['object']['attachments']
+    })
+
+    return response
+
+
+def activity_for_owners(activity: Activity, owners: dict) -> dict:
+    response = {
+        'object': {
+            'objectType': 'owner'
+        },
+        'target': {
+            'id': activity.target.id,
+            'displayName': activity.target.display_name
+        },
+        'verb': 'list'
+    }
+
+    response['object']['attachments'] = list()
+    for user_id, user_name in owners.items():
+        response['object']['attachments'].append({
+            'id': str(user_id, 'utf-8'),
+            'content': str(user_name, 'utf-8')
+        })
+
+    return response
+
+
 def activity_for_list_rooms(activity: Activity, rooms: list) -> dict:
     response = {
         'object': {
@@ -154,6 +210,27 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
         })
 
     return response
+
+
+def is_owner(room_id: str, user_id: str) -> bool:
+    return env.redis.hexists(rkeys.room_owners(room_id), user_id)
+
+
+def get_acls_for_room(room_id: str) -> dict:
+    return env.redis.hgetall(rkeys.room_acl(room_id))
+
+
+def get_owners_for_room(room_id: str) -> dict:
+    return env.redis.hgetall(rkeys.room_owners(room_id))
+
+
+def get_history_for_room(room_id: str, limit: int=10) -> list:
+    messages = env.redis.lrange(rkeys.room_history(room_id), 0, 10)
+    cleaned_messages = list()
+    for message_entry in messages:
+        message_entry = str(message_entry, 'utf-8')
+        cleaned_messages.append(message_entry.split(',', 3))
+    return cleaned_messages
 
 
 def remove_user_from_room(r_server: Redis, user_id: str, user_name: str, room_id: str) -> None:

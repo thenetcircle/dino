@@ -1,0 +1,12 @@
+body {
+    padding: 10px;
+}
+
+.l-box {
+    padding: 1em;
+}
+
+textarea {
+    font-size: 90%;
+    font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+}
