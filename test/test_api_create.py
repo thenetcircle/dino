@@ -113,7 +113,7 @@ class ApiCreateTest(unittest.TestCase):
                 'displayName': ApiCreateTest.ROOM_NAME
             }
         }
-    
+
     def activity_for_message(self, msg: str='test message'):
         return {
             'actor': {

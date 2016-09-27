@@ -98,7 +98,7 @@ class ApiMessageTest(unittest.TestCase):
     def create_and_join_room(self):
         self.create_room()
         api.on_join(self.activity_for_join())
-    
+
     def activity_for_message(self, msg: str='test message'):
         return {
             'actor': {
