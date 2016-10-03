@@ -442,11 +442,15 @@ def on_disconnect() -> (int, None):
     :return json if ok, {'status_code': 200}
     """
     # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
-    user_id = env.session.get(SessionKeys.user_id.value, 'NOT_FOUND_IN_SESSION')
-    user_name = env.session.get(SessionKeys.user_name.value, 'NOT_FOUND_IN_SESSION')
-    env.leave_room(user_id)
+    user_id = env.session.get(SessionKeys.user_id.value, None)
+    user_name = env.session.get(SessionKeys.user_name.value, None)
 
+    if user_id is None or user_name is None:
+        return 400, 'no user in session, not connected'
+
+    env.leave_room(user_id)
     rooms = env.redis.smembers(rkeys.rooms_for_user(user_id))
+
     for room in rooms:
         room_id, room_name = room.decode('utf-8').split(':', 1)
         utils.remove_user_from_room(env.redis, user_id, user_name, room_id)
