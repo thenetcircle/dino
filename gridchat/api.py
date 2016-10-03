@@ -15,7 +15,11 @@ from gridchat import rkeys
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 
-def on_login(data: dict) -> (int, str):
+def on_add_owner(data: dict) -> (int, Union[str, None]):
+    return 200, None
+
+
+def on_login(data: dict) -> (int, Union[str, None]):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
 
@@ -79,12 +83,12 @@ def on_login(data: dict) -> (int, str):
     env.session[SessionKeys.user_id.value] = user_id
     env.session[SessionKeys.user_name.value] = activity.actor.summary
 
-    if activity.actor.image is not None:
-        env.session['image_url'] = activity.actor.image.url
-        env.session[SessionKeys.image.value] = 'y'
-    else:
+    if activity.actor.image is None:
         env.session['image_url'] = ''
         env.session[SessionKeys.image.value] = 'n'
+    else:
+        env.session['image_url'] = activity.actor.image.url
+        env.session[SessionKeys.image.value] = 'y'
 
     if activity.actor.attachments is not None:
         for attachment in activity.actor.attachments:

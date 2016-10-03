@@ -1,8 +1,5 @@
 import unittest
-import fakeredis
 
-from gridchat.env import ConfigKeys
-from gridchat.env import env
 from gridchat.validator import Validator
 from gridchat.validator import validate_request
 from gridchat.validator import is_acl_valid
@@ -11,14 +8,10 @@ from gridchat.env import SessionKeys
 from activitystreams import parse as as_parser
 from uuid import uuid4 as uuid
 
-redis = fakeredis.FakeStrictRedis()
-env.config = dict()
-env.config[ConfigKeys.REDIS] = redis
-env.config[ConfigKeys.TESTING] = True
-env.config[ConfigKeys.SESSION] = dict()
+from test.utils import BaseTest
 
 
-class ValidatorIsAclValidTest(unittest.TestCase):
+class ValidatorIsAclValidTest(BaseTest):
     def test_is_valid(self):
         self.assertTrue(is_acl_valid(SessionKeys.gender.value, 'f'))
 
@@ -32,14 +25,7 @@ class ValidatorIsAclValidTest(unittest.TestCase):
         del Validator.ACL_VALIDATORS[invalid_key]
 
 
-class ValidatorRequestTest(unittest.TestCase):
-    USER_ID = '1234'
-
-    def setUp(self):
-        env.redis.flushall()
-        env.session.clear()
-        env.session['user_id'] = '1234'
-
+class ValidatorRequestTest(BaseTest):
     def test_no_actor(self):
         response = validate_request(as_parser({
             'verb': 'test',
@@ -77,7 +63,7 @@ class ValidatorRequestTest(unittest.TestCase):
         self.assertEqual(False, response[0])
 
 
-class ValidatorAgeMatcherTest(unittest.TestCase):
+class ValidatorAgeMatcherTest(BaseTest):
     def test_valid_no_end(self):
         self.assertTrue(Validator.ACL_MATCHERS[SessionKeys.age.value]('18:', '20'))
 
@@ -91,7 +77,7 @@ class ValidatorAgeMatcherTest(unittest.TestCase):
         self.assertFalse(Validator.ACL_MATCHERS[SessionKeys.age.value]('18:30', '?'))
 
 
-class ValidatorAgeTest(unittest.TestCase):
+class ValidatorAgeTest(BaseTest):
     def test_valid_start_and_end(self):
         self.assertTrue(Validator.ACL_VALIDATORS['age']('18:49'))
 
@@ -147,7 +133,7 @@ class ValidatorAgeTest(unittest.TestCase):
         self.assertFalse(Validator.ACL_VALIDATORS['age']('  :  '))
 
 
-class ValidatorGenderTest(unittest.TestCase):
+class ValidatorGenderTest(BaseTest):
     def test_valid_gender_m(self):
         self.assertTrue(Validator.ACL_VALIDATORS['gender']('m'))
 
@@ -179,7 +165,7 @@ class ValidatorGenderTest(unittest.TestCase):
         self.assertTrue(Validator.ACL_VALIDATORS['gender'](None))
 
 
-class ValidatorMembershipTest(unittest.TestCase):
+class ValidatorMembershipTest(BaseTest):
     def test_valid_membership_0(self):
         self.assertTrue(Validator.ACL_VALIDATORS['membership']('0'))
 
@@ -232,7 +218,7 @@ class ValidatorMembershipTest(unittest.TestCase):
         self.assertTrue(Validator.ACL_VALIDATORS['membership'](None))
 
 
-class ValidatorCountryTest(unittest.TestCase):
+class ValidatorCountryTest(BaseTest):
     def test_valid_county_de(self):
         self.assertTrue(Validator.ACL_VALIDATORS['country']('de'))
 
@@ -279,7 +265,7 @@ class ValidatorCountryTest(unittest.TestCase):
         self.assertTrue(Validator.ACL_VALIDATORS['country'](None))
 
 
-class ValidatorCityTest(unittest.TestCase):
+class ValidatorCityTest(BaseTest):
     def test_valid_city_berlin(self):
         self.assertTrue(Validator.ACL_VALIDATORS['city']('Berlin'))
 
@@ -311,7 +297,7 @@ class ValidatorCityTest(unittest.TestCase):
         self.assertTrue(Validator.ACL_VALIDATORS['city'](None))
 
 
-class ValidatorImageTest(unittest.TestCase):
+class ValidatorImageTest(BaseTest):
     def test_valid_value_y(self):
         self.assertTrue(Validator.ACL_VALIDATORS['image']('y'))
 
@@ -349,7 +335,7 @@ class ValidatorImageTest(unittest.TestCase):
         self.assertTrue(Validator.ACL_VALIDATORS['image'](None))
 
 
-class ValidatorWebcamTest(unittest.TestCase):
+class ValidatorWebcamTest(BaseTest):
     def test_valid_value_y(self):
         self.assertTrue(Validator.ACL_VALIDATORS['has_webcam']('y'))
 
@@ -387,7 +373,7 @@ class ValidatorWebcamTest(unittest.TestCase):
         self.assertTrue(Validator.ACL_VALIDATORS['has_webcam'](None))
 
 
-class ValidatorFakeCheckedTest(unittest.TestCase):
+class ValidatorFakeCheckedTest(BaseTest):
     def test_valid_value_y(self):
         self.assertTrue(Validator.ACL_VALIDATORS['fake_checked']('y'))
 
@@ -425,7 +411,7 @@ class ValidatorFakeCheckedTest(unittest.TestCase):
         self.assertTrue(Validator.ACL_VALIDATORS['fake_checked'](None))
 
 
-class ValidatorUserIdTest(unittest.TestCase):
+class ValidatorUserIdTest(BaseTest):
     def test_invalid_value_y(self):
         self.assertFalse(Validator.ACL_VALIDATORS['user_id']('y'))
 
@@ -445,7 +431,7 @@ class ValidatorUserIdTest(unittest.TestCase):
         self.assertFalse(Validator.ACL_VALIDATORS['user_id'](None))
 
 
-class ValidatorUserNameTest(unittest.TestCase):
+class ValidatorUserNameTest(BaseTest):
     def test_valid_username(self):
         self.assertTrue(Validator.ACL_VALIDATORS['user_name']('username'))
 
@@ -465,7 +451,7 @@ class ValidatorUserNameTest(unittest.TestCase):
         self.assertFalse(Validator.ACL_VALIDATORS['user_name'](None))
 
 
-class ValidatorTokenTest(unittest.TestCase):
+class ValidatorTokenTest(BaseTest):
     def test_valid_username(self):
         self.assertTrue(Validator.ACL_VALIDATORS['token']('10192387'))
 

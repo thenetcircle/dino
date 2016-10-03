@@ -1,50 +1,19 @@
-import unittest
-import fakeredis
-from uuid import uuid4 as uuid
-import logging
-
-from gridchat.env import env, ConfigKeys
-from gridchat import rkeys
 from activitystreams import parse as as_parser
 
-redis = fakeredis.FakeStrictRedis()
-env.config = dict()
-env.config[ConfigKeys.REDIS] = redis
-env.config[ConfigKeys.TESTING] = True
-env.config[ConfigKeys.SESSION] = dict()
-env.config[ConfigKeys.SESSION]['user_id'] = '1234'
-
 from gridchat import api
-
-logging.basicConfig(level='DEBUG')
-logger = logging.getLogger(__name__)
+from test.utils import BaseTest
 
 
-class ApiAclTest(unittest.TestCase):
-    USER_ID = '1234'
-    USER_NAME = 'Joe'
-    ROOM_ID = str(uuid())
-    ROOM_NAME = 'Shanghai'
-
+class ApiAclTest(BaseTest):
     def setUp(self):
-        redis.flushall()
-        redis.set(rkeys.room_name_for_id(ApiAclTest.ROOM_ID), ApiAclTest.ROOM_NAME)
+        super(ApiAclTest, self).setUp()
         self.set_owner()
-        env.logger = logger
-        env.session = {'user_id': ApiAclTest.USER_ID}
-        env.redis = redis
-
-    def set_owner(self):
-        redis.hset(rkeys.room_owners(ApiAclTest.ROOM_ID), ApiAclTest.USER_ID, ApiAclTest.USER_NAME)
-
-    def remove_owner(self):
-        redis.hdel(rkeys.room_owners(ApiAclTest.ROOM_ID), ApiAclTest.USER_ID)
 
     def test_get_acl(self):
         acl_type = 'gender'
         acl_value = 'm,f'
-
-        redis.hmset(rkeys.room_acl(ApiAclTest.ROOM_ID), {acl_type: acl_value})
+        
+        self.set_acl({acl_type: acl_value})
 
         response_data = api.on_get_acl({
             'actor': {
@@ -67,7 +36,7 @@ class ApiAclTest(unittest.TestCase):
         acl_type = 'gender'
         acl_value = 'm,f'
 
-        redis.hmset(rkeys.room_acl(ApiAclTest.ROOM_ID), {acl_type: acl_value})
+        self.set_acl({acl_type: acl_value})
 
         response_data = api.on_get_acl({
             'actor': {
@@ -158,7 +127,7 @@ class ApiAclTest(unittest.TestCase):
 
     def test_set_acl_add_to_existing(self):
         acl_tuples = [('gender', 'm,f'), ('image', 'y'), ('membership', '1,2,3')]
-        redis.hmset(rkeys.room_acl(ApiAclTest.ROOM_ID), {'gender': 'm,f', 'image': 'y'})
+        self.set_acl({'gender': 'm,f', 'image': 'y'})
 
         acls_decoded = self.get_acl_after_set([{
             'objectType': 'membership',
@@ -172,7 +141,7 @@ class ApiAclTest(unittest.TestCase):
 
     def test_set_acl_remove_from_existing(self):
         acl_tuples = [('gender', 'm,f'), ('image', 'y')]
-        redis.hmset(rkeys.room_acl(ApiAclTest.ROOM_ID), {'gender': 'm,f', 'image': 'y', 'membership': '1,2,3'})
+        self.set_acl({'gender': 'm,f', 'image': 'y', 'membership': '1,2,3'})
 
         acls_decoded = self.get_acl_after_set([{
             'objectType': 'membership',
@@ -185,7 +154,7 @@ class ApiAclTest(unittest.TestCase):
             self.assertEqual(acls_decoded[acl_type], acl_value)
 
     def test_set_acl_remove_only_one(self):
-        redis.hmset(rkeys.room_acl(ApiAclTest.ROOM_ID), {'gender': 'm,f'})
+        self.set_acl({'gender': 'm,f'})
 
         activity = self.activity_for([{
             'objectType': 'gender',
@@ -195,7 +164,7 @@ class ApiAclTest(unittest.TestCase):
         response_data = api.on_set_acl(activity)
         self.assertEqual(response_data[0], 200)
 
-        acls = redis.hgetall(rkeys.room_acl(ApiAclTest.ROOM_ID))
+        acls = self.get_acls()
         self.assertEqual(len(acls), 0)
 
     def test_set_acl_remove_non_existing(self):
@@ -207,7 +176,7 @@ class ApiAclTest(unittest.TestCase):
         response_data = api.on_set_acl(activity)
         self.assertEqual(response_data[0], 200)
 
-        acls = redis.hgetall(rkeys.room_acl(ApiAclTest.ROOM_ID))
+        acls = self.get_acls()
         self.assertEqual(len(acls), 0)
 
     def activity_for(self, attachments):
@@ -231,7 +200,7 @@ class ApiAclTest(unittest.TestCase):
         response_data = api.on_set_acl(activity)
         self.assertEqual(response_data[0], 200)
 
-        acls = redis.hgetall(rkeys.room_acl(ApiAclTest.ROOM_ID))
+        acls = self.get_acls()
 
         # need to decode since redis will store in byte arrays
         acls_decoded = dict()

@@ -1,80 +1,8 @@
-import unittest
-import fakeredis
-from uuid import uuid4 as uuid
-import logging
-
-from gridchat.env import env, ConfigKeys
-from gridchat import rkeys
-
-redis = fakeredis.FakeStrictRedis()
-env.config = dict()
-env.config[ConfigKeys.REDIS] = redis
-env.config[ConfigKeys.TESTING] = True
-env.config[ConfigKeys.SESSION] = dict()
-env.config[ConfigKeys.SESSION]['user_id'] = '1234'
-
 from gridchat import api
-
-logging.basicConfig(level='DEBUG')
-logger = logging.getLogger(__name__)
+from test.utils import BaseTest
 
 
-class ApiListRoomsTest(unittest.TestCase):
-    USER_ID = '1234'
-    USER_NAME = 'Joe'
-    ROOM_ID = USER_ID
-    ROOM_NAME = 'Shanghai:stuff about this place!'
-    AGE = '30'
-    GENDER = 'f'
-    MEMBERSHIP = '0'
-    IMAGE = 'y'
-    HAS_WEBCAM = 'y'
-    FAKE_CHECKED = 'n'
-    COUNTRY = 'cn'
-    CITY = 'Shanghai'
-
-    users_in_room = dict()
-
-    @staticmethod
-    def emit(event, *args, **kwargs):
-        pass
-
-    @staticmethod
-    def join_room(room):
-        if room not in ApiListRoomsTest.users_in_room:
-            ApiListRoomsTest.users_in_room[room] = list()
-        ApiListRoomsTest.users_in_room[room].append(ApiListRoomsTest.USER_ID)
-
-    @staticmethod
-    def leave_room(room):
-        if room not in ApiListRoomsTest.users_in_room:
-            return
-
-        if ApiListRoomsTest.USER_ID in ApiListRoomsTest.users_in_room[room]:
-            ApiListRoomsTest.users_in_room[room].remove(ApiListRoomsTest.USER_ID)
-
-    def setUp(self):
-        redis.flushall()
-        redis.set(rkeys.room_name_for_id(ApiListRoomsTest.ROOM_ID), ApiListRoomsTest.ROOM_NAME)
-        ApiListRoomsTest.users_in_room.clear()
-
-        env.emit = ApiListRoomsTest.emit
-        env.join_room = ApiListRoomsTest.join_room
-        env.leave_room = ApiListRoomsTest.leave_room
-        env.redis = redis
-        env.session = {
-            'user_id': ApiListRoomsTest.USER_ID,
-            'user_name': ApiListRoomsTest.USER_NAME,
-            'age': ApiListRoomsTest.AGE,
-            'gender': ApiListRoomsTest.GENDER,
-            'membership': ApiListRoomsTest.MEMBERSHIP,
-            'image': ApiListRoomsTest.IMAGE,
-            'fake_checked': ApiListRoomsTest.FAKE_CHECKED,
-            'has_webcam': ApiListRoomsTest.HAS_WEBCAM,
-            'city': ApiListRoomsTest.CITY,
-            'country': ApiListRoomsTest.COUNTRY
-        }
-
+class ApiListRoomsTest(BaseTest):
     def test_list_rooms_status_code_200(self):
         self.assert_in_room(False)
         self.create_and_join_room()
@@ -126,34 +54,3 @@ class ApiListRoomsTest(unittest.TestCase):
         self.assert_in_room(False)
         response_data = api.on_list_rooms(self.activity_for_list_rooms())
         self.assertEqual(0, len(response_data[1]['object']['attachments']))
-
-    def assert_in_room(self, is_in_room):
-        self.assertEqual(is_in_room, ApiListRoomsTest.ROOM_ID in ApiListRoomsTest.users_in_room and
-                         ApiListRoomsTest.USER_ID in ApiListRoomsTest.users_in_room[ApiListRoomsTest.ROOM_ID])
-
-    def create_room(self):
-        redis.hset(rkeys.rooms(), ApiListRoomsTest.ROOM_ID, ApiListRoomsTest.ROOM_NAME)
-
-    def create_and_join_room(self):
-        self.create_room()
-        api.on_join(self.activity_for_join())
-
-    def activity_for_list_rooms(self):
-        return {
-            'actor': {
-                'id': ApiListRoomsTest.USER_ID
-            },
-            'verb': 'list'
-        }
-
-    def activity_for_join(self):
-        return {
-            'actor': {
-                'id': ApiListRoomsTest.USER_ID,
-                'summary': ApiListRoomsTest.USER_NAME
-            },
-            'verb': 'join',
-            'target': {
-                'id': ApiListRoomsTest.ROOM_ID
-            }
-        }
