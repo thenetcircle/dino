@@ -17,9 +17,8 @@
             }
 
             add_to_chat = function(msg) {
-                $('#chat').html($('#chat').html() + msg);
+                $('#chat').val($('#chat').val() + msg);
                 $('#chat').scrollTop($('#chat')[0].scrollHeight);
-                //$('#chat').scrollTop = $('#chat').scrollHeight;
             };
 
             show_history_for = function(room_id) {
