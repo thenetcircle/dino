@@ -302,6 +302,9 @@ def on_history(data: dict) -> (int, Union[str, None]):
     activity = as_parser.parse(data)
     room_id = activity.target.id
 
+    if room_id is None or room_id.strip() == '':
+        return 400, 'invalid target id'
+
     is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
         return 400, error_msg

@@ -169,6 +169,27 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(is_in_room, BaseTest.USER_ID in BaseTest.users_in_room and
                          BaseTest.USER_ID in BaseTest.users_in_room[BaseTest.USER_ID])
 
+    def activity_for_history(self, skip: set=None):
+        data = {
+            'actor': {
+                'id': BaseTest.USER_ID
+            },
+            'verb': 'history',
+            'target': {
+                'id': BaseTest.ROOM_ID,
+            }
+        }
+
+        if skip is not None:
+            if 'user_id' in skip:
+                del data['actor']['id']
+            if 'user_name' in skip:
+                del data['actor']['summary']
+            if 'target_id' in skip:
+                del data['target']['id']
+
+        return data
+
     def activity_for_create(self):
         return {
             'actor': {
