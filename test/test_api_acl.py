@@ -12,7 +12,7 @@ class ApiAclTest(BaseTest):
     def test_get_acl(self):
         acl_type = 'gender'
         acl_value = 'm,f'
-        
+
         self.set_acl({acl_type: acl_value})
 
         response_data = api.on_get_acl({
