@@ -31,4 +31,10 @@ setup(
         'gunicorn==19.6.0',
         'activitystreams==0.1.5',
         'codecov==2.0.5',
+    ],
+    test_requires=[
+        'fakeredis==0.8.1',
+        'nose==1.3.7',
+        'codecov==2.0.5',
+        'coverage==4.2',
     ])
