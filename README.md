@@ -1,10 +1,10 @@
-Grid Notify
+Distributed Notifications
 ----
 
 Scalable websocket routing for notifications and chat.
 
 Any number of nodes can be started on different machines or same machine on different port. Flask will handle connection
- routing using either Redis or RabbitMQ as a message queue internally. An nginx reverse proxy needs to sit infront of
+ routing using either Redis or RabbitMQ as a message queue internally. An nginx reverse proxy needs to sit in-front of
  all these nodes with sticky sessions (ip_hash). Failover can be configured in nginx for high availability.
  
 Example nginx configuration:
@@ -68,13 +68,13 @@ TODO: check if docker could be useful: https://www.digitalocean.com/community/tu
 
 ### Running the application
 
-    $ cd grid-notify/
+    $ cd dino/
     $ virtualenv --python=python3.5 env
     $ source env/bin/activate
     (env) $ pip install --upgrade .
     (env) $ ENVIRONMENT=prod gunicorn \
-                --error-logfile ~/gridnotify-gunicorn-error.log \
-                --log-file ~/gridnotify-gunicorn.log \
+                --error-logfile ~/dino-gunicorn-error.log \
+                --log-file ~/dino-gunicorn.log \
                 --worker-class eventlet \
                 --threads 16 \
                 --worker-connections 5000 \
