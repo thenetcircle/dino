@@ -26,22 +26,6 @@ class _SocketIO(object):
         return factory
 
 
-class _App(object):
-    def __init__(self, _app):
-        self._app = _app
-
-    def route(self, rule, **options):
-        def factory(view_func):
-            @wraps(view_func)
-            def decorator(*args, **kwargs):
-                if env.config.get(ConfigKeys.TESTING):
-                    return view_func(*args, **kwargs)
-                else:
-                    self._app.route(rule, **options)
-            return decorator
-        return factory
-
-
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'secret!fdsa'
@@ -49,7 +33,7 @@ def create_app():
                         message_queue='redis://%s' % env.config.get(ConfigKeys.REDIS_HOST))
 
     env.config[ConfigKeys.SESSION] = session
-    return _App(app), _SocketIO(socketio)
+    return app, _SocketIO(socketio)
 
 
 app, socketio = create_app()

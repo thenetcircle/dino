@@ -56,21 +56,6 @@ class EndpointSocketsTest(BaseTest):
         sockets.on_list_rooms(self.activity_for_list_rooms())
         self.assertEqual(200, self.get_emit_status_code())
 
-    def test_index_without_user_name_set(self):
-        self.assertEqual('index.html', sockets.index())
-
-    def test_index_with_user_name_set(self):
-        self.set_session('field:User name', BaseTest.USER_NAME)
-        self.assertEqual('.chat', sockets.index())
-
-    def test_chat_without_user_id_set(self):
-        self.remove_from_session(SessionKeys.user_id.value)
-        self.assertEqual('.index', sockets.chat())
-
-    def test_chat_with_user_id_set(self):
-        self.set_session(SessionKeys.user_id.value, BaseTest.USER_ID)
-        self.assertEqual('chat.html', sockets.chat())
-
     def test_clear_emit_args(self):
         sockets.on_join(self.activity_for_join())
         self.assertTrue(len(self.emit_args) > 0)
