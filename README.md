@@ -2,7 +2,7 @@ Distributed Notifications
 ----
 [![Build Status](https://travis-ci.org/thenetcircle/dino.svg?branch=master)](https://travis-ci.org/thenetcircle/dino)
 [![codecov](https://codecov.io/gh/thenetcircle/dino/branch/master/graph/badge.svg)](https://codecov.io/gh/thenetcircle/dino)
-[![License](https://img.shields.io/github/license/thenetcircle/dino.svg)(LICENSE)
+[![License](https://img.shields.io/github/license/thenetcircle/dino.svg)](LICENSE)
 
 
 Distributed websocket routing for notifications and chat.
