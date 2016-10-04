@@ -10,21 +10,21 @@ Distributed websocket routing for notifications and chat.
 
 Any number of nodes can be started on different machines or same machine on different port. Flask will handle connection
  routing using either Redis or RabbitMQ as a message queue internally. An nginx reverse proxy needs to sit in-front of
- all these nodes with sticky sessions (ip_hash). Failover can be configured in nginx for high availability.
+ all these nodes with sticky sessions (ip_hash). Fail-over can be configured in nginx for high availability.
  
 Example nginx configuration:
 
     upstream gridnodes {
         ip_hash;
     
-        server maggie-kafka-1:5210;
-        server maggie-kafka-2:5210;
-        server maggie-kafka-3:5210;
-        server maggie-spark-1:5210;
-        server maggie-spark-2:5210;
-        server maggie-spark-3:5210;
-        server maggie-zoo-1:5210;
-        server maggie-zoo-2:5210;
+        server some-ip-or-host-1:5210;
+        server some-ip-or-host-2:5210;
+        server some-ip-or-host-3:5210;
+        server some-ip-or-host-4:5210;
+        server some-ip-or-host-5:5210;
+        server some-ip-or-host-6:5210;
+        server some-ip-or-host-7:5210;
+        server some-ip-or-host-8:5210;
     }
     
     map $http_upgrade $connection_upgrade {
