@@ -1,7 +1,7 @@
 Distributed Notifications
 ----
 
-Scalable websocket routing for notifications and chat.
+Distributed websocket routing for notifications and chat.
 
 Any number of nodes can be started on different machines or same machine on different port. Flask will handle connection
  routing using either Redis or RabbitMQ as a message queue internally. An nginx reverse proxy needs to sit in-front of
