@@ -10,8 +10,6 @@ Flask-uWSGI-WebSocket==0.5.3
 Flask-WTF==0.12
 gevent==1.1.2
 greenlet==0.4.10
-gridchat==0.4.0
-gridnotify==0.4.0
 gunicorn==19.6.0
 itsdangerous==0.24
 Jinja2==2.8
