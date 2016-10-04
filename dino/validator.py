@@ -1,10 +1,10 @@
 from activitystreams import Activity
 import re
 
-from gridchat import rkeys
-from gridchat import utils
-from gridchat.env import env
-from gridchat.env import SessionKeys
+from dino import rkeys
+from dino import utils
+from dino.env import env
+from dino.env import SessionKeys
 
 
 class Validator:

@@ -5,12 +5,12 @@ from datetime import datetime
 from typing import Union
 from uuid import uuid4 as uuid
 
-from gridchat import utils
-from gridchat import validator
-from gridchat.validator import Validator
-from gridchat.env import env
-from gridchat.env import SessionKeys
-from gridchat import rkeys
+from dino import utils
+from dino import validator
+from dino.validator import Validator
+from dino.env import env
+from dino.env import SessionKeys
+from dino import rkeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 

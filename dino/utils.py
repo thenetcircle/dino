@@ -2,8 +2,8 @@ from uuid import uuid4 as uuid
 from activitystreams import Activity
 from redis import Redis
 
-from gridchat import rkeys
-from gridchat.env import env
+from dino import rkeys
+from dino.env import env
 
 
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:

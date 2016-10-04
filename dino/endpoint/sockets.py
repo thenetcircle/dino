@@ -3,10 +3,10 @@ from flask_socketio import emit
 from functools import wraps
 from typing import Union
 
-from gridchat.forms import LoginForm
-from gridchat import api
-from gridchat.env import env, ConfigKeys
-from gridchat.server import app, socketio
+from dino.forms import LoginForm
+from dino import api
+from dino.env import env, ConfigKeys
+from dino.server import app, socketio
 
 
 def respond_with(gn_event_name=None):

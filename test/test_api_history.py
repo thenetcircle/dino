@@ -1,4 +1,4 @@
-from gridchat import api
+from dino import api
 from test.utils import BaseTest
 from activitystreams import parse as as_parser
 from strict_rfc3339 import validate_rfc3339 as validate_timestamp

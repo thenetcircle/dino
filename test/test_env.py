@@ -3,9 +3,9 @@ import os
 from uuid import uuid4 as uuid
 import tempfile
 
-from gridchat.env import create_env
-from gridchat.env import ConfigKeys
-from gridchat.env import error
+from dino.env import create_env
+from dino.env import ConfigKeys
+from dino.env import error
 
 
 class TestEnvironment(unittest.TestCase):

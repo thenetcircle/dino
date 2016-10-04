@@ -3,8 +3,8 @@ import fakeredis
 from uuid import uuid4 as uuid
 import logging
 
-from gridchat.env import env, ConfigKeys
-from gridchat import rkeys
+from dino.env import env, ConfigKeys
+from dino import rkeys
 from activitystreams import parse as as_parser
 
 redis = fakeredis.FakeStrictRedis()
@@ -14,7 +14,7 @@ env.config[ConfigKeys.TESTING] = True
 env.config[ConfigKeys.SESSION] = dict()
 env.config[ConfigKeys.SESSION]['user_id'] = '1234'
 
-from gridchat import api
+from dino import api
 
 logging.basicConfig(level='DEBUG')
 logger = logging.getLogger(__name__)

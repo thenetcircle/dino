@@ -6,14 +6,14 @@ from setuptools import setup, find_packages
 version = '0.5.3'
 
 setup(
-    name='gridnotify',
+    name='dino',
     version=version,
     description="",
-    long_description="""Scalable notification server using websockets""",
+    long_description="""Distributed notification server using websockets""",
     classifiers=[],
-    keywords='chat',
+    keywords='notifications',
     author='Oscar Eriksson',
-    author_email='oscar@thenetcircle.com',
+    author_email='oscar.eriks@gmail.com',
     url='',
     license='LICENSE.txt',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),

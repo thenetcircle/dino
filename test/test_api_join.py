@@ -1,4 +1,4 @@
-from gridchat import api
+from dino import api
 from test.utils import BaseTest
 
 
@@ -212,7 +212,7 @@ class ApiJoinTest(BaseTest):
         })
         invalid_key = 'invalidstuff'
         self.set_session(invalid_key, 't')
-        from gridchat.validator import Validator
+        from dino.validator import Validator
         Validator.ACL_MATCHERS[invalid_key] = 'definitely-not-callable'
         self.set_acl_single(invalid_key, 't,r,e,w')
         self.assert_join_fails()

@@ -1,8 +1,8 @@
 from flask import session, Flask
 from flask_socketio import SocketIO
 
-from gridchat.env import env
-from gridchat.env import ConfigKeys
+from dino.env import env
+from dino.env import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
@@ -19,4 +19,4 @@ def create_app():
 
 app, socketio = create_app()
 
-import gridchat.endpoint.sockets
+import dino.endpoint.sockets

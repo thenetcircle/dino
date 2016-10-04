@@ -1,6 +1,6 @@
 from uuid import uuid4 as uuid
 
-from gridchat import api
+from dino import api
 from test.utils import BaseTest
 
 

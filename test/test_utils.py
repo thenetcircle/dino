@@ -2,9 +2,9 @@ import unittest
 import fakeredis
 from uuid import uuid4 as uuid
 
-from gridchat.env import env, ConfigKeys
-from gridchat import rkeys
-from gridchat import utils
+from dino.env import env, ConfigKeys
+from dino import rkeys
+from dino import utils
 
 from test.utils import BaseTest
 

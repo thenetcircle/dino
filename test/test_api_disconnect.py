@@ -1,6 +1,6 @@
-from gridchat import api
+from dino import api
 from test.utils import BaseTest
-from gridchat.env import SessionKeys
+from dino.env import SessionKeys
 
 
 class ApiDisconnectTest(BaseTest):

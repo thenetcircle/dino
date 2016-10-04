@@ -1,9 +1,9 @@
 import unittest
 
-from gridchat.validator import Validator
-from gridchat.validator import validate_request
-from gridchat.validator import is_acl_valid
-from gridchat.env import SessionKeys
+from dino.validator import Validator
+from dino.validator import validate_request
+from dino.validator import is_acl_valid
+from dino.env import SessionKeys
 
 from activitystreams import parse as as_parser
 from uuid import uuid4 as uuid
