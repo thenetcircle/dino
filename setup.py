@@ -29,5 +29,6 @@ setup(
         'wtforms==2.1',
         'eventlet==0.19.0',
         'gunicorn==19.6.0',
-        'activitystreams==0.1.5'
+        'activitystreams==0.1.5',
+        'codecov==2.0.5',
     ])
