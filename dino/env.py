@@ -78,7 +78,7 @@ def create_logger(_config_dict: dict) -> RootLogger:
 
 
 def create_env(config_paths: list=None) -> GNEnvironment:
-    default_paths = ["grid.yaml", "grid.json"]
+    default_paths = ["dino.yaml", "dino.json"]
 
     if config_paths is None:
         config_paths = default_paths
@@ -131,7 +131,7 @@ def create_env(config_paths: list=None) -> GNEnvironment:
         config_dict[ConfigKeys.REDIS] = Redis(redis_host, port=redis_port)
 
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
-    config_dict[ConfigKeys.VERSION] = pkg_resources.require('gridnotify')[0].version
+    config_dict[ConfigKeys.VERSION] = pkg_resources.require('dino')[0].version
     config_dict[ConfigKeys.LOGGER] = create_logger(config_dict)
     config_dict[ConfigKeys.SESSION] = _flask_session
 
