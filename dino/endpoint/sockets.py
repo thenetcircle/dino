@@ -1,5 +1,3 @@
-from flask import redirect, url_for, request, render_template, send_from_directory
-from flask_socketio import emit
 from functools import wraps
 from typing import Union
 
@@ -15,16 +13,16 @@ def respond_with(gn_event_name=None):
         def decorator(*args, **kwargs):
             status_code, data = view_func(*args, **kwargs)
             if data is None:
-                emit(gn_event_name, {'status_code': status_code})
+                env.emit(gn_event_name, {'status_code': status_code})
             else:
-                emit(gn_event_name, {'status_code': status_code, 'data': data})
+                env.emit(gn_event_name, {'status_code': status_code, 'data': data})
         return decorator
     return factory
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    form = LoginForm()
+    form = LoginForm.create()
     if form.validate_on_submit():
         # temporary until we get ID from community
         env.session['user_name'] = form.user_name.data
@@ -37,8 +35,8 @@ def index():
         env.session['image'] = form.image.data
         env.session['country'] = form.country.data
         env.session['city'] = form.city.data
-        return redirect(url_for('.chat'))
-    elif request.method == 'GET':
+        return env.redirect(env.url_for('.chat'))
+    elif env.request.method == 'GET':
         form.user_name.data = env.session.get('user_name', '')
         form.age.data = env.session.get('age', '')
         form.gender.data = env.session.get('gender', '')
@@ -48,7 +46,7 @@ def index():
         form.image.data = env.session.get('image', '')
         form.country.data = env.session.get('country', '')
         form.city.data = env.session.get('city', '')
-    return render_template('index.html', form=form)
+    return env.render_template('index.html', form=form)
 
 
 @app.route('/chat')
@@ -56,9 +54,9 @@ def chat():
     user_id = env.session.get('user_id', '')
     user_name = env.session.get('user_name', '')
     if user_id == '':
-        return redirect(url_for('.index'))
+        return env.redirect(env.url_for('.index'))
 
-    return render_template(
+    return env.render_template(
             'chat.html', name=user_id, room=user_id, user_id=user_id, user_name=user_name,
             gender=env.session.get('gender', ''),
             age=env.session.get('age', ''),
@@ -73,23 +71,18 @@ def chat():
 
 @app.route('/js/<path:path>')
 def send_js(path):
-    return send_from_directory('templates/js', path)
+    return env.send_from_directory('templates/js', path)
 
 
 @app.route('/css/<path:path>')
 def send_css(path):
-    return send_from_directory('templates/css', path)
+    return env.send_from_directory('templates/css', path)
 
 
 @socketio.on('connect', namespace='/chat')
 @respond_with('gn_connect')
 def connect() -> (int, None):
-    """
-    connect to the server
-
-    :return: {'status_code': 200}
-    """
-    return 200, None
+    return api.on_connect()
 
 
 @socketio.on('login', namespace='/chat')
@@ -106,7 +99,7 @@ def on_message(data):
 
 @socketio.on('create', namespace='/chat')
 @respond_with('gn_create')
-def on_message(data):
+def on_create(data):
     return api.on_create(data)
 
 
@@ -130,7 +123,7 @@ def on_status(data: dict) -> (int, Union[str, None]):
 
 @socketio.on('history', namespace='/chat')
 @respond_with('gn_history')
-def on_join(data: dict) -> (int, Union[str, None]):
+def on_history(data: dict) -> (int, Union[str, None]):
     return api.on_history(data)
 
 

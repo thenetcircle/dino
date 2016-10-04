@@ -11,6 +11,18 @@ from flask_socketio import emit as _flask_emit
 from flask_socketio import send as _flask_send
 from flask_socketio import join_room as _flask_join_room
 from flask_socketio import leave_room as _flask_leave_room
+
+from flask_wtf import Form as _flask_Form
+from wtforms.fields import StringField as _wtf_StringField
+from wtforms.fields import SubmitField as _wtf_SubmitField
+from wtforms.fields import SelectField as _wtf_SelectField
+from wtforms.validators import DataRequired as _wtf_DataRequired
+
+from flask import redirect as _flask_redirect
+from flask import url_for as _flask_url_for
+from flask import request as _flask_request
+from flask import send_from_directory as _flask_send_from_directory
+from flask import render_template as _flask_render_template
 from flask import session as _flask_session
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
@@ -61,13 +73,25 @@ class GNEnvironment(object):
         self.send = _flask_send
         self.join_room = _flask_join_room
         self.leave_room = _flask_leave_room
+        self.render_template = _flask_render_template
+        self.Form = _flask_Form
+        self.SubmitField = _wtf_SubmitField
+        self.DataRequired = _wtf_DataRequired
+        self.StringField = _wtf_StringField
+        self.SelectField = _wtf_SelectField
+
+        self.redirect = _flask_redirect
+        self.url_for = _flask_url_for
+        self.request = _flask_request
+        self.send_from_directory = _flask_send_from_directory
+
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.redis = config.get(ConfigKeys.REDIS, None)
         self.session = config.get(ConfigKeys.SESSION, None)
 
 
 def error(text: str) -> None:
-    print(text, file=sys.stderr)
+    env.logger.error(text)
 
 
 def create_logger(_config_dict: dict) -> RootLogger:

@@ -16,6 +16,7 @@ class UtilsTest(BaseTest):
         self.assertEqual(name, UtilsTest.ROOM_NAME)
 
     def test_get_room_name_non_existing(self):
+        self.remove_room()
         name = utils.get_room_name(env.config.get(ConfigKeys.REDIS), UtilsTest.ROOM_ID)
         self.assertTrue(isinstance(name, str))
-        self.assertEqual(len(UtilsTest.ROOM_NAME), len(name))
+        self.assertEqual(len(str(uuid())), len(name))

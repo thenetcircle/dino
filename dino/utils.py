@@ -262,7 +262,7 @@ def get_room_name(r_server: Redis, room_id: str) -> str:
     room_name = r_server.get(rkeys.room_name_for_id(room_id))
     if room_name is None:
         room_name = str(uuid())
-        print('WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
+        env.logger.warn('WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
         r_server.set(rkeys.room_name_for_id(room_id), room_name)
     else:
         room_name = room_name.decode('utf-8')

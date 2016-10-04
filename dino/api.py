@@ -19,6 +19,15 @@ def on_add_owner(data: dict) -> (int, Union[str, None]):
     return 200, None
 
 
+def on_connect() -> (int, None):
+    """
+    connect to the server
+
+    :return: {'status_code': 200}
+    """
+    return 200, None
+
+
 def on_login(data: dict) -> (int, Union[str, None]):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
@@ -241,8 +250,7 @@ def on_status(data: dict) -> (int, Union[str, None]):
 
     {
         actor: {
-            id: '1234',
-            summary: 'joe'
+            id: '1234'
         },
         verb: 'online/invisible/offline'
     }
@@ -255,8 +263,11 @@ def on_status(data: dict) -> (int, Union[str, None]):
 
     activity = as_parser.parse(data)
     user_id = activity.actor.id
-    user_name = activity.actor.summary
+    user_name = env.session.get(SessionKeys.user_name.value, None)
     status = activity.verb
+
+    if user_name is None:
+        return 400, 'no user name in session'
 
     is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
@@ -275,8 +286,7 @@ def on_status(data: dict) -> (int, Union[str, None]):
         env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
 
     else:
-        # ignore
-        pass
+        return 400, 'invalid status %s' % str(status)
 
     return 200, None
 

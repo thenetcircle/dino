@@ -15,16 +15,7 @@ class ApiAclTest(BaseTest):
 
         self.set_acl({acl_type: acl_value})
 
-        response_data = api.on_get_acl({
-            'actor': {
-                'id': ApiAclTest.USER_ID
-            },
-            'target': {
-                'id': ApiAclTest.ROOM_ID
-            },
-            'verb': 'list'
-        })
-
+        response_data = api.on_get_acl(self.activity_for_get_acl())
         self.assertEqual(response_data[0], 200)
 
         activity = as_parser(response_data[1])  # 0 is the status_code, 1 is the data (activity stream)
@@ -66,7 +57,7 @@ class ApiAclTest(BaseTest):
         acl_type = 'gender'
         acl_value = 'm,f'
 
-        activity = self.activity_for([{
+        activity = self.activity_for_set_acl([{
             'objectType': acl_type,
             'content': acl_value
         }])
@@ -79,7 +70,7 @@ class ApiAclTest(BaseTest):
         acl_type = 'gender'
         acl_value = 'm,f'
 
-        activity = self.activity_for([{
+        activity = self.activity_for_set_acl([{
             'objectType': acl_type,
             'content': acl_value
         }])
@@ -92,7 +83,7 @@ class ApiAclTest(BaseTest):
         acl_type = 'unknown'
         acl_value = 'm,f'
 
-        activity = self.activity_for([{
+        activity = self.activity_for_set_acl([{
             'objectType': acl_type,
             'content': acl_value
         }])
@@ -104,7 +95,7 @@ class ApiAclTest(BaseTest):
         acl_type = 'gender'
         acl_value = 'm,999'
 
-        activity = self.activity_for([{
+        activity = self.activity_for_set_acl([{
             'objectType': acl_type,
             'content': acl_value
         }])
@@ -156,7 +147,7 @@ class ApiAclTest(BaseTest):
     def test_set_acl_remove_only_one(self):
         self.set_acl({'gender': 'm,f'})
 
-        activity = self.activity_for([{
+        activity = self.activity_for_set_acl([{
             'objectType': 'gender',
             'content': ''
         }])
@@ -168,7 +159,7 @@ class ApiAclTest(BaseTest):
         self.assertEqual(len(acls), 0)
 
     def test_set_acl_remove_non_existing(self):
-        activity = self.activity_for([{
+        activity = self.activity_for_set_acl([{
             'objectType': 'gender',
             'content': ''
         }])
@@ -179,23 +170,8 @@ class ApiAclTest(BaseTest):
         acls = self.get_acls()
         self.assertEqual(len(acls), 0)
 
-    def activity_for(self, attachments):
-        return {
-            'actor': {
-                'id': ApiAclTest.USER_ID
-            },
-            'target': {
-                'id': ApiAclTest.ROOM_ID
-            },
-            'verb': 'set',
-            'object': {
-                'objectType': 'acl',
-                'attachments': attachments
-            }
-        }
-
     def get_acl_after_set(self, attachments):
-        activity = self.activity_for(attachments)
+        activity = self.activity_for_set_acl(attachments)
 
         response_data = api.on_set_acl(activity)
         self.assertEqual(response_data[0], 200)
