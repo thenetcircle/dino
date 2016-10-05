@@ -220,14 +220,11 @@ def validate_acl(activity: Activity) -> (bool, str):
                          (user_id, user_name, room_id, room_name))
         return True, None
 
-    encoded_acls = env.redis.hgetall(rkeys.room_acl(room_id))
-    if len(encoded_acls) == 0:
+    all_acls = env.storage.get_acls(room_id)
+    if len(all_acls) == 0:
         return True, None
 
-    for acl_key, acl_val in encoded_acls.items():
-        acl_key = str(acl_key, 'utf-8')
-        acl_val = str(acl_val, 'utf-8')
-
+    for acl_key, acl_val in all_acls.items():
         if acl_key not in env.session:
             error_msg = 'Key "%s" not in session for user "%s" (%s), cannot let join "%s" (%s)' % \
                    (acl_key, user_id, user_name, room_id, room_name)

@@ -145,8 +145,8 @@ def activity_for_owners(activity: Activity, owners: dict) -> dict:
     response['object']['attachments'] = list()
     for user_id, user_name in owners.items():
         response['object']['attachments'].append({
-            'id': str(user_id, 'utf-8'),
-            'content': str(user_name, 'utf-8')
+            'id': user_id,
+            'content': user_name
         })
 
     return response
@@ -211,43 +211,31 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     response['object']['attachments'] = list()
     for acl_type, acl_value in acl_values.items():
         response['object']['attachments'].append({
-            'objectType': str(acl_type, 'utf-8'),
-            'content': str(acl_value, 'utf-8')
+            'objectType': acl_type,
+            'content': acl_value
         })
 
     return response
 
 
 def is_owner(room_id: str, user_id: str) -> bool:
-    return env.redis.hexists(rkeys.room_owners(room_id), user_id)
+    return env.storage.room_owners_contain(room_id, user_id)
 
 
 def get_users_in_room(room_id: str) -> list:
-    users_in_room = env.redis.hgetall(rkeys.users_in_room(room_id))
-    users = list()
-    for user_id, user_name in users_in_room.items():
-        users.append((
-            str(user_id.decode('utf-8')),
-            str(user_name.decode('utf-8'))
-        ))
-    return users
+    return env.storage.users_in_room(room_id)
 
 
 def get_acls_for_room(room_id: str) -> dict:
-    return env.redis.hgetall(rkeys.room_acl(room_id))
+    return env.storage.get_acls(room_id)
 
 
 def get_owners_for_room(room_id: str) -> dict:
-    return env.redis.hgetall(rkeys.room_owners(room_id))
+    return env.storage.get_owners(room_id)
 
 
 def get_history_for_room(room_id: str, limit: int=10) -> list:
-    messages = env.redis.lrange(rkeys.room_history(room_id), 0, 10)
-    cleaned_messages = list()
-    for message_entry in messages:
-        message_entry = str(message_entry, 'utf-8')
-        cleaned_messages.append(message_entry.split(',', 3))
-    return cleaned_messages
+    return env.storage.get_history(room_id, limit)
 
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
