@@ -213,10 +213,6 @@ class GNEnvironment(object):
         self.__dict__[attr] = value
 
 
-def error(text: str) -> None:
-    env.logger.error(text)
-
-
 def create_logger(_config_dict: dict) -> RootLogger:
     logging.basicConfig(
             level=getattr(logging, _config_dict.get(ConfigKeys.LOG_LEVEL, 'INFO')),

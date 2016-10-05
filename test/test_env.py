@@ -1,16 +1,15 @@
 import unittest
 import os
-from uuid import uuid4 as uuid
 import tempfile
 
 from dino.env import create_env
 from dino.env import ConfigKeys
-from dino.env import error
 
 
 class TestEnvironment(unittest.TestCase):
     def test_env(self):
-        del os.environ['ENVIRONMENT']
+        if 'ENVIRONMENT' in os.environ:
+            del os.environ['ENVIRONMENT']
         env = create_env()
         self.assertEqual(0, len(env.config))
 
@@ -23,9 +22,6 @@ class TestEnvironment(unittest.TestCase):
         self.assertTrue(ConfigKeys.REDIS in env.config.keys())
         self.assertTrue(ConfigKeys.SESSION in env.config.keys())
         self.assertTrue(ConfigKeys.VERSION in env.config.keys())
-
-    def test_error(self):
-        error('test')
 
     def test_create_non_existing_config_file(self):
         os.environ['ENVIRONMENT'] = 'test'
