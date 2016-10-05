@@ -30,12 +30,20 @@ class CassandraStorage(object):
     session = None
     key_space = 'dino'
 
+    insert_msg_statement = None
+    insert_room_statement = None
+
     def __init__(self, hosts: list, replications=2, strategy='SimpleStrategy'):
         CassandraStorage.validate(hosts, replications, strategy)
 
         cluster = Cluster(hosts)
         self.session = cluster.connect()
 
+        self.create_keyspace(strategy, replications)
+        self.create_tables()
+        self.prepare_statements()
+
+    def create_keyspace(self, strategy, replications):
         env.logger.debug('creating keyspace...')
         create_keyspace = self.session.prepare(
             """
@@ -43,10 +51,10 @@ class CassandraStorage(object):
             WITH replication = {'class': '%s', 'replication_factor': '%s'}
             """ % (CassandraStorage.key_space, strategy, str(replications))
         )
-
         self.session.execute(create_keyspace)
         self.session.set_keyspace(CassandraStorage.key_space)
 
+    def create_tables(self):
         env.logger.debug('creating tables...')
         self.session.execute(
             """
@@ -61,8 +69,20 @@ class CassandraStorage(object):
             )
             """
         )
+        self.session.execute(
+            """
+            CREATE TABLE IF NOT EXISTS rooms (
+                room_id uuid,
+                room_name varchar,
+                owners list,
+                time varchar,
+                PRIMARY KEY (room_id)
+            )
+            """
+        )
 
-        self.insert_statement = self.session.prepare(
+    def prepare_statements(self):
+        self.insert_msg_statement = self.session.prepare(
             """
             INSERT INTO messages (
                 message_id,
@@ -77,20 +97,37 @@ class CassandraStorage(object):
             )
             """
         )
+        self.insert_room_statement = self.session.prepare(
+            """
+            INSERT INTO rooms (
+                room_id,
+                room_name,
+                owners,
+                time
+            )
+            VALUES (
+                ?, ?, ?, ?
+            )
+            """
+        )
 
     def store_message(self, activity: Activity) -> None:
-        bound = self.insert_statement.bind((
+        self.session.execute(self.insert_msg_statement.bind((
             activity.id,
             activity.actor.id,
             activity.target.id,
             activity.object.content,
             activity.published,
             activity.target.object_type
-        ))
-        self.session.execute(bound)
+        )))
 
     def create_room(self, activity: Activity) -> None:
-        pass
+        self.session.execute(self.insert_room_statement.bind((
+            activity.target.id,
+            activity.target.display_name,
+            [activity.actor.id],
+            activity.published
+        )))
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
         pass
