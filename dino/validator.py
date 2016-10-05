@@ -1,7 +1,6 @@
 from activitystreams import Activity
 import re
 
-from dino import rkeys
 from dino import utils
 from dino.env import env
 from dino.env import SessionKeys

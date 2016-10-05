@@ -52,6 +52,7 @@ class ConfigKeys(object):
     STORAGE = 'storage'
     HOST = 'host'
     TYPE = 'type'
+    MAX_HISTORY = 'max_history'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'
@@ -65,8 +66,117 @@ class ConfigKeys(object):
     DEFAULT_REDIS_HOST = 'localhost'
 
 
+class ConfigDict:
+    class DefaultValue:
+        def __init__(self):
+            pass
+
+        def lower(self):
+            raise NotImplementedError()
+
+        def format(self):
+            raise NotImplementedError()
+
+    def __init__(self, params=None, override=None):
+        self.params = params or dict()
+        self.override = override
+
+    def subp(self, parent):
+        p = dict(parent.params)
+        p.update(self.params)
+        p.update(self.override)
+        return ConfigDict(p, self.override)
+
+    def sub(self, **params):
+        p = dict(self.params)
+        p.update(params)
+        p.update(self.override)
+        return ConfigDict(p, self.override)
+
+    def set(self, key, val):
+        self.params[key] = val
+
+    def keys(self):
+        return self.params.keys()
+
+    def get(self, key, default: Union[DefaultValue, object]=DefaultValue, params=None, domain=None):
+        def config_format(s, params):
+            if s is None:
+                return s
+
+            if isinstance(s, list):
+                return [config_format(r, params) for r in s]
+
+            if isinstance(s, dict):
+                kw = dict()
+                for k, v in s.items():
+                    kw[k] = config_format(v, params)
+                return kw
+
+            if not isinstance(s, str):
+                return s
+
+            if s.lower() == 'null' or s.lower() == 'none':
+                return ''
+
+            try:
+                import re
+                keydb = set('{' + key + '}')
+
+                while True:
+                    sres = re.search("{.*?}", s)
+                    if sres is None:
+                        break
+
+                    # avoid using the same reference twice
+                    if sres.group() in keydb:
+                        raise RuntimeError(
+                                "found circular dependency in config value '{0}' using reference '{1}'".format(
+                                        s, sres.group()))
+                    keydb.add(sres.group())
+                    s = s.format(**params)
+
+                return s
+            except KeyError as e:
+                raise RuntimeError("missing configuration key: " + str(e))
+
+        if params is None:
+            params = self.params
+
+        if domain is not None:
+            if domain in self.params:
+                # domain keys are allowed to be empty, e.g. for default amqp exchange etc.
+                value = self.params.get(domain).get(key)
+                if value is None:
+                    if default is None:
+                        return ''
+                    return default
+
+                return config_format(value, params)
+
+        if key in self.params:
+            return config_format(self.params.get(key), params)
+
+        if default == ConfigDict.DefaultValue:
+            raise KeyError(key)
+
+        return config_format(default, params)
+
+    def __contains__(self, key):
+        if key in self.params:
+            return True
+        return False
+
+    def __iter__(self):
+        for k in sorted(self.params.keys()):
+            yield k
+
+    def __len__(self, *args, **kwargs):
+        return len(self.params)
+
+
 class GNEnvironment(object):
-    def __init__(self, root_path: Union[str, None], config: dict):
+    def __init__(self, root_path: Union[str, None], config: ConfigDict):
         """
         Initialize the environment
         """
@@ -96,6 +206,12 @@ class GNEnvironment(object):
         # TODO: remove this, go through storage interface
         self.redis = config.get(ConfigKeys.REDIS, None)
 
+    def __setattr__(self, attr, value):
+        if attr == 'config' and hasattr(self, attr):
+            raise Exception("Attempting to alter read-only value")
+
+        self.__dict__[attr] = value
+
 
 def error(text: str) -> None:
     env.logger.error(text)
@@ -111,7 +227,7 @@ def create_logger(_config_dict: dict) -> RootLogger:
 
 def find_config(config_paths: list) -> str:
     default_paths = ["dino.yaml", "dino.json"]
-    config_dict = None
+    config_dict = dict()
     config_path = None
 
     if config_paths is None:
@@ -158,13 +274,13 @@ def choose_queue_instance(config_dict: dict) -> object:
 
 
 def create_env(config_paths: list=None) -> GNEnvironment:
-    config_dict, config_path = find_config(config_paths)
-
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
 
     # assuming tests are running
     if gn_environment is None:
-        return GNEnvironment(None, dict())
+        return GNEnvironment(None, ConfigDict(dict()))
+
+    config_dict, config_path = find_config(config_paths)
 
     if gn_environment not in config_dict:
         raise RuntimeError('no configuration found for environment "%s"' % gn_environment)
@@ -190,14 +306,16 @@ def create_env(config_paths: list=None) -> GNEnvironment:
         config_dict[ConfigKeys.LOG_LEVEL] = ConfigKeys.DEFAULT_LOG_LEVEL
 
     root_path = os.path.dirname(config_path)
-    gn_env = GNEnvironment(root_path, config_dict)
+
+    gn_env = GNEnvironment(root_path, ConfigDict(config_dict))
+
     gn_env.config.get(ConfigKeys.LOGGER).info('read config and created environment')
     gn_env.config.get(ConfigKeys.LOGGER).debug(str(config_dict))
     return gn_env
 
 
 def init_storage_engine(gn_env: GNEnvironment) -> None:
-    if len(gn_env.config) == 0:
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
 

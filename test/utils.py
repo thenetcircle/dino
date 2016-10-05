@@ -6,9 +6,8 @@ from dino.env import env, ConfigKeys
 from dino import rkeys
 from dino.storage.redis import RedisStorage
 
-env.config = dict()
-env.config[ConfigKeys.TESTING] = True
-env.config[ConfigKeys.SESSION] = {'user_id': '1234'}
+env.config.set(ConfigKeys.TESTING, True)
+env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
 
 from dino import api
 
@@ -146,7 +145,7 @@ class BaseTest(unittest.TestCase):
         env.Form = Form
 
         env.logger = logger
-        env.config[ConfigKeys.TESTING] = True
+        env.config.set(ConfigKeys.TESTING, True)
         env.session = {
             'user_id': BaseTest.USER_ID,
             'user_name': BaseTest.USER_NAME,

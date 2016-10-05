@@ -12,7 +12,7 @@ class TestEnvironment(unittest.TestCase):
     def test_env(self):
         del os.environ['ENVIRONMENT']
         env = create_env()
-        self.assertEqual(dict(), env.config)
+        self.assertEqual(0, len(env.config))
 
     def test_create_with_environment(self):
         os.environ['ENVIRONMENT'] = 'dev'
@@ -33,7 +33,8 @@ class TestEnvironment(unittest.TestCase):
 
     def test_create_existing_yaml_file(self):
         f = tempfile.NamedTemporaryFile(mode='w+', suffix='.yaml', delete=False)
-        f.write('test:\n    log_level:\n        "DEBUG"\n    storage:\n        type: "mock"\n    queue:\n        type: "mock"')
+        f.write('test:\n    log_level:\n        "DEBUG"\n    storage:\n '
+                '       type: "mock"\n    queue:\n        type: "mock"')
         f.close()
 
         try:

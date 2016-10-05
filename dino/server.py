@@ -1,6 +1,5 @@
-from flask import session, Flask
+from flask import Flask
 from flask_socketio import SocketIO
-from functools import wraps
 
 from dino.env import env
 from dino.env import ConfigKeys
@@ -15,11 +14,10 @@ def create_app():
     # TODO: let the queue config contain the complete value for message_queue, so no queue can be used
     socketio = SocketIO(
             app,
-            logger=env.config.get(ConfigKeys.LOGGER),
+            logger=env.logger,
             engineio_logger=False,
-            message_queue='redis://%s' % env.config.get(ConfigKeys.QUEUE, dict()).get(ConfigKeys.HOST, ''))
+            message_queue='redis://%s' % env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default=''))
 
-    env.config[ConfigKeys.SESSION] = session
     return app, socketio
 
 

@@ -79,7 +79,7 @@ class RedisStorage(object):
     redis = None
 
     def __init__(self, host: str, port: int=6379):
-        if env.config.get(ConfigKeys.TESTING):
+        if env.config.get(ConfigKeys.TESTING, False):
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
@@ -95,7 +95,9 @@ class RedisStorage(object):
                 RedisKeys.room_history(target),
                 '%s,%s,%s,%s' % (activity.id, activity.published, user_name, msg))
 
-        self.redis.ltrim(RedisKeys.room_history(target), 0, 200)
+        max_history = env.config.get(ConfigKeys.MAX_HISTORY, -1)
+        if max_history > 0:
+            self.redis.ltrim(RedisKeys.room_history(target), 0, max_history)
 
     def create_room(self, activity: Activity) -> None:
         room_name = activity.target.display_name

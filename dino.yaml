@@ -3,6 +3,7 @@ oscar:
     storage:
         type: 'redis' # mock, redis (TODO: cassandra, mysql)
         host: 'localhost:6379'
+        max_history: 200
     queue:
         type: 'redis' # redis (TODO: rabbitmq)
         host: 'localhost:6379'

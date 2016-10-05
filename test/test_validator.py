@@ -1,5 +1,3 @@
-import unittest
-
 from dino.validator import Validator
 from dino.validator import validate_request
 from dino.validator import is_acl_valid
