@@ -21,8 +21,21 @@ from cassandra.cluster import Cluster
 from dino.storage.base import IStorage
 from dino.env import env
 from dino.env import ConfigKeys
+from enum import Enum
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+
+class StatementKeys(Enum):
+    msg_insert = 'msg_insert'
+    msgs_select = 'msgs_select'
+    room_insert = 'room_insert'
+    room_delete = 'room_delete'
+    room_select_name = 'room_select_name'
+    room_select_users = 'room_select_users'
+    room_delete_user = 'room_delete_user'
+    room_insert_user = 'room_insert_user'
+    rooms_select = 'rooms_select'
 
 
 @implementer(IStorage)
@@ -30,15 +43,13 @@ class CassandraStorage(object):
     session = None
     key_space = 'dino'
 
-    insert_msg_statement = None
-    insert_room_statement = None
-    select_message_statement = None
-
     def __init__(self, hosts: list, replications=2, strategy='SimpleStrategy'):
         CassandraStorage.validate(hosts, replications, strategy)
 
         cluster = Cluster(hosts)
         self.session = cluster.connect()
+
+        self.statements = dict()
 
         self.create_keyspace(strategy, replications)
         self.create_tables()
@@ -83,7 +94,7 @@ class CassandraStorage(object):
         )
 
     def prepare_statements(self):
-        self.insert_msg_statement = self.session.prepare(
+        self.statements[StatementKeys.msg_insert] = self.session.prepare(
             """
             INSERT INTO messages (
                 message_id,
@@ -98,7 +109,7 @@ class CassandraStorage(object):
             )
             """
         )
-        self.insert_room_statement = self.session.prepare(
+        self.statements[StatementKeys.room_insert] = self.session.prepare(
             """
             INSERT INTO rooms (
                 room_id,
@@ -111,14 +122,39 @@ class CassandraStorage(object):
             )
             """
         )
-        self.select_message_statement = self.session.prepare(
+        self.statements[StatementKeys.msgs_select] = self.session.prepare(
             """
-            SELECT FROM rooms where room_id = ?
+            SELECT * FROM messages where room_id = ?
+            """
+        )
+        self.statements[StatementKeys.rooms_select] = self.session.prepare(
+            """
+            SELECT * FROM rooms
+            """
+        )
+        self.statements[StatementKeys.room_select_name] = self.session.prepare(
+            """
+            SELECT room_name FROM rooms WHERE room_id = ?
+            """
+        )
+        self.statements[StatementKeys.room_select_users] = self.session.prepare(
+            """
+            SELECT user_id, user_name FROM users_in_room WHERE room_id = ?
+            """
+        )
+        self.statements[StatementKeys.room_insert_user] = self.session.prepare(
+            """
+            INSERT INTO users_in_room(room_id, user_id, user_name) VALUES(?, ?, ?)
+            """
+        )
+        self.statements[StatementKeys.room_delete_user] = self.session.prepare(
+            """
+            DELETE FROM users_in_room WHERE room_id = ? AND user_id = ?
             """
         )
 
     def store_message(self, activity: Activity) -> None:
-        self.session.execute(self.insert_msg_statement.bind((
+        self.session.execute(self.statements[StatementKeys.msg_insert].bind((
             activity.id,
             activity.actor.id,
             activity.target.id,
@@ -128,7 +164,7 @@ class CassandraStorage(object):
         )))
 
     def create_room(self, activity: Activity) -> None:
-        self.session.execute(self.insert_room_statement.bind((
+        self.session.execute(self.statements[StatementKeys.room_insert].bind((
             activity.target.id,
             activity.target.display_name,
             [activity.actor.id],
@@ -136,58 +172,58 @@ class CassandraStorage(object):
         )))
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
-        pass
+        raise NotImplementedError()
 
     def add_acls(self, room_id: str, acls: dict) -> None:
-        pass
+        raise NotImplementedError()
 
     def get_acls(self, room_id: str) -> list:
-        pass
+        raise NotImplementedError()
 
     def get_history(self, room_id: str, limit: int=None):
-        self.session.execute(self.select_message_statement.bind((room_id, )))
+        self.session.execute(self.statements[StatementKeys.msgs_select].bind((room_id, )))
 
     def set_user_offline(self, user_id: str) -> None:
-        pass
+        raise NotImplementedError()
 
     def set_user_online(self, user_id: str) -> None:
-        pass
+        raise NotImplementedError()
 
     def set_user_invisible(self, user_id: str) -> None:
-        pass
+        raise NotImplementedError()
 
     def get_room_name(self, room_id: str) -> str:
-        pass
+        return self.session.execute(self.select_room_name_statement.bind((room_id, )))
 
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
-        pass
+        self.session.execute(self.insert_user_in_room_statement.bind((room_id, user_id, user_name)))
 
     def users_in_room(self, room_id: str) -> list:
-        pass
+        return self.session.execute(self.select_users_in_room_statement.bind((room_id, )))
 
     def get_all_rooms(self, user_id: str=None) -> dict:
-        pass
+        return self.session.execute(self.statements[StatementKeys.room_select])
 
     def leave_room(self, user_id: str, room_id: str) -> None:
-        pass
+        self.session.execute(self.delete_user_in_room_statement.bind((room_id, user_id)))
 
     def remove_current_rooms_for_user(self, user_id: str) -> None:
-        pass
+        raise NotImplementedError()
 
     def room_exists(self, room_id: str) -> bool:
-        pass
+        raise NotImplementedError()
 
     def room_name_exists(self, room_name: str) -> bool:
-        pass
+        raise NotImplementedError()
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
-        pass
+        raise NotImplementedError()
 
     def get_owners(self, room_id: str) -> dict:
-        pass
+        raise NotImplementedError()
 
     def room_owners_contain(self, room_id: str, user_id: str) -> bool:
-        pass
+        raise NotImplementedError()
 
     @staticmethod
     def validate(hosts, replications, strategy):
