@@ -53,6 +53,8 @@ class ConfigKeys(object):
     HOST = 'host'
     TYPE = 'type'
     MAX_HISTORY = 'max_history'
+    STRATEGY = 'strategy'
+    REPLICATION = 'replication'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'
@@ -332,6 +334,13 @@ def init_storage_engine(gn_env: GNEnvironment) -> None:
             storage_host, storage_port = storage_host.split(':', 1)
 
         gn_env.storage = RedisStorage(host=storage_host, port=storage_port)
+    elif storage_type == 'cassandra':
+        from dino.storage.cassandra import CassandraStorage
+
+        storage_hosts = storage_engine.get(ConfigKeys.HOST)
+        strategy = storage_engine.get(ConfigKeys.STRATEGY, None)
+        replication = storage_engine.get(ConfigKeys.REPLICATION, None)
+        gn_env.storage = CassandraStorage(storage_hosts, replications=replication, strategy=strategy)
     else:
         raise RuntimeError('unknown storage engine type "%s"' % storage_type)
 

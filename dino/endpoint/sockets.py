@@ -12,9 +12,8 @@ def respond_with(gn_event_name=None):
         @wraps(view_func)
         def decorator(*args, **kwargs):
             status_code, data = view_func(*args, **kwargs)
-            from pprint import pprint
-            env.logger.info('in decorator, status_code: %s' % status_code)
-            env.logger.info(data)
+            if status_code != 200:
+                env.logger.info('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
             if data is None:
                 env.emit(gn_event_name, {'status_code': status_code})
             else:
@@ -98,7 +97,7 @@ def on_login(data: dict) -> (int, str):
     try:
         return api.on_login(data)
     except Exception as e:
-        env.logger.error('connect: %s' % str(e))
+        env.logger.error('login: %s' % str(e))
         return 500, str(e)
 
 

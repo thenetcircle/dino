@@ -408,6 +408,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
 
     rooms = list()
     for room_id, room_name in all_rooms.items():
+        # TODO: clean in storage engine
         rooms.append((str(room_id, 'utf-8'), str(room_name, 'utf-8')))
 
     return 200, utils.activity_for_list_rooms(activity, rooms)

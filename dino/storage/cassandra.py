@@ -44,6 +44,11 @@ class CassandraStorage(object):
     key_space = 'dino'
 
     def __init__(self, hosts: list, replications=2, strategy='SimpleStrategy'):
+        if replications is None:
+            replications = 2
+        if strategy is None:
+            strategy = 'SimpleStrategy'
+
         CassandraStorage.validate(hosts, replications, strategy)
 
         cluster = Cluster(hosts)
@@ -77,7 +82,7 @@ class CassandraStorage(object):
                 body text,
                 domain text,
                 time varchar,
-                PRIMARY KEY ((from_user, to_user), time)
+                PRIMARY KEY (to_user, from_user, time)
             )
             """
         )
@@ -86,9 +91,19 @@ class CassandraStorage(object):
             CREATE TABLE IF NOT EXISTS rooms (
                 room_id uuid,
                 room_name varchar,
-                owners list,
+                owners list<uuid>,
                 time varchar,
                 PRIMARY KEY (room_id)
+            )
+            """
+        )
+        self.session.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users_in_room (
+                room_id uuid,
+                user_id uuid,
+                user_name uuid,
+                PRIMARY KEY (room_id, user_id)
             )
             """
         )
@@ -124,7 +139,7 @@ class CassandraStorage(object):
         )
         self.statements[StatementKeys.msgs_select] = self.session.prepare(
             """
-            SELECT * FROM messages where room_id = ?
+            SELECT * FROM messages where to_user = ?
             """
         )
         self.statements[StatementKeys.rooms_select] = self.session.prepare(
@@ -202,7 +217,7 @@ class CassandraStorage(object):
         return self.session.execute(self.statements[StatementKeys.room_select_users].bind((room_id, )))
 
     def get_all_rooms(self, user_id: str=None) -> dict:
-        return self.session.execute(self.statements[StatementKeys.room_select])
+        return self.session.execute(self.statements[StatementKeys.rooms_select])
 
     def leave_room(self, user_id: str, room_id: str) -> None:
         self.session.execute(self.statements[StatementKeys.room_delete_user].bind((room_id, user_id)))
