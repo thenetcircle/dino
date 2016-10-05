@@ -5,6 +5,7 @@ import logging
 
 from dino.env import env, ConfigKeys
 from dino import rkeys
+from dino.storage.redis import RedisStorage
 
 redis = fakeredis.FakeStrictRedis()
 env.config = dict()
@@ -147,6 +148,8 @@ class BaseTest(unittest.TestCase):
 
         env.logger = logger
         env.redis = redis
+        env.config[ConfigKeys.TESTING] = True
+        env.storage = RedisStorage('mock')
         env.session = {
             'user_id': BaseTest.USER_ID,
             'user_name': BaseTest.USER_NAME,

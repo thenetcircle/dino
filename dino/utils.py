@@ -1,6 +1,4 @@
-from uuid import uuid4 as uuid
 from activitystreams import Activity
-from redis import Redis
 
 from dino import rkeys
 from dino.env import env
@@ -76,7 +74,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
         'verb': 'history',
         'target': {
             'id': activity.target.id,
-            'displayName': get_room_name(env.redis, activity.target.id)
+            'displayName': env.storage.get_room_name(activity.target.id)
         }
     }
 
@@ -101,7 +99,7 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
         'verb': 'join',
         'target': {
             'id': activity.target.id,
-            'displayName': get_room_name(env.redis, activity.target.id)
+            'displayName': env.storage.get_room_name(activity.target.id)
         }
     }
 
@@ -173,7 +171,7 @@ def activity_for_list_rooms(activity: Activity, rooms: list) -> dict:
 
 
 def is_user_in_room(user_id, room_id):
-    return env.redis.hexists(rkeys.users_in_room(room_id), user_id)
+    return env.storage.room_contains(room_id, user_id)
 
 
 def activity_for_users_in_room(activity: Activity, users: list) -> dict:
@@ -252,47 +250,12 @@ def get_history_for_room(room_id: str, limit: int=10) -> list:
     return cleaned_messages
 
 
-def remove_user_from_room(r_server: Redis, user_id: str, user_name: str, room_id: str) -> None:
+def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
     env.leave_room(room_id)
-    r_server.hdel(rkeys.users_in_room(room_id), user_id)
-    r_server.srem(rkeys.rooms_for_user(user_id), room_id)
+    env.storage.leave_room(user_id, room_id)
 
 
-def get_room_name(r_server: Redis, room_id: str) -> str:
-    room_name = r_server.get(rkeys.room_name_for_id(room_id))
-    if room_name is None:
-        room_name = str(uuid())
-        env.logger.warn('WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
-        r_server.set(rkeys.room_name_for_id(room_id), room_name)
-    else:
-        room_name = room_name.decode('utf-8')
-    return room_name
-
-
-def join_the_room(r_server: Redis, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
-    r_server.sadd(rkeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
-    r_server.hset(rkeys.users_in_room(room_id), user_id, user_name)
-    r_server.hset(rkeys.rooms(), room_id, room_name)
+def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) -> None:
+    env.storage.join_room(user_id, user_name, room_id, room_name)
     env.join_room(room_id)
     env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
-
-
-def set_user_offline(r_server: Redis, user_id: str) -> None:
-    r_server.setbit(rkeys.online_bitmap(), int(user_id), 0)
-    r_server.srem(rkeys.online_set(), int(user_id))
-    r_server.srem(rkeys.users_multi_cast(), user_id)
-    r_server.set(rkeys.user_status(user_id), rkeys.REDIS_STATUS_UNAVAILABLE)
-
-
-def set_user_online(r_server: Redis, user_id: str):
-    r_server.setbit(rkeys.online_bitmap(), int(user_id), 1)
-    r_server.sadd(rkeys.online_set(), int(user_id))
-    r_server.sadd(rkeys.users_multi_cast(), user_id)
-    r_server.set(rkeys.user_status(user_id), rkeys.REDIS_STATUS_AVAILABLE)
-
-
-def set_user_invisible(r_server: Redis, user_id: str):
-    r_server.setbit(rkeys.online_bitmap(), int(user_id), 0)
-    r_server.srem(rkeys.online_set(), int(user_id))
-    r_server.sadd(rkeys.users_multi_cast(), user_id)
-    r_server.set(rkeys.user_status(user_id), rkeys.REDIS_STATUS_INVISIBLE)

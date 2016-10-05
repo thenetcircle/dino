@@ -208,7 +208,7 @@ def validate_request(activity: Activity) -> (bool, str):
 
 def validate_acl(activity: Activity) -> (bool, str):
     room_id = activity.target.id
-    room_name = utils.get_room_name(env.redis, room_id)
+    room_name = env.storage.get_room_name(room_id)
     user_id = env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
     user_name = env.session.get('user_name', 'NOT_FOUND_IN_SESSION')
 

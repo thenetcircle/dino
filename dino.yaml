@@ -1,9 +1,25 @@
 oscar:
-    redis_host: 'localhost:6379'
     log_level: 'DEBUG'
+    storage:
+        type: 'redis' # mock, redis (TODO: cassandra, mysql)
+        host: 'localhost:6379'
+    queue:
+        type: 'redis' # redis (TODO: rabbitmq)
+        host: 'localhost:6379'
 dev:
-    redis_host: 'maggie-kafka-3:6379'
+    redis:
     log_level: 'DEBUG'
+    storage:
+        type: 'redis'
+        host: 'maggie-kafka-3:6379'
+    queue:
+        type: 'redis'
+        host: 'maggie-kafka-3:6379'
 test:
-    redis_host: 'mock'
     log_level: 'DEBUG'
+    storage:
+        type: 'mock'
+        host: 'localhost:6379'
+    queue:
+        type: 'redis'
+        host: 'localhost:6379'

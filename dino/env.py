@@ -1,12 +1,13 @@
 import yaml
 import json
 import os
-import sys
 import pkg_resources
 import logging
 from enum import Enum
 from logging import RootLogger
 from redis import Redis
+from typing import Union
+
 from flask_socketio import emit as _flask_emit
 from flask_socketio import send as _flask_send
 from flask_socketio import join_room as _flask_join_room
@@ -42,19 +43,22 @@ class SessionKeys(Enum):
     token = 'token'
 
 
-class ConfigKeys:
+class ConfigKeys(object):
     LOG_LEVEL = 'log_level'
-    REDIS_HOST = 'redis_host'
     LOG_FORMAT = 'log_format'
     DEBUG = 'debug'
+    QUEUE = 'queue'
     TESTING = 'testing'
+    STORAGE = 'storage'
+    HOST = 'host'
+    TYPE = 'type'
 
     # will be overwritten even if specified in config file
-    ENVIRONMENT = 'environment'
-    VERSION = 'version'
-    LOGGER = 'logger'
-    REDIS = 'redis'
-    SESSION = 'session'
+    ENVIRONMENT = '_environment'
+    VERSION = '_version'
+    LOGGER = '_logger'
+    REDIS = '_redis'
+    SESSION = '_session'
 
     DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)-18s - %(levelname)-7s - %(message)s"
     DEFAULT_LOG_LEVEL = 'INFO'
@@ -62,13 +66,14 @@ class ConfigKeys:
 
 
 class GNEnvironment(object):
-    def __init__(self, root_path, config):
+    def __init__(self, root_path: Union[str, None], config: dict):
         """
         Initialize the environment
         """
         self.root_path = root_path
         self.config = config
-        self.commands = dict()
+        self.storage = None
+
         self.emit = _flask_emit
         self.send = _flask_send
         self.join_room = _flask_join_room
@@ -86,8 +91,10 @@ class GNEnvironment(object):
         self.send_from_directory = _flask_send_from_directory
 
         self.logger = config.get(ConfigKeys.LOGGER, None)
-        self.redis = config.get(ConfigKeys.REDIS, None)
         self.session = config.get(ConfigKeys.SESSION, None)
+
+        # TODO: remove this, go through storage interface
+        self.redis = config.get(ConfigKeys.REDIS, None)
 
 
 def error(text: str) -> None:
@@ -98,23 +105,17 @@ def create_logger(_config_dict: dict) -> RootLogger:
     logging.basicConfig(
             level=getattr(logging, _config_dict.get(ConfigKeys.LOG_LEVEL, 'INFO')),
             format=_config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
+    logging.getLogger('engineio').setLevel(logging.WARNING)
     return logging.getLogger(__name__)
 
 
-def create_env(config_paths: list=None) -> GNEnvironment:
+def find_config(config_paths: list) -> str:
     default_paths = ["dino.yaml", "dino.json"]
-
-    if config_paths is None:
-        config_paths = default_paths
-
     config_dict = None
     config_path = None
 
-    gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
-
-    # assuming tests are running
-    if gn_environment is None:
-        return GNEnvironment(None, dict())
+    if config_paths is None:
+        config_paths = default_paths
 
     for conf in config_paths:
         path = os.path.join(os.getcwd(), conf)
@@ -136,23 +137,45 @@ def create_env(config_paths: list=None) -> GNEnvironment:
         break
 
     if not config_dict:
-        raise RuntimeError("No configuration found: {0}\n".format(", ".join(config_paths)))
+        raise RuntimeError('No configuration found: {0}\n'.format(', '.join(config_paths)))
+
+    return config_dict, config_path
+
+
+def choose_queue_instance(config_dict: dict) -> object:
+    # TODO: should choose between RabbitMQ and Redis
+    redis_host = config_dict.get(ConfigKeys.QUEUE).get(ConfigKeys.HOST, 'localhost')
+    redis_port = 6379
+
+    if ':' in redis_host:
+        redis_host, redis_port = redis_host.split(':', 1)
+
+    if redis_host == 'mock':
+        from fakeredis import FakeStrictRedis
+        return FakeStrictRedis()
+
+    return Redis(redis_host, port=redis_port)
+
+
+def create_env(config_paths: list=None) -> GNEnvironment:
+    config_dict, config_path = find_config(config_paths)
+
+    gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
+
+    # assuming tests are running
+    if gn_environment is None:
+        return GNEnvironment(None, dict())
 
     if gn_environment not in config_dict:
         raise RuntimeError('no configuration found for environment "%s"' % gn_environment)
 
     config_dict = config_dict[gn_environment]
 
-    redis_host = config_dict[ConfigKeys.REDIS_HOST]
-    redis_port = 'localhost', 6379
-    if ':' in redis_host:
-        redis_host, redis_port = redis_host.split(':', 1)
+    if ConfigKeys.STORAGE not in config_dict:
+        raise RuntimeError('no storage configured for environment %s' % gn_environment)
 
-    if redis_host == 'mock':
-        from fakeredis import FakeStrictRedis
-        config_dict[ConfigKeys.REDIS] = FakeStrictRedis()
-    else:
-        config_dict[ConfigKeys.REDIS] = Redis(redis_host, port=redis_port)
+    # TODO: rename to ConfigKeys.QUEUE, could be either redis or rabbitmq
+    config_dict[ConfigKeys.REDIS] = choose_queue_instance(config_dict)
 
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
     config_dict[ConfigKeys.VERSION] = pkg_resources.require('dino')[0].version
@@ -173,4 +196,31 @@ def create_env(config_paths: list=None) -> GNEnvironment:
     return gn_env
 
 
+def init_storage_engine(gn_env: GNEnvironment) -> None:
+    if len(gn_env.config) == 0:
+        # assume we're testing
+        return
+
+    storage_engine = gn_env.config.get(ConfigKeys.STORAGE, None)
+
+    if storage_engine is None:
+        raise RuntimeError('no storage engine specified')
+
+    storage_type = storage_engine.get(ConfigKeys.TYPE)
+    if storage_type is None:
+        raise RuntimeError('no storage type specified, use redis, cassandra, mysql etc.')
+
+    if storage_type == 'redis':
+        from dino.storage.redis import RedisStorage
+
+        storage_host, storage_port = storage_engine.get(ConfigKeys.HOST), None
+        if ':' in storage_host:
+            storage_host, storage_port = storage_host.split(':', 1)
+
+        gn_env.storage = RedisStorage(host=storage_host, port=storage_port)
+    else:
+        raise RuntimeError('unknown storage engine type "%s"' % storage_type)
+
+
 env = create_env()
+init_storage_engine(env)

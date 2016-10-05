@@ -10,6 +10,9 @@ class ApiCreateTest(BaseTest):
     def test_create_already_existing(self):
         api.on_create(self.activity_for_create())
         response_data = api.on_create(self.activity_for_create())
+        from pprint import pprint
+        pprint(response_data)
+        print('wtf')
         self.assertEqual(400, response_data[0])
 
     def test_create_missing_target_display_name(self):

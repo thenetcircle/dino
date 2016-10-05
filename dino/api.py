@@ -10,7 +10,6 @@ from dino import validator
 from dino.validator import Validator
 from dino.env import env
 from dino.env import SessionKeys
-from dino import rkeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
@@ -132,15 +131,14 @@ def on_message(data):
     if target is None or target == '':
         return 400, 'no target specified when sending message'
 
-    if not env.redis.hexists(rkeys.rooms(), target):
+    if not env.storage.room_exists(target):
         return 400, 'room %s does not exist' % target
 
+    # TODO: keep these in utils, make storage abstract, e.g. env.storage.room_contains(room_id, some_value)
     if not utils.is_user_in_room(activity.actor.id, target):
         return 400, 'user not in room, not allowed to send'
 
-    env.redis.lpush(rkeys.room_history(target), '%s,%s,%s,%s' % (
-        activity.id, activity.published, env.session.get(SessionKeys.user_name.value), activity.object.content))
-    env.redis.ltrim(rkeys.room_history(target), 0, 200)
+    env.storage.store_message(activity)
     env.send(data, json=True, room=target, broadcast=True)
 
     return 200, data
@@ -165,18 +163,13 @@ def on_create(data):
     if target is None or target.strip() == '':
         return 400, 'got blank room name, can not create'
 
-    cleaned = set()
-    for room_name in env.redis.hvals(rkeys.rooms()):
-        cleaned.add(str(room_name, 'utf-8'))
-
-    if target in cleaned:
+    if env.storage.room_name_exists(target):
         return 400, 'a room with that name already exists'
 
-    room_id = str(uuid())
-    env.redis.set(rkeys.room_name_for_id(room_id), target)
-    env.redis.hset(rkeys.room_owners(room_id), activity.actor.id, env.session.get(SessionKeys.user_name.value))
-    env.redis.hset(rkeys.rooms(), room_id, target)
-    env.emit('gn_room_created', utils.activity_for_create_room(room_id, target), broadcast=True, json=True, include_self=True)
+    activity.target.id = str(uuid())
+    env.storage.create_room(activity)
+    env.emit('gn_room_created', utils.activity_for_create_room(activity.target.id, target),
+             broadcast=True, json=True, include_self=True)
 
     return 200, data
 
@@ -211,14 +204,14 @@ def on_set_acl(data: dict) -> (int, str):
     for acl in acls:
         # if the content is None, it means we're removing this ACL
         if acl.content is None:
-            env.redis.hdel(rkeys.room_acl(room_id), acl.object_type)
+            env.storage.delete_acl(room_id, acl.object_type)
             continue
 
         acl_dict[acl.object_type] = acl.content
 
     # might have only removed acls, so could be size 0
     if len(acl_dict) > 0:
-        env.redis.hmset(rkeys.room_acl(room_id), acl_dict)
+        env.storage.add_acls(room_id, acl_dict)
 
     return 200, None
 
@@ -232,7 +225,7 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
     """
     activity = as_parser.parse(data)
     room_id = activity.target.id
-    activity.target.display_name = utils.get_room_name(env.redis, room_id)
+    activity.target.display_name = env.storage.get_room_name(room_id)
 
     is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
@@ -274,16 +267,19 @@ def on_status(data: dict) -> (int, Union[str, None]):
         return 400, error_msg
 
     if status == 'online':
-        utils.set_user_online(env.redis, user_id)
-        env.emit('gn_user_connected', utils.activity_for_connect(user_id, user_name), broadcast=True, include_self=False)
+        env.storage.set_user_online(user_id)
+        env.emit('gn_user_connected',
+                 utils.activity_for_connect(user_id, user_name), broadcast=True, include_self=False)
 
     elif status == 'invisible':
-        utils.set_user_invisible(env.redis, user_id)
-        env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+        env.storage.set_user_invisible(user_id)
+        env.emit('gn_user_disconnected',
+                 utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
 
     elif status == 'offline':
-        utils.set_user_offline(env.redis, user_id)
-        env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+        env.storage.set_user_offline(user_id)
+        env.emit('gn_user_disconnected',
+                 utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
 
     else:
         return 400, 'invalid status %s' % str(status)
@@ -361,8 +357,8 @@ def on_join(data: dict) -> (int, Union[str, None]):
     if not is_valid:
         return 400, error_msg
 
-    room_name = utils.get_room_name(env.redis, room_id)
-    utils.join_the_room(env.redis, user_id, user_name, room_id, room_name)
+    room_name = env.storage.get_room_name(room_id)
+    utils.join_the_room(user_id, user_name, room_id, room_name)
 
     env.emit('gn_user_joined', utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image),
              room=room_id, broadcast=True, include_self=False)
@@ -408,7 +404,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     if not is_valid:
         return 400, error_msg
 
-    all_rooms = env.redis.hgetall(rkeys.rooms())
+    all_rooms = env.storage.get_all_rooms()
 
     rooms = list()
     for room_id, room_name in all_rooms.items():
@@ -439,8 +435,8 @@ def on_leave(data: dict) -> (int, Union[str, None]):
     user_name = env.session.get(SessionKeys.user_name.value)
     room_id = activity.target.id
 
-    room_name = utils.get_room_name(env.redis, room_id)
-    utils.remove_user_from_room(env.redis, user_id, user_name, room_id)
+    room_name = env.storage.get_room_name(room_id)
+    utils.remove_user_from_room(user_id, user_name, room_id)
 
     activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
     env.emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
@@ -462,15 +458,15 @@ def on_disconnect() -> (int, None):
         return 400, 'no user in session, not connected'
 
     env.leave_room(user_id)
-    rooms = env.redis.smembers(rkeys.rooms_for_user(user_id))
+    rooms = env.storage.get_all_rooms(user_id=user_id)
 
     for room in rooms:
         room_id, room_name = room.decode('utf-8').split(':', 1)
-        utils.remove_user_from_room(env.redis, user_id, user_name, room_id)
+        utils.remove_user_from_room(user_id, user_name, room_id)
         env.send(utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
 
-    env.redis.delete(rkeys.rooms_for_user(user_id))
-    utils.set_user_offline(env.redis, user_id)
+    env.storage.remove_current_rooms_for_user(user_id)
+    env.storage.set_user_offline(user_id)
 
     env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
     return 200, None

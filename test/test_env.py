@@ -21,7 +21,6 @@ class TestEnvironment(unittest.TestCase):
         self.assertTrue(ConfigKeys.LOG_LEVEL in env.config.keys())
         self.assertTrue(ConfigKeys.LOGGER in env.config.keys())
         self.assertTrue(ConfigKeys.REDIS in env.config.keys())
-        self.assertTrue(ConfigKeys.REDIS_HOST in env.config.keys())
         self.assertTrue(ConfigKeys.SESSION in env.config.keys())
         self.assertTrue(ConfigKeys.VERSION in env.config.keys())
 
@@ -34,7 +33,7 @@ class TestEnvironment(unittest.TestCase):
 
     def test_create_existing_yaml_file(self):
         f = tempfile.NamedTemporaryFile(mode='w+', suffix='.yaml', delete=False)
-        f.write('test:\n    redis_host: "mock"\n    log_level: "DEBUG"')
+        f.write('test:\n    log_level:\n        "DEBUG"\n    storage:\n        type: "mock"\n    queue:\n        type: "mock"')
         f.close()
 
         try:
@@ -45,7 +44,7 @@ class TestEnvironment(unittest.TestCase):
 
     def test_log_level_has_default_value(self):
         f = tempfile.NamedTemporaryFile(mode='w+', suffix='.yaml', delete=False)
-        f.write('test:\n    redis_host: "mock"')
+        f.write('test:\n    storage:\n        type: "mock"\n    queue:\n        type: "mock"')
         f.close()
 
         try:
@@ -57,7 +56,7 @@ class TestEnvironment(unittest.TestCase):
 
     def test_env_not_found_in_config(self):
         f = tempfile.NamedTemporaryFile(mode='w+', suffix='.yaml', delete=False)
-        f.write('test:\n    redis_host: "mock"\n    log_level: "DEBUG"')
+        f.write('test:\n    log_level:\n        "DEBUG"\n    storage:\n        type: "mock"')
         f.close()
 
         try:
@@ -79,7 +78,7 @@ class TestEnvironment(unittest.TestCase):
 
     def test_create_existing_json_file(self):
         f = tempfile.NamedTemporaryFile(mode='w+', suffix='.json', delete=False)
-        f.write('{"test": {"redis_host": "mock", "log_level": "DEBUG"}}')
+        f.write('{"test": {"queue": {"type": "mock"}, "storage": {"type": "mock"}, "log_level": "DEBUG"}}')
         f.close()
 
         try:

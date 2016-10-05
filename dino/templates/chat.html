@@ -113,7 +113,7 @@
                     });
                 });
 
-                socket.on('gn_connect', function(data) {
+                socket.on('gn_login', function(data) {
                     socket.emit('list_rooms', {
                         actor: {
                             id: '{{ user_id }}',
