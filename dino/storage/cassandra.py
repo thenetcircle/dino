@@ -32,6 +32,7 @@ class CassandraStorage(object):
 
     insert_msg_statement = None
     insert_room_statement = None
+    select_message_statement = None
 
     def __init__(self, hosts: list, replications=2, strategy='SimpleStrategy'):
         CassandraStorage.validate(hosts, replications, strategy)
@@ -110,6 +111,11 @@ class CassandraStorage(object):
             )
             """
         )
+        self.select_message_statement = self.session.prepare(
+            """
+            SELECT FROM rooms where room_id = ?
+            """
+        )
 
     def store_message(self, activity: Activity) -> None:
         self.session.execute(self.insert_msg_statement.bind((
@@ -139,7 +145,7 @@ class CassandraStorage(object):
         pass
 
     def get_history(self, room_id: str, limit: int=None):
-        pass
+        self.session.execute(self.select_message_statement.bind((room_id, )))
 
     def set_user_offline(self, user_id: str) -> None:
         pass
