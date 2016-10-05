@@ -193,19 +193,19 @@ class CassandraStorage(object):
         raise NotImplementedError()
 
     def get_room_name(self, room_id: str) -> str:
-        return self.session.execute(self.select_room_name_statement.bind((room_id, )))
+        return self.session.execute(self.statements[StatementKeys.room_select_name].bind((room_id, )))
 
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
-        self.session.execute(self.insert_user_in_room_statement.bind((room_id, user_id, user_name)))
+        self.session.execute(self.statements[StatementKeys.room_insert_user].bind((room_id, user_id, user_name)))
 
     def users_in_room(self, room_id: str) -> list:
-        return self.session.execute(self.select_users_in_room_statement.bind((room_id, )))
+        return self.session.execute(self.statements[StatementKeys.room_select_users].bind((room_id, )))
 
     def get_all_rooms(self, user_id: str=None) -> dict:
         return self.session.execute(self.statements[StatementKeys.room_select])
 
     def leave_room(self, user_id: str, room_id: str) -> None:
-        self.session.execute(self.delete_user_in_room_statement.bind((room_id, user_id)))
+        self.session.execute(self.statements[StatementKeys.room_delete_user].bind((room_id, user_id)))
 
     def remove_current_rooms_for_user(self, user_id: str) -> None:
         raise NotImplementedError()
@@ -220,7 +220,7 @@ class CassandraStorage(object):
         raise NotImplementedError()
 
     def get_owners(self, room_id: str) -> dict:
-        raise NotImplementedError()
+        return self.session.execute(self.statements[StatementKeys.room_select_owners].bind((room_id, )))
 
     def room_owners_contain(self, room_id: str, user_id: str) -> bool:
         raise NotImplementedError()
