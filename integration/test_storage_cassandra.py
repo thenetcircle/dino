@@ -16,9 +16,6 @@
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-import os
-import tempfile
-
 from test.utils import BaseTest
 from dino.env import env, ConfigKeys
 from dino.storage.cassandra import CassandraStorage
