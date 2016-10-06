@@ -17,6 +17,7 @@
 from zope.interface import implementer
 from activitystreams.models.activity import Activity
 from cassandra.cluster import Cluster
+from cassandra.cluster import ResultSet
 
 from dino.storage.base import IStorage
 from dino.env import env
@@ -63,179 +64,180 @@ class CassandraStorage(object):
         self.session = cluster.connect()
 
     def init(self):
-        self.create_keyspace()
-        self.create_tables()
-        self.prepare_statements()
+        def create_keyspace():
+            env.logger.debug('creating keyspace...')
+            create_keyspace = self.session.prepare(
+                """
+                CREATE KEYSPACE IF NOT EXISTS %s
+                WITH replication = {'class': '%s', 'replication_factor': '%s'}
+                """ % (self.key_space, self.strategy, str(self.replications))
+            )
+            self.session.execute(create_keyspace)
+            self.session.set_keyspace(self.key_space)
 
-    def create_keyspace(self):
-        env.logger.debug('creating keyspace...')
-        create_keyspace = self.session.prepare(
-            """
-            CREATE KEYSPACE IF NOT EXISTS %s
-            WITH replication = {'class': '%s', 'replication_factor': '%s'}
-            """ % (self.key_space, self.strategy, str(self.replications))
-        )
-        self.session.execute(create_keyspace)
-        self.session.set_keyspace(self.key_space)
+        def create_tables():
+            env.logger.debug('creating tables...')
+            self.session.execute(
+                """
+                CREATE TABLE IF NOT EXISTS messages (
+                    message_id varchar,
+                    from_user text,
+                    to_user text,
+                    body text,
+                    domain text,
+                    time varchar,
+                    PRIMARY KEY (to_user, from_user, time)
+                )
+                """
+            )
+            self.session.execute(
+                """
+                CREATE TABLE IF NOT EXISTS rooms (
+                    room_id varchar,
+                    room_name varchar,
+                    owners list<varchar>,
+                    time varchar,
+                    PRIMARY KEY (room_id)
+                )
+                """
+            )
+            self.session.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users_in_room_by_user (
+                    room_id varchar,
+                    room_name varchar,
+                    user_id varchar,
+                    user_name varchar,
+                    PRIMARY KEY (user_id, room_id)
+                )
+                """
+            )
+            self.session.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users_in_room_by_room (
+                    room_id varchar,
+                    room_name varchar,
+                    user_id varchar,
+                    user_name varchar,
+                    PRIMARY KEY (room_id, user_id)
+                )
+                """
+            )
 
-    def create_tables(self):
-        env.logger.debug('creating tables...')
-        self.session.execute(
-            """
-            CREATE TABLE IF NOT EXISTS messages (
-                message_id varchar,
-                from_user text,
-                to_user text,
-                body text,
-                domain text,
-                time varchar,
-                PRIMARY KEY (to_user, from_user, time)
+        def prepare_statements():
+            self.statements[StatementKeys.msg_insert] = self.session.prepare(
+                """
+                INSERT INTO messages (
+                    message_id,
+                    from_user,
+                    to_user,
+                    body,
+                    domain,
+                    time
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, ?
+                )
+                """
             )
-            """
-        )
-        self.session.execute(
-            """
-            CREATE TABLE IF NOT EXISTS rooms (
-                room_id varchar,
-                room_name varchar,
-                owners list<varchar>,
-                time varchar,
-                PRIMARY KEY (room_id)
+            self.statements[StatementKeys.room_insert] = self.session.prepare(
+                """
+                INSERT INTO rooms (
+                    room_id,
+                    room_name,
+                    owners,
+                    time
+                )
+                VALUES (
+                    ?, ?, ?, ?
+                )
+                """
             )
-            """
-        )
-        self.session.execute(
-            """
-            CREATE TABLE IF NOT EXISTS users_in_room_by_user (
-                room_id varchar,
-                room_name varchar,
-                user_id varchar,
-                user_name varchar,
-                PRIMARY KEY (user_id, room_id)
+            self.statements[StatementKeys.msgs_select] = self.session.prepare(
+                """
+                SELECT * FROM messages where to_user = ?
+                """
             )
-            """
-        )
-        self.session.execute(
-            """
-            CREATE TABLE IF NOT EXISTS users_in_room_by_room (
-                room_id varchar,
-                room_name varchar,
-                user_id varchar,
-                user_name varchar,
-                PRIMARY KEY (room_id, user_id)
+            self.statements[StatementKeys.rooms_select] = self.session.prepare(
+                """
+                SELECT * FROM rooms
+                """
             )
-            """
-        )
+            self.statements[StatementKeys.rooms_select_for_user_by_user] = self.session.prepare(
+                """
+                SELECT * FROM users_in_room_by_user WHERE user_id = ?
+                """
+            )
+            self.statements[StatementKeys.room_select_name] = self.session.prepare(
+                """
+                SELECT room_name FROM rooms WHERE room_id = ?
+                """
+            )
+            self.statements[StatementKeys.room_select_users_by_room] = self.session.prepare(
+                """
+                SELECT user_id, user_name FROM users_in_room_by_room WHERE room_id = ?
+                """
+            )
+            self.statements[StatementKeys.room_insert_user_by_room] = self.session.prepare(
+                """
+                INSERT INTO users_in_room_by_room(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
+                """
+            )
+            self.statements[StatementKeys.room_insert_user_by_user] = self.session.prepare(
+                """
+                INSERT INTO users_in_room_by_user(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
+                """
+            )
+            self.statements[StatementKeys.room_select_owners] = self.session.prepare(
+                """
+                SELECT owners FROM rooms WHERE room_id = ?
+                """
+            )
+            self.statements[StatementKeys.room_delete_user_by_user] = self.session.prepare(
+                """
+                DELETE FROM users_in_room_by_user WHERE room_id = ? AND user_id = ?
+                """
+            )
+            self.statements[StatementKeys.room_delete_user_by_room] = self.session.prepare(
+                """
+                DELETE FROM users_in_room_by_room WHERE room_id = ? AND user_id = ?
+                """
+            )
 
-    def prepare_statements(self):
-        self.statements[StatementKeys.msg_insert] = self.session.prepare(
-            """
-            INSERT INTO messages (
-                message_id,
-                from_user,
-                to_user,
-                body,
-                domain,
-                time
-            )
-            VALUES (
-                ?, ?, ?, ?, ?, ?
-            )
-            """
-        )
-        self.statements[StatementKeys.room_insert] = self.session.prepare(
-            """
-            INSERT INTO rooms (
-                room_id,
-                room_name,
-                owners,
-                time
-            )
-            VALUES (
-                ?, ?, ?, ?
-            )
-            """
-        )
-        self.statements[StatementKeys.msgs_select] = self.session.prepare(
-            """
-            SELECT * FROM messages where to_user = ?
-            """
-        )
-        self.statements[StatementKeys.rooms_select] = self.session.prepare(
-            """
-            SELECT * FROM rooms
-            """
-        )
-        self.statements[StatementKeys.rooms_select_for_user_by_user] = self.session.prepare(
-            """
-            SELECT * FROM users_in_room_by_user WHERE user_id = ?
-            """
-        )
-        self.statements[StatementKeys.room_select_name] = self.session.prepare(
-            """
-            SELECT room_name FROM rooms WHERE room_id = ?
-            """
-        )
-        self.statements[StatementKeys.room_select_users_by_room] = self.session.prepare(
-            """
-            SELECT user_id, user_name FROM users_in_room_by_room WHERE room_id = ?
-            """
-        )
-        self.statements[StatementKeys.room_insert_user_by_room] = self.session.prepare(
-            """
-            INSERT INTO users_in_room_by_room(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
-            """
-        )
-        self.statements[StatementKeys.room_insert_user_by_user] = self.session.prepare(
-            """
-            INSERT INTO users_in_room_by_user(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
-            """
-        )
-        self.statements[StatementKeys.room_select_owners] = self.session.prepare(
-            """
-            SELECT owners FROM rooms WHERE room_id = ?
-            """
-        )
-        self.statements[StatementKeys.room_delete_user_by_user] = self.session.prepare(
-            """
-            DELETE FROM users_in_room_by_user WHERE room_id = ? AND user_id = ?
-            """
-        )
-        self.statements[StatementKeys.room_delete_user_by_room] = self.session.prepare(
-            """
-            DELETE FROM users_in_room_by_room WHERE room_id = ? AND user_id = ?
-            """
-        )
+        create_keyspace()
+        create_tables()
+        prepare_statements()
 
-    def _room_select_owners(self, room_id: str) -> list:
+
+    def _room_select_owners(self, room_id: str) -> ResultSet:
         return self.execute(StatementKeys.room_select_owners, room_id)
 
-    def _rooms_select_for_user(self, user_id: str) -> list:
+    def _rooms_select_for_user(self, user_id: str) -> ResultSet:
         return self.execute(StatementKeys.rooms_select_for_user, user_id)
 
-    def _msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp):
+    def _msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> ResultSet:
         self.execute(StatementKeys.msg_insert, msg_id, from_user, to_user, body, domain, timestamp)
 
-    def _room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str):
+    def _room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> ResultSet:
         self.execute(StatementKeys.room_insert, room_id, room_name, owners, timestamp)
 
-    def _msgs_select(self, to_user_id: str) -> list:
+    def _msgs_select(self, to_user_id: str) -> ResultSet:
         return self.execute(StatementKeys.msgs_select, to_user_id)
 
-    def _rooms_select(self) -> list:
+    def _rooms_select(self) -> ResultSet:
         return self.execute(StatementKeys.rooms_select)
 
-    def _room_select_name(self, room_id: str) -> str:
+    def _room_select_name(self, room_id: str) -> ResultSet:
         return self.execute(StatementKeys.room_select_name, room_id)
 
-    def _room_select_users(self, room_id: str) -> list:
+    def _room_select_users(self, room_id: str) -> ResultSet:
         return self.execute(StatementKeys.room_select_users_by_room, room_id)
 
-    def _room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str):
+    def _room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str) -> ResultSet:
         self.execute(StatementKeys.room_insert_user_by_room, room_id, room_name, user_id, user_name)
         self.execute(StatementKeys.room_insert_user_by_user, room_id, room_name, user_id, user_name)
 
-    def _room_delete_user(self, room_id: str, user_id: str):
+    def _room_delete_user(self, room_id: str, user_id: str) -> ResultSet:
         self.execute(StatementKeys.room_delete_user, room_id, user_id)
 
     def execute(self, statement_key, *params):
@@ -270,9 +272,23 @@ class CassandraStorage(object):
     def get_acls(self, room_id: str) -> list:
         raise NotImplementedError()
 
-    def get_history(self, room_id: str, limit: int=None):
+    def get_history(self, room_id: str, limit: int=None) -> list:
         # TODO: limit
-        return self._msgs_select(room_id)
+        rows = self._msgs_select(room_id)
+        if rows is None or len(rows.current_rows) == 0:
+            return list()
+
+        msgs = list()
+        for row in rows:
+            msgs.append({
+                'message_id': row.message_id,
+                'from_user': row.from_user,
+                'to_user': row.to_user,
+                'body': row.body,
+                'domain': row.domain,
+                'timestamp': row.time
+            })
+        return msgs
 
     def set_user_offline(self, user_id: str) -> None:
         raise NotImplementedError()
@@ -284,18 +300,50 @@ class CassandraStorage(object):
         raise NotImplementedError()
 
     def get_room_name(self, room_id: str) -> str:
-        return self._room_select_name(room_id)
+        results = self._room_select_name(room_id)
+        current_rows = results.current_rows
+        if len(current_rows) == 0:
+            return ''
+        if len(current_rows) > 1:
+            env.logger.warn('get_room_name() found %s rooms with the ID %s, returning first name' %
+                            (len(current_rows), room_id))
+        row = current_rows[0]
+        return row.room_name
 
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self._room_insert_user(room_id, room_name, user_id, user_name)
 
     def users_in_room(self, room_id: str) -> list:
-        return self._room_select_users(room_id)
+        rows = self._room_select_users(room_id)
+        if rows is None or len(rows.current_rows) == 0:
+            return list()
 
-    def get_all_rooms(self, user_id: str=None) -> dict:
+        users = list()
+        for row in rows:
+            users.append({
+                'user_id': row.user_id,
+                'user_name': row.user_name
+            })
+        return users
+
+    def get_all_rooms(self, user_id: str=None) -> list:
         if user_id is None:
-            return self._rooms_select()
-        return self._rooms_select_for_user(user_id)
+            rows = self._rooms_select()
+        else:
+            rows = self._rooms_select_for_user(user_id)
+
+        if rows is None or len(rows.current_rows) == 0:
+            return list()
+
+        rooms = list()
+        for row in rows:
+            rooms.append({
+                'room_id': row.room_id,
+                'room_name': row.room_name,
+                'created': row.time,
+                'owners': row.owners
+            })
+        return rooms
 
     def leave_room(self, user_id: str, room_id: str) -> None:
         self._room_delete_user(room_id, user_id)
@@ -312,8 +360,23 @@ class CassandraStorage(object):
     def room_contains(self, room_id: str, user_id: str) -> bool:
         raise NotImplementedError()
 
-    def get_owners(self, room_id: str) -> dict:
-        return self._room_select_owners(room_id)
+    def get_owners(self, room_id: str) -> list:
+        rows = self._room_select_owners(room_id)
+        if rows is None or len(rows.current_rows) == 0:
+            return list()
+
+        if len(rows.current_rows) > 1:
+            env.logger.warn('get_owners() found multiple entries (%s) for room_id %s, will use first one' %
+                            (len(rows.current_rows), room_id))
+
+        rows = rows.current_rows[0].owners
+
+        owners = list()
+        for owner in rows:
+            owners.append({
+                'user_id': owner
+            })
+        return owners
 
     def room_owners_contain(self, room_id: str, user_id: str) -> bool:
         owners = self.get_owners(room_id)

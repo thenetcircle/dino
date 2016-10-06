@@ -42,32 +42,57 @@ class StorageCassandraTest(BaseTest):
         self.storage.session.execute("drop keyspace if exists " + key_space)
         self.storage.init()
 
-    def test_get_all_rooms(self):
-        self.assertEqual(0, len(self.storage.get_all_rooms().current_rows))
-
-    def test_create_room(self):
-        self.create()
-        self.assertEqual(1, len(self.storage.get_all_rooms().current_rows))
-
-    def test_users_in_room(self):
-        self.create()
-        self.assertEqual(0, len(self.storage.users_in_room(BaseTest.ROOM_ID).current_rows))
-
-    def test_join(self):
-        self.create()
-        self.join()
-        self.assertEqual(1, len(self.storage.users_in_room(BaseTest.ROOM_ID).current_rows))
-
     def test_history(self):
         self.create()
         self.join()
-        self.assertEqual(0, len(self.storage.get_history(BaseTest.ROOM_ID).current_rows))
+        self.assertEqual(0, len(self.storage.get_history(BaseTest.ROOM_ID)))
 
     def test_store_message(self):
         self.create()
         self.join()
+
         self.storage.store_message(self.act_message())
-        self.assertEqual(1, len(self.storage.get_history(BaseTest.ROOM_ID).current_rows))
+
+        res = self.storage.get_history(BaseTest.ROOM_ID)
+        self.assertEqual(1, len(res))
+        self.assertEqual(BaseTest.USER_ID, res[0]['from_user'])
+        self.assertEqual(BaseTest.ROOM_ID, res[0]['to_user'])
+
+    def test_no_owners(self):
+        self.assertEqual(0, len(self.storage.get_owners(BaseTest.ROOM_ID)))
+
+    def test_owners_after_create(self):
+        self.create()
+
+        res = self.storage.get_owners(BaseTest.ROOM_ID)
+        self.assertEqual(1, len(res))
+        self.assertEqual(BaseTest.USER_ID, res[0]['user_id'])
+
+    def test_get_room_name_non_existing(self):
+        self.assertEqual('', self.storage.get_room_name(BaseTest.ROOM_ID))
+
+    def test_get_room_name_after_create(self):
+        self.create()
+        self.assertEqual(BaseTest.ROOM_NAME, self.storage.get_room_name(BaseTest.ROOM_ID))
+
+    def test_get_all_rooms(self):
+        self.assertEqual(0, len(self.storage.get_all_rooms()))
+
+    def test_create_room(self):
+        self.create()
+        self.assertEqual(1, len(self.storage.get_all_rooms()))
+
+    def test_users_in_room(self):
+        self.create()
+        self.assertEqual(0, len(self.storage.users_in_room(BaseTest.ROOM_ID)))
+
+    def test_join(self):
+        self.create()
+        self.join()
+
+        res = self.storage.users_in_room(BaseTest.ROOM_ID)
+        self.assertEqual(1, len(res))
+        self.assertEqual(BaseTest.USER_ID, res[0]['user_id'])
 
     def create(self):
         self.storage.create_room(self.act_create())
