@@ -17,6 +17,10 @@
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 import logging
+from activitystreams import parse
+from uuid import uuid4 as uuid
+from datetime import datetime
+import time
 
 from test.utils import BaseTest
 from dino.env import env, ConfigKeys
@@ -27,6 +31,7 @@ class StorageCassandraTest(BaseTest):
     def setUp(self):
         env.config.set(ConfigKeys.TESTING, False)
         env.logger = logging.getLogger()
+        logging.getLogger('cassandra').setLevel(logging.WARNING)
         key_space = 'testing'
         self.storage = CassandraStorage(hosts=['127.0.0.1'], key_space=key_space)
         self.storage.session.execute("use " + key_space)
@@ -38,4 +43,47 @@ class StorageCassandraTest(BaseTest):
         self.storage.init()
 
     def test_get_all_rooms(self):
-        self.storage.get_all_rooms()
+        self.assertEqual(0, len(self.storage.get_all_rooms().current_rows))
+
+    def test_create_room(self):
+        self.create()
+        self.assertEqual(1, len(self.storage.get_all_rooms().current_rows))
+
+    def test_users_in_room(self):
+        self.create()
+        self.assertEqual(0, len(self.storage.users_in_room(BaseTest.ROOM_ID).current_rows))
+
+    def test_join(self):
+        self.create()
+        self.join()
+        self.assertEqual(1, len(self.storage.users_in_room(BaseTest.ROOM_ID).current_rows))
+
+    def test_history(self):
+        self.create()
+        self.join()
+        self.assertEqual(0, len(self.storage.get_history(BaseTest.ROOM_ID).current_rows))
+
+    def test_store_message(self):
+        self.create()
+        self.join()
+        self.storage.store_message(self.act_message())
+        self.assertEqual(1, len(self.storage.get_history(BaseTest.ROOM_ID).current_rows))
+
+    def create(self):
+        self.storage.create_room(self.act_create())
+
+    def join(self):
+        self.storage.join_room(BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
+
+    def act_message(self):
+        data = self.activity_for_message()
+        data['id'] = str(uuid())
+        data['target']['objectType'] = 'group'
+        data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
+        return parse(data)
+
+    def act_create(self):
+        data = self.activity_for_create()
+        data['target']['id'] = BaseTest.ROOM_ID
+        data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
+        return parse(data)

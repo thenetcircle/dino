@@ -83,7 +83,7 @@ class CassandraStorage(object):
         self.session.execute(
             """
             CREATE TABLE IF NOT EXISTS messages (
-                message_id uuid,
+                message_id varchar,
                 from_user text,
                 to_user text,
                 body text,
@@ -96,9 +96,9 @@ class CassandraStorage(object):
         self.session.execute(
             """
             CREATE TABLE IF NOT EXISTS rooms (
-                room_id uuid,
+                room_id varchar,
                 room_name varchar,
-                owners list<uuid>,
+                owners list<varchar>,
                 time varchar,
                 PRIMARY KEY (room_id)
             )
@@ -107,9 +107,9 @@ class CassandraStorage(object):
         self.session.execute(
             """
             CREATE TABLE IF NOT EXISTS users_in_room_by_user (
-                room_id uuid,
+                room_id varchar,
                 room_name varchar,
-                user_id uuid,
+                user_id varchar,
                 user_name varchar,
                 PRIMARY KEY (user_id, room_id)
             )
@@ -118,9 +118,9 @@ class CassandraStorage(object):
         self.session.execute(
             """
             CREATE TABLE IF NOT EXISTS users_in_room_by_room (
-                room_id uuid,
+                room_id varchar,
                 room_name varchar,
-                user_id uuid,
+                user_id varchar,
                 user_name varchar,
                 PRIMARY KEY (room_id, user_id)
             )
@@ -229,10 +229,11 @@ class CassandraStorage(object):
         return self.execute(StatementKeys.room_select_name, room_id)
 
     def _room_select_users(self, room_id: str) -> list:
-        return self.execute(StatementKeys.room_select_users, room_id)
+        return self.execute(StatementKeys.room_select_users_by_room, room_id)
 
     def _room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str):
-        self.execute(StatementKeys.room_insert_user, room_id, room_name, user_id, user_name)
+        self.execute(StatementKeys.room_insert_user_by_room, room_id, room_name, user_id, user_name)
+        self.execute(StatementKeys.room_insert_user_by_user, room_id, room_name, user_id, user_name)
 
     def _room_delete_user(self, room_id: str, user_id: str):
         self.execute(StatementKeys.room_delete_user, room_id, user_id)
@@ -248,8 +249,8 @@ class CassandraStorage(object):
             activity.actor.id,
             activity.target.id,
             activity.object.content,
-            activity.published,
-            activity.target.object_type
+            activity.target.object_type,
+            activity.published
         )
 
     def create_room(self, activity: Activity) -> None:
@@ -333,7 +334,7 @@ class CassandraStorage(object):
 
         if replications > len(hosts):
             env.logger.warn('replications (%s) is higher than number of nodes in cluster (%s)' %
-                            (len(hosts), str(replications)))
+                            (str(replications), len(hosts)))
 
         if not isinstance(strategy, str):
             raise ValueError('strategy is not a valid string, but of type: "%s"' % str(type(strategy)))
