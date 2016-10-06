@@ -32,18 +32,21 @@ class StatementKeys(Enum):
     room_insert = 'room_insert'
     room_delete = 'room_delete'
     room_select_name = 'room_select_name'
-    room_select_users = 'room_select_users'
-    room_delete_user = 'room_delete_user'
-    room_insert_user = 'room_insert_user'
+    room_select_users_by_room = 'room_select_users_by_room'
+    rooms_select_for_user_by_user = 'rooms_select_for_user_by_user'
+    room_delete_user_by_room = 'room_delete_user_by_room'
+    room_delete_user_by_user = 'room_delete_user_by_user'
+    room_insert_user_by_user = 'room_insert_user_by_user'
+    room_insert_user_by_room = 'room_insert_user_by_room'
+    room_select_owners = 'room_select_owners'
     rooms_select = 'rooms_select'
 
 
 @implementer(IStorage)
 class CassandraStorage(object):
     session = None
-    key_space = 'dino'
 
-    def __init__(self, hosts: list, replications=2, strategy='SimpleStrategy'):
+    def __init__(self, hosts: list, replications=2, strategy='SimpleStrategy', key_space='dino'):
         if replications is None:
             replications = 2
         if strategy is None:
@@ -52,24 +55,28 @@ class CassandraStorage(object):
         CassandraStorage.validate(hosts, replications, strategy)
 
         cluster = Cluster(hosts)
+
+        self.key_space = key_space
+        self.strategy = strategy
+        self.replications = replications
+        self.statements = dict()
         self.session = cluster.connect()
 
-        self.statements = dict()
-
-        self.create_keyspace(strategy, replications)
+    def init(self):
+        self.create_keyspace()
         self.create_tables()
         self.prepare_statements()
 
-    def create_keyspace(self, strategy, replications):
+    def create_keyspace(self):
         env.logger.debug('creating keyspace...')
         create_keyspace = self.session.prepare(
             """
             CREATE KEYSPACE IF NOT EXISTS %s
             WITH replication = {'class': '%s', 'replication_factor': '%s'}
-            """ % (CassandraStorage.key_space, strategy, str(replications))
+            """ % (self.key_space, self.strategy, str(self.replications))
         )
         self.session.execute(create_keyspace)
-        self.session.set_keyspace(CassandraStorage.key_space)
+        self.session.set_keyspace(self.key_space)
 
     def create_tables(self):
         env.logger.debug('creating tables...')
@@ -99,7 +106,18 @@ class CassandraStorage(object):
         )
         self.session.execute(
             """
-            CREATE TABLE IF NOT EXISTS users_in_room (
+            CREATE TABLE IF NOT EXISTS users_in_room_by_user (
+                room_id uuid,
+                room_name varchar,
+                user_id uuid,
+                user_name varchar,
+                PRIMARY KEY (user_id, room_id)
+            )
+            """
+        )
+        self.session.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users_in_room_by_room (
                 room_id uuid,
                 room_name varchar,
                 user_id uuid,
@@ -148,9 +166,9 @@ class CassandraStorage(object):
             SELECT * FROM rooms
             """
         )
-        self.statements[StatementKeys.rooms_select_for_user] = self.session.prepare(
+        self.statements[StatementKeys.rooms_select_for_user_by_user] = self.session.prepare(
             """
-            SELECT * FROM users_in_room WHERE user_id = ?
+            SELECT * FROM users_in_room_by_user WHERE user_id = ?
             """
         )
         self.statements[StatementKeys.room_select_name] = self.session.prepare(
@@ -158,19 +176,19 @@ class CassandraStorage(object):
             SELECT room_name FROM rooms WHERE room_id = ?
             """
         )
-        self.statements[StatementKeys.room_select_users] = self.session.prepare(
+        self.statements[StatementKeys.room_select_users_by_room] = self.session.prepare(
             """
-            SELECT user_id, user_name FROM users_in_room WHERE room_id = ?
-            """
-        )
-        self.statements[StatementKeys.user_rooms_select] = self.session.prepare(
-            """
-            SELECT * FROM rooms_for_users WHERE user_id = ?
+            SELECT user_id, user_name FROM users_in_room_by_room WHERE room_id = ?
             """
         )
-        self.statements[StatementKeys.room_insert_user] = self.session.prepare(
+        self.statements[StatementKeys.room_insert_user_by_room] = self.session.prepare(
             """
-            INSERT INTO users_in_room(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
+            INSERT INTO users_in_room_by_room(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
+            """
+        )
+        self.statements[StatementKeys.room_insert_user_by_user] = self.session.prepare(
+            """
+            INSERT INTO users_in_room_by_user(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
             """
         )
         self.statements[StatementKeys.room_select_owners] = self.session.prepare(
@@ -178,9 +196,14 @@ class CassandraStorage(object):
             SELECT owners FROM rooms WHERE room_id = ?
             """
         )
-        self.statements[StatementKeys.room_delete_user] = self.session.prepare(
+        self.statements[StatementKeys.room_delete_user_by_user] = self.session.prepare(
             """
-            DELETE FROM users_in_room WHERE room_id = ? AND user_id = ?
+            DELETE FROM users_in_room_by_user WHERE room_id = ? AND user_id = ?
+            """
+        )
+        self.statements[StatementKeys.room_delete_user_by_room] = self.session.prepare(
+            """
+            DELETE FROM users_in_room_by_room WHERE room_id = ? AND user_id = ?
             """
         )
 
@@ -292,7 +315,11 @@ class CassandraStorage(object):
         return self._room_select_owners(room_id)
 
     def room_owners_contain(self, room_id: str, user_id: str) -> bool:
-        raise NotImplementedError()
+        owners = self.get_owners(room_id)
+        for owner in owners:
+            if owner == user_id:
+                return True
+        return False
 
     @staticmethod
     def validate(hosts, replications, strategy):

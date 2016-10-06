@@ -16,12 +16,26 @@
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
+import logging
+
 from test.utils import BaseTest
 from dino.env import env, ConfigKeys
 from dino.storage.cassandra import CassandraStorage
 
 
 class StorageCassandraTest(BaseTest):
-    def test_init_cassandra_storage(self):
-        env.config.set(ConfigKeys.TESTING, True)
-        CassandraStorage(hosts=['127.0.0.1'])
+    def setUp(self):
+        env.config.set(ConfigKeys.TESTING, False)
+        env.logger = logging.getLogger()
+        key_space = 'testing'
+        self.storage = CassandraStorage(hosts=['127.0.0.1'], key_space=key_space)
+        self.storage.session.execute("use " + key_space)
+        self.storage.session.execute("drop table if exists messages")
+        self.storage.session.execute("drop table if exists rooms")
+        self.storage.session.execute("drop table if exists users_in_room_by_user")
+        self.storage.session.execute("drop table if exists users_in_room_by_room")
+        self.storage.session.execute("drop keyspace if exists " + key_space)
+        self.storage.init()
+
+    def test_get_all_rooms(self):
+        self.storage.get_all_rooms()

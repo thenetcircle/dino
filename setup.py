@@ -3,18 +3,18 @@
 from setuptools import setup, find_packages
 
 
-version = '0.6.1'
+version = '0.6.2'
 
 setup(
     name='dino',
     version=version,
-    description="",
+    description="Distributed Notifications",
     long_description="""Distributed notification server using websockets""",
     classifiers=[],
     keywords='notifications',
     author='Oscar Eriksson',
     author_email='oscar.eriks@gmail.com',
-    url='',
+    url='https://github.com/thenetcircle/dino',
     license='LICENSE.txt',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     include_package_data=True,
