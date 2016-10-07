@@ -29,6 +29,7 @@ from flask import session as _flask_session
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
 
 
+# TODO: session keys should be configurable, and config should also contain whether or not they're required
 class SessionKeys(Enum):
     user_id = 'user_id'
     user_name = 'user_name'
@@ -42,6 +43,20 @@ class SessionKeys(Enum):
     has_webcam = 'has_webcam'
     fake_checked = 'fake_checked'
     token = 'token'
+
+    requires_session_keys = {
+        user_id,
+        user_name,
+        age,
+        gender,
+        membership,
+        country,
+        city,
+        image,
+        has_webcam,
+        fake_checked,
+        token
+    }
 
 
 class ConfigKeys(object):

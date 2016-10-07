@@ -192,8 +192,13 @@ def validate_session() -> (bool, str):
     """
     for session_key in SessionKeys:
         key = session_key.value
+
+        if key not in SessionKeys.requires_session_keys.value:
+            continue
+
         if key not in env.session:
             return False, '"%s" is a required parameter' % key
+
         val = env.session[key]
         if val is None or val == '':
             return False, '"%s" is a required parameter' % key
