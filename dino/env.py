@@ -35,6 +35,7 @@ class SessionKeys(Enum):
     age = 'age'
     gender = 'gender'
     membership = 'membership'
+    group = 'group'
     country = 'country'
     city = 'city'
     image = 'image'

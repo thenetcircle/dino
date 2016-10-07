@@ -208,7 +208,6 @@ class CassandraStorage(object):
         create_tables()
         prepare_statements()
 
-
     def _room_select_owners(self, room_id: str) -> ResultSet:
         return self.execute(StatementKeys.room_select_owners, room_id)
 

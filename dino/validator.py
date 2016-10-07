@@ -102,6 +102,9 @@ class Validator:
         SessionKeys.membership.value:
             lambda expected, actual: Validator.generic_validator(expected, actual),
 
+        SessionKeys.group.value:
+            lambda expected, actual: Validator.generic_validator(expected, actual),
+
         SessionKeys.country.value:
             lambda expected, actual: Validator.generic_validator(expected, actual),
 
@@ -139,6 +142,9 @@ class Validator:
         SessionKeys.image.value:
             lambda v: v is None or Validator._true_false_all(v),
 
+        SessionKeys.group.value:
+            lambda v: v is None or Validator._is_string(v) and len(v) > 0,
+
         'user_id':
             lambda v: Validator.is_digit(v),
 
@@ -174,6 +180,7 @@ def validate_user_data_with_community() -> (bool, str):
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
     # todo: ask remote community if the user data is valid (could have been manually changed in js)
+    # env.auth_handler.auth(env.session)
     return True, None
 
 
