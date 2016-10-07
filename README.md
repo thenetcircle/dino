@@ -88,3 +88,275 @@ TODO: check if docker could be useful: https://www.digitalocean.com/community/tu
                 app:app
                 
 Add "--reload" during development.
+
+### Basic Protocol
+
+This example is using JavaScript.
+
+First we connect to the server:
+
+    socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
+
+We'll receive a "connect" event back after successfully connecting. Now we have to send the "login" event to provide the
+server with some extra user information and to do authentication:
+
+    socket.on('connect', function() {
+        socket.emit('login', {
+            verb: 'login',
+            actor: {
+                id: '<user ID>',
+                summary: '<user name>',
+                attachments: [
+                    {
+                        objectType: 'foo',
+                        content: 'bar'
+                    },
+                    {
+                        objectType: 'city',
+                        content: 'Shanghai'
+                    }
+                ]
+            }
+        });
+    });
+    
+All events send to the server will get a response with the same name plus a prefix of "gn_". For example, the login 
+event sent above will get the following response, "gn_login", meaning we've successfully authenticated with the server.
+Now we can start joining rooms, chatting, sending events etc.
+
+    socket.on('gn_login', function(response) {
+        socket.emit('list_rooms', {
+            actor: {
+                id: '{{ user_id }}'
+            },
+            verb: 'list'
+        });
+    });
+    
+The response from the server will be in JSON format. If no data is expected for the events, only a status code will be
+in the response. For example, sending the "join" event to join a room won't return any data, but only the following
+(if successful):
+
+    {
+        "status_code": 200
+    }
+    
+Failure to execute an event on the server will return code 400:
+
+    {
+        "status_code": 400
+        "data": "<an error message, always a string>"
+    }
+    
+If an internal server error occurs, code 500 is returned:
+
+    {
+        "status_code": 400
+        "data": "<an error message, always a string>"
+    }
+    
+For events that contains data in the response, for example when sending the event "list_rooms", we expect to get a list
+of rooms in the response. For these events the data part is always a JSON in the ActivityStreams 1.0 format:
+
+    {
+        "status_code": 400
+        "data": {       
+            "object": {
+                "objectType": "rooms"
+                "attachments": [
+                    {
+                        "id": "<room ID 1>",
+                        "content": "<room name 1>"
+                    },
+                    {
+                        "id": "<room ID 2>",
+                        "content": "<room name 2>"
+                    },
+                    {
+                        "id": "<room ID 3>",
+                        "content": "<room name 3>"
+                    }
+                ]
+            },
+            "verb": "list"
+        }
+    }
+
+### API
+
+#### connect
+
+Responds with event name "gn_connect".
+
+Request contains no data.
+
+Response data if successful:
+
+    {
+        "status_code": 200
+    }
+    
+#### login
+
+Responds with event name "gn_login".
+
+Request contains:
+
+    {
+        verb: 'login',
+        actor: {
+            id: '<user ID>',
+            summary: '<user name>',
+            attachments: [
+                {
+                    objectType: 'foo',
+                    content: 'bar'
+                },
+                {
+                    objectType: 'city',
+                    content: 'Shanghai'
+                }
+            ]
+        }
+    }
+
+Response data if successful:
+
+    {
+        "status_code": 200
+    }
+
+#### message
+
+TODO: sequence number on response
+
+Responds with event name "gn_message".
+
+Request contains:
+
+    {
+        actor: {
+            id: '<user ID>'
+        },
+        verb: 'send',
+        target: {
+            id: '<room ID>'
+        },
+        object: {
+            content: '<the message>',
+            objectType: '<group/private>'
+        }
+    }
+
+Response data if successful:
+
+    {
+        "status_code": 200,
+        "data": {
+            "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+            "published": "2016-10-07T10:45:34Z",
+            "actor": {
+                "id": "<user ID>"
+            },
+            "verb": "send",
+            "target": {
+                "id": "<room ID>"
+            },
+            "object": {
+                "content": "<the message>",
+                "objectType": "<group/private>"
+            }
+        }
+    }
+    
+The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
+and the "published" field set to the time the server received the request (in RFC3339 format).
+
+#### join
+
+Responds with the event name "gn_join".
+
+Request contains:
+
+    {
+        actor: {
+            id: '<user ID>'
+        },
+        verb: 'join',
+        target: {
+            id: '<room ID>'
+        }
+    }
+    
+Response data if successful:
+
+    {
+        "status_code": 200,
+        "data": {
+            "object": {
+                "objectType": "room",
+                "attachments": [
+                    {
+                        "objectType": "history",
+                        "attachments": [
+                            {
+                                "id": "<message ID>",
+                                "content": "<the message content>",
+                                "summary": "<user name of the sender>",
+                                "published": "<the time it was sent, RFC3339>"
+                            },
+                            {
+                                "id": "<message ID>",
+                                "content": "<the message content>",
+                                "summary": "<user name of the sender>",
+                                "published": "<the time it was sent, RFC3339>"
+                            }
+                        ]
+                    },
+                    {
+                        "objectType": "owner",
+                        "attachments": [
+                            {
+                                "id": "<owner's user ID>",
+                                "content": "<owner's user name>",
+                            },
+                            {
+                                "id": "<owner's user ID>",
+                                "content": "<owner's user name>",
+                            }
+                        ]
+                    },
+                    {
+                        "objectType": "acl",
+                        "attachments": [
+                            {
+                                "objectType": "<ACL type name>",
+                                "content": "<ACL value>",
+                            },
+                            {
+                                "objectType": "<ACL type name>",
+                                "content": "<ACL value>",
+                            }
+                        ]
+                    },
+                    {
+                        "objectType": "user",
+                        "attachments": [
+                            {
+                                "id": "<user ID of a user in the room>",
+                                "content": "<user name of a user in the room>",
+                            },
+                            {
+                                "id": "<user ID of a user in the room>",
+                                "content": "<user name of a user in the room>",
+                            }
+                        ]
+                    },
+                ]
+            },
+            "verb": "join",
+            "actor": {
+                "id": "<the room ID that the user joined>"
+            }
+        }
+    }
