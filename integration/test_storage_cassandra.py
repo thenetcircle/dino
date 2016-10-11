@@ -108,7 +108,6 @@ class StorageCassandraTest(BaseTest):
 
         self.assertEqual(fetched.items(), acls.items())
 
-    """
     def test_history(self):
         self.create()
         self.join()
@@ -160,7 +159,6 @@ class StorageCassandraTest(BaseTest):
         res = self.storage.users_in_room(BaseTest.ROOM_ID)
         self.assertEqual(1, len(res))
         self.assertEqual(BaseTest.USER_ID, res[0]['user_id'])
-    """
 
     def create(self):
         self.storage.create_room(self.act_create())
