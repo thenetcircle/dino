@@ -52,6 +52,15 @@ Example nginx configuration:
         }
     }
 
+### Future features
+
+* The socket.io flask cluster only acs as the router of events,
+* Flask nodes sends events to kafka cluster,
+* Kafka cluster enriches streams with a timestamp and sequence id,
+* Flask nodes subscribe on certain streams, such as events to be broadcasted (e.g. messages in a chat room),
+* For other streams such as updating acls, managing rooms, user info, another application will subscribe and store maybe in a relational db,
+* An application will subscribe to the e.g. message streams to store data in cassandra.
+
 ### Requirements
 
 Some package requirements (debian/ubuntu):
