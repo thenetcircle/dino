@@ -19,6 +19,7 @@ from cassandra.cluster import Session
 from enum import Enum
 
 from dino.env import env
+from dino.validator import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -26,6 +27,8 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class StatementKeys(Enum):
     msg_insert = 'msg_insert'
     msgs_select = 'msgs_select'
+    acl_insert = 'acl_insert'
+    acl_select = 'acl_select'
     room_insert = 'room_insert'
     room_delete = 'room_delete'
     room_select_name = 'room_select_name'
@@ -107,6 +110,23 @@ class Driver(object):
                 )
                 """
             )
+            self.session.execute(
+                """
+                CREATE TABLE IF NOT EXISTS acl (
+                    room_id varchar,
+                    age varchar,
+                    gender varchar,
+                    membership varchar,
+                    group varchar,
+                    country varchar,
+                    city varchar,
+                    image varchar,
+                    has_webcam varchar,
+                    fake_checked varchar,
+                    PRIMARY KEY (room_id)
+                )
+                """
+            )
 
         def prepare_statements():
             self.statements[StatementKeys.msg_insert] = self.session.prepare(
@@ -122,6 +142,30 @@ class Driver(object):
                 VALUES (
                     ?, ?, ?, ?, ?, ?
                 )
+                """
+            )
+            self.statements[StatementKeys.acl_insert] = self.session.prepare(
+                """
+                INSERT INTO acl (
+                    room_id,
+                    age,
+                    gender,
+                    membership,
+                    group,
+                    country,
+                    city,
+                    image,
+                    has_webcam,
+                    fake_checked
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
+                """
+            )
+            self.statements[StatementKeys.acl_select] = self.session.prepare(
+                """
+                SELECT * FROM acl WHERE room_id = ?
                 """
             )
             self.statements[StatementKeys.room_insert] = self.session.prepare(
@@ -192,16 +236,34 @@ class Driver(object):
         create_tables()
         prepare_statements()
 
+    def acl_insert(self, room_id: str, acls: dict) -> None:
+        self.execute(
+            StatementKeys.acl_insert,
+            room_id,
+            acls.get(SessionKeys.age.value, None),
+            acls.get(SessionKeys.gender.value, None),
+            acls.get(SessionKeys.membership.value, None),
+            acls.get(SessionKeys.group.value, None),
+            acls.get(SessionKeys.country.value, None),
+            acls.get(SessionKeys.city.value, None),
+            acls.get(SessionKeys.image.value, None),
+            acls.get(SessionKeys.has_webcam.value, None),
+            acls.get(SessionKeys.fake_checked.value, None)
+        )
+
+    def acl_select(self, room_id: str) -> ResultSet:
+        return self.execute(StatementKeys.acl_select, room_id)
+
     def room_select_owners(self, room_id: str) -> ResultSet:
         return self.execute(StatementKeys.room_select_owners, room_id)
 
     def rooms_select_for_user(self, user_id: str) -> ResultSet:
         return self.execute(StatementKeys.rooms_select_for_user_by_user, user_id)
 
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> ResultSet:
+    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> None:
         self.execute(StatementKeys.msg_insert, msg_id, from_user, to_user, body, domain, timestamp)
 
-    def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> ResultSet:
+    def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> None:
         self.execute(StatementKeys.room_insert, room_id, room_name, owners, timestamp)
 
     def msgs_select(self, to_user_id: str) -> ResultSet:
@@ -216,14 +278,15 @@ class Driver(object):
     def room_select_users(self, room_id: str) -> ResultSet:
         return self.execute(StatementKeys.room_select_users_by_room, room_id)
 
-    def room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str) -> ResultSet:
+    def room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str) -> None:
         self.execute(StatementKeys.room_insert_user_by_room, room_id, room_name, user_id, user_name)
         self.execute(StatementKeys.room_insert_user_by_user, room_id, room_name, user_id, user_name)
 
-    def room_delete_user(self, room_id: str, user_id: str) -> ResultSet:
-        self.execute(StatementKeys.room_delete_user, room_id, user_id)
+    def room_delete_user(self, room_id: str, user_id: str) -> None:
+        self.execute(StatementKeys.room_delete_user_by_room, room_id, user_id)
+        self.execute(StatementKeys.room_delete_user_by_user, room_id, user_id)
 
-    def execute(self, statement_key, *params):
+    def execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:
             return self.session.execute(self.statements[statement_key].bind(params))
         return self.session.execute(self.statements[statement_key])

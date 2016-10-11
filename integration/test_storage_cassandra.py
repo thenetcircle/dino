@@ -34,14 +34,81 @@ class StorageCassandraTest(BaseTest):
         logging.getLogger('cassandra').setLevel(logging.WARNING)
         key_space = 'testing'
         self.storage = CassandraStorage(hosts=['127.0.0.1'], key_space=key_space)
-        self.storage.session.execute("use " + key_space)
-        self.storage.session.execute("drop table if exists messages")
-        self.storage.session.execute("drop table if exists rooms")
-        self.storage.session.execute("drop table if exists users_in_room_by_user")
-        self.storage.session.execute("drop table if exists users_in_room_by_room")
-        self.storage.session.execute("drop keyspace if exists " + key_space)
+        self.storage.driver.session.execute("use " + key_space)
+        self.storage.driver.session.execute("drop table if exists messages")
+        self.storage.driver.session.execute("drop table if exists rooms")
+        self.storage.driver.session.execute("drop table if exists users_in_room_by_user")
+        self.storage.driver.session.execute("drop table if exists users_in_room_by_room")
+        self.storage.driver.session.execute("drop keyspace if exists " + key_space)
         self.storage.init()
 
+    def test_get_acl(self):
+        self.create()
+        self.join()
+        self.assertEqual(0, len(self.storage.get_acls(BaseTest.ROOM_ID)))
+
+    def test_set_acl(self):
+        self.create()
+        self.join()
+        acls = {
+            'gender': 'm,f',
+            'membership': '0,1,2'
+        }
+        self.storage.add_acls(BaseTest.ROOM_ID, acls)
+        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.assertEqual(fetched.items(), acls.items())
+
+    def test_delete_one_acl(self):
+        self.create()
+        self.join()
+        acls = {
+            'gender': 'm,f',
+            'membership': '0,1,2'
+        }
+        self.storage.add_acls(BaseTest.ROOM_ID, acls)
+        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.assertEqual(fetched.items(), acls.items())
+        del acls['gender']
+
+        self.storage.delete_acl(BaseTest.ROOM_ID, 'gender')
+        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+
+        self.assertEqual(fetched.items(), acls.items())
+
+    def test_delete_one_non_existing_acl(self):
+        self.create()
+        self.join()
+        acls = {
+            'gender': 'm,f',
+            'membership': '0,1,2'
+        }
+        self.storage.add_acls(BaseTest.ROOM_ID, acls)
+        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.assertEqual(fetched.items(), acls.items())
+
+        self.storage.delete_acl(BaseTest.ROOM_ID, 'image')
+        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+
+        self.assertEqual(fetched.items(), acls.items())
+
+    def test_add_one_extra_acl(self):
+        self.create()
+        self.join()
+        acls = {
+            'gender': 'm,f',
+            'membership': '0,1,2'
+        }
+        self.storage.add_acls(BaseTest.ROOM_ID, acls)
+        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.assertEqual(fetched.items(), acls.items())
+
+        self.storage.add_acls(BaseTest.ROOM_ID, {'image': 'y'})
+        acls['image'] = 'y'
+        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+
+        self.assertEqual(fetched.items(), acls.items())
+
+    """
     def test_history(self):
         self.create()
         self.join()
@@ -93,6 +160,7 @@ class StorageCassandraTest(BaseTest):
         res = self.storage.users_in_room(BaseTest.ROOM_ID)
         self.assertEqual(1, len(res))
         self.assertEqual(BaseTest.USER_ID, res[0]['user_id'])
+    """
 
     def create(self):
         self.storage.create_room(self.act_create())

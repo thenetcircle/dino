@@ -19,6 +19,7 @@ from activitystreams.models.activity import Activity
 from cassandra.cluster import Cluster
 
 from dino.storage.base import IStorage
+from dino.validator import SessionKeys
 from dino.env import env
 from dino.env import ConfigKeys
 from dino.storage.cassandra_driver import Driver
@@ -46,28 +47,75 @@ class CassandraStorage(object):
         self.driver.init()
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
-        raise NotImplementedError()
+        current_acls = self.get_acls(room_id)
+
+        if acl_type in current_acls:
+            del current_acls[acl_type]
+            self.driver.acl_insert(room_id, current_acls)
 
     def add_acls(self, room_id: str, acls: dict) -> None:
-        raise NotImplementedError()
+        current_acls = self.get_acls(room_id)
 
-    def get_acls(self, room_id: str) -> list:
-        raise NotImplementedError()
+        for acl_type, acl_value in acls.items():
+            current_acls[acl_type] = acl_value
+
+        self.driver.acl_insert(room_id, current_acls)
+
+    def get_acls(self, room_id: str) -> dict:
+        rows = self.driver.acl_select(room_id)
+        if rows is None or len(rows.current_rows) == 0:
+            return dict()
+
+        if (len(rows.current_rows)) > 1:
+            env.logger.warning('multiple rows for ACLs for room with ID "%s", using first one' % room_id)
+
+        acls = dict()
+        for row in rows:
+            if row.age is not None:
+                acls[SessionKeys.age.value] = row.age
+            if row.gender is not None:
+                acls[SessionKeys.gender.value] = row.gender
+            if row.membership is not None:
+                acls[SessionKeys.membership.value] = row.membership
+            if row.group is not None:
+                acls[SessionKeys.group.value] = row.group
+            if row.country is not None:
+                acls[SessionKeys.country.value] = row.country
+            if row.city is not None:
+                acls[SessionKeys.city.value] = row.city
+            if row.image is not None:
+                acls[SessionKeys.image.value] = row.image
+            if row.has_webcam is not None:
+                acls[SessionKeys.has_webcam.value] = row.has_webcam
+            if row.fake_checked is not None:
+                acls[SessionKeys.fake_checked.value] = row.fake_checked
+            break
+
+        return acls
 
     def set_user_offline(self, user_id: str) -> None:
-        raise NotImplementedError()
+        # TODO
+        pass
 
     def set_user_online(self, user_id: str) -> None:
-        raise NotImplementedError()
+        # TODO
+        pass
 
     def set_user_invisible(self, user_id: str) -> None:
-        raise NotImplementedError()
+        # TODO
+        pass
 
     def remove_current_rooms_for_user(self, user_id: str) -> None:
-        raise NotImplementedError()
+        rows = self.driver.rooms_select_for_user(user_id)
+        if rows is None or rows.current_rows == 0:
+            return
+
+        for row in rows:
+            self.leave_room(user_id, row.room_id)
 
     def room_exists(self, room_id: str) -> bool:
-        raise NotImplementedError()
+        rows = self.driver.room_select_name(room_id)
+        return rows is None or rows.current_rows == 0
 
     def room_name_exists(self, room_name: str) -> bool:
         rows = self.driver.rooms_select()
