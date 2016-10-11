@@ -34,11 +34,19 @@ class StorageCassandraTest(BaseTest):
         logging.getLogger('cassandra').setLevel(logging.WARNING)
         key_space = 'testing'
         self.storage = CassandraStorage(hosts=['127.0.0.1'], key_space=key_space)
-        self.storage.driver.session.execute("use " + key_space)
+
+        try:
+            self.storage.driver.session.execute("use " + key_space)
+        except Exception as e:
+            # keyspace doesn't exist, so the table's doesn't exist either
+            self.storage.init()
+            return
+
         self.storage.driver.session.execute("drop table if exists messages")
         self.storage.driver.session.execute("drop table if exists rooms")
-        self.storage.driver.session.execute("drop table if exists users_in_room_by_user")
-        self.storage.driver.session.execute("drop table if exists users_in_room_by_room")
+        self.storage.driver.session.execute("drop table if exists acl")
+        self.storage.driver.session.execute("drop materialized view if exists users_in_room_by_user")
+        self.storage.driver.session.execute("drop table if exists users_in_room")
         self.storage.driver.session.execute("drop keyspace if exists " + key_space)
         self.storage.init()
 

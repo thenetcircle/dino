@@ -32,12 +32,10 @@ class StatementKeys(Enum):
     room_insert = 'room_insert'
     room_delete = 'room_delete'
     room_select_name = 'room_select_name'
-    room_select_users_by_room = 'room_select_users_by_room'
-    rooms_select_for_user_by_user = 'rooms_select_for_user_by_user'
-    room_delete_user_by_room = 'room_delete_user_by_room'
-    room_delete_user_by_user = 'room_delete_user_by_user'
-    room_insert_user_by_user = 'room_insert_user_by_user'
-    room_insert_user_by_room = 'room_insert_user_by_room'
+    room_select_users = 'room_select_users'
+    rooms_select_by_user = 'rooms_select_by_user'
+    room_delete_user = 'rooms_select_by_user'
+    room_insert_user = 'room_insert_user'
     room_select_owners = 'room_select_owners'
     rooms_select = 'rooms_select'
 
@@ -90,24 +88,22 @@ class Driver(object):
             )
             self.session.execute(
                 """
-                CREATE TABLE IF NOT EXISTS users_in_room_by_user (
-                    room_id varchar,
-                    room_name varchar,
-                    user_id varchar,
-                    user_name varchar,
-                    PRIMARY KEY (user_id, room_id)
-                )
-                """
-            )
-            self.session.execute(
-                """
-                CREATE TABLE IF NOT EXISTS users_in_room_by_room (
+                CREATE TABLE IF NOT EXISTS users_in_room (
                     room_id varchar,
                     room_name varchar,
                     user_id varchar,
                     user_name varchar,
                     PRIMARY KEY (room_id, user_id)
                 )
+                """
+            )
+            self.session.execute(
+                """
+                CREATE MATERIALIZED VIEW IF NOT EXISTS users_in_room_by_user AS
+                    SELECT * from users_in_room
+                        WHERE user_id IS NOT NULL AND room_id IS NOT NULL
+                    PRIMARY KEY (user_id, room_id)
+                    WITH comment='allows query by user_id instead of room_id'
                 """
             )
             self.session.execute(
@@ -191,7 +187,7 @@ class Driver(object):
                 SELECT * FROM rooms
                 """
             )
-            self.statements[StatementKeys.rooms_select_for_user_by_user] = self.session.prepare(
+            self.statements[StatementKeys.rooms_select_by_user] = self.session.prepare(
                 """
                 SELECT * FROM users_in_room_by_user WHERE user_id = ?
                 """
@@ -201,19 +197,14 @@ class Driver(object):
                 SELECT room_name FROM rooms WHERE room_id = ?
                 """
             )
-            self.statements[StatementKeys.room_select_users_by_room] = self.session.prepare(
+            self.statements[StatementKeys.room_select_users] = self.session.prepare(
                 """
-                SELECT user_id, user_name FROM users_in_room_by_room WHERE room_id = ?
-                """
-            )
-            self.statements[StatementKeys.room_insert_user_by_room] = self.session.prepare(
-                """
-                INSERT INTO users_in_room_by_room(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
+                SELECT user_id, user_name FROM users_in_room WHERE room_id = ?
                 """
             )
-            self.statements[StatementKeys.room_insert_user_by_user] = self.session.prepare(
+            self.statements[StatementKeys.room_insert_user] = self.session.prepare(
                 """
-                INSERT INTO users_in_room_by_user(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
+                INSERT INTO users_in_room(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
                 """
             )
             self.statements[StatementKeys.room_select_owners] = self.session.prepare(
@@ -221,14 +212,9 @@ class Driver(object):
                 SELECT owners FROM rooms WHERE room_id = ?
                 """
             )
-            self.statements[StatementKeys.room_delete_user_by_user] = self.session.prepare(
+            self.statements[StatementKeys.room_delete_user] = self.session.prepare(
                 """
-                DELETE FROM users_in_room_by_user WHERE room_id = ? AND user_id = ?
-                """
-            )
-            self.statements[StatementKeys.room_delete_user_by_room] = self.session.prepare(
-                """
-                DELETE FROM users_in_room_by_room WHERE room_id = ? AND user_id = ?
+                DELETE FROM users_in_room WHERE room_id = ? AND user_id = ?
                 """
             )
 
@@ -258,7 +244,7 @@ class Driver(object):
         return self.execute(StatementKeys.room_select_owners, room_id)
 
     def rooms_select_for_user(self, user_id: str) -> ResultSet:
-        return self.execute(StatementKeys.rooms_select_for_user_by_user, user_id)
+        return self.execute(StatementKeys.rooms_select_by_user, user_id)
 
     def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> None:
         self.execute(StatementKeys.msg_insert, msg_id, from_user, to_user, body, domain, timestamp)
@@ -276,15 +262,13 @@ class Driver(object):
         return self.execute(StatementKeys.room_select_name, room_id)
 
     def room_select_users(self, room_id: str) -> ResultSet:
-        return self.execute(StatementKeys.room_select_users_by_room, room_id)
+        return self.execute(StatementKeys.room_select_users, room_id)
 
     def room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str) -> None:
-        self.execute(StatementKeys.room_insert_user_by_room, room_id, room_name, user_id, user_name)
-        self.execute(StatementKeys.room_insert_user_by_user, room_id, room_name, user_id, user_name)
+        self.execute(StatementKeys.room_insert_user, room_id, room_name, user_id, user_name)
 
     def room_delete_user(self, room_id: str, user_id: str) -> None:
-        self.execute(StatementKeys.room_delete_user_by_room, room_id, user_id)
-        self.execute(StatementKeys.room_delete_user_by_user, room_id, user_id)
+        self.execute(StatementKeys.room_delete_user, room_id, user_id)
 
     def execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:
