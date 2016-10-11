@@ -115,7 +115,7 @@ class CassandraStorage(object):
 
     def room_exists(self, room_id: str) -> bool:
         rows = self.driver.room_select_name(room_id)
-        return rows is None or rows.current_rows == 0
+        return rows is not None and len(rows.current_rows) > 0
 
     def room_name_exists(self, room_name: str) -> bool:
         rows = self.driver.rooms_select()
