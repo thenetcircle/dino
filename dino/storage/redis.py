@@ -75,16 +75,16 @@ class RedisKeys(object):
 
 
 @implementer(IStorage)
-class RedisStorage(object):
+class StorageRedis(object):
     redis = None
 
-    def __init__(self, host: str, port: int=6379):
+    def __init__(self, host: str, port: int=6379, db: int=0):
         if env.config.get(ConfigKeys.TESTING, False):
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
 
-        self.redis = Redis(host=host, port=port)
+        self.redis = Redis(host=host, port=port, db=db)
 
     def store_message(self, activity: Activity) -> None:
         target = activity.target.id
@@ -92,8 +92,8 @@ class RedisStorage(object):
         msg = activity.object.content
 
         self.redis.lpush(
-                RedisKeys.room_history(target),
-                '%s,%s,%s,%s' % (activity.id, activity.published, user_name, msg))
+            RedisKeys.room_history(target),
+            '%s,%s,%s,%s' % (activity.id, activity.published, user_name, msg))
 
         max_history = env.config.get(ConfigKeys.MAX_HISTORY, -1)
         if max_history > 0:

@@ -89,7 +89,22 @@ def on_login(data: dict) -> (int, Union[str, None]):
     user_id = activity.actor.id
 
     env.session[SessionKeys.user_id.value] = user_id
-    env.session[SessionKeys.user_name.value] = activity.actor.summary
+
+    if activity.actor.attachments is not None:
+        for attachment in activity.actor.attachments:
+            env.session[attachment.object_type] = attachment.content
+
+    if not SessionKeys.token.value in env.session:
+        return 400, 'no token in session'
+
+    token = env.session.get(SessionKeys.token.value)
+    is_valid, error_msg, session = validator.validate_login(user_id, token)
+
+    if not is_valid:
+        return 400, error_msg
+
+    for session_key, session_value in session.items():
+        env.session[session_key] = session_value
 
     if activity.actor.image is None:
         env.session['image_url'] = ''
@@ -97,15 +112,6 @@ def on_login(data: dict) -> (int, Union[str, None]):
     else:
         env.session['image_url'] = activity.actor.image.url
         env.session[SessionKeys.image.value] = 'y'
-
-    if activity.actor.attachments is not None:
-        for attachment in activity.actor.attachments:
-            env.session[attachment.object_type] = attachment.content
-
-    is_valid, error_msg = validator.validate_login()
-
-    if not is_valid:
-        return 400, error_msg
 
     env.join_room(user_id)
     return 200, None
@@ -144,14 +150,42 @@ def on_message(data):
     return 200, data
 
 
+def on_kick(data):
+    """
+    kick a user from a room (if user is an owner)
+
+    :param data:
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    activity = as_parser.parse(data)
+
+    is_valid, error_msg = validator.validate_request(activity)
+    if not is_valid:
+        return 400, error_msg
+
+    target = activity.target.display_name
+
+    if target is None or target.strip() == '':
+        return 400, 'got blank room name, can not kick'
+
+    if not env.storage.room_name_exists(target):
+        return 400, 'no room with id "%s" exists' % target
+
+    # TODO: need to targets; the room and the user kicked
+    #env.emit('gn_kick', utils.activity_for_kick(activity.target.id, target),
+    #         broadcast=True, json=True, include_self=True)
+
+    return 200, None
+
+
 def on_create(data):
     """
     create a new room
 
     :param data: activity streams format, must include at least target.id (room id)
-    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    :return: if ok: {'status_code': 200, 'data': '<same AS as in the request, with addition of target.id (generated UUID
+    for the new room>'}, else: {'status_code': 400, 'data': '<error message>'}
     """
-    # let the server determine the publishing time of the event, not the client
     activity = as_parser.parse(data)
 
     is_valid, error_msg = validator.validate_request(activity)

@@ -162,17 +162,18 @@ class Validator:
     }
 
 
-def validate_login() -> (bool, str):
+def validate_login(user_id: str, token: str) -> (bool, str):
     """
     checks whether required data was received and that it validates with community (not tampered with)
 
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
-    is_valid, error_msg = validate_session()
+    is_valid, error_msg, session = env.auth.authenticate_and_populate_session(user_id, token)
     if not is_valid:
-        return False, error_msg
+        return False, error_msg, None
 
-    return validate_user_data_with_community()
+    is_valid, error_msg = validate_session(session)
+    return is_valid, error_msg, session
 
 
 def validate_user_data_with_community() -> (bool, str):
@@ -184,7 +185,7 @@ def validate_user_data_with_community() -> (bool, str):
     return True, None
 
 
-def validate_session() -> (bool, str):
+def validate_session(session: dict) -> (bool, str):
     """
     validate that all required parameters were send from the client side
 
@@ -196,10 +197,10 @@ def validate_session() -> (bool, str):
         if key not in SessionKeys.requires_session_keys.value:
             continue
 
-        if key not in env.session:
+        if key not in session:
             return False, '"%s" is a required parameter' % key
 
-        val = env.session[key]
+        val = session[key]
         if val is None or val == '':
             return False, '"%s" is a required parameter' % key
     return True, None

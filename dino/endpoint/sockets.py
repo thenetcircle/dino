@@ -121,6 +121,16 @@ def on_create(data):
         return 500, str(e)
 
 
+@socketio.on('kick', namespace='/chat')
+@respond_with('gn_kick')
+def on_create(data):
+    try:
+        return api.on_kick(data)
+    except Exception as e:
+        env.logger.error('kick: %s' % str(e))
+        return 500, str(e)
+
+
 @socketio.on('set_acl', namespace='/chat')
 @respond_with('gn_set_acl')
 def on_set_acl(data: dict) -> (int, str):

@@ -160,7 +160,7 @@ Failure to execute an event on the server will return code 400:
 If an internal server error occurs, code 500 is returned:
 
     {
-        "status_code": 400
+        "status_code": 500
         "data": "<an error message, always a string>"
     }
     
