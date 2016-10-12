@@ -9,6 +9,7 @@ A rough roadmap for possible upcoming features.
 * history
     - implementers might only want to store recent messages in redis, for historical messages check own storage
     - full message storage in cassandra (also elasticsearch in the future)
+    - message storage in redis with possibility to limit how much is stored
 * acls
 * external authentication
 * kicking
@@ -43,7 +44,8 @@ A rough roadmap for possible upcoming features.
 ---
 * stats
     - messages are sent to kafka
-    - messages first sent to kafka to get timestamped and sequence id (future)
+    - use target id as topic partition key, to get sequence id per room/user
+    - messages first sent to kafka to get timestamped and sequence id
     - online/offline/join/leave/connect/disconnect/kick/etc all sent to kafka for possible analysis
 * admins
     - clarify requirements, how to call online admins? they get a private message with a special kind of verb?
