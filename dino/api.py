@@ -150,14 +150,42 @@ def on_message(data):
     return 200, data
 
 
+def on_kick(data):
+    """
+    kick a user from a room (if user is an owner)
+
+    :param data:
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    activity = as_parser.parse(data)
+
+    is_valid, error_msg = validator.validate_request(activity)
+    if not is_valid:
+        return 400, error_msg
+
+    target = activity.target.display_name
+
+    if target is None or target.strip() == '':
+        return 400, 'got blank room name, can not kick'
+
+    if not env.storage.room_name_exists(target):
+        return 400, 'no room with id "%s" exists' % target
+
+    # TODO: need to targets; the room and the user kicked
+    #env.emit('gn_kick', utils.activity_for_kick(activity.target.id, target),
+    #         broadcast=True, json=True, include_self=True)
+
+    return 200, None
+
+
 def on_create(data):
     """
     create a new room
 
     :param data: activity streams format, must include at least target.id (room id)
-    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    :return: if ok: {'status_code': 200, 'data': '<same AS as in the request, with addition of target.id (generated UUID
+    for the new room>'}, else: {'status_code': 400, 'data': '<error message>'}
     """
-    # let the server determine the publishing time of the event, not the client
     activity = as_parser.parse(data)
 
     is_valid, error_msg = validator.validate_request(activity)
