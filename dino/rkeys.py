@@ -11,6 +11,7 @@ RKEY_ROOM_NAME = 'room:name:%s'  # room:name:room_id
 RKEY_ROOM_ACL = 'room:acl:%s'  # room:acl:room_id
 RKEY_ROOM_OWNERS = 'room:owners:%s'  # room:owners:room_id
 RKEY_ROOM_HISTORY = 'room:history:%s'  # room:history:room_id
+RKEY_AUTH = 'user:auth:%s'  # user:auth:user_id
 
 REDIS_STATUS_AVAILABLE = '1'
 # REDIS_STATUS_CHAT = '2'
@@ -61,3 +62,7 @@ def room_acl(room_id: str) -> dict:
 
 def room_owners(room_id: str) -> str:
     return RKEY_ROOM_OWNERS % room_id
+
+
+def auth_key(user_id: str) -> str:
+    return RKEY_AUTH % user_id

@@ -4,7 +4,8 @@ import logging
 
 from dino.env import env, ConfigKeys
 from dino import rkeys
-from dino.storage.redis import RedisStorage
+from dino.storage.redis import StorageRedis
+from dino.auth.redis import AuthRedis
 
 env.config.set(ConfigKeys.TESTING, True)
 env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
@@ -123,9 +124,27 @@ class BaseTest(unittest.TestCase):
         BaseTest.emit_kwargs.clear()
         BaseTest.rendered_template = None
 
-        env.storage = RedisStorage('mock')
+        self.session = {
+            'user_id': BaseTest.USER_ID,
+            'user_name': BaseTest.USER_NAME,
+            'age': BaseTest.AGE,
+            'gender': BaseTest.GENDER,
+            'membership': BaseTest.MEMBERSHIP,
+            'image': BaseTest.IMAGE,
+            'fake_checked': BaseTest.FAKE_CHECKED,
+            'has_webcam': BaseTest.HAS_WEBCAM,
+            'city': BaseTest.CITY,
+            'country': BaseTest.COUNTRY,
+            'token': str(uuid())
+        }
 
+        env.config.set(ConfigKeys.TESTING, True)
+        env.auth = AuthRedis('mock')
+        env.storage = StorageRedis('mock')
+
+        env.auth.redis.flushall()
         env.storage.redis.flushall()
+        env.auth.redis.hmset(rkeys.auth_key(BaseTest.USER_ID), self.session)
         env.storage.redis.set(rkeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
 
         env.render_template = BaseTest._render_template
@@ -145,19 +164,7 @@ class BaseTest(unittest.TestCase):
         env.Form = Form
 
         env.logger = logger
-        env.config.set(ConfigKeys.TESTING, True)
-        env.session = {
-            'user_id': BaseTest.USER_ID,
-            'user_name': BaseTest.USER_NAME,
-            'age': BaseTest.AGE,
-            'gender': BaseTest.GENDER,
-            'membership': BaseTest.MEMBERSHIP,
-            'image': BaseTest.IMAGE,
-            'fake_checked': BaseTest.FAKE_CHECKED,
-            'has_webcam': BaseTest.HAS_WEBCAM,
-            'city': BaseTest.CITY,
-            'country': BaseTest.COUNTRY
-        }
+        env.session = self.session
 
     def clear_session(self):
         env.session.clear()

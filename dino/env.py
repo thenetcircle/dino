@@ -66,11 +66,14 @@ class ConfigKeys(object):
     QUEUE = 'queue'
     TESTING = 'testing'
     STORAGE = 'storage'
+    AUTH_SERVICE = 'auth'
     HOST = 'host'
     TYPE = 'type'
     MAX_HISTORY = 'max_history'
     STRATEGY = 'strategy'
     REPLICATION = 'replication'
+    REDIS_AUTH_KEY = 'redis_key'
+    DB = 'db'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'
@@ -117,7 +120,7 @@ class ConfigDict:
     def keys(self):
         return self.params.keys()
 
-    def get(self, key, default: Union[DefaultValue, object]=DefaultValue, params=None, domain=None):
+    def get(self, key, default: Union[None, object]=DefaultValue, params=None, domain=None):
         def config_format(s, params):
             if s is None:
                 return s
@@ -149,8 +152,8 @@ class ConfigDict:
                     # avoid using the same reference twice
                     if sres.group() in keydb:
                         raise RuntimeError(
-                                "found circular dependency in config value '{0}' using reference '{1}'".format(
-                                        s, sres.group()))
+                            "found circular dependency in config value '{0}' using reference '{1}'".format(
+                                s, sres.group()))
                     keydb.add(sres.group())
                     s = s.format(**params)
 
@@ -220,6 +223,7 @@ class GNEnvironment(object):
 
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.session = config.get(ConfigKeys.SESSION, None)
+        self.auth = config.get(ConfigKeys.AUTH_SERVICE, None)
 
         # TODO: remove this, go through storage interface
         self.redis = config.get(ConfigKeys.REDIS, None)
@@ -343,13 +347,14 @@ def init_storage_engine(gn_env: GNEnvironment) -> None:
         raise RuntimeError('no storage type specified, use redis, cassandra, mysql etc.')
 
     if storage_type == 'redis':
-        from dino.storage.redis import RedisStorage
+        from dino.storage.redis import StorageRedis
 
         storage_host, storage_port = storage_engine.get(ConfigKeys.HOST), None
         if ':' in storage_host:
             storage_host, storage_port = storage_host.split(':', 1)
 
-        gn_env.storage = RedisStorage(host=storage_host, port=storage_port)
+        storage_db = storage_engine.get(ConfigKeys.DB, 0)
+        gn_env.storage = StorageRedis(host=storage_host, port=storage_port, db=storage_db)
     elif storage_type == 'cassandra':
         from dino.storage.cassandra import CassandraStorage
 
@@ -361,5 +366,30 @@ def init_storage_engine(gn_env: GNEnvironment) -> None:
         raise RuntimeError('unknown storage engine type "%s"' % storage_type)
 
 
+def init_auth_service(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    auth_engine = gn_env.config.get(ConfigKeys.AUTH_SERVICE, None)
+
+    if auth_engine is None:
+        raise RuntimeError('no auth service specified')
+
+    auth_type = auth_engine.get(ConfigKeys.TYPE, None)
+    if auth_type is None:
+        raise RuntimeError('no auth type specified, use "redis", "allowall" or "denyall"')
+
+    if auth_type == 'redis':
+        from dino.auth.redis import AuthRedis
+
+        auth_host, auth_port = auth_engine.get(ConfigKeys.HOST), None
+        if ':' in auth_host:
+            auth_host, auth_port = auth_host.split(':', 1)
+
+        auth_db = auth_engine.get(ConfigKeys.DB, 0)
+        gn_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db)
+
 env = create_env()
 init_storage_engine(env)
+init_auth_service(env)

@@ -1,5 +1,9 @@
-from dino import api
 from test.utils import BaseTest
+
+from dino import api
+from dino.env import env
+from dino.env import ConfigKeys
+from dino import rkeys
 
 
 class ApiLoginTest(BaseTest):
@@ -92,47 +96,57 @@ class ApiLoginTest(BaseTest):
         self.assert_login_fails(data)
 
     def test_login_missing_user_id(self):
+        self.remove_from_auth('user_id')
         data = self.activity_for_login(skip={'user_id'})
         self.assert_login_fails(data)
 
     def test_login_missing_user_name(self):
+        self.remove_from_auth('user_name')
         data = self.activity_for_login(skip={'user_name'})
         self.assert_login_fails(data)
 
     def test_login_missing_gender(self):
+        self.remove_from_auth('gender')
         data = self.activity_for_login(skip={'gender'})
         self.assert_login_fails(data)
 
     def test_login_missing_age(self):
+        self.remove_from_auth('age')
         data = self.activity_for_login(skip={'age'})
         self.assert_login_fails(data)
 
     def test_login_missing_image(self):
-        # no image is okay, will just set session['image'] = 'n'
+        self.remove_from_auth('image')
         data = self.activity_for_login(skip={'image'})
-        self.assert_login_succeeds(data)
+        self.assert_login_fails(data)
 
     def test_login_missing_has_webcam(self):
+        self.remove_from_auth('has_webcam')
         data = self.activity_for_login(skip={'has_webcam'})
         self.assert_login_fails(data)
 
     def test_login_missing_fake_checked(self):
+        self.remove_from_auth('fake_checked')
         data = self.activity_for_login(skip={'fake_checked'})
         self.assert_login_fails(data)
 
     def test_login_missing_city(self):
+        self.remove_from_auth('city')
         data = self.activity_for_login(skip={'city'})
         self.assert_login_fails(data)
 
     def test_login_missing_country(self):
+        self.remove_from_auth('country')
         data = self.activity_for_login(skip={'country'})
         self.assert_login_fails(data)
 
     def test_login_missing_membership(self):
+        self.remove_from_auth('membership')
         data = self.activity_for_login(skip={'membership'})
         self.assert_login_fails(data)
 
     def test_login_missing_token(self):
+        self.remove_from_auth('token')
         data = self.activity_for_login(skip={'token'})
         self.assert_login_fails(data)
 
@@ -143,6 +157,14 @@ class ApiLoginTest(BaseTest):
     def assert_login_succeeds(self, data=None):
         self.assertEqual(200, self.response_code_for_login(data))
         self.assert_in_own_room(True)
+
+    def remove_from_auth(self, key: str):
+        auth_key = env.config.get(ConfigKeys.REDIS_AUTH_KEY, None)
+        if auth_key is None:
+            auth_key = rkeys.auth_key(BaseTest.USER_ID)
+        else:
+            auth_key %= BaseTest.USER_ID
+        env.auth.redis.hdel(auth_key, key)
 
     def response_code_for_login(self, data=None):
         return self.login(data)[0]

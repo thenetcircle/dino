@@ -89,7 +89,22 @@ def on_login(data: dict) -> (int, Union[str, None]):
     user_id = activity.actor.id
 
     env.session[SessionKeys.user_id.value] = user_id
-    env.session[SessionKeys.user_name.value] = activity.actor.summary
+
+    if activity.actor.attachments is not None:
+        for attachment in activity.actor.attachments:
+            env.session[attachment.object_type] = attachment.content
+
+    if not SessionKeys.token.value in env.session:
+        return 400, 'no token in session'
+
+    token = env.session.get(SessionKeys.token.value)
+    is_valid, error_msg, session = validator.validate_login(user_id, token)
+
+    if not is_valid:
+        return 400, error_msg
+
+    for session_key, session_value in session.items():
+        env.session[session_key] = session_value
 
     if activity.actor.image is None:
         env.session['image_url'] = ''
@@ -97,15 +112,6 @@ def on_login(data: dict) -> (int, Union[str, None]):
     else:
         env.session['image_url'] = activity.actor.image.url
         env.session[SessionKeys.image.value] = 'y'
-
-    if activity.actor.attachments is not None:
-        for attachment in activity.actor.attachments:
-            env.session[attachment.object_type] = attachment.content
-
-    is_valid, error_msg = validator.validate_login()
-
-    if not is_valid:
-        return 400, error_msg
 
     env.join_room(user_id)
     return 200, None
