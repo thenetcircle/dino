@@ -38,12 +38,16 @@ class CassandraStorage(object):
         if strategy is None:
             strategy = 'SimpleStrategy'
 
+        self.hosts = hosts
+        self.key_space = key_space
+        self.strategy = strategy
+        self.replications = replications
+
         CassandraStorage.validate(hosts, replications, strategy)
 
-        cluster = Cluster(hosts)
-        self.driver = Driver(cluster.connect(), key_space, strategy, replications)
-
     def init(self):
+        cluster = Cluster(self.hosts)
+        self.driver = Driver(cluster.connect(), self.key_space, self.strategy, self.replications)
         self.driver.init()
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
@@ -232,10 +236,9 @@ class CassandraStorage(object):
             env.logger.warn('get_owners() found multiple entries (%s) for room_id %s, will use first one' %
                             (len(rows.current_rows), room_id))
 
-        rows = rows.current_rows[0].owners
-
+        owner_rows = rows.current_rows[0].owners
         owners = list()
-        for owner in rows:
+        for owner in owner_rows:
             owners.append({
                 'user_id': owner
             })
@@ -251,7 +254,7 @@ class CassandraStorage(object):
     @staticmethod
     def validate(hosts, replications, strategy):
         if env.config.get(ConfigKeys.TESTING, False):
-            raise NotImplementedError('mocking with cassandra not implemented, mock using redis storage instead')
+            return
 
         if not isinstance(replications, int):
             raise ValueError('replications is not a valid int: "%s"' % str(replications))

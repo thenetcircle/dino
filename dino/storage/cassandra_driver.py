@@ -17,6 +17,8 @@
 from cassandra.cluster import ResultSet
 from cassandra.cluster import Session
 from enum import Enum
+from zope.interface import Interface
+from zope.interface import implementer
 
 from dino.env import env
 from dino.validator import SessionKeys
@@ -40,6 +42,124 @@ class StatementKeys(Enum):
     rooms_select = 'rooms_select'
 
 
+class IDriver(Interface):
+    def init(self):
+        """
+        creates keyspace, tables, views etc.
+
+        :return: nothing
+        """
+
+    def acl_insert(self, room_id: str, acls: dict) -> None:
+        """
+        replace the stored row of acls for this room
+
+        :param room_id: uuid of the room
+        :param acls: a dict with acls
+        :return: nothing
+        """
+
+    def acl_select(self, room_id: str) -> ResultSet:
+        """
+        find all acls for this room
+
+        :param room_id: the uuid of the room
+        :return: should be one row with the acls for this room
+        """
+
+    def room_select_owners(self, room_id: str) -> ResultSet:
+        """
+        find owners of a given room
+
+        :param room_id: the uuid of the room
+        :return: a list of user ids that are owners for this room
+        """
+
+    def rooms_select_for_user(self, user_id: str) -> ResultSet:
+        """
+        find all rooms the user is in
+
+        :param user_id: id of the user
+        :return: a list of rooms which this user is in
+        """
+
+    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> None:
+        """
+        store a new message
+
+        :param msg_id: uuid of the message
+        :param from_user: id of the user sending the message
+        :param to_user: id of the user receiving the message (or uuid of the target room)
+        :param body: the message text
+        :param domain: private/group
+        :param timestamp: published timestamp
+        :return: nothing
+        """
+
+    def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> None:
+        """
+        create a new room
+
+        :param room_id: uuid of the room
+        :param room_name: name of the room
+        :param owners: a list of user ids that should be room owners
+        :param timestamp: creation timestamp
+        :return: nothing
+        """
+
+    def msgs_select(self, to_user_id: str) -> ResultSet:
+        """
+        find all messages sent to a user id/room id
+
+        :param to_user_id: either a user id or room uuid
+        :return: all messages to this user/room
+        """
+
+    def rooms_select(self) -> ResultSet:
+        """
+        list all rooms
+
+        :return: all rooms
+        """
+
+    def room_select_name(self, room_id: str) -> ResultSet:
+        """
+        find the room name for a room id
+
+        :param room_id: the uuid of the room
+        :return: result should include one row, with the name of the room
+        """
+
+    def room_select_users(self, room_id: str) -> ResultSet:
+        """
+        find all users in a given room
+
+        :param room_id: the uuid of the room
+        :return: rows of users in the room
+        """
+
+    def room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str) -> None:
+        """
+        add a user to a room
+
+        :param room_id: uuid of the room
+        :param room_name: name of the room
+        :param user_id: id of the user
+        :param user_name: the user name
+        :return: nothing
+        """
+
+    def room_delete_user(self, room_id: str, user_id: str) -> None:
+        """
+        remove user from a room
+
+        :param room_id: uuid of the room
+        :param user_id: id of the user
+        :return: nothing
+        """
+
+
+@implementer(IDriver)
 class Driver(object):
     def __init__(self, session: Session, key_space: str, strategy: str, replications: int):
         self.session = session
@@ -223,7 +343,7 @@ class Driver(object):
         prepare_statements()
 
     def acl_insert(self, room_id: str, acls: dict) -> None:
-        self.execute(
+        self._execute(
             StatementKeys.acl_insert,
             room_id,
             acls.get(SessionKeys.age.value, None),
@@ -238,39 +358,39 @@ class Driver(object):
         )
 
     def acl_select(self, room_id: str) -> ResultSet:
-        return self.execute(StatementKeys.acl_select, room_id)
+        return self._execute(StatementKeys.acl_select, room_id)
 
     def room_select_owners(self, room_id: str) -> ResultSet:
-        return self.execute(StatementKeys.room_select_owners, room_id)
+        return self._execute(StatementKeys.room_select_owners, room_id)
 
     def rooms_select_for_user(self, user_id: str) -> ResultSet:
-        return self.execute(StatementKeys.rooms_select_by_user, user_id)
+        return self._execute(StatementKeys.rooms_select_by_user, user_id)
 
     def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> None:
-        self.execute(StatementKeys.msg_insert, msg_id, from_user, to_user, body, domain, timestamp)
+        self._execute(StatementKeys.msg_insert, msg_id, from_user, to_user, body, domain, timestamp)
 
     def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> None:
-        self.execute(StatementKeys.room_insert, room_id, room_name, owners, timestamp)
+        self._execute(StatementKeys.room_insert, room_id, room_name, owners, timestamp)
 
     def msgs_select(self, to_user_id: str) -> ResultSet:
-        return self.execute(StatementKeys.msgs_select, to_user_id)
+        return self._execute(StatementKeys.msgs_select, to_user_id)
 
     def rooms_select(self) -> ResultSet:
-        return self.execute(StatementKeys.rooms_select)
+        return self._execute(StatementKeys.rooms_select)
 
     def room_select_name(self, room_id: str) -> ResultSet:
-        return self.execute(StatementKeys.room_select_name, room_id)
+        return self._execute(StatementKeys.room_select_name, room_id)
 
     def room_select_users(self, room_id: str) -> ResultSet:
-        return self.execute(StatementKeys.room_select_users, room_id)
+        return self._execute(StatementKeys.room_select_users, room_id)
 
     def room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str) -> None:
-        self.execute(StatementKeys.room_insert_user, room_id, room_name, user_id, user_name)
+        self._execute(StatementKeys.room_insert_user, room_id, room_name, user_id, user_name)
 
     def room_delete_user(self, room_id: str, user_id: str) -> None:
-        self.execute(StatementKeys.room_delete_user, room_id, user_id)
+        self._execute(StatementKeys.room_delete_user, room_id, user_id)
 
-    def execute(self, statement_key, *params) -> ResultSet:
+    def _execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:
             return self.session.execute(self.statements[statement_key].bind(params))
         return self.session.execute(self.statements[statement_key])
