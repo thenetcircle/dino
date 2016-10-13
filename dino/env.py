@@ -378,7 +378,7 @@ def init_auth_service(gn_env: GNEnvironment):
 
     auth_type = auth_engine.get(ConfigKeys.TYPE, None)
     if auth_type is None:
-        raise RuntimeError('no auth type specified, use "redis", "allowall" or "denyall"')
+        raise RuntimeError('no auth type specified, use one of [redis, allowall, denyall]')
 
     if auth_type == 'redis':
         from dino.auth.redis import AuthRedis
@@ -389,6 +389,14 @@ def init_auth_service(gn_env: GNEnvironment):
 
         auth_db = auth_engine.get(ConfigKeys.DB, 0)
         gn_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db)
+    elif auth_type == 'allowall':
+        from dino.auth.simple import AllowAllAuth
+        gn_env.auth = AllowAllAuth()
+    elif auth_type == 'denyall':
+        from dino.auth.simple import DenyAllAuth
+        gn_env.auth = DenyAllAuth()
+    else:
+        raise RuntimeError('unknown auth type, use one of [redis, allowall, denyall]')
 
 env = create_env()
 init_storage_engine(env)
