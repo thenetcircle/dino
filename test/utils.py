@@ -2,7 +2,7 @@ import unittest
 from uuid import uuid4 as uuid
 import logging
 
-from dino.env import env, ConfigKeys
+from dino import environ
 from dino import rkeys
 from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis

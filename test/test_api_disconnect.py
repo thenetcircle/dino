@@ -1,6 +1,6 @@
 from dino import api
 from test.utils import BaseTest
-from dino.env import SessionKeys
+from dino import environ
 
 
 class ApiDisconnectTest(BaseTest):
@@ -28,6 +28,6 @@ class ApiDisconnectTest(BaseTest):
         self.assert_in_room(False)
 
     def test_disconnect_needs_user_id_in_session(self):
-        self.set_session(SessionKeys.user_id.value, None)
+        self.set_session(environ.SessionKeys.user_id.value, None)
         response_data = api.on_disconnect()
         self.assertEqual(400, response_data[0])
