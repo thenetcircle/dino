@@ -82,26 +82,6 @@ class FakeCassandraDriver(object):
         rows.append(row)
         return FakeResultSet(rows)
 
-    def room_select_owners(self, room_id: str) -> ResultSet:
-        if room_id not in self.owners:
-            row = FakeResultSet.FakeRow()
-            row.owners = []
-            return FakeResultSet([row])
-
-        row = FakeResultSet.FakeRow()
-        row.owners = self.owners[room_id]
-        return FakeResultSet([row])
-
-    def rooms_select_for_user(self, user_id: str) -> ResultSet:
-        rooms = self.rooms_for_user.get(user_id, list())
-        rows = list()
-        for room_id, room_name in rooms:
-            row = FakeResultSet.FakeRow()
-            row.room_id = room_id
-            row.room_name = room_name
-            rows.append(row)
-        return FakeResultSet(rows)
-
     def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> None:
         if to_user not in self.msgs_to_user:
             self.msgs_to_user[to_user] = list()
@@ -145,12 +125,33 @@ class FakeCassandraDriver(object):
         return FakeResultSet([row])
 
     def room_select_users(self, room_id: str) -> ResultSet:
-        users = self.users_in_room.get(room_id, [])
+        users = self.users_in_room.get(room_id, dict())
         rows = list()
-        for user_id, user_name in users:
+        for user_id, user_name in users.items():
             row = FakeResultSet.FakeRow()
             row.user_id = user_id
             row.user_name = user_name
+            rows.append(row)
+        return FakeResultSet(rows)
+
+    def room_select_owners(self, room_id: str) -> ResultSet:
+        if room_id not in self.owners:
+            row = FakeResultSet.FakeRow()
+            row.owners = []
+            return FakeResultSet([row])
+
+        row = FakeResultSet.FakeRow()
+        row.owners = self.owners[room_id]
+        return FakeResultSet([row])
+
+    def rooms_select_for_user(self, user_id: str) -> ResultSet:
+        rooms = self.rooms_for_user.get(user_id, list())
+        rows = list()
+
+        for room_id, room_name, *rest in rooms:
+            row = FakeResultSet.FakeRow()
+            row.room_id = room_id
+            row.room_name = room_name
             rows.append(row)
         return FakeResultSet(rows)
 
@@ -158,11 +159,12 @@ class FakeCassandraDriver(object):
         if user_id not in self.rooms_for_user:
             self.rooms_for_user[user_id] = list()
         if room_id not in self.users_in_room:
-            self.users_in_room[room_id] = list()
+            self.users_in_room[room_id] = dict()
         self.rooms_for_user[user_id].append((room_id, room_name, user_id, user_name))
-        self.users_in_room[room_id].append((user_id, user_name))
+        self.users_in_room[room_id][user_id] = user_name
 
     def room_delete_user(self, room_id: str, user_id: str) -> None:
-        if user_id not in self.rooms_for_user:
-            return
-        del self.rooms_for_user[user_id]
+        if user_id in self.rooms_for_user:
+            del self.rooms_for_user[user_id]
+        if room_id in self.users_in_room and user_id in self.users_in_room[room_id]:
+            del self.users_in_room[room_id][user_id]

@@ -32,7 +32,7 @@ class CassandraStorage(object):
     driver = None
     session = None
 
-    def __init__(self, hosts: list, replications=2, strategy='SimpleStrategy', key_space='dino'):
+    def __init__(self, hosts: list, replications=None, strategy=None, key_space='dino'):
         if replications is None:
             replications = 2
         if strategy is None:
@@ -69,9 +69,6 @@ class CassandraStorage(object):
         rows = self.driver.acl_select(room_id)
         if rows is None or len(rows.current_rows) == 0:
             return dict()
-
-        if (len(rows.current_rows)) > 1:
-            env.logger.warning('multiple rows for ACLs for room with ID "%s", using first one' % room_id)
 
         acls = dict()
         for row in rows:
@@ -111,7 +108,7 @@ class CassandraStorage(object):
 
     def remove_current_rooms_for_user(self, user_id: str) -> None:
         rows = self.driver.rooms_select_for_user(user_id)
-        if rows is None or rows.current_rows == 0:
+        if rows is None or len(rows.current_rows) == 0:
             return
 
         for row in rows:
@@ -183,9 +180,6 @@ class CassandraStorage(object):
         current_rows = results.current_rows
         if len(current_rows) == 0:
             return ''
-        if len(current_rows) > 1:
-            env.logger.warn('get_room_name() found %s rooms with the ID %s, returning first name' %
-                            (len(current_rows), room_id))
         row = current_rows[0]
         return row.room_name
 
@@ -229,12 +223,9 @@ class CassandraStorage(object):
 
     def get_owners(self, room_id: str) -> list:
         rows = self.driver.room_select_owners(room_id)
-        if rows is None or len(rows.current_rows) == 0:
+        if rows is None or len(rows.current_rows) == 0 or \
+                (len(rows.current_rows) == 1 and len(rows.current_rows[0].owners) == 0):
             return list()
-
-        if len(rows.current_rows) > 1:
-            env.logger.warn('get_owners() found multiple entries (%s) for room_id %s, will use first one' %
-                            (len(rows.current_rows), room_id))
 
         owner_rows = rows.current_rows[0].owners
         owners = list()
@@ -247,7 +238,7 @@ class CassandraStorage(object):
     def room_owners_contain(self, room_id: str, user_id: str) -> bool:
         owners = self.get_owners(room_id)
         for owner in owners:
-            if owner == user_id:
+            if owner['user_id'] == user_id:
                 return True
         return False
 
