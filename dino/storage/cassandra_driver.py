@@ -18,8 +18,7 @@ from enum import Enum
 from zope.interface import Interface
 from zope.interface import implementer
 
-from dino.env import env
-from dino.validator import SessionKeys
+from dino import environ
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -168,7 +167,7 @@ class Driver(object):
 
     def init(self):
         def create_keyspace():
-            env.logger.debug('creating keyspace...')
+            environ.env.logger.debug('creating keyspace...')
             create_keyspace = self.session.prepare(
                 """
                 CREATE KEYSPACE IF NOT EXISTS %s
@@ -179,7 +178,7 @@ class Driver(object):
             self.session.set_keyspace(self.key_space)
 
         def create_tables():
-            env.logger.debug('creating tables...')
+            environ.env.logger.debug('creating tables...')
             self.session.execute(
                 """
                 CREATE TABLE IF NOT EXISTS messages (
@@ -344,15 +343,15 @@ class Driver(object):
         self._execute(
             StatementKeys.acl_insert,
             room_id,
-            acls.get(SessionKeys.age.value, None),
-            acls.get(SessionKeys.gender.value, None),
-            acls.get(SessionKeys.membership.value, None),
-            acls.get(SessionKeys.group.value, None),
-            acls.get(SessionKeys.country.value, None),
-            acls.get(SessionKeys.city.value, None),
-            acls.get(SessionKeys.image.value, None),
-            acls.get(SessionKeys.has_webcam.value, None),
-            acls.get(SessionKeys.fake_checked.value, None)
+            acls.get(environ.SessionKeys.age.value, None),
+            acls.get(environ.SessionKeys.gender.value, None),
+            acls.get(environ.SessionKeys.membership.value, None),
+            acls.get(environ.SessionKeys.group.value, None),
+            acls.get(environ.SessionKeys.country.value, None),
+            acls.get(environ.SessionKeys.city.value, None),
+            acls.get(environ.SessionKeys.image.value, None),
+            acls.get(environ.SessionKeys.has_webcam.value, None),
+            acls.get(environ.SessionKeys.fake_checked.value, None)
         )
 
     def acl_select(self, room_id: str) -> ResultSet:

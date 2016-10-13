@@ -15,9 +15,7 @@
 from typing import Union
 from zope.interface import implementer
 
-from dino.env import SessionKeys
-from dino.env import ConfigKeys
-from dino.env import env
+import dino.environ
 from dino import rkeys
 from dino.auth.base import IAuth
 
@@ -29,7 +27,7 @@ class AuthRedis(object):
     DEFAULT_AUTH_KEY = 'user:auth:%s'
 
     def __init__(self, host: str, port: int=6379, db: int=0):
-        if env.config.get(ConfigKeys.TESTING, False):
+        if dino.environ.env.config.get(dino.environ.ConfigKeys.TESTING, False):
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
@@ -42,7 +40,7 @@ class AuthRedis(object):
         if token is None or len(token) == 0:
             return False, 'no token supplied', None
 
-        key = env.config.get(ConfigKeys.REDIS_AUTH_KEY, None)
+        key = dino.environ.env.config.get(dino.environ.ConfigKeys.REDIS_AUTH_KEY, None)
         if key is None:
             key = rkeys.auth_key(user_id)
         else:
@@ -53,12 +51,12 @@ class AuthRedis(object):
         if stored_session is None or len(stored_session) == 0:
             return False, 'no session found for this user id, not logged in yet', None
 
-        stored_token = stored_session.get(SessionKeys.token.value)
-        supplied_token = stored_session.get(SessionKeys.token.value)
+        stored_token = stored_session.get(dino.environ.SessionKeys.token.value)
+        supplied_token = stored_session.get(dino.environ.SessionKeys.token.value)
 
         if stored_token != supplied_token:
-            env.logger.warning('user "%s" supplied token "%s" but stored token is "%s"' %
-                               (user_id, supplied_token, stored_token))
+            dino.environ.env.logger.warning('user "%s" supplied token "%s" but stored token is "%s"' %
+                                            (user_id, supplied_token, stored_token))
             return False, 'invalid token "%s" supplied for user id "%s"' % (supplied_token, user_id), None
 
         cleaned_session = dict()
@@ -66,7 +64,7 @@ class AuthRedis(object):
             cleaned_session[str(stored_key, 'utf-8')] = str(stored_value, 'utf-8')
 
         session = dict()
-        for session_key in SessionKeys:
+        for session_key in dino.environ.SessionKeys:
             if not isinstance(session_key.value, str):
                 continue
 

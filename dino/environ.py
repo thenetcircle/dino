@@ -3,10 +3,16 @@ import json
 import os
 import pkg_resources
 import logging
+import threading
+
 from enum import Enum
 from logging import RootLogger
 from redis import Redis
 from typing import Union
+
+from kombu import Exchange
+from kombu import Queue
+from kombu import Connection
 
 from flask_socketio import emit as _flask_emit
 from flask_socketio import send as _flask_send
@@ -26,8 +32,6 @@ from flask import send_from_directory as _flask_send_from_directory
 from flask import render_template as _flask_render_template
 from flask import session as _flask_session
 
-from kombu import Exchange, Queue
-from kombu.connection import Connection
 from kombu.pools import producers
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
@@ -232,6 +236,8 @@ class GNEnvironment(object):
         self.queue_connection = None
         self.queue = None
         self.exchange = None
+        self.consume_worker = None
+        self.start_consumer = None
 
         # TODO: remove this, go through storage interface
         self.redis = config.get(ConfigKeys.REDIS, None)
@@ -412,18 +418,23 @@ def init_pub_sub(gn_env: GNEnvironment):
         with producers[gn_env.queue_connection].acquire(block=True) as producer:
             producer.publish(message, exchange=gn_env.exchange, declare=[gn_env.exchange, gn_env.queue])
 
+    def mock_publish(message):
+        pass
+
+    if gn_env.config.get(ConfigKeys.TESTING, False):
+        gn_env.publish = mock_publish
+        return
+
+    gn_env.queue_connection = Connection('redis://localhost:6379/')
     gn_env.exchange = Exchange('node_exchange', type='direct')
     gn_env.queue = Queue('node_queue', gn_env.exchange)
-    # TODO: get queue from config, use same as socketio is using to coordination
-    gn_env.queue_connection = Connection('redis://localhost:6379/')
     gn_env.publish = publish
 
 
-def create_and_initialize_env():
-    dino_env = create_env()
+def initialize_env(dino_env):
     init_storage_engine(dino_env)
     init_auth_service(dino_env)
     init_pub_sub(dino_env)
-    return dino_env
 
-env = create_and_initialize_env()
+env = create_env()
+initialize_env(env)

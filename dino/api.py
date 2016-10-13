@@ -1,23 +1,24 @@
 import activitystreams as as_parser
 import time
+import threading
 
 from datetime import datetime
 from typing import Union
 from uuid import uuid4 as uuid
 
+from kombu.mixins import ConsumerMixin
+from kombu import Connection
+
 from dino import utils
 from dino import validator
 from dino.validator import Validator
-from dino.env import env
-from dino.env import SessionKeys
-
-from kombu.mixins import ConsumerMixin
-from kombu import Connection
+from dino.environ import env
+from dino.environ import SessionKeys
+from dino.environ import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 
-"""
 class Worker(ConsumerMixin):
     def __init__(self, connection):
         self.connection = connection
@@ -30,13 +31,17 @@ class Worker(ConsumerMixin):
         message.ack()
 
 
-with Connection('redis://localhost:6379/') as conn:
-    try:
-        worker = Worker(conn)
-        worker.run()
-    except KeyboardInterrupt:
-        print('bye bye')
-"""
+def consume():
+    with Connection('redis://localhost:6379/') as conn:
+        try:
+            env.consume_worker = Worker(conn)
+            env.consume_worker.run()
+        except KeyboardInterrupt:
+            pass
+
+if not env.config.get(ConfigKeys.TESTING, False):
+    env.consume_thread = threading.Thread(target=consume)
+    env.consume_thread.run()
 
 
 def on_add_owner(data: dict) -> (int, Union[str, None]):

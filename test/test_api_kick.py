@@ -20,6 +20,5 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 class ApiKickTest(BaseTest):
     def test_kick(self):
-        pass
-        # self.create_and_join_room()
-        # api.on_kick(self.activity_for_kick())
+        self.create_and_join_room()
+        api.on_kick(self.activity_for_kick())

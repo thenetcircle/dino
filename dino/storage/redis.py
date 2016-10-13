@@ -3,9 +3,7 @@ from activitystreams.models.activity import Activity
 from uuid import uuid4 as uuid
 
 from dino.storage.base import IStorage
-from dino.env import env
-from dino.env import SessionKeys
-from dino.env import ConfigKeys
+import dino.environ
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -79,7 +77,7 @@ class StorageRedis(object):
     redis = None
 
     def __init__(self, host: str, port: int=6379, db: int=0):
-        if env.config.get(ConfigKeys.TESTING, False):
+        if dino.environ.env.config.get(dino.environ.ConfigKeys.TESTING, False):
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
@@ -88,14 +86,14 @@ class StorageRedis(object):
 
     def store_message(self, activity: Activity) -> None:
         target = activity.target.id
-        user_name = env.session.get(SessionKeys.user_name.value)
+        user_name = dino.environ.env.session.get(dino.environ.SessionKeys.user_name.value)
         msg = activity.object.content
 
         self.redis.lpush(
             RedisKeys.room_history(target),
             '%s,%s,%s,%s' % (activity.id, activity.published, user_name, msg))
 
-        max_history = env.config.get(ConfigKeys.MAX_HISTORY, -1)
+        max_history = dino.environ.env.config.get(dino.environ.ConfigKeys.MAX_HISTORY, -1)
         if max_history > 0:
             self.redis.ltrim(RedisKeys.room_history(target), 0, max_history)
 
@@ -104,7 +102,7 @@ class StorageRedis(object):
         room_id = activity.target.id
 
         self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
-        self.redis.hset(RedisKeys.room_owners(room_id), activity.actor.id, env.session.get(SessionKeys.user_name.value))
+        self.redis.hset(RedisKeys.room_owners(room_id), activity.actor.id, dino.environ.env.session.get(dino.environ.SessionKeys.user_name.value))
         self.redis.hset(RedisKeys.rooms(), room_id, room_name)
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
@@ -157,7 +155,7 @@ class StorageRedis(object):
         room_name = self.redis.get(RedisKeys.room_name_for_id(room_id))
         if room_name is None:
             room_name = str(uuid())
-            env.logger.warn('WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
+            dino.environ.env.logger.warn('WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
             self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
         else:
             room_name = room_name.decode('utf-8')

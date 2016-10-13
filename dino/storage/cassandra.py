@@ -17,9 +17,7 @@ from activitystreams.models.activity import Activity
 from cassandra.cluster import Cluster
 
 from dino.storage.base import IStorage
-from dino.validator import SessionKeys
-from dino.env import env
-from dino.env import ConfigKeys
+from dino import environ
 from dino.storage.cassandra_driver import Driver
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -71,23 +69,23 @@ class CassandraStorage(object):
         acls = dict()
         for row in rows:
             if row.age is not None:
-                acls[SessionKeys.age.value] = row.age
+                acls[environ.SessionKeys.age.value] = row.age
             if row.gender is not None:
-                acls[SessionKeys.gender.value] = row.gender
+                acls[environ.SessionKeys.gender.value] = row.gender
             if row.membership is not None:
-                acls[SessionKeys.membership.value] = row.membership
+                acls[environ.SessionKeys.membership.value] = row.membership
             if row.group is not None:
-                acls[SessionKeys.group.value] = row.group
+                acls[environ.SessionKeys.group.value] = row.group
             if row.country is not None:
-                acls[SessionKeys.country.value] = row.country
+                acls[environ.SessionKeys.country.value] = row.country
             if row.city is not None:
-                acls[SessionKeys.city.value] = row.city
+                acls[environ.SessionKeys.city.value] = row.city
             if row.image is not None:
-                acls[SessionKeys.image.value] = row.image
+                acls[environ.SessionKeys.image.value] = row.image
             if row.has_webcam is not None:
-                acls[SessionKeys.has_webcam.value] = row.has_webcam
+                acls[environ.SessionKeys.has_webcam.value] = row.has_webcam
             if row.fake_checked is not None:
-                acls[SessionKeys.fake_checked.value] = row.fake_checked
+                acls[environ.SessionKeys.fake_checked.value] = row.fake_checked
             break
 
         return acls
@@ -242,7 +240,7 @@ class CassandraStorage(object):
 
     @staticmethod
     def validate(hosts, replications, strategy):
-        if env.config.get(ConfigKeys.TESTING, False):
+        if environ.env.config.get(environ.ConfigKeys.TESTING, False):
             return
 
         if not isinstance(replications, int):
@@ -251,8 +249,8 @@ class CassandraStorage(object):
             raise ValueError('replications needs to be in the interval [1, 99]')
 
         if replications > len(hosts):
-            env.logger.warn('replications (%s) is higher than number of nodes in cluster (%s)' %
-                            (str(replications), len(hosts)))
+            environ.env.logger.warn('replications (%s) is higher than number of nodes in cluster (%s)' %
+                                    (str(replications), len(hosts)))
 
         if not isinstance(strategy, str):
             raise ValueError('strategy is not a valid string, but of type: "%s"' % str(type(strategy)))
