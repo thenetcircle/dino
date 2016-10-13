@@ -436,6 +436,18 @@ class BaseTest(unittest.TestCase):
             }
         }
 
+    def activity_for_kick(self):
+        return {
+            'actor': {
+                'id': BaseTest.USER_ID
+            },
+            'verb': 'join',
+            'target': {
+                'id': BaseTest.ROOM_ID,
+                'displayName': BaseTest.OTHER_USER_ID
+            }
+        }
+
     def activity_for_get_acl(self):
         return {
             'actor': {

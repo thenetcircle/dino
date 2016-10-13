@@ -36,4 +36,5 @@ setup(
         'codecov==2.0.5',
         'coverage==4.2',
         'cassandra-driver==3.7.0',
+        'kombu==3.0.37',
     ])

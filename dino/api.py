@@ -11,7 +11,32 @@ from dino.validator import Validator
 from dino.env import env
 from dino.env import SessionKeys
 
+from kombu.mixins import ConsumerMixin
+from kombu import Connection
+
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
+
+
+"""
+class Worker(ConsumerMixin):
+    def __init__(self, connection):
+        self.connection = connection
+
+    def get_consumers(self, consumer, channel):
+        return [consumer(queues=[env.queue], callbacks=[self.process_task])]
+
+    def process_task(self, body, message):
+        print('got message with body "%s" and message "%s"' % (body, message))
+        message.ack()
+
+
+with Connection('redis://localhost:6379/') as conn:
+    try:
+        worker = Worker(conn)
+        worker.run()
+    except KeyboardInterrupt:
+        print('bye bye')
+"""
 
 
 def on_add_owner(data: dict) -> (int, Union[str, None]):
@@ -94,7 +119,7 @@ def on_login(data: dict) -> (int, Union[str, None]):
         for attachment in activity.actor.attachments:
             env.session[attachment.object_type] = attachment.content
 
-    if not SessionKeys.token.value in env.session:
+    if SessionKeys.token.value not in env.session:
         return 400, 'no token in session'
 
     token = env.session.get(SessionKeys.token.value)
@@ -154,6 +179,9 @@ def on_kick(data):
     """
     kick a user from a room (if user is an owner)
 
+    target.id: the uuid of the room that the user is in
+    target.displayName: the id of user to kick
+
     :param data:
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
     """
@@ -163,17 +191,20 @@ def on_kick(data):
     if not is_valid:
         return 400, error_msg
 
-    target = activity.target.display_name
+    room_id = activity.target.id
+    user_id = activity.target.display_name
 
-    if target is None or target.strip() == '':
-        return 400, 'got blank room name, can not kick'
+    if room_id is None or room_id.strip() == '':
+        return 400, 'got blank room id, can not kick'
+    if user_id is None or user_id.strip() == '':
+        return 400, 'got blank user id, can not kick'
+    if not env.storage.room_exists(room_id):
+        return 400, 'no room with id "%s" exists' % room_id
 
-    if not env.storage.room_name_exists(target):
-        return 400, 'no room with id "%s" exists' % target
+    env.publish('testingz')
 
-    # TODO: need to targets; the room and the user kicked
-    #env.emit('gn_kick', utils.activity_for_kick(activity.target.id, target),
-    #         broadcast=True, json=True, include_self=True)
+    # env.emit('gn_kick', utils.activity_for_kick(activity.target.id, target),
+    # broadcast=True, json=True, include_self=True)
 
     return 200, None
 

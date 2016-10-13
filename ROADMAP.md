@@ -13,6 +13,7 @@ A rough roadmap for possible upcoming features.
 * acls
 * external authentication
 * kicking
+* banning
 
 0.8.0 
 ---
