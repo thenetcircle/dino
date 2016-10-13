@@ -1,6 +1,6 @@
 from activitystreams import Activity
 
-import dino.environ
+from dino import environ
 
 
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
@@ -73,7 +73,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
         'verb': 'history',
         'target': {
             'id': activity.target.id,
-            'displayName': dino.environ.env.storage.get_room_name(activity.target.id)
+            'displayName': environ.env.storage.get_room_name(activity.target.id)
         }
     }
 
@@ -98,7 +98,7 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
         'verb': 'join',
         'target': {
             'id': activity.target.id,
-            'displayName': dino.environ.env.storage.get_room_name(activity.target.id)
+            'displayName': environ.env.storage.get_room_name(activity.target.id)
         }
     }
 
@@ -170,7 +170,7 @@ def activity_for_list_rooms(activity: Activity, rooms: list) -> dict:
 
 
 def is_user_in_room(user_id, room_id):
-    return dino.environ.env.storage.room_contains(room_id, user_id)
+    return environ.env.storage.room_contains(room_id, user_id)
 
 
 def activity_for_users_in_room(activity: Activity, users: list) -> dict:
@@ -218,31 +218,31 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
 
 
 def is_owner(room_id: str, user_id: str) -> bool:
-    return dino.environ.env.storage.room_owners_contain(room_id, user_id)
+    return environ.env.storage.room_owners_contain(room_id, user_id)
 
 
 def get_users_in_room(room_id: str) -> list:
-    return dino.environ.env.storage.users_in_room(room_id)
+    return environ.env.storage.users_in_room(room_id)
 
 
 def get_acls_for_room(room_id: str) -> dict:
-    return dino.environ.env.storage.get_acls(room_id)
+    return environ.env.storage.get_acls(room_id)
 
 
 def get_owners_for_room(room_id: str) -> dict:
-    return dino.environ.env.storage.get_owners(room_id)
+    return environ.env.storage.get_owners(room_id)
 
 
 def get_history_for_room(room_id: str, limit: int=10) -> list:
-    return dino.environ.env.storage.get_history(room_id, limit)
+    return environ.env.storage.get_history(room_id, limit)
 
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
-    dino.environ.env.leave_room(room_id)
-    dino.environ.env.storage.leave_room(user_id, room_id)
+    environ.env.leave_room(room_id)
+    environ.env.storage.leave_room(user_id, room_id)
 
 
 def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) -> None:
-    dino.environ.env.storage.join_room(user_id, user_name, room_id, room_name)
-    dino.environ.env.join_room(room_id)
-    dino.environ.env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
+    environ.env.storage.join_room(user_id, user_name, room_id, room_name)
+    environ.env.join_room(room_id)
+    environ.env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
