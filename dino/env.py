@@ -398,6 +398,11 @@ def init_auth_service(gn_env: GNEnvironment):
     else:
         raise RuntimeError('unknown auth type, use one of [redis, allowall, denyall]')
 
-env = create_env()
-init_storage_engine(env)
-init_auth_service(env)
+
+def create_and_initialize_env():
+    dino_env = create_env()
+    init_storage_engine(dino_env)
+    init_auth_service(dino_env)
+    return dino_env
+
+env = create_and_initialize_env()
