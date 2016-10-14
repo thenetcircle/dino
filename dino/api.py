@@ -90,6 +90,10 @@ def on_login(data: dict) -> (int, Union[str, None]):
     activity = as_parser.parse(data)
     user_id = activity.actor.id
 
+    is_banned, duration = utils.is_banned(user_id)
+    if is_banned:
+        return 400, 'user is banned from chatting for: %ss' % duration
+
     environ.env.session[SessionKeys.user_id.value] = user_id
 
     if activity.actor.attachments is not None:
@@ -477,6 +481,10 @@ def on_join(data: dict) -> (int, Union[str, None]):
     is_valid, error_msg = validator.validate_acl(activity)
     if not is_valid:
         return 400, error_msg
+
+    is_banned, duration = utils.is_banned(user_id, room_id=room_id)
+    if is_banned:
+        return 400, 'user is banned from joining room for: %ss' % duration
 
     room_name = environ.env.storage.get_room_name(room_id)
     utils.join_the_room(user_id, user_name, room_id, room_name)

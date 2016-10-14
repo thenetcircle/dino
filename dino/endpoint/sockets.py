@@ -15,6 +15,7 @@ from dino.utils.handlers import GracefulInterruptHandler
 from functools import wraps
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
+from flask_socketio import disconnect
 
 logger = environ.env.logger
 
@@ -49,7 +50,6 @@ class Worker(ConsumerMixin):
             self.should_stop = True
 
     def process_task(self, body, message):
-        print('bod message: %s' % body)
         try:
             handle_server_activity(as_parser.parse(body))
         except (ActivityException, AttributeError) as e:
@@ -59,7 +59,7 @@ class Worker(ConsumerMixin):
 
 def handle_server_activity(activity: Activity):
     def _kick(_room_id, _user_id, _user_sid):
-        _users = socketio.server.rooms[namespace][_room_id]
+        _users = socketio.server.manager.rooms[namespace][_room_id]
         if _user_id in _users:
             try:
                 socketio.server.leave_room(_user_sid, '/chat', _room_id)
@@ -88,7 +88,7 @@ def handle_server_activity(activity: Activity):
         try:
             # user just got banned globally, kick from all rooms
             if room_id is None or room_id == '':
-                for room_key in socketio.server.rooms[namespace].keys():
+                for room_key in socketio.server.manager.rooms[namespace].keys():
                     _kick(room_key, kicked_id, kicked_sid)
             else:
                 _kick(room_id, kicked_id, kicked_sid)
@@ -96,7 +96,7 @@ def handle_server_activity(activity: Activity):
             pass
 
     else:
-        print('unknown server activity verb "%s"' % activity.verb)
+        environ.env.logger.error('unknown server activity verb "%s"' % activity.verb)
 
 
 def consume():
@@ -196,7 +196,10 @@ def connect() -> (int, None):
 @respond_with('gn_login')
 def on_login(data: dict) -> (int, str):
     try:
-        return api.on_login(data)
+        status_code, msg = api.on_login(data)
+        if status_code != 200:
+            disconnect()
+        return status_code, msg
     except Exception as e:
         logger.error('login: %s' % str(e))
         return 500, str(e)

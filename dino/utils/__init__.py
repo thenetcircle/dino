@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from activitystreams import Activity
+from typing import Union
 
 from dino import environ
 from dino import rkeys
@@ -263,6 +264,27 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
         })
 
     return response
+
+
+def is_banned(user_id: str, room_id: str=None) -> (bool, Union[str, None]):
+    if room_id is None or room_id == '':
+        duration = environ.env.redis.hget(rkeys.banned_users(room_id), user_id)
+    else:
+        duration = environ.env.redis.hget(rkeys.banned_users(room_id), user_id)
+
+    if duration is not None and duration != '':
+        end = datetime.fromtimestamp(duration)
+        now = datetime.now()
+        diff = end - now
+        if diff.seconds() > 0:
+            return True, str(diff.seconds())
+
+        if room_id is None or room_id == '':
+            environ.env.redis.hdel(rkeys.banned_users(), user_id)
+        else:
+            environ.env.redis.hdel(rkeys.banned_users(room_id), user_id)
+
+    return False, None
 
 
 def ban_duration_to_timestamp(ban_duration: str) -> str:

@@ -235,17 +235,24 @@ def find_config(config_paths: list) -> str:
 
 def choose_queue_instance(config_dict: dict) -> object:
     # TODO: should choose between RabbitMQ and Redis
-    redis_host = config_dict.get(ConfigKeys.QUEUE).get(ConfigKeys.HOST, 'localhost')
-    redis_port = 6379
+    queue_type = config_dict.get(ConfigKeys.QUEUE).get(ConfigKeys.TYPE, 'mock')
 
-    if ':' in redis_host:
-        redis_host, redis_port = redis_host.split(':', 1)
-
-    if redis_host == 'mock':
+    if queue_type == 'mock':
         from fakeredis import FakeStrictRedis
         return FakeStrictRedis()
+    elif queue_type == 'redis':
+        redis_host = config_dict.get(ConfigKeys.QUEUE).get(ConfigKeys.HOST, 'localhost')
+        redis_port = 6379
 
-    return Redis(redis_host, port=redis_port)
+        if redis_host.startswith('redis://'):
+            redis_host = redis_host.replace('redis://', '')
+
+        if ':' in redis_host:
+            redis_host, redis_port = redis_host.split(':', 1)
+
+        return Redis(redis_host, port=redis_port)
+
+    raise RuntimeError('unknown queue type "%s"' % queue_type)
 
 
 def create_env(config_paths: list = None) -> GNEnvironment:
