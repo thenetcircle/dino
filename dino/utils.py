@@ -233,7 +233,7 @@ def get_owners_for_room(room_id: str) -> dict:
     return environ.env.storage.get_owners(room_id)
 
 
-def get_history_for_room(room_id: str, limit: int=10) -> list:
+def get_history_for_room(room_id: str, limit: int = 10) -> list:
     return environ.env.storage.get_history(room_id, limit)
 
 

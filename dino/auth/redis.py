@@ -28,7 +28,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class AuthRedis(object):
     DEFAULT_AUTH_KEY = 'user:auth:%s'
 
-    def __init__(self, host: str, port: int=6379, db: int=0):
+    def __init__(self, host: str, port: int = 6379, db: int = 0):
         if environ.env.config.get(ConfigKeys.TESTING, False):
             from fakeredis import FakeStrictRedis as Redis
         else:

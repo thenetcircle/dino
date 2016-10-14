@@ -13,7 +13,7 @@ def create_app():
 
     # TODO: let the queue config contain the complete value for message_queue, so no queue can be used
     _socketio = SocketIO(
-            app,
+            _app,
             logger=environ.env.logger,
             engineio_logger=False,
             message_queue='redis://%s' % environ.env.config.get(

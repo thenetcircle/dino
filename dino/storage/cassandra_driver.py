@@ -170,10 +170,10 @@ class Driver(object):
         def create_key_space():
             environ.env.logger.debug('creating keyspace...')
             create_key_space_stmt = self.session.prepare(
-                """
-                CREATE KEYSPACE IF NOT EXISTS %s
-                WITH replication = {'class': '%s', 'replication_factor': '%s'}
-                """ % (self.key_space, self.strategy, str(self.replications))
+                    """
+                    CREATE KEYSPACE IF NOT EXISTS %s
+                    WITH replication = {'class': '%s', 'replication_factor': '%s'}
+                    """ % (self.key_space, self.strategy, str(self.replications))
             )
             self.session.execute(create_key_space_stmt)
             self.session.set_keyspace(self.key_space)
@@ -181,159 +181,159 @@ class Driver(object):
         def create_tables():
             environ.env.logger.debug('creating tables...')
             self.session.execute(
-                """
-                CREATE TABLE IF NOT EXISTS messages (
-                    message_id varchar,
-                    from_user text,
-                    to_user text,
-                    body text,
-                    domain text,
-                    time varchar,
-                    PRIMARY KEY (to_user, from_user, time)
-                )
-                """
+                    """
+                    CREATE TABLE IF NOT EXISTS messages (
+                        message_id varchar,
+                        from_user text,
+                        to_user text,
+                        body text,
+                        domain text,
+                        time varchar,
+                        PRIMARY KEY (to_user, from_user, time)
+                    )
+                    """
             )
             self.session.execute(
-                """
-                CREATE TABLE IF NOT EXISTS rooms (
-                    room_id varchar,
-                    room_name varchar,
-                    owners list<varchar>,
-                    time varchar,
-                    PRIMARY KEY (room_id)
-                )
-                """
+                    """
+                    CREATE TABLE IF NOT EXISTS rooms (
+                        room_id varchar,
+                        room_name varchar,
+                        owners list<varchar>,
+                        time varchar,
+                        PRIMARY KEY (room_id)
+                    )
+                    """
             )
             self.session.execute(
-                """
-                CREATE TABLE IF NOT EXISTS users_in_room (
-                    room_id varchar,
-                    room_name varchar,
-                    user_id varchar,
-                    user_name varchar,
-                    PRIMARY KEY (room_id, user_id)
-                )
-                """
+                    """
+                    CREATE TABLE IF NOT EXISTS users_in_room (
+                        room_id varchar,
+                        room_name varchar,
+                        user_id varchar,
+                        user_name varchar,
+                        PRIMARY KEY (room_id, user_id)
+                    )
+                    """
             )
             self.session.execute(
-                """
-                CREATE MATERIALIZED VIEW IF NOT EXISTS users_in_room_by_user AS
-                    SELECT * from users_in_room
-                        WHERE user_id IS NOT NULL AND room_id IS NOT NULL
-                    PRIMARY KEY (user_id, room_id)
-                    WITH comment='allows query by user_id instead of room_id'
-                """
+                    """
+                    CREATE MATERIALIZED VIEW IF NOT EXISTS users_in_room_by_user AS
+                        SELECT * from users_in_room
+                            WHERE user_id IS NOT NULL AND room_id IS NOT NULL
+                        PRIMARY KEY (user_id, room_id)
+                        WITH comment='allows query by user_id instead of room_id'
+                    """
             )
             self.session.execute(
-                """
-                CREATE TABLE IF NOT EXISTS acl (
-                    room_id varchar,
-                    age varchar,
-                    gender varchar,
-                    membership varchar,
-                    group varchar,
-                    country varchar,
-                    city varchar,
-                    image varchar,
-                    has_webcam varchar,
-                    fake_checked varchar,
-                    PRIMARY KEY (room_id)
-                )
-                """
+                    """
+                    CREATE TABLE IF NOT EXISTS acl (
+                        room_id varchar,
+                        age varchar,
+                        gender varchar,
+                        membership varchar,
+                        group varchar,
+                        country varchar,
+                        city varchar,
+                        image varchar,
+                        has_webcam varchar,
+                        fake_checked varchar,
+                        PRIMARY KEY (room_id)
+                    )
+                    """
             )
 
         def prepare_statements():
             self.statements[StatementKeys.msg_insert] = self.session.prepare(
-                """
-                INSERT INTO messages (
-                    message_id,
-                    from_user,
-                    to_user,
-                    body,
-                    domain,
-                    time
-                )
-                VALUES (
-                    ?, ?, ?, ?, ?, ?
-                )
-                """
+                    """
+                    INSERT INTO messages (
+                        message_id,
+                        from_user,
+                        to_user,
+                        body,
+                        domain,
+                        time
+                    )
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?
+                    )
+                    """
             )
             self.statements[StatementKeys.acl_insert] = self.session.prepare(
-                """
-                INSERT INTO acl (
-                    room_id,
-                    age,
-                    gender,
-                    membership,
-                    group,
-                    country,
-                    city,
-                    image,
-                    has_webcam,
-                    fake_checked
-                )
-                VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                )
-                """
+                    """
+                    INSERT INTO acl (
+                        room_id,
+                        age,
+                        gender,
+                        membership,
+                        group,
+                        country,
+                        city,
+                        image,
+                        has_webcam,
+                        fake_checked
+                    )
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    )
+                    """
             )
             self.statements[StatementKeys.acl_select] = self.session.prepare(
-                """
-                SELECT * FROM acl WHERE room_id = ?
-                """
+                    """
+                    SELECT * FROM acl WHERE room_id = ?
+                    """
             )
             self.statements[StatementKeys.room_insert] = self.session.prepare(
-                """
-                INSERT INTO rooms (
-                    room_id,
-                    room_name,
-                    owners,
-                    time
-                )
-                VALUES (
-                    ?, ?, ?, ?
-                )
-                """
+                    """
+                    INSERT INTO rooms (
+                        room_id,
+                        room_name,
+                        owners,
+                        time
+                    )
+                    VALUES (
+                        ?, ?, ?, ?
+                    )
+                    """
             )
             self.statements[StatementKeys.msgs_select] = self.session.prepare(
-                """
-                SELECT * FROM messages where to_user = ?
-                """
+                    """
+                    SELECT * FROM messages where to_user = ?
+                    """
             )
             self.statements[StatementKeys.rooms_select] = self.session.prepare(
-                """
-                SELECT * FROM rooms
-                """
+                    """
+                    SELECT * FROM rooms
+                    """
             )
             self.statements[StatementKeys.rooms_select_by_user] = self.session.prepare(
-                """
-                SELECT * FROM users_in_room_by_user WHERE user_id = ?
-                """
+                    """
+                    SELECT * FROM users_in_room_by_user WHERE user_id = ?
+                    """
             )
             self.statements[StatementKeys.room_select_name] = self.session.prepare(
-                """
-                SELECT room_name FROM rooms WHERE room_id = ?
-                """
+                    """
+                    SELECT room_name FROM rooms WHERE room_id = ?
+                    """
             )
             self.statements[StatementKeys.room_select_users] = self.session.prepare(
-                """
-                SELECT user_id, user_name FROM users_in_room WHERE room_id = ?
-                """
+                    """
+                    SELECT user_id, user_name FROM users_in_room WHERE room_id = ?
+                    """
             )
             self.statements[StatementKeys.room_insert_user] = self.session.prepare(
-                """
-                INSERT INTO users_in_room(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
-                """
+                    """
+                    INSERT INTO users_in_room(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
+                    """
             )
             self.statements[StatementKeys.room_select_owners] = self.session.prepare(
-                """
-                SELECT owners FROM rooms WHERE room_id = ?
-                """
+                    """
+                    SELECT owners FROM rooms WHERE room_id = ?
+                    """
             )
             self.statements[StatementKeys.room_delete_user] = self.session.prepare(
-                """
-                DELETE FROM users_in_room WHERE room_id = ? AND user_id = ?
-                """
+                    """
+                    DELETE FROM users_in_room WHERE room_id = ? AND user_id = ?
+                    """
             )
 
         create_key_space()
@@ -342,17 +342,17 @@ class Driver(object):
 
     def acl_insert(self, room_id: str, acls: dict) -> None:
         self._execute(
-            StatementKeys.acl_insert,
-            room_id,
-            acls.get(SessionKeys.age.value, None),
-            acls.get(SessionKeys.gender.value, None),
-            acls.get(SessionKeys.membership.value, None),
-            acls.get(SessionKeys.group.value, None),
-            acls.get(SessionKeys.country.value, None),
-            acls.get(SessionKeys.city.value, None),
-            acls.get(SessionKeys.image.value, None),
-            acls.get(SessionKeys.has_webcam.value, None),
-            acls.get(SessionKeys.fake_checked.value, None)
+                StatementKeys.acl_insert,
+                room_id,
+                acls.get(SessionKeys.age.value, None),
+                acls.get(SessionKeys.gender.value, None),
+                acls.get(SessionKeys.membership.value, None),
+                acls.get(SessionKeys.group.value, None),
+                acls.get(SessionKeys.country.value, None),
+                acls.get(SessionKeys.city.value, None),
+                acls.get(SessionKeys.image.value, None),
+                acls.get(SessionKeys.has_webcam.value, None),
+                acls.get(SessionKeys.fake_checked.value, None)
         )
 
     def acl_select(self, room_id: str) -> ResultSet:

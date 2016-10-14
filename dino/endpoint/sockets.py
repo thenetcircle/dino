@@ -19,7 +19,9 @@ def respond_with(gn_event_name=None):
                 environ.env.emit(gn_event_name, {'status_code': status_code})
             else:
                 environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
+
         return decorator
+
     return factory
 
 

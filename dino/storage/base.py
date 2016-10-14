@@ -41,7 +41,7 @@ class IStorage(Interface):
         :return:
         """
 
-    def get_history(self, room_id: str, limit: int=None):
+    def get_history(self, room_id: str, limit: int = None):
         """
 
         :param room_id:
@@ -94,7 +94,7 @@ class IStorage(Interface):
         :return:
         """
 
-    def get_all_rooms(self, user_id: str=None) -> dict:
+    def get_all_rooms(self, user_id: str = None) -> dict:
         """
 
         :param user_id:

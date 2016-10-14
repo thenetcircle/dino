@@ -101,8 +101,8 @@ class ConfigDict:
                     # avoid using the same reference twice
                     if sres.group() in keydb:
                         raise RuntimeError(
-                            "found circular dependency in config value '{0}' using reference '{1}'".format(
-                                s, sres.group()))
+                                "found circular dependency in config value '{0}' using reference '{1}'".format(
+                                        s, sres.group()))
                     keydb.add(sres.group())
                     s = s.format(**_params)
 
@@ -246,7 +246,7 @@ def choose_queue_instance(config_dict: dict) -> object:
     return Redis(redis_host, port=redis_port)
 
 
-def create_env(config_paths: list=None) -> GNEnvironment:
+def create_env(config_paths: list = None) -> GNEnvironment:
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
 
     # assuming tests are running
@@ -376,6 +376,7 @@ def initialize_env(dino_env):
     init_storage_engine(dino_env)
     init_auth_service(dino_env)
     init_pub_sub(dino_env)
+
 
 env = create_env()
 initialize_env(env)

@@ -139,23 +139,23 @@ class CassandraStorage(object):
 
     def store_message(self, activity: Activity) -> None:
         self.driver.msg_insert(
-            activity.id,
-            activity.actor.id,
-            activity.target.id,
-            activity.object.content,
-            activity.target.object_type,
-            activity.published
+                activity.id,
+                activity.actor.id,
+                activity.target.id,
+                activity.object.content,
+                activity.target.object_type,
+                activity.published
         )
 
     def create_room(self, activity: Activity) -> None:
         self.driver.room_insert(
-            activity.target.id,
-            activity.target.display_name,
-            [activity.actor.id],
-            activity.published
+                activity.target.id,
+                activity.target.display_name,
+                [activity.actor.id],
+                activity.published
         )
 
-    def get_history(self, room_id: str, limit: int=None) -> list:
+    def get_history(self, room_id: str, limit: int = None) -> list:
         # TODO: limit
         rows = self.driver.msgs_select(room_id)
         if rows is None or len(rows.current_rows) == 0:
@@ -197,7 +197,7 @@ class CassandraStorage(object):
             })
         return users
 
-    def get_all_rooms(self, user_id: str=None) -> list:
+    def get_all_rooms(self, user_id: str = None) -> list:
         if user_id is None:
             rows = self.driver.rooms_select()
         else:
