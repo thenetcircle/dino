@@ -10,6 +10,7 @@ from dino import utils
 from dino import validator
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
+from dino.utils.handlers import GracefulInterruptHandler
 from dino.validator import Validator
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
@@ -18,11 +19,16 @@ __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 
 class Worker(ConsumerMixin):
-    def __init__(self, connection):
+    def __init__(self, connection, signal_handler: GracefulInterruptHandler):
         self.connection = connection
+        self.signal_handler = signal_handler
 
     def get_consumers(self, consumer, channel):
         return [consumer(queues=[environ.env.queue], callbacks=[self.process_task])]
+
+    def on_iteration(self):
+        if self.signal_handler.interrupted:
+            self.should_stop = True
 
     def process_task(self, body, message):
         print('got message with body "%s" and message "%s"' % (body, message))
@@ -30,17 +36,24 @@ class Worker(ConsumerMixin):
 
 
 def consume():
-    with Connection('redis://localhost:6379/') as conn:
-        try:
-            environ.env.consume_worker = Worker(conn)
-            environ.env.consume_worker.run()
-        except KeyboardInterrupt:
-            pass
+    with GracefulInterruptHandler() as interrupt_handler:
+        while True:
+            with Connection(environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)) as conn:
+                try:
+                    environ.env.consume_worker = Worker(conn, interrupt_handler)
+                    environ.env.consume_worker.run()
+                except KeyboardInterrupt:
+                    return
+
+            if interrupt_handler.interrupted or environ.env.consume_worker.should_stop:
+                return
+
+            time.sleep(1)
 
 
 if not environ.env.config.get(ConfigKeys.TESTING, False):
     environ.env.consume_thread = threading.Thread(target=consume)
-    environ.env.consume_thread.run()
+    environ.env.consume_thread.start()
 
 
 def on_add_owner(data: dict) -> (int, Union[str, None]):
