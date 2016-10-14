@@ -9,7 +9,7 @@ oscar:
         type: 'redis'
         host: 'redis://localhost:6379'
     auth:
-        type: 'redis'
+        type: 'allowall'
         host: 'localhost:6379'
 
 dev:

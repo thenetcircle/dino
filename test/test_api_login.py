@@ -105,50 +105,50 @@ class ApiLoginTest(BaseTest):
         data = self.activity_for_login(skip={'user_name'})
         self.assert_login_fails(data)
 
-    def test_login_missing_gender(self):
-        self.remove_from_auth('gender')
-        data = self.activity_for_login(skip={'gender'})
-        self.assert_login_fails(data)
-
-    def test_login_missing_age(self):
-        self.remove_from_auth('age')
-        data = self.activity_for_login(skip={'age'})
-        self.assert_login_fails(data)
-
-    def test_login_missing_image(self):
-        self.remove_from_auth('image')
-        data = self.activity_for_login(skip={'image'})
-        self.assert_login_fails(data)
-
-    def test_login_missing_has_webcam(self):
-        self.remove_from_auth('has_webcam')
-        data = self.activity_for_login(skip={'has_webcam'})
-        self.assert_login_fails(data)
-
-    def test_login_missing_fake_checked(self):
-        self.remove_from_auth('fake_checked')
-        data = self.activity_for_login(skip={'fake_checked'})
-        self.assert_login_fails(data)
-
-    def test_login_missing_city(self):
-        self.remove_from_auth('city')
-        data = self.activity_for_login(skip={'city'})
-        self.assert_login_fails(data)
-
-    def test_login_missing_country(self):
-        self.remove_from_auth('country')
-        data = self.activity_for_login(skip={'country'})
-        self.assert_login_fails(data)
-
-    def test_login_missing_membership(self):
-        self.remove_from_auth('membership')
-        data = self.activity_for_login(skip={'membership'})
-        self.assert_login_fails(data)
-
     def test_login_missing_token(self):
         self.remove_from_auth('token')
         data = self.activity_for_login(skip={'token'})
         self.assert_login_fails(data)
+
+    def test_login_missing_gender(self):
+        self.remove_from_auth('gender')
+        data = self.activity_for_login(skip={'gender'})
+        self.assert_login_succeeds(data)
+
+    def test_login_missing_age(self):
+        self.remove_from_auth('age')
+        data = self.activity_for_login(skip={'age'})
+        self.assert_login_succeeds(data)
+
+    def test_login_missing_image(self):
+        self.remove_from_auth('image')
+        data = self.activity_for_login(skip={'image'})
+        self.assert_login_succeeds(data)
+
+    def test_login_missing_has_webcam(self):
+        self.remove_from_auth('has_webcam')
+        data = self.activity_for_login(skip={'has_webcam'})
+        self.assert_login_succeeds(data)
+
+    def test_login_missing_fake_checked(self):
+        self.remove_from_auth('fake_checked')
+        data = self.activity_for_login(skip={'fake_checked'})
+        self.assert_login_succeeds(data)
+
+    def test_login_missing_city(self):
+        self.remove_from_auth('city')
+        data = self.activity_for_login(skip={'city'})
+        self.assert_login_succeeds(data)
+
+    def test_login_missing_country(self):
+        self.remove_from_auth('country')
+        data = self.activity_for_login(skip={'country'})
+        self.assert_login_succeeds(data)
+
+    def test_login_missing_membership(self):
+        self.remove_from_auth('membership')
+        data = self.activity_for_login(skip={'membership'})
+        self.assert_login_succeeds(data)
 
     def assert_login_fails(self, data=None):
         self.assertEqual(400, self.response_code_for_login(data))

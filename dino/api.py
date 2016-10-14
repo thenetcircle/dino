@@ -90,11 +90,11 @@ def on_login(data: dict) -> (int, Union[str, None]):
     activity = as_parser.parse(data)
     user_id = activity.actor.id
 
+    environ.env.session[SessionKeys.user_id.value] = user_id
+
     is_banned, duration = utils.is_banned(user_id)
     if is_banned:
         return 400, 'user is banned from chatting for: %ss' % duration
-
-    environ.env.session[SessionKeys.user_id.value] = user_id
 
     if activity.actor.attachments is not None:
         for attachment in activity.actor.attachments:
@@ -580,10 +580,10 @@ def on_disconnect() -> (int, None):
     :return json if ok, {'status_code': 200}
     """
     # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
-    user_id = environ.env.session.get(SessionKeys.user_id.value, None)
-    user_name = environ.env.session.get(SessionKeys.user_name.value, None)
+    user_id = environ.env.session.get(SessionKeys.user_id.value)
+    user_name = environ.env.session.get(SessionKeys.user_name.value)
 
-    if user_id is None or user_name is None:
+    if user_id is None or not isinstance(user_id, str) or user_name is None:
         return 400, 'no user in session, not connected'
 
     environ.env.leave_room(user_id)

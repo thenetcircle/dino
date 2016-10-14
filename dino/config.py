@@ -35,14 +35,6 @@ class SessionKeys(Enum):
     requires_session_keys = {
         user_id,
         user_name,
-        age,
-        gender,
-        membership,
-        country,
-        city,
-        image,
-        has_webcam,
-        fake_checked,
         token
     }
 

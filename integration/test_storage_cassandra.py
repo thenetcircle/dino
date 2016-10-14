@@ -23,14 +23,15 @@ from datetime import datetime
 import time
 
 from test.utils import BaseTest
-from dino.env import env, ConfigKeys
+from dino import environ
+from dino.config import ConfigKeys
 from dino.storage.cassandra import CassandraStorage
 
 
 class StorageCassandraTest(BaseTest):
     def setUp(self):
-        env.config.set(ConfigKeys.TESTING, False)
-        env.logger = logging.getLogger()
+        environ.env.config.set(ConfigKeys.TESTING, False)
+        environ.env.logger = logging.getLogger()
         logging.getLogger('cassandra').setLevel(logging.WARNING)
         key_space = 'testing'
         self.storage = CassandraStorage(hosts=['127.0.0.1'], key_space=key_space)
