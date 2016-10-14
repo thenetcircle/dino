@@ -2,13 +2,14 @@ import unittest
 from uuid import uuid4 as uuid
 import logging
 
-from dino.env import env, ConfigKeys
+from dino import environ
 from dino import rkeys
+from dino.config import ConfigKeys
 from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis
 
-env.config.set(ConfigKeys.TESTING, True)
-env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
+environ.env.config.set(ConfigKeys.TESTING, True)
+environ.env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
 
 from dino import api
 
@@ -24,7 +25,7 @@ class Form(object):
                  render_kw=None, _form=None, _name=None, _prefix='',
                  _translations=None, _meta=None):
         if label is not None:
-            value = api.env.session.get('field:' + label, None)
+            value = environ.env.session.get('field:' + label, None)
             if value is not None:
                 self.data = value
 
@@ -117,6 +118,7 @@ class BaseTest(unittest.TestCase):
 
     class Request(object):
         method = 'GET'
+        sid = '124'
 
     def setUp(self):
         BaseTest.users_in_room.clear()
@@ -138,36 +140,37 @@ class BaseTest(unittest.TestCase):
             'token': str(uuid())
         }
 
-        env.config.set(ConfigKeys.TESTING, True)
-        env.auth = AuthRedis('mock')
-        env.storage = StorageRedis('mock')
+        environ.env.config.set(ConfigKeys.TESTING, True)
+        environ.env.auth = AuthRedis('mock')
+        environ.env.storage = StorageRedis('mock')
+        environ.env.redis = environ.env.auth.redis
 
-        env.auth.redis.flushall()
-        env.storage.redis.flushall()
-        env.auth.redis.hmset(rkeys.auth_key(BaseTest.USER_ID), self.session)
-        env.storage.redis.set(rkeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
+        environ.env.auth.redis.flushall()
+        environ.env.storage.redis.flushall()
+        environ.env.auth.redis.hmset(rkeys.auth_key(BaseTest.USER_ID), self.session)
+        environ.env.storage.redis.set(rkeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
 
-        env.render_template = BaseTest._render_template
-        env.emit = BaseTest._emit
-        env.join_room = BaseTest._join_room
-        env.send = BaseTest._send
-        env.leave_room = BaseTest._leave_room
-        env.redirect = BaseTest._redirect
-        env.url_for = BaseTest._url_for
-        env.send_from_directory = BaseTest._send_from_directory
-        env.request = BaseTest.Request()
+        environ.env.render_template = BaseTest._render_template
+        environ.env.emit = BaseTest._emit
+        environ.env.join_room = BaseTest._join_room
+        environ.env.send = BaseTest._send
+        environ.env.leave_room = BaseTest._leave_room
+        environ.env.redirect = BaseTest._redirect
+        environ.env.url_for = BaseTest._url_for
+        environ.env.send_from_directory = BaseTest._send_from_directory
+        environ.env.request = BaseTest.Request()
 
-        env.SelectField = SelectField
-        env.SubmitField = SubmitField
-        env.StringField = StringField
-        env.DataRequired = DataRequired
-        env.Form = Form
+        environ.env.SelectField = SelectField
+        environ.env.SubmitField = SubmitField
+        environ.env.StringField = StringField
+        environ.env.DataRequired = DataRequired
+        environ.env.Form = Form
 
-        env.logger = logger
-        env.session = self.session
+        environ.env.logger = logger
+        environ.env.session = self.session
 
     def clear_session(self):
-        env.session.clear()
+        environ.env.session.clear()
 
     def assert_add_fails(self):
         self.assertEqual(400, self.get_response_code_for_add())
@@ -183,13 +186,13 @@ class BaseTest(unittest.TestCase):
         self.join_room()
 
     def set_owner(self):
-        env.storage.redis.hset(rkeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)
+        environ.env.storage.redis.hset(rkeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)
 
     def remove_owner(self):
-        env.storage.redis.hdel(rkeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID)
+        environ.env.storage.redis.hdel(rkeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID)
 
     def remove_room(self):
-        env.storage.redis.delete(rkeys.room_name_for_id(BaseTest.ROOM_ID))
+        environ.env.storage.redis.delete(rkeys.room_name_for_id(BaseTest.ROOM_ID))
 
     def set_room_name(self, room_id: str=None, room_name: str=None):
         if room_id is None:
@@ -197,7 +200,7 @@ class BaseTest(unittest.TestCase):
         if room_name is None:
             room_name = BaseTest.ROOM_NAME
 
-        env.storage.redis.set(rkeys.room_name_for_id(room_id), room_name)
+        environ.env.storage.redis.set(rkeys.room_name_for_id(room_id), room_name)
 
     def join_room(self):
         api.on_join(self.activity_for_join())
@@ -207,11 +210,11 @@ class BaseTest(unittest.TestCase):
         self.emit_args.clear()
 
     def assert_in_session(self, key, expected):
-        self.assertTrue(key in env.session)
-        self.assertEqual(expected, env.session[key])
+        self.assertTrue(key in environ.env.session)
+        self.assertEqual(expected, environ.env.session[key])
 
     def assert_not_in_session(self, key, expected):
-        self.assertFalse(key in env.session)
+        self.assertFalse(key in environ.env.session)
 
     def leave_room(self, data=None):
         if data is None:
@@ -224,7 +227,7 @@ class BaseTest(unittest.TestCase):
         if room_name is None:
             room_name = BaseTest.ROOM_NAME
 
-        env.storage.redis.hset(rkeys.rooms(), room_id, room_name)
+        environ.env.storage.redis.hset(rkeys.rooms(), room_id, room_name)
 
     def assert_join_fails(self):
         self.assertEqual(400, self.response_code_for_joining())
@@ -241,23 +244,23 @@ class BaseTest(unittest.TestCase):
         return api.on_message(self.activity_for_message(message))
 
     def remove_from_session(self, key: str):
-        del env.session[key]
+        del environ.env.session[key]
 
     def set_session(self, key: str, value: str=None):
-        env.session[key] = value
+        environ.env.session[key] = value
 
     def get_emit_status_code(self):
         self.assertTrue(len(BaseTest.emit_args) > 0)
         return BaseTest.emit_args[-1].get('status_code')
 
     def get_acls(self):
-        return env.storage.redis.hgetall(rkeys.room_acl(BaseTest.ROOM_ID))
+        return environ.env.storage.redis.hgetall(rkeys.room_acl(BaseTest.ROOM_ID))
 
     def set_acl(self, acls: dict):
-        env.storage.redis.hmset(rkeys.room_acl(BaseTest.ROOM_ID), acls)
+        environ.env.storage.redis.hmset(rkeys.room_acl(BaseTest.ROOM_ID), acls)
 
     def set_acl_single(self, key: str, acls: str):
-        env.storage.redis.hset(rkeys.room_acl(BaseTest.ROOM_ID), key, acls)
+        environ.env.storage.redis.hset(rkeys.room_acl(BaseTest.ROOM_ID), key, acls)
 
     def assert_in_room(self, is_in_room):
         self.assertEqual(is_in_room, BaseTest.ROOM_ID in BaseTest.users_in_room and
@@ -433,6 +436,18 @@ class BaseTest(unittest.TestCase):
             'verb': 'join',
             'target': {
                 'id': BaseTest.ROOM_ID
+            }
+        }
+
+    def activity_for_kick(self):
+        return {
+            'actor': {
+                'id': BaseTest.USER_ID
+            },
+            'verb': 'join',
+            'target': {
+                'id': BaseTest.ROOM_ID,
+                'displayName': BaseTest.OTHER_USER_ID
             }
         }
 

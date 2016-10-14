@@ -1,7 +1,23 @@
+#!/usr/bin/env python
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from activitystreams import Activity
 
+from dino import environ
 from dino import rkeys
-from dino.env import env
+
+__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
@@ -33,6 +49,26 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
             'objectType': 'group'
         },
         'verb': 'join'
+    }
+
+
+def activity_for_user_kicked(
+        kicker_id: str, kicker_name: str, kicked_id: str, kicked_name: str, room_id: str, room_name: str) -> dict:
+    return {
+        'actor': {
+            'id': kicker_id,
+            'summary': kicker_name
+        },
+        'object': {
+            'id': kicked_id,
+            'summary': kicked_name
+        },
+        'target': {
+            'id': room_id,
+            'displayName': room_name,
+            'objectType': 'group'
+        },
+        'verb': 'kick'
     }
 
 
@@ -74,7 +110,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
         'verb': 'history',
         'target': {
             'id': activity.target.id,
-            'displayName': env.storage.get_room_name(activity.target.id)
+            'displayName': environ.env.storage.get_room_name(activity.target.id)
         }
     }
 
@@ -99,7 +135,7 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
         'verb': 'join',
         'target': {
             'id': activity.target.id,
-            'displayName': env.storage.get_room_name(activity.target.id)
+            'displayName': environ.env.storage.get_room_name(activity.target.id)
         }
     }
 
@@ -171,7 +207,15 @@ def activity_for_list_rooms(activity: Activity, rooms: list) -> dict:
 
 
 def is_user_in_room(user_id, room_id):
-    return env.storage.room_contains(room_id, user_id)
+    return environ.env.storage.room_contains(room_id, user_id)
+
+
+def set_sid_for_user_id(user_id: str, sid: str) -> None:
+    environ.env.redis.hset(rkeys.sid_for_user_id(), user_id, sid)
+
+
+def get_sid_for_user_id(user_id: str) -> str:
+    return environ.env.redis.hmget(rkeys.sid_for_user_id(), user_id)
 
 
 def activity_for_users_in_room(activity: Activity, users: list) -> dict:
@@ -219,31 +263,31 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
 
 
 def is_owner(room_id: str, user_id: str) -> bool:
-    return env.storage.room_owners_contain(room_id, user_id)
+    return environ.env.storage.room_owners_contain(room_id, user_id)
 
 
 def get_users_in_room(room_id: str) -> list:
-    return env.storage.users_in_room(room_id)
+    return environ.env.storage.users_in_room(room_id)
 
 
 def get_acls_for_room(room_id: str) -> dict:
-    return env.storage.get_acls(room_id)
+    return environ.env.storage.get_acls(room_id)
 
 
 def get_owners_for_room(room_id: str) -> dict:
-    return env.storage.get_owners(room_id)
+    return environ.env.storage.get_owners(room_id)
 
 
-def get_history_for_room(room_id: str, limit: int=10) -> list:
-    return env.storage.get_history(room_id, limit)
+def get_history_for_room(room_id: str, limit: int = 10) -> list:
+    return environ.env.storage.get_history(room_id, limit)
 
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
-    env.leave_room(room_id)
-    env.storage.leave_room(user_id, room_id)
+    environ.env.leave_room(room_id)
+    environ.env.storage.leave_room(user_id, room_id)
 
 
 def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) -> None:
-    env.storage.join_room(user_id, user_name, room_id, room_name)
-    env.join_room(room_id)
-    env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
+    environ.env.storage.join_room(user_id, user_name, room_id, room_name)
+    environ.env.join_room(room_id)
+    environ.env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))

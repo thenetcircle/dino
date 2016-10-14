@@ -1,12 +1,14 @@
 oscar:
     log_level: 'DEBUG'
     storage:
-        # mock, redis, cassandra (TODO: mysql)
+        # mock, redis, cassandra
         type: 'cassandra'
         host:
             - '127.0.0.1'
     queue:
-        # redis (TODO: rabbitmq)
+        type: 'redis'
+        host: 'redis://localhost:6379'
+    auth:
         type: 'redis'
         host: 'localhost:6379'
 
@@ -19,14 +21,19 @@ dev:
         max_history: 200
     queue:
         type: 'redis'
-        host: 'maggie-kafka-3:6379'
+        host: 'redis://maggie-kafka-3:6379'
+    auth:
+        type: 'redis'
+        host: 'localhost:6379'
 
 test:
     log_level: 'DEBUG'
     storage:
-        type: 'mock'
+        type: 'redis'
         host: 'localhost:6379'
         max_history: 200
     queue:
         type: 'redis'
-        host: 'localhost:6379'
+        host: 'redis://localhost:6379'
+    auth:
+        type: 'allowall'

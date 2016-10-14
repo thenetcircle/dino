@@ -3,10 +3,15 @@ import json
 import os
 import pkg_resources
 import logging
-from enum import Enum
+
 from logging import RootLogger
 from redis import Redis
 from typing import Union
+
+from kombu import Exchange
+from kombu import Queue
+from kombu import Connection
+from kombu.pools import producers
 
 from flask_socketio import emit as _flask_emit
 from flask_socketio import send as _flask_send
@@ -26,65 +31,9 @@ from flask import send_from_directory as _flask_send_from_directory
 from flask import render_template as _flask_render_template
 from flask import session as _flask_session
 
+from dino.config import ConfigKeys
+
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
-
-
-# TODO: session keys should be configurable, and config should also contain whether or not they're required
-class SessionKeys(Enum):
-    user_id = 'user_id'
-    user_name = 'user_name'
-    age = 'age'
-    gender = 'gender'
-    membership = 'membership'
-    group = 'group'
-    country = 'country'
-    city = 'city'
-    image = 'image'
-    has_webcam = 'has_webcam'
-    fake_checked = 'fake_checked'
-    token = 'token'
-
-    requires_session_keys = {
-        user_id,
-        user_name,
-        age,
-        gender,
-        membership,
-        country,
-        city,
-        image,
-        has_webcam,
-        fake_checked,
-        token
-    }
-
-
-class ConfigKeys(object):
-    LOG_LEVEL = 'log_level'
-    LOG_FORMAT = 'log_format'
-    DEBUG = 'debug'
-    QUEUE = 'queue'
-    TESTING = 'testing'
-    STORAGE = 'storage'
-    AUTH_SERVICE = 'auth'
-    HOST = 'host'
-    TYPE = 'type'
-    MAX_HISTORY = 'max_history'
-    STRATEGY = 'strategy'
-    REPLICATION = 'replication'
-    REDIS_AUTH_KEY = 'redis_key'
-    DB = 'db'
-
-    # will be overwritten even if specified in config file
-    ENVIRONMENT = '_environment'
-    VERSION = '_version'
-    LOGGER = '_logger'
-    REDIS = '_redis'
-    SESSION = '_session'
-
-    DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)-18s - %(levelname)-7s - %(message)s"
-    DEFAULT_LOG_LEVEL = 'INFO'
-    DEFAULT_REDIS_HOST = 'localhost'
 
 
 class ConfigDict:
@@ -121,17 +70,17 @@ class ConfigDict:
         return self.params.keys()
 
     def get(self, key, default: Union[None, object]=DefaultValue, params=None, domain=None):
-        def config_format(s, params):
+        def config_format(s, _params):
             if s is None:
                 return s
 
             if isinstance(s, list):
-                return [config_format(r, params) for r in s]
+                return [config_format(r, _params) for r in s]
 
             if isinstance(s, dict):
                 kw = dict()
                 for k, v in s.items():
-                    kw[k] = config_format(v, params)
+                    kw[k] = config_format(v, _params)
                 return kw
 
             if not isinstance(s, str):
@@ -152,10 +101,10 @@ class ConfigDict:
                     # avoid using the same reference twice
                     if sres.group() in keydb:
                         raise RuntimeError(
-                            "found circular dependency in config value '{0}' using reference '{1}'".format(
-                                s, sres.group()))
+                                "found circular dependency in config value '{0}' using reference '{1}'".format(
+                                        s, sres.group()))
                     keydb.add(sres.group())
-                    s = s.format(**params)
+                    s = s.format(**_params)
 
                 return s
             except KeyError as e:
@@ -205,6 +154,7 @@ class GNEnvironment(object):
         self.config = config
         self.storage = None
 
+        self.out_of_scope_emit = None  # needs to be set later after socketio object has been created
         self.emit = _flask_emit
         self.send = _flask_send
         self.join_room = _flask_join_room
@@ -224,6 +174,12 @@ class GNEnvironment(object):
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.session = config.get(ConfigKeys.SESSION, None)
         self.auth = config.get(ConfigKeys.AUTH_SERVICE, None)
+        self.publish = None
+        self.queue_connection = None
+        self.queue = None
+        self.exchange = None
+        self.consume_worker = None
+        self.start_consumer = None
 
         # TODO: remove this, go through storage interface
         self.redis = config.get(ConfigKeys.REDIS, None)
@@ -240,6 +196,7 @@ def create_logger(_config_dict: dict) -> RootLogger:
             level=getattr(logging, _config_dict.get(ConfigKeys.LOG_LEVEL, 'INFO')),
             format=_config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
     logging.getLogger('engineio').setLevel(logging.WARNING)
+    logging.getLogger('cassandra').setLevel(logging.WARNING)
     return logging.getLogger(__name__)
 
 
@@ -291,7 +248,7 @@ def choose_queue_instance(config_dict: dict) -> object:
     return Redis(redis_host, port=redis_port)
 
 
-def create_env(config_paths: list=None) -> GNEnvironment:
+def create_env(config_paths: list = None) -> GNEnvironment:
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
 
     # assuming tests are running
@@ -362,6 +319,7 @@ def init_storage_engine(gn_env: GNEnvironment) -> None:
         strategy = storage_engine.get(ConfigKeys.STRATEGY, None)
         replication = storage_engine.get(ConfigKeys.REPLICATION, None)
         gn_env.storage = CassandraStorage(storage_hosts, replications=replication, strategy=strategy)
+        gn_env.storage.init()
     else:
         raise RuntimeError('unknown storage engine type "%s"' % storage_type)
 
@@ -378,7 +336,7 @@ def init_auth_service(gn_env: GNEnvironment):
 
     auth_type = auth_engine.get(ConfigKeys.TYPE, None)
     if auth_type is None:
-        raise RuntimeError('no auth type specified, use "redis", "allowall" or "denyall"')
+        raise RuntimeError('no auth type specified, use one of [redis, allowall, denyall]')
 
     if auth_type == 'redis':
         from dino.auth.redis import AuthRedis
@@ -389,7 +347,39 @@ def init_auth_service(gn_env: GNEnvironment):
 
         auth_db = auth_engine.get(ConfigKeys.DB, 0)
         gn_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db)
+    elif auth_type == 'allowall':
+        from dino.auth.simple import AllowAllAuth
+        gn_env.auth = AllowAllAuth()
+    elif auth_type == 'denyall':
+        from dino.auth.simple import DenyAllAuth
+        gn_env.auth = DenyAllAuth()
+    else:
+        raise RuntimeError('unknown auth type, use one of [redis, allowall, denyall]')
+
+
+def init_pub_sub(gn_env: GNEnvironment):
+    def publish(message):
+        with producers[gn_env.queue_connection].acquire(block=True) as producer:
+            producer.publish(message, exchange=gn_env.exchange, declare=[gn_env.exchange, gn_env.queue])
+
+    def mock_publish(message):
+        pass
+
+    if gn_env.config.get(ConfigKeys.TESTING, False):
+        gn_env.publish = mock_publish
+        return
+
+    gn_env.queue_connection = Connection('redis://localhost:6379/')
+    gn_env.exchange = Exchange('node_exchange', type='direct')
+    gn_env.queue = Queue('node_queue', gn_env.exchange)
+    gn_env.publish = publish
+
+
+def initialize_env(dino_env):
+    init_storage_engine(dino_env)
+    init_auth_service(dino_env)
+    init_pub_sub(dino_env)
+
 
 env = create_env()
-init_storage_engine(env)
-init_auth_service(env)
+initialize_env(env)

@@ -1,6 +1,6 @@
 from dino import api
 from test.utils import BaseTest
-from dino.env import SessionKeys
+from dino.config import SessionKeys
 
 
 class ApiDisconnectTest(BaseTest):

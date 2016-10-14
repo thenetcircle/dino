@@ -1,5 +1,5 @@
 from dino.endpoint import sockets
-from dino.env import SessionKeys
+from dino import environ
 
 from test.utils import BaseTest
 

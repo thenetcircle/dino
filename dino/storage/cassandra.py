@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-# Copyright 2013-2016 DataStax, Inc.
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,10 +17,10 @@ from activitystreams.models.activity import Activity
 from cassandra.cluster import Cluster
 
 from dino.storage.base import IStorage
-from dino.validator import SessionKeys
-from dino.env import env
-from dino.env import ConfigKeys
+from dino import environ
 from dino.storage.cassandra_driver import Driver
+from dino.config import SessionKeys
+from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -32,18 +30,22 @@ class CassandraStorage(object):
     driver = None
     session = None
 
-    def __init__(self, hosts: list, replications=2, strategy='SimpleStrategy', key_space='dino'):
+    def __init__(self, hosts: list, replications=None, strategy=None, key_space='dino'):
         if replications is None:
             replications = 2
         if strategy is None:
             strategy = 'SimpleStrategy'
 
+        self.hosts = hosts
+        self.key_space = key_space
+        self.strategy = strategy
+        self.replications = replications
+
         CassandraStorage.validate(hosts, replications, strategy)
 
-        cluster = Cluster(hosts)
-        self.driver = Driver(cluster.connect(), key_space, strategy, replications)
-
     def init(self):
+        cluster = Cluster(self.hosts)
+        self.driver = Driver(cluster.connect(), self.key_space, self.strategy, self.replications)
         self.driver.init()
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
@@ -65,9 +67,6 @@ class CassandraStorage(object):
         rows = self.driver.acl_select(room_id)
         if rows is None or len(rows.current_rows) == 0:
             return dict()
-
-        if (len(rows.current_rows)) > 1:
-            env.logger.warning('multiple rows for ACLs for room with ID "%s", using first one' % room_id)
 
         acls = dict()
         for row in rows:
@@ -107,7 +106,7 @@ class CassandraStorage(object):
 
     def remove_current_rooms_for_user(self, user_id: str) -> None:
         rows = self.driver.rooms_select_for_user(user_id)
-        if rows is None or rows.current_rows == 0:
+        if rows is None or len(rows.current_rows) == 0:
             return
 
         for row in rows:
@@ -140,23 +139,23 @@ class CassandraStorage(object):
 
     def store_message(self, activity: Activity) -> None:
         self.driver.msg_insert(
-            activity.id,
-            activity.actor.id,
-            activity.target.id,
-            activity.object.content,
-            activity.target.object_type,
-            activity.published
+                activity.id,
+                activity.actor.id,
+                activity.target.id,
+                activity.object.content,
+                activity.target.object_type,
+                activity.published
         )
 
     def create_room(self, activity: Activity) -> None:
         self.driver.room_insert(
-            activity.target.id,
-            activity.target.display_name,
-            [activity.actor.id],
-            activity.published
+                activity.target.id,
+                activity.target.display_name,
+                [activity.actor.id],
+                activity.published
         )
 
-    def get_history(self, room_id: str, limit: int=None) -> list:
+    def get_history(self, room_id: str, limit: int = None) -> list:
         # TODO: limit
         rows = self.driver.msgs_select(room_id)
         if rows is None or len(rows.current_rows) == 0:
@@ -179,9 +178,6 @@ class CassandraStorage(object):
         current_rows = results.current_rows
         if len(current_rows) == 0:
             return ''
-        if len(current_rows) > 1:
-            env.logger.warn('get_room_name() found %s rooms with the ID %s, returning first name' %
-                            (len(current_rows), room_id))
         row = current_rows[0]
         return row.room_name
 
@@ -201,7 +197,7 @@ class CassandraStorage(object):
             })
         return users
 
-    def get_all_rooms(self, user_id: str=None) -> list:
+    def get_all_rooms(self, user_id: str = None) -> list:
         if user_id is None:
             rows = self.driver.rooms_select()
         else:
@@ -225,17 +221,13 @@ class CassandraStorage(object):
 
     def get_owners(self, room_id: str) -> list:
         rows = self.driver.room_select_owners(room_id)
-        if rows is None or len(rows.current_rows) == 0:
+        if rows is None or len(rows.current_rows) == 0 or \
+                (len(rows.current_rows) == 1 and len(rows.current_rows[0].owners) == 0):
             return list()
 
-        if len(rows.current_rows) > 1:
-            env.logger.warn('get_owners() found multiple entries (%s) for room_id %s, will use first one' %
-                            (len(rows.current_rows), room_id))
-
-        rows = rows.current_rows[0].owners
-
+        owner_rows = rows.current_rows[0].owners
         owners = list()
-        for owner in rows:
+        for owner in owner_rows:
             owners.append({
                 'user_id': owner
             })
@@ -244,14 +236,14 @@ class CassandraStorage(object):
     def room_owners_contain(self, room_id: str, user_id: str) -> bool:
         owners = self.get_owners(room_id)
         for owner in owners:
-            if owner == user_id:
+            if owner['user_id'] == user_id:
                 return True
         return False
 
     @staticmethod
     def validate(hosts, replications, strategy):
-        if env.config.get(ConfigKeys.TESTING, False):
-            raise NotImplementedError('mocking with cassandra not implemented, mock using redis storage instead')
+        if environ.env.config.get(ConfigKeys.TESTING, False):
+            return
 
         if not isinstance(replications, int):
             raise ValueError('replications is not a valid int: "%s"' % str(replications))
@@ -259,8 +251,8 @@ class CassandraStorage(object):
             raise ValueError('replications needs to be in the interval [1, 99]')
 
         if replications > len(hosts):
-            env.logger.warn('replications (%s) is higher than number of nodes in cluster (%s)' %
-                            (str(replications), len(hosts)))
+            environ.env.logger.warn('replications (%s) is higher than number of nodes in cluster (%s)' %
+                                    (str(replications), len(hosts)))
 
         if not isinstance(strategy, str):
             raise ValueError('strategy is not a valid string, but of type: "%s"' % str(type(strategy)))

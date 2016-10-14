@@ -1,9 +1,9 @@
 from activitystreams import Activity
 import re
 
+from dino import environ
 from dino import utils
-from dino.env import env
-from dino.env import SessionKeys
+from dino.config import SessionKeys
 
 
 class Validator:
@@ -81,8 +81,13 @@ class Validator:
 
     @staticmethod
     def _chars_in_list(val: str, char_list: list):
-        return Validator._is_string(val) and len(val) > 0 and \
-               len([x for x in val.split(',') if x in char_list]) == len(val.split(','))
+        if not Validator._is_string(val):
+            return False
+
+        if len(val) == 0:
+            return False
+
+        return len([x for x in val.split(',') if x in char_list]) == len(val.split(','))
 
     @staticmethod
     def _match(val: str, regex: str):
@@ -166,9 +171,11 @@ def validate_login(user_id: str, token: str) -> (bool, str):
     """
     checks whether required data was received and that it validates with community (not tampered with)
 
+    :param user_id: the id of the user
+    :param token: the token of the user to verify
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
-    is_valid, error_msg, session = env.auth.authenticate_and_populate_session(user_id, token)
+    is_valid, error_msg, session = environ.env.auth.authenticate_and_populate_session(user_id, token)
     if not is_valid:
         return False, error_msg, None
 
@@ -176,19 +183,11 @@ def validate_login(user_id: str, token: str) -> (bool, str):
     return is_valid, error_msg, session
 
 
-def validate_user_data_with_community() -> (bool, str):
-    """
-    :return: tuple(Boolean, String): (is_valid, error_message)
-    """
-    # todo: ask remote community if the user data is valid (could have been manually changed in js)
-    # env.auth_handler.auth(env.session)
-    return True, None
-
-
 def validate_session(session: dict) -> (bool, str):
     """
     validate that all required parameters were send from the client side
 
+    :param session: the session dict to validate
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
     for session_key in SessionKeys:
@@ -210,63 +209,63 @@ def validate_request(activity: Activity) -> (bool, str):
     if not hasattr(activity.actor, 'id') or activity.actor.id is None:
         return False, 'no ID on actor'
 
-    session_user_id = env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
+    session_user_id = environ.env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
     if activity.actor.id != session_user_id:
-        return False, "user_id in session '%s' doesn't match user_id in request '%s'" % \
-               (session_user_id, activity.actor.id)
+        error_msg = "user_id in session '%s' doesn't match user_id in request '%s'"
+        return False, error_msg % (session_user_id, activity.actor.id)
 
     return True, None
 
 
 def validate_acl(activity: Activity) -> (bool, str):
     room_id = activity.target.id
-    room_name = env.storage.get_room_name(room_id)
-    user_id = env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
-    user_name = env.session.get('user_name', 'NOT_FOUND_IN_SESSION')
+    room_name = environ.env.storage.get_room_name(room_id)
+    user_id = environ.env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
+    user_name = environ.env.session.get('user_name', 'NOT_FOUND_IN_SESSION')
 
     # owners can always join
     # todo: maybe not if banned? or remove owner status if banned?
     # todo: let admins always be able to join any room
     if utils.is_owner(room_id, user_id):
-        env.logger.debug('user %s (%s) is an owner of room %s (%s), skipping ACL validation' %
-                         (user_id, user_name, room_id, room_name))
+        _msg = 'user %s (%s) is an owner of room %s (%s), skipping ACL validation'
+        environ.env.logger.debug(_msg % (user_id, user_name, room_id, room_name))
         return True, None
 
-    all_acls = env.storage.get_acls(room_id)
+    all_acls = environ.env.storage.get_acls(room_id)
     if len(all_acls) == 0:
         return True, None
 
     for acl_key, acl_val in all_acls.items():
-        if acl_key not in env.session:
-            error_msg = 'Key "%s" not in session for user "%s" (%s), cannot let join "%s" (%s)' % \
-                   (acl_key, user_id, user_name, room_id, room_name)
-            env.logger.error(error_msg)
+        if acl_key not in environ.env.session:
+            error_msg = 'Key "%s" not in session for user "%s" (%s), cannot let join "%s" (%s)'
+            error_msg %= (acl_key, user_id, user_name, room_id, room_name)
+            environ.env.logger.error(error_msg)
             return False, error_msg
 
-        session_value = env.session.get(acl_key, None)
+        session_value = environ.env.session.get(acl_key, None)
         if session_value is None:
-            error_msg = 'Value for key "%s" not in session, cannot let "%s" (%s) join "%s" (%s)' % \
-                   (acl_key, user_id, user_name, room_id, room_name)
-            env.logger.error(error_msg)
+            error_msg = 'Value for key "%s" not in session, cannot let "%s" (%s) join "%s" (%s)'
+            error_msg %= (acl_key, user_id, user_name, room_id, room_name)
+            environ.env.logger.error(error_msg)
             return False, error_msg
 
         if acl_key not in Validator.ACL_MATCHERS:
-            error_msg = 'No validator for ACL type "%s", cannot let "%s" (%s) join "%s" (%s)' % \
-                        (acl_key, user_id, user_name, room_id, room_name)
-            env.logger.error(error_msg)
+            error_msg = 'No validator for ACL type "%s", cannot let "%s" (%s) join "%s" (%s)'
+            error_msg %= (acl_key, user_id, user_name, room_id, room_name)
+            environ.env.logger.error(error_msg)
             return False, error_msg
 
         validator = Validator.ACL_MATCHERS[acl_key]
         if not callable(validator):
-            error_msg = 'Validator for ACL type "%s" is not callable, cannot let "%s" (%s) join "%s" (%s)' % \
-                        (acl_key, user_id, user_name, room_id, room_name)
-            env.logger.error(error_msg)
+            error_msg = 'Validator for ACL type "%s" is not callable, cannot let "%s" (%s) join "%s" (%s)'
+            error_msg %= (acl_key, user_id, user_name, room_id, room_name)
+            environ.env.logger.error(error_msg)
             return False, error_msg
 
         if not validator(acl_val, session_value):
-            error_msg = 'Value "%s" did not validate for ACL "%s" (value "%s"), cannot let "%s" (%s) join "%s" (%s)' % \
-                   (session_value, acl_key, acl_val, user_id, user_name, room_id, room_name)
-            env.logger.info(error_msg)
+            error_msg = 'Value "%s" did not validate for ACL "%s" (value "%s"), cannot let "%s" (%s) join "%s" (%s)'
+            error_msg %= (session_value, acl_key, acl_val, user_id, user_name, room_id, room_name)
+            environ.env.logger.info(error_msg)
             return False, error_msg
 
     return True, None

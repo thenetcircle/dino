@@ -3,9 +3,9 @@ from activitystreams.models.activity import Activity
 from uuid import uuid4 as uuid
 
 from dino.storage.base import IStorage
-from dino.env import env
-from dino.env import SessionKeys
-from dino.env import ConfigKeys
+from dino import environ
+from dino.config import ConfigKeys
+from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -27,6 +27,7 @@ class RedisKeys(object):
     # REDIS_STATUS_CHAT = '2'
     REDIS_STATUS_INVISIBLE = '3'
     REDIS_STATUS_UNAVAILABLE = '4'
+
     # REDIS_STATUS_UNKNOWN = '5'
 
     @staticmethod
@@ -78,8 +79,8 @@ class RedisKeys(object):
 class StorageRedis(object):
     redis = None
 
-    def __init__(self, host: str, port: int=6379, db: int=0):
-        if env.config.get(ConfigKeys.TESTING, False):
+    def __init__(self, host: str, port: int = 6379, db: int = 0):
+        if environ.env.config.get(ConfigKeys.TESTING, False):
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
@@ -88,14 +89,14 @@ class StorageRedis(object):
 
     def store_message(self, activity: Activity) -> None:
         target = activity.target.id
-        user_name = env.session.get(SessionKeys.user_name.value)
+        user_name = environ.env.session.get(SessionKeys.user_name.value)
         msg = activity.object.content
 
         self.redis.lpush(
-            RedisKeys.room_history(target),
-            '%s,%s,%s,%s' % (activity.id, activity.published, user_name, msg))
+                RedisKeys.room_history(target),
+                '%s,%s,%s,%s' % (activity.id, activity.published, user_name, msg))
 
-        max_history = env.config.get(ConfigKeys.MAX_HISTORY, -1)
+        max_history = environ.env.config.get(ConfigKeys.MAX_HISTORY, -1)
         if max_history > 0:
             self.redis.ltrim(RedisKeys.room_history(target), 0, max_history)
 
@@ -104,7 +105,8 @@ class StorageRedis(object):
         room_id = activity.target.id
 
         self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
-        self.redis.hset(RedisKeys.room_owners(room_id), activity.actor.id, env.session.get(SessionKeys.user_name.value))
+        self.redis.hset(RedisKeys.room_owners(room_id), activity.actor.id,
+                        environ.env.session.get(SessionKeys.user_name.value))
         self.redis.hset(RedisKeys.rooms(), room_id, room_name)
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
@@ -122,7 +124,7 @@ class StorageRedis(object):
 
         return acls_cleaned
 
-    def get_history(self, room_id: str, limit: int=None):
+    def get_history(self, room_id: str, limit: int = None):
         if limit is None:
             limit = -1
 
@@ -157,7 +159,8 @@ class StorageRedis(object):
         room_name = self.redis.get(RedisKeys.room_name_for_id(room_id))
         if room_name is None:
             room_name = str(uuid())
-            env.logger.warn('WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
+            environ.env.logger.warn(
+                'WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
             self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
         else:
             room_name = room_name.decode('utf-8')
@@ -173,15 +176,32 @@ class StorageRedis(object):
         cleaned_users = list()
         for user_id, user_name in users.items():
             cleaned_users.append((
-                str(user_id.decode('utf-8')),
-                str(user_name.decode('utf-8'))
+                str(user_id, 'utf-8'),
+                str(user_name, 'utf-8')
             ))
         return cleaned_users
 
-    def get_all_rooms(self, user_id: str=None) -> dict:
+    def get_all_rooms(self, user_id: str = None) -> dict:
+        clean_rooms = list()
+
         if user_id is None:
-            return self.redis.hgetall(RedisKeys.rooms())
-        return self.redis.smembers(RedisKeys.rooms_for_user(user_id))
+            rooms = self.redis.hgetall(RedisKeys.rooms())
+            for room_id, room_name in rooms.items():
+                clean_rooms.append({
+                    'room_id': str(room_id, 'utf-8'),
+                    'room_name': str(room_name, 'utf-8'),
+                })
+
+        else:
+            rooms = self.redis.smembers(RedisKeys.rooms_for_user(user_id))
+            for room in rooms:
+                room_id, room_name = str(room, 'utf-8').split(':', 1)
+                clean_rooms.append({
+                    'room_id': room_id,
+                    'room_name': room_name,
+                })
+
+        return clean_rooms
 
     def leave_room(self, user_id: str, room_id: str) -> None:
         self.redis.hdel(RedisKeys.users_in_room(room_id), user_id)

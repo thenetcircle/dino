@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.6.3'
+version = '0.6.4'
 
 setup(
     name='dino',
@@ -36,4 +36,6 @@ setup(
         'codecov==2.0.5',
         'coverage==4.2',
         'cassandra-driver==3.7.0',
+        'kombu==3.0.37',
+        'typing==3.5.2.2',
     ])

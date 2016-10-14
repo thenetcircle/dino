@@ -1,12 +1,13 @@
-from dino.validator import Validator
-from dino.validator import validate_request
-from dino.validator import is_acl_valid
-from dino.env import SessionKeys
-
 from activitystreams import parse as as_parser
 from uuid import uuid4 as uuid
 
 from test.utils import BaseTest
+
+from dino import environ
+from dino.validator import Validator
+from dino.validator import validate_request
+from dino.validator import is_acl_valid
+from dino.config import SessionKeys
 
 
 class ValidatorIsAclValidTest(BaseTest):

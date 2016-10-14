@@ -12,11 +12,14 @@ RKEY_ROOM_ACL = 'room:acl:%s'  # room:acl:room_id
 RKEY_ROOM_OWNERS = 'room:owners:%s'  # room:owners:room_id
 RKEY_ROOM_HISTORY = 'room:history:%s'  # room:history:room_id
 RKEY_AUTH = 'user:auth:%s'  # user:auth:user_id
+RKEY_SID_TO_USER_ID = 'user:sid:map'
 
 REDIS_STATUS_AVAILABLE = '1'
 # REDIS_STATUS_CHAT = '2'
 REDIS_STATUS_INVISIBLE = '3'
 REDIS_STATUS_UNAVAILABLE = '4'
+
+
 # REDIS_STATUS_UNKNOWN = '5'
 
 
@@ -46,6 +49,10 @@ def online_set() -> str:
 
 def users_multi_cast() -> str:
     return RKEY_MULTI_CAST
+
+
+def sid_for_user_id() -> str:
+    return RKEY_SID_TO_USER_ID
 
 
 def user_status(user_id: str) -> str:

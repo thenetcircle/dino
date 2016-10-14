@@ -1,10 +1,10 @@
 from unittest import TestCase
 from uuid import uuid4 as uuid
 
+from dino import environ
 from dino.auth.redis import AuthRedis
-from dino.env import env
-from dino.env import SessionKeys
-from dino.env import ConfigKeys
+from dino.config import ConfigKeys
+from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -23,8 +23,8 @@ class TestAuthRedis(TestCase):
     TOKEN = str(uuid())
 
     def setUp(self):
-        env.session = dict()
-        env.session[ConfigKeys.TESTING] = True
+        environ.env.session = dict()
+        environ.env.session[ConfigKeys.TESTING] = True
         self.auth = AuthRedis(host='mock')
         self.session = {
             SessionKeys.user_id.value: TestAuthRedis.USER_ID,
