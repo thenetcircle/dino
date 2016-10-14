@@ -1,59 +1,19 @@
-import threading
 import time
 from datetime import datetime
 from typing import Union
 from uuid import uuid4 as uuid
 
 import activitystreams as as_parser
+from activitystreams.models.activity import Activity
 from dino import environ
 from dino import utils
 from dino import validator
-from dino.config import ConfigKeys
 from dino.config import SessionKeys
-from dino.utils.handlers import GracefulInterruptHandler
 from dino.validator import Validator
-from kombu import Connection
-from kombu.mixins import ConsumerMixin
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
-
-class Worker(ConsumerMixin):
-    def __init__(self, connection, signal_handler: GracefulInterruptHandler):
-        self.connection = connection
-        self.signal_handler = signal_handler
-
-    def get_consumers(self, consumer, channel):
-        return [consumer(queues=[environ.env.queue], callbacks=[self.process_task])]
-
-    def on_iteration(self):
-        if self.signal_handler.interrupted:
-            self.should_stop = True
-
-    def process_task(self, body, message):
-        print('got message with body "%s" and message "%s"' % (body, message))
-        message.ack()
-
-
-def consume():
-    with GracefulInterruptHandler() as interrupt_handler:
-        while True:
-            with Connection(environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)) as conn:
-                try:
-                    environ.env.consume_worker = Worker(conn, interrupt_handler)
-                    environ.env.consume_worker.run()
-                except KeyboardInterrupt:
-                    return
-
-            if interrupt_handler.interrupted or environ.env.consume_worker.should_stop:
-                return
-
-            time.sleep(1)
-
-
-if not environ.env.config.get(ConfigKeys.TESTING, False):
-    environ.env.consume_thread = threading.Thread(target=consume)
-    environ.env.consume_thread.start()
+logger = environ.env.logger
 
 
 def on_add_owner(data: dict) -> (int, Union[str, None]):
@@ -192,12 +152,35 @@ def on_message(data):
     return 200, data
 
 
+def _kick_user(activity: Activity):
+    kick_activity = {
+        'actor': {
+            'id': activity.actor.id,
+            'content': activity.actor.content
+        },
+        'verb': 'kick',
+        'object': {
+            'id': activity.object.id,
+            'content': activity.object.content
+        },
+        'target': {
+            'id': activity.target.id,
+            'displayName': activity.target.display_name
+        }
+    }
+    environ.env.publish(kick_activity)
+
+
 def on_kick(data):
     """
     kick a user from a room (if user is an owner)
 
     target.id: the uuid of the room that the user is in
-    target.displayName: the id of user to kick
+    target.displayName: the room name
+    object.id: the id of the user to kick
+    object.content: the name of the user to kick
+    actor.id: the id of the kicker
+    actor.content: the name of the kicker
 
     :param data:
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
@@ -213,12 +196,17 @@ def on_kick(data):
 
     if room_id is None or room_id.strip() == '':
         return 400, 'got blank room id, can not kick'
+
     if user_id is None or user_id.strip() == '':
         return 400, 'got blank user id, can not kick'
+
     if not environ.env.storage.room_exists(room_id):
         return 400, 'no room with id "%s" exists' % room_id
 
-    environ.env.publish('testingz')
+    if not environ.env.storage.is_owner(room_id, user_id):
+        return 400, 'only owners can kick'
+
+    _kick_user(activity)
 
     # environ.env.emit('gn_kick', utils.activity_for_kick(activity.target.id, target),
     # broadcast=True, json=True, include_self=True)

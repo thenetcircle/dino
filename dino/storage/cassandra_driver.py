@@ -374,7 +374,11 @@ class Driver(object):
         return self._execute(StatementKeys.msgs_select, to_user_id)
 
     def rooms_select(self) -> ResultSet:
-        return self._execute(StatementKeys.rooms_select)
+        try:
+            return self._execute(StatementKeys.rooms_select)
+        except Exception as e:
+            print('exception: %s' % str(e))
+        return None
 
     def room_select_name(self, room_id: str) -> ResultSet:
         return self._execute(StatementKeys.room_select_name, room_id)

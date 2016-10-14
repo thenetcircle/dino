@@ -33,7 +33,11 @@ class GracefulInterruptHandler(object):
             self.release()
             self.interrupted = True
 
-        signal.signal(self.sig, handler)
+        try:
+            signal.signal(self.sig, handler)
+        except ValueError:
+            # when testing we can't use signal, just ignore
+            pass
 
         return self
 
@@ -44,7 +48,11 @@ class GracefulInterruptHandler(object):
         if self.released:
             return False
 
-        signal.signal(self.sig, self.original_handler)
-        self.released = True
+        try:
+            signal.signal(self.sig, self.original_handler)
+        except ValueError:
+            # when testing we can't use signal, just ignore
+            pass
 
+        self.released = True
         return True

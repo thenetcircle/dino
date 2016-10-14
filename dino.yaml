@@ -29,12 +29,11 @@ dev:
 test:
     log_level: 'DEBUG'
     storage:
-        type: 'mock'
+        type: 'redis'
         host: 'localhost:6379'
         max_history: 200
     queue:
         type: 'redis'
         host: 'redis://localhost:6379'
     auth:
-        type: 'redis'
-        host: 'localhost:6379'
+        type: 'allowall'

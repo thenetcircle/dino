@@ -1,11 +1,22 @@
-from functools import wraps
+import threading
+import time
 from typing import Union
 
+import activitystreams as as_parser
+from activitystreams.exception import ActivityException
+from activitystreams.models.activity import Activity
 from dino import api
 from dino import environ
+from dino import utils
+from dino.config import ConfigKeys
 from dino.forms import LoginForm
 from dino.server import app, socketio
-from dino.config import ConfigKeys
+from dino.utils.handlers import GracefulInterruptHandler
+from functools import wraps
+from kombu import Connection
+from kombu.mixins import ConsumerMixin
+
+logger = environ.env.logger
 
 
 def respond_with(gn_event_name=None):
@@ -14,7 +25,7 @@ def respond_with(gn_event_name=None):
         def decorator(*args, **kwargs):
             status_code, data = view_func(*args, **kwargs)
             if status_code != 200:
-                environ.env.logger.info('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
+                logger.info('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
             if data is None:
                 environ.env.emit(gn_event_name, {'status_code': status_code})
             else:
@@ -23,6 +34,74 @@ def respond_with(gn_event_name=None):
         return decorator
 
     return factory
+
+
+class Worker(ConsumerMixin):
+    def __init__(self, connection, signal_handler: GracefulInterruptHandler):
+        self.connection = connection
+        self.signal_handler = signal_handler
+
+    def get_consumers(self, consumer, channel):
+        return [consumer(queues=[environ.env.queue], callbacks=[self.process_task])]
+
+    def on_iteration(self):
+        if self.signal_handler.interrupted:
+            self.should_stop = True
+
+    def process_task(self, body, message):
+        try:
+            handle_server_activity(as_parser.parse(body))
+        except (ActivityException, AttributeError) as e:
+            logger.error('could not parse server message: "%s", message was: %s' % (str(e), body))
+        message.ack()
+
+
+def handle_server_activity(activity: Activity):
+    if activity.verb == 'kick':
+        kicker_id = activity.actor.id
+        kicker_name = activity.actor.summary
+        kicked_id = activity.object.id
+        kicked_name = activity.object.content
+        kicked_sid = activity.object.summary
+        room_id = activity.target.id
+        room_name = activity.target.display_name
+
+        try:
+            socketio.server.leave_room(kicked_sid, '/chat', activity.target.id)
+        except Exception as e:
+            logger.error('could not kick user %s from room %s: %s' % (kicked_id, room_id, str(e)))
+            return
+
+        activity_json = utils.activity_for_user_kicked(
+                kicker_id, kicker_name, kicked_id, kicked_name, room_id, room_name)
+
+        environ.env.out_of_scope_emit('gn_user_kicked', activity_json, room=room_id, broadcast=True)
+    else:
+        print('unknown server activity verb "%s"' % activity.verb)
+
+
+def consume():
+    with GracefulInterruptHandler() as interrupt_handler:
+        while True:
+            with Connection(environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)) as conn:
+                try:
+                    environ.env.consume_worker = Worker(conn, interrupt_handler)
+                    environ.env.consume_worker.run()
+                except KeyboardInterrupt:
+                    return
+
+            if interrupt_handler.interrupted or environ.env.consume_worker.should_stop:
+                return
+
+            time.sleep(1)
+
+
+if not environ.env.config.get(ConfigKeys.TESTING, False):
+    # preferably "emit" should be set during env creation, but the socketio object is not created until after env is
+    environ.env.out_of_scope_emit = socketio.emit
+
+    environ.env.consume_thread = threading.Thread(target=consume)
+    environ.env.consume_thread.start()
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -90,7 +169,7 @@ def connect() -> (int, None):
     try:
         return api.on_connect()
     except Exception as e:
-        environ.env.logger.error('connect: %s' % str(e))
+        logger.error('connect: %s' % str(e))
         return 500, str(e)
 
 
@@ -100,7 +179,7 @@ def on_login(data: dict) -> (int, str):
     try:
         return api.on_login(data)
     except Exception as e:
-        environ.env.logger.error('login: %s' % str(e))
+        logger.error('login: %s' % str(e))
         return 500, str(e)
 
 
@@ -110,7 +189,7 @@ def on_message(data):
     try:
         return api.on_message(data)
     except Exception as e:
-        environ.env.logger.error('message: %s' % str(e))
+        logger.error('message: %s' % str(e))
         return 500, str(e)
 
 
@@ -120,7 +199,7 @@ def on_create(data):
     try:
         return api.on_create(data)
     except Exception as e:
-        environ.env.logger.error('create: %s' % str(e))
+        logger.error('create: %s' % str(e))
         return 500, str(e)
 
 
@@ -130,7 +209,7 @@ def on_create(data):
     try:
         return api.on_kick(data)
     except Exception as e:
-        environ.env.logger.error('kick: %s' % str(e))
+        logger.error('kick: %s' % str(e))
         return 500, str(e)
 
 
@@ -140,7 +219,7 @@ def on_set_acl(data: dict) -> (int, str):
     try:
         return api.on_set_acl(data)
     except Exception as e:
-        environ.env.logger.error('set_acl: %s' % str(e))
+        logger.error('set_acl: %s' % str(e))
         return 500, str(e)
 
 
@@ -150,7 +229,7 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
     try:
         return api.on_get_acl(data)
     except Exception as e:
-        environ.env.logger.error('get_acl: %s' % str(e))
+        logger.error('get_acl: %s' % str(e))
         return 500, str(e)
 
 
@@ -160,7 +239,7 @@ def on_status(data: dict) -> (int, Union[str, None]):
     try:
         return api.on_status(data)
     except Exception as e:
-        environ.env.logger.error('status: %s' % str(e))
+        logger.error('status: %s' % str(e))
         return 500, str(e)
 
 
@@ -170,7 +249,7 @@ def on_history(data: dict) -> (int, Union[str, None]):
     try:
         return api.on_history(data)
     except Exception as e:
-        environ.env.logger.error('history: %s' % str(e))
+        logger.error('history: %s' % str(e))
         return 500, str(e)
 
 
@@ -180,7 +259,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     try:
         return api.on_join(data)
     except Exception as e:
-        environ.env.logger.error('join: %s' % str(e))
+        logger.error('join: %s' % str(e))
         return 500, str(e)
 
 
@@ -190,7 +269,7 @@ def on_users_in_room(data: dict) -> (int, Union[dict, str]):
     try:
         return api.on_users_in_room(data)
     except Exception as e:
-        environ.env.logger.error('users_in_room: %s' % str(e))
+        logger.error('users_in_room: %s' % str(e))
         return 500, str(e)
 
 
@@ -200,7 +279,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     try:
         return api.on_list_rooms(data)
     except Exception as e:
-        environ.env.logger.error('list_rooms: %s' % str(e))
+        logger.error('list_rooms: %s' % str(e))
         return 500, str(e)
 
 
@@ -210,7 +289,7 @@ def on_leave(data: dict) -> (int, Union[str, None]):
     try:
         return api.on_leave(data)
     except Exception as e:
-        environ.env.logger.error('leave: %s' % str(e))
+        logger.error('leave: %s' % str(e))
         return 500, str(e)
 
 
@@ -220,5 +299,5 @@ def on_disconnect() -> (int, None):
     try:
         return api.on_disconnect()
     except Exception as e:
-        environ.env.logger.error('disconnect: %s' % str(e))
+        logger.error('disconnect: %s' % str(e))
         return 500, str(e)

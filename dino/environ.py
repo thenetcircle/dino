@@ -154,6 +154,7 @@ class GNEnvironment(object):
         self.config = config
         self.storage = None
 
+        self.out_of_scope_emit = None  # needs to be set later after socketio object has been created
         self.emit = _flask_emit
         self.send = _flask_send
         self.join_room = _flask_join_room

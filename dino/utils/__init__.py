@@ -51,6 +51,26 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
     }
 
 
+def activity_for_user_kicked(
+        kicker_id: str, kicker_name: str, kicked_id: str, kicked_name: str, room_id: str, room_name: str) -> dict:
+    return {
+        'actor': {
+            'id': kicker_id,
+            'summary': kicker_name
+        },
+        'object': {
+            'id': kicked_id,
+            'summary': kicked_name
+        },
+        'target': {
+            'id': room_id,
+            'displayName': room_name,
+            'objectType': 'group'
+        },
+        'verb': 'kick'
+    }
+
+
 def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
