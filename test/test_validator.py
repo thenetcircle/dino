@@ -1,17 +1,18 @@
-from dino.validator import Validator
-from dino.validator import validate_request
-from dino.validator import is_acl_valid
-from dino import environ
-
 from activitystreams import parse as as_parser
 from uuid import uuid4 as uuid
 
 from test.utils import BaseTest
 
+from dino import environ
+from dino.validator import Validator
+from dino.validator import validate_request
+from dino.validator import is_acl_valid
+from dino.config import SessionKeys
+
 
 class ValidatorIsAclValidTest(BaseTest):
     def test_is_valid(self):
-        self.assertTrue(is_acl_valid(environ.SessionKeys.gender.value, 'f'))
+        self.assertTrue(is_acl_valid(SessionKeys.gender.value, 'f'))
 
     def test_missing_is_invalid(self):
         self.assertFalse(is_acl_valid('not-found', 'f'))
@@ -63,16 +64,16 @@ class ValidatorRequestTest(BaseTest):
 
 class ValidatorAgeMatcherTest(BaseTest):
     def test_valid_no_end(self):
-        self.assertTrue(Validator.ACL_MATCHERS[environ.SessionKeys.age.value]('18:', '20'))
+        self.assertTrue(Validator.ACL_MATCHERS[SessionKeys.age.value]('18:', '20'))
 
     def test_valid_no_start(self):
-        self.assertTrue(Validator.ACL_MATCHERS[environ.SessionKeys.age.value](':25', '20'))
+        self.assertTrue(Validator.ACL_MATCHERS[SessionKeys.age.value](':25', '20'))
 
     def test_valid_no_start_or_end(self):
-        self.assertTrue(Validator.ACL_MATCHERS[environ.SessionKeys.age.value]('', '20'))
+        self.assertTrue(Validator.ACL_MATCHERS[SessionKeys.age.value]('', '20'))
 
     def test_valid_not_a_digit(self):
-        self.assertFalse(Validator.ACL_MATCHERS[environ.SessionKeys.age.value]('18:30', '?'))
+        self.assertFalse(Validator.ACL_MATCHERS[SessionKeys.age.value]('18:30', '?'))
 
 
 class ValidatorAgeTest(BaseTest):

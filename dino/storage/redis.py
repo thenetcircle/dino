@@ -4,6 +4,8 @@ from uuid import uuid4 as uuid
 
 from dino.storage.base import IStorage
 from dino import environ
+from dino.config import ConfigKeys
+from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -77,7 +79,7 @@ class StorageRedis(object):
     redis = None
 
     def __init__(self, host: str, port: int=6379, db: int=0):
-        if environ.env.config.get(environ.ConfigKeys.TESTING, False):
+        if environ.env.config.get(ConfigKeys.TESTING, False):
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
@@ -86,14 +88,14 @@ class StorageRedis(object):
 
     def store_message(self, activity: Activity) -> None:
         target = activity.target.id
-        user_name = environ.env.session.get(environ.SessionKeys.user_name.value)
+        user_name = environ.env.session.get(SessionKeys.user_name.value)
         msg = activity.object.content
 
         self.redis.lpush(
             RedisKeys.room_history(target),
             '%s,%s,%s,%s' % (activity.id, activity.published, user_name, msg))
 
-        max_history = environ.env.config.get(environ.ConfigKeys.MAX_HISTORY, -1)
+        max_history = environ.env.config.get(ConfigKeys.MAX_HISTORY, -1)
         if max_history > 0:
             self.redis.ltrim(RedisKeys.room_history(target), 0, max_history)
 
@@ -102,7 +104,7 @@ class StorageRedis(object):
         room_id = activity.target.id
 
         self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
-        self.redis.hset(RedisKeys.room_owners(room_id), activity.actor.id, environ.env.session.get(environ.SessionKeys.user_name.value))
+        self.redis.hset(RedisKeys.room_owners(room_id), activity.actor.id, environ.env.session.get(SessionKeys.user_name.value))
         self.redis.hset(RedisKeys.rooms(), room_id, room_name)
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:

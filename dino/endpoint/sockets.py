@@ -1,10 +1,11 @@
 from functools import wraps
 from typing import Union
 
-from dino.forms import LoginForm
 from dino import api
-from dino.server import app, socketio
 from dino import environ
+from dino.forms import LoginForm
+from dino.server import app, socketio
+from dino.config import ConfigKeys
 
 
 def respond_with(gn_event_name=None):
@@ -68,7 +69,7 @@ def chat():
             image=environ.env.session.get('image', ''),
             country=environ.env.session.get('country', ''),
             city=environ.env.session.get('city', ''),
-            version=environ.env.config.get(environ.ConfigKeys.VERSION))
+            version=environ.env.config.get(ConfigKeys.VERSION))
 
 
 @app.route('/js/<path:path>')

@@ -19,6 +19,8 @@ from cassandra.cluster import Cluster
 from dino.storage.base import IStorage
 from dino import environ
 from dino.storage.cassandra_driver import Driver
+from dino.config import SessionKeys
+from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -69,23 +71,23 @@ class CassandraStorage(object):
         acls = dict()
         for row in rows:
             if row.age is not None:
-                acls[environ.SessionKeys.age.value] = row.age
+                acls[SessionKeys.age.value] = row.age
             if row.gender is not None:
-                acls[environ.SessionKeys.gender.value] = row.gender
+                acls[SessionKeys.gender.value] = row.gender
             if row.membership is not None:
-                acls[environ.SessionKeys.membership.value] = row.membership
+                acls[SessionKeys.membership.value] = row.membership
             if row.group is not None:
-                acls[environ.SessionKeys.group.value] = row.group
+                acls[SessionKeys.group.value] = row.group
             if row.country is not None:
-                acls[environ.SessionKeys.country.value] = row.country
+                acls[SessionKeys.country.value] = row.country
             if row.city is not None:
-                acls[environ.SessionKeys.city.value] = row.city
+                acls[SessionKeys.city.value] = row.city
             if row.image is not None:
-                acls[environ.SessionKeys.image.value] = row.image
+                acls[SessionKeys.image.value] = row.image
             if row.has_webcam is not None:
-                acls[environ.SessionKeys.has_webcam.value] = row.has_webcam
+                acls[SessionKeys.has_webcam.value] = row.has_webcam
             if row.fake_checked is not None:
-                acls[environ.SessionKeys.fake_checked.value] = row.fake_checked
+                acls[SessionKeys.fake_checked.value] = row.fake_checked
             break
 
         return acls
@@ -240,7 +242,7 @@ class CassandraStorage(object):
 
     @staticmethod
     def validate(hosts, replications, strategy):
-        if environ.env.config.get(environ.ConfigKeys.TESTING, False):
+        if environ.env.config.get(ConfigKeys.TESTING, False):
             return
 
         if not isinstance(replications, int):

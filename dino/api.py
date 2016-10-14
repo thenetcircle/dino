@@ -11,10 +11,10 @@ from kombu import Connection
 
 from dino import utils
 from dino import validator
+from dino import environ
 from dino.validator import Validator
-from dino.environ import env
-from dino.environ import SessionKeys
-from dino.environ import ConfigKeys
+from dino.config import SessionKeys
+from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
@@ -24,7 +24,7 @@ class Worker(ConsumerMixin):
         self.connection = connection
 
     def get_consumers(self, consumer, channel):
-        return [consumer(queues=[env.queue], callbacks=[self.process_task])]
+        return [consumer(queues=[environ.env.queue], callbacks=[self.process_task])]
 
     def process_task(self, body, message):
         print('got message with body "%s" and message "%s"' % (body, message))
@@ -34,14 +34,14 @@ class Worker(ConsumerMixin):
 def consume():
     with Connection('redis://localhost:6379/') as conn:
         try:
-            env.consume_worker = Worker(conn)
-            env.consume_worker.run()
+            environ.env.consume_worker = Worker(conn)
+            environ.env.consume_worker.run()
         except KeyboardInterrupt:
             pass
 
-if not env.config.get(ConfigKeys.TESTING, False):
-    env.consume_thread = threading.Thread(target=consume)
-    env.consume_thread.run()
+if not environ.env.config.get(ConfigKeys.TESTING, False):
+    environ.env.consume_thread = threading.Thread(target=consume)
+    environ.env.consume_thread.run()
 
 
 def on_add_owner(data: dict) -> (int, Union[str, None]):
@@ -113,37 +113,37 @@ def on_login(data: dict) -> (int, Union[str, None]):
     :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
-    # todo: check env.redis if any queued notifications, then env.emit and clear?
+    # todo: check environ.env.redis if any queued notifications, then environ.env.emit and clear?
 
     activity = as_parser.parse(data)
     user_id = activity.actor.id
 
-    env.session[SessionKeys.user_id.value] = user_id
+    environ.env.session[SessionKeys.user_id.value] = user_id
 
     if activity.actor.attachments is not None:
         for attachment in activity.actor.attachments:
-            env.session[attachment.object_type] = attachment.content
+            environ.env.session[attachment.object_type] = attachment.content
 
-    if SessionKeys.token.value not in env.session:
+    if SessionKeys.token.value not in environ.env.session:
         return 400, 'no token in session'
 
-    token = env.session.get(SessionKeys.token.value)
+    token = environ.env.session.get(SessionKeys.token.value)
     is_valid, error_msg, session = validator.validate_login(user_id, token)
 
     if not is_valid:
         return 400, error_msg
 
     for session_key, session_value in session.items():
-        env.session[session_key] = session_value
+        environ.env.session[session_key] = session_value
 
     if activity.actor.image is None:
-        env.session['image_url'] = ''
-        env.session[SessionKeys.image.value] = 'n'
+        environ.env.session['image_url'] = ''
+        environ.env.session[SessionKeys.image.value] = 'n'
     else:
-        env.session['image_url'] = activity.actor.image.url
-        env.session[SessionKeys.image.value] = 'y'
+        environ.env.session['image_url'] = activity.actor.image.url
+        environ.env.session[SessionKeys.image.value] = 'y'
 
-    env.join_room(user_id)
+    environ.env.join_room(user_id)
     return 200, None
 
 
@@ -167,15 +167,15 @@ def on_message(data):
     if target is None or target == '':
         return 400, 'no target specified when sending message'
 
-    if not env.storage.room_exists(target):
+    if not environ.env.storage.room_exists(target):
         return 400, 'room %s does not exist' % target
 
-    # TODO: keep these in utils, make storage abstract, e.g. env.storage.room_contains(room_id, some_value)
+    # TODO: keep these in utils, make storage abstract, e.g. environ.env.storage.room_contains(room_id, some_value)
     if not utils.is_user_in_room(activity.actor.id, target):
         return 400, 'user not in room, not allowed to send'
 
-    env.storage.store_message(activity)
-    env.send(data, json=True, room=target, broadcast=True)
+    environ.env.storage.store_message(activity)
+    environ.env.send(data, json=True, room=target, broadcast=True)
 
     return 200, data
 
@@ -203,12 +203,12 @@ def on_kick(data):
         return 400, 'got blank room id, can not kick'
     if user_id is None or user_id.strip() == '':
         return 400, 'got blank user id, can not kick'
-    if not env.storage.room_exists(room_id):
+    if not environ.env.storage.room_exists(room_id):
         return 400, 'no room with id "%s" exists' % room_id
 
-    env.publish('testingz')
+    environ.env.publish('testingz')
 
-    # env.emit('gn_kick', utils.activity_for_kick(activity.target.id, target),
+    # environ.env.emit('gn_kick', utils.activity_for_kick(activity.target.id, target),
     # broadcast=True, json=True, include_self=True)
 
     return 200, None
@@ -233,13 +233,14 @@ def on_create(data):
     if target is None or target.strip() == '':
         return 400, 'got blank room name, can not create'
 
-    if env.storage.room_name_exists(target):
+    if environ.env.storage.room_name_exists(target):
         return 400, 'a room with that name already exists'
 
     activity.target.id = str(uuid())
-    env.storage.create_room(activity)
-    env.emit('gn_room_created', utils.activity_for_create_room(activity.target.id, target),
-             broadcast=True, json=True, include_self=True)
+    environ.env.storage.create_room(activity)
+
+    activity_json = utils.activity_for_create_room(activity.target.id, target)
+    environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
 
     return 200, data
 
@@ -274,14 +275,14 @@ def on_set_acl(data: dict) -> (int, str):
     for acl in acls:
         # if the content is None, it means we're removing this ACL
         if acl.content is None:
-            env.storage.delete_acl(room_id, acl.object_type)
+            environ.env.storage.delete_acl(room_id, acl.object_type)
             continue
 
         acl_dict[acl.object_type] = acl.content
 
     # might have only removed acls, so could be size 0
     if len(acl_dict) > 0:
-        env.storage.add_acls(room_id, acl_dict)
+        environ.env.storage.add_acls(room_id, acl_dict)
 
     return 200, None
 
@@ -295,7 +296,7 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
     """
     activity = as_parser.parse(data)
     room_id = activity.target.id
-    activity.target.display_name = env.storage.get_room_name(room_id)
+    activity.target.display_name = environ.env.storage.get_room_name(room_id)
 
     is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
@@ -326,7 +327,7 @@ def on_status(data: dict) -> (int, Union[str, None]):
 
     activity = as_parser.parse(data)
     user_id = activity.actor.id
-    user_name = env.session.get(SessionKeys.user_name.value, None)
+    user_name = environ.env.session.get(SessionKeys.user_name.value, None)
     status = activity.verb
 
     if user_name is None:
@@ -337,19 +338,19 @@ def on_status(data: dict) -> (int, Union[str, None]):
         return 400, error_msg
 
     if status == 'online':
-        env.storage.set_user_online(user_id)
-        env.emit('gn_user_connected',
-                 utils.activity_for_connect(user_id, user_name), broadcast=True, include_self=False)
+        environ.env.storage.set_user_online(user_id)
+        activity_json = utils.activity_for_connect(user_id, user_name)
+        environ.env.emit('gn_user_connected', activity_json, broadcast=True, include_self=False)
 
     elif status == 'invisible':
-        env.storage.set_user_invisible(user_id)
-        env.emit('gn_user_disconnected',
-                 utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+        environ.env.storage.set_user_invisible(user_id)
+        activity_json = utils.activity_for_disconnect(user_id, user_name)
+        environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
 
     elif status == 'offline':
-        env.storage.set_user_offline(user_id)
-        env.emit('gn_user_disconnected',
-                 utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+        environ.env.storage.set_user_offline(user_id)
+        activity_json = utils.activity_for_disconnect(user_id, user_name)
+        environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
 
     else:
         return 400, 'invalid status %s' % str(status)
@@ -416,8 +417,8 @@ def on_join(data: dict) -> (int, Union[str, None]):
     activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
-    user_name = env.session.get(SessionKeys.user_name.value)
-    image = env.session.get(SessionKeys.image.value, '')
+    user_name = environ.env.session.get(SessionKeys.user_name.value)
+    image = environ.env.session.get(SessionKeys.image.value, '')
 
     is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
@@ -427,11 +428,11 @@ def on_join(data: dict) -> (int, Union[str, None]):
     if not is_valid:
         return 400, error_msg
 
-    room_name = env.storage.get_room_name(room_id)
+    room_name = environ.env.storage.get_room_name(room_id)
     utils.join_the_room(user_id, user_name, room_id, room_name)
 
-    env.emit('gn_user_joined', utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image),
-             room=room_id, broadcast=True, include_self=False)
+    activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
+    environ.env.emit('gn_user_joined', activity_json, room=room_id, broadcast=True, include_self=False)
 
     messages = utils.get_history_for_room(room_id, 10)
     owners = utils.get_owners_for_room(room_id)
@@ -474,7 +475,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     if not is_valid:
         return 400, error_msg
 
-    all_rooms = env.storage.get_all_rooms()
+    all_rooms = environ.env.storage.get_all_rooms()
 
     rooms = list()
     for room_id, room_name in all_rooms.items():
@@ -503,14 +504,14 @@ def on_leave(data: dict) -> (int, Union[str, None]):
         return 400, 'room_id is None when trying to leave room'
 
     user_id = activity.actor.id
-    user_name = env.session.get(SessionKeys.user_name.value)
+    user_name = environ.env.session.get(SessionKeys.user_name.value)
     room_id = activity.target.id
 
-    room_name = env.storage.get_room_name(room_id)
+    room_name = environ.env.storage.get_room_name(room_id)
     utils.remove_user_from_room(user_id, user_name, room_id)
 
     activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
-    env.emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
+    environ.env.emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
 
     return 200, None
 
@@ -522,22 +523,22 @@ def on_disconnect() -> (int, None):
     :return json if ok, {'status_code': 200}
     """
     # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
-    user_id = env.session.get(SessionKeys.user_id.value, None)
-    user_name = env.session.get(SessionKeys.user_name.value, None)
+    user_id = environ.env.session.get(SessionKeys.user_id.value, None)
+    user_name = environ.env.session.get(SessionKeys.user_name.value, None)
 
     if user_id is None or user_name is None:
         return 400, 'no user in session, not connected'
 
-    env.leave_room(user_id)
-    rooms = env.storage.get_all_rooms(user_id=user_id)
+    environ.env.leave_room(user_id)
+    rooms = environ.env.storage.get_all_rooms(user_id=user_id)
 
     for room in rooms:
         room_id, room_name = room.decode('utf-8').split(':', 1)
         utils.remove_user_from_room(user_id, user_name, room_id)
-        env.send(utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
+        environ.env.send(utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
 
-    env.storage.remove_current_rooms_for_user(user_id)
-    env.storage.set_user_offline(user_id)
+    environ.env.storage.remove_current_rooms_for_user(user_id)
+    environ.env.storage.set_user_offline(user_id)
 
-    env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+    environ.env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
     return 200, None

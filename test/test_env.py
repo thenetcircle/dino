@@ -2,8 +2,8 @@ import unittest
 import os
 import tempfile
 
-from dino.env import create_env
-from dino.env import ConfigKeys
+from dino.environ import create_env
+from dino.config import ConfigKeys
 
 
 class TestEnvironment(unittest.TestCase):

@@ -3,6 +3,7 @@ import re
 
 from dino import environ
 from dino import utils
+from dino.config import SessionKeys
 
 
 class Validator:
@@ -91,7 +92,6 @@ class Validator:
     def generic_validator(expected, actual):
         return expected is None or actual in expected.split(',')
 
-    SessionKeys = environ.SessionKeys
     ACL_MATCHERS = {
         SessionKeys.age.value:
             lambda expected, actual: expected is None or Validator._age_range_validate(expected, actual),
@@ -191,10 +191,10 @@ def validate_session(session: dict) -> (bool, str):
 
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
-    for session_key in environ.SessionKeys:
+    for session_key in SessionKeys:
         key = session_key.value
 
-        if key not in environ.SessionKeys.requires_session_keys.value:
+        if key not in SessionKeys.requires_session_keys.value:
             continue
 
         if key not in session:

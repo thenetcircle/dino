@@ -2,9 +2,10 @@ import unittest
 import fakeredis
 from uuid import uuid4 as uuid
 
-from dino.env import env, ConfigKeys
+from dino import environ
 from dino import rkeys
 from dino import utils
+from dino.config import ConfigKeys
 
 from test.utils import BaseTest
 

@@ -2,6 +2,7 @@ from flask import Flask
 from flask_socketio import SocketIO
 
 from dino import environ
+from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
@@ -16,8 +17,8 @@ def create_app():
             logger=environ.env.logger,
             engineio_logger=False,
             message_queue='redis://%s' % environ.env.config.get(
-                    environ.ConfigKeys.HOST,
-                    domain=environ.ConfigKeys.QUEUE, default=''))
+                    ConfigKeys.HOST,
+                    domain=ConfigKeys.QUEUE, default=''))
 
     return app, socketio
 

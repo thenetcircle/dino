@@ -17,6 +17,8 @@ from zope.interface import implementer
 
 from dino import environ
 from dino import rkeys
+from dino.config import SessionKeys
+from dino.config import ConfigKeys
 from dino.auth.base import IAuth
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -27,7 +29,7 @@ class AuthRedis(object):
     DEFAULT_AUTH_KEY = 'user:auth:%s'
 
     def __init__(self, host: str, port: int=6379, db: int=0):
-        if environ.env.config.get(environ.ConfigKeys.TESTING, False):
+        if environ.env.config.get(ConfigKeys.TESTING, False):
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
@@ -40,7 +42,7 @@ class AuthRedis(object):
         if token is None or len(token) == 0:
             return False, 'no token supplied', None
 
-        key = environ.env.config.get(environ.ConfigKeys.REDIS_AUTH_KEY, None)
+        key = environ.env.config.get(ConfigKeys.REDIS_AUTH_KEY, None)
         if key is None:
             key = rkeys.auth_key(user_id)
         else:
@@ -51,8 +53,8 @@ class AuthRedis(object):
         if stored_session is None or len(stored_session) == 0:
             return False, 'no session found for this user id, not logged in yet', None
 
-        stored_token = stored_session.get(environ.SessionKeys.token.value)
-        supplied_token = stored_session.get(environ.SessionKeys.token.value)
+        stored_token = stored_session.get(SessionKeys.token.value)
+        supplied_token = stored_session.get(SessionKeys.token.value)
 
         if stored_token != supplied_token:
             environ.env.logger.warning('user "%s" supplied token "%s" but stored token is "%s"' %
@@ -64,7 +66,7 @@ class AuthRedis(object):
             cleaned_session[str(stored_key, 'utf-8')] = str(stored_value, 'utf-8')
 
         session = dict()
-        for session_key in environ.SessionKeys:
+        for session_key in SessionKeys:
             if not isinstance(session_key.value, str):
                 continue
 

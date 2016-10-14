@@ -1,10 +1,11 @@
 from dino import environ
+from dino.config import ConfigKeys
 
 
 class LoginForm(object):
     @staticmethod
     def create():
-        if environ.env.config.get(environ.env.ConfigKeys.TESTING):
+        if environ.env.config.get(ConfigKeys.TESTING):
             return _MockLoginForm()
         return _LoginForm()
 

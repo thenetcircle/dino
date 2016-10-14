@@ -23,15 +23,17 @@ from datetime import datetime
 import time
 
 from test.utils import BaseTest
-from dino.env import env, ConfigKeys
+
+from dino import environ
+from dino.config import ConfigKeys
 from dino.storage.cassandra import CassandraStorage
 from test.storage.fake_cassandra import FakeCassandraDriver
 
 
 class StorageMockCassandraTest(BaseTest):
     def setUp(self):
-        env.config.set(ConfigKeys.TESTING, True)
-        env.logger = logging.getLogger()
+        environ.env.config.set(ConfigKeys.TESTING, True)
+        environ.env.logger = logging.getLogger()
         logging.getLogger('cassandra').setLevel(logging.WARNING)
         self.key_space = 'testing'
         self.storage = CassandraStorage(hosts=['mock'], key_space=self.key_space)
@@ -170,35 +172,35 @@ class StorageMockCassandraTest(BaseTest):
         self.assertFalse(self.storage.room_owners_contain(BaseTest.ROOM_ID, BaseTest.OTHER_USER_ID))
 
     def test_validate_0_replications(self):
-        env.config.set(ConfigKeys.TESTING, False)
+        environ.env.config.set(ConfigKeys.TESTING, False)
         self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], 0, 'SimpleStrategy')
 
     def test_validate_negative_replications(self):
-        env.config.set(ConfigKeys.TESTING, False)
+        environ.env.config.set(ConfigKeys.TESTING, False)
         self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], -9, 'SimpleStrategy')
 
     def test_validate_too_high_replications(self):
-        env.config.set(ConfigKeys.TESTING, False)
+        environ.env.config.set(ConfigKeys.TESTING, False)
         self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], 500, 'SimpleStrategy')
 
     def test_validate_ok_params(self):
-        env.config.set(ConfigKeys.TESTING, False)
+        environ.env.config.set(ConfigKeys.TESTING, False)
         CassandraStorage.validate(['localhost'], 2, 'SimpleStrategy')
 
     def test_validate_other_strat(self):
-        env.config.set(ConfigKeys.TESTING, False)
+        environ.env.config.set(ConfigKeys.TESTING, False)
         CassandraStorage.validate(['localhost'], 2, 'NetworkTopologyStrategy')
 
     def test_validate_invalid_strat(self):
-        env.config.set(ConfigKeys.TESTING, False)
+        environ.env.config.set(ConfigKeys.TESTING, False)
         self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], 2, 'UnknownStrategy')
 
     def test_validate_invalid_rep_type(self):
-        env.config.set(ConfigKeys.TESTING, False)
+        environ.env.config.set(ConfigKeys.TESTING, False)
         self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], '2', 'UnknownStrategy')
 
     def test_validate_invalid_strat_type(self):
-        env.config.set(ConfigKeys.TESTING, False)
+        environ.env.config.set(ConfigKeys.TESTING, False)
         self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], 2, 1)
 
     def test_all_acls(self):

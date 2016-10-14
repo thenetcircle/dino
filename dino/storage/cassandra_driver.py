@@ -19,6 +19,7 @@ from zope.interface import Interface
 from zope.interface import implementer
 
 from dino import environ
+from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -343,15 +344,15 @@ class Driver(object):
         self._execute(
             StatementKeys.acl_insert,
             room_id,
-            acls.get(environ.SessionKeys.age.value, None),
-            acls.get(environ.SessionKeys.gender.value, None),
-            acls.get(environ.SessionKeys.membership.value, None),
-            acls.get(environ.SessionKeys.group.value, None),
-            acls.get(environ.SessionKeys.country.value, None),
-            acls.get(environ.SessionKeys.city.value, None),
-            acls.get(environ.SessionKeys.image.value, None),
-            acls.get(environ.SessionKeys.has_webcam.value, None),
-            acls.get(environ.SessionKeys.fake_checked.value, None)
+            acls.get(SessionKeys.age.value, None),
+            acls.get(SessionKeys.gender.value, None),
+            acls.get(SessionKeys.membership.value, None),
+            acls.get(SessionKeys.group.value, None),
+            acls.get(SessionKeys.country.value, None),
+            acls.get(SessionKeys.city.value, None),
+            acls.get(SessionKeys.image.value, None),
+            acls.get(SessionKeys.has_webcam.value, None),
+            acls.get(SessionKeys.fake_checked.value, None)
         )
 
     def acl_select(self, room_id: str) -> ResultSet:
