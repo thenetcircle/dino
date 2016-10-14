@@ -70,17 +70,17 @@ class ConfigDict:
         return self.params.keys()
 
     def get(self, key, default: Union[None, object]=DefaultValue, params=None, domain=None):
-        def config_format(s, params):
+        def config_format(s, _params):
             if s is None:
                 return s
 
             if isinstance(s, list):
-                return [config_format(r, params) for r in s]
+                return [config_format(r, _params) for r in s]
 
             if isinstance(s, dict):
                 kw = dict()
                 for k, v in s.items():
-                    kw[k] = config_format(v, params)
+                    kw[k] = config_format(v, _params)
                 return kw
 
             if not isinstance(s, str):
@@ -104,7 +104,7 @@ class ConfigDict:
                             "found circular dependency in config value '{0}' using reference '{1}'".format(
                                 s, sres.group()))
                     keydb.add(sres.group())
-                    s = s.format(**params)
+                    s = s.format(**_params)
 
                 return s
             except KeyError as e:

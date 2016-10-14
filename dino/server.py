@@ -8,11 +8,11 @@ __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 
 def create_app():
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'secret!fdsa'
+    _app = Flask(__name__)
+    _app.config['SECRET_KEY'] = 'secret!fdsa'
 
     # TODO: let the queue config contain the complete value for message_queue, so no queue can be used
-    socketio = SocketIO(
+    _socketio = SocketIO(
             app,
             logger=environ.env.logger,
             engineio_logger=False,
@@ -20,7 +20,7 @@ def create_app():
                     ConfigKeys.HOST,
                     domain=ConfigKeys.QUEUE, default=''))
 
-    return app, socketio
+    return _app, _socketio
 
 
 app, socketio = create_app()

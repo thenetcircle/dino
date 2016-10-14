@@ -37,4 +37,5 @@ setup(
         'coverage==4.2',
         'cassandra-driver==3.7.0',
         'kombu==3.0.37',
+        'typing==3.5.2.2',
     ])

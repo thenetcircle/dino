@@ -1,20 +1,18 @@
-import activitystreams as as_parser
-import time
 import threading
-
+import time
 from datetime import datetime
 from typing import Union
 from uuid import uuid4 as uuid
 
-from kombu.mixins import ConsumerMixin
-from kombu import Connection
-
+import activitystreams as as_parser
+from dino import environ
 from dino import utils
 from dino import validator
-from dino import environ
-from dino.validator import Validator
-from dino.config import SessionKeys
 from dino.config import ConfigKeys
+from dino.config import SessionKeys
+from dino.validator import Validator
+from kombu import Connection
+from kombu.mixins import ConsumerMixin
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
@@ -38,6 +36,7 @@ def consume():
             environ.env.consume_worker.run()
         except KeyboardInterrupt:
             pass
+
 
 if not environ.env.config.get(ConfigKeys.TESTING, False):
     environ.env.consume_thread = threading.Thread(target=consume)
@@ -540,5 +539,6 @@ def on_disconnect() -> (int, None):
     environ.env.storage.remove_current_rooms_for_user(user_id)
     environ.env.storage.set_user_offline(user_id)
 
-    environ.env.emit('gn_user_disconnected', utils.activity_for_disconnect(user_id, user_name), broadcast=True, include_self=False)
+    activity_json = utils.activity_for_disconnect(user_id, user_name)
+    environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
     return 200, None

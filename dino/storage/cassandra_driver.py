@@ -167,15 +167,15 @@ class Driver(object):
         self.replications = replications
 
     def init(self):
-        def create_keyspace():
+        def create_key_space():
             environ.env.logger.debug('creating keyspace...')
-            create_keyspace = self.session.prepare(
+            create_key_space_stmt = self.session.prepare(
                 """
                 CREATE KEYSPACE IF NOT EXISTS %s
                 WITH replication = {'class': '%s', 'replication_factor': '%s'}
                 """ % (self.key_space, self.strategy, str(self.replications))
             )
-            self.session.execute(create_keyspace)
+            self.session.execute(create_key_space_stmt)
             self.session.set_keyspace(self.key_space)
 
         def create_tables():
@@ -336,7 +336,7 @@ class Driver(object):
                 """
             )
 
-        create_keyspace()
+        create_key_space()
         create_tables()
         prepare_statements()
 

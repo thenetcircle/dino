@@ -166,6 +166,8 @@ def validate_login(user_id: str, token: str) -> (bool, str):
     """
     checks whether required data was received and that it validates with community (not tampered with)
 
+    :param user_id: the id of the user
+    :param token: the token of the user to verify
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
     is_valid, error_msg, session = environ.env.auth.authenticate_and_populate_session(user_id, token)
@@ -189,6 +191,7 @@ def validate_session(session: dict) -> (bool, str):
     """
     validate that all required parameters were send from the client side
 
+    :param session: the session dict to validate
     :return: tuple(Boolean, String): (is_valid, error_message)
     """
     for session_key in SessionKeys:
