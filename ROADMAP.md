@@ -11,11 +11,16 @@ A rough roadmap for possible upcoming features.
     - full message storage in cassandra (also elasticsearch in the future)
     - message storage in redis with possibility to limit how much is stored
 * acls
+    - set who can join a room
 * external authentication
+    - redis for now
 * kicking
+    - owners can kick
 * banning
+    - owners can ban from rooms, admins can ban from server (future also channel)
 
-0.8.0 
+
+0.8.0
 ---
 * whisper
     - identical to event "message", but set "verb" to "whisper" instead of "send"
@@ -37,11 +42,22 @@ A rough roadmap for possible upcoming features.
     - acl, room specs (room names, who's in a room etc.), user status, etc. stored in a rdbms (postgres?)
 * cross-group messaging
     - how to handle double actors? one actor is originating room, another is the user in that room
-* search
-    - full-text search using elasticsearch
-    - storage app listening to message topics now also stores a copy in elasticsearch (previously only to cassandra/redis)
-
+* redefine roles
+    - different kinds of roles, e.g. admin, global op, channel op, room op, room mod etc.
+    
 0.10.0
+---
+* backend admin interface
+    - for fixing things
+    - listing users in rooms
+    - list rooms in channels
+    - list channels
+    - create channels
+* invite
+    - search for online users in chats
+    - invite user from other room
+
+0.11.0
 ---
 * stats
     - messages are sent to kafka
@@ -59,7 +75,7 @@ A rough roadmap for possible upcoming features.
 * ads
     - clarify requirements (dino listens for ad pushes from some mq?)
 
-1.0.0
+FUTURE
 ---
 * kafka stream enrichment
     - nodes send certain types of events to kafka first
@@ -69,3 +85,6 @@ A rough roadmap for possible upcoming features.
     - storage not handled by nodes, but by a separate system reading from kafka
 * node redesign
     - nodes are very lightweight and robust, only routes events and publish/subscribe to kafka topics
+* search
+    - full-text search using elasticsearch
+    - storage app listening to message topics now also stores a copy in elasticsearch (previously only to cassandra/redis)

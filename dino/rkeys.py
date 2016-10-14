@@ -13,6 +13,8 @@ RKEY_ROOM_OWNERS = 'room:owners:%s'  # room:owners:room_id
 RKEY_ROOM_HISTORY = 'room:history:%s'  # room:history:room_id
 RKEY_AUTH = 'user:auth:%s'  # user:auth:user_id
 RKEY_SID_TO_USER_ID = 'user:sid:map'
+RKEY_BANNED_USERS_GLOBAL = 'users:banned'
+RKEY_BANNED_USERS_ROOM = 'users:banned:%s'  # users:banned:room_id
 
 REDIS_STATUS_AVAILABLE = '1'
 # REDIS_STATUS_CHAT = '2'
@@ -21,6 +23,12 @@ REDIS_STATUS_UNAVAILABLE = '4'
 
 
 # REDIS_STATUS_UNKNOWN = '5'
+
+
+def banned_users(room_id: str=None) -> str:
+    if room_id is None:
+        return RKEY_BANNED_USERS_GLOBAL
+    return RKEY_BANNED_USERS_ROOM % room_id
 
 
 def rooms_for_user(user_id: str) -> str:

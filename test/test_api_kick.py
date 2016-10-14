@@ -23,23 +23,16 @@ os.environ['ENVIRONMENT'] = 'test'
 from dino import environ
 from dino import api
 from dino import rkeys
+from test.utils import BaseTest
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-class ApiKickTest(TestCase):
-    OTHER_USER_ID = '8888'
-    OTHER_USER_NAME = 'pleb'
-
-    USER_ID = '5000'
-    USER_NAME = 'TheBoss'
-
-    ROOM_ID = str(uuid())
-    ROOM_NAME = 'Best Room'
-
+class ApiKickTest(BaseTest):
     def test_kick(self):
-        api._kick_user(parse(self.activity_for_kick()))
-        time.sleep(1)
+        self.create_and_join_room()
+        self.set_owner()
+        api.on_kick(self.activity_for_kick())
 
     def create_room(self, room_id: str=None, room_name: str=None):
         if room_id is None:
@@ -66,7 +59,7 @@ class ApiKickTest(TestCase):
                 'id': ApiKickTest.USER_ID,
                 'content': ApiKickTest.USER_NAME
             },
-            'verb': 'join',
+            'verb': 'kick',
             'object': {
                 'id': ApiKickTest.OTHER_USER_ID,
                 'content': ApiKickTest.OTHER_USER_NAME

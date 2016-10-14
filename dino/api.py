@@ -166,12 +166,62 @@ def _kick_user(activity: Activity):
             'summary': activity.object.summary
         },
         'target': {
-            'id': activity.target.id,
-            'displayName': activity.target.display_name,
             'url': environ.env.request.namespace
         }
     }
+
+    # when banning globally, not target room is specified
+    if activity.target is not None:
+        kick_activity['target']['id'] = activity.target.id
+        kick_activity['target']['displayName'] = activity.target.display_name
+
     environ.env.publish(kick_activity)
+
+
+def on_ban(data):
+    """
+    ban a user from a room (if user is an owner)
+
+    target.id: the uuid of the room that the user is in
+    target.displayName: the room name
+    object.id: the id of the user to kick
+    object.content: the name of the user to kick
+    object.summary: the ban time, e.g.
+    actor.id: the id of the kicker
+    actor.content: the name of the kicker
+
+    :param data:
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    activity = as_parser.parse(data)
+
+    is_valid, error_msg = validator.validate_request(activity)
+    if not is_valid:
+        return 400, error_msg
+
+    room_id = activity.target.id
+    user_id = activity.actor.id
+    kicked_id = activity.object.id
+    ban_duration = activity.object.summary
+
+    is_global_ban = room_id is None or room_id == ''
+
+    if kicked_id is None or kicked_id.strip() == '':
+        return 400, 'got blank user id, can not ban'
+
+    if not environ.env.storage.room_exists(room_id):
+        return 400, 'no room with id "%s" exists' % room_id
+
+    if not is_global_ban:
+        if not utils.is_owner(room_id, user_id):
+            return 400, 'only owners can ban'
+    elif not utils.is_admin(user_id):
+            return 400, 'only admins can do global bans'
+
+    utils.ban_user(room_id, kicked_id, ban_duration)
+    _kick_user(activity)
+
+    return 200, None
 
 
 def on_kick(data):
@@ -206,7 +256,7 @@ def on_kick(data):
     if not environ.env.storage.room_exists(room_id):
         return 400, 'no room with id "%s" exists' % room_id
 
-    if not environ.env.storage.is_owner(room_id, user_id):
+    if not utils.is_owner(room_id, user_id):
         return 400, 'only owners can kick'
 
     _kick_user(activity)

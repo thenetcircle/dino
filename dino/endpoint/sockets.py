@@ -58,6 +58,16 @@ class Worker(ConsumerMixin):
 
 
 def handle_server_activity(activity: Activity):
+    def _kick(_room_id, _user_id, _user_sid):
+        _users = socketio.server.rooms[namespace][_room_id]
+        if _user_id in _users:
+            try:
+                socketio.server.leave_room(_user_sid, '/chat', _room_id)
+            except Exception as e:
+                logger.error('could not kick user %s from room %s: %s' % (_user_id, _room_id, str(e)))
+                return
+            environ.env.out_of_scope_emit('gn_user_kicked', activity_json, room=_room_id, broadcast=True)
+
     if activity.verb == 'kick':
         kicker_id = activity.actor.id
         kicker_name = activity.actor.summary
@@ -76,15 +86,12 @@ def handle_server_activity(activity: Activity):
                 kicker_id, kicker_name, kicked_id, kicked_name, room_id, room_name)
 
         try:
-            _users = socketio.server.rooms[namespace][room_id]
-            if kicked_id in _users:
-                try:
-                    socketio.server.leave_room(kicked_sid, '/chat', activity.target.id)
-                except Exception as e:
-                    logger.error('could not kick user %s from room %s: %s' % (kicked_id, room_id, str(e)))
-                    return
-
-                environ.env.out_of_scope_emit('gn_user_kicked', activity_json, room=room_id, broadcast=True)
+            # user just got banned globally, kick from all rooms
+            if room_id is None or room_id == '':
+                for room_key in socketio.server.rooms[namespace].keys():
+                    _kick(room_key, kicked_id, kicked_sid)
+            else:
+                _kick(room_id, kicked_id, kicked_sid)
         except KeyError:
             pass
 

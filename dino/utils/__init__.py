@@ -16,6 +16,9 @@ from activitystreams import Activity
 
 from dino import environ
 from dino import rkeys
+from dino.validator import Validator
+from datetime import timedelta
+from datetime import datetime
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -262,8 +265,72 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     return response
 
 
+def ban_duration_to_timestamp(ban_duration: str) -> str:
+    if ban_duration is None or ban_duration == '':
+        raise ValueError('empty ban duration')
+
+    if not ban_duration.endswith('s') and not ban_duration.endswith('m') and not ban_duration.endswith('d'):
+        raise ValueError('invalid ban duration: %s' % ban_duration)
+
+    if ban_duration.startswith('-'):
+        raise ValueError('can not set negative ban duration: %s' % ban_duration)
+
+    if ban_duration.startswith('+'):
+        ban_duration = ban_duration[1:]
+
+    if not Validator.is_digit(ban_duration[:-1]):
+        raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
+
+    days = 0
+    seconds = 0
+    if ban_duration.endswith('d'):
+        ban_duration = ban_duration[:-1]
+        try:
+            days = int(ban_duration)
+        except ValueError as e:
+            environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
+            raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
+    elif ban_duration.endswith('m'):
+        ban_duration = ban_duration[:-1]
+        try:
+            seconds = int(ban_duration) * 60
+        except ValueError as e:
+            environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
+            raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
+    elif ban_duration.endswith('s'):
+        ban_duration = ban_duration[:-1]
+        try:
+            seconds = int(ban_duration)
+        except ValueError as e:
+            environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
+            raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
+    else:
+        raise ValueError('unknown ban duration: %s' % ban_duration)
+
+    now = datetime.now()
+    ban_time = timedelta(days=days, seconds=seconds)
+    end_date = now + ban_time
+
+    return str(int(end_date.timestamp()))
+
+
+def ban_user(room_id: str, user_id: str, ban_duration: str) -> None:
+    ban_timestamp = ban_duration_to_timestamp(ban_duration)
+    is_global_ban = room_id is None or room_id == ''
+
+    if is_global_ban:
+        environ.env.redis.hset(rkeys.banned_users(), user_id, ban_timestamp)
+    else:
+        environ.env.redis.hset(rkeys.banned_users(room_id), user_id, ban_timestamp)
+
+
 def is_owner(room_id: str, user_id: str) -> bool:
     return environ.env.storage.room_owners_contain(room_id, user_id)
+
+
+def is_admin(user_id: str) -> bool:
+    # TODO: implement
+    return False
 
 
 def get_users_in_room(room_id: str) -> list:

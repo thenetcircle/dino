@@ -52,6 +52,7 @@ class DataRequired(Form):
 
 class BaseTest(unittest.TestCase):
     OTHER_USER_ID = '8888'
+    OTHER_USER_NAME = 'pleb'
     USER_ID = '1234'
     USER_NAME = 'Joe'
     ROOM_ID = str(uuid())
@@ -119,6 +120,7 @@ class BaseTest(unittest.TestCase):
     class Request(object):
         method = 'GET'
         sid = '124'
+        namespace = '/chat'
 
     def setUp(self):
         BaseTest.users_in_room.clear()
