@@ -30,10 +30,10 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class ApiKickTest(TestCase):
     OTHER_USER_ID = '8888'
     OTHER_USER_NAME = 'pleb'
-    
+
     USER_ID = '5000'
     USER_NAME = 'TheBoss'
-    
+
     ROOM_ID = str(uuid())
     ROOM_NAME = 'Best Room'
 
