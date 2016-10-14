@@ -118,6 +118,7 @@ class BaseTest(unittest.TestCase):
 
     class Request(object):
         method = 'GET'
+        sid = '124'
 
     def setUp(self):
         BaseTest.users_in_room.clear()
@@ -142,6 +143,7 @@ class BaseTest(unittest.TestCase):
         environ.env.config.set(ConfigKeys.TESTING, True)
         environ.env.auth = AuthRedis('mock')
         environ.env.storage = StorageRedis('mock')
+        environ.env.redis = environ.env.auth.redis
 
         environ.env.auth.redis.flushall()
         environ.env.storage.redis.flushall()

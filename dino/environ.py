@@ -196,6 +196,7 @@ def create_logger(_config_dict: dict) -> RootLogger:
             level=getattr(logging, _config_dict.get(ConfigKeys.LOG_LEVEL, 'INFO')),
             format=_config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
     logging.getLogger('engineio').setLevel(logging.WARNING)
+    logging.getLogger('cassandra').setLevel(logging.WARNING)
     return logging.getLogger(__name__)
 
 
@@ -318,6 +319,7 @@ def init_storage_engine(gn_env: GNEnvironment) -> None:
         strategy = storage_engine.get(ConfigKeys.STRATEGY, None)
         replication = storage_engine.get(ConfigKeys.REPLICATION, None)
         gn_env.storage = CassandraStorage(storage_hosts, replications=replication, strategy=strategy)
+        gn_env.storage.init()
     else:
         raise RuntimeError('unknown storage engine type "%s"' % storage_type)
 

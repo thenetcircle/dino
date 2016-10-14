@@ -183,15 +183,6 @@ def validate_login(user_id: str, token: str) -> (bool, str):
     return is_valid, error_msg, session
 
 
-def validate_user_data_with_community() -> (bool, str):
-    """
-    :return: tuple(Boolean, String): (is_valid, error_message)
-    """
-    # todo: ask remote community if the user data is valid (could have been manually changed in js)
-    # environ.env.auth_handler.auth(environ.env.session)
-    return True, None
-
-
 def validate_session(session: dict) -> (bool, str):
     """
     validate that all required parameters were send from the client side

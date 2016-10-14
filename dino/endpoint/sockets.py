@@ -49,6 +49,7 @@ class Worker(ConsumerMixin):
             self.should_stop = True
 
     def process_task(self, body, message):
+        print('bod message: %s' % body)
         try:
             handle_server_activity(as_parser.parse(body))
         except (ActivityException, AttributeError) as e:
@@ -61,21 +62,32 @@ def handle_server_activity(activity: Activity):
         kicker_id = activity.actor.id
         kicker_name = activity.actor.summary
         kicked_id = activity.object.id
-        kicked_name = activity.object.content
-        kicked_sid = activity.object.summary
+        kicked_name = activity.object.summary
+        kicked_sid = utils.get_sid_for_user_id(activity.object.id)
         room_id = activity.target.id
         room_name = activity.target.display_name
+        namespace = activity.target.url
 
-        try:
-            socketio.server.leave_room(kicked_sid, '/chat', activity.target.id)
-        except Exception as e:
-            logger.error('could not kick user %s from room %s: %s' % (kicked_id, room_id, str(e)))
+        if kicked_sid is None or kicked_sid == '':
+            logger.info('no sid found for user id %s' % kicked_id)
             return
 
         activity_json = utils.activity_for_user_kicked(
                 kicker_id, kicker_name, kicked_id, kicked_name, room_id, room_name)
 
-        environ.env.out_of_scope_emit('gn_user_kicked', activity_json, room=room_id, broadcast=True)
+        try:
+            _users = socketio.server.rooms[namespace][room_id]
+            if kicked_id in _users:
+                try:
+                    socketio.server.leave_room(kicked_sid, '/chat', activity.target.id)
+                except Exception as e:
+                    logger.error('could not kick user %s from room %s: %s' % (kicked_id, room_id, str(e)))
+                    return
+
+                environ.env.out_of_scope_emit('gn_user_kicked', activity_json, room=room_id, broadcast=True)
+        except KeyError:
+            pass
+
     else:
         print('unknown server activity verb "%s"' % activity.verb)
 

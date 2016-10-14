@@ -15,6 +15,7 @@
 from activitystreams import Activity
 
 from dino import environ
+from dino import rkeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -207,6 +208,14 @@ def activity_for_list_rooms(activity: Activity, rooms: list) -> dict:
 
 def is_user_in_room(user_id, room_id):
     return environ.env.storage.room_contains(room_id, user_id)
+
+
+def set_sid_for_user_id(user_id: str, sid: str) -> None:
+    environ.env.redis.hset(rkeys.sid_for_user_id(), user_id, sid)
+
+
+def get_sid_for_user_id(user_id: str) -> str:
+    return environ.env.redis.hmget(rkeys.sid_for_user_id(), user_id)
 
 
 def activity_for_users_in_room(activity: Activity, users: list) -> dict:

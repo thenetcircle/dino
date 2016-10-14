@@ -115,6 +115,8 @@ def on_login(data: dict) -> (int, Union[str, None]):
         environ.env.session['image_url'] = activity.actor.image.url
         environ.env.session[SessionKeys.image.value] = 'y'
 
+    utils.set_sid_for_user_id(user_id, environ.env.request.sid)
+
     environ.env.join_room(user_id)
     return 200, None
 
@@ -156,16 +158,17 @@ def _kick_user(activity: Activity):
     kick_activity = {
         'actor': {
             'id': activity.actor.id,
-            'content': activity.actor.content
+            'summary': activity.actor.summary
         },
         'verb': 'kick',
         'object': {
             'id': activity.object.id,
-            'content': activity.object.content
+            'summary': activity.object.summary
         },
         'target': {
             'id': activity.target.id,
-            'displayName': activity.target.display_name
+            'displayName': activity.target.display_name,
+            'url': environ.env.request.namespace
         }
     }
     environ.env.publish(kick_activity)
@@ -207,9 +210,6 @@ def on_kick(data):
         return 400, 'only owners can kick'
 
     _kick_user(activity)
-
-    # environ.env.emit('gn_kick', utils.activity_for_kick(activity.target.id, target),
-    # broadcast=True, json=True, include_self=True)
 
     return 200, None
 
@@ -478,9 +478,8 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     all_rooms = environ.env.storage.get_all_rooms()
 
     rooms = list()
-    for room_id, room_name in all_rooms.items():
-        # TODO: clean in storage engine
-        rooms.append((str(room_id, 'utf-8'), str(room_name, 'utf-8')))
+    for room in all_rooms:
+        rooms.append((room['room_id'], room['room_name']))
 
     return 200, utils.activity_for_list_rooms(activity, rooms)
 
@@ -533,7 +532,7 @@ def on_disconnect() -> (int, None):
     rooms = environ.env.storage.get_all_rooms(user_id=user_id)
 
     for room in rooms:
-        room_id, room_name = room.decode('utf-8').split(':', 1)
+        room_id, room_name = room['room_id'], room['room_name']
         utils.remove_user_from_room(user_id, user_name, room_id)
         environ.env.send(utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
 

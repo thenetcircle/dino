@@ -176,15 +176,32 @@ class StorageRedis(object):
         cleaned_users = list()
         for user_id, user_name in users.items():
             cleaned_users.append((
-                str(user_id.decode('utf-8')),
-                str(user_name.decode('utf-8'))
+                str(user_id, 'utf-8'),
+                str(user_name, 'utf-8')
             ))
         return cleaned_users
 
     def get_all_rooms(self, user_id: str = None) -> dict:
+        clean_rooms = list()
+
         if user_id is None:
-            return self.redis.hgetall(RedisKeys.rooms())
-        return self.redis.smembers(RedisKeys.rooms_for_user(user_id))
+            rooms = self.redis.hgetall(RedisKeys.rooms())
+            for room_id, room_name in rooms.items():
+                clean_rooms.append({
+                    'room_id': str(room_id, 'utf-8'),
+                    'room_name': str(room_name, 'utf-8'),
+                })
+
+        else:
+            rooms = self.redis.smembers(RedisKeys.rooms_for_user(user_id))
+            for room in rooms:
+                room_id, room_name = str(room, 'utf-8').split(':', 1)
+                clean_rooms.append({
+                    'room_id': room_id,
+                    'room_name': room_name,
+                })
+
+        return clean_rooms
 
     def leave_room(self, user_id: str, room_id: str) -> None:
         self.redis.hdel(RedisKeys.users_in_room(room_id), user_id)
