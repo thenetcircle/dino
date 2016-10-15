@@ -27,6 +27,7 @@ dev:
         host: 'localhost:6379'
 
 test:
+    testing: True
     log_level: 'DEBUG'
     storage:
         type: 'redis'
