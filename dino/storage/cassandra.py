@@ -48,107 +48,20 @@ class CassandraStorage(object):
         self.driver = Driver(cluster.connect(), self.key_space, self.strategy, self.replications)
         self.driver.init()
 
-    def delete_acl(self, room_id: str, acl_type: str) -> None:
-        current_acls = self.get_acls(room_id)
-
-        if acl_type in current_acls:
-            del current_acls[acl_type]
-            self.driver.acl_insert(room_id, current_acls)
-
-    def add_acls(self, room_id: str, acls: dict) -> None:
-        current_acls = self.get_acls(room_id)
-
-        for acl_type, acl_value in acls.items():
-            current_acls[acl_type] = acl_value
-
-        self.driver.acl_insert(room_id, current_acls)
-
-    def get_acls(self, room_id: str) -> dict:
-        rows = self.driver.acl_select(room_id)
-        if rows is None or len(rows.current_rows) == 0:
-            return dict()
-
-        acls = dict()
-        for row in rows:
-            if row.age is not None:
-                acls[SessionKeys.age.value] = row.age
-            if row.gender is not None:
-                acls[SessionKeys.gender.value] = row.gender
-            if row.membership is not None:
-                acls[SessionKeys.membership.value] = row.membership
-            if row.group is not None:
-                acls[SessionKeys.group.value] = row.group
-            if row.country is not None:
-                acls[SessionKeys.country.value] = row.country
-            if row.city is not None:
-                acls[SessionKeys.city.value] = row.city
-            if row.image is not None:
-                acls[SessionKeys.image.value] = row.image
-            if row.has_webcam is not None:
-                acls[SessionKeys.has_webcam.value] = row.has_webcam
-            if row.fake_checked is not None:
-                acls[SessionKeys.fake_checked.value] = row.fake_checked
-            break
-
-        return acls
-
-    def set_user_offline(self, user_id: str) -> None:
-        # TODO
-        pass
-
-    def set_user_online(self, user_id: str) -> None:
-        # TODO
-        pass
-
-    def set_user_invisible(self, user_id: str) -> None:
-        # TODO
-        pass
-
-    def remove_current_rooms_for_user(self, user_id: str) -> None:
-        rows = self.driver.rooms_select_for_user(user_id)
-        if rows is None or len(rows.current_rows) == 0:
-            return
-
-        for row in rows:
-            self.leave_room(user_id, row.room_id)
-
-    def room_exists(self, room_id: str) -> bool:
-        rows = self.driver.room_select_name(room_id)
-        return rows is not None and len(rows.current_rows) > 0
-
-    def room_name_exists(self, room_name: str) -> bool:
-        rows = self.driver.rooms_select()
-        if rows is None or len(rows.current_rows) == 0:
-            return False
-
-        names = set()
-        for row in rows:
-            names.add(row.room_name)
-
-        return room_name in names
-
-    def room_contains(self, room_id: str, user_id: str) -> bool:
-        rows = self.driver.room_select_users(room_id)
-        if rows is None or len(rows.current_rows) == 0:
-            return False
-
-        for row in rows:
-            if row.user_id == user_id:
-                return True
-        return False
-
     def store_message(self, activity: Activity) -> None:
         self.driver.msg_insert(
-                activity.id,
-                activity.actor.id,
-                activity.target.id,
-                activity.object.content,
-                activity.target.object_type,
-                activity.published
+                msg_id=activity.id,
+                from_user=activity.actor.id,
+                to_user=activity.target.id,
+                body=activity.object.content,
+                domain=activity.target.object_type,
+                timestamp=activity.published,
+                channel_id=activity.object.url,
+                deleted=False
         )
 
     def delete_message(self, room_id: str, message_id: str):
-        self.driver.msg_select(message_id)
+        self.driver.msg_delete(message_id)
 
     def create_room(self, activity: Activity) -> None:
         self.driver.room_insert(
@@ -166,12 +79,16 @@ class CassandraStorage(object):
 
         msgs = list()
         for row in rows:
+            if row.deleted:
+                continue
+
             msgs.append({
                 'message_id': row.message_id,
                 'from_user': row.from_user,
                 'to_user': row.to_user,
                 'body': row.body,
                 'domain': row.domain,
+                'channel_id': row.channel_id,
                 'timestamp': row.sent_time
             })
         return msgs

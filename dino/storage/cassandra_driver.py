@@ -90,7 +90,7 @@ class IDriver(Interface):
         :return: the message, if found
         """
 
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> None:
+    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=False) -> None:
         """
         store a new message
 
@@ -100,6 +100,8 @@ class IDriver(Interface):
         :param body: the message text
         :param domain: private/group
         :param timestamp: published timestamp
+        :param channel_id: the channel of the room
+        :param deleted: if the message is deleted or not
         :return: nothing
         """
 
@@ -409,7 +411,7 @@ class Driver(object):
     def msgs_select(self, to_user_id: str) -> ResultSet:
         return self._execute(StatementKeys.msgs_select, to_user_id)
 
-    def msg_select(self, message_id: str) -> ResultSet:
+    def msg_delete(self, message_id: str) -> ResultSet:
         """
         We're doing three queries here, one to get primary index of messages table from message_id, then getting the
         complete row from messages table, and finally updating that row. This could be lowered to two queries by
@@ -431,7 +433,8 @@ class Driver(object):
         message_row = message_rows.current_rows[0]
         body = message_row.body
         domain = message_row.domain
-        self.msg_insert(message_id, from_user, to_user, body, domain, timestamp, deleted=True)
+        channel_id = message_row.channel_id
+        self.msg_insert(message_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=True)
 
     def rooms_select(self) -> ResultSet:
         return self._execute(StatementKeys.rooms_select)

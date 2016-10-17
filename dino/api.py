@@ -380,7 +380,7 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
     """
     activity = as_parser.parse(data)
     room_id = activity.target.id
-    activity.target.display_name = environ.env.storage.get_room_name(room_id)
+    activity.target.display_name = utils.get_room_name(room_id)
 
     is_valid, error_msg = validator.validate_request(activity)
     if not is_valid:
@@ -516,7 +516,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     if is_banned:
         return 400, 'user is banned from joining room for: %ss' % duration
 
-    room_name = environ.env.storage.get_room_name(room_id)
+    room_name = utils.get_room_name(room_id)
     utils.join_the_room(user_id, user_name, room_id, room_name)
 
     activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
@@ -545,7 +545,6 @@ def on_users_in_room(data: dict) -> (int, Union[dict, str]):
         return 400, error_msg
 
     users = utils.get_users_in_room(room_id)
-
     return 200, utils.activity_for_users_in_room(activity, users)
 
 
@@ -609,7 +608,7 @@ def on_leave(data: dict) -> (int, Union[str, None]):
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     room_id = activity.target.id
 
-    room_name = environ.env.storage.get_room_name(room_id)
+    room_name = utils.get_room_name(room_id)
     utils.remove_user_from_room(user_id, user_name, room_id)
 
     activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)

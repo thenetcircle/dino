@@ -14,6 +14,7 @@
 
 from zope.interface import implementer
 from activitystreams.models.activity import Activity
+from uuid import uuid4 as uuid
 
 from dino.db import IDatabase
 from dino.config import ConfigKeys
@@ -73,6 +74,9 @@ class DatabaseRedis(object):
             return False
         return self.redis.hexists(RedisKeys.channels(), channel_id)
 
+    def room_contains(self, room_id: str, user_id: str) -> bool:
+        return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
+
     def room_owners_contain(self, room_id, user_id) -> bool:
         if room_id is None or room_id == '':
             return False
@@ -80,6 +84,17 @@ class DatabaseRedis(object):
             return False
 
         return self.redis.hexists(RedisKeys.room_owners(room_id), user_id)
+
+    def users_in_room(self, room_id: str) -> dict:
+        users = self.redis.hgetall(RedisKeys.users_in_room(room_id))
+        cleaned_users = dict()
+        for user_id, user_name in users.items():
+            cleaned_users[str(user_id, 'utf-8')] = str(user_name, 'utf-8')
+        return cleaned_users
+
+    def leave_room(self, user_id: str, room_id: str) -> None:
+        self.redis.hdel(RedisKeys.users_in_room(room_id), user_id)
+        self.redis.srem(RedisKeys.rooms_for_user(user_id), room_id)
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
         self.redis.hdel(RedisKeys.room_acl(room_id), acl_type)
@@ -105,8 +120,32 @@ class DatabaseRedis(object):
             clean_rooms[room_id] = room_name
         return clean_rooms
 
+    def get_owners(self, room_id: str) -> dict:
+        owners = self.redis.hgetall(RedisKeys.room_owners(room_id))
+
+        cleaned = dict()
+        for user_id, user_name in owners.items():
+            cleaned[str(user_id, 'utf-8')] = str(user_name, 'utf-8')
+
+        return cleaned
+
     def remove_current_rooms_for_user(self, user_id: str) -> None:
         self.redis.delete(RedisKeys.rooms_for_user(user_id))
+
+    def get_room_name(self, room_id: str) -> str:
+        room_name = self.redis.get(RedisKeys.room_name_for_id(room_id))
+        if room_name is None:
+            room_name = str(uuid())
+            environ.env.logger.warn(
+                'WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
+            self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
+        else:
+            room_name = room_name.decode('utf-8')
+        return room_name
+
+    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
+        self.redis.sadd(RedisKeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
+        self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)
 
     def create_room(self, activity: Activity) -> None:
         room_name = activity.target.display_name

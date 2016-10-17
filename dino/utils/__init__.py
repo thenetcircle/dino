@@ -124,7 +124,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
         'verb': 'history',
         'target': {
             'id': activity.target.id,
-            'displayName': environ.env.storage.get_room_name(activity.target.id)
+            'displayName': get_room_name(activity.target.id)
         }
     }
 
@@ -140,7 +140,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
     return response
 
 
-def activity_for_join(activity: Activity, acls: dict, messages: list, owners: dict, users: list) -> dict:
+def activity_for_join(activity: Activity, acls: dict, messages: list, owners: dict, users: dict) -> dict:
     response = {
         'object': {
             'objectType': 'room',
@@ -149,7 +149,7 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
         'verb': 'join',
         'target': {
             'id': activity.target.id,
-            'displayName': environ.env.storage.get_room_name(activity.target.id)
+            'displayName': get_room_name(activity.target.id)
         }
     }
 
@@ -240,7 +240,7 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
 
 
 def is_user_in_room(user_id, room_id):
-    return environ.env.storage.room_contains(room_id, user_id)
+    return environ.env.db.room_contains(room_id, user_id)
 
 
 def set_sid_for_user_id(user_id: str, sid: str) -> None:
@@ -251,7 +251,7 @@ def get_sid_for_user_id(user_id: str) -> str:
     return environ.env.redis.hmget(rkeys.sid_for_user_id(), user_id)
 
 
-def activity_for_users_in_room(activity: Activity, users: list) -> dict:
+def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     response = {
         'target': {
             'id': activity.target.id,
@@ -264,7 +264,7 @@ def activity_for_users_in_room(activity: Activity, users: list) -> dict:
     }
 
     response['object']['attachments'] = list()
-    for user_id, user_name in users:
+    for user_id, user_name in users.items():
         response['object']['attachments'].append({
             'id': user_id,
             'content': user_name
@@ -389,8 +389,8 @@ def is_admin(user_id: str) -> bool:
     return environ.env.db.is_admin(user_id)
 
 
-def get_users_in_room(room_id: str) -> list:
-    return environ.env.storage.users_in_room(room_id)
+def get_users_in_room(room_id: str) -> dict:
+    return environ.env.db.users_in_room(room_id)
 
 
 def get_acls_for_room(room_id: str) -> dict:
@@ -398,11 +398,15 @@ def get_acls_for_room(room_id: str) -> dict:
 
 
 def get_owners_for_room(room_id: str) -> dict:
-    return environ.env.storage.get_owners(room_id)
+    return environ.env.db.get_owners(room_id)
 
 
 def channel_exists(channel_id: str) -> bool:
     return environ.env.db.channel_exists(channel_id)
+
+
+def get_room_name(room_id: str) -> str:
+    return environ.env.db.get_room_name(room_id)
 
 
 def room_exists(channel_id: str, room_id: str) -> bool:
@@ -415,10 +419,10 @@ def get_history_for_room(room_id: str, limit: int = 10) -> list:
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
     environ.env.leave_room(room_id)
-    environ.env.storage.leave_room(user_id, room_id)
+    environ.env.db.leave_room(user_id, room_id)
 
 
 def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) -> None:
-    environ.env.storage.join_room(user_id, user_name, room_id, room_name)
+    environ.env.db.join_room(user_id, user_name, room_id, room_name)
     environ.env.join_room(room_id)
     environ.env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))

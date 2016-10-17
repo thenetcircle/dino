@@ -219,7 +219,7 @@ def validate_request(activity: Activity) -> (bool, str):
 
 def validate_acl(activity: Activity) -> (bool, str):
     room_id = activity.target.id
-    room_name = environ.env.storage.get_room_name(room_id)
+    room_name = utils.get_room_name(room_id)
     user_id = environ.env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
     user_name = environ.env.session.get('user_name', 'NOT_FOUND_IN_SESSION')
 

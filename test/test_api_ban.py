@@ -28,8 +28,6 @@ class ApiBanTest(BaseTest):
         self.create_and_join_room()
         self.set_owner()
         response_code, messgae = api.on_ban(self.activity_for_ban())
-        from pprint import pprint
-        pprint(messgae)
         self.assertEqual(200, response_code)
 
     def create_room(self, room_id: str=None, room_name: str=None):

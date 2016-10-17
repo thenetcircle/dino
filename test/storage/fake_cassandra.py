@@ -82,10 +82,10 @@ class FakeCassandraDriver(object):
         rows.append(row)
         return FakeResultSet(rows)
 
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> None:
+    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=False) -> None:
         if to_user not in self.msgs_to_user:
             self.msgs_to_user[to_user] = list()
-        self.msgs_to_user[to_user].append((msg_id, from_user, to_user, body, domain, timestamp))
+        self.msgs_to_user[to_user].append((msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted))
 
     def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> None:
         self.rooms[room_id] = (room_id, room_name, owners, timestamp)
@@ -95,7 +95,7 @@ class FakeCassandraDriver(object):
     def msgs_select(self, to_user_id: str) -> ResultSet:
         msgs = self.msgs_to_user.get(to_user_id, list())
         rows = list()
-        for msg_id, from_user, to_user, body, domain, timestamp in msgs:
+        for msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted in msgs:
             row = FakeResultSet.FakeRow()
             row.message_id = msg_id
             row.from_user = from_user
@@ -103,6 +103,8 @@ class FakeCassandraDriver(object):
             row.body = body
             row.domain = domain
             row.timestamp = timestamp
+            row.channel_id = channel_id
+            row.deleted = deleted
             rows.append(row)
         return FakeResultSet(rows)
 

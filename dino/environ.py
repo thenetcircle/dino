@@ -174,6 +174,7 @@ class GNEnvironment(object):
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.session = config.get(ConfigKeys.SESSION, None)
         self.auth = config.get(ConfigKeys.AUTH_SERVICE, None)
+        self.db = None
         self.publish = None
         self.queue_connection = None
         self.queue = None
