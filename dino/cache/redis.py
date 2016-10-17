@@ -12,18 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from zope.interface import Interface
-from typing import Union
+from zope.interface import implementer
+
+from dino.cache import ICache
+from dino.config import ConfigKeys
+from dino import environ
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-class IAuth(Interface):
-    def authenticate_and_populate_session(self, user_id: str, token: str) -> (bool, Union[None, str], Union[None, dict]):
-        """
-        authenticates a user with a token
+@implementer(ICache)
+class CacheRedis(object):
+    redis = None
 
-        :param user_id: the user id
-        :param token: the token for the login
-        :return: if success: (True, None, <dict with session values>), if failure: (False, <error string>, None)
-        """
+    def __init__(self, host: str, port: int = 6379, db: int = 0):
+        if environ.env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
+            from fakeredis import FakeStrictRedis as Redis
+        else:
+            from redis import Redis
+
+        self.redis = Redis(host=host, port=port, db=db)

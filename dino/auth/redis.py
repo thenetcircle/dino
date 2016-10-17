@@ -19,7 +19,7 @@ from dino import environ
 from dino.config import SessionKeys
 from dino.config import ConfigKeys
 from dino.config import RedisKeys
-from dino.auth.base import IAuth
+from dino.auth import IAuth
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 

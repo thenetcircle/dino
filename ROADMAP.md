@@ -33,7 +33,7 @@ A rough roadmap for possible upcoming features.
     - only store messages in cassandra
     - acl, room specs (room names, who's in a room etc.), user status, etc. stored in a rdbms (postgres?)
 * caching
-    - specify which cache to use for som db operations
+    - specify which cache to use for some db operations
 
 0.9.0
 ---

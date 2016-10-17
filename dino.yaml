@@ -17,9 +17,12 @@ oscar:
         type: 'redis'
         host: 'localhost:6379'
         db: 0
+    cache:
+        type: 'redis'
+        host: 'localhost:6379'
+        db: 3
 
 dev:
-    redis:
     log_level: 'DEBUG'
     database:
         type: 'redis'
@@ -42,12 +45,18 @@ dev:
 test:
     testing: True
     log_level: 'DEBUG'
+    database:
+        type: 'redis'
+        host: 'maggie-kafka-3:6379'
+        db: 1
     storage:
         type: 'mock'
         host: 'localhost:6379'
+        db: 0
         max_history: 200
     queue:
         type: 'mock'
         host: 'redis://localhost:6379'
+        db: 2
     auth:
         type: 'allowall'

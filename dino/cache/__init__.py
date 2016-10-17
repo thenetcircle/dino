@@ -13,17 +13,9 @@
 # limitations under the License.
 
 from zope.interface import Interface
-from typing import Union
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-class IAuth(Interface):
-    def authenticate_and_populate_session(self, user_id: str, token: str) -> (bool, Union[None, str], Union[None, dict]):
-        """
-        authenticates a user with a token
-
-        :param user_id: the user id
-        :param token: the token for the login
-        :return: if success: (True, None, <dict with session values>), if failure: (False, <error string>, None)
-        """
+class ICache(Interface):
+    pass

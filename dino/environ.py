@@ -388,6 +388,39 @@ def init_auth_service(gn_env: GNEnvironment):
         raise RuntimeError('unknown auth type, use one of [redis, allowall, denyall]')
 
 
+def init_cache_service(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    cache_engine = gn_env.config.get(ConfigKeys.CACHE_SERVICE, None)
+
+    if cache_engine is None:
+        raise RuntimeError('no cache service specified')
+
+    cache_type = cache_engine.get(ConfigKeys.TYPE, None)
+    if cache_type is None:
+        raise RuntimeError('no cache type specified, use one of [redis, allowall, denyall]')
+
+    if cache_type == 'redis':
+        from dino.cache.redis import CacheRedis
+
+        cache_host, cache_port = cache_engine.get(ConfigKeys.HOST), None
+        if ':' in cache_host:
+            cache_host, cache_port = cache_host.split(':', 1)
+
+        cache_db = cache_engine.get(ConfigKeys.DB, 0)
+        gn_env.cache = CacheRedis(host=cache_host, port=cache_port, db=cache_db)
+    elif cache_type == 'memory':
+        from dino.cache.redis import CacheRedis
+        gn_env.cache = CacheRedis(host='mock')
+    elif cache_type == 'none':
+        from dino.cache.miss import CacheAllMiss
+        gn_env.cache = CacheAllMiss()
+    else:
+        raise RuntimeError('unknown cache type, use one of [redis, mock, none]')
+    
+
 def init_pub_sub(gn_env: GNEnvironment):
     def publish(message):
         with producers[gn_env.queue_connection].acquire(block=True) as producer:
@@ -410,6 +443,7 @@ def initialize_env(dino_env):
     init_storage_engine(dino_env)
     init_database(dino_env)
     init_auth_service(dino_env)
+    init_cache_service(dino_env)
     init_pub_sub(dino_env)
 
 

@@ -15,7 +15,7 @@
 from zope.interface import implementer
 from typing import Union
 
-from dino.auth.base import IAuth
+from dino.auth import IAuth
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 

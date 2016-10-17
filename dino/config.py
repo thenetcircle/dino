@@ -47,6 +47,7 @@ class ConfigKeys(object):
     TESTING = 'testing'
     STORAGE = 'storage'
     AUTH_SERVICE = 'auth'
+    CACHE_SERVICE = 'cache'
     HOST = 'host'
     TYPE = 'type'
     MAX_HISTORY = 'max_history'
