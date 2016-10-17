@@ -72,21 +72,6 @@ class StorageRedis(object):
                         environ.env.session.get(SessionKeys.user_name.value))
         self.redis.hset(RedisKeys.rooms(), room_id, room_name)
 
-    def delete_acl(self, room_id: str, acl_type: str) -> None:
-        self.redis.hdel(RedisKeys.room_acl(room_id), acl_type)
-
-    def add_acls(self, room_id: str, acls: dict) -> None:
-        self.redis.hmset(RedisKeys.room_acl(room_id), acls)
-
-    def get_acls(self, room_id: str) -> list:
-        acls = self.redis.hgetall(RedisKeys.room_acl(room_id))
-        acls_cleaned = dict()
-
-        for acl_type, acl_value in acls.items():
-            acls_cleaned[str(acl_type, 'utf-8')] = str(acl_value, 'utf-8')
-
-        return acls_cleaned
-
     def get_history(self, room_id: str, limit: int = None):
         if limit is None:
             limit = -1
@@ -169,9 +154,6 @@ class StorageRedis(object):
     def leave_room(self, user_id: str, room_id: str) -> None:
         self.redis.hdel(RedisKeys.users_in_room(room_id), user_id)
         self.redis.srem(RedisKeys.rooms_for_user(user_id), room_id)
-
-    def remove_current_rooms_for_user(self, user_id: str) -> None:
-        self.redis.delete(RedisKeys.rooms_for_user(user_id))
 
     def room_exists(self, room_id: str) -> bool:
         return self.redis.hexists(RedisKeys.rooms(), room_id)

@@ -97,11 +97,19 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     }
 
 
-def activity_for_create_room(room_id: str, room_name: str) -> dict:
+def activity_for_create_room(activity: Activity) -> dict:
     return {
+        'actor': {
+            'id': activity.actor.id,
+            'content': activity.actor.content
+        },
+        'object': {
+            'id': activity.object.id,
+            'content': activity.object.content
+        },
         'target': {
-            'id': room_id,
-            'displayName': room_name
+            'id': activity.target.id,
+            'displayName': activity.target.display_name
         },
         'verb': 'create'
     }
@@ -193,16 +201,35 @@ def activity_for_owners(activity: Activity, owners: dict) -> dict:
     return response
 
 
-def activity_for_list_rooms(activity: Activity, rooms: list) -> dict:
+def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
     response = {
         'object': {
+            'objectType': 'channels'
+        },
+        'verb': 'list'
+    }
+
+    response['object']['attachments'] = list()
+    for channel_id, channel_name in channels.items():
+        response['object']['attachments'].append({
+            'id': channel_id,
+            'content': channel_name
+        })
+
+    return response
+
+
+def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
+    response = {
+        'object': {
+            'id': activity.object.id,
             'objectType': 'rooms'
         },
         'verb': 'list'
     }
 
     response['object']['attachments'] = list()
-    for room_id, room_name in rooms:
+    for room_id, room_name in rooms.items():
         response['object']['attachments'].append({
             'id': room_id,
             'content': room_name
@@ -354,7 +381,7 @@ def ban_user(room_id: str, user_id: str, ban_duration: str) -> None:
 
 
 def is_owner(room_id: str, user_id: str) -> bool:
-    return environ.env.storage.room_owners_contain(room_id, user_id)
+    return environ.env.db.room_owners_contain(room_id, user_id)
 
 
 def is_admin(user_id: str) -> bool:
@@ -366,7 +393,7 @@ def get_users_in_room(room_id: str) -> list:
 
 
 def get_acls_for_room(room_id: str) -> dict:
-    return environ.env.storage.get_acls(room_id)
+    return environ.env.db.get_acls(room_id)
 
 
 def get_owners_for_room(room_id: str) -> dict:

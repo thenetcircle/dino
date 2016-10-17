@@ -21,19 +21,18 @@ A rough roadmap for possible upcoming features.
 * delete messages
     - admins can delete
 
-
 0.8.0
 ---
+* hierarchical rooms
+    - a room can have a "channel" or "parent"
+    - one channel could be a city, and all rooms in that channel are for people in that city
+* online status
+    - maintain online status tables in redis for other services to use
+    - external service for clients to see who of their friends are chatting (read from redis), not in dino
 * whisper
     - identical to event "message", but set "verb" to "whisper" instead of "send"
     - whisper logic, how to send to one in group?
     - how to handle two targets? one is the room, the other is the user in the room
-* online status
-    - maintain online status tables in redis for other services to use
-    - external service for clients to see who of their friends are chatting (read from redis), not in dino
-* hierarchical rooms
-    - a room can have a "channel" or "parent"
-    - one channel could be a city, and all rooms in that channel are for people in that city
 
 0.9.0
 ---

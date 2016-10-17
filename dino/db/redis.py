@@ -36,3 +36,69 @@ class DatabaseRedis(object):
 
     def is_admin(self, user_id: str) -> bool:
         self.redis.sismember(RedisKeys.user_roles(user_id), 'admin')
+
+    def get_channels(self) -> dict:
+        all_channels = self.redis.hgetall(RedisKeys.channels())
+        clean = dict()
+
+        for channel_id, channel_name in all_channels.items():
+            clean[str(channel_id, 'utf-8')] = str(channel_name, 'utf-8')
+        return clean
+
+    def rooms_for_channel(self, channel_id) -> dict:
+        all_rooms = self.redis.hgetall(RedisKeys.rooms(channel_id))
+        clean = dict()
+
+        for room_id, room_name in all_rooms.items():
+            clean[str(room_id, 'utf-8')] = str(room_name, 'utf-8')
+        return clean
+
+    def room_name_exists(self, channel_id, room_name: str) -> bool:
+        cleaned = set()
+        for room_name in self.redis.hvals(RedisKeys.rooms(channel_id)):
+            cleaned.add(str(room_name, 'utf-8').lower())
+
+        if type(room_name) == bytes:
+            room_name = str(room_name, 'utf-8')
+
+        return room_name.lower() in cleaned
+
+    def channel_exists(self, channel_id) -> bool:
+        if channel_id is None or channel_id == '':
+            return False
+        return self.redis.hexists(RedisKeys.channels(), channel_id)
+
+    def room_owners_contain(self, room_id, user_id) -> bool:
+        if room_id is None or room_id == '':
+            return False
+        if user_id is None or user_id == '':
+            return False
+
+        return self.redis.hexists(RedisKeys.room_owners(room_id), user_id)
+
+    def delete_acl(self, room_id: str, acl_type: str) -> None:
+        self.redis.hdel(RedisKeys.room_acl(room_id), acl_type)
+
+    def add_acls(self, room_id: str, acls: dict) -> None:
+        self.redis.hmset(RedisKeys.room_acl(room_id), acls)
+
+    def get_acls(self, room_id: str) -> list:
+        acls = self.redis.hgetall(RedisKeys.room_acl(room_id))
+        acls_cleaned = dict()
+
+        for acl_type, acl_value in acls.items():
+            acls_cleaned[str(acl_type, 'utf-8')] = str(acl_value, 'utf-8')
+
+        return acls_cleaned
+
+    def rooms_for_user(self, user_id: str = None) -> dict:
+        clean_rooms = dict()
+
+        rooms = self.redis.smembers(RedisKeys.rooms_for_user(user_id))
+        for room in rooms:
+            room_id, room_name = str(room, 'utf-8').split(':', 1)
+            clean_rooms[room_id] = room_name
+        return clean_rooms
+
+    def remove_current_rooms_for_user(self, user_id: str) -> None:
+        self.redis.delete(RedisKeys.rooms_for_user(user_id))

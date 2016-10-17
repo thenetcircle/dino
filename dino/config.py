@@ -70,7 +70,7 @@ class ConfigKeys(object):
 class RedisKeys(object):
     RKEY_ROOMS_FOR_USER = 'user:rooms:%s'  # user:rooms:user_id
     RKEY_USERS_IN_ROOM = 'room:%s'  # room:room_id
-    RKEY_ROOMS = 'rooms'
+    RKEY_ROOMS = 'rooms:%s'  # room:channel_id
     RKEY_ONLINE_BITMAP = 'users:online:bitmap'
     RKEY_ONLINE_SET = 'users:online:set'
     RKEY_MULTI_CAST = 'users:multicat'
@@ -81,6 +81,7 @@ class RedisKeys(object):
     RKEY_ROOM_HISTORY = 'room:history:%s'  # room:history:room_id
     RKEY_AUTH = 'user:auth:%s'  # user:auth:user_id
     RKEY_USER_ROLES = 'user:roles:%s'  # user:roles:user_id
+    RKEY_CHANNELS = 'channels'
 
     REDIS_STATUS_AVAILABLE = '1'
     # REDIS_STATUS_CHAT = '2'
@@ -98,8 +99,8 @@ class RedisKeys(object):
         return RedisKeys.RKEY_USERS_IN_ROOM % room_id
 
     @staticmethod
-    def rooms() -> str:
-        return RedisKeys.RKEY_ROOMS
+    def rooms(channel_id) -> str:
+        return RedisKeys.RKEY_ROOMS % channel_id
 
     @staticmethod
     def room_name_for_id(room_id: str) -> str:
@@ -112,6 +113,10 @@ class RedisKeys(object):
     @staticmethod
     def online_set() -> str:
         return RedisKeys.RKEY_ONLINE_SET
+
+    @staticmethod
+    def channels() -> str:
+        return RedisKeys.RKEY_CHANNELS
 
     @staticmethod
     def users_multi_cast() -> str:

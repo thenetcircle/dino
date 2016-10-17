@@ -18,29 +18,6 @@ class IStorage(Interface):
         :return:
         """
 
-    def delete_acl(self, room_id: str, acl_type: str) -> None:
-        """
-
-        :param room_id:
-        :param acl_type:
-        :return:
-        """
-
-    def add_acls(self, room_id: str, acls: dict) -> None:
-        """
-
-        :param room_id:
-        :param acls:
-        :return:
-        """
-
-    def get_acls(self, room_id: str) -> list:
-        """
-
-        :param room_id:
-        :return:
-        """
-
     def get_history(self, room_id: str, limit: int = None):
         """
 

@@ -288,6 +288,12 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     return api.on_list_rooms(data)
 
 
+@socketio.on('list_channels', namespace='/chat')
+@respond_with('gn_list_channels')
+def on_list_rooms(data: dict) -> (int, Union[dict, str]):
+    return api.on_list_rooms(data)
+
+
 @socketio.on('leave', namespace='/chat')
 @respond_with('gn_leave')
 def on_leave(data: dict) -> (int, Union[str, None]):

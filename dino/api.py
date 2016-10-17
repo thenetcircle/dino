@@ -287,7 +287,7 @@ def on_create(data):
     """
     create a new room
 
-    :param data: activity streams format, must include at least target.id (room id)
+    :param data: activity streams format, must include target.display_name (room name) and object.id (channel id)
     :return: if ok: {'status_code': 200, 'data': '<same AS as in the request, with addition of target.id (generated UUID
     for the new room>'}, else: {'status_code': 400, 'data': '<error message>'}
     """
@@ -297,18 +297,22 @@ def on_create(data):
     if not is_valid:
         return 400, error_msg
 
-    target = activity.target.display_name
+    room_name = activity.target.display_name
+    channel_id = activity.object.id
 
-    if target is None or target.strip() == '':
+    if room_name is None or room_name.strip() == '':
         return 400, 'got blank room name, can not create'
 
-    if environ.env.storage.room_name_exists(target):
+    if not environ.env.db.channel_exists(channel_id):
+        return 400, 'channel does not exist'
+
+    if environ.env.db.room_name_exists(channel_id, room_name):
         return 400, 'a room with that name already exists'
 
     activity.target.id = str(uuid())
     environ.env.storage.create_room(activity)
 
-    activity_json = utils.activity_for_create_room(activity.target.id, target)
+    activity_json = utils.activity_for_create_room(activity)
     environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
 
     return 200, data
@@ -344,14 +348,14 @@ def on_set_acl(data: dict) -> (int, str):
     for acl in acls:
         # if the content is None, it means we're removing this ACL
         if acl.content is None:
-            environ.env.storage.delete_acl(room_id, acl.object_type)
+            environ.env.db.delete_acl(room_id, acl.object_type)
             continue
 
         acl_dict[acl.object_type] = acl.content
 
     # might have only removed acls, so could be size 0
     if len(acl_dict) > 0:
-        environ.env.storage.add_acls(room_id, acl_dict)
+        environ.env.db.add_acls(room_id, acl_dict)
 
     return 200, None
 
@@ -538,9 +542,29 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     """
     get a list of rooms
 
-    :param data: activity streams format, needs actor.id (user id), in the future should be able to specify sub-set of
-    rooms, e.g. 'rooms in berlin'
+    :param data: activity streams format, needs actor.id (user id) and object.id (channel id)
     :return: if ok, {'status_code': 200, 'data': <AS with rooms as object.attachments>}
+    """
+    activity = as_parser.parse(data)
+    channel_id = activity.object.id
+
+    if channel_id is None or channel_id == '':
+        return 400, 'need channel ID to list rooms'
+
+    is_valid, error_msg = validator.validate_request(activity)
+    if not is_valid:
+        return 400, error_msg
+
+    rooms = environ.env.db.rooms_for_channel(channel_id)
+    return 200, utils.activity_for_list_rooms(activity, rooms)
+
+
+def on_list_channels(data: dict) -> (int, Union[dict, str]):
+    """
+    get a list of channels
+
+    :param data: activity streams format, needs actor.id (user id)
+    :return: if ok, {'status_code': 200, 'data': <AS with channels as object.attachments>}
     """
     activity = as_parser.parse(data)
 
@@ -548,13 +572,8 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     if not is_valid:
         return 400, error_msg
 
-    all_rooms = environ.env.storage.get_all_rooms()
-
-    rooms = list()
-    for room in all_rooms:
-        rooms.append((room['room_id'], room['room_name']))
-
-    return 200, utils.activity_for_list_rooms(activity, rooms)
+    channels = environ.env.db.get_channels()
+    return 200, utils.activity_for_list_channels(activity, channels)
 
 
 def on_leave(data: dict) -> (int, Union[str, None]):
@@ -602,14 +621,13 @@ def on_disconnect() -> (int, None):
         return 400, 'no user in session, not connected'
 
     environ.env.leave_room(user_id)
-    rooms = environ.env.storage.get_all_rooms(user_id=user_id)
+    rooms = environ.env.db.rooms_for_user(user_id)
 
-    for room in rooms:
-        room_id, room_name = room['room_id'], room['room_name']
+    for room_id, room_name in rooms.items():
         utils.remove_user_from_room(user_id, user_name, room_id)
-        environ.env.send(utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_name)
+        environ.env.send(utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_id)
 
-    environ.env.storage.remove_current_rooms_for_user(user_id)
+    environ.env.db.remove_current_rooms_for_user(user_id)
     environ.env.storage.set_user_offline(user_id)
 
     activity_json = utils.activity_for_disconnect(user_id, user_name)
