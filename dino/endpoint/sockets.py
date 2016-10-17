@@ -28,8 +28,6 @@ def respond_with(gn_event_name=None):
             tb = None
             try:
                 status_code, data = view_func(*args, **kwargs)
-                from pprint import pprint
-                pprint(data)
             except Exception as e:
                 tb = traceback.format_exc()
                 logger.error('%s: %s' % (gn_event_name, str(e)))
@@ -39,15 +37,23 @@ def respond_with(gn_event_name=None):
                     print(tb)
 
             if status_code != 200:
-                logger.info('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
-            if data is None:
-                environ.env.emit(gn_event_name, {'status_code': status_code})
-            else:
+                logger.warn('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
+            if data is not None:
                 environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
-
+            return status_code
         return decorator
-
     return factory
+
+
+def requires_roles(*roles):
+    def wrapper(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            if utils.get_current_user_role() not in roles:
+                return 403, 'forbidden for user role'
+            return f(*args, **kwargs)
+        return wrapped
+    return wrapper
 
 
 class Worker(ConsumerMixin):
@@ -220,8 +226,16 @@ def on_message(data):
     return api.on_message(data)
 
 
+@socketio.on('delete', namespace='/chat')
+@respond_with('gn_delete')
+@requires_roles('admin')
+def on_message(data):
+    return api.on_delete(data)
+
+
 @socketio.on('create', namespace='/chat')
 @respond_with('gn_create')
+@requires_roles('admin')
 def on_create(data):
     return api.on_create(data)
 

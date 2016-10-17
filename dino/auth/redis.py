@@ -16,9 +16,9 @@ from typing import Union
 from zope.interface import implementer
 
 from dino import environ
-from dino import rkeys
 from dino.config import SessionKeys
 from dino.config import ConfigKeys
+from dino.config import RedisKeys
 from dino.auth.base import IAuth
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -26,10 +26,8 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 @implementer(IAuth)
 class AuthRedis(object):
-    DEFAULT_AUTH_KEY = 'user:auth:%s'
-
     def __init__(self, host: str, port: int = 6379, db: int = 0):
-        if environ.env.config.get(ConfigKeys.TESTING, False):
+        if environ.env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
@@ -42,12 +40,7 @@ class AuthRedis(object):
         if token is None or len(token) == 0:
             return False, 'no token supplied', None
 
-        key = environ.env.config.get(ConfigKeys.REDIS_AUTH_KEY, None)
-        if key is None:
-            key = rkeys.auth_key(user_id)
-        else:
-            key %= user_id
-
+        key = RedisKeys.auth_key(user_id)
         stored_session = self.redis.hgetall(key)
 
         if stored_session is None or len(stored_session) == 0:

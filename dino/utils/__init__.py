@@ -15,6 +15,7 @@
 from activitystreams import Activity
 from typing import Union
 
+from dino.config import SessionKeys
 from dino import environ
 from dino import rkeys
 from dino.validator import Validator
@@ -287,6 +288,12 @@ def is_banned(user_id: str, room_id: str=None) -> (bool, Union[str, None]):
     return False, None
 
 
+def get_current_user_role() -> str:
+    if is_admin(environ.env.config.get(SessionKeys.USER_ID)):
+        return 'admin'
+    return 'user'
+
+
 def ban_duration_to_timestamp(ban_duration: str) -> str:
     if ban_duration is None or ban_duration == '':
         raise ValueError('empty ban duration')
@@ -351,8 +358,7 @@ def is_owner(room_id: str, user_id: str) -> bool:
 
 
 def is_admin(user_id: str) -> bool:
-    # TODO: implement
-    return False
+    return environ.env.db.is_admin(user_id)
 
 
 def get_users_in_room(room_id: str) -> list:

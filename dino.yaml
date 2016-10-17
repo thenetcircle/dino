@@ -1,5 +1,9 @@
 oscar:
     log_level: 'DEBUG'
+    database:
+        type: 'redis'
+        host: 'localhost:6379'
+        db: 1
     storage:
         # mock, redis, cassandra
         type: 'cassandra'
@@ -8,33 +12,42 @@ oscar:
     queue:
         type: 'redis'
         host: 'redis://localhost:6379'
+        db: 2
     auth:
-        type: 'allowall'
+        type: 'redis'
         host: 'localhost:6379'
+        db: 0
 
 dev:
     redis:
     log_level: 'DEBUG'
+    database:
+        type: 'redis'
+        host: 'maggie-kafka-3:6379'
+        db: 1
     storage:
         type: 'redis'
         host: 'maggie-kafka-3:6379'
         max_history: 200
+        db: 2
     queue:
         type: 'redis'
         host: 'redis://maggie-kafka-3:6379'
+        db: 3
     auth:
         type: 'redis'
         host: 'localhost:6379'
+        db: 0
 
 test:
     testing: True
     log_level: 'DEBUG'
     storage:
-        type: 'redis'
+        type: 'mock'
         host: 'localhost:6379'
         max_history: 200
     queue:
-        type: 'redis'
+        type: 'mock'
         host: 'redis://localhost:6379'
     auth:
         type: 'allowall'

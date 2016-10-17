@@ -331,6 +331,29 @@ def init_storage_engine(gn_env: GNEnvironment) -> None:
         raise RuntimeError('unknown storage engine type "%s"' % storage_type)
 
 
+def init_database(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    db_engine = gn_env.config.get(ConfigKeys.DATABASE, None)
+    if db_engine is None:
+        db_engine = 'redis'
+
+    # TODO: mysql/postgres with sqlalchemy
+    if db_engine == 'redis':
+        from dino.db.redis import DatabaseRedis
+
+        db_host, db_port = db_engine.get(ConfigKeys.HOST), None
+        if ':' in db_host:
+            db_host, db_port = db_host.split(':', 1)
+
+        db_number = db_engine.get(ConfigKeys.DB, 0)
+        gn_env.db = DatabaseRedis(host=db_host, port=db_port, db=db_number)
+    else:
+        raise RuntimeError('unknown auth type, use one of [mock, redis, postgres, mysql]')
+
+
 def init_auth_service(gn_env: GNEnvironment):
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
@@ -384,6 +407,7 @@ def init_pub_sub(gn_env: GNEnvironment):
 
 def initialize_env(dino_env):
     init_storage_engine(dino_env)
+    init_database(dino_env)
     init_auth_service(dino_env)
     init_pub_sub(dino_env)
 

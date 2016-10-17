@@ -16,7 +16,7 @@ from zope.interface import implementer
 from activitystreams.models.activity import Activity
 from cassandra.cluster import Cluster
 
-from dino.storage.base import IStorage
+from dino.storage import IStorage
 from dino import environ
 from dino.storage.cassandra_driver import Driver
 from dino.config import SessionKeys

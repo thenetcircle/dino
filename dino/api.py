@@ -125,6 +125,10 @@ def on_login(data: dict) -> (int, Union[str, None]):
     return 200, None
 
 
+def on_delete(data):
+    pass
+
+
 def on_message(data):
     """
     send any kind of message/event to a target user/group

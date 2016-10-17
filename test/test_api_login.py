@@ -2,8 +2,7 @@ from test.utils import BaseTest
 
 from dino import api
 from dino import environ
-from dino import rkeys
-from dino.config import ConfigKeys
+from dino.config import RedisKeys
 
 
 class ApiLoginTest(BaseTest):
@@ -159,11 +158,7 @@ class ApiLoginTest(BaseTest):
         self.assert_in_own_room(True)
 
     def remove_from_auth(self, key: str):
-        auth_key = environ.env.config.get(ConfigKeys.REDIS_AUTH_KEY, None)
-        if auth_key is None:
-            auth_key = rkeys.auth_key(BaseTest.USER_ID)
-        else:
-            auth_key %= BaseTest.USER_ID
+        auth_key = RedisKeys.auth_key(BaseTest.USER_ID)
         environ.env.auth.redis.hdel(auth_key, key)
 
     def response_code_for_login(self, data=None):

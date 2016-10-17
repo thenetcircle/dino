@@ -5,6 +5,7 @@ from dino import environ
 from dino.auth.redis import AuthRedis
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
+from dino.config import RedisKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -40,7 +41,7 @@ class TestAuthRedis(TestCase):
             SessionKeys.token.value: TestAuthRedis.TOKEN
         }
 
-        self.auth.redis.hmset(AuthRedis.DEFAULT_AUTH_KEY % TestAuthRedis.USER_ID, self.session)
+        self.auth.redis.hmset(RedisKeys.auth_key(TestAuthRedis.USER_ID), self.session)
 
     def test_auth_with_empty_session(self):
         authenticated, *rest = self.auth.authenticate_and_populate_session('', '')
@@ -65,7 +66,7 @@ class TestAuthRedis(TestCase):
 
     def test_session_gets_populated_remove_one(self):
         del self.session[SessionKeys.fake_checked.value]
-        self.auth.redis.hdel(AuthRedis.DEFAULT_AUTH_KEY % TestAuthRedis.USER_ID, SessionKeys.fake_checked.value)
+        self.auth.redis.hdel(RedisKeys.auth_key(TestAuthRedis.USER_ID), SessionKeys.fake_checked.value)
 
         *rest, error_msg, session = self.auth.authenticate_and_populate_session(
             TestAuthRedis.USER_ID, TestAuthRedis.TOKEN)
