@@ -55,6 +55,9 @@ class ConfigKeys(object):
     REPLICATION = 'replication'
     DATABASE = 'database'
     DB = 'db'
+    PORT = 'port'
+    USER = 'user'
+    PASSWORD = 'password'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'

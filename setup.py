@@ -23,7 +23,7 @@ setup(
         'zope.interface==4.3.2',   # interfaces
         'pyyaml==3.11',            # configuration files
         'redis==2.10.5',           # redis client
-        'mysqlclient==1.3.7',      # connect to mysql to save statistics
+        'sqlalchemy==1.1.1',
         'flask-socketio==2.7.1',
         'flask_wtf==0.12',
         'wtforms==2.1',

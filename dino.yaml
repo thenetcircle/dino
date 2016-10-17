@@ -1,11 +1,13 @@
 oscar:
     log_level: 'DEBUG'
     database:
-        type: 'redis'
-        host: 'localhost:6379'
-        db: 1
+        type: 'postgres'
+        host: 'localhost'
+        port: 5432
+        db: 'dino'
+        user: 'dinouser'
+        password: 'dinopass'
     storage:
-        # mock, redis, cassandra
         type: 'cassandra'
         host:
             - '127.0.0.1'

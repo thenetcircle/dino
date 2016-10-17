@@ -37,13 +37,13 @@ A rough roadmap for possible upcoming features.
 
 0.9.0
 ---
+* postgres support for db module
+    - also make use of the cache module for some operations
 * cross-group messaging
     - how to handle double actors? one actor is originating room, another is the user in that room
     - acl for allowing cross-group messaging
 * redefine roles
     - different kinds of roles, e.g. admin, global op, channel op, room op, room mod etc.
-* postgres support for db module
-* postgres module uses cache module for some operations as well
 
 0.10.0
 ---

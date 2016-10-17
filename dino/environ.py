@@ -351,6 +351,12 @@ def init_database(gn_env: GNEnvironment):
 
         db_number = db_engine.get(ConfigKeys.DB, 0)
         gn_env.db = DatabaseRedis(host=db_host, port=db_port, db=db_number)
+    elif db_engine == 'postgres':
+        from dino.db.postgres.postgres import DatabasePostgres
+        from dino.db.postgres.dbman import Database
+
+        gn_env.Database
+        gn_env.db = DatabasePostgres()
     else:
         raise RuntimeError('unknown auth type, use one of [mock, redis, postgres, mysql]')
 
