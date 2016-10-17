@@ -29,21 +29,17 @@ A rough roadmap for possible upcoming features.
 * online status
     - maintain online status tables in redis for other services to use
     - external service for clients to see who of their friends are chatting (read from redis), not in dino
-* whisper
-    - identical to event "message", but set "verb" to "whisper" instead of "send"
-    - whisper logic, how to send to one in group?
-    - how to handle two targets? one is the room, the other is the user in the room
-
-0.9.0
----
 * rdbms
     - only store messages in cassandra
     - acl, room specs (room names, who's in a room etc.), user status, etc. stored in a rdbms (postgres?)
+
+0.9.0
+---
 * cross-group messaging
     - how to handle double actors? one actor is originating room, another is the user in that room
 * redefine roles
     - different kinds of roles, e.g. admin, global op, channel op, room op, room mod etc.
-    
+
 0.10.0
 ---
 * backend admin interface
@@ -87,3 +83,7 @@ FUTURE
 * search
     - full-text search using elasticsearch
     - storage app listening to message topics now also stores a copy in elasticsearch (previously only to cassandra/redis)
+* whisper
+    - identical to event "message", but set "verb" to "whisper" instead of "send"
+    - whisper logic, how to send to one in group?
+    - how to handle two targets? one is the room, the other is the user in the room
