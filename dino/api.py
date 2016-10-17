@@ -419,17 +419,17 @@ def on_status(data: dict) -> (int, Union[str, None]):
         return 400, error_msg
 
     if status == 'online':
-        environ.env.storage.set_user_online(user_id)
+        environ.env.db.set_user_online(user_id)
         activity_json = utils.activity_for_connect(user_id, user_name)
         environ.env.emit('gn_user_connected', activity_json, broadcast=True, include_self=False)
 
     elif status == 'invisible':
-        environ.env.storage.set_user_invisible(user_id)
+        environ.env.db.set_user_invisible(user_id)
         activity_json = utils.activity_for_disconnect(user_id, user_name)
         environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
 
     elif status == 'offline':
-        environ.env.storage.set_user_offline(user_id)
+        environ.env.db.set_user_offline(user_id)
         activity_json = utils.activity_for_disconnect(user_id, user_name)
         environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
 
@@ -636,7 +636,7 @@ def on_disconnect() -> (int, None):
         environ.env.send(utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_id)
 
     environ.env.db.remove_current_rooms_for_user(user_id)
-    environ.env.storage.set_user_offline(user_id)
+    environ.env.db.set_user_offline(user_id)
 
     activity_json = utils.activity_for_disconnect(user_id, user_name)
     environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)

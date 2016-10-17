@@ -85,24 +85,6 @@ class StorageRedis(object):
 
         return cleaned_messages
 
-    def set_user_offline(self, user_id: str) -> None:
-        self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
-        self.redis.srem(RedisKeys.online_set(), int(user_id))
-        self.redis.srem(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_UNAVAILABLE)
-
-    def set_user_online(self, user_id: str) -> None:
-        self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 1)
-        self.redis.sadd(RedisKeys.online_set(), int(user_id))
-        self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_AVAILABLE)
-
-    def set_user_invisible(self, user_id: str) -> None:
-        self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
-        self.redis.srem(RedisKeys.online_set(), int(user_id))
-        self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_INVISIBLE)
-
     def get_room_name(self, room_id: str) -> str:
         room_name = self.redis.get(RedisKeys.room_name_for_id(room_id))
         if room_name is None:

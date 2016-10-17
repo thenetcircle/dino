@@ -114,3 +114,27 @@ class IDatabase(Interface):
         :param user_id: the id of the user
         :return: nothing
         """
+
+    def set_user_offline(self, user_id: str) -> None:
+        """
+        indicate a user is offline
+
+        :param user_id: id of the user
+        :return: nothing
+        """
+
+    def set_user_online(self, user_id: str) -> None:
+        """
+        indicate a user is online
+
+        :param user_id: id of the user
+        :return: nothing
+        """
+
+    def set_user_invisible(self, user_id: str) -> None:
+        """
+        indicate a user is invisible
+
+        :param user_id: id of the user
+        :return: nothing
+        """
