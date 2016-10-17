@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from zope.interface import implementer
+from activitystreams.models.activity import Activity
 
 from dino.db import IDatabase
 from dino.config import ConfigKeys
 from dino.config import RedisKeys
+from dino.config import SessionKeys
 from dino import environ
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -52,6 +54,9 @@ class DatabaseRedis(object):
         for room_id, room_name in all_rooms.items():
             clean[str(room_id, 'utf-8')] = str(room_name, 'utf-8')
         return clean
+
+    def room_exists(self, channel_id: str, room_id: str) -> bool:
+        return self.redis.hexists(RedisKeys.rooms(channel_id), room_id)
 
     def room_name_exists(self, channel_id, room_name: str) -> bool:
         cleaned = set()
@@ -102,3 +107,13 @@ class DatabaseRedis(object):
 
     def remove_current_rooms_for_user(self, user_id: str) -> None:
         self.redis.delete(RedisKeys.rooms_for_user(user_id))
+
+    def create_room(self, activity: Activity) -> None:
+        room_name = activity.target.display_name
+        room_id = activity.target.id
+        channel_id = activity.object.url
+
+        self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
+        self.redis.hset(RedisKeys.room_owners(room_id), activity.actor.id,
+                        environ.env.session.get(SessionKeys.user_name.value))
+        self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)

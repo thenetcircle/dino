@@ -105,7 +105,8 @@ def activity_for_create_room(activity: Activity) -> dict:
         },
         'object': {
             'id': activity.object.id,
-            'content': activity.object.content
+            'content': activity.object.content,
+            'url': activity.object.url
         },
         'target': {
             'id': activity.target.id,
@@ -398,6 +399,10 @@ def get_acls_for_room(room_id: str) -> dict:
 
 def get_owners_for_room(room_id: str) -> dict:
     return environ.env.storage.get_owners(room_id)
+
+
+def room_exists(channel_id: str, room_id: str) -> dict:
+    return environ.env.db.room_exists(channel_id, room_id)
 
 
 def get_history_for_room(room_id: str, limit: int = 10) -> list:

@@ -144,7 +144,7 @@ def on_message(data):
     """
     send any kind of message/event to a target user/group
 
-    :param data: activity streams format, must include at least target.id (room/user id)
+    :param data: activity streams format, must include target.id (room/user id) and object.id (channel id)
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<same AS as client sent, plus timestamp>'}
     """
     # let the server determine the publishing time of the event, not the client
@@ -156,19 +156,25 @@ def on_message(data):
     if not is_valid:
         return 400, error_msg
 
-    target = activity.target.id
-    if target is None or target == '':
-        return 400, 'no target specified when sending message'
+    room_id = activity.target.id
 
-    if not environ.env.storage.room_exists(target):
-        return 400, 'room %s does not exist' % target
+    if room_id is None or room_id == '':
+        return 400, 'no room id specified when sending message'
 
-    # TODO: keep these in utils, make storage abstract, e.g. environ.env.storage.room_contains(room_id, some_value)
-    if not utils.is_user_in_room(activity.actor.id, target):
-        return 400, 'user not in room, not allowed to send'
+    if activity.target.object_type == 'group':
+        channel_id = activity.object.url
+
+        if not utils.is_user_in_room(activity.actor.id, room_id):
+            return 400, 'user not in room, not allowed to send'
+
+        if channel_id is None or channel_id == '':
+            return 400, 'no channel id specified when sending message'
+
+        if not utils.room_exists(channel_id, room_id):
+            return 400, 'room %s does not exist' % room_id
 
     environ.env.storage.store_message(activity)
-    environ.env.send(data, json=True, room=target, broadcast=True)
+    environ.env.send(data, json=True, room=room_id, broadcast=True)
 
     return 200, data
 
@@ -219,6 +225,7 @@ def on_ban(data):
         return 400, error_msg
 
     room_id = activity.target.id
+    channel_id = activity.object.url
     user_id = activity.actor.id
     kicked_id = activity.object.id
     ban_duration = activity.object.summary
@@ -228,7 +235,7 @@ def on_ban(data):
     if kicked_id is None or kicked_id.strip() == '':
         return 400, 'got blank user id, can not ban'
 
-    if not environ.env.storage.room_exists(room_id):
+    if not utils.room_exists(channel_id, room_id):
         return 400, 'no room with id "%s" exists' % room_id
 
     if not is_global_ban:
@@ -264,6 +271,7 @@ def on_kick(data):
         return 400, error_msg
 
     room_id = activity.target.id
+    channel_id = activity.object.url
     user_id = activity.target.display_name
 
     if room_id is None or room_id.strip() == '':
@@ -272,7 +280,7 @@ def on_kick(data):
     if user_id is None or user_id.strip() == '':
         return 400, 'got blank user id, can not kick'
 
-    if not environ.env.storage.room_exists(room_id):
+    if not environ.env.db.room_exists(channel_id, room_id):
         return 400, 'no room with id "%s" exists' % room_id
 
     if not utils.is_owner(room_id, user_id):
@@ -298,7 +306,7 @@ def on_create(data):
         return 400, error_msg
 
     room_name = activity.target.display_name
-    channel_id = activity.object.id
+    channel_id = activity.object.url
 
     if room_name is None or room_name.strip() == '':
         return 400, 'got blank room name, can not create'
@@ -310,7 +318,7 @@ def on_create(data):
         return 400, 'a room with that name already exists'
 
     activity.target.id = str(uuid())
-    environ.env.storage.create_room(activity)
+    environ.env.db.create_room(activity)
 
     activity_json = utils.activity_for_create_room(activity)
     environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
@@ -546,7 +554,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     :return: if ok, {'status_code': 200, 'data': <AS with rooms as object.attachments>}
     """
     activity = as_parser.parse(data)
-    channel_id = activity.object.id
+    channel_id = activity.object.url
 
     if channel_id is None or channel_id == '':
         return 400, 'need channel ID to list rooms'

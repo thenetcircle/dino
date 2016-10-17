@@ -117,7 +117,6 @@ class StorageRedis(object):
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.redis.sadd(RedisKeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
         self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)
-        self.redis.hset(RedisKeys.rooms(), room_id, room_name)
 
     def users_in_room(self, room_id: str) -> list:
         users = self.redis.hgetall(RedisKeys.users_in_room(room_id))
@@ -154,19 +153,6 @@ class StorageRedis(object):
     def leave_room(self, user_id: str, room_id: str) -> None:
         self.redis.hdel(RedisKeys.users_in_room(room_id), user_id)
         self.redis.srem(RedisKeys.rooms_for_user(user_id), room_id)
-
-    def room_exists(self, room_id: str) -> bool:
-        return self.redis.hexists(RedisKeys.rooms(), room_id)
-
-    def room_name_exists(self, room_name: str) -> bool:
-        cleaned = set()
-        for room_name in self.redis.hvals(RedisKeys.rooms()):
-            cleaned.add(str(room_name, 'utf-8').lower())
-
-        if type(room_name) == bytes:
-            room_name = str(room_name, 'utf-8')
-
-        return room_name.lower() in cleaned
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)

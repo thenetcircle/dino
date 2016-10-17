@@ -231,7 +231,7 @@ def validate_acl(activity: Activity) -> (bool, str):
         environ.env.logger.debug(_msg % (user_id, user_name, room_id, room_name))
         return True, None
 
-    all_acls = environ.env.storage.get_acls(room_id)
+    all_acls = environ.env.db.get_acls(room_id)
     if len(all_acls) == 0:
         return True, None
 

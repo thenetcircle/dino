@@ -17,7 +17,6 @@ os.environ['ENVIRONMENT'] = 'test'
 
 from dino import environ
 from dino import api
-from dino.config import ConfigKeys
 from dino.config import RedisKeys
 from test.utils import BaseTest
 
@@ -25,10 +24,13 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ApiBanTest(BaseTest):
-    def test_kick(self):
+    def test_ban(self):
         self.create_and_join_room()
         self.set_owner()
-        self.assertEqual(200, api.on_ban(self.activity_for_ban())[0])
+        response_code, messgae = api.on_ban(self.activity_for_ban())
+        from pprint import pprint
+        pprint(messgae)
+        self.assertEqual(200, response_code)
 
     def create_room(self, room_id: str=None, room_name: str=None):
         if room_id is None:
@@ -36,7 +38,7 @@ class ApiBanTest(BaseTest):
         if room_name is None:
             room_name = ApiBanTest.ROOM_NAME
 
-        environ.env.storage.redis.hset(RedisKeys.rooms(), room_id, room_name)
+        environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
 
     def activity_for_ban(self):
         return {
@@ -48,7 +50,9 @@ class ApiBanTest(BaseTest):
             'object': {
                 'id': ApiBanTest.OTHER_USER_ID,
                 'content': ApiBanTest.OTHER_USER_NAME,
-                'summary': '30m'
+                'objectType': 'user',
+                'summary': '30m',
+                'url': BaseTest.CHANNEL_ID
             },
             'target': {
                 'id': ApiBanTest.ROOM_ID,

@@ -58,6 +58,15 @@ class IDatabase(Interface):
         :return: true if exists, false otherwise
         """
 
+    def room_exists(self, channel_id: str, room_id: str) -> bool:
+        """
+        check if a room exists for a given channel
+
+        :param channel_id: the id of the channel
+        :param room_id: the id of the room
+        :return: true if exists, false otherwise
+        """
+
     def room_owners_contain(self, room_id, user_id) -> bool:
         """
         check if a user is an owner for a room or not

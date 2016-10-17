@@ -7,6 +7,7 @@ from dino.config import ConfigKeys
 from dino.config import RedisKeys
 from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis
+from dino.db.redis import DatabaseRedis
 
 environ.env.config.set(ConfigKeys.TESTING, True)
 environ.env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
@@ -56,6 +57,8 @@ class BaseTest(unittest.TestCase):
     USER_ID = '1234'
     USER_NAME = 'Joe'
     ROOM_ID = str(uuid())
+    CHANNEL_ID = str(uuid())
+    CHANNEL_NAME = 'Best Channel'
     ROOM_NAME = 'Shanghai'
     AGE = '30'
     GENDER = 'f'
@@ -149,13 +152,17 @@ class BaseTest(unittest.TestCase):
         environ.env.config.set(ConfigKeys.TESTING, True)
         environ.env.auth = AuthRedis('mock')
         environ.env.storage = StorageRedis('mock')
+        environ.env.db = DatabaseRedis('mock')
+        environ.env.storage.redis = environ.env.auth.redis
+        environ.env.db.redis = environ.env.auth.redis
         environ.env.redis = environ.env.auth.redis
         environ.env.publish = BaseTest._mock_publish
 
         environ.env.auth.redis.flushall()
         environ.env.storage.redis.flushall()
         environ.env.auth.redis.hmset(RedisKeys.auth_key(BaseTest.USER_ID), self.session)
-        environ.env.storage.redis.set(RedisKeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
+        environ.env.redis.set(RedisKeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
+        environ.env.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
 
         environ.env.render_template = BaseTest._render_template
         environ.env.emit = BaseTest._emit
@@ -234,7 +241,7 @@ class BaseTest(unittest.TestCase):
         if room_name is None:
             room_name = BaseTest.ROOM_NAME
 
-        environ.env.storage.redis.hset(RedisKeys.rooms(), room_id, room_name)
+        environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
 
     def assert_join_fails(self):
         self.assertEqual(400, self.response_code_for_joining())
@@ -303,9 +310,13 @@ class BaseTest(unittest.TestCase):
             'actor': {
                 'id': BaseTest.USER_ID
             },
+            'object': {
+                'url': BaseTest.CHANNEL_ID
+            },
             'verb': 'create',
             'target': {
-                'displayName': BaseTest.ROOM_NAME
+                'displayName': BaseTest.ROOM_NAME,
+                'objectType': 'group'
             }
         }
 
@@ -364,6 +375,9 @@ class BaseTest(unittest.TestCase):
         return {
             'actor': {
                 'id': BaseTest.USER_ID
+            },
+            'object': {
+                'url': BaseTest.CHANNEL_ID
             },
             'verb': 'list'
         }
