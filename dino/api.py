@@ -170,6 +170,9 @@ def on_message(data):
         if channel_id is None or channel_id == '':
             return 400, 'no channel id specified when sending message'
 
+        if not utils.channel_exists(channel_id):
+            return 400, 'channel %s does not exists' % channel_id
+
         if not utils.room_exists(channel_id, room_id):
             return 400, 'room %s does not exist' % room_id
 
@@ -342,7 +345,7 @@ def on_set_acl(data: dict) -> (int, str):
         return 400, error_msg
 
     if not utils.is_owner(room_id, user_id):
-        return 400, 'user not a owner of room'
+        return 400, 'user not an owner of room'
 
     # validate all acls before actually changing anything
     acls = activity.object.attachments

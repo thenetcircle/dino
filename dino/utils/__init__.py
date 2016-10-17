@@ -401,7 +401,11 @@ def get_owners_for_room(room_id: str) -> dict:
     return environ.env.storage.get_owners(room_id)
 
 
-def room_exists(channel_id: str, room_id: str) -> dict:
+def channel_exists(channel_id: str) -> bool:
+    return environ.env.db.channel_exists(channel_id)
+
+
+def room_exists(channel_id: str, room_id: str) -> bool:
     return environ.env.db.room_exists(channel_id, room_id)
 
 

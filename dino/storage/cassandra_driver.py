@@ -198,6 +198,7 @@ class Driver(object):
                         body text,
                         domain text,
                         sent_time varchar,
+                        channel_id varchar,
                         deleted boolean,
                         PRIMARY KEY (to_user, from_user, sent_time)
                     )
@@ -277,10 +278,11 @@ class Driver(object):
                         body,
                         domain,
                         sent_time,
+                        channel_id,
                         deleted
                     )
                     VALUES (
-                        ?, ?, ?, ?, ?, ?, ?
+                        ?, ?, ?, ?, ?, ?, ?, ?
                     )
                     """
             )
@@ -396,8 +398,10 @@ class Driver(object):
     def rooms_select_for_user(self, user_id: str) -> ResultSet:
         return self._execute(StatementKeys.rooms_select_by_user, user_id)
 
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, deleted=False) -> None:
-        self._execute(StatementKeys.msg_insert, msg_id, from_user, to_user, body, domain, timestamp, deleted)
+    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=False) -> None:
+        self._execute(
+                StatementKeys.msg_insert, msg_id, from_user, to_user,
+                body, domain, timestamp, channel_id, deleted)
 
     def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> None:
         self._execute(StatementKeys.room_insert, room_id, room_name, owners, timestamp)
@@ -430,11 +434,7 @@ class Driver(object):
         self.msg_insert(message_id, from_user, to_user, body, domain, timestamp, deleted=True)
 
     def rooms_select(self) -> ResultSet:
-        try:
-            return self._execute(StatementKeys.rooms_select)
-        except Exception as e:
-            print('exception: %s' % str(e))
-        return None
+        return self._execute(StatementKeys.rooms_select)
 
     def room_select_name(self, room_id: str) -> ResultSet:
         return self._execute(StatementKeys.room_select_name, room_id)
