@@ -18,6 +18,8 @@ A rough roadmap for possible upcoming features.
     - owners can kick
 * banning
     - owners can ban from rooms, admins can ban from server (future also channel)
+* delete messages
+    - admins can delete
 
 
 0.8.0
@@ -26,8 +28,6 @@ A rough roadmap for possible upcoming features.
     - identical to event "message", but set "verb" to "whisper" instead of "send"
     - whisper logic, how to send to one in group?
     - how to handle two targets? one is the room, the other is the user in the room
-* delete messages
-    - admins can delete
 * online status
     - maintain online status tables in redis for other services to use
     - external service for clients to see who of their friends are chatting (read from redis), not in dino
