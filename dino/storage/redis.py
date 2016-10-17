@@ -50,6 +50,19 @@ class StorageRedis(object):
         if max_history > 0:
             self.redis.ltrim(RedisKeys.room_history(target), 0, max_history)
 
+    def delete_message(self, room_id: str, message_id: str):
+        if message_id is None or message_id == '':
+            return
+
+        all_history = self.redis.lrange(RedisKeys.room_history(room_id), 0, -1)
+        found_msg = None
+        for history in all_history:
+            if str(history, 'utf-8').startswith(message_id):
+                found_msg = history
+                break
+
+        self.redis.lrem(RedisKeys.room_history(room_id), found_msg, 1)
+
     def create_room(self, activity: Activity) -> None:
         room_name = activity.target.display_name
         room_id = activity.target.id

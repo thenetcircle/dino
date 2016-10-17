@@ -3,8 +3,8 @@ from uuid import uuid4 as uuid
 import logging
 
 from dino import environ
-from dino import rkeys
 from dino.config import ConfigKeys
+from dino.config import RedisKeys
 from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis
 
@@ -74,6 +74,10 @@ class BaseTest(unittest.TestCase):
     send_dir = None
     send_file = None
     redirected_to = None
+
+    @staticmethod
+    def _mock_publish(message):
+        pass
 
     @staticmethod
     def _emit(event, *args, **kwargs):
@@ -146,11 +150,12 @@ class BaseTest(unittest.TestCase):
         environ.env.auth = AuthRedis('mock')
         environ.env.storage = StorageRedis('mock')
         environ.env.redis = environ.env.auth.redis
+        environ.env.publish = BaseTest._mock_publish
 
         environ.env.auth.redis.flushall()
         environ.env.storage.redis.flushall()
-        environ.env.auth.redis.hmset(rkeys.auth_key(BaseTest.USER_ID), self.session)
-        environ.env.storage.redis.set(rkeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
+        environ.env.auth.redis.hmset(RedisKeys.auth_key(BaseTest.USER_ID), self.session)
+        environ.env.storage.redis.set(RedisKeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
 
         environ.env.render_template = BaseTest._render_template
         environ.env.emit = BaseTest._emit
@@ -188,13 +193,13 @@ class BaseTest(unittest.TestCase):
         self.join_room()
 
     def set_owner(self):
-        environ.env.storage.redis.hset(rkeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)
+        environ.env.storage.redis.hset(RedisKeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)
 
     def remove_owner(self):
-        environ.env.storage.redis.hdel(rkeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID)
+        environ.env.storage.redis.hdel(RedisKeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID)
 
     def remove_room(self):
-        environ.env.storage.redis.delete(rkeys.room_name_for_id(BaseTest.ROOM_ID))
+        environ.env.storage.redis.delete(RedisKeys.room_name_for_id(BaseTest.ROOM_ID))
 
     def set_room_name(self, room_id: str=None, room_name: str=None):
         if room_id is None:
@@ -202,7 +207,7 @@ class BaseTest(unittest.TestCase):
         if room_name is None:
             room_name = BaseTest.ROOM_NAME
 
-        environ.env.storage.redis.set(rkeys.room_name_for_id(room_id), room_name)
+        environ.env.storage.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
 
     def join_room(self):
         api.on_join(self.activity_for_join())
@@ -229,7 +234,7 @@ class BaseTest(unittest.TestCase):
         if room_name is None:
             room_name = BaseTest.ROOM_NAME
 
-        environ.env.storage.redis.hset(rkeys.rooms(), room_id, room_name)
+        environ.env.storage.redis.hset(RedisKeys.rooms(), room_id, room_name)
 
     def assert_join_fails(self):
         self.assertEqual(400, self.response_code_for_joining())
@@ -256,13 +261,13 @@ class BaseTest(unittest.TestCase):
         return BaseTest.emit_args[-1].get('status_code')
 
     def get_acls(self):
-        return environ.env.storage.redis.hgetall(rkeys.room_acl(BaseTest.ROOM_ID))
+        return environ.env.storage.redis.hgetall(RedisKeys.room_acl(BaseTest.ROOM_ID))
 
     def set_acl(self, acls: dict):
-        environ.env.storage.redis.hmset(rkeys.room_acl(BaseTest.ROOM_ID), acls)
+        environ.env.storage.redis.hmset(RedisKeys.room_acl(BaseTest.ROOM_ID), acls)
 
     def set_acl_single(self, key: str, acls: str):
-        environ.env.storage.redis.hset(rkeys.room_acl(BaseTest.ROOM_ID), key, acls)
+        environ.env.storage.redis.hset(RedisKeys.room_acl(BaseTest.ROOM_ID), key, acls)
 
     def assert_in_room(self, is_in_room):
         self.assertEqual(is_in_room, BaseTest.ROOM_ID in BaseTest.users_in_room and

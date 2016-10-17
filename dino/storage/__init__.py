@@ -152,3 +152,10 @@ class IStorage(Interface):
         :param user_id:
         :return:
         """
+
+    def delete_message(self, message_id: str) -> None:
+        """
+
+        :param message_id:
+        :return:
+        """

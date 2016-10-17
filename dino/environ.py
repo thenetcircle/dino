@@ -395,7 +395,7 @@ def init_pub_sub(gn_env: GNEnvironment):
     def mock_publish(message):
         pass
 
-    if gn_env.config.get(ConfigKeys.TESTING, False):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         gn_env.publish = mock_publish
         return
 

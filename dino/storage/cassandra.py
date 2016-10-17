@@ -147,6 +147,9 @@ class CassandraStorage(object):
                 activity.published
         )
 
+    def delete_message(self, room_id: str, message_id: str):
+        self.driver.msg_select(message_id)
+
     def create_room(self, activity: Activity) -> None:
         self.driver.room_insert(
                 activity.target.id,
@@ -169,7 +172,7 @@ class CassandraStorage(object):
                 'to_user': row.to_user,
                 'body': row.body,
                 'domain': row.domain,
-                'timestamp': row.time
+                'timestamp': row.sent_time
             })
         return msgs
 
@@ -211,7 +214,7 @@ class CassandraStorage(object):
             rooms.append({
                 'room_id': row.room_id,
                 'room_name': row.room_name,
-                'created': row.time,
+                'created': row.creation_time,
                 'owners': row.owners
             })
         return rooms

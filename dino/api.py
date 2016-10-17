@@ -126,7 +126,18 @@ def on_login(data: dict) -> (int, Union[str, None]):
 
 
 def on_delete(data):
-    pass
+    activity = as_parser.parse(data)
+
+    is_valid, error_msg = validator.validate_request(activity)
+    if not is_valid:
+        return 400, error_msg
+
+    message_id = activity.object.id
+    room_id = activity.target.id
+    environ.env.storage.delete_message(message_id)
+    environ.env.send(data, json=True, room=room_id, broadcast=True)
+
+    return 200, None
 
 
 def on_message(data):

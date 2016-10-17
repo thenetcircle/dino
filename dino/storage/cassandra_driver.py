@@ -26,6 +26,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 class StatementKeys(Enum):
     msg_insert = 'msg_insert'
+    msg_select = 'msg_select'
     msgs_select = 'msgs_select'
     acl_insert = 'acl_insert'
     acl_select = 'acl_select'
@@ -79,6 +80,14 @@ class IDriver(Interface):
 
         :param user_id: id of the user
         :return: a list of rooms which this user is in
+        """
+
+    def msg_select(self, msg_id) -> ResultSet:
+        """
+        select one message
+
+        :param msg_id: uuid of the message
+        :return: the message, if found
         """
 
     def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> None:
@@ -188,8 +197,9 @@ class Driver(object):
                         to_user text,
                         body text,
                         domain text,
-                        time varchar,
-                        PRIMARY KEY (to_user, from_user, time)
+                        sent_time varchar,
+                        deleted boolean,
+                        PRIMARY KEY (to_user, from_user, sent_time)
                     )
                     """
             )
@@ -199,7 +209,7 @@ class Driver(object):
                         room_id varchar,
                         room_name varchar,
                         owners list<varchar>,
-                        time varchar,
+                        creation_time varchar,
                         PRIMARY KEY (room_id)
                     )
                     """
@@ -213,15 +223,6 @@ class Driver(object):
                         user_name varchar,
                         PRIMARY KEY (room_id, user_id)
                     )
-                    """
-            )
-            self.session.execute(
-                    """
-                    CREATE MATERIALIZED VIEW IF NOT EXISTS users_in_room_by_user AS
-                        SELECT * from users_in_room
-                            WHERE user_id IS NOT NULL AND room_id IS NOT NULL
-                        PRIMARY KEY (user_id, room_id)
-                        WITH comment='allows query by user_id instead of room_id'
                     """
             )
             self.session.execute(
@@ -242,6 +243,30 @@ class Driver(object):
                     """
             )
 
+        def create_views():
+            self.session.execute(
+                    """
+                    CREATE MATERIALIZED VIEW IF NOT EXISTS messages_by_id AS
+                        SELECT message_id, to_user, from_user, sent_time from messages
+                            WHERE
+                                message_id IS NOT NULL AND
+                                to_user IS NOT NULL AND
+                                from_user IS NOT NULL AND
+                                sent_time IS NOT NULL
+                        PRIMARY KEY (message_id, to_user, from_user, sent_time)
+                        WITH comment='allows lookups of to_user and from_user by message_id'
+                    """
+            )
+            self.session.execute(
+                    """
+                    CREATE MATERIALIZED VIEW IF NOT EXISTS users_in_room_by_user AS
+                        SELECT * from users_in_room
+                            WHERE user_id IS NOT NULL AND room_id IS NOT NULL
+                        PRIMARY KEY (user_id, room_id)
+                        WITH comment='allows query by user_id instead of room_id'
+                    """
+            )
+
         def prepare_statements():
             self.statements[StatementKeys.msg_insert] = self.session.prepare(
                     """
@@ -251,10 +276,11 @@ class Driver(object):
                         to_user,
                         body,
                         domain,
-                        time
+                        sent_time,
+                        deleted
                     )
                     VALUES (
-                        ?, ?, ?, ?, ?, ?
+                        ?, ?, ?, ?, ?, ?, ?
                     )
                     """
             )
@@ -288,7 +314,7 @@ class Driver(object):
                         room_id,
                         room_name,
                         owners,
-                        time
+                        creation_time
                     )
                     VALUES (
                         ?, ?, ?, ?
@@ -298,6 +324,11 @@ class Driver(object):
             self.statements[StatementKeys.msgs_select] = self.session.prepare(
                     """
                     SELECT * FROM messages where to_user = ?
+                    """
+            )
+            self.statements[StatementKeys.msg_select] = self.session.prepare(
+                    """
+                    SELECT to_user, from_user, sent_time FROM messages_by_id where message_id = ?
                     """
             )
             self.statements[StatementKeys.rooms_select] = self.session.prepare(
@@ -338,6 +369,7 @@ class Driver(object):
 
         create_key_space()
         create_tables()
+        create_views()
         prepare_statements()
 
     def acl_insert(self, room_id: str, acls: dict) -> None:
@@ -364,14 +396,38 @@ class Driver(object):
     def rooms_select_for_user(self, user_id: str) -> ResultSet:
         return self._execute(StatementKeys.rooms_select_by_user, user_id)
 
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp) -> None:
-        self._execute(StatementKeys.msg_insert, msg_id, from_user, to_user, body, domain, timestamp)
+    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, deleted=False) -> None:
+        self._execute(StatementKeys.msg_insert, msg_id, from_user, to_user, body, domain, timestamp, deleted)
 
     def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> None:
         self._execute(StatementKeys.room_insert, room_id, room_name, owners, timestamp)
 
     def msgs_select(self, to_user_id: str) -> ResultSet:
         return self._execute(StatementKeys.msgs_select, to_user_id)
+
+    def msg_select(self, message_id: str) -> ResultSet:
+        """
+        We're doing three queries here, one to get primary index of messages table from message_id, then getting the
+        complete row from messages table, and finally updating that row. This could be lowered to two queries by
+        duplicating everything from messages table to messages_by_id materialized view, but would also double storage
+        requirements. Since message deletion is likely not a frequent operation we can accept doing three queries.
+        """
+        keys = self._execute(StatementKeys.msg_select_by_id, message_id)
+        if keys is None or len(keys.current_rows) == 0:
+            # not found
+            return
+
+        assert len(keys.current_rows) == 1
+        key = keys.current_rows[0]
+        to_user, from_user, timestamp = key.to_user, key.from_user, key.sent_time
+
+        message_rows = self._execute(StatementKeys.msg_select, to_user, from_user, timestamp)
+        assert len(message_rows.current_rows) == 1
+
+        message_row = message_rows.current_rows[0]
+        body = message_row.body
+        domain = message_row.domain
+        self.msg_insert(message_id, from_user, to_user, body, domain, timestamp, deleted=True)
 
     def rooms_select(self) -> ResultSet:
         try:

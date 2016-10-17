@@ -29,27 +29,39 @@ from dino.storage.cassandra import CassandraStorage
 
 
 class StorageCassandraTest(BaseTest):
+    MESSAGE_ID = str(uuid())
+
     def setUp(self):
         environ.env.config.set(ConfigKeys.TESTING, False)
         environ.env.logger = logging.getLogger()
         logging.getLogger('cassandra').setLevel(logging.WARNING)
-        key_space = 'testing'
-        self.storage = CassandraStorage(hosts=['127.0.0.1'], key_space=key_space)
+        self.key_space = 'testing-' + str(uuid())
+        self.storage = CassandraStorage(hosts=['127.0.0.1'], key_space=self.key_space)
 
         try:
-            self.storage.driver.session.execute("use " + key_space)
+            self.storage.driver.session.execute("use " + self.key_space)
         except Exception as e:
             # keyspace doesn't exist, so the table's doesn't exist either
             self.storage.init()
             return
 
+        self.storage.driver.session.execute("drop materialized view if exists users_in_room_by_user")
+        self.storage.driver.session.execute("drop materialized view if exists messages_by_id")
         self.storage.driver.session.execute("drop table if exists messages")
         self.storage.driver.session.execute("drop table if exists rooms")
         self.storage.driver.session.execute("drop table if exists acl")
-        self.storage.driver.session.execute("drop materialized view if exists users_in_room_by_user")
         self.storage.driver.session.execute("drop table if exists users_in_room")
-        self.storage.driver.session.execute("drop keyspace if exists " + key_space)
+        self.storage.driver.session.execute("drop keyspace if exists " + self.key_space)
         self.storage.init()
+
+    def tearDown(self):
+        self.storage.driver.session.execute("drop materialized view users_in_room_by_user")
+        self.storage.driver.session.execute("drop materialized view messages_by_id")
+        self.storage.driver.session.execute("drop table messages")
+        self.storage.driver.session.execute("drop table rooms")
+        self.storage.driver.session.execute("drop table acl")
+        self.storage.driver.session.execute("drop table users_in_room")
+        self.storage.driver.session.execute("drop keyspace " + self.key_space)
 
     def test_get_acl(self):
         self.create()
@@ -83,6 +95,20 @@ class StorageCassandraTest(BaseTest):
         fetched = self.storage.get_acls(BaseTest.ROOM_ID)
 
         self.assertEqual(fetched.items(), acls.items())
+
+    def test_delete_message(self):
+        self.create()
+        self.join()
+
+        self.storage.store_message(self.act_message())
+        res = self.storage.get_history(BaseTest.ROOM_ID)
+        self.assertEqual(1, len(res))
+        self.assertFalse(res[0]['deleted'])
+
+        self.storage.delete_message(BaseTest.ROOM_ID, StorageCassandraTest.MESSAGE_ID)
+        res = self.storage.get_history(BaseTest.ROOM_ID)
+        self.assertEqual(1, len(res))
+        self.assertTrue(res[0]['deleted'])
 
     def test_delete_one_non_existing_acl(self):
         self.create()
@@ -159,7 +185,10 @@ class StorageCassandraTest(BaseTest):
 
     def test_users_in_room(self):
         self.create()
-        self.assertEqual(0, len(self.storage.users_in_room(BaseTest.ROOM_ID)))
+        rooms = self.storage.users_in_room(BaseTest.ROOM_ID)
+        from pprint import pprint
+        pprint(rooms)
+        self.assertEqual(0, len(rooms))
 
     def test_join(self):
         self.create()
@@ -177,7 +206,7 @@ class StorageCassandraTest(BaseTest):
 
     def act_message(self):
         data = self.activity_for_message()
-        data['id'] = str(uuid())
+        data['id'] = StorageCassandraTest.MESSAGE_ID
         data['target']['objectType'] = 'group'
         data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
         return parse(data)

@@ -17,7 +17,8 @@ os.environ['ENVIRONMENT'] = 'test'
 
 from dino import environ
 from dino import api
-from dino import rkeys
+from dino.config import ConfigKeys
+from dino.config import RedisKeys
 from test.utils import BaseTest
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -35,7 +36,7 @@ class ApiBanTest(BaseTest):
         if room_name is None:
             room_name = ApiBanTest.ROOM_NAME
 
-        environ.env.storage.redis.hset(rkeys.rooms(), room_id, room_name)
+        environ.env.storage.redis.hset(RedisKeys.rooms(), room_id, room_name)
 
     def activity_for_ban(self):
         return {
