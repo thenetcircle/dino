@@ -143,12 +143,6 @@ class DatabaseRedis(object):
             room_name = room_name.decode('utf-8')
         return room_name
 
-    def get_user_name_for(self, user_id: str) -> str:
-        return self.redis.hget(RedisKeys.users(), user_id)
-
-    def create_user(self, user_id: str, user_name: str) -> None:
-        self.redis.hset(RedisKeys.users(), user_id, user_name)
-
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.redis.sadd(RedisKeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
         self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)

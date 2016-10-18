@@ -84,6 +84,17 @@ class DatabasePostgres(object):
         return exists
 
     @with_session
+    def get_user_status(self, user_id: str) -> None:
+        status = self.env.cache.get_user_status(user_id)
+        if status is not None:
+            return status
+
+        status = self.session.query(UserStatus).filter(Users.uuid == user_id).first()
+        if status is None:
+            return UserStatus.STATUS_UNKNOWN
+        return status.status
+
+    @with_session
     def set_user_invisible(self, user_id: str) -> None:
         if self.env.cache.user_is_invisible(user_id):
             return
@@ -130,8 +141,12 @@ class DatabasePostgres(object):
     @with_session
     def remove_current_rooms_for_user(self, user_id: str) -> None:
         rows = self.session.query(Users).filter(Users.uuid == user_id).all()
+        if len(rows) == 0:
+            return
+
         for row in rows:
             self.session.delete(row)
+        self.session.commit()
 
     @with_session
     def get_channels(self) -> dict:
@@ -233,23 +248,16 @@ class DatabasePostgres(object):
 
         user = self.session.query(Users).filter(Users.uuid == user_id).first()
         if user is None:
-            raise NoSuchUserException(user_id)
+            user = Users()
+            user.uuid = user_id
+            user.name = user_name
+            self.session.add(user)
 
         user.rooms.append(room)
         self.session.add(room)
 
         room.users.append(user)
         self.session.add(room)
-        self.session.commit()
-
-    @with_session
-    def create_user(self, user_id: str, user_name: str):
-        user = self.session.query(Users).filter(Users.uuid == user_id).first()
-        if user is not None:
-            raise UserExistsException(user_id)
-
-        user = Users(uuid=user_id, name=user_name)
-        self.session.add(user)
         self.session.commit()
 
     @with_session
@@ -270,13 +278,6 @@ class DatabasePostgres(object):
             return False
 
         return RoleKeys.OWNER in set(found_role.roles.split(','))
-
-    @with_session
-    def get_user_name_for(self, user_id):
-        user = self.session.query(Users).filter(Users.uuid == user_id).first()
-        if user is None:
-            return None
-        return user.name
 
     @with_session
     def is_admin(self, user_id: str) -> bool:

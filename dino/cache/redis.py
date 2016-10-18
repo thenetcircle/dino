@@ -69,7 +69,7 @@ class CacheRedis(object):
         self.redis.flushdb()
         self.cache.flushall()
 
-    def user_check_status(self, user_id, other_status):
+    def get_user_status(self, user_id: str):
         key = RedisKeys.user_status(user_id)
         value = self.cache.get(key)
         if value is not None:
@@ -78,11 +78,14 @@ class CacheRedis(object):
         status = self.redis.get(key)
         if status is None or status == '':
             self.cache.set(key, RedisKeys.REDIS_STATUS_UNAVAILABLE)
-            return True
+            return RedisKeys.REDIS_STATUS_UNAVAILABLE
 
         user_status = str(status, 'utf-8')
         self.cache.set(key, user_status)
-        return user_status == other_status
+        return user_status
+
+    def user_check_status(self, user_id, other_status):
+        return self.get_user_status(user_id) == other_status
 
     def get_room_id_for_name(self, channel_id, room_name):
         key = RedisKeys.room_id_for_name(channel_id)

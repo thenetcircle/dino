@@ -27,6 +27,7 @@ from dino.config import ConfigKeys
 from dino.cache.miss import CacheAllMiss
 from dino.cache.redis import CacheRedis
 from dino.db.postgres.models import Channels
+from dino.db.postgres.models import UserStatus
 from dino.db.postgres.models import Rooms
 from dino.db.postgres.models import Users
 from dino.db.postgres.postgres import DatabasePostgres
@@ -159,7 +160,6 @@ class BaseDatabaseTest(BaseTest):
         self.assertEqual(0, len(self.rooms_for_user()))
 
     def _test_rooms_for_user_after_joining(self):
-        self._create_user()
         self._create_channel()
         self._create_room()
         self._join()
@@ -168,22 +168,55 @@ class BaseDatabaseTest(BaseTest):
         self.assertTrue(BaseTest.ROOM_ID in rooms.keys())
         self.assertTrue(BaseTest.ROOM_NAME in rooms.values())
 
-    def _test_create_user(self):
-        self._create_user()
-        self.assertEqual(BaseTest.USER_NAME, self._get_user_name_for())
+    def _test_remove_current_rooms_for_user_before_joining(self):
+        self.db.remove_current_rooms_for_user(BaseTest.USER_ID)
+        self.assertEqual(0, len(self._rooms_for_user()))
 
-    def _test_get_user_name_for_before_create(self):
-        self.assertEqual(None, self._get_user_name_for())
+    def _test_remove_current_rooms_for_user_after_joining(self):
+        self._create_channel()
+        self._create_room()
+        self._join()
 
-    def _test_get_user_name_for_after_create(self):
-        self._create_user()
-        self.assertEqual(BaseTest.USER_NAME, self._get_user_name_for())
+        rooms = self._rooms_for_user()
+        self.assertEqual(1, len(rooms))
+        self.assertTrue(BaseTest.ROOM_ID in rooms.keys())
+        self.assertTrue(BaseTest.ROOM_NAME in rooms.values())
+
+        self.db.remove_current_rooms_for_user(BaseTest.USER_ID)
+        self.assertEqual(0, len(self._rooms_for_user()))
+
+    def _test_get_user_status_before_set(self, status):
+        self.assertEqual(status, self._user_status())
+
+    def _test_set_user_offline(self, status):
+        self._set_offline()
+        self.assertEqual(status, self._user_status())
+
+    def _test_set_user_online(self, status):
+        self._set_online()
+        self.assertEqual(status, self._user_status())
+
+    def _test_set_user_invisible(self, status):
+        self._set_invisible()
+        self.assertEqual(status, self._user_status())
+
+    def _user_status(self):
+        return self.db.get_user_status(BaseTest.USER_ID)
+
+    def _set_offline(self):
+        self.db.set_user_offline(BaseTest.USER_ID)
+
+    def _set_online(self):
+        self.db.set_user_online(BaseTest.USER_ID)
+
+    def _set_invisible(self):
+        self.db.set_user_invisible(BaseTest.USER_ID)
+
+    def _rooms_for_user(self):
+        return self.db.rooms_for_user(BaseTest.USER_ID)
 
     def _get_user_name_for(self):
         return self.db.get_user_name_for(BaseTest.USER_ID)
-
-    def _create_user(self):
-        self.db.create_user(BaseTest.USER_ID, BaseTest.USER_NAME)
 
     def _join(self):
         self.db.join_room(BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
@@ -252,6 +285,24 @@ class DatabasePostgresTest(BaseDatabaseTest):
         con.close()
 
         self.env.cache.flushall()
+
+    def test_get_user_status_before_set(self):
+        self._test_get_user_status_before_set(UserStatus.STATUS_UNAVAILABLE)
+
+    def test_set_user_offline(self):
+        self._test_set_user_offline(UserStatus.STATUS_UNAVAILABLE)
+
+    def test_set_user_online(self):
+        self._test_set_user_online(UserStatus.STATUS_AVAILABLE)
+
+    def test_set_user_invisible(self):
+        self._test_set_user_invisible(UserStatus.STATUS_INVISIBLE)
+
+    def test_remove_current_rooms_for_user_before_joining(self):
+        self._test_remove_current_rooms_for_user_before_joining()
+
+    def test_remove_current_rooms_for_user_after_joining(self):
+        self._test_remove_current_rooms_for_user_after_joining()
 
     def test_rooms_for_user_before_joining(self):
         self._test_rooms_for_user_before_joining()

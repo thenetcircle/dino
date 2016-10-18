@@ -93,7 +93,6 @@ class RedisKeys(object):
     RKEY_AUTH = 'user:auth:%s'  # user:auth:user_id
     RKEY_USER_ROLES = 'user:roles:%s'  # user:roles:user_id
     RKEY_CHANNELS = 'channels'
-    RKEY_USERS = 'users'
     RKEY_ROOM_ID_FOR_NAME = 'room:id:%s'  # room:id:channel_id
 
     REDIS_STATUS_AVAILABLE = '1'
@@ -102,10 +101,6 @@ class RedisKeys(object):
     REDIS_STATUS_UNAVAILABLE = '4'
 
     # REDIS_STATUS_UNKNOWN = '5'
-
-    @staticmethod
-    def users() -> str:
-        return RedisKeys.RKEY_USERS
 
     @staticmethod
     def room_id_for_name(channel_id: str) -> str:

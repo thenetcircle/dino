@@ -21,7 +21,6 @@ from dino.db.postgres import rooms_users_association_table
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-@staticmethod
 class UserStatus(DeclarativeBase):
     __tablename__ = 'user_status'
 
