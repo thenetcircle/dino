@@ -24,7 +24,8 @@ from dino.db.postgres.models import UserStatus
 from dino.db.postgres.models import Acls
 from dino.db.postgres.models import Rooms
 from dino.db.postgres.models import Channels
-from dino.db.postgres.models import Roles
+from dino.db.postgres.models import ChannelRoles
+from dino.db.postgres.models import RoomRoles
 from dino.db.postgres.models import Users
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -37,9 +38,9 @@ class Database(object):
         Creates deals table.
         """
         self.env = env
-        engine = self.db_connect()
-        self.create_tables(engine)
-        self.Session = sessionmaker(bind=engine)
+        self.engine = self.db_connect()
+        self.create_tables(self.engine)
+        self.Session = sessionmaker(bind=self.engine)
 
     def db_connect(self):
         """
@@ -56,6 +57,9 @@ class Database(object):
             'database': self.env.config.get(ConfigKeys.DB, domain=domain)
         }
         return create_engine(URL(**params))
+
+    def truncate(self):
+        DeclarativeBase.metadata.drop_all(self.engine)
 
     def create_tables(self, engine):
         DeclarativeBase.metadata.create_all(engine)

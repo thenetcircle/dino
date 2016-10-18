@@ -45,6 +45,7 @@ class Channels(DeclarativeBase):
     created = Column('created', DateTime, nullable=False)
 
     rooms = relationship('Rooms', back_populates='channel')
+    roles = relationship('ChannelRoles', back_populates='channel')
 
 
 class Rooms(DeclarativeBase):
@@ -59,7 +60,7 @@ class Rooms(DeclarativeBase):
     channel = relationship('Channels', back_populates='rooms')
 
     acls = relationship('Acls', back_populates='room')
-    roles = relationship('Roles', back_populates='room')
+    roles = relationship('RoomRoles', back_populates='room')
 
     users = relationship(
         'Users',
@@ -99,13 +100,25 @@ class Acls(DeclarativeBase):
     fake_checked = Column('fake_checked', String, nullable=True)
 
 
-class Roles(DeclarativeBase):
-    __tablename__ = 'roles'
+class RoomRoles(DeclarativeBase):
+    __tablename__ = 'room_roles'
 
     id = Column(Integer, primary_key=True)
 
     room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=False)
     room = relationship('Rooms', back_populates='roles')
+
+    user_id = Column('user_id', String(128), nullable=False, index=True)
+    roles = Column('roles', String(256), nullable=False)
+
+
+class ChannelRoles(DeclarativeBase):
+    __tablename__ = 'channel_roles'
+
+    id = Column(Integer, primary_key=True)
+
+    channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=False)
+    channel = relationship('Channels', back_populates='roles')
 
     user_id = Column('user_id', String(128), nullable=False, index=True)
     roles = Column('roles', String(256), nullable=False)

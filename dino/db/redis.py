@@ -143,18 +143,19 @@ class DatabaseRedis(object):
             room_name = room_name.decode('utf-8')
         return room_name
 
+    def get_user_name_for(self, user_id: str) -> str:
+        return self.redis.hget(RedisKeys.users(), user_id)
+
+    def create_user(self, user_id: str, user_name: str) -> None:
+        self.redis.hset(RedisKeys.users(), user_id, user_name)
+
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.redis.sadd(RedisKeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
         self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)
 
-    def create_room(self, activity: Activity) -> None:
-        room_name = activity.target.display_name
-        room_id = activity.target.id
-        channel_id = activity.object.url
-
+    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name) -> None:
         self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
-        self.redis.hset(RedisKeys.room_owners(room_id), activity.actor.id,
-                        environ.env.session.get(SessionKeys.user_name.value))
+        self.redis.hset(RedisKeys.room_owners(room_id), user_id, user_name)
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
 
     def set_user_offline(self, user_id: str) -> None:

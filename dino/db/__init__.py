@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from zope.interface import Interface
+from activitystreams.models.activity import Activity
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -74,6 +75,48 @@ class IDatabase(Interface):
         :param room_id: the id fo the room to check for
         :param user_id: the id of the user to check
         :return: true if owner for room, false otherwise
+        """
+
+    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name) -> None:
+        """
+        create a new room (user_id will become the owner of the the new room)
+
+        :param room_name: the name of the room
+        :param room_id: the uuid of the room
+        :param channel_id: the uuid of the channel
+        :param user_id: the uuid of the user creating the room
+        :param user_name: the name of the user creating the room
+        :return: nothing
+        """
+
+    def leave_room(self, user_id: str, room_id: str) -> None:
+        """
+        leave a room
+
+        :param user_id:
+        :param room_id:
+        :return:
+        """
+
+    def create_channel(self, channel_name, channel_id, user_id):
+        """
+        create a new channel
+
+        :param channel_name: name of the channel
+        :param channel_id: uuid of the channel
+        :param user_id: uuid of the user creating the channel
+        :return: nothing
+        """
+
+    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
+        """
+        join a room
+
+        :param user_id: the uuid of the user joining
+        :param user_name: the name of the user joining
+        :param room_id: the uuid of the room to join
+        :param room_name: the name of the room to join
+        :return: nothing
         """
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:

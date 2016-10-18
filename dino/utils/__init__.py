@@ -405,6 +405,10 @@ def channel_exists(channel_id: str) -> bool:
     return environ.env.db.channel_exists(channel_id)
 
 
+def get_user_name_for(user_id: str) -> str:
+    return environ.env.config.get(SessionKeys.user_name.value)
+
+
 def get_room_name(room_id: str) -> str:
     return environ.env.db.get_room_name(room_id)
 

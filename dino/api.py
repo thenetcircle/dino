@@ -321,7 +321,12 @@ def on_create(data):
         return 400, 'a room with that name already exists'
 
     activity.target.id = str(uuid())
-    environ.env.db.create_room(activity)
+    room_name = activity.target.display_name
+    room_id = activity.target.id
+    channel_id = activity.object.url
+    user_id = activity.actor.id
+    user_name = utils.get_user_name_for(user_id)
+    environ.env.db.create_room(room_name, room_id, channel_id, user_id, user_name)
 
     activity_json = utils.activity_for_create_room(activity)
     environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)

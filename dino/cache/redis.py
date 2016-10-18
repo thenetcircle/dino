@@ -29,24 +29,31 @@ class MemoryCache(object):
         self.vals = dict()
 
     def set(self, key, value, ttl=30):
-        expires_at = (datetime.now() + timedelta(0, ttl)).timestamp()
-        self.vals[key] = (expires_at, value)
+        try:
+            expires_at = (datetime.utcnow() + timedelta(0, ttl)).timestamp()
+            self.vals[key] = (expires_at, value)
+        except:
+            pass
 
     def get(self, key):
-        if key not in self.vals:
+        try:
+            if key not in self.vals:
+                return None
+            expires_at, value = self.vals[key]
+            now = datetime.utcnow().timestamp()
+            if now > expires_at:
+                del self.vals[key]
+                return None
+            return value
+        except:
             return None
-        expires_at, value = self.vals[key]
-        now = datetime.now().timestamp()
-        if now > expires_at:
-            del self.vals[key]
-            return None
-        return value
+
+    def flushall(self):
+        self.vals = dict()
 
 
 @implementer(ICache)
 class CacheRedis(object):
-    USER_STATUS = 'user-status'
-
     redis = None
 
     def __init__(self, host: str, port: int = 6379, db: int = 0):
@@ -58,19 +65,84 @@ class CacheRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.cache = MemoryCache()
 
+    def flushall(self):
+        self.redis.flushdb()
+        self.cache.flushall()
+
     def user_check_status(self, user_id, other_status):
-        value = self.cache.get(CacheRedis.USER_STATUS)
+        key = RedisKeys.user_status(user_id)
+        value = self.cache.get(key)
         if value is not None:
             return value
 
-        status = self.redis.get(RedisKeys.user_status(user_id))
+        status = self.redis.get(key)
         if status is None or status == '':
-            self.cache.set(CacheRedis.USER_STATUS, RedisKeys.REDIS_STATUS_UNAVAILABLE)
+            self.cache.set(key, RedisKeys.REDIS_STATUS_UNAVAILABLE)
             return True
 
         user_status = str(status, 'utf-8')
-        self.cache.set(CacheRedis.USER_STATUS, user_status)
+        self.cache.set(key, user_status)
         return user_status == other_status
+
+    def get_room_id_for_name(self, channel_id, room_name):
+        key = RedisKeys.room_id_for_name(channel_id)
+        cache_key = '%s-%s' % (key, room_name)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        value = self.redis.hget(key, room_name)
+        if value is None:
+            return None
+
+        value = str(value, 'utf-8')
+        self.cache.set(cache_key, value)
+        return value
+
+    def set_room_id_for_name(self, channel_id, room_name, room_id):
+        key = RedisKeys.room_id_for_name(channel_id)
+        cache_key = '%s-%s' % (key, room_name)
+        self.cache.set(cache_key, room_id)
+        self.redis.hset(key, room_name, room_id)
+
+    def get_room_exists(self, channel_id, room_id):
+        key = RedisKeys.rooms(channel_id)
+        cache_key = '%s-%s' % (channel_id, room_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return True
+
+        exists = self.redis.hexists(key, room_id)
+        if exists == 1:
+            self.cache.set(cache_key, True)
+            return True
+        return None
+
+    def set_room_exists(self, channel_id, room_id, room_name):
+        key = RedisKeys.rooms(channel_id)
+        cache_key = '%s-%s' % (channel_id, room_id)
+        self.cache.set(cache_key, True)
+        self.redis.hset(key, room_id, room_name)
+
+    def set_channel_exists(self, channel_id):
+        key = RedisKeys.channels()
+        cache_key = '%s-%s' % (key, channel_id)
+        self.cache.set(cache_key, True)
+        self.redis.hset(key, channel_id, True)
+
+    def get_channel_exists(self, channel_id):
+        key = RedisKeys.channels()
+        cache_key = '%s-%s' % (key, channel_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        value = self.redis.hget(RedisKeys.channels(), channel_id)
+        if value is None:
+            return None
+
+        self.cache.set(cache_key, True)
+        return True
 
     def user_is_offline(self, user_id):
         return self.user_check_status(user_id, RedisKeys.REDIS_STATUS_UNAVAILABLE)
@@ -82,21 +154,21 @@ class CacheRedis(object):
         return self.user_check_status(user_id, RedisKeys.REDIS_STATUS_INVISIBLE)
 
     def set_user_offline(self, user_id: str) -> None:
-        self.cache.set(CacheRedis.USER_STATUS, RedisKeys.REDIS_STATUS_UNAVAILABLE)
+        self.cache.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_UNAVAILABLE)
         self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
         self.redis.srem(RedisKeys.online_set(), int(user_id))
         self.redis.srem(RedisKeys.users_multi_cast(), user_id)
         self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_UNAVAILABLE)
 
     def set_user_online(self, user_id: str) -> None:
-        self.cache.set(CacheRedis.USER_STATUS, RedisKeys.REDIS_STATUS_AVAILABLE)
+        self.cache.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_AVAILABLE)
         self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 1)
         self.redis.sadd(RedisKeys.online_set(), int(user_id))
         self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
         self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_AVAILABLE)
 
     def set_user_invisible(self, user_id: str) -> None:
-        self.cache.set(CacheRedis.USER_STATUS, RedisKeys.REDIS_STATUS_INVISIBLE)
+        self.cache.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_INVISIBLE)
         self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
         self.redis.srem(RedisKeys.online_set(), int(user_id))
         self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
