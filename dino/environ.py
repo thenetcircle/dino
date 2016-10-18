@@ -54,13 +54,15 @@ class ConfigDict:
     def subp(self, parent):
         p = dict(parent.params)
         p.update(self.params)
-        p.update(self.override)
+        if self.override is not None:
+            p.update(self.override)
         return ConfigDict(p, self.override)
 
     def sub(self, **params):
         p = dict(self.params)
         p.update(params)
-        p.update(self.override)
+        if self.override is not None:
+            p.update(self.override)
         return ConfigDict(p, self.override)
 
     def set(self, key, val, domain: str=None):
@@ -190,11 +192,13 @@ class GNEnvironment(object):
         # TODO: remove this, go through storage interface
         self.redis = config.get(ConfigKeys.REDIS, None)
 
+    """
     def __setattr__(self, attr, value):
         if attr == 'config' and hasattr(self, attr):
             raise Exception("Attempting to alter read-only value")
 
         self.__dict__[attr] = value
+    """
 
 
 def create_logger(_config_dict: dict) -> RootLogger:

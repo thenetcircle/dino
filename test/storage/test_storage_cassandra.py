@@ -79,23 +79,15 @@ class StorageMockCassandraTest(BaseTest):
         self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], 2, 1)
 
     def test_history(self):
-        self.create()
-        self.join()
         self.assertEqual(0, len(self.storage.get_history(BaseTest.ROOM_ID)))
 
     def test_store_message(self):
-        self.create()
-        self.join()
-
         self.storage.store_message(self.act_message())
 
         res = self.storage.get_history(BaseTest.ROOM_ID)
         self.assertEqual(1, len(res))
         self.assertEqual(BaseTest.USER_ID, res[0]['from_user'])
         self.assertEqual(BaseTest.ROOM_ID, res[0]['to_user'])
-
-    def create(self):
-        environ.env.db.create_room(self.act_create())
 
     def join(self):
         environ.env.db.join_room(BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME)

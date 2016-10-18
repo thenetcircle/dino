@@ -150,6 +150,7 @@ class BaseTest(unittest.TestCase):
         }
 
         environ.env.config.set(ConfigKeys.TESTING, True)
+        environ.env.config = environ.env.config.sub(**self.session)
         environ.env.auth = AuthRedis('mock')
         environ.env.storage = StorageRedis('mock')
         environ.env.db = DatabaseRedis('mock')
