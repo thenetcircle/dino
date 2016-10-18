@@ -15,13 +15,11 @@
 from functools import wraps
 from zope.interface import implementer
 
-from dino import environ
 from dino.config import ConfigKeys
 from dino.db import IDatabase
 from dino.db.postgres.dbman import Database
 from dino.db.postgres.mock import MockDatabase
 from dino.db.postgres.models import Rooms
-from dino.db.postgres.models import Roles
 from dino.db.postgres.models import Users
 from dino.db.postgres.models import UserStatus
 from dino.db.postgres.models import Channels
@@ -29,66 +27,71 @@ from dino.db.postgres.models import Channels
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
+def with_session(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        session = DatabasePostgres.db.Session()
+        try:
+            _self = args[0]
+            _self.__dict__.update({'session': session})
+            return f(*args, **kwargs)
+        except:
+            session.rollback()
+            raise
+        finally:
+            session.close()
+    return wrapped
+
+
 @implementer(IDatabase)
 class DatabasePostgres(object):
-    @staticmethod
-    def with_session(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            session = DatabasePostgres.db.Session()
-            try:
-                _self = args[0]
-                _self.__dict__.update({'session': session})
-                return f(*args, **kwargs)
-            except:
-                session.rollback()
-                raise
-            finally:
-                session.close()
-        return wrapped
-
-    def __init__(self):
-        if environ.env.onfig.get(ConfigKeys.TESTING, False):
+    def __init__(self, env):
+        self.env = env
+        if self.env.config.get(ConfigKeys.TESTING, False):
             DatabasePostgres.db = MockDatabase()
         else:
-            DatabasePostgres.db = Database()
+            DatabasePostgres.db = Database(env)
 
     @with_session
     def room_exists(self, channel_id: str, room_id: str) -> bool:
+        exists = self.env.cache.get_room_exists(room_id)
+        if exists is not None:
+            return exists
+
         rooms = self.session.query(Rooms)\
-            .join(Rooms.channel)\
-            .filter(Rooms.id == room_id)\
+            .filter(Rooms.uuid == room_id)\
             .all()
+
         exists = len(rooms) > 0
         if exists:
-            environ.env.cache.set_room_exists(room_id, True)
+            self.env.cache.set_room_exists(room_id, True)
         return exists
 
     @with_session
     def set_user_invisible(self, user_id: str) -> None:
-        if environ.env.cache.user_is_invisible(user_id):
+        if self.env.cache.user_is_invisible(user_id):
             return
 
-        environ.env.cache.set_user_invisible(user_id)
+        self.env.cache.set_user_invisible(user_id)
         self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserStatus.STATUS_INVISIBLE})
         self.session.commit()
 
     @with_session
     def set_user_offline(self, user_id: str) -> None:
-        if environ.env.cache.user_is_offline(user_id):
+        if self.env.cache.user_is_offline(user_id):
             return
 
-        environ.env.cache.set_user_offline(user_id)
+        self.env.cache.set_user_offline(user_id)
         status = self.session.query(UserStatus).filter_by(uuid=user_id).first()
         self.session.delete(status)
         self.session.commit()
 
     @with_session
     def set_user_online(self, user_id: str) -> None:
-        if environ.env.cache.user_is_online(user_id):
+        if self.env.cache.user_is_online(user_id):
             return
 
-        environ.env.cache.set_user_online(user_id)
+        self.env.cache.set_user_online(user_id)
         self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserStatus.STATUS_AVAILABLE})
         self.session.commit()
 

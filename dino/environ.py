@@ -63,8 +63,13 @@ class ConfigDict:
         p.update(self.override)
         return ConfigDict(p, self.override)
 
-    def set(self, key, val):
-        self.params[key] = val
+    def set(self, key, val, domain: str=None):
+        if domain is None:
+            self.params[key] = val
+        else:
+            if domain not in self.params:
+                self.params[domain] = dict()
+            self.params[domain][key] = val
 
     def keys(self):
         return self.params.keys()
@@ -339,10 +344,13 @@ def init_database(gn_env: GNEnvironment):
 
     db_engine = gn_env.config.get(ConfigKeys.DATABASE, None)
     if db_engine is None:
-        db_engine = 'redis'
+        raise RuntimeError('no db service specified')
 
-    # TODO: mysql/postgres with sqlalchemy
-    if db_engine == 'redis':
+    db_type = db_engine.get(ConfigKeys.TYPE, None)
+    if db_type is None:
+        db_type = 'redis'
+
+    if db_type == 'redis':
         from dino.db.redis import DatabaseRedis
 
         db_host, db_port = db_engine.get(ConfigKeys.HOST), None
@@ -351,14 +359,11 @@ def init_database(gn_env: GNEnvironment):
 
         db_number = db_engine.get(ConfigKeys.DB, 0)
         gn_env.db = DatabaseRedis(host=db_host, port=db_port, db=db_number)
-    elif db_engine == 'postgres':
+    elif db_type == 'postgres':
         from dino.db.postgres.postgres import DatabasePostgres
-        from dino.db.postgres.dbman import Database
-
-        gn_env.Database
         gn_env.db = DatabasePostgres()
     else:
-        raise RuntimeError('unknown auth type, use one of [mock, redis, postgres, mysql]')
+        raise RuntimeError('unknown db type "%s", use one of [mock, redis, postgres, mysql]' % db_type)
 
 
 def init_auth_service(gn_env: GNEnvironment):
@@ -406,7 +411,7 @@ def init_cache_service(gn_env: GNEnvironment):
 
     cache_type = cache_engine.get(ConfigKeys.TYPE, None)
     if cache_type is None:
-        raise RuntimeError('no cache type specified, use one of [redis, allowall, denyall]')
+        raise RuntimeError('no cache type specified, use one of [redis, mock, missall]')
 
     if cache_type == 'redis':
         from dino.cache.redis import CacheRedis
@@ -420,12 +425,12 @@ def init_cache_service(gn_env: GNEnvironment):
     elif cache_type == 'memory':
         from dino.cache.redis import CacheRedis
         gn_env.cache = CacheRedis(host='mock')
-    elif cache_type == 'none':
+    elif cache_type == 'missall':
         from dino.cache.miss import CacheAllMiss
         gn_env.cache = CacheAllMiss()
     else:
-        raise RuntimeError('unknown cache type, use one of [redis, mock, none]')
-    
+        raise RuntimeError('unknown cache type %s, use one of [redis, mock, missall]' % cache_type)
+
 
 def init_pub_sub(gn_env: GNEnvironment):
     def publish(message):
@@ -453,5 +458,9 @@ def initialize_env(dino_env):
     init_pub_sub(dino_env)
 
 
-env = create_env()
+_config_paths = None
+if 'CONFIG' in os.environ:
+    _config_paths = [os.environ['CONFIG']]
+    print(_config_paths)
+env = create_env(_config_paths)
 initialize_env(env)

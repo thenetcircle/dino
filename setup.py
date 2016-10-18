@@ -23,6 +23,7 @@ setup(
         'zope.interface==4.3.2',   # interfaces
         'pyyaml==3.11',            # configuration files
         'redis==2.10.5',           # redis client
+        'psycopg2==2.6.2',
         'sqlalchemy==1.1.1',
         'flask-socketio==2.7.1',
         'flask_wtf==0.12',

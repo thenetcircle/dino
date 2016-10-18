@@ -16,7 +16,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 
-from dino import environ
 from dino.config import ConfigKeys
 from dino.db.postgres import DeclarativeBase
 
@@ -26,16 +25,18 @@ from dino.db.postgres.models import Acls
 from dino.db.postgres.models import Rooms
 from dino.db.postgres.models import Channels
 from dino.db.postgres.models import Roles
+from dino.db.postgres.models import Users
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class Database(object):
-    def __init__(self):
+    def __init__(self, env):
         """
         Initializes database connection and sessionmaker.
         Creates deals table.
         """
+        self.env = env
         engine = self.db_connect()
         self.create_tables(engine)
         self.Session = sessionmaker(bind=engine)
@@ -45,15 +46,14 @@ class Database(object):
         Performs database connection using database settings from settings.py.
         Returns sqlalchemy engine instance
         """
-        config = environ.env.config
         domain = ConfigKeys.DATABASE
         params = {
             'drivername': 'postgres+psycopg2',
-            'host': config.get(ConfigKeys.HOST, domain=domain),
-            'port': config.get(ConfigKeys.PORT, domain=domain),
-            'username': config.get(ConfigKeys.USER, domain=domain),
-            'password': config.get(ConfigKeys.PASSWORD, domain=domain),
-            'database': config.get(ConfigKeys.DB, domain=domain)
+            'host': self.env.config.get(ConfigKeys.HOST, domain=domain),
+            'port': self.env.config.get(ConfigKeys.PORT, domain=domain),
+            'username': self.env.config.get(ConfigKeys.USER, domain=domain),
+            'password': self.env.config.get(ConfigKeys.PASSWORD, domain=domain),
+            'database': self.env.config.get(ConfigKeys.DB, domain=domain)
         }
         return create_engine(URL(**params))
 
