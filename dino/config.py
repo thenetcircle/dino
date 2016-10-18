@@ -91,9 +91,10 @@ class RedisKeys(object):
     RKEY_ROOM_OWNERS = 'room:owners:%s'  # room:owners:room_id
     RKEY_ROOM_HISTORY = 'room:history:%s'  # room:history:room_id
     RKEY_AUTH = 'user:auth:%s'  # user:auth:user_id
-    RKEY_USER_ROLES = 'user:roles:%s'  # user:roles:user_id
     RKEY_CHANNELS = 'channels'
     RKEY_ROOM_ID_FOR_NAME = 'room:id:%s'  # room:id:channel_id
+    RKEY_CHANNEL_ROLES = 'channel:roles:%s'  # channel:roles:channel_id
+    RKEY_ROOM_ROLES = 'room:roles:%s'  # channel:roles:channel_id
 
     REDIS_STATUS_AVAILABLE = '1'
     # REDIS_STATUS_CHAT = '2'
@@ -101,6 +102,14 @@ class RedisKeys(object):
     REDIS_STATUS_UNAVAILABLE = '4'
 
     # REDIS_STATUS_UNKNOWN = '5'
+
+    @staticmethod
+    def channel_roles(channel_id: str) -> str:
+        return RedisKeys.RKEY_CHANNEL_ROLES % channel_id
+
+    @staticmethod
+    def room_roles(room_id: str) -> str:
+        return RedisKeys.RKEY_ROOM_ROLES % room_id
 
     @staticmethod
     def room_id_for_name(channel_id: str) -> str:
@@ -158,7 +167,3 @@ class RedisKeys(object):
     @staticmethod
     def auth_key(user_id: str) -> str:
         return RedisKeys.RKEY_AUTH % user_id
-
-    @staticmethod
-    def user_roles(user_id: str) -> str:
-        return RedisKeys.RKEY_USER_ROLES % user_id

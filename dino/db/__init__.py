@@ -19,14 +19,6 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class IDatabase(Interface):
-    def is_admin(self, user_id: str) -> bool:
-        """
-        check if a user is an admin or not
-
-        :param user_id: the id of the user to check
-        :return: true if admin, false otherwise
-        """
-
     def get_channels(self) -> dict:
         """
         get all channels on the server
@@ -96,6 +88,60 @@ class IDatabase(Interface):
         :param user_id:
         :param room_id:
         :return:
+        """
+
+    def is_admin(self, channel_id: str, user_id: str) -> bool:
+        """
+        check if a user is an admin of a channel
+
+        :param channel_id: uuid of the channel
+        :param user_id: uuid of the user
+        :return: true or false
+        """
+
+    def is_moderator(self, room_id: str, user_id: str) -> bool:
+        """
+        check if a user is a moderator of a room
+
+        :param room_id: uuid of the room
+        :param user_id: uuid of the user
+        :return: true or false
+        """
+
+    def is_owner(self, room_id: str, user_id: str) -> bool:
+        """
+        check if a user is an owner of a room
+
+        :param room_id: uuid of the room
+        :param user_id: uuid of the user
+        :return: true or false
+        """
+
+    def set_owner(self, room_id: str, user_id: str) -> None:
+        """
+        set role owner on a room to a user
+
+        :param room_id: uuid of the room
+        :param user_id: uuid of the user
+        :return:
+        """
+
+    def set_moderator(self, room_id: str, user_id: str) -> None:
+        """
+        set role moderator on room to a user
+
+        :param room_id: the uuid of the room
+        :param user_id: the uuid of the user
+        :return: nothing
+        """
+
+    def set_admin(self, channel_id: str, user_id: str) -> None:
+        """
+        set role admin on channel to a user
+
+        :param channel_id: the uuid of the channel
+        :param user_id: the uuid of the user
+        :return: nothing
         """
 
     def create_channel(self, channel_name, channel_id, user_id):

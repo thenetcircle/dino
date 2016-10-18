@@ -142,18 +142,6 @@ class BaseDatabaseTest(BaseTest):
         self.assertTrue(BaseTest.ROOM_ID in rooms.keys())
         self.assertTrue(BaseTest.ROOM_NAME in rooms.values())
 
-    def _test_room_owners_contain_before_channel(self):
-        self.assertFalse(self._room_owners_contain())
-
-    def _test_room_owners_contain_after_channel(self):
-        self._create_channel()
-        self.assertFalse(self._room_owners_contain())
-
-    def _test_room_owners_contain_after_room(self):
-        self._create_channel()
-        self._create_room()
-        self.assertTrue(self._room_owners_contain())
-
     def _test_rooms_for_user_before_joining(self):
         self._create_channel()
         self._create_room()
@@ -200,6 +188,44 @@ class BaseDatabaseTest(BaseTest):
         self._set_invisible()
         self.assertEqual(status, self._user_status())
 
+    def _test_is_admin_before_create(self):
+        self.assertFalse(self._is_admin())
+
+    def _test_is_admin_after_create(self):
+        self._create_channel()
+        self.assertFalse(self._is_admin())
+
+    def _test_is_admin_after_create_set_admin(self):
+        self._create_channel()
+        self._set_admin()
+        self.assertTrue(self._is_admin())
+
+    def _test_is_moderator_before_create(self):
+        self.assertFalse(self._is_moderator())
+
+    def _test_is_moderator_after_create(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self._is_moderator())
+
+    def _test_is_moderator_after_create_set_moderator(self):
+        self._create_channel()
+        self._create_room()
+        self._set_moderator()
+        self.assertFalse(self._is_moderator())
+
+    def _set_moderator(self):
+        self.db.set_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID)
+
+    def _set_admin(self):
+        self.db.set_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+
+    def _is_moderator(self):
+        return self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID)
+
+    def _is_admin(self):
+        return self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+
     def _user_status(self):
         return self.db.get_user_status(BaseTest.USER_ID)
 
@@ -223,9 +249,6 @@ class BaseDatabaseTest(BaseTest):
 
     def rooms_for_user(self):
         return self.db.rooms_for_user(BaseTest.USER_ID)
-
-    def _room_owners_contain(self):
-        return self.db.room_owners_contain(BaseTest.ROOM_ID, BaseTest.USER_ID)
 
     def _rooms_for_channel(self):
         return self.db.rooms_for_channel(BaseTest.CHANNEL_ID)
@@ -258,7 +281,6 @@ class DatabasePostgresTest(BaseDatabaseTest):
     def rooms_for_channel(self, channel_id) -> dict
     def room_name_exists(self, channel_id, room_name: str) -> bool
     def room_exists(self, channel_id: str, room_id: str) -> bool
-    def room_owners_contain(self, room_id, user_id) -> bool
     def rooms_for_user(self, user_id: str = None) -> dict
     def remove_current_rooms_for_user(self, user_id: str) -> None
     def set_user_offline(self, user_id: str) -> None
@@ -286,6 +308,15 @@ class DatabasePostgresTest(BaseDatabaseTest):
 
         self.env.cache.flushall()
 
+    def test_is_admin_before_create(self):
+        self._test_is_admin_before_create()
+
+    def test_is_admin_after_create(self):
+        self._test_is_admin_after_create()
+
+    def test_is_admin_after_create_set_admin(self):
+        self._test_is_admin_after_create_set_admin()
+
     def test_get_user_status_before_set(self):
         self._test_get_user_status_before_set(UserStatus.STATUS_UNAVAILABLE)
 
@@ -309,15 +340,6 @@ class DatabasePostgresTest(BaseDatabaseTest):
 
     def test_rooms_for_user_after_joining(self):
         self._test_rooms_for_user_after_joining()
-
-    def test_room_owners_contain_before_channel(self):
-        self._test_room_owners_contain_before_channel()
-
-    def test_room_owners_contain_after_channel(self):
-        self._test_room_owners_contain_after_channel()
-
-    def test_room_owners_contain_after_room(self):
-        self._test_room_owners_contain_after_room()
 
     def test_rooms_for_channel_before_create_channel(self):
         self._test_rooms_for_channel_before_create_channel()

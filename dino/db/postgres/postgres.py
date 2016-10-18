@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from functools import wraps
+from typing import Union
 from zope.interface import implementer
 
 from dino.config import ConfigKeys
@@ -260,30 +261,105 @@ class DatabasePostgres(object):
         self.session.add(room)
         self.session.commit()
 
-    @with_session
-    def room_owners_contain(self, room_id, user_id) -> bool:
-        room = self.session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
-        if room is None:
+    def _object_has_role_for_user(self, obj: Union[Rooms, Channels], the_role: str, user_id: str) -> bool:
+        # TODO: cache
+        if obj is None:
             return False
 
         found_role = None
-        for role in room.roles:
+        for role in obj.roles:
             if role.user_id == user_id:
                 found_role = role
                 break
 
         if found_role is None:
-            return None
+            return False
         if found_role.roles is None or found_role.roles == '':
             return False
 
-        return RoleKeys.OWNER in set(found_role.roles.split(','))
+        return the_role in set(found_role.roles.split(','))
+
+    def _room_has_role_for_user(self, the_role: str, room_id: str, user_id: str) -> bool:
+        room = self.session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
+        return self._object_has_role_for_user(room, the_role, user_id)
+
+    def _channel_has_role_for_user(self, the_role: str, channel_id: str, user_id: str) -> bool:
+        channel = self.session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
+        return self._object_has_role_for_user(channel, the_role, user_id)
+    
+    def _set_role_on_room_for_user(self, the_role: Rooms, room_id: str, user_id: str):
+        room = self.session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
+        if room is None:
+            raise NoSuchRoomException(room_id)
+        
+        found_role = None
+        for role in room.roles:
+            if role.user_id == user_id:
+                found_role = role
+                if the_role in role.roles:
+                    return
+        
+        if found_role is None:
+            found_role = RoomRoles()
+            found_role.user_id = user_id
+            found_role.room = room
+            found_role.roles = the_role
+        else:
+            roles = set(found_role.roles.split(','))
+            roles.add(the_role)
+            found_role.roles = ','.join(roles)
+            
+        self.session.add(found_role)
+        self.session.commit()
+    
+    def _set_role_on_channel_for_user(self, the_role: Channels, channel_id: str, user_id: str):
+        channel = self.session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
+        if channel is None:
+            raise NoSuchChannelException(channel_id)
+        
+        found_role = None
+        for role in channel.roles:
+            if role.user_id == user_id:
+                found_role = role
+                if the_role in role.roles:
+                    return
+        
+        if found_role is None:
+            found_role = ChannelRoles()
+            found_role.user_id = user_id
+            found_role.channel = channel
+            found_role.roles = the_role
+        else:
+            roles = set(found_role.roles.split(','))
+            roles.add(the_role)
+            found_role.roles = ','.join(roles)
+            
+        self.session.add(found_role)
+        self.session.commit()
 
     @with_session
-    def is_admin(self, user_id: str) -> bool:
-        # TODO: need to revise roles first
-        # TODO: cache
-        raise NotImplementedError()
+    def is_owner(self, room_id: str, user_id: str) -> bool:
+        return self._room_has_role_for_user(RoleKeys.OWNER, room_id, user_id)
+
+    @with_session
+    def is_moderator(self, room_id: str, user_id: str) -> bool:
+        return self._room_has_role_for_user(RoleKeys.MODERATOR, room_id, user_id)
+
+    @with_session
+    def is_admin(self, channel_id: str, user_id: str) -> bool:
+        return self._channel_has_role_for_user(RoleKeys.ADMIN, channel_id, user_id)
+
+    @with_session
+    def set_admin(self, channel_id: str, user_id: str):
+        self._set_role_on_channel_for_user(RoleKeys.ADMIN, channel_id, user_id)
+
+    @with_session
+    def set_moderator(self, room_id: str, user_id: str):
+        self._set_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
+
+    @with_session
+    def set_owner(self, room_id: str, user_id: str):
+        self._set_role_on_room_for_user(RoleKeys.OWNER, room_id, user_id)
 
     @with_session
     def delete_acl(self, room_id: str, acl_type: str) -> None:

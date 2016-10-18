@@ -19,6 +19,7 @@ from uuid import uuid4 as uuid
 from dino.db import IDatabase
 from dino.config import ConfigKeys
 from dino.config import RedisKeys
+from dino.config import RoleKeys
 from dino.config import SessionKeys
 from dino import environ
 
@@ -37,8 +38,56 @@ class DatabaseRedis(object):
 
         self.redis = Redis(host=host, port=port, db=db)
 
-    def is_admin(self, user_id: str) -> bool:
-        self.redis.sismember(RedisKeys.user_roles(user_id), 'admin')
+    def _has_role_in_room(self, role: str, room_id: str, user_id: str) -> bool:
+        roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
+        if roles is None:
+            return False
+        return role in str(roles, 'utf-8').split(',')
+
+    def _has_role_in_channel(self, role: str, channel_id: str, user_id: str) -> bool:
+        roles = self.redis.hget(RedisKeys.channel_roles(channel_id), user_id)
+        if roles is None:
+            return False
+        return role in str(roles, 'utf-8').split(',')
+
+    def _add_channel_roles(self, role: str, channel_id: str, user_id: str):
+        roles = self.redis.hget(RedisKeys.channel_roles(channel_id), user_id)
+        if roles is None:
+            roles = role
+        else:
+            roles = set(str(roles, 'utf-8').split(','))
+            roles.add(role)
+            roles = ','.join(roles)
+        self.redis.hset(RedisKeys.channel_roles(channel_id), user_id, roles)
+
+    def _add_room_role(self, role: str, room_id: str, user_id: str):
+        roles = self.redis.hget(RedisKeys.channel_roles(room_id), user_id)
+        if roles is None:
+            roles = role
+        else:
+            roles = set(str(roles, 'utf-8').split(','))
+            roles.add(role)
+            roles = ','.join(roles)
+        self.redis.hset(RedisKeys.channel_roles(room_id), user_id, roles)
+
+    def is_admin(self, channel_id: str, user_id: str) -> bool:
+        return self._has_role_in_channel(RoleKeys.ADMIN, channel_id, user_id)
+
+    def is_moderator(self, room_id: str, user_id: str) -> bool:
+        return self._has_role_in_room(RoleKeys.MODERATOR, room_id, user_id)
+
+    def is_owner(self, room_id: str, user_id: str) -> bool:
+        return self._has_role_in_room(RoleKeys.OWNER, room_id, user_id)
+
+    def set_admin(self, channel_id: str, user_id: str):
+        self._add_channel_roles(RoleKeys.ADMIN, channel_id, user_id)
+
+    def set_moderator(self, room_id: str, user_id: str):
+        self._add_room_role(RoleKeys.MODERATOR, room_id, user_id)
+
+    def set_owner(self, room_id: str, user_id: str):
+        roles = self.redis.hget(RedisKeys.channel_roles(room_id), user_id)
+        self._add_room_role(RoleKeys.OWNER, room_id, user_id)
 
     def get_channels(self) -> dict:
         all_channels = self.redis.hgetall(RedisKeys.channels())
