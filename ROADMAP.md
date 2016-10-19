@@ -49,6 +49,9 @@ A rough roadmap for possible upcoming features.
 
 0.10.0
 ---
+* last read timestamp for group
+    - if online, store timestamp of last read message in group for user
+    - if later comes online, client asks for messages since last read timestamp 
 * backend admin interface
     - for fixing things
     - listing users in rooms
