@@ -450,8 +450,25 @@ class BaseDatabaseTest(BaseTest):
         self._create_room()
         self.assertFalse(self._get_allow_cross_group())
 
+    def _test_room_allows_cross_group_messaging_no_room(self):
+        self.assertRaises(NoSuchRoomException, self._room_allows_cross_group_messaging)
+
+    def _test_room_allows_cross_group_messaging(self):
+        self._create_channel()
+        self._create_room()
+        self._set_allow_cross_group()
+        self.assertTrue(self._room_allows_cross_group_messaging())
+
+    def _test_room_does_not_allow_cross_group_messaging_no_room(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self._room_allows_cross_group_messaging())
+
     def _set_allow_cross_group(self):
         self.db.add_acls(BaseTest.ROOM_ID, {SessionKeys.crossgroup.value: 'y'})
+
+    def _room_allows_cross_group_messaging(self):
+        return self.db.room_allows_cross_group_messaging(BaseTest.ROOM_ID)
 
     def _get_allow_cross_group(self):
         acls = self.db.get_acls(BaseTest.ROOM_ID)

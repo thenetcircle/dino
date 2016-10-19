@@ -18,6 +18,7 @@ from uuid import uuid4 as uuid
 
 from dino.db import IDatabase
 from dino.config import ConfigKeys
+from dino.config import SessionKeys
 from dino.config import RedisKeys
 from dino.config import RoleKeys
 from dino.config import UserKeys
@@ -195,7 +196,10 @@ class DatabaseRedis(object):
         return acls_cleaned
 
     def room_allows_cross_group_messaging(self, room_uuid: str) -> bool:
-        raise NotImplementedError()
+        acls = self.get_acls(room_uuid)
+        if SessionKeys.crossgroup.value not in acls.keys():
+            return False
+        return acls[SessionKeys.crossgroup.value] == 'y'
 
     def channel_for_room(self, room_id: str) -> str:
         if room_id is None or len(room_id.strip()) == 0:

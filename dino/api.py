@@ -162,13 +162,13 @@ def on_message(data):
         return 400, error_msg
 
     room_id = activity.target.id
+    from_room_id = activity.actor.url
 
     if room_id is None or room_id == '':
         return 400, 'no room id specified when sending message'
 
     if activity.target.object_type == 'group':
         channel_id = activity.object.url
-        from_room_id = activity.actor.url
 
         if channel_id is None or channel_id == '':
             return 400, 'no channel id specified when sending message'
@@ -177,11 +177,19 @@ def on_message(data):
             return 400, 'channel %s does not exists' % channel_id
 
         if not utils.room_exists(channel_id, room_id):
-            return 400, 'room %s does not exist' % room_id
+            return 400, 'target room %s does not exist' % room_id
+
+        if from_room_id is not None:
+            if from_room_id != room_id and not utils.room_exists(channel_id, from_room_id):
+                return 400, 'origin room %s does not exist' % from_room_id
 
         if not utils.is_user_in_room(activity.actor.id, room_id):
             if not utils.can_send_cross_group(from_room_id, room_id):
                 return 400, 'user not allowed to send cross-group msg from %s to %s' % (from_room_id, room_id)
+
+    # only if cross-group should we broadcast the origin group id with the activity; less confusion for clients
+    if from_room_id is not None and from_room_id == room_id:
+        del data['actor']['url']
 
     environ.env.storage.store_message(activity)
     environ.env.send(data, json=True, room=room_id, broadcast=True)

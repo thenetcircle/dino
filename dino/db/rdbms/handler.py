@@ -18,6 +18,7 @@ from typing import Union
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
 from dino.config import UserKeys
+from dino.config import SessionKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
@@ -446,7 +447,10 @@ class DatabaseRdbms(object):
 
     @with_session
     def room_allows_cross_group_messaging(self, room_uuid: str) -> bool:
-        raise NotImplementedError()
+        acls = self.get_acls(room_uuid)
+        if SessionKeys.crossgroup.value not in acls:
+            return False
+        return acls[SessionKeys.crossgroup.value] == 'y'
 
     @with_session
     def delete_acl(self, room_id: str, acl_type: str) -> None:
