@@ -53,7 +53,8 @@ class Rooms(DeclarativeBase):
     channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=False)
     channel = relationship('Channels', back_populates='rooms')
 
-    acls = relationship('Acls', back_populates='room')
+    acl = relationship('Acls', uselist=False, back_populates='room')
+
     roles = relationship('RoomRoles', back_populates='room')
 
     users = relationship(
@@ -81,7 +82,7 @@ class Acls(DeclarativeBase):
     id = Column(Integer, primary_key=True)
 
     room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=False)
-    room = relationship('Rooms', back_populates='acls')
+    room = relationship('Rooms', back_populates='acl')
 
     age = Column('age', Integer, nullable=True)
     gender = Column('gender', String, nullable=True)

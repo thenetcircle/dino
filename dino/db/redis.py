@@ -173,7 +173,7 @@ class DatabaseRedis(object):
     def add_acls(self, room_id: str, acls: dict) -> None:
         self.redis.hmset(RedisKeys.room_acl(room_id), acls)
 
-    def get_acls(self, room_id: str) -> list:
+    def get_acls(self, room_id: str) -> dict:
         acls = self.redis.hgetall(RedisKeys.room_acl(room_id))
         acls_cleaned = dict()
 

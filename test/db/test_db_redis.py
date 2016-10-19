@@ -149,3 +149,18 @@ class DatabaseRedisTest(BaseDatabaseTest):
 
     def test_room_name_exists_after_create(self):
         self._test_room_name_exists_after_create()
+
+    def test_delete_one_non_existing_acl(self):
+        self._test_delete_one_non_existing_acl()
+
+    def test_add_one_extra_acl(self):
+        self._test_add_one_extra_acl()
+
+    def test_get_acl(self):
+        self._test_get_acl()
+
+    def test_set_acl(self):
+        self._test_set_acl()
+
+    def test_delete_one_acl(self):
+        self._test_delete_one_acl()

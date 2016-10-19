@@ -368,70 +368,68 @@ class BaseDatabaseTest(BaseTest):
     def _room_name_exists(self):
         return self.db.room_name_exists(BaseTest.CHANNEL_ID, BaseTest.ROOM_NAME)
 
-    """
-    def test_delete_one_non_existing_acl(self):
-        self.create()
-        self.join()
+    def _test_delete_one_non_existing_acl(self):
+        self._create_channel()
+        self._create_room()
         acls = {
             'gender': 'm,f',
             'membership': '0,1,2'
         }
-        self.storage.add_acls(BaseTest.ROOM_ID, acls)
-        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.db.add_acls(BaseTest.ROOM_ID, acls)
+        fetched = self.db.get_acls(BaseTest.ROOM_ID)
         self.assertEqual(fetched.items(), acls.items())
 
-        self.storage.delete_acl(BaseTest.ROOM_ID, 'image')
-        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.db.delete_acl(BaseTest.ROOM_ID, 'image')
+        fetched = self.db.get_acls(BaseTest.ROOM_ID)
 
         self.assertEqual(fetched.items(), acls.items())
 
-    def test_add_one_extra_acl(self):
-        self.create()
-        self.join()
+    def _test_add_one_extra_acl(self):
+        self._create_channel()
+        self._create_room()
         acls = {
             'gender': 'm,f',
             'membership': '0,1,2'
         }
-        self.storage.add_acls(BaseTest.ROOM_ID, acls)
-        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.db.add_acls(BaseTest.ROOM_ID, acls)
+        fetched = self.db.get_acls(BaseTest.ROOM_ID)
         self.assertEqual(fetched.items(), acls.items())
 
-        self.storage.add_acls(BaseTest.ROOM_ID, {'image': 'y'})
+        self.db.add_acls(BaseTest.ROOM_ID, {'image': 'y'})
         acls['image'] = 'y'
-        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        fetched = self.db.get_acls(BaseTest.ROOM_ID)
 
         self.assertEqual(fetched.items(), acls.items())
 
-    def test_get_acl(self):
-        self.create()
-        self.join()
-        self.assertEqual(0, len(self.storage.get_acls(BaseTest.ROOM_ID)))
+    def _test_get_acl(self):
+        self._create_channel()
+        self._create_room()
+        self.assertEqual(0, len(self.db.get_acls(BaseTest.ROOM_ID)))
 
-    def test_set_acl(self):
-        self.create()
-        self.join()
+    def _test_set_acl(self):
+        self._create_channel()
+        self._create_room()
         acls = {
             'gender': 'm,f',
             'membership': '0,1,2'
         }
-        self.storage.add_acls(BaseTest.ROOM_ID, acls)
-        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.db.add_acls(BaseTest.ROOM_ID, acls)
+        fetched = self.db.get_acls(BaseTest.ROOM_ID)
         self.assertEqual(fetched.items(), acls.items())
 
-    def test_delete_one_acl(self):
-        self.create()
-        self.join()
+    def _test_delete_one_acl(self):
+        self._create_channel()
+        self._create_room()
         acls = {
             'gender': 'm,f',
             'membership': '0,1,2'
         }
-        self.storage.add_acls(BaseTest.ROOM_ID, acls)
-        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.db.add_acls(BaseTest.ROOM_ID, acls)
+        fetched = self.db.get_acls(BaseTest.ROOM_ID)
         self.assertEqual(fetched.items(), acls.items())
         del acls['gender']
 
-        self.storage.delete_acl(BaseTest.ROOM_ID, 'gender')
-        fetched = self.storage.get_acls(BaseTest.ROOM_ID)
+        self.db.delete_acl(BaseTest.ROOM_ID, 'gender')
+        fetched = self.db.get_acls(BaseTest.ROOM_ID)
 
         self.assertEqual(fetched.items(), acls.items())
-    """

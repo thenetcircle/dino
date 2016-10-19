@@ -40,6 +40,17 @@ class NoSuchRoomException(Exception):
         self.uuid = uuid
 
 
+class InvalidAclTypeException(Exception):
+    def __init__(self, acl_type):
+        self.acl_type = acl_type
+
+
+class InvalidAclValueException(Exception):
+    def __init__(self, acl_type, acl_value):
+        self.acl_type = acl_type
+        self.acl_value = acl_value
+
+
 class NoSuchUserException(Exception):
     def __init__(self, uuid):
         self.uuid = uuid

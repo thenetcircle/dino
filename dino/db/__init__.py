@@ -193,25 +193,36 @@ class IDatabase(Interface):
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
         """
+        delete an acl from a room
 
-        :param room_id:
-        :param acl_type:
-        :return:
+        throws InvalidAclTypeException if the type is invalid
+        throws NoSuchRoomException if room doesn't exist
+
+        :param room_id: the id of the room
+        :param acl_type: deletes one acl from this room with this type
+        :return: nothing
         """
 
     def add_acls(self, room_id: str, acls: dict) -> None:
         """
+        Add acls the room. All old acls will be removed, only the acls supplied to this method will be the acls of
+        this room.
 
-        :param room_id:
+        throws InvalidAclTypeException if the type is invalid
+        throws InvalidAclValueException if the value doesn't validate for the type
+        throws NoSuchRoomException if room doesn't exist
+
+        :param room_id: the room id
         :param acls:
-        :return:
+        :return: nothing, throws NoSuchRoomException if room doesn't exist
         """
 
-    def get_acls(self, room_id: str) -> list:
+    def get_acls(self, room_id: str) -> dict:
         """
+        get the access list for a room
 
-        :param room_id:
-        :return:
+        :param room_id: the room id
+        :return: a dict of acls, empty if no acls, throws NoSuchRoomException if room doesn't exist
         """
 
     def rooms_for_user(self, user_id: str = None) -> dict:

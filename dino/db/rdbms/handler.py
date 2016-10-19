@@ -25,8 +25,10 @@ from dino.db.rdbms.models import ChannelRoles
 from dino.db.rdbms.models import Channels
 from dino.db.rdbms.models import RoomRoles
 from dino.db.rdbms.models import Rooms
+from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
+from dino.validator import Validator
 
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
@@ -34,6 +36,8 @@ from dino.exceptions import NoSuchRoomException
 from dino.exceptions import RoomExistsException
 from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import NoChannelFoundException
+from dino.exceptions import InvalidAclTypeException
+from dino.exceptions import InvalidAclValueException
 
 from functools import wraps
 from zope.interface import implementer
@@ -442,12 +446,61 @@ class DatabaseRdbms(object):
 
     @with_session
     def delete_acl(self, room_id: str, acl_type: str) -> None:
-        raise NotImplementedError()
+        room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+        if room is None:
+            raise NoSuchRoomException(room_id)
+
+        found_acl = self.session.query(Acls).join(Acls.room).filter(Rooms.uuid == room_id).first()
+        if found_acl is None:
+            return
+
+        found_acl.__setattr__(acl_type, None)
+        self.session.commit()
 
     @with_session
     def add_acls(self, room_id: str, acls: dict) -> None:
-        raise NotImplementedError()
+        if acls is None or len(acls) == 0:
+            return
+
+        room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+        if room is None:
+            raise NoSuchRoomException(room_id)
+
+        acl = self.session.query(Acls).join(Acls.room).filter(Rooms.uuid == room_id).first()
+        if acl is None:
+            acl = Acls()
+
+        for acl_type, acl_value in acls.items():
+            if acl_type not in Validator.ACL_VALIDATORS:
+                raise InvalidAclTypeException(acl_type)
+
+            if not Validator.ACL_VALIDATORS[acl_type](acl_value):
+                raise InvalidAclValueException(acl_type, acl_value)
+
+            acl.__setattr__(acl_type, acl_value)
+
+        room.acl = acl
+        self.session.add(acl)
+        self.session.commit()
 
     @with_session
     def get_acls(self, room_id: str) -> list:
-        raise NotImplementedError()
+        room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+        if room is None:
+            raise NoSuchRoomException(room_id)
+
+        found_acl = self.session.query(Acls).join(Acls.room).filter(Rooms.uuid == room_id).first()
+        if found_acl is None:
+            return dict()
+
+        acls = dict()
+        a = Acls()
+        for key in Validator.ACL_VALIDATORS.keys():
+            if key not in found_acl.__dict__:
+                continue
+
+            value = found_acl.__getattribute__(key)
+            if value is not None:
+                acls[key] = value
+
+        return acls
