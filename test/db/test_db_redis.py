@@ -164,3 +164,15 @@ class DatabaseRedisTest(BaseDatabaseTest):
 
     def test_delete_one_acl(self):
         self._test_delete_one_acl()
+
+    def test_set_room_allows_cross_group_messaging(self):
+        self._test_set_room_allows_cross_group_messaging()
+
+    def test_get_room_allows_cross_group_messaging_no_room(self):
+        self._test_get_room_allows_cross_group_messaging_no_room()
+
+    def test_get_room_allows_cross_group_messaging(self):
+        self._test_get_room_allows_cross_group_messaging()
+
+    def test_get_room_does_not_allow_cross_group_messaging(self):
+        self._test_get_room_does_not_allow_cross_group_messaging()

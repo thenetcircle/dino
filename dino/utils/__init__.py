@@ -429,6 +429,8 @@ def can_send_cross_group(from_room_uuid: str, to_room_uuid: str) -> bool:
     if from_room_uuid == to_room_uuid:
         return True
 
+    return environ.env.db.room_allows_cross_group_messaging(to_room_uuid)
+
 
 def get_channel_for_room(room_uuid: str) -> str:
     return environ.env.db.get_room

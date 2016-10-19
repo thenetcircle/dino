@@ -93,6 +93,7 @@ class Acls(DeclarativeBase):
     image = Column('image', String, nullable=True)
     has_webcam = Column('has_webcam', String, nullable=True)
     fake_checked = Column('fake_checked', String, nullable=True)
+    crossgroup = Column('crossgroup', String, nullable=True)
 
 
 class RoomRoles(DeclarativeBase):

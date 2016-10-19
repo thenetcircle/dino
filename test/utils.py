@@ -189,6 +189,10 @@ class BaseTest(unittest.TestCase):
 
         environ.env.logger = logger
         environ.env.session = self.session
+
+        # TODO: don't do this here, but too many tests that doesn't do it themselves... should remove this base class
+        # and only have test logic in each test class, separate it
+        environ.env.storage.redis.hset(RedisKeys.channel_for_rooms(), BaseTest.ROOM_ID, BaseTest.CHANNEL_ID)
         self.env = environ.env
 
     def clear_session(self):
@@ -203,9 +207,19 @@ class BaseTest(unittest.TestCase):
     def get_response_code_for_add(self):
         return api.on_add_owner(self.activity_for_add_owner())[0]
 
-    def create_and_join_room(self):
+    def create_channel_and_room(self):
+        self.create_channel()
         self.create_room()
+
+    def create_and_join_room(self):
+        self.create_channel_and_room()
         self.join_room()
+
+    def create_channel(self):
+        environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
+        environ.env.storage.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
+        environ.env.storage.redis.hset(RedisKeys.channel_roles(BaseTest.CHANNEL_ID), BaseTest.USER_ID, 'owner')
+        self.env.cache.set_channel_exists(BaseTest.CHANNEL_ID)
 
     def set_owner(self):
         environ.env.storage.redis.hset(RedisKeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)

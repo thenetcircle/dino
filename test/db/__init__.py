@@ -22,14 +22,10 @@ import time
 from dino.environ import ConfigDict
 
 from dino.config import ConfigKeys
-from dino.cache.miss import CacheAllMiss
 from dino.cache.redis import CacheRedis
-from dino.db.rdbms.models import Channels
-from dino.db.rdbms.models import UserStatus
-from dino.db.rdbms.models import Rooms
-from dino.db.rdbms.models import Users
 from dino.db.rdbms.handler import DatabaseRdbms
 from dino.environ import GNEnvironment
+from dino.config import SessionKeys
 
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
@@ -433,3 +429,32 @@ class BaseDatabaseTest(BaseTest):
         fetched = self.db.get_acls(BaseTest.ROOM_ID)
 
         self.assertEqual(fetched.items(), acls.items())
+
+    def _test_set_room_allows_cross_group_messaging(self):
+        self._create_channel()
+        self._create_room()
+        self._set_allow_cross_group()
+
+    def _test_get_room_allows_cross_group_messaging_no_room(self):
+        self._create_channel()
+        self.assertRaises(NoSuchRoomException, self._get_allow_cross_group)
+
+    def _test_get_room_allows_cross_group_messaging(self):
+        self._create_channel()
+        self._create_room()
+        self._set_allow_cross_group()
+        self.assertTrue(self._get_allow_cross_group())
+
+    def _test_get_room_does_not_allow_cross_group_messaging(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self._get_allow_cross_group())
+
+    def _set_allow_cross_group(self):
+        self.db.add_acls(BaseTest.ROOM_ID, {SessionKeys.crossgroup.value: 'y'})
+
+    def _get_allow_cross_group(self):
+        acls = self.db.get_acls(BaseTest.ROOM_ID)
+        if SessionKeys.crossgroup.value not in acls:
+            return False
+        return acls[SessionKeys.crossgroup.value] == 'y'

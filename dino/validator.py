@@ -126,6 +126,7 @@ class Validator:
             lambda expected, actual: Validator.generic_validator(expected, actual)
     }
 
+    # TODO: use ValidationKeys instead of SessionKeys
     ACL_VALIDATORS = {
         SessionKeys.gender.value:
             lambda v: v is None or Validator._chars_in_list(v, ['m', 'f', 'ts']),
@@ -145,6 +146,9 @@ class Validator:
             lambda v: v is None or Validator._match(v, '^([\w -]+,)*([\w -]+)+$'),
 
         SessionKeys.image.value:
+            lambda v: v is None or Validator._true_false_all(v),
+
+        SessionKeys.crossgroup.value:
             lambda v: v is None or Validator._true_false_all(v),
 
         SessionKeys.group.value:

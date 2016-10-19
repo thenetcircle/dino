@@ -191,6 +191,16 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def room_allows_cross_group_messaging(self, room_uuid: str) -> bool:
+        """
+        check if the room allows messages from other rooms
+
+        throws NoSuchRoomException if room doesn't exist
+
+        :param room_uuid: the room to check for permission
+        :return: true if allowed, false otherwise
+        """
+
     def delete_acl(self, room_id: str, acl_type: str) -> None:
         """
         delete an acl from a room
@@ -205,8 +215,7 @@ class IDatabase(Interface):
 
     def add_acls(self, room_id: str, acls: dict) -> None:
         """
-        Add acls the room. All old acls will be removed, only the acls supplied to this method will be the acls of
-        this room.
+        Add acls the room.
 
         throws InvalidAclTypeException if the type is invalid
         throws InvalidAclValueException if the value doesn't validate for the type

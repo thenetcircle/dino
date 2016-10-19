@@ -168,12 +168,24 @@ class DatabaseRedis(object):
         self.redis.hdel(RedisKeys.rooms_for_user(user_id), room_id)
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
+
         self.redis.hdel(RedisKeys.room_acl(room_id), acl_type)
 
     def add_acls(self, room_id: str, acls: dict) -> None:
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
+
         self.redis.hmset(RedisKeys.room_acl(room_id), acls)
 
     def get_acls(self, room_id: str) -> dict:
+        try:
+            if self.channel_for_room(room_id) is None:
+                raise NoSuchRoomException(room_id)
+        except NoChannelFoundException:
+            raise NoSuchRoomException(room_id)
+
         acls = self.redis.hgetall(RedisKeys.room_acl(room_id))
         acls_cleaned = dict()
 
@@ -182,9 +194,12 @@ class DatabaseRedis(object):
 
         return acls_cleaned
 
+    def room_allows_cross_group_messaging(self, room_uuid: str) -> bool:
+        raise NotImplementedError()
+
     def channel_for_room(self, room_id: str) -> str:
         if room_id is None or len(room_id.strip()) == 0:
-            raise NoSuchRoomException(room_id)
+            raise NoSuchRoomException
 
         value = self.env.cache.get_channel_for_room(room_id)
         if value is not None:

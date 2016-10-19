@@ -29,6 +29,7 @@ class SessionKeys(Enum):
     country = 'country'
     city = 'city'
     image = 'image'
+    crossgroup = 'crossgroup'
     has_webcam = 'has_webcam'
     fake_checked = 'fake_checked'
     token = 'token'

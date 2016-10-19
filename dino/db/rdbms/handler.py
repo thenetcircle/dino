@@ -445,6 +445,10 @@ class DatabaseRdbms(object):
         self._set_role_on_channel_for_user(RoleKeys.OWNER, channel_id, user_id)
 
     @with_session
+    def room_allows_cross_group_messaging(self, room_uuid: str) -> bool:
+        raise NotImplementedError()
+
+    @with_session
     def delete_acl(self, room_id: str, acl_type: str) -> None:
         room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
         if room is None:
@@ -480,21 +484,19 @@ class DatabaseRdbms(object):
             acl.__setattr__(acl_type, acl_value)
 
         room.acl = acl
-        self.session.add(acl)
         self.session.commit()
 
     @with_session
     def get_acls(self, room_id: str) -> list:
-        room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+        room = self.session.query(Rooms).outerjoin(Rooms.acl).filter(Rooms.uuid == room_id).first()
         if room is None:
             raise NoSuchRoomException(room_id)
 
-        found_acl = self.session.query(Acls).join(Acls.room).filter(Rooms.uuid == room_id).first()
+        found_acl = room.acl
         if found_acl is None:
             return dict()
 
         acls = dict()
-        a = Acls()
         for key in Validator.ACL_VALIDATORS.keys():
             if key not in found_acl.__dict__:
                 continue

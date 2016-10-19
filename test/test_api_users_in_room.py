@@ -4,6 +4,7 @@ from test.utils import BaseTest
 
 class ApiUsersInRoomTest(BaseTest):
     def test_users_in_room_status_code_200(self):
+        self.create_channel_and_room()
         self.assert_in_room(False)
         api.on_join(self.activity_for_join())
         self.assert_in_room(True)
