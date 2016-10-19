@@ -25,6 +25,11 @@ class RoomExistsException(Exception):
         self.uuid = uuid
 
 
+class NoChannelFoundException(Exception):
+    def __init__(self, room_uuid):
+        self.room_uuid = room_uuid
+
+
 class ChannelExistsException(Exception):
     def __init__(self, uuid):
         self.uuid = uuid
@@ -43,6 +48,14 @@ class NoSuchUserException(Exception):
 class UserExistsException(Exception):
     def __init__(self, uuid):
         self.uuid = uuid
+
+
+class NoOriginRoomException(Exception):
+    pass
+
+
+class NoTargetRoomException(Exception):
+    pass
 
 
 class RoomNameExistsForChannelException(Exception):

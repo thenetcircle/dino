@@ -42,6 +42,14 @@ class IDatabase(Interface):
         :return: a dict of rooms: {'<room UUID>': '<room name>'}
         """
 
+    def channel_for_room(self, room_id: str) -> str:
+        """
+        get the channel for a room
+
+        :param room_id: the id of the room to get the channel for
+        :return: the channel uuid, or raises NoChannelFoundException if not found
+        """
+
     def room_name_exists(self, channel_id, room_name: str) -> bool:
         """
         check if a room name exists for a given channel or not
@@ -113,6 +121,15 @@ class IDatabase(Interface):
         check if a user is an owner of a room
 
         :param room_id: uuid of the room
+        :param user_id: uuid of the user
+        :return: true or false
+        """
+
+    def is_owner_channel(self, channel_id: str, user_id: str) -> bool:
+        """
+        check if a user is an owner of a channel
+
+        :param channel_id: uuid of the channel
         :param user_id: uuid of the user
         :return: true or false
         """

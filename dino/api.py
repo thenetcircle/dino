@@ -144,6 +144,11 @@ def on_message(data):
     """
     send any kind of message/event to a target user/group
 
+    object.url: channel_id
+    target.id: room_id
+    actor.id: sender user_id
+    actor.url: sender room_id
+
     :param data: activity streams format, must include target.id (room/user id) and object.id (channel id)
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<same AS as client sent, plus timestamp>'}
     """
@@ -163,9 +168,7 @@ def on_message(data):
 
     if activity.target.object_type == 'group':
         channel_id = activity.object.url
-
-        if not utils.is_user_in_room(activity.actor.id, room_id):
-            return 400, 'user not in room, not allowed to send'
+        from_room_id = activity.actor.url
 
         if channel_id is None or channel_id == '':
             return 400, 'no channel id specified when sending message'
@@ -175,6 +178,10 @@ def on_message(data):
 
         if not utils.room_exists(channel_id, room_id):
             return 400, 'room %s does not exist' % room_id
+
+        if not utils.is_user_in_room(activity.actor.id, room_id):
+            if not utils.can_send_cross_group(from_room_id, room_id):
+                return 400, 'user not allowed to send cross-group msg from %s to %s' % (from_room_id, room_id)
 
     environ.env.storage.store_message(activity)
     environ.env.send(data, json=True, room=room_id, broadcast=True)

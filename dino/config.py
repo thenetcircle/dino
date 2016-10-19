@@ -104,6 +104,7 @@ class RedisKeys(object):
     RKEY_ROOM_ID_FOR_NAME = 'room:id:%s'  # room:id:channel_id
     RKEY_CHANNEL_ROLES = 'channel:roles:%s'  # channel:roles:channel_id
     RKEY_ROOM_ROLES = 'room:roles:%s'  # channel:roles:channel_id
+    RKEY_CHANNEL_FOR_ROOMS = 'room:channel'
 
     @staticmethod
     def channel_roles(channel_id: str) -> str:
@@ -165,6 +166,10 @@ class RedisKeys(object):
     @staticmethod
     def room_owners(room_id: str) -> str:
         return RedisKeys.RKEY_ROOM_OWNERS % room_id
+
+    @staticmethod
+    def channel_for_rooms() -> str:
+        return RedisKeys.RKEY_CHANNEL_FOR_ROOMS
 
     @staticmethod
     def auth_key(user_id: str) -> str:

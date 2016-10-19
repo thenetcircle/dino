@@ -47,6 +47,39 @@ class DatabaseSqliteTest(BaseDatabaseTest):
     def test_is_admin_after_create_set_admin(self):
         self._test_is_admin_after_create_set_admin()
 
+    def test_channel_for_room_no_channel(self):
+        self._test_channel_for_room_no_channel()
+
+    def test_channel_for_room_with_channel_without_room(self):
+        self._test_channel_for_room_with_channel_without_room()
+
+    def test_channel_for_room_with_channel_with_room(self):
+        self._test_channel_for_room_with_channel_with_room()
+
+    def test_leave_room_not_joined(self):
+        self._test_leave_room_not_joined()
+
+    def test_leave_room_joined(self):
+        self._test_leave_room_joined()
+
+    def test_set_moderator_no_room(self):
+        self._test_set_moderator_no_room()
+
+    def test_set_moderator_with_room(self):
+        self._test_set_moderator_with_room()
+
+    def test_set_room_owner_no_room(self):
+        self._test_set_room_owner_no_room()
+
+    def test_set_room_owner_with_room(self):
+        self._test_set_room_owner_with_room()
+
+    def test_set_channel_owner_no_channel(self):
+        self._test_set_channel_owner_no_channel()
+
+    def test_set_channel_owner_with_channel(self):
+        self._test_set_channel_owner_with_channel()
+
     def test_get_user_status_before_set(self):
         self._test_get_user_status_before_set(UserKeys.STATUS_UNAVAILABLE)
 

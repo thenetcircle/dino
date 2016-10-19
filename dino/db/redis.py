@@ -26,7 +26,9 @@ from dino import environ
 from dino.environ import GNEnvironment
 from dino.exceptions import NoSuchChannelException
 from dino.exceptions import ChannelExistsException
+from dino.exceptions import NoSuchRoomException
 from dino.exceptions import RoomExistsException
+from dino.exceptions import NoChannelFoundException
 from dino.exceptions import RoomNameExistsForChannelException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -68,14 +70,14 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.channel_roles(channel_id), user_id, roles)
 
     def _add_room_role(self, role: str, room_id: str, user_id: str):
-        roles = self.redis.hget(RedisKeys.channel_roles(room_id), user_id)
+        roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
         if roles is None:
             roles = role
         else:
             roles = set(str(roles, 'utf-8').split(','))
             roles.add(role)
             roles = ','.join(roles)
-        self.redis.hset(RedisKeys.channel_roles(room_id), user_id, roles)
+        self.redis.hset(RedisKeys.room_roles(room_id), user_id, roles)
 
     def is_admin(self, channel_id: str, user_id: str) -> bool:
         return self._has_role_in_channel(RoleKeys.ADMIN, channel_id, user_id)
@@ -86,16 +88,27 @@ class DatabaseRedis(object):
     def is_owner(self, room_id: str, user_id: str) -> bool:
         return self._has_role_in_room(RoleKeys.OWNER, room_id, user_id)
 
+    def is_owner_channel(self, channel_id: str, user_id: str) -> bool:
+        return self._has_role_in_channel(RoleKeys.OWNER, channel_id, user_id)
+
     def set_admin(self, channel_id: str, user_id: str):
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
         self._add_channel_role(RoleKeys.ADMIN, channel_id, user_id)
 
     def set_moderator(self, room_id: str, user_id: str):
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
         self._add_room_role(RoleKeys.MODERATOR, room_id, user_id)
 
     def set_owner(self, room_id: str, user_id: str):
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
         self._add_room_role(RoleKeys.OWNER, room_id, user_id)
 
     def set_owner_channel(self, channel_id: str, user_id: str):
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
         self._add_channel_role(RoleKeys.OWNER, channel_id, user_id)
 
     def get_channels(self) -> dict:
@@ -152,7 +165,7 @@ class DatabaseRedis(object):
 
     def leave_room(self, user_id: str, room_id: str) -> None:
         self.redis.hdel(RedisKeys.users_in_room(room_id), user_id)
-        self.redis.srem(RedisKeys.rooms_for_user(user_id), room_id)
+        self.redis.hdel(RedisKeys.rooms_for_user(user_id), room_id)
 
     def delete_acl(self, room_id: str, acl_type: str) -> None:
         self.redis.hdel(RedisKeys.room_acl(room_id), acl_type)
@@ -169,14 +182,19 @@ class DatabaseRedis(object):
 
         return acls_cleaned
 
-    def rooms_for_user(self, user_id: str = None) -> dict:
-        clean_rooms = dict()
+    def channel_for_room(self, room_id: str) -> str:
+        if room_id is None or len(room_id.strip()) == 0:
+            raise NoSuchRoomException(room_id)
 
-        rooms = self.redis.smembers(RedisKeys.rooms_for_user(user_id))
-        for room in rooms:
-            room_id, room_name = str(room, 'utf-8').split(':', 1)
-            clean_rooms[room_id] = room_name
-        return clean_rooms
+        value = self.env.cache.get_channel_for_room(room_id)
+        if value is not None:
+            return value
+
+        channel_id = self.redis.hget(RedisKeys.channel_for_rooms(), room_id)
+        if channel_id is None:
+            raise NoChannelFoundException(room_id)
+        self.env.cache.set_channel_for_room(channel_id, room_id)
+        return channel_id
 
     def get_owners(self, room_id: str) -> dict:
         owners = self.redis.hgetall(RedisKeys.room_owners(room_id))
@@ -201,8 +219,17 @@ class DatabaseRedis(object):
             room_name = room_name.decode('utf-8')
         return room_name
 
+    def rooms_for_user(self, user_id: str) -> dict:
+        clean_rooms = dict()
+
+        rooms = self.redis.hgetall(RedisKeys.rooms_for_user(user_id))
+        for room_id, room_name in rooms.items():
+            room_id, room_name = str(room_id, 'utf-8'), str(room_name, 'utf-8')
+            clean_rooms[room_id] = room_name
+        return clean_rooms
+
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
-        self.redis.sadd(RedisKeys.rooms_for_user(user_id), '%s:%s' % (room_id, room_name))
+        self.redis.hset(RedisKeys.rooms_for_user(user_id), room_id, room_name)
         self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)
 
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name) -> None:
@@ -219,6 +246,7 @@ class DatabaseRedis(object):
         self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
         self.redis.hset(RedisKeys.room_owners(room_id), user_id, user_name)
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
+        self.redis.hset(RedisKeys.channel_for_rooms(), room_id, channel_id)
 
     def create_channel(self, channel_name, channel_id, user_id) -> None:
         if self.channel_exists(channel_id):

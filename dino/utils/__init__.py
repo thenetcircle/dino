@@ -22,6 +22,9 @@ from dino.validator import Validator
 from datetime import timedelta
 from datetime import datetime
 
+from dino.exceptions import NoOriginRoomException
+from dino.exceptions import NoTargetRoomException
+
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
@@ -415,6 +418,20 @@ def get_room_name(room_id: str) -> str:
 
 def room_exists(channel_id: str, room_id: str) -> bool:
     return environ.env.db.room_exists(channel_id, room_id)
+
+
+def can_send_cross_group(from_room_uuid: str, to_room_uuid: str) -> bool:
+    if from_room_uuid is None:
+        raise NoOriginRoomException()
+    if to_room_uuid is None:
+        raise NoTargetRoomException()
+
+    if from_room_uuid == to_room_uuid:
+        return True
+
+
+def get_channel_for_room(room_uuid: str) -> str:
+    return environ.env.db.get_room
 
 
 def get_history_for_room(room_id: str, limit: int = 10) -> list:

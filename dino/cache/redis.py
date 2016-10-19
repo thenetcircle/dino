@@ -115,6 +115,11 @@ class CacheRedis(object):
         cache_key = '%s-%s' % (key, channel_id)
         self.cache.set(cache_key, True)
 
+    def set_channel_for_room(self, channel_id: str, room_id: str) -> None:
+        key = RedisKeys.channel_for_rooms()
+        cache_key = '%s-%s' % (key, room_id)
+        self.cache.set(cache_key, channel_id)
+
     def get_channel_exists(self, channel_id):
         key = RedisKeys.channels()
         cache_key = '%s-%s' % (key, channel_id)
@@ -128,6 +133,20 @@ class CacheRedis(object):
 
         self.cache.set(cache_key, True)
         return True
+
+    def get_channel_for_room(self, room_id):
+        key = RedisKeys.channel_for_rooms()
+        cache_key = '%s-%s' % (key, room_id)
+        value = self.cache.get(key)
+        if value is not None:
+            return value
+
+        channel_id = self.redis.hget(key, room_id)
+        if channel_id is None:
+            return None
+
+        self.cache.set(cache_key, channel_id)
+        return channel_id
 
     def get_user_status(self, user_id: str):
         key = RedisKeys.user_status(user_id)

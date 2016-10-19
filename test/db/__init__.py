@@ -34,6 +34,8 @@ from dino.environ import GNEnvironment
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
 from dino.exceptions import RoomExistsException
+from dino.exceptions import NoChannelFoundException
+from dino.exceptions import NoSuchRoomException
 from dino.exceptions import RoomNameExistsForChannelException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -95,6 +97,60 @@ class BaseDatabaseTest(BaseTest):
     def _test_create_existing_channel(self):
         self._create_channel()
         self.assertRaises(ChannelExistsException, self._create_channel)
+
+    def _test_leave_room_not_joined(self):
+        self._create_channel()
+        self._create_room()
+
+        rooms = self._rooms_for_user()
+        self.assertEqual(0, len(rooms))
+        self._leave()
+        rooms = self._rooms_for_user()
+        self.assertEqual(0, len(rooms))
+
+    def _test_leave_room_joined(self):
+        self._create_channel()
+        self._create_room()
+
+        rooms = self._rooms_for_user()
+        self.assertEqual(0, len(rooms))
+
+        self._join()
+        rooms = self._rooms_for_user()
+        self.assertEqual(1, len(rooms))
+
+        self._leave()
+        rooms = self._rooms_for_user()
+        self.assertEqual(0, len(rooms))
+
+    def _test_set_moderator_no_room(self):
+        self.assertRaises(NoChannelFoundException, self._set_moderator)
+        self.assertFalse(self._is_moderator())
+
+    def _test_set_moderator_with_room(self):
+        self._create_channel()
+        self._create_room()
+        self._set_moderator()
+        self.assertTrue(self._is_moderator())
+
+    def _test_set_room_owner_no_room(self):
+        self.assertRaises(NoChannelFoundException, self._set_owner_room)
+        self.assertFalse(self._is_owner_room())
+
+    def _test_set_room_owner_with_room(self):
+        self._create_channel()
+        self._create_room()
+        self._set_owner_room()
+        self.assertTrue(self._is_owner_room())
+
+    def _test_set_channel_owner_no_channel(self):
+        self.assertRaises(NoSuchChannelException, self._set_owner_channel)
+        self.assertFalse(self._is_owner_channel())
+
+    def _test_set_channel_owner_with_channel(self):
+        self._create_channel()
+        self._set_owner_channel()
+        self.assertTrue(self._is_owner_channel())
 
     def _test_create_room(self):
         self.assertFalse(self._room_exists())
@@ -224,6 +280,21 @@ class BaseDatabaseTest(BaseTest):
         self._set_moderator()
         self.assertFalse(self._is_moderator())
 
+    def _test_channel_for_room_no_channel(self):
+        self.assertRaises(NoChannelFoundException, self._channel_for_room)
+
+    def _test_channel_for_room_with_channel_without_room(self):
+        self._create_channel()
+        self.assertRaises(NoChannelFoundException, self._channel_for_room)
+
+    def _test_channel_for_room_with_channel_with_room(self):
+        self._create_channel()
+        self._create_room()
+        self._channel_for_room()
+
+    def _channel_for_room(self):
+        return self.db.channel_for_room(BaseTest.ROOM_ID)
+
     def _set_moderator(self):
         self.db.set_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID)
 
@@ -238,6 +309,18 @@ class BaseDatabaseTest(BaseTest):
 
     def _user_status(self):
         return self.db.get_user_status(BaseTest.USER_ID)
+
+    def _set_owner_room(self):
+        self.db.set_owner(BaseTest.ROOM_ID, BaseTest.USER_ID)
+
+    def _set_owner_channel(self):
+        self.db.set_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+
+    def _is_owner_room(self):
+        return self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID)
+
+    def _is_owner_channel(self):
+        return self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
 
     def _set_offline(self):
         self.db.set_user_offline(BaseTest.USER_ID)
@@ -256,6 +339,9 @@ class BaseDatabaseTest(BaseTest):
 
     def _join(self):
         self.db.join_room(BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
+
+    def _leave(self):
+        self.db.leave_room(BaseTest.USER_ID, BaseTest.ROOM_ID)
 
     def rooms_for_user(self):
         return self.db.rooms_for_user(BaseTest.USER_ID)

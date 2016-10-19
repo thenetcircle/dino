@@ -27,25 +27,28 @@ from dino.db.rdbms.models import RoomRoles
 from dino.db.rdbms.models import Rooms
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
+
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
 from dino.exceptions import NoSuchRoomException
 from dino.exceptions import RoomExistsException
 from dino.exceptions import RoomNameExistsForChannelException
+from dino.exceptions import NoChannelFoundException
+
 from functools import wraps
 from zope.interface import implementer
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-def with_session(f):
-    @wraps(f)
+def with_session(view_func):
+    @wraps(view_func)
     def wrapped(*args, **kwargs):
         session = DatabaseRdbms.db.Session()
         try:
             _self = args[0]
             _self.__dict__.update({'session': session})
-            return f(*args, **kwargs)
+            return view_func(*args, **kwargs)
         except:
             session.rollback()
             raise
@@ -59,6 +62,7 @@ def with_session(f):
 class DatabaseRdbms(object):
     def __init__(self, env):
         self.env = env
+        self.session = None
         if self.env.config.get(ConfigKeys.TESTING, False):
             DatabaseRdbms.db = MockDatabase()
         else:
@@ -68,59 +72,69 @@ class DatabaseRdbms(object):
     def _session(self):
         return self.session
 
-    @with_session
     def room_exists(self, channel_id: str, room_id: str) -> bool:
+        @with_session
+        def _room_exists(self):
+            rooms = self.session.query(Rooms) \
+                .filter(Rooms.uuid == room_id) \
+                .all()
+
+            exists = len(rooms) > 0
+            if exists:
+                self.env.cache.set_room_exists(channel_id, room_id, rooms[0].name)
+            return exists
+
         exists = self.env.cache.get_room_exists(channel_id, room_id)
         if exists is not None:
             return exists
+        return _room_exists(self)
 
-        rooms = self.session.query(Rooms) \
-            .filter(Rooms.uuid == room_id) \
-            .all()
-
-        exists = len(rooms) > 0
-        if exists:
-            self.env.cache.set_room_exists(channel_id, room_id, rooms[0].name)
-        return exists
-
-    @with_session
     def get_user_status(self, user_id: str) -> str:
+        @with_session
+        def _get_user_status(self):
+            status = self.session.query(UserStatus).filter(Users.uuid == user_id).first()
+            if status is None:
+                return UserKeys.STATUS_UNAVAILABLE
+            return status.status
+
         status = self.env.cache.get_user_status(user_id)
         if status is not None:
             return status
+        return _get_user_status(self)
 
-        status = self.session.query(UserStatus).filter(Users.uuid == user_id).first()
-        if status is None:
-            return UserKeys.STATUS_UNAVAILABLE
-        return status.status
-
-    @with_session
     def set_user_invisible(self, user_id: str) -> None:
+        @with_session
+        def _set_user_invisible(self):
+            self.env.cache.set_user_invisible(user_id)
+            self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserKeys.STATUS_INVISIBLE})
+            self.session.commit()
+
         if self.env.cache.user_is_invisible(user_id):
             return
+        _set_user_invisible(self)
 
-        self.env.cache.set_user_invisible(user_id)
-        self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserKeys.STATUS_INVISIBLE})
-        self.session.commit()
-
-    @with_session
     def set_user_offline(self, user_id: str) -> None:
+        @with_session
+        def _set_user_offline(self):
+            self.env.cache.set_user_offline(user_id)
+            status = self.session.query(UserStatus).filter_by(uuid=user_id).first()
+            self.session.delete(status)
+            self.session.commit()
+
         if self.env.cache.user_is_offline(user_id):
             return
+        _set_user_offline()
 
-        self.env.cache.set_user_offline(user_id)
-        status = self.session.query(UserStatus).filter_by(uuid=user_id).first()
-        self.session.delete(status)
-        self.session.commit()
-
-    @with_session
     def set_user_online(self, user_id: str) -> None:
+        @with_session
+        def _set_user_online(self):
+            self.env.cache.set_user_online(user_id)
+            self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserKeys.STATUS_AVAILABLE})
+            self.session.commit()
+
         if self.env.cache.user_is_online(user_id):
             return
-
-        self.env.cache.set_user_online(user_id)
-        self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserKeys.STATUS_AVAILABLE})
-        self.session.commit()
+        _set_user_online(self)
 
     @with_session
     def rooms_for_user(self, user_id: str = None) -> dict:
@@ -156,58 +170,84 @@ class DatabaseRdbms(object):
             channels[row.uuid] = row.name
         return channels
 
-    @with_session
     def room_name_exists(self, channel_id, room_name: str) -> bool:
+        @with_session
+        def _room_name_exists(self):
+            rows = self.session.query(Rooms).filter(Rooms.name == room_name).all()
+            exists = len(rows) > 0
+
+            # only set in cache if actually exists, otherwise duplicates could be created
+            if exists:
+                self.env.cache.set_room_id_for_name(channel_id, room_name, rows[0].uuid)
+
+            return exists
+
         exists = self.env.cache.get_room_id_for_name(channel_id, room_name)
         if exists is not None:
             return exists
 
-        rows = self.session.query(Rooms).filter(Rooms.name == room_name).all()
-        exists = len(rows) > 0
+        return _room_name_exists(self)
 
-        # only set in cache if actually exists, otherwise duplicates could be created
-        if exists:
-            self.env.cache.set_room_id_for_name(channel_id, room_name, rows[0].uuid)
+    def channel_for_room(self, room_id: str) -> str:
+        @with_session
+        def _channel_for_room(self):
+            room = self.session\
+                .query(Rooms)\
+                .join(Rooms.channel)\
+                .filter(Rooms.uuid == room_id)\
+                .first()
 
-        return exists
+            if room is None or room.channel is None:
+                raise NoChannelFoundException(room_id)
+            return room.channel.uuid
 
-    @with_session
+        value = self.env.cache.get_channel_for_room(room_id)
+        if value is not None:
+            return value
+
+        return _channel_for_room(self)
+
     def channel_exists(self, channel_id) -> bool:
+        @with_session
+        def _channel_exists(self):
+            rows = self.session.query(Channels).filter(Channels.uuid == channel_id).all()
+            exists = len(rows) > 0
+
+            # only set in cache if actually exists, otherwise duplicates could be created
+            if exists:
+                self.env.cache.set_channel_exists(channel_id)
+
+            return exists
+
         exists = self.env.cache.get_channel_exists(channel_id)
         if exists is not None:
             return exists
+        return _channel_exists(self)
 
-        rows = self.session.query(Channels).filter(Channels.uuid == channel_id).all()
-        exists = len(rows) > 0
+    def create_channel(self, channel_name, channel_id, user_id):
+        @with_session
+        def _create_channel(self):
+            channel = Channels()
+            channel.uuid = channel_id
+            channel.name = channel_name
+            channel.created = datetime.utcnow()
+            self.session.add(channel)
 
-        # only set in cache if actually exists, otherwise duplicates could be created
-        if exists:
+            role = ChannelRoles()
+            role.channel = channel
+            role.user_id = user_id
+            role.roles = RoleKeys.OWNER
+            self.session.add(role)
+
+            channel.roles.append(role)
+            self.session.add(channel)
+            self.session.commit()
+
             self.env.cache.set_channel_exists(channel_id)
 
-        return exists
-
-    @with_session
-    def create_channel(self, channel_name, channel_id, user_id):
         if self.channel_exists(channel_id):
             raise ChannelExistsException(channel_id)
-
-        channel = Channels()
-        channel.uuid = channel_id
-        channel.name = channel_name
-        channel.created = datetime.utcnow()
-        self.session.add(channel)
-
-        role = ChannelRoles()
-        role.channel = channel
-        role.user_id = user_id
-        role.roles = RoleKeys.OWNER
-        self.session.add(role)
-
-        channel.roles.append(role)
-        self.session.add(channel)
-        self.session.commit()
-
-        self.env.cache.set_channel_exists(channel_id)
+        _create_channel(self)
 
     @with_session
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str) -> None:
@@ -243,7 +283,23 @@ class DatabaseRdbms(object):
 
     @with_session
     def leave_room(self, user_id: str, room_id: str) -> None:
-        raise NotImplementedError()
+        room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+        if room is None:
+            raise NoSuchRoomException(room_id)
+
+        user = self.session.query(Users)\
+            .join(Users.rooms)\
+            .filter(Users.uuid == user_id)\
+            .filter(Rooms.uuid == room_id)\
+            .first()
+
+        if user is None:
+            # user is not in the room, so nothing to do
+            return
+
+        room = user.rooms[0]
+        room.users.remove(user)
+        self.session.commit()
 
     @with_session
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
@@ -266,7 +322,6 @@ class DatabaseRdbms(object):
         self.session.commit()
 
     def _object_has_role_for_user(self, obj: Union[Rooms, Channels], the_role: str, user_id: str) -> bool:
-        # TODO: cache
         if obj is None:
             return False
 
@@ -284,13 +339,16 @@ class DatabaseRdbms(object):
         return the_role in set(found_role.roles.split(','))
 
     def _room_has_role_for_user(self, the_role: str, room_id: str, user_id: str) -> bool:
+        # TODO: cache
         room = self.session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
         return self._object_has_role_for_user(room, the_role, user_id)
 
     def _channel_has_role_for_user(self, the_role: str, channel_id: str, user_id: str) -> bool:
+        # TODO: cache
         channel = self.session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
         return self._object_has_role_for_user(channel, the_role, user_id)
 
+    @with_session
     def _set_role_on_room_for_user(self, the_role: Rooms, room_id: str, user_id: str):
         room = self.session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
         if room is None:
@@ -316,6 +374,7 @@ class DatabaseRdbms(object):
         self.session.add(found_role)
         self.session.commit()
 
+    @with_session
     def _set_role_on_channel_for_user(self, the_role: Channels, channel_id: str, user_id: str):
         channel = self.session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
         if channel is None:
@@ -342,10 +401,6 @@ class DatabaseRdbms(object):
         self.session.commit()
 
     @with_session
-    def is_owner(self, room_id: str, user_id: str) -> bool:
-        return self._room_has_role_for_user(RoleKeys.OWNER, room_id, user_id)
-
-    @with_session
     def is_moderator(self, room_id: str, user_id: str) -> bool:
         return self._room_has_role_for_user(RoleKeys.MODERATOR, room_id, user_id)
 
@@ -354,19 +409,35 @@ class DatabaseRdbms(object):
         return self._channel_has_role_for_user(RoleKeys.ADMIN, channel_id, user_id)
 
     @with_session
+    def is_owner(self, room_id: str, user_id: str) -> bool:
+        return self._room_has_role_for_user(RoleKeys.OWNER, room_id, user_id)
+
+    @with_session
+    def is_owner_channel(self, channel_id: str, user_id: str) -> bool:
+        return self._channel_has_role_for_user(RoleKeys.OWNER, channel_id, user_id)
+
+    @with_session
     def set_admin(self, channel_id: str, user_id: str) -> None:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
         self._set_role_on_channel_for_user(RoleKeys.ADMIN, channel_id, user_id)
 
     @with_session
     def set_moderator(self, room_id: str, user_id: str) -> None:
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
         self._set_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
 
     @with_session
     def set_owner(self, room_id: str, user_id: str) -> None:
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
         self._set_role_on_room_for_user(RoleKeys.OWNER, room_id, user_id)
 
     @with_session
     def set_owner_channel(self, channel_id: str, user_id: str) -> None:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
         self._set_role_on_channel_for_user(RoleKeys.OWNER, channel_id, user_id)
 
     @with_session
