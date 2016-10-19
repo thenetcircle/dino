@@ -30,6 +30,7 @@ from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchRoomException
 from dino.exceptions import RoomExistsException
 from dino.exceptions import NoChannelFoundException
+from dino.exceptions import NoRoomNameException
 from dino.exceptions import RoomNameExistsForChannelException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -125,6 +126,8 @@ class DatabaseRedis(object):
         clean = dict()
 
         for room_id, room_name in all_rooms.items():
+            if room_name is None:
+                raise NoRoomNameException(room_id)
             clean[str(room_id, 'utf-8')] = str(room_name, 'utf-8')
         return clean
 

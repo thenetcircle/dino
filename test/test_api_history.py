@@ -5,6 +5,10 @@ from strict_rfc3339 import validate_rfc3339 as validate_timestamp
 
 
 class ApiHistoryTest(BaseTest):
+    def setUp(self):
+        super(ApiHistoryTest, self).setUp()
+        self.create_channel_and_room()
+
     def test_history(self):
         response_data = api.on_history(self.activity_for_history())
         self.assertEqual(200, response_data[0])

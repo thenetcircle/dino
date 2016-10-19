@@ -3,6 +3,10 @@ from test.utils import BaseTest
 
 
 class ApiJoinTest(BaseTest):
+    def setUp(self):
+        super(ApiJoinTest, self).setUp()
+        self.create_channel_and_room()
+
     def test_join_non_owner_no_acl(self):
         self.assert_join_succeeds()
 

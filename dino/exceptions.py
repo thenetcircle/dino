@@ -35,6 +35,11 @@ class ChannelExistsException(Exception):
         self.uuid = uuid
 
 
+class NoRoomNameException(Exception):
+    def __init__(self, uuid):
+        self.uuid = uuid
+
+
 class NoSuchRoomException(Exception):
     def __init__(self, uuid):
         self.uuid = uuid

@@ -207,18 +207,32 @@ class BaseTest(unittest.TestCase):
     def get_response_code_for_add(self):
         return api.on_add_owner(self.activity_for_add_owner())[0]
 
-    def create_channel_and_room(self):
-        self.create_channel()
-        self.create_room()
+    def create_channel_and_room(self, room_id=None, room_name=None):
+        self.create_channel(room_id=room_id, room_name=room_name)
+        self.create_room(room_id=room_id, room_name=room_name)
 
     def create_and_join_room(self):
         self.create_channel_and_room()
         self.join_room()
 
-    def create_channel(self):
-        environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
+    def create_room(self, room_id: str=None, room_name: str=None):
+        if room_id is None:
+            room_id = BaseTest.ROOM_ID
+        if room_name is None:
+            room_name = BaseTest.ROOM_NAME
+
+        environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
+
+    def create_channel(self, room_id=None, room_name=None):
+        if room_id is None:
+            room_id = BaseTest.ROOM_ID
+        if room_name is None:
+            room_name = BaseTest.ROOM_NAME
+
+        environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
         environ.env.storage.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.storage.redis.hset(RedisKeys.channel_roles(BaseTest.CHANNEL_ID), BaseTest.USER_ID, 'owner')
+        self.env.db.redis.hset(RedisKeys.channel_for_rooms(), room_id, BaseTest.CHANNEL_ID)
         self.env.cache.set_channel_exists(BaseTest.CHANNEL_ID)
 
     def set_owner(self):
@@ -257,14 +271,6 @@ class BaseTest(unittest.TestCase):
             data = self.activity_for_leave()
         return api.on_leave(data)
 
-    def create_room(self, room_id: str=None, room_name: str=None):
-        if room_id is None:
-            room_id = BaseTest.ROOM_ID
-        if room_name is None:
-            room_name = BaseTest.ROOM_NAME
-
-        environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
-
     def assert_join_fails(self):
         self.assertEqual(400, self.response_code_for_joining())
         self.assert_in_room(False)
@@ -292,8 +298,8 @@ class BaseTest(unittest.TestCase):
     def get_acls(self):
         return environ.env.storage.redis.hgetall(RedisKeys.room_acl(BaseTest.ROOM_ID))
 
-    def set_acl(self, acls: dict):
-        environ.env.storage.redis.hmset(RedisKeys.room_acl(BaseTest.ROOM_ID), acls)
+    def set_acl(self, acls: dict, room_id=ROOM_ID):
+        environ.env.storage.redis.hmset(RedisKeys.room_acl(room_id), acls)
 
     def set_acl_single(self, key: str, acls: str):
         environ.env.storage.redis.hset(RedisKeys.room_acl(BaseTest.ROOM_ID), key, acls)
@@ -407,14 +413,17 @@ class BaseTest(unittest.TestCase):
     def activity_for_message(self, msg: str='test message'):
         return {
             'actor': {
-                'id': BaseTest.USER_ID
+                'id': BaseTest.USER_ID,
+                'url': BaseTest.ROOM_ID
             },
             'verb': 'send',
             'target': {
-                'id': BaseTest.ROOM_ID
+                'id': BaseTest.ROOM_ID,
+                'objectType': 'group'
             },
             'object': {
-                'content': msg
+                'content': msg,
+                'url': BaseTest.CHANNEL_ID
             }
         }
 

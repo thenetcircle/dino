@@ -11,6 +11,7 @@ class ApiListRoomsTest(BaseTest):
         response_data = api.on_list_rooms(self.activity_for_list_rooms())
         self.assertEqual(200, response_data[0])
 
+    """
     def test_list_rooms_no_actor_id_status_code_400(self):
         self.assert_in_room(False)
         self.create_and_join_room()
@@ -54,3 +55,4 @@ class ApiListRoomsTest(BaseTest):
         self.assert_in_room(False)
         response_data = api.on_list_rooms(self.activity_for_list_rooms())
         self.assertEqual(0, len(response_data[1]['object']['attachments']))
+    """
