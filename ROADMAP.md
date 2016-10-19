@@ -41,13 +41,14 @@ A rough roadmap for possible upcoming features.
     - also make use of the cache module for some operations
 * redefine roles
     - different kinds of roles, e.g. admin, global op, channel op, room op, room mod etc.
+* in-memory cache
+    - short ttl in-memory cache for session data so we don't hit db/redis for every single request for validation checks
 * cross-group messaging
     - how to handle double actors? one actor is originating room, another is the user in that room
     - acl for allowing cross-group messaging
 
 0.10.0
 ---
-* short ttl in-memory cache for session data so we don't hit db/redis for every single request for validation checks
 * backend admin interface
     - for fixing things
     - listing users in rooms
