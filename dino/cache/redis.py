@@ -14,10 +14,11 @@
 
 from zope.interface import implementer
 
-from dino.config import RedisKeys
-from dino.cache import ICache
-from dino.config import ConfigKeys
 from dino import environ
+from dino.config import RedisKeys
+from dino.config import ConfigKeys
+from dino.config import UserKeys
+from dino.cache import ICache
 from datetime import datetime
 from datetime import timedelta
 
@@ -69,24 +70,6 @@ class CacheRedis(object):
         self.redis.flushdb()
         self.cache.flushall()
 
-    def get_user_status(self, user_id: str):
-        key = RedisKeys.user_status(user_id)
-        value = self.cache.get(key)
-        if value is not None:
-            return value
-
-        status = self.redis.get(key)
-        if status is None or status == '':
-            self.cache.set(key, RedisKeys.REDIS_STATUS_UNAVAILABLE)
-            return RedisKeys.REDIS_STATUS_UNAVAILABLE
-
-        user_status = str(status, 'utf-8')
-        self.cache.set(key, user_status)
-        return user_status
-
-    def user_check_status(self, user_id, other_status):
-        return self.get_user_status(user_id) == other_status
-
     def get_room_id_for_name(self, channel_id, room_name):
         key = RedisKeys.room_id_for_name(channel_id)
         cache_key = '%s-%s' % (key, room_name)
@@ -127,11 +110,10 @@ class CacheRedis(object):
         self.cache.set(cache_key, True)
         self.redis.hset(key, room_id, room_name)
 
-    def set_channel_exists(self, channel_id):
+    def set_channel_exists(self, channel_id: str) -> None:
         key = RedisKeys.channels()
         cache_key = '%s-%s' % (key, channel_id)
         self.cache.set(cache_key, True)
-        self.redis.hset(key, channel_id, True)
 
     def get_channel_exists(self, channel_id):
         key = RedisKeys.channels()
@@ -147,32 +129,50 @@ class CacheRedis(object):
         self.cache.set(cache_key, True)
         return True
 
+    def get_user_status(self, user_id: str):
+        key = RedisKeys.user_status(user_id)
+        value = self.cache.get(key)
+        if value is not None:
+            return value
+
+        status = self.redis.get(key)
+        if status is None or status == '':
+            self.cache.set(key, UserKeys.STATUS_UNAVAILABLE)
+            return UserKeys.STATUS_UNAVAILABLE
+
+        user_status = str(status, 'utf-8')
+        self.cache.set(key, user_status)
+        return user_status
+
+    def user_check_status(self, user_id, other_status):
+        return self.get_user_status(user_id) == other_status
+
     def user_is_offline(self, user_id):
-        return self.user_check_status(user_id, RedisKeys.REDIS_STATUS_UNAVAILABLE)
+        return self.user_check_status(user_id, UserKeys.STATUS_UNAVAILABLE)
 
     def user_is_online(self, user_id):
-        return self.user_check_status(user_id, RedisKeys.REDIS_STATUS_AVAILABLE)
+        return self.user_check_status(user_id, UserKeys.STATUS_AVAILABLE)
 
     def user_is_invisible(self, user_id):
-        return self.user_check_status(user_id, RedisKeys.REDIS_STATUS_INVISIBLE)
+        return self.user_check_status(user_id, UserKeys.STATUS_INVISIBLE)
 
     def set_user_offline(self, user_id: str) -> None:
-        self.cache.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_UNAVAILABLE)
+        self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_UNAVAILABLE)
         self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
         self.redis.srem(RedisKeys.online_set(), int(user_id))
         self.redis.srem(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_UNAVAILABLE)
+        self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_UNAVAILABLE)
 
     def set_user_online(self, user_id: str) -> None:
-        self.cache.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_AVAILABLE)
+        self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
         self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 1)
         self.redis.sadd(RedisKeys.online_set(), int(user_id))
         self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_AVAILABLE)
+        self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
 
     def set_user_invisible(self, user_id: str) -> None:
-        self.cache.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_INVISIBLE)
+        self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_INVISIBLE)
         self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
         self.redis.srem(RedisKeys.online_set(), int(user_id))
         self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_INVISIBLE)
+        self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_INVISIBLE)

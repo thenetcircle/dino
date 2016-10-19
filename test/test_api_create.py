@@ -1,5 +1,6 @@
 from dino import api
 from test.utils import BaseTest
+from dino.config import RedisKeys
 
 
 class ApiCreateTest(BaseTest):

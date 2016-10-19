@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
 from zope.interface import Interface
-from activitystreams.models.activity import Activity
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -123,7 +123,16 @@ class IDatabase(Interface):
 
         :param room_id: uuid of the room
         :param user_id: uuid of the user
-        :return:
+        :return: nothing
+        """
+
+    def set_owner_channel(self, channel_id: str, user_id: str) -> None:
+        """
+        set role owner on a room to a user
+
+        :param channel_id: uuid of the room
+        :param user_id: uuid of the user
+        :return: nothing
         """
 
     def set_moderator(self, room_id: str, user_id: str) -> None:
@@ -144,7 +153,7 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def create_channel(self, channel_name, channel_id, user_id):
+    def create_channel(self, channel_name, channel_id, user_id) -> None:
         """
         create a new channel
 
@@ -202,6 +211,14 @@ class IDatabase(Interface):
 
         :param user_id: the id of the user
         :return: nothing
+        """
+
+    def get_user_status(self, user_id: str) -> str:
+        """
+        the the status of the user (online/offline/invisible)
+
+        :param user_id: the id of the user
+        :return: the status
         """
 
     def set_user_offline(self, user_id: str) -> None:

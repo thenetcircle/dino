@@ -63,14 +63,6 @@ class CassandraStorage(object):
     def delete_message(self, room_id: str, message_id: str):
         self.driver.msg_delete(message_id)
 
-    def create_room(self, activity: Activity) -> None:
-        self.driver.room_insert(
-                activity.target.id,
-                activity.target.display_name,
-                [activity.actor.id],
-                activity.published
-        )
-
     def get_history(self, room_id: str, limit: int = None) -> list:
         # TODO: limit
         rows = self.driver.msgs_select(room_id)
@@ -89,76 +81,10 @@ class CassandraStorage(object):
                 'body': row.body,
                 'domain': row.domain,
                 'channel_id': row.channel_id,
-                'timestamp': row.sent_time
+                'timestamp': row.sent_time,
+                'deleted': row.deleted
             })
         return msgs
-
-    def get_room_name(self, room_id: str) -> str:
-        results = self.driver.room_select_name(room_id)
-        current_rows = results.current_rows
-        if len(current_rows) == 0:
-            return ''
-        row = current_rows[0]
-        return row.room_name
-
-    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
-        self.driver.room_insert_user(room_id, room_name, user_id, user_name)
-
-    def users_in_room(self, room_id: str) -> list:
-        rows = self.driver.room_select_users(room_id)
-        if rows is None or len(rows.current_rows) == 0:
-            return list()
-
-        users = list()
-        for row in rows:
-            users.append({
-                'user_id': row.user_id,
-                'user_name': row.user_name
-            })
-        return users
-
-    def get_all_rooms(self, user_id: str = None) -> list:
-        if user_id is None:
-            rows = self.driver.rooms_select()
-        else:
-            rows = self.driver.rooms_select_for_user(user_id)
-
-        if rows is None or len(rows.current_rows) == 0:
-            return list()
-
-        rooms = list()
-        for row in rows:
-            rooms.append({
-                'room_id': row.room_id,
-                'room_name': row.room_name,
-                'created': row.creation_time,
-                'owners': row.owners
-            })
-        return rooms
-
-    def leave_room(self, user_id: str, room_id: str) -> None:
-        self.driver.room_delete_user(room_id, user_id)
-
-    def get_owners(self, room_id: str) -> list:
-        rows = self.driver.room_select_owners(room_id)
-        if rows is None or len(rows.current_rows) == 0 or \
-                (len(rows.current_rows) == 1 and len(rows.current_rows[0].owners) == 0):
-            return list()
-
-        owner_rows = rows.current_rows[0].owners
-        owners = list()
-        for owner in owner_rows:
-            owners.append({
-                'user_id': owner
-            })
-        return owners
-
-    def room_owners_contain(self, room_id: str, user_id: str) -> bool:
-        owners = self.get_owners(room_id)
-        for owner in owners:
-            if owner['user_id'] == user_id:
-                return True
-        return False
 
     @staticmethod
     def validate(hosts, replications, strategy):

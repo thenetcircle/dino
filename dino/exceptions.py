@@ -43,3 +43,9 @@ class NoSuchUserException(Exception):
 class UserExistsException(Exception):
     def __init__(self, uuid):
         self.uuid = uuid
+
+
+class RoomNameExistsForChannelException(Exception):
+    def __init__(self, channel_uuid, room_name):
+        self.channel_uuid = channel_uuid
+        self.room_name = room_name

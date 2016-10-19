@@ -17,6 +17,7 @@ from sqlalchemy.orm import relationship
 
 from dino.db.postgres import DeclarativeBase
 from dino.db.postgres import rooms_users_association_table
+from dino.config import UserKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -24,15 +25,9 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class UserStatus(DeclarativeBase):
     __tablename__ = 'user_status'
 
-    STATUS_AVAILABLE = '1'
-    STATUS_CHAT = '2'
-    STATUS_INVISIBLE = '3'
-    STATUS_UNAVAILABLE = '4'
-    STATUS_UNKNOWN = '5'
-
     id = Column(Integer, primary_key=True)
     uuid = Column('uuid', String, nullable=False, index=True, unique=True)
-    status = Column('status', Integer, nullable=False, default=STATUS_UNKNOWN)
+    status = Column('status', Integer, nullable=False, default=UserKeys.STATUS_UNKNOWN)
 
 
 class Channels(DeclarativeBase):

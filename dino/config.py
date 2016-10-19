@@ -46,6 +46,14 @@ class RoleKeys(object):
     ADMIN = 'admin'
 
 
+class UserKeys(object):
+    STATUS_AVAILABLE = '1'
+    STATUS_CHAT = '2'
+    STATUS_INVISIBLE = '3'
+    STATUS_UNAVAILABLE = '4'
+    STATUS_UNKNOWN = '5'
+
+
 class ConfigKeys(object):
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'
@@ -57,6 +65,7 @@ class ConfigKeys(object):
     CACHE_SERVICE = 'cache'
     HOST = 'host'
     TYPE = 'type'
+    DRIVER = 'driver'
     MAX_HISTORY = 'max_history'
     STRATEGY = 'strategy'
     REPLICATION = 'replication'
@@ -95,13 +104,6 @@ class RedisKeys(object):
     RKEY_ROOM_ID_FOR_NAME = 'room:id:%s'  # room:id:channel_id
     RKEY_CHANNEL_ROLES = 'channel:roles:%s'  # channel:roles:channel_id
     RKEY_ROOM_ROLES = 'room:roles:%s'  # channel:roles:channel_id
-
-    REDIS_STATUS_AVAILABLE = '1'
-    # REDIS_STATUS_CHAT = '2'
-    REDIS_STATUS_INVISIBLE = '3'
-    REDIS_STATUS_UNAVAILABLE = '4'
-
-    # REDIS_STATUS_UNKNOWN = '5'
 
     @staticmethod
     def channel_roles(channel_id: str) -> str:

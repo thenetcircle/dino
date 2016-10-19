@@ -28,17 +28,7 @@ class StatementKeys(Enum):
     msg_insert = 'msg_insert'
     msg_select = 'msg_select'
     msgs_select = 'msgs_select'
-    acl_insert = 'acl_insert'
-    acl_select = 'acl_select'
-    room_insert = 'room_insert'
-    room_delete = 'room_delete'
-    room_select_name = 'room_select_name'
-    room_select_users = 'room_select_users'
-    rooms_select_by_user = 'rooms_select_by_user'
-    room_delete_user = 'rooms_select_by_user'
-    room_insert_user = 'room_insert_user'
-    room_select_owners = 'room_select_owners'
-    rooms_select = 'rooms_select'
+    msg_select_one = 'msg_select_one'
 
 
 class IDriver(Interface):
@@ -47,39 +37,6 @@ class IDriver(Interface):
         creates keyspace, tables, views etc.
 
         :return: nothing
-        """
-
-    def acl_insert(self, room_id: str, acls: dict) -> None:
-        """
-        replace the stored row of acls for this room
-
-        :param room_id: uuid of the room
-        :param acls: a dict with acls
-        :return: nothing
-        """
-
-    def acl_select(self, room_id: str) -> ResultSet:
-        """
-        find all acls for this room
-
-        :param room_id: the uuid of the room
-        :return: should be one row with the acls for this room
-        """
-
-    def room_select_owners(self, room_id: str) -> ResultSet:
-        """
-        find owners of a given room
-
-        :param room_id: the uuid of the room
-        :return: a list of user ids that are owners for this room
-        """
-
-    def rooms_select_for_user(self, user_id: str) -> ResultSet:
-        """
-        find all rooms the user is in
-
-        :param user_id: id of the user
-        :return: a list of rooms which this user is in
         """
 
     def msg_select(self, msg_id) -> ResultSet:
@@ -105,66 +62,12 @@ class IDriver(Interface):
         :return: nothing
         """
 
-    def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> None:
-        """
-        create a new room
-
-        :param room_id: uuid of the room
-        :param room_name: name of the room
-        :param owners: a list of user ids that should be room owners
-        :param timestamp: creation timestamp
-        :return: nothing
-        """
-
     def msgs_select(self, to_user_id: str) -> ResultSet:
         """
         find all messages sent to a user id/room id
 
         :param to_user_id: either a user id or room uuid
         :return: all messages to this user/room
-        """
-
-    def rooms_select(self) -> ResultSet:
-        """
-        list all rooms
-
-        :return: all rooms
-        """
-
-    def room_select_name(self, room_id: str) -> ResultSet:
-        """
-        find the room name for a room id
-
-        :param room_id: the uuid of the room
-        :return: result should include one row, with the name of the room
-        """
-
-    def room_select_users(self, room_id: str) -> ResultSet:
-        """
-        find all users in a given room
-
-        :param room_id: the uuid of the room
-        :return: rows of users in the room
-        """
-
-    def room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str) -> None:
-        """
-        add a user to a room
-
-        :param room_id: uuid of the room
-        :param room_name: name of the room
-        :param user_id: id of the user
-        :param user_name: the user name
-        :return: nothing
-        """
-
-    def room_delete_user(self, room_id: str, user_id: str) -> None:
-        """
-        remove user from a room
-
-        :param room_id: uuid of the room
-        :param user_id: id of the user
-        :return: nothing
         """
 
 
@@ -206,45 +109,6 @@ class Driver(object):
                     )
                     """
             )
-            self.session.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS rooms (
-                        room_id varchar,
-                        room_name varchar,
-                        owners list<varchar>,
-                        creation_time varchar,
-                        PRIMARY KEY (room_id)
-                    )
-                    """
-            )
-            self.session.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS users_in_room (
-                        room_id varchar,
-                        room_name varchar,
-                        user_id varchar,
-                        user_name varchar,
-                        PRIMARY KEY (room_id, user_id)
-                    )
-                    """
-            )
-            self.session.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS acl (
-                        room_id varchar,
-                        age varchar,
-                        gender varchar,
-                        membership varchar,
-                        group varchar,
-                        country varchar,
-                        city varchar,
-                        image varchar,
-                        has_webcam varchar,
-                        fake_checked varchar,
-                        PRIMARY KEY (room_id)
-                    )
-                    """
-            )
 
         def create_views():
             self.session.execute(
@@ -258,15 +122,6 @@ class Driver(object):
                                 sent_time IS NOT NULL
                         PRIMARY KEY (message_id, to_user, from_user, sent_time)
                         WITH comment='allows lookups of to_user and from_user by message_id'
-                    """
-            )
-            self.session.execute(
-                    """
-                    CREATE MATERIALIZED VIEW IF NOT EXISTS users_in_room_by_user AS
-                        SELECT * from users_in_room
-                            WHERE user_id IS NOT NULL AND room_id IS NOT NULL
-                        PRIMARY KEY (user_id, room_id)
-                        WITH comment='allows query by user_id instead of room_id'
                     """
             )
 
@@ -288,86 +143,19 @@ class Driver(object):
                     )
                     """
             )
-            self.statements[StatementKeys.acl_insert] = self.session.prepare(
-                    """
-                    INSERT INTO acl (
-                        room_id,
-                        age,
-                        gender,
-                        membership,
-                        group,
-                        country,
-                        city,
-                        image,
-                        has_webcam,
-                        fake_checked
-                    )
-                    VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                    )
-                    """
-            )
-            self.statements[StatementKeys.acl_select] = self.session.prepare(
-                    """
-                    SELECT * FROM acl WHERE room_id = ?
-                    """
-            )
-            self.statements[StatementKeys.room_insert] = self.session.prepare(
-                    """
-                    INSERT INTO rooms (
-                        room_id,
-                        room_name,
-                        owners,
-                        creation_time
-                    )
-                    VALUES (
-                        ?, ?, ?, ?
-                    )
-                    """
-            )
             self.statements[StatementKeys.msgs_select] = self.session.prepare(
                     """
-                    SELECT * FROM messages where to_user = ?
+                    SELECT * FROM messages WHERE to_user = ?
                     """
             )
             self.statements[StatementKeys.msg_select] = self.session.prepare(
                     """
-                    SELECT to_user, from_user, sent_time FROM messages_by_id where message_id = ?
+                    SELECT to_user, from_user, sent_time FROM messages_by_id WHERE message_id = ?
                     """
             )
-            self.statements[StatementKeys.rooms_select] = self.session.prepare(
+            self.statements[StatementKeys.msg_select_one] = self.session.prepare(
                     """
-                    SELECT * FROM rooms
-                    """
-            )
-            self.statements[StatementKeys.rooms_select_by_user] = self.session.prepare(
-                    """
-                    SELECT * FROM users_in_room_by_user WHERE user_id = ?
-                    """
-            )
-            self.statements[StatementKeys.room_select_name] = self.session.prepare(
-                    """
-                    SELECT room_name FROM rooms WHERE room_id = ?
-                    """
-            )
-            self.statements[StatementKeys.room_select_users] = self.session.prepare(
-                    """
-                    SELECT user_id, user_name FROM users_in_room WHERE room_id = ?
-                    """
-            )
-            self.statements[StatementKeys.room_insert_user] = self.session.prepare(
-                    """
-                    INSERT INTO users_in_room(room_id, room_name, user_id, user_name) VALUES(?, ?, ?, ?)
-                    """
-            )
-            self.statements[StatementKeys.room_select_owners] = self.session.prepare(
-                    """
-                    SELECT owners FROM rooms WHERE room_id = ?
-                    """
-            )
-            self.statements[StatementKeys.room_delete_user] = self.session.prepare(
-                    """
-                    DELETE FROM users_in_room WHERE room_id = ? AND user_id = ?
+                    SELECT * FROM messages WHERE to_user = ? AND from_user = ? AND sent_time = ?
                     """
             )
 
@@ -376,37 +164,10 @@ class Driver(object):
         create_views()
         prepare_statements()
 
-    def acl_insert(self, room_id: str, acls: dict) -> None:
-        self._execute(
-                StatementKeys.acl_insert,
-                room_id,
-                acls.get(SessionKeys.age.value, None),
-                acls.get(SessionKeys.gender.value, None),
-                acls.get(SessionKeys.membership.value, None),
-                acls.get(SessionKeys.group.value, None),
-                acls.get(SessionKeys.country.value, None),
-                acls.get(SessionKeys.city.value, None),
-                acls.get(SessionKeys.image.value, None),
-                acls.get(SessionKeys.has_webcam.value, None),
-                acls.get(SessionKeys.fake_checked.value, None)
-        )
-
-    def acl_select(self, room_id: str) -> ResultSet:
-        return self._execute(StatementKeys.acl_select, room_id)
-
-    def room_select_owners(self, room_id: str) -> ResultSet:
-        return self._execute(StatementKeys.room_select_owners, room_id)
-
-    def rooms_select_for_user(self, user_id: str) -> ResultSet:
-        return self._execute(StatementKeys.rooms_select_by_user, user_id)
-
     def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=False) -> None:
         self._execute(
                 StatementKeys.msg_insert, msg_id, from_user, to_user,
                 body, domain, timestamp, channel_id, deleted)
-
-    def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> None:
-        self._execute(StatementKeys.room_insert, room_id, room_name, owners, timestamp)
 
     def msgs_select(self, to_user_id: str) -> ResultSet:
         return self._execute(StatementKeys.msgs_select, to_user_id)
@@ -418,7 +179,7 @@ class Driver(object):
         duplicating everything from messages table to messages_by_id materialized view, but would also double storage
         requirements. Since message deletion is likely not a frequent operation we can accept doing three queries.
         """
-        keys = self._execute(StatementKeys.msg_select_by_id, message_id)
+        keys = self._execute(StatementKeys.msg_select, message_id)
         if keys is None or len(keys.current_rows) == 0:
             # not found
             return
@@ -427,7 +188,7 @@ class Driver(object):
         key = keys.current_rows[0]
         to_user, from_user, timestamp = key.to_user, key.from_user, key.sent_time
 
-        message_rows = self._execute(StatementKeys.msg_select, to_user, from_user, timestamp)
+        message_rows = self._execute(StatementKeys.msg_select_one, to_user, from_user, timestamp)
         assert len(message_rows.current_rows) == 1
 
         message_row = message_rows.current_rows[0]
@@ -435,21 +196,6 @@ class Driver(object):
         domain = message_row.domain
         channel_id = message_row.channel_id
         self.msg_insert(message_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=True)
-
-    def rooms_select(self) -> ResultSet:
-        return self._execute(StatementKeys.rooms_select)
-
-    def room_select_name(self, room_id: str) -> ResultSet:
-        return self._execute(StatementKeys.room_select_name, room_id)
-
-    def room_select_users(self, room_id: str) -> ResultSet:
-        return self._execute(StatementKeys.room_select_users, room_id)
-
-    def room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str) -> None:
-        self._execute(StatementKeys.room_insert_user, room_id, room_name, user_id, user_name)
-
-    def room_delete_user(self, room_id: str, user_id: str) -> None:
-        self._execute(StatementKeys.room_delete_user, room_id, user_id)
 
     def _execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:

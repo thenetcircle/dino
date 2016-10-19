@@ -18,6 +18,7 @@ from zope.interface import implementer
 
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
+from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.postgres.dbman import Database
 from dino.db.postgres.mock import MockDatabase
@@ -32,8 +33,7 @@ from dino.exceptions import NoSuchChannelException
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import RoomExistsException
 from dino.exceptions import NoSuchRoomException
-from dino.exceptions import NoSuchUserException
-from dino.exceptions import UserExistsException
+from dino.exceptions import RoomNameExistsForChannelException
 
 from datetime import datetime
 
@@ -85,14 +85,14 @@ class DatabasePostgres(object):
         return exists
 
     @with_session
-    def get_user_status(self, user_id: str) -> None:
+    def get_user_status(self, user_id: str) -> str:
         status = self.env.cache.get_user_status(user_id)
         if status is not None:
             return status
 
         status = self.session.query(UserStatus).filter(Users.uuid == user_id).first()
         if status is None:
-            return UserStatus.STATUS_UNKNOWN
+            return UserKeys.STATUS_UNAVAILABLE
         return status.status
 
     @with_session
@@ -101,7 +101,7 @@ class DatabasePostgres(object):
             return
 
         self.env.cache.set_user_invisible(user_id)
-        self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserStatus.STATUS_INVISIBLE})
+        self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserKeys.STATUS_INVISIBLE})
         self.session.commit()
 
     @with_session
@@ -120,7 +120,7 @@ class DatabasePostgres(object):
             return
 
         self.env.cache.set_user_online(user_id)
-        self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserStatus.STATUS_AVAILABLE})
+        self.session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserKeys.STATUS_AVAILABLE})
         self.session.commit()
 
     @with_session
@@ -208,10 +208,15 @@ class DatabasePostgres(object):
         self.session.add(channel)
         self.session.commit()
 
+        self.env.cache.set_channel_exists(channel_id)
+
     @with_session
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str) -> None:
         if self.room_exists(channel_id, room_id):
             raise RoomExistsException(room_id)
+
+        if self.room_name_exists(channel_id, room_name):
+            raise RoomNameExistsForChannelException(channel_id, room_name)
 
         channel = self.session.query(Channels).filter(Channels.uuid == channel_id).first()
         if channel is None:
@@ -350,16 +355,20 @@ class DatabasePostgres(object):
         return self._channel_has_role_for_user(RoleKeys.ADMIN, channel_id, user_id)
 
     @with_session
-    def set_admin(self, channel_id: str, user_id: str):
+    def set_admin(self, channel_id: str, user_id: str) -> None:
         self._set_role_on_channel_for_user(RoleKeys.ADMIN, channel_id, user_id)
 
     @with_session
-    def set_moderator(self, room_id: str, user_id: str):
+    def set_moderator(self, room_id: str, user_id: str) -> None:
         self._set_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
 
     @with_session
-    def set_owner(self, room_id: str, user_id: str):
+    def set_owner(self, room_id: str, user_id: str) -> None:
         self._set_role_on_room_for_user(RoleKeys.OWNER, room_id, user_id)
+
+    @with_session
+    def set_owner_channel(self, channel_id: str, user_id: str) -> None:
+        self._set_role_on_channel_for_user(RoleKeys.OWNER, channel_id, user_id)
 
     @with_session
     def delete_acl(self, room_id: str, acl_type: str) -> None:

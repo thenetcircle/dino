@@ -12,16 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
 from zope.interface import implementer
-from activitystreams.models.activity import Activity
 from uuid import uuid4 as uuid
 
 from dino.db import IDatabase
 from dino.config import ConfigKeys
 from dino.config import RedisKeys
 from dino.config import RoleKeys
-from dino.config import SessionKeys
+from dino.config import UserKeys
 from dino import environ
+
+from dino.environ import GNEnvironment
+from dino.exceptions import NoSuchChannelException
+from dino.exceptions import ChannelExistsException
+from dino.exceptions import RoomExistsException
+from dino.exceptions import RoomNameExistsForChannelException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -30,12 +36,13 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class DatabaseRedis(object):
     redis = None
 
-    def __init__(self, host: str, port: int = 6379, db: int = 0):
+    def __init__(self, env: GNEnvironment, host: str, port: int = 6379, db: int = 0):
         if environ.env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
 
+        self.env = env
         self.redis = Redis(host=host, port=port, db=db)
 
     def _has_role_in_room(self, role: str, room_id: str, user_id: str) -> bool:
@@ -50,7 +57,7 @@ class DatabaseRedis(object):
             return False
         return role in str(roles, 'utf-8').split(',')
 
-    def _add_channel_roles(self, role: str, channel_id: str, user_id: str):
+    def _add_channel_role(self, role: str, channel_id: str, user_id: str):
         roles = self.redis.hget(RedisKeys.channel_roles(channel_id), user_id)
         if roles is None:
             roles = role
@@ -80,14 +87,16 @@ class DatabaseRedis(object):
         return self._has_role_in_room(RoleKeys.OWNER, room_id, user_id)
 
     def set_admin(self, channel_id: str, user_id: str):
-        self._add_channel_roles(RoleKeys.ADMIN, channel_id, user_id)
+        self._add_channel_role(RoleKeys.ADMIN, channel_id, user_id)
 
     def set_moderator(self, room_id: str, user_id: str):
         self._add_room_role(RoleKeys.MODERATOR, room_id, user_id)
 
     def set_owner(self, room_id: str, user_id: str):
-        roles = self.redis.hget(RedisKeys.channel_roles(room_id), user_id)
         self._add_room_role(RoleKeys.OWNER, room_id, user_id)
+
+    def set_owner_channel(self, channel_id: str, user_id: str):
+        self._add_channel_role(RoleKeys.OWNER, channel_id, user_id)
 
     def get_channels(self) -> dict:
         all_channels = self.redis.hgetall(RedisKeys.channels())
@@ -197,24 +206,43 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)
 
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name) -> None:
+        if self.env.cache.get_channel_exists(channel_id) is None:
+            if not self.channel_exists(channel_id):
+                raise NoSuchChannelException(channel_id)
+
+        if self.room_exists(channel_id, room_id):
+            raise RoomExistsException(room_id)
+
+        if self.room_name_exists(channel_id, room_name):
+            raise RoomNameExistsForChannelException(channel_id, room_name)
+
         self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
         self.redis.hset(RedisKeys.room_owners(room_id), user_id, user_name)
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
 
+    def create_channel(self, channel_name, channel_id, user_id) -> None:
+        if self.channel_exists(channel_id):
+            raise ChannelExistsException(channel_id)
+
+        self.env.cache.set_channel_exists(channel_id)
+        self.redis.hset(RedisKeys.channels(), channel_id, channel_name)
+        self.set_owner_channel(channel_id, user_id)
+
+    def get_user_status(self, user_id: str) -> str:
+        status = self.env.cache.get_user_status(user_id)
+        if status is not None:
+            return status
+
+        status = self.redis.get(RedisKeys.user_status(user_id))
+        if status is None:
+            return UserKeys.STATUS_UNAVAILABLE
+        return str(status, 'utf-8')
+
     def set_user_offline(self, user_id: str) -> None:
-        self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
-        self.redis.srem(RedisKeys.online_set(), int(user_id))
-        self.redis.srem(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_UNAVAILABLE)
+        self.env.cache.set_user_offline(user_id)
 
     def set_user_online(self, user_id: str) -> None:
-        self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 1)
-        self.redis.sadd(RedisKeys.online_set(), int(user_id))
-        self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_AVAILABLE)
+        self.env.cache.set_user_online(user_id)
 
     def set_user_invisible(self, user_id: str) -> None:
-        self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
-        self.redis.srem(RedisKeys.online_set(), int(user_id))
-        self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), RedisKeys.REDIS_STATUS_INVISIBLE)
+        self.env.cache.set_user_invisible(user_id)

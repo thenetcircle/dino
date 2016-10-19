@@ -160,6 +160,7 @@ class GNEnvironment(object):
         self.root_path = root_path
         self.config = config
         self.storage = None
+        self.cache = None
 
         self.out_of_scope_emit = None  # needs to be set later after socketio object has been created
         self.emit = _flask_emit

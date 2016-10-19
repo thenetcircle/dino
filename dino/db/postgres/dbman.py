@@ -38,6 +38,7 @@ class Database(object):
         Creates deals table.
         """
         self.env = env
+        self.driver = self.env.config.get(ConfigKeys.DRIVER, domain=ConfigKeys.DATABASE, default='postgres+psycopg2')
         self.engine = self.db_connect()
         self.create_tables(self.engine)
         self.Session = sessionmaker(bind=self.engine)
@@ -49,13 +50,26 @@ class Database(object):
         """
         domain = ConfigKeys.DATABASE
         params = {
-            'drivername': 'postgres+psycopg2',
-            'host': self.env.config.get(ConfigKeys.HOST, domain=domain),
-            'port': self.env.config.get(ConfigKeys.PORT, domain=domain),
-            'username': self.env.config.get(ConfigKeys.USER, domain=domain),
-            'password': self.env.config.get(ConfigKeys.PASSWORD, domain=domain),
-            'database': self.env.config.get(ConfigKeys.DB, domain=domain)
+            'drivername': self.driver,
         }
+
+        host = self.env.config.get(ConfigKeys.HOST, default=None, domain=domain)
+        port = self.env.config.get(ConfigKeys.PORT, default=None, domain=domain)
+        username = self.env.config.get(ConfigKeys.USER, default=None, domain=domain)
+        password = self.env.config.get(ConfigKeys.PASSWORD, default=None, domain=domain)
+        database = self.env.config.get(ConfigKeys.DB, default=None, domain=domain)
+
+        if host is not None and host != '':
+            params['host'] = host
+        if port is not None and port != '':
+            params['port'] = port
+        if username is not None and username != '':
+            params['username'] = username
+        if password is not None and password != '':
+            params['password'] = password
+        if database is not None and database != '':
+            params['database'] = database
+
         return create_engine(URL(**params))
 
     def truncate(self):

@@ -39,7 +39,7 @@ class StorageMockCassandraTest(BaseTest):
         self.key_space = 'testing'
         self.storage = CassandraStorage(hosts=['mock'], key_space=self.key_space)
         self.storage.driver = FakeCassandraDriver()
-        environ.env.db = DatabaseRedis('mock')
+        environ.env.db = DatabaseRedis(environ.env, 'mock')
 
     def test_replications(self):
         self.storage = CassandraStorage(hosts=['mock'], key_space=self.key_space, replications=12)

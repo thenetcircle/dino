@@ -8,6 +8,7 @@ from dino.config import RedisKeys
 from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis
 from dino.db.redis import DatabaseRedis
+from dino.cache.miss import CacheAllMiss
 
 environ.env.config.set(ConfigKeys.TESTING, True)
 environ.env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
@@ -153,17 +154,22 @@ class BaseTest(unittest.TestCase):
         environ.env.config = environ.env.config.sub(**self.session)
         environ.env.auth = AuthRedis('mock')
         environ.env.storage = StorageRedis('mock')
-        environ.env.db = DatabaseRedis('mock')
+        environ.env.db = DatabaseRedis(environ.env, 'mock')
         environ.env.storage.redis = environ.env.auth.redis
         environ.env.db.redis = environ.env.auth.redis
         environ.env.redis = environ.env.auth.redis
         environ.env.publish = BaseTest._mock_publish
+        environ.env.cache = CacheAllMiss()
 
         environ.env.auth.redis.flushall()
         environ.env.storage.redis.flushall()
+        environ.env.db.redis.flushall()
+        environ.env.cache.flushall()
+
         environ.env.auth.redis.hmset(RedisKeys.auth_key(BaseTest.USER_ID), self.session)
         environ.env.redis.set(RedisKeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
         environ.env.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
+        environ.env.db.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
 
         environ.env.render_template = BaseTest._render_template
         environ.env.emit = BaseTest._emit
@@ -183,6 +189,7 @@ class BaseTest(unittest.TestCase):
 
         environ.env.logger = logger
         environ.env.session = self.session
+        self.env = environ.env
 
     def clear_session(self):
         environ.env.session.clear()
