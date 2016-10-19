@@ -48,35 +48,35 @@ class StorageMockCassandraTest(BaseTest):
 
     def test_validate_0_replications(self):
         environ.env.config.set(ConfigKeys.TESTING, False)
-        self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], 0, 'SimpleStrategy')
+        self.assertRaises(ValueError, self.storage.validate, ['localhost'], 0, 'SimpleStrategy')
 
     def test_validate_negative_replications(self):
         environ.env.config.set(ConfigKeys.TESTING, False)
-        self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], -9, 'SimpleStrategy')
+        self.assertRaises(ValueError, self.storage.validate, ['localhost'], -9, 'SimpleStrategy')
 
     def test_validate_too_high_replications(self):
         environ.env.config.set(ConfigKeys.TESTING, False)
-        self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], 500, 'SimpleStrategy')
+        self.assertRaises(ValueError, self.storage.validate, ['localhost'], 500, 'SimpleStrategy')
 
     def test_validate_ok_params(self):
         environ.env.config.set(ConfigKeys.TESTING, False)
-        CassandraStorage.validate(['localhost'], 2, 'SimpleStrategy')
+        self.storage.validate(['localhost'], 2, 'SimpleStrategy')
 
     def test_validate_other_strat(self):
         environ.env.config.set(ConfigKeys.TESTING, False)
-        CassandraStorage.validate(['localhost'], 2, 'NetworkTopologyStrategy')
+        self.storage.validate(['localhost'], 2, 'NetworkTopologyStrategy')
 
     def test_validate_invalid_strat(self):
         environ.env.config.set(ConfigKeys.TESTING, False)
-        self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], 2, 'UnknownStrategy')
+        self.assertRaises(ValueError, self.storage.validate, ['localhost'], 2, 'UnknownStrategy')
 
     def test_validate_invalid_rep_type(self):
         environ.env.config.set(ConfigKeys.TESTING, False)
-        self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], '2', 'UnknownStrategy')
+        self.assertRaises(ValueError, self.storage.validate, ['localhost'], '2', 'UnknownStrategy')
 
     def test_validate_invalid_strat_type(self):
         environ.env.config.set(ConfigKeys.TESTING, False)
-        self.assertRaises(ValueError, CassandraStorage.validate, ['localhost'], 2, 1)
+        self.assertRaises(ValueError, self.storage.validate, ['localhost'], 2, 1)
 
     def test_history(self):
         self.assertEqual(0, len(self.storage.get_history(BaseTest.ROOM_ID)))
