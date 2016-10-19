@@ -15,8 +15,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
-from dino.db.postgres import DeclarativeBase
-from dino.db.postgres import rooms_users_association_table
+from dino.db.rdbms import DeclarativeBase
+from dino.db.rdbms import rooms_users_association_table
 from dino.config import UserKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'

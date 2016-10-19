@@ -17,16 +17,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 
 from dino.config import ConfigKeys
-from dino.db.postgres import DeclarativeBase
+from dino.db.rdbms import DeclarativeBase
 
 # need to keep these here even if "unused", otherwise create_all(engine) won't find the models
-from dino.db.postgres.models import UserStatus
-from dino.db.postgres.models import Acls
-from dino.db.postgres.models import Rooms
-from dino.db.postgres.models import Channels
-from dino.db.postgres.models import ChannelRoles
-from dino.db.postgres.models import RoomRoles
-from dino.db.postgres.models import Users
+from dino.db.rdbms.models import UserStatus
+from dino.db.rdbms.models import Acls
+from dino.db.rdbms.models import Rooms
+from dino.db.rdbms.models import Channels
+from dino.db.rdbms.models import ChannelRoles
+from dino.db.rdbms.models import RoomRoles
+from dino.db.rdbms.models import Users
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 

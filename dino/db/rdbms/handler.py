@@ -12,30 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import wraps
+from datetime import datetime
 from typing import Union
-from zope.interface import implementer
 
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
 from dino.config import UserKeys
 from dino.db import IDatabase
-from dino.db.postgres.dbman import Database
-from dino.db.postgres.mock import MockDatabase
-from dino.db.postgres.models import Rooms
-from dino.db.postgres.models import RoomRoles
-from dino.db.postgres.models import ChannelRoles
-from dino.db.postgres.models import Users
-from dino.db.postgres.models import UserStatus
-from dino.db.postgres.models import Channels
-
-from dino.exceptions import NoSuchChannelException
+from dino.db.rdbms.dbman import Database
+from dino.db.rdbms.mock import MockDatabase
+from dino.db.rdbms.models import ChannelRoles
+from dino.db.rdbms.models import Channels
+from dino.db.rdbms.models import RoomRoles
+from dino.db.rdbms.models import Rooms
+from dino.db.rdbms.models import UserStatus
+from dino.db.rdbms.models import Users
 from dino.exceptions import ChannelExistsException
-from dino.exceptions import RoomExistsException
+from dino.exceptions import NoSuchChannelException
 from dino.exceptions import NoSuchRoomException
+from dino.exceptions import RoomExistsException
 from dino.exceptions import RoomNameExistsForChannelException
-
-from datetime import datetime
+from functools import wraps
+from zope.interface import implementer
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -43,7 +41,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 def with_session(f):
     @wraps(f)
     def wrapped(*args, **kwargs):
-        session = DatabasePostgres.db.Session()
+        session = DatabaseRdbms.db.Session()
         try:
             _self = args[0]
             _self.__dict__.update({'session': session})
@@ -53,17 +51,18 @@ def with_session(f):
             raise
         finally:
             session.close()
+
     return wrapped
 
 
 @implementer(IDatabase)
-class DatabasePostgres(object):
+class DatabaseRdbms(object):
     def __init__(self, env):
         self.env = env
         if self.env.config.get(ConfigKeys.TESTING, False):
-            DatabasePostgres.db = MockDatabase()
+            DatabaseRdbms.db = MockDatabase()
         else:
-            DatabasePostgres.db = Database(env)
+            DatabaseRdbms.db = Database(env)
 
     @with_session
     def _session(self):
@@ -75,8 +74,8 @@ class DatabasePostgres(object):
         if exists is not None:
             return exists
 
-        rooms = self.session.query(Rooms)\
-            .filter(Rooms.uuid == room_id)\
+        rooms = self.session.query(Rooms) \
+            .filter(Rooms.uuid == room_id) \
             .all()
 
         exists = len(rooms) > 0
@@ -291,19 +290,19 @@ class DatabasePostgres(object):
     def _channel_has_role_for_user(self, the_role: str, channel_id: str, user_id: str) -> bool:
         channel = self.session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
         return self._object_has_role_for_user(channel, the_role, user_id)
-    
+
     def _set_role_on_room_for_user(self, the_role: Rooms, room_id: str, user_id: str):
         room = self.session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
         if room is None:
             raise NoSuchRoomException(room_id)
-        
+
         found_role = None
         for role in room.roles:
             if role.user_id == user_id:
                 found_role = role
                 if the_role in role.roles:
                     return
-        
+
         if found_role is None:
             found_role = RoomRoles()
             found_role.user_id = user_id
@@ -313,22 +312,22 @@ class DatabasePostgres(object):
             roles = set(found_role.roles.split(','))
             roles.add(the_role)
             found_role.roles = ','.join(roles)
-            
+
         self.session.add(found_role)
         self.session.commit()
-    
+
     def _set_role_on_channel_for_user(self, the_role: Channels, channel_id: str, user_id: str):
         channel = self.session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
         if channel is None:
             raise NoSuchChannelException(channel_id)
-        
+
         found_role = None
         for role in channel.roles:
             if role.user_id == user_id:
                 found_role = role
                 if the_role in role.roles:
                     return
-        
+
         if found_role is None:
             found_role = ChannelRoles()
             found_role.user_id = user_id
@@ -338,7 +337,7 @@ class DatabasePostgres(object):
             roles = set(found_role.roles.split(','))
             roles.add(the_role)
             found_role.roles = ','.join(roles)
-            
+
         self.session.add(found_role)
         self.session.commit()
 

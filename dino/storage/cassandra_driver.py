@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from cassandra.cluster import ResultSet
 from cassandra.cluster import Session
 from enum import Enum
-from zope.interface import Interface
 from zope.interface import implementer
 
 from dino import environ
-from dino.config import SessionKeys
+from dino.storage import IDriver
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -31,46 +32,6 @@ class StatementKeys(Enum):
     msg_select_one = 'msg_select_one'
 
 
-class IDriver(Interface):
-    def init(self):
-        """
-        creates keyspace, tables, views etc.
-
-        :return: nothing
-        """
-
-    def msg_select(self, msg_id) -> ResultSet:
-        """
-        select one message
-
-        :param msg_id: uuid of the message
-        :return: the message, if found
-        """
-
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=False) -> None:
-        """
-        store a new message
-
-        :param msg_id: uuid of the message
-        :param from_user: id of the user sending the message
-        :param to_user: id of the user receiving the message (or uuid of the target room)
-        :param body: the message text
-        :param domain: private/group
-        :param timestamp: published timestamp
-        :param channel_id: the channel of the room
-        :param deleted: if the message is deleted or not
-        :return: nothing
-        """
-
-    def msgs_select(self, to_user_id: str) -> ResultSet:
-        """
-        find all messages sent to a user id/room id
-
-        :param to_user_id: either a user id or room uuid
-        :return: all messages to this user/room
-        """
-
-
 @implementer(IDriver)
 class Driver(object):
     def __init__(self, session: Session, key_space: str, strategy: str, replications: int):
@@ -79,10 +40,11 @@ class Driver(object):
         self.key_space = key_space
         self.strategy = strategy
         self.replications = replications
+        self.logger = logging.getLogger(__name__)
 
     def init(self):
         def create_key_space():
-            environ.env.logger.debug('creating keyspace...')
+            self.logger.debug('creating keyspace...')
             create_key_space_stmt = self.session.prepare(
                     """
                     CREATE KEYSPACE IF NOT EXISTS %s
@@ -93,7 +55,7 @@ class Driver(object):
             self.session.set_keyspace(self.key_space)
 
         def create_tables():
-            environ.env.logger.debug('creating tables...')
+            self.logger.debug('creating tables...')
             self.session.execute(
                     """
                     CREATE TABLE IF NOT EXISTS messages (

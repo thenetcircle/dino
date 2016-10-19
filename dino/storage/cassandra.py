@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from zope.interface import implementer
 from activitystreams.models.activity import Activity
 from cassandra.cluster import Cluster
@@ -19,7 +21,6 @@ from cassandra.cluster import Cluster
 from dino.storage import IStorage
 from dino import environ
 from dino.storage.cassandra_driver import Driver
-from dino.config import SessionKeys
 from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -40,8 +41,8 @@ class CassandraStorage(object):
         self.key_space = key_space
         self.strategy = strategy
         self.replications = replications
-
-        CassandraStorage.validate(hosts, replications, strategy)
+        self.logger = logging.getLogger(__name__)
+        self.validate(hosts, replications, strategy)
 
     def init(self):
         cluster = Cluster(self.hosts)
@@ -86,8 +87,7 @@ class CassandraStorage(object):
             })
         return msgs
 
-    @staticmethod
-    def validate(hosts, replications, strategy):
+    def validate(self, hosts, replications, strategy):
         if environ.env.config.get(ConfigKeys.TESTING, False):
             return
 
@@ -97,8 +97,8 @@ class CassandraStorage(object):
             raise ValueError('replications needs to be in the interval [1, 99]')
 
         if replications > len(hosts):
-            environ.env.logger.warn('replications (%s) is higher than number of nodes in cluster (%s)' %
-                                    (str(replications), len(hosts)))
+            self.logger.warn('replications (%s) is higher than number of nodes in cluster (%s)' %
+                             (str(replications), len(hosts)))
 
         if not isinstance(strategy, str):
             raise ValueError('strategy is not a valid string, but of type: "%s"' % str(type(strategy)))

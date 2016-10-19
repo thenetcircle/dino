@@ -24,11 +24,12 @@ from dino.environ import ConfigDict
 from dino.config import ConfigKeys
 from dino.cache.miss import CacheAllMiss
 from dino.cache.redis import CacheRedis
-from dino.db.postgres.models import Channels
-from dino.db.postgres.models import UserStatus
-from dino.db.postgres.models import Rooms
-from dino.db.postgres.models import Users
-from dino.db.postgres.postgres import DatabasePostgres
+from dino.db.rdbms.models import Channels
+from dino.db.rdbms.models import UserStatus
+from dino.db.rdbms.models import Rooms
+from dino.db.rdbms.models import Users
+from dino.db.rdbms.handler import DatabaseRdbms
+from dino.environ import GNEnvironment
 
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
@@ -39,8 +40,9 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class BaseDatabaseTest(BaseTest):
-    class FakeEnv(object):
+    class FakeEnv(GNEnvironment):
         def __init__(self):
+            super(BaseDatabaseTest.FakeEnv, self).__init__(None, ConfigDict(), skip_init=True)
             self.config = ConfigDict()
             self.cache = CacheRedis('mock')
 
@@ -57,10 +59,10 @@ class BaseDatabaseTest(BaseTest):
             self.env.config.set(ConfigKeys.DB, 'dinotest', domain=ConfigKeys.DATABASE)
             self.env.config.set(ConfigKeys.USER, 'dinouser', domain=ConfigKeys.DATABASE)
             self.env.config.set(ConfigKeys.PASSWORD, 'dinopass', domain=ConfigKeys.DATABASE)
-            self.db = DatabasePostgres(self.env)
+            self.db = DatabaseRdbms(self.env)
         elif db == 'sqlite':
             self.env.config.set(ConfigKeys.DRIVER, 'sqlite', domain=ConfigKeys.DATABASE)
-            self.db = DatabasePostgres(self.env)
+            self.db = DatabaseRdbms(self.env)
         elif db == 'redis':
             from dino.db.redis import DatabaseRedis
             self.db = DatabaseRedis(self.env, 'localhost:6379', db=99)

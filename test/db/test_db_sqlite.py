@@ -14,8 +14,8 @@
 
 from test.db import BaseDatabaseTest
 
-from dino.db.postgres.models import Channels
-from dino.db.postgres.models import Rooms
+from dino.db.rdbms.models import Channels
+from dino.db.rdbms.models import Rooms
 from dino.config import UserKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -26,8 +26,8 @@ class DatabaseSqliteTest(BaseDatabaseTest):
         self.set_up_env('sqlite')
 
     def tearDown(self):
-        from dino.db.postgres.dbman import Database
-        from dino.db.postgres.dbman import DeclarativeBase
+        from dino.db.rdbms.dbman import Database
+        from dino.db.rdbms.dbman import DeclarativeBase
         db = Database(self.env)
         con = db.engine.connect()
         trans = con.begin()

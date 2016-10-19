@@ -153,10 +153,14 @@ class ConfigDict:
 
 
 class GNEnvironment(object):
-    def __init__(self, root_path: Union[str, None], config: ConfigDict):
+    def __init__(self, root_path: Union[str, None], config: ConfigDict, skip_init=False):
         """
         Initialize the environment
         """
+        # can skip when testing
+        if skip_init:
+            return
+
         self.root_path = root_path
         self.config = config
         self.storage = None
@@ -363,12 +367,12 @@ def init_database(gn_env: GNEnvironment):
             db_host, db_port = db_host.split(':', 1)
 
         db_number = db_engine.get(ConfigKeys.DB, 0)
-        gn_env.db = DatabaseRedis(host=db_host, port=db_port, db=db_number)
-    elif db_type == 'postgres':
-        from dino.db.postgres.postgres import DatabasePostgres
-        gn_env.db = DatabasePostgres()
+        gn_env.db = DatabaseRedis(gn_env, host=db_host, port=db_port, db=db_number)
+    elif db_type == 'rdbms':
+        from dino.db.rdbms.handler import DatabaseRdbms
+        gn_env.db = DatabaseRdbms(gn_env)
     else:
-        raise RuntimeError('unknown db type "%s", use one of [mock, redis, postgres, mysql]' % db_type)
+        raise RuntimeError('unknown db type "%s", use one of [mock, redis, rdbms, mysql]' % db_type)
 
 
 def init_auth_service(gn_env: GNEnvironment):
