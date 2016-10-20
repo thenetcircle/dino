@@ -35,6 +35,8 @@ from dino.config import ConfigKeys
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
 
+logger = logging.getLogger(__name__)
+
 
 class ConfigDict:
     class DefaultValue:
@@ -295,6 +297,34 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     config_dict[ConfigKeys.LOGGER] = create_logger(config_dict)
     config_dict[ConfigKeys.SESSION] = _flask_session
 
+    if ConfigKeys.HISTORY not in config_dict:
+        config_dict[ConfigKeys.HISTORY] = {
+            ConfigKeys.TYPE: 'unread',
+            ConfigKeys.LIMIT: 100
+        }
+        logger.info('setting default history strategy: %s' % str(config_dict[ConfigKeys.HISTORY]))
+    else:
+        if ConfigKeys.TYPE not in config_dict[ConfigKeys.HISTORY]:
+            config_dict[ConfigKeys.HISTORY][ConfigKeys.TYPE] = ConfigKeys.HISTORY_TYPE_UNREAD
+            logger.info('setting default history type: %s' % ConfigKeys.HISTORY_TYPE_UNREAD)
+
+        if ConfigKeys.LIMIT not in config_dict[ConfigKeys.HISTORY]:
+            config_dict[ConfigKeys.HISTORY][ConfigKeys.LIMIT] = ConfigKeys.DEFAULT_HISTORY_LIMIT
+            logger.info('setting default history limit: %s' % ConfigKeys.DEFAULT_HISTORY_LIMIT)
+
+    history_type = config_dict[ConfigKeys.HISTORY][ConfigKeys.TYPE]
+    if history_type not in [ConfigKeys.HISTORY_TYPE_UNREAD, ConfigKeys.HISTORY_TYPE_TOP]:
+        raise ValueError('unkonwn history type %s' % history_type)
+
+    try:
+        limit = int(config_dict[ConfigKeys.HISTORY][ConfigKeys.LIMIT])
+        if limit < 1 or limit > 10000:
+            raise ValueError('limit not in range [1, 10000]')
+    except Exception as e:
+        raise RuntimeError(
+                'invalid history limit "%s": %s' %
+                (str(config_dict[ConfigKeys.HISTORY][ConfigKeys.LIMIT]), str(e)))
+
     if ConfigKeys.DATE_FORMAT not in config_dict:
         date_format = ConfigKeys.DEFAULT_DATE_FORMAT
         config_dict[ConfigKeys.DATE_FORMAT] = date_format
@@ -317,8 +347,8 @@ def create_env(config_paths: list = None) -> GNEnvironment:
 
     gn_env = GNEnvironment(root_path, ConfigDict(config_dict))
 
-    gn_env.config.get(ConfigKeys.LOGGER).info('read config and created environment')
-    gn_env.config.get(ConfigKeys.LOGGER).debug(str(config_dict))
+    logger.info('read config and created environment')
+    logger.debug(str(config_dict))
     return gn_env
 
 

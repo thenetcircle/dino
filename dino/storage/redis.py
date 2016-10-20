@@ -45,7 +45,7 @@ class StorageRedis(object):
                 RedisKeys.room_history(target),
                 '%s,%s,%s,%s' % (activity.id, activity.published, user_name, msg))
 
-        max_history = environ.env.config.get(ConfigKeys.MAX_HISTORY, -1)
+        max_history = environ.env.config.get(ConfigKeys.LIMIT, domain=ConfigKeys.HISTORY, default=-1)
         if max_history > 0:
             self.redis.ltrim(RedisKeys.room_history(target), 0, max_history)
 

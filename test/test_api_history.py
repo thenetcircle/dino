@@ -142,3 +142,9 @@ class ApiHistoryTest(BaseTest):
         response_data = api.on_history(self.activity_for_history())
         activity = as_parser(response_data[1])
         self.assertTrue(validate_timestamp(activity.object.attachments[0].published))
+
+    def test_history_since_last_time_stamp(self):
+        self.join_room()
+        self.send_message('a message')
+        # TODO: modify timestamp of message so we can check for messages after this one
+        self.send_message('a message')

@@ -68,7 +68,6 @@ class ConfigKeys(object):
     HOST = 'host'
     TYPE = 'type'
     DRIVER = 'driver'
-    MAX_HISTORY = 'max_history'
     STRATEGY = 'strategy'
     REPLICATION = 'replication'
     DATABASE = 'database'
@@ -76,6 +75,8 @@ class ConfigKeys(object):
     PORT = 'port'
     USER = 'user'
     PASSWORD = 'password'
+    HISTORY = 'history'
+    LIMIT = 'limit'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'
@@ -88,6 +89,11 @@ class ConfigKeys(object):
     DEFAULT_DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
     DEFAULT_LOG_LEVEL = 'INFO'
     DEFAULT_REDIS_HOST = 'localhost'
+    DEFAULT_HISTORY_LIMIT = 500
+    DEFAULT_HISTORY_STRATEGY = 'top'
+
+    HISTORY_TYPE_UNREAD = 'unread'
+    HISTORY_TYPE_TOP = 'top'
 
 
 class RedisKeys(object):

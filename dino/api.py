@@ -282,13 +282,19 @@ def on_history(data: dict, activity: Activity = None) -> (int, Union[str, None])
     """
     get the history of a room
 
-    :param data: activity streams format, need actor.id (user id), target.id (user id)
+    the 'updated' field is optional, and if set history since that point will be returned (only if dino has been
+    configured with the history type 'unread' instead of 'top')
+
+    :param data: activity streams format
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     activity = as_parser.parse(data)
     room_id = activity.target.id
-    messages = utils.get_history_for_room(room_id, 10)
+    user_id = activity.actor.id
+    last_read = activity.updated
+
+    messages = utils.get_history_for_room(room_id, user_id, last_read)
     return 200, utils.activity_for_history(activity, messages)
 
 

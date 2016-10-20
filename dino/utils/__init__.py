@@ -16,6 +16,7 @@ from activitystreams import Activity
 from typing import Union
 
 from dino.config import SessionKeys
+from dino.config import ConfigKeys
 from dino import environ
 from dino.validation.generic_validator import GenericValidator
 from dino.config import RedisKeys
@@ -470,8 +471,26 @@ def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
     return False
 
 
-def get_history_for_room(room_id: str, limit: int = 10) -> list:
-    return environ.env.storage.get_history(room_id, limit)
+def get_history_for_room(room_id: str, user_id, last_read: str = None) -> list:
+    history = environ.env.config.get(
+            ConfigKeys.STRATEGY,
+            domain=ConfigKeys.HISTORY,
+            default=ConfigKeys.DEFAULT_HISTORY_STRATEGY)
+
+    limit = environ.env.config.get(
+            ConfigKeys.LIMIT,
+            domain=ConfigKeys.HISTORY,
+            default=ConfigKeys.DEFAULT_HISTORY_LIMIT)
+
+    if history == 'top':
+        return environ.env.storage.get_history(room_id, limit)
+
+    if last_read is None:
+        last_read = get_last_read_for(room_id, user_id)
+        if last_read is None:
+            return list()
+
+    return environ.env.storage.get_unread_history(room_id, last_read)
 
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
@@ -487,6 +506,10 @@ def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) ->
 
 def get_user_status(user_id: str) -> str:
     return environ.env.db.get_user_status(user_id)
+
+
+def get_last_read_for(room_id: str, user_id: str) -> str:
+    return environ.env.db.get_last_read_timestamp(room_id, user_id)
 
 
 def update_last_reads(room_id: str) -> None:

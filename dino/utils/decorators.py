@@ -58,12 +58,9 @@ def pre_process(validation_name=None, should_validate_request=True):
                     status_code, message = view_func(*args, **kwargs)
 
             except Exception as e:
-                tb = traceback.format_exc()
                 logger.error('%s: %s' % (validation_name, str(e)))
+                print(traceback.format_exc())
                 return 500, str(e)
-            finally:
-                if tb is not None:
-                    print(tb)
 
             if status_code != 200:
                 logger.warn('in decorator, status_code: %s, message: %s' % (status_code, str(message)))

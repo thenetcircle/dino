@@ -24,6 +24,9 @@ oscar:
         type: 'redis'
         host: 'localhost:6379'
         db: 3
+    history:
+        type: 'unread'  # unread or top
+        limit: 1000
 
 dev:
     log_level: 'DEBUG'
