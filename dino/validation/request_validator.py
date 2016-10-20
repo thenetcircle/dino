@@ -25,10 +25,6 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 class RequestValidator(BaseValidator):
     def on_message(self, activity: Activity) -> (bool, int, str):
-        is_valid, error_msg = self.validate_request(activity)
-        if not is_valid:
-            return False, 400, error_msg
-
         room_id = activity.target.id
         from_room_id = activity.actor.url
 
@@ -58,10 +54,6 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_delete(self, activity: Activity) -> (bool, int, str):
-        is_valid, error_msg = self.validate_request(activity)
-        if not is_valid:
-            return False, 400, error_msg
-
         user_id = activity.actor.id
         room_id = activity.target.id
 
@@ -95,10 +87,6 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_ban(self, activity: Activity) -> (bool, int, str):
-        is_valid, error_msg = self.validate_request(activity)
-        if not is_valid:
-            return False, 400, error_msg
-
         room_id = activity.target.id
         channel_id = activity.object.url
         user_id = activity.actor.id
@@ -124,10 +112,6 @@ class RequestValidator(BaseValidator):
         user_id = activity.actor.id
         room_id = activity.target.id
 
-        is_valid, error_msg = self.validate_request(activity)
-        if not is_valid:
-            return False, 400, error_msg
-
         if not utils.is_owner(room_id, user_id):
             return False, 400, 'user not an owner of room'
 
@@ -141,17 +125,71 @@ class RequestValidator(BaseValidator):
 
         return True, None, None
 
-    def on_get_acl(self, activity: Activity) -> (bool, int, str):
-        is_valid, error_msg = self.validate_request(activity)
+    def on_join(self, activity: Activity) -> (bool, int, str):
+        room_id = activity.target.id
+        user_id = activity.actor.id
+
+        is_valid, error_msg = validation.acl.validate_acl(activity)
         if not is_valid:
             return False, 400, error_msg
+
+        is_banned, duration = utils.is_banned(user_id, room_id=room_id)
+        if is_banned:
+            return False, 400, 'user is banned from joining room for: %ss' % duration
+
+        return True, None, None
+
+    def on_leave(self, activity: Activity) -> (bool, int, str):
+        if not hasattr(activity, 'target') or not hasattr(activity.target, 'id'):
+            return False, 400, 'room_id is None when trying to leave room'
+        return True, None, None
+
+    def on_list_channels(self, activity: Activity) -> (bool, int, str):
+        return True, None, None
+
+    def on_list_rooms(self, activity: Activity) -> (bool, int, str):
+        channel_id = activity.object.url
+
+        if channel_id is None or channel_id == '':
+            return False, 400, 'need channel ID to list rooms'
+
+        return True, None, None
+
+    def on_users_in_room(self, activity: Activity) -> (bool, int, str):
+        return True, None, None
+
+    def on_history(self, activity: Activity) -> (bool, int, str):
+        room_id = activity.target.id
+
+        if room_id is None or room_id.strip() == '':
+            return False, 400, 'invalid target id'
+
+        is_valid, error_msg = validation.acl.validate_acl(activity)
+        if not is_valid:
+            return False, 400, error_msg
+
+        return True, None, None
+
+    def on_status(self, activity: Activity) -> (bool, int, str):
+        user_name = environ.env.session.get(SessionKeys.user_name.value, None)
+        status = activity.verb
+
+        if user_name is None:
+            return False, 400, 'no user name in session'
+
+        is_valid, error_msg = validation.request.validate_request(activity)
+        if not is_valid:
+            return False, 400, error_msg
+
+        if status not in ['online', 'offline', 'invisible']:
+            return False, 400, 'invalid status %s' % str(status)
+
+        return True, None, None
+
+    def on_get_acl(self, activity: Activity) -> (bool, int, str):
         return True, None, None
 
     def on_kick(self, activity: Activity) -> (bool, int, str):
-        is_valid, error_msg = self.validate_request(activity)
-        if not is_valid:
-            return False, 400, error_msg
-
         room_id = activity.target.id
         channel_id = activity.object.url
         user_id = activity.target.display_name
@@ -180,10 +218,6 @@ class RequestValidator(BaseValidator):
         return False, 400, 'only owners/admins/moderators can kick'
 
     def on_create(self, activity: Activity) -> (bool, int, str):
-        is_valid, error_msg = self.validate_request(activity)
-        if not is_valid:
-            return False, 400, error_msg
-
         room_name = activity.target.display_name
         channel_id = activity.object.url
 

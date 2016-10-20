@@ -22,7 +22,6 @@ from activitystreams.models.activity import Activity
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
-from dino import validation
 from dino.utils.decorators import pre_process
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
@@ -39,7 +38,7 @@ def on_connect() -> (int, None):
     return 200, None
 
 
-@pre_process('on_login')
+@pre_process('on_login', should_validate_request=False)
 def on_login(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
@@ -146,10 +145,6 @@ def on_ban(data: dict, activity: Activity = None) -> None:
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
     """
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
     room_id = activity.target.id
     kicked_id = activity.object.id
     ban_duration = activity.object.summary
@@ -247,21 +242,14 @@ def on_get_acl(data: dict, activity: Activity = None) -> (int, Union[str, dict])
     return 200, utils.activity_for_get_acl(activity, acls)
 
 
-def on_status(data: dict) -> (int, Union[str, None]):
+@pre_process('on_status')
+def on_status(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     change online status
 
-    example activity:
-
-    {
-        actor: {
-            id: '1234'
-        },
-        verb: 'online/invisible/offline'
-    }
-
     :param data: activity streams format, needs actor.id (user id), actor.summary (user name) and verb
     (online/invisible/offline)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     # todo: leave rooms on invisible/offline?
@@ -270,13 +258,6 @@ def on_status(data: dict) -> (int, Union[str, None]):
     user_id = activity.actor.id
     user_name = environ.env.session.get(SessionKeys.user_name.value, None)
     status = activity.verb
-
-    if user_name is None:
-        return 400, 'no user name in session'
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
 
     if status == 'online':
         environ.env.db.set_user_online(user_id)
@@ -293,85 +274,39 @@ def on_status(data: dict) -> (int, Union[str, None]):
         activity_json = utils.activity_for_disconnect(user_id, user_name)
         environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
 
-    else:
-        return 400, 'invalid status %s' % str(status)
-
     return 200, None
 
 
-def on_history(data: dict) -> (int, Union[str, None]):
+@pre_process('on_history')
+def on_history(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
-    example activity:
-
-    {
-        actor: {
-            id: '1234'
-        },
-        verb: 'history',
-        target: {
-            id: 'd69dbfd8-95a2-4dc5-b051-8ef050e2667e'
-        }
-    }
+    get the history of a room
 
     :param data: activity streams format, need actor.id (user id), target.id (user id)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
-
     activity = as_parser.parse(data)
     room_id = activity.target.id
-
-    if room_id is None or room_id.strip() == '':
-        return 400, 'invalid target id'
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
-    is_valid, error_msg = validation.acl.validate_acl(activity)
-    if not is_valid:
-        return 400, error_msg
-
     messages = utils.get_history_for_room(room_id, 10)
     return 200, utils.activity_for_history(activity, messages)
 
 
-def on_join(data: dict) -> (int, Union[str, None]):
+@pre_process('on_join')
+def on_join(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
-    example activity:
-
-    {
-        actor: {
-            id: '1234',
-            summary: 'joe'
-        },
-        verb: 'join',
-        target: {
-            id: 'd69dbfd8-95a2-4dc5-b051-8ef050e2667e'
-        }
-    }
+    join a room
 
     :param data: activity streams format, need actor.id (user id), target.id (user id), actor.summary (user name)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     # todo: how to deal with invisibility here?
-
     activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     image = environ.env.session.get(SessionKeys.image.value, '')
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
-    is_valid, error_msg = validation.acl.validate_acl(activity)
-    if not is_valid:
-        return 400, error_msg
-
-    is_banned, duration = utils.is_banned(user_id, room_id=room_id)
-    if is_banned:
-        return 400, 'user is banned from joining room for: %ss' % duration
 
     room_name = utils.get_room_name(room_id)
     utils.join_the_room(user_id, user_name, room_id, room_name)
@@ -387,80 +322,58 @@ def on_join(data: dict) -> (int, Union[str, None]):
     return 200, utils.activity_for_join(activity, acls, messages, owners, users)
 
 
-def on_users_in_room(data: dict) -> (int, Union[dict, str]):
+@pre_process('on_users_in_room')
+def on_users_in_room(data: dict, activity: Activity = None) -> (int, Union[dict, str]):
     """
     get a list of users in a room
 
     :param data: activity streams format, need target.id (room id)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok, {'status_code': 200, 'data': <AS with users as object.attachments>}
     """
-    activity = as_parser.parse(data)
+    # TODO: should people not in the room be able to list users in the room?
     room_id = activity.target.id
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
     users = utils.get_users_in_room(room_id)
     return 200, utils.activity_for_users_in_room(activity, users)
 
 
-def on_list_rooms(data: dict) -> (int, Union[dict, str]):
+@pre_process('on_list_rooms')
+def on_list_rooms(data: dict, activity: Activity = None) -> (int, Union[dict, str]):
     """
     get a list of rooms
 
     :param data: activity streams format, needs actor.id (user id) and object.id (channel id)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok, {'status_code': 200, 'data': <AS with rooms as object.attachments>}
     """
-    activity = as_parser.parse(data)
     channel_id = activity.object.url
-
-    if channel_id is None or channel_id == '':
-        return 400, 'need channel ID to list rooms'
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
     rooms = environ.env.db.rooms_for_channel(channel_id)
     return 200, utils.activity_for_list_rooms(activity, rooms)
 
 
-def on_list_channels(data: dict) -> (int, Union[dict, str]):
+@pre_process('on_list_channels')
+def on_list_channels(data: dict, activity: Activity = None) -> (int, Union[dict, str]):
     """
     get a list of channels
 
     :param data: activity streams format, needs actor.id (user id)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok, {'status_code': 200, 'data': <AS with channels as object.attachments>}
     """
-    activity = as_parser.parse(data)
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
     channels = environ.env.db.get_channels()
     return 200, utils.activity_for_list_channels(activity, channels)
 
 
-def on_leave(data: dict) -> (int, Union[str, None]):
+@pre_process('on_leave')
+def on_leave(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     leave a room
 
     :param data: activity streams format, needs actor.id (user id), actor.summary (user name), target.id (room id)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     #  todo: should handle invisibility here? don't broadcast leaving a room if invisible
-
-    activity = as_parser.parse(data)
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
-    if not hasattr(activity, 'target') or not hasattr(activity.target, 'id'):
-        return 400, 'room_id is None when trying to leave room'
-
     user_id = activity.actor.id
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     room_id = activity.target.id

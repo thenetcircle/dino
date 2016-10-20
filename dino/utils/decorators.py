@@ -28,7 +28,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 logger = logging.getLogger(__name__)
 
 
-def pre_process(validation_name=None):
+def pre_process(validation_name=None, should_validate_request=True):
     def factory(view_func):
         @wraps(view_func)
         def decorator(*args, **kwargs):
@@ -45,6 +45,12 @@ def pre_process(validation_name=None):
                 data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                 data['id'] = str(uuid())
                 activity = as_parser.parse(data)
+
+                # the login request will not have user id in session yet, which this would check
+                if should_validate_request:
+                    is_valid, error_msg = validation.request.validate_request(activity)
+                    if not is_valid:
+                        return 400, error_msg
 
                 is_valid, status_code, message = getattr(validation.request, validation_name)(activity)
                 if is_valid:
