@@ -64,6 +64,8 @@ A rough roadmap for possible upcoming features.
 
 0.11.0
 ---
+* invisibility
+    - invisible in chats
 * stats
     - messages are sent to kafka
     - use target id as topic partition key, to get sequence id per room/user
