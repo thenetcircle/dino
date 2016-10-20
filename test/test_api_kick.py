@@ -22,7 +22,6 @@ os.environ['ENVIRONMENT'] = 'test'
 
 from dino import environ
 from dino import api
-from dino import rkeys
 from test.utils import BaseTest
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -33,25 +32,6 @@ class ApiKickTest(BaseTest):
         self.create_and_join_room()
         self.set_owner()
         api.on_kick(self.activity_for_kick())
-
-    def create_room(self, room_id: str=None, room_name: str=None):
-        if room_id is None:
-            room_id = ApiKickTest.ROOM_ID
-        if room_name is None:
-            room_name = ApiKickTest.ROOM_NAME
-
-        environ.env.storage.redis.hset(rkeys.rooms(), room_id, room_name)
-
-    def activity_for_join(self):
-        return {
-            'actor': {
-                'id': ApiKickTest.USER_ID
-            },
-            'verb': 'join',
-            'target': {
-                'id': ApiKickTest.ROOM_ID
-            }
-        }
 
     def activity_for_kick(self):
         return {

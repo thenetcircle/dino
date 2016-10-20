@@ -12,60 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import traceback
-from datetime import datetime
+import logging
+
 from typing import Union
 from uuid import uuid4 as uuid
-from functools import wraps
 
 import activitystreams as as_parser
 from activitystreams.models.activity import Activity
 from dino import environ
 from dino import utils
-from dino import validator
 from dino.config import SessionKeys
-from dino.config import ConfigKeys
-from dino.validator import Validator
 from dino import validation
+from dino.utils.decorators import pre_process
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
-logger = environ.env.logger
-
-
-def validate(validation_name=None):
-    def factory(view_func):
-        @wraps(view_func)
-        def decorator(*args, **kwargs):
-            tb = None
-            try:
-                if not hasattr(validation.request, validation_name):
-                    raise RuntimeError('no such attribute on validation.request: %s' % validation_name)
-
-                data = args[0]
-                data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-                data['id'] = str(uuid())
-
-                is_valid, status_code, message = getattr(validation.request, validation_name)()
-                if is_valid:
-                    status_code, message = view_func(*args, **kwargs)
-            except Exception as e:
-                tb = traceback.format_exc()
-                logger.error('%s: %s' % (validation_name, str(e)))
-                return 500, str(e)
-            finally:
-                if tb is not None:
-                    print(tb)
-
-            if status_code != 200:
-                logger.warn('in decorator, status_code: %s, message: %s' % (status_code, str(message)))
-            return status_code, message
-        return decorator
-    return factory
-
-
-def on_add_owner(data: dict) -> (int, Union[str, None]):
-    return 200, None
+logger = logging.getLogger(__name__)
 
 
 def on_connect() -> (int, None):
@@ -77,88 +39,17 @@ def on_connect() -> (int, None):
     return 200, None
 
 
-def on_login(data: dict) -> (int, Union[str, None]):
+@pre_process('on_login')
+def on_login(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
 
-    example activity with required parameters:
-
-    {
-        actor: {
-            id: '1234',
-            summary: 'joe',
-            image: {
-                url: 'http://some-url.com/image.jpg',
-                width: '120',
-                height: '120'
-            }
-            attachments: [
-                {
-                    objectType: 'gender',
-                    content: 'm'
-                },
-                {
-                    objectType: 'age',
-                    content: '28'
-                },
-                {
-                    objectType: 'membership',
-                    content: '1'
-                },
-                {
-                    objectType: 'fake_checked',
-                    content: 'y'
-                },
-                {
-                    objectType: 'has_webcam',
-                    content: 'n'
-                },
-                {
-                    objectType: 'country',
-                    content: 'de'
-                },
-                {
-                    objectType: 'city',
-                    content: 'Berlin'
-                },
-                {
-                    objectType: 'token',
-                    content: '66968fad-2336-40c9-bc6d-0ecbcd91f4da'
-                }
-            ]
-        },
-        verb: 'login'
-    }
-
     :param data: activity streams format, needs actor.id (user id) and actor.summary (user name)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
-    # todo: check environ.env.redis if any queued notifications, then environ.env.emit and clear?
-
-    activity = as_parser.parse(data)
     user_id = activity.actor.id
-
     environ.env.session[SessionKeys.user_id.value] = user_id
-
-    is_banned, duration = utils.is_banned(user_id)
-    if is_banned:
-        return 400, 'user is banned from chatting for: %ss' % duration
-
-    if activity.actor.attachments is not None:
-        for attachment in activity.actor.attachments:
-            environ.env.session[attachment.object_type] = attachment.content
-
-    if SessionKeys.token.value not in environ.env.session:
-        return 400, 'no token in session'
-
-    token = environ.env.session.get(SessionKeys.token.value)
-    is_valid, error_msg, session = validator.validate_login(user_id, token)
-
-    if not is_valid:
-        return 400, error_msg
-
-    for session_key, session_value in session.items():
-        environ.env.session[session_key] = session_value
 
     if activity.actor.image is None:
         environ.env.session['image_url'] = ''
@@ -173,23 +64,17 @@ def on_login(data: dict) -> (int, Union[str, None]):
     return 200, None
 
 
-def on_delete(data):
-    activity = as_parser.parse(data)
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
+@pre_process('on_delete')
+def on_delete(data: dict, activity: Activity = None):
     message_id = activity.object.id
     room_id = activity.target.id
     environ.env.storage.delete_message(message_id)
     environ.env.send(data, json=True, room=room_id, broadcast=True)
-
     return 200, None
 
 
-@validate('on_message')
-def on_message(data):
+@pre_process('on_message')
+def on_message(data, activity: Activity = None):
     """
     send any kind of message/event to a target user/group
 
@@ -199,10 +84,9 @@ def on_message(data):
     actor.url: sender room_id
 
     :param data: activity streams format, must include target.id (room/user id) and object.id (channel id)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<same AS as client sent, plus timestamp>'}
     """
-    # let the server determine the publishing time of the event, not the client
-    # use default time format, since activity streams only accept RFC3339 format
     activity = as_parser.parse(data)
 
     room_id = activity.target.id
@@ -245,9 +129,10 @@ def _kick_user(activity: Activity):
     environ.env.publish(kick_activity)
 
 
-def on_ban(data):
+@pre_process('on_ban')
+def on_ban(data: dict, activity: Activity = None) -> None:
     """
-    ban a user from a room (if user is an owner)
+    ban a user from a room (if user is an owner/admin/moderator)
 
     target.id: the uuid of the room that the user is in
     target.displayName: the room name
@@ -257,34 +142,17 @@ def on_ban(data):
     actor.id: the id of the kicker
     actor.content: the name of the kicker
 
-    :param data:
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
     """
-    activity = as_parser.parse(data)
-
     is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
     room_id = activity.target.id
-    channel_id = activity.object.url
-    user_id = activity.actor.id
     kicked_id = activity.object.id
     ban_duration = activity.object.summary
-
-    is_global_ban = room_id is None or room_id == ''
-
-    if kicked_id is None or kicked_id.strip() == '':
-        return 400, 'got blank user id, can not ban'
-
-    if not utils.room_exists(channel_id, room_id):
-        return 400, 'no room with id "%s" exists' % room_id
-
-    if not is_global_ban:
-        if not utils.is_owner(room_id, user_id):
-            return 400, 'only owners can ban'
-    elif not utils.is_admin(user_id):
-            return 400, 'only admins can do global bans'
 
     utils.ban_user(room_id, kicked_id, ban_duration)
     _kick_user(activity)
@@ -292,7 +160,8 @@ def on_ban(data):
     return 200, None
 
 
-def on_kick(data):
+@pre_process('on_kick')
+def on_kick(data: dict, activity: Activity = None) -> (int, None):
     """
     kick a user from a room (if user is an owner)
 
@@ -303,67 +172,32 @@ def on_kick(data):
     actor.id: the id of the kicker
     actor.content: the name of the kicker
 
-    :param data:
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
     """
-    activity = as_parser.parse(data)
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
-    room_id = activity.target.id
-    channel_id = activity.object.url
-    user_id = activity.target.display_name
-
-    if room_id is None or room_id.strip() == '':
-        return 400, 'got blank room id, can not kick'
-
-    if user_id is None or user_id.strip() == '':
-        return 400, 'got blank user id, can not kick'
-
-    if not environ.env.db.room_exists(channel_id, room_id):
-        return 400, 'no room with id "%s" exists' % room_id
-
-    if not utils.is_owner(room_id, user_id):
-        return 400, 'only owners can kick'
-
     _kick_user(activity)
-
     return 200, None
 
 
-def on_create(data):
+@pre_process('on_create')
+def on_create(data: dict, activity: Activity = None) -> (int, dict):
     """
     create a new room
 
     :param data: activity streams format, must include target.display_name (room name) and object.id (channel id)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200, 'data': '<same AS as in the request, with addition of target.id (generated UUID
     for the new room>'}, else: {'status_code': 400, 'data': '<error message>'}
     """
-    activity = as_parser.parse(data)
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
-    room_name = activity.target.display_name
-    channel_id = activity.object.url
-
-    if room_name is None or room_name.strip() == '':
-        return 400, 'got blank room name, can not create'
-
-    if not environ.env.db.channel_exists(channel_id):
-        return 400, 'channel does not exist'
-
-    if environ.env.db.room_name_exists(channel_id, room_name):
-        return 400, 'a room with that name already exists'
-
+    # generate a uuid for this room
     activity.target.id = str(uuid())
+
     room_name = activity.target.display_name
     room_id = activity.target.id
     channel_id = activity.object.url
     user_id = activity.actor.id
+
     user_name = utils.get_user_name_for(user_id)
     environ.env.db.create_room(room_name, room_id, channel_id, user_id, user_name)
 
@@ -373,34 +207,19 @@ def on_create(data):
     return 200, data
 
 
-def on_set_acl(data: dict) -> (int, str):
+@pre_process('on_set_acl')
+def on_set_acl(data: dict, activity: Activity = None) -> (int, str):
     """
     change ACL of a room; only allowed if the user is the owner of the room
 
     :param data: activity streams, acls as attachments to object with object_type as acl name and content as acl value
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
-    activity = as_parser.parse(data)
-    user_id = activity.actor.id
     room_id = activity.target.id
 
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
-    if not utils.is_owner(room_id, user_id):
-        return 400, 'user not an owner of room'
-
-    # validate all acls before actually changing anything
-    acls = activity.object.attachments
-    for acl in acls:
-        if acl.object_type not in Validator.ACL_MATCHERS.keys():
-            return 400, 'invalid acl type "%s"' % acl.object_type
-        if not validator.is_acl_valid(acl.object_type, acl.content):
-            return 400, 'invalid acl value "%s" for type "%s"' % (acl.content, acl.object_type)
-
     acl_dict = dict()
-    for acl in acls:
+    for acl in activity.object.attachments:
         # if the content is None, it means we're removing this ACL
         if acl.content is None:
             environ.env.db.delete_acl(room_id, acl.object_type)
@@ -415,22 +234,16 @@ def on_set_acl(data: dict) -> (int, str):
     return 200, None
 
 
-def on_get_acl(data: dict) -> (int, Union[str, dict]):
+@pre_process('on_get_acl')
+def on_get_acl(data: dict, activity: Activity = None) -> (int, Union[str, dict]):
     """
     change ACL of a room; only allowed if the user is the owner of the room
 
-    :param data:
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<AS with acl as object.attachments>'}
     """
-    activity = as_parser.parse(data)
-    room_id = activity.target.id
-    activity.target.display_name = utils.get_room_name(room_id)
-
-    is_valid, error_msg = validation.request.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
-
-    acls = utils.get_acls_for_room(room_id)
+    acls = utils.get_acls_for_room(activity.target.id)
     return 200, utils.activity_for_get_acl(activity, acls)
 
 
@@ -514,7 +327,7 @@ def on_history(data: dict) -> (int, Union[str, None]):
     if not is_valid:
         return 400, error_msg
 
-    is_valid, error_msg = validator.validate_acl(activity)
+    is_valid, error_msg = validation.acl.validate_acl(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -552,7 +365,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     if not is_valid:
         return 400, error_msg
 
-    is_valid, error_msg = validator.validate_acl(activity)
+    is_valid, error_msg = validation.acl.validate_acl(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -566,7 +379,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
     environ.env.emit('gn_user_joined', activity_json, room=room_id, broadcast=True, include_self=False)
 
-    messages = utils.get_history_for_room(room_id, user_id, 10)
+    messages = utils.get_history_for_room(room_id, 10)
     owners = utils.get_owners_for_room(room_id)
     acls = utils.get_acls_for_room(room_id)
     users = utils.get_users_in_room(room_id)

@@ -110,6 +110,20 @@ class RedisKeys(object):
     RKEY_CHANNEL_FOR_ROOMS = 'room:channel'
     RKEY_LAST_READ = 'room:read:%s'  # room:read:room_id
 
+    RKEY_SID_TO_USER_ID = 'user:sid:map'
+    RKEY_BANNED_USERS_GLOBAL = 'users:banned'
+    RKEY_BANNED_USERS_ROOM = 'users:banned:%s'  # users:banned:room_id
+
+    @staticmethod
+    def sid_for_user_id() -> str:
+        return RedisKeys.RKEY_SID_TO_USER_ID
+
+    @staticmethod
+    def banned_users(room_id: str=None) -> str:
+        if room_id is None:
+            return RedisKeys.RKEY_BANNED_USERS_GLOBAL
+        return RedisKeys.RKEY_BANNED_USERS_ROOM % room_id
+
     @staticmethod
     def last_read(room_id: str) -> str:
         return RedisKeys.RKEY_LAST_READ % room_id

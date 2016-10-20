@@ -1,10 +1,26 @@
+#!/usr/bin/env python
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import unittest
-from uuid import uuid4 as uuid
 import logging
+
+from uuid import uuid4 as uuid
 
 from dino import environ
 from dino.config import ConfigKeys
 from dino.config import RedisKeys
+from dino.config import RoleKeys
 from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis
 from dino.db.redis import DatabaseRedis
@@ -198,15 +214,6 @@ class BaseTest(unittest.TestCase):
     def clear_session(self):
         environ.env.session.clear()
 
-    def assert_add_fails(self):
-        self.assertEqual(400, self.get_response_code_for_add())
-
-    def assert_add_succeeds(self):
-        self.assertEqual(200, self.get_response_code_for_add())
-
-    def get_response_code_for_add(self):
-        return api.on_add_owner(self.activity_for_add_owner())[0]
-
     def create_channel_and_room(self, room_id=None, room_name=None):
         self.create_channel(room_id=room_id, room_name=room_name)
         self.create_room(room_id=room_id, room_name=room_name)
@@ -231,15 +238,16 @@ class BaseTest(unittest.TestCase):
 
         environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
         environ.env.storage.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
-        environ.env.storage.redis.hset(RedisKeys.channel_roles(BaseTest.CHANNEL_ID), BaseTest.USER_ID, 'owner')
+        environ.env.storage.redis.hset(RedisKeys.channel_roles(BaseTest.CHANNEL_ID), BaseTest.USER_ID, RoleKeys.OWNER)
         self.env.db.redis.hset(RedisKeys.channel_for_rooms(), room_id, BaseTest.CHANNEL_ID)
         self.env.cache.set_channel_exists(BaseTest.CHANNEL_ID)
 
     def set_owner(self):
-        environ.env.storage.redis.hset(RedisKeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)
+        environ.env.db.redis.hset(RedisKeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)
+        environ.env.db.redis.hset(RedisKeys.room_roles(BaseTest.ROOM_ID), BaseTest.USER_ID, RoleKeys.OWNER)
 
     def remove_owner(self):
-        environ.env.storage.redis.hdel(RedisKeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID)
+        environ.env.storage.redis.hdel(RedisKeys.room_roles(BaseTest.ROOM_ID), BaseTest.USER_ID)
 
     def remove_room(self):
         environ.env.storage.redis.delete(RedisKeys.room_name_for_id(BaseTest.ROOM_ID))

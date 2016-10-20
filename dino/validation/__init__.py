@@ -12,24 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from activitystreams.models.activity import Activity
-
 from dino.validation.request_validator import RequestValidator
-from dino import environ
+from dino.validation.acl_validator import AclValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 request = RequestValidator()
-
-
-class BaseValidator(object):
-    def validate_request(self, activity: Activity) -> (bool, str):
-        if not hasattr(activity.actor, 'id') or activity.actor.id is None:
-            return False, 'no ID on actor'
-
-        session_user_id = environ.env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
-        if activity.actor.id != session_user_id:
-            error_msg = "user_id in session '%s' doesn't match user_id in request '%s'"
-            return False, error_msg % (session_user_id, activity.actor.id)
-
-        return True, None
+acl = AclValidator()

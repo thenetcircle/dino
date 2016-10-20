@@ -19,6 +19,9 @@ from dino.config import ConfigKeys
 from dino.config import RoleKeys
 from dino.config import UserKeys
 from dino.config import SessionKeys
+
+from dino.validation.acl_validator import AclValidator
+
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
@@ -30,7 +33,6 @@ from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
 from dino.db.rdbms.models import LastReads
-from dino.validator import Validator
 
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
@@ -483,10 +485,10 @@ class DatabaseRdbms(object):
             acl = Acls()
 
         for acl_type, acl_value in acls.items():
-            if acl_type not in Validator.ACL_VALIDATORS:
+            if acl_type not in AclValidator.ACL_VALIDATORS:
                 raise InvalidAclTypeException(acl_type)
 
-            if not Validator.ACL_VALIDATORS[acl_type](acl_value):
+            if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
                 raise InvalidAclValueException(acl_type, acl_value)
 
             acl.__setattr__(acl_type, acl_value)
@@ -505,7 +507,7 @@ class DatabaseRdbms(object):
             return dict()
 
         acls = dict()
-        for key in Validator.ACL_VALIDATORS.keys():
+        for key in AclValidator.ACL_VALIDATORS.keys():
             if key not in found_acl.__dict__:
                 continue
 

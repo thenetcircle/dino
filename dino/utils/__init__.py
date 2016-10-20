@@ -17,8 +17,8 @@ from typing import Union
 
 from dino.config import SessionKeys
 from dino import environ
-from dino import rkeys
-from dino.validator import Validator
+from dino.validation.generic_validator import GenericValidator
+from dino.config import RedisKeys
 from dino.config import UserKeys
 from datetime import timedelta
 from datetime import datetime
@@ -243,18 +243,6 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     return response
 
 
-def is_user_in_room(user_id, room_id):
-    return environ.env.db.room_contains(room_id, user_id)
-
-
-def set_sid_for_user_id(user_id: str, sid: str) -> None:
-    environ.env.redis.hset(rkeys.sid_for_user_id(), user_id, sid)
-
-
-def get_sid_for_user_id(user_id: str) -> str:
-    return environ.env.redis.hmget(rkeys.sid_for_user_id(), user_id)
-
-
 def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     response = {
         'target': {
@@ -280,8 +268,7 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
 def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     response = {
         'target': {
-            'id': activity.target.id,
-            'displayName': activity.target.display_name
+            'id': activity.target.id
         },
         'object': {
             'objectType': 'acl'
@@ -299,11 +286,26 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     return response
 
 
+def is_user_in_room(user_id, room_id):
+    return environ.env.db.room_contains(room_id, user_id)
+
+
+# TODO: use env.db instead of env.redis
+def set_sid_for_user_id(user_id: str, sid: str) -> None:
+    environ.env.redis.hset(RedisKeys.sid_for_user_id(), user_id, sid)
+
+
+# TODO: use env.db instead of env.redis
+def get_sid_for_user_id(user_id: str) -> str:
+    return environ.env.redis.hmget(RedisKeys.sid_for_user_id(), user_id)
+
+
+# TODO: use env.db instead of env.redis
 def is_banned(user_id: str, room_id: str=None) -> (bool, Union[str, None]):
     if room_id is None or room_id == '':
-        duration = environ.env.redis.hget(rkeys.banned_users(room_id), user_id)
+        duration = environ.env.redis.hget(RedisKeys.banned_users(room_id), user_id)
     else:
-        duration = environ.env.redis.hget(rkeys.banned_users(room_id), user_id)
+        duration = environ.env.redis.hget(RedisKeys.banned_users(room_id), user_id)
 
     if duration is not None and duration != '':
         end = datetime.fromtimestamp(duration)
@@ -313,11 +315,22 @@ def is_banned(user_id: str, room_id: str=None) -> (bool, Union[str, None]):
             return True, str(diff.seconds())
 
         if room_id is None or room_id == '':
-            environ.env.redis.hdel(rkeys.banned_users(), user_id)
+            environ.env.redis.hdel(RedisKeys.banned_users(), user_id)
         else:
-            environ.env.redis.hdel(rkeys.banned_users(room_id), user_id)
+            environ.env.redis.hdel(RedisKeys.banned_users(room_id), user_id)
 
     return False, None
+
+
+# TODO: use env.db instead of env.redis
+def ban_user(room_id: str, user_id: str, ban_duration: str) -> None:
+    ban_timestamp = ban_duration_to_timestamp(ban_duration)
+    is_global_ban = room_id is None or room_id == ''
+
+    if is_global_ban:
+        environ.env.redis.hset(RedisKeys.banned_users(), user_id, ban_timestamp)
+    else:
+        environ.env.redis.hset(RedisKeys.banned_users(room_id), user_id, ban_timestamp)
 
 
 def get_current_user_role() -> str:
@@ -339,7 +352,7 @@ def ban_duration_to_timestamp(ban_duration: str) -> str:
     if ban_duration.startswith('+'):
         ban_duration = ban_duration[1:]
 
-    if not Validator.is_digit(ban_duration[:-1]):
+    if not GenericValidator.is_digit(ban_duration[:-1]):
         raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
 
     days = 0
@@ -375,18 +388,16 @@ def ban_duration_to_timestamp(ban_duration: str) -> str:
     return str(int(end_date.timestamp()))
 
 
-def ban_user(room_id: str, user_id: str, ban_duration: str) -> None:
-    ban_timestamp = ban_duration_to_timestamp(ban_duration)
-    is_global_ban = room_id is None or room_id == ''
-
-    if is_global_ban:
-        environ.env.redis.hset(rkeys.banned_users(), user_id, ban_timestamp)
-    else:
-        environ.env.redis.hset(rkeys.banned_users(room_id), user_id, ban_timestamp)
-
-
 def is_owner(room_id: str, user_id: str) -> bool:
-    return environ.env.db.room_owners_contain(room_id, user_id)
+    return environ.env.db.is_owner(room_id, user_id)
+
+
+def is_owner_channel(channel_id: str, user_id: str) -> bool:
+    return environ.env.db.is_owner_channel(channel_id, user_id)
+
+
+def is_moderator(room_id: str, user_id: str) -> bool:
+    return environ.env.db.is_moderator(room_id, user_id)
 
 
 def is_admin(user_id: str) -> bool:
@@ -444,7 +455,22 @@ def get_channel_for_room(room_uuid: str) -> str:
     return environ.env.db.get_room
 
 
-def get_history_for_room(room_id: str, user_id: str, limit: int = 10) -> list:
+def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
+    if is_owner(room_id, user_id):
+        return True
+    if is_admin(user_id):
+        return True
+    if is_moderator(room_id, user_id):
+        return True
+
+    channel_id = get_channel_for_room(room_id)
+    if is_owner_channel(channel_id, user_id):
+        return True
+
+    return False
+
+
+def get_history_for_room(room_id: str, limit: int = 10) -> list:
     return environ.env.storage.get_history(room_id, limit)
 
 
