@@ -17,6 +17,7 @@ import logging
 from zope.interface import implementer
 from activitystreams.models.activity import Activity
 from cassandra.cluster import Cluster
+from datetime import datetime
 
 from dino.storage import IStorage
 from dino import environ
@@ -56,7 +57,7 @@ class CassandraStorage(object):
                 to_user=activity.target.id,
                 body=activity.object.content,
                 domain=activity.target.object_type,
-                timestamp=activity.published,
+                sent_time=activity.published,
                 channel_id=activity.object.url,
                 deleted=False
         )
@@ -64,9 +65,30 @@ class CassandraStorage(object):
     def delete_message(self, room_id: str, message_id: str):
         self.driver.msg_delete(message_id)
 
-    def get_history(self, room_id: str, limit: int = None) -> list:
-        # TODO: limit
-        rows = self.driver.msgs_select(room_id)
+    def get_unread_history(self, room_id: str, last_read: int) -> list:
+        rows = self.driver.msgs_select_since_time(room_id, last_read)
+        if rows is None or len(rows.current_rows) == 0:
+            return list()
+
+        msgs = list()
+        for row in rows:
+            if row.deleted:
+                continue
+
+            msgs.append({
+                'message_id': row.message_id,
+                'from_user': row.from_user,
+                'to_user': row.to_user,
+                'body': row.body,
+                'domain': row.domain,
+                'channel_id': row.channel_id,
+                'timestamp': row.sent_time,
+                'deleted': row.deleted
+            })
+        return msgs
+
+    def get_history(self, room_id: str, limit: int=100) -> list:
+        rows = self.driver.msgs_select(room_id, limit)
         if rows is None or len(rows.current_rows) == 0:
             return list()
 

@@ -11,7 +11,7 @@ setup(
     description="Distributed Notifications",
     long_description="""Distributed notification server using websockets""",
     classifiers=[],
-    keywords='notifications',
+    keywords='notifications,chat,socketio,distributed',
     author='Oscar Eriksson',
     author_email='oscar.eriks@gmail.com',
     url='https://github.com/thenetcircle/dino',

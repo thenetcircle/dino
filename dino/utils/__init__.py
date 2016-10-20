@@ -19,6 +19,7 @@ from dino.config import SessionKeys
 from dino import environ
 from dino import rkeys
 from dino.validator import Validator
+from dino.config import UserKeys
 from datetime import timedelta
 from datetime import datetime
 
@@ -443,7 +444,7 @@ def get_channel_for_room(room_uuid: str) -> str:
     return environ.env.db.get_room
 
 
-def get_history_for_room(room_id: str, limit: int = 10) -> list:
+def get_history_for_room(room_id: str, user_id: str, limit: int = 10) -> list:
     return environ.env.storage.get_history(room_id, limit)
 
 
@@ -456,3 +457,22 @@ def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) ->
     environ.env.db.join_room(user_id, user_name, room_id, room_name)
     environ.env.join_room(room_id)
     environ.env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
+
+
+def get_user_status(user_id: str) -> str:
+    return environ.env.db.get_user_status(user_id)
+
+
+def update_last_reads(room_id: str) -> None:
+    users_in_room = get_users_in_room(room_id)
+    online_users_in_room = set()
+
+    for user_id, _ in users_in_room.items():
+        status = get_user_status(user_id)
+        if status in [None, UserKeys.STATUS_UNAVAILABLE, UserKeys.STATUS_UNKNOWN]:
+            continue
+
+        online_users_in_room.add(user_id)
+
+    time_stamp = int(datetime.utcnow().strftime('%s'))
+    environ.env.db.update_last_read_for(online_users_in_room, room_id, time_stamp)

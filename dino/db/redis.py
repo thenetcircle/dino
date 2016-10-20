@@ -296,3 +296,11 @@ class DatabaseRedis(object):
 
     def set_user_invisible(self, user_id: str) -> None:
         self.env.cache.set_user_invisible(user_id)
+
+    def update_last_read_for(self, users: str, room_id: str, time_stamp: int) -> None:
+        redis_key = RedisKeys.last_read(room_id)
+        for user_id in users:
+            self.redis.hset(redis_key, user_id, time_stamp)
+
+    def get_last_read_timestamp(self, room_id: str, user_id: str) -> int:
+        return self.redis.hget(RedisKeys.last_read(room_id), user_id)

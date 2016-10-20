@@ -20,7 +20,9 @@ from enum import Enum
 from zope.interface import implementer
 
 from dino import environ
+from dino.config import ConfigKeys
 from dino.storage import IDriver
+from datetime import datetime
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -29,6 +31,7 @@ class StatementKeys(Enum):
     msg_insert = 'msg_insert'
     msg_select = 'msg_select'
     msgs_select = 'msgs_select'
+    msgs_select_by_time_stamp = 'msgs_select_by_time_stamp'
     msg_select_one = 'msg_select_one'
 
 
@@ -65,9 +68,10 @@ class Driver(object):
                         body text,
                         domain text,
                         sent_time varchar,
+                        time_stamp int,
                         channel_id varchar,
                         deleted boolean,
-                        PRIMARY KEY (to_user, from_user, sent_time)
+                        PRIMARY KEY (to_user, from_user, sent_time, time_stamp)
                     )
                     """
             )
@@ -76,14 +80,30 @@ class Driver(object):
             self.session.execute(
                     """
                     CREATE MATERIALIZED VIEW IF NOT EXISTS messages_by_id AS
-                        SELECT message_id, to_user, from_user, sent_time from messages
+                        SELECT message_id, to_user, from_user, sent_time, time_stamp from messages
                             WHERE
                                 message_id IS NOT NULL AND
                                 to_user IS NOT NULL AND
                                 from_user IS NOT NULL AND
-                                sent_time IS NOT NULL
-                        PRIMARY KEY (message_id, to_user, from_user, sent_time)
-                        WITH comment='allows lookups of to_user and from_user by message_id'
+                                sent_time IS NOT NULL AND
+                                time_stamp IS NOT NULL
+                        PRIMARY KEY (message_id, to_user, from_user, sent_time, time_stamp)
+                        WITH CLUSTERING ORDER BY (time_stamp DESC)
+                    """
+            )
+            self.session.execute(
+                    """
+                    CREATE MATERIALIZED VIEW IF NOT EXISTS messages_by_time_stamp AS
+                        SELECT * from messages
+                            WHERE
+                                message_id IS NOT NULL AND
+                                body IS NOT NULL AND
+                                to_user IS NOT NULL AND
+                                from_user IS NOT NULL AND
+                                sent_time IS NOT NULL AND
+                                time_stamp IS NOT NULL
+                        PRIMARY KEY (to_user, time_stamp, from_user, sent_time)
+                        WITH CLUSTERING ORDER BY (time_stamp DESC)
                     """
             )
 
@@ -97,17 +117,23 @@ class Driver(object):
                         body,
                         domain,
                         sent_time,
+                        time_stamp,
                         channel_id,
                         deleted
                     )
                     VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?
                     )
                     """
             )
             self.statements[StatementKeys.msgs_select] = self.session.prepare(
                     """
-                    SELECT * FROM messages WHERE to_user = ?
+                    SELECT * FROM messages WHERE to_user = ? LIMIT ?
+                    """
+            )
+            self.statements[StatementKeys.msgs_select_by_time_stamp] = self.session.prepare(
+                    """
+                    SELECT * FROM messages_by_time_stamp WHERE to_user = ? AND time_stamp > ?
                     """
             )
             self.statements[StatementKeys.msg_select] = self.session.prepare(
@@ -126,13 +152,17 @@ class Driver(object):
         create_views()
         prepare_statements()
 
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=False) -> None:
+    def msg_insert(self, msg_id, from_user, to_user, body, domain, sent_time, channel_id, deleted=False) -> None:
+        time_stamp = int(datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT).strftime('%s'))
         self._execute(
                 StatementKeys.msg_insert, msg_id, from_user, to_user,
-                body, domain, timestamp, channel_id, deleted)
+                body, domain, sent_time, time_stamp, channel_id, deleted)
 
-    def msgs_select(self, to_user_id: str) -> ResultSet:
-        return self._execute(StatementKeys.msgs_select, to_user_id)
+    def msgs_select(self, to_user_id: str, limit: int=100) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select, to_user_id, limit)
+
+    def msgs_select_since_time(self, to_user_id: str, time_stamp: int) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_by_time_stamp, to_user_id, time_stamp)
 
     def msg_delete(self, message_id: str) -> ResultSet:
         """
@@ -140,6 +170,8 @@ class Driver(object):
         complete row from messages table, and finally updating that row. This could be lowered to two queries by
         duplicating everything from messages table to messages_by_id materialized view, but would also double storage
         requirements. Since message deletion is likely not a frequent operation we can accept doing three queries.
+
+        :param message_id: the uuid of the message to 'delete' (will only flag as deleted, will not remove)
         """
         keys = self._execute(StatementKeys.msg_select, message_id)
         if keys is None or len(keys.current_rows) == 0:

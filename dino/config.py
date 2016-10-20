@@ -58,6 +58,7 @@ class UserKeys(object):
 class ConfigKeys(object):
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'
+    DATE_FORMAT = 'date_format'
     DEBUG = 'debug'
     QUEUE = 'queue'
     TESTING = 'testing'
@@ -84,6 +85,7 @@ class ConfigKeys(object):
     SESSION = '_session'
 
     DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)-18s - %(levelname)-7s - %(message)s"
+    DEFAULT_DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
     DEFAULT_LOG_LEVEL = 'INFO'
     DEFAULT_REDIS_HOST = 'localhost'
 
@@ -106,6 +108,11 @@ class RedisKeys(object):
     RKEY_CHANNEL_ROLES = 'channel:roles:%s'  # channel:roles:channel_id
     RKEY_ROOM_ROLES = 'room:roles:%s'  # channel:roles:channel_id
     RKEY_CHANNEL_FOR_ROOMS = 'room:channel'
+    RKEY_LAST_READ = 'room:read:%s'  # room:read:room_id
+
+    @staticmethod
+    def last_read(room_id: str) -> str:
+        return RedisKeys.RKEY_LAST_READ % room_id
 
     @staticmethod
     def channel_roles(channel_id: str) -> str:

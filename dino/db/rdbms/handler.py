@@ -29,6 +29,7 @@ from dino.db.rdbms.models import Rooms
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
+from dino.db.rdbms.models import LastReads
 from dino.validator import Validator
 
 from dino.exceptions import ChannelExistsException
@@ -42,8 +43,11 @@ from dino.exceptions import InvalidAclValueException
 
 from functools import wraps
 from zope.interface import implementer
+import logging
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 def with_session(view_func):
@@ -510,3 +514,31 @@ class DatabaseRdbms(object):
                 acls[key] = value
 
         return acls
+
+    @with_session
+    def update_last_read_for(self, users: str, room_id: str, time_stamp: int) -> None:
+        for user_id in users:
+            last_read = self.session.query(LastReads)\
+                .filter(LastReads.user_uuid == user_id)\
+                .filter(LastReads.room_uuid == room_id)
+
+            if last_read is None:
+                last_read = LastReads()
+                last_read.room_uuid = room_id
+                last_read.user_uuid = user_id
+
+            last_read.time_stamp = time_stamp
+            self.session.add(last_read)
+        self.session.commit()
+
+    @with_session
+    def get_last_read_timestamp(self, room_id: str, user_id: str) -> int:
+        last_read = self.session.query(LastReads)\
+            .filter(LastReads.user_uuid == user_id)\
+            .filter(LastReads.room_uuid == room_id)\
+            .first()
+
+        if last_read is None:
+            return None
+
+        return last_read.time_stamp

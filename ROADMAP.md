@@ -44,7 +44,6 @@ A rough roadmap for possible upcoming features.
 * in-memory cache
     - short ttl in-memory cache for session data so we don't hit db/redis for every single request for validation checks
 * cross-group messaging
-    - how to handle double actors? one actor is originating room, another is the user in that room
     - acl for allowing cross-group messaging
 
 0.10.0
@@ -57,7 +56,8 @@ A rough roadmap for possible upcoming features.
     - listing users in rooms
     - list rooms in channels
     - list channels
-    - create channels
+    - create channels/roms
+    - ban users
 * invite
     - search for online users in chats
     - invite user from other room

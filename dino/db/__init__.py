@@ -226,6 +226,25 @@ class IDatabase(Interface):
         :return: nothing, throws NoSuchRoomException if room doesn't exist
         """
 
+    def get_last_read_timestamp(self, room_id: str, user_id: str) -> int:
+        """
+        get the last read timestamp for a user in a group
+
+        :param room_id: the uuid of the room
+        :param user_id: the uuid of the user
+        :return:
+        """
+
+    def update_last_read_for(self, users: set, room_id: str, time_stamp: int) -> None:
+        """
+        update the last read timestamp of a room for a set of users
+
+        :param users: a set of users to update the last read timestamp for
+        :param room_id: the uuid of the room for which this timestamp should be set
+        :param time_stamp: the timestamp to set
+        :return: nothing
+        """
+
     def get_acls(self, room_id: str) -> dict:
         """
         get the access list for a room

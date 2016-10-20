@@ -9,6 +9,7 @@ from dino import environ
 from dino import utils
 from dino import validator
 from dino.config import SessionKeys
+from dino.config import ConfigKeys
 from dino.validator import Validator
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
@@ -153,7 +154,8 @@ def on_message(data):
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<same AS as client sent, plus timestamp>'}
     """
     # let the server determine the publishing time of the event, not the client
-    data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
+    # use default time format, since activity streams only accept RFC3339 format
+    data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
     data['id'] = str(uuid())
     activity = as_parser.parse(data)
 
@@ -193,6 +195,9 @@ def on_message(data):
 
     environ.env.storage.store_message(activity)
     environ.env.send(data, json=True, room=room_id, broadcast=True)
+
+    # TODO: update last reads in background thread, want to finish here as soon as possible and ack the user
+    utils.update_last_reads(room_id)
 
     return 200, data
 
@@ -542,7 +547,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
     environ.env.emit('gn_user_joined', activity_json, room=room_id, broadcast=True, include_self=False)
 
-    messages = utils.get_history_for_room(room_id, 10)
+    messages = utils.get_history_for_room(room_id, user_id, 10)
     owners = utils.get_owners_for_room(room_id)
     acls = utils.get_acls_for_room(room_id)
     users = utils.get_users_in_room(room_id)

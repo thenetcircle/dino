@@ -16,8 +16,10 @@
 
 from zope.interface import implementer
 from cassandra.cluster import ResultSet
+from datetime import datetime
 
 from dino.storage.cassandra_driver import IDriver
+from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -64,109 +66,37 @@ class FakeCassandraDriver(object):
     def init(self):
         pass
 
-    def acl_insert(self, room_id: str, acls: dict) -> None:
-        acl = dict()
-        for akey, aval in acls.items():
-            acl[akey] = aval
-        self.acls[room_id] = acl
-
-    def acl_select(self, room_id: str) -> ResultSet:
-        if room_id not in self.acls:
-            return FakeResultSet([])
-
-        acls = self.acls[room_id]
-        rows = list()
-        row = FakeResultSet.FakeRow()
-        for acl_key, acl_val in acls.items():
-            row.__setattr__(acl_key, acl_val)
-        rows.append(row)
-        return FakeResultSet(rows)
-
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=False) -> None:
+    def msg_insert(self, msg_id, from_user, to_user, body, domain, sent_time, channel_id, deleted=False) -> None:
         if to_user not in self.msgs_to_user:
             self.msgs_to_user[to_user] = list()
-        self.msgs_to_user[to_user].append((msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted))
+        time_stamp = int(datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT).strftime('%s'))
+        self.msgs_to_user[to_user].append((msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted))
 
-    def room_insert(self, room_id: str, room_name: str, owners: list, timestamp: str) -> None:
-        self.rooms[room_id] = (room_id, room_name, owners, timestamp)
-        self.room_names[room_id] = room_name
-        self.owners[room_id] = owners
-
-    def msgs_select(self, to_user_id: str) -> ResultSet:
-        msgs = self.msgs_to_user.get(to_user_id, list())
+    def msgs_select(self, to_user_id: str, limit: int=100) -> ResultSet:
+        msgs = self.msgs_to_user.get(to_user_id, list())[:limit]
         rows = list()
-        for msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted in msgs:
+        for msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted in msgs:
             row = FakeResultSet.FakeRow()
             row.message_id = msg_id
             row.from_user = from_user
             row.to_user = to_user
             row.body = body
             row.domain = domain
-            row.timestamp = timestamp
+            row.time_stamp = time_stamp
+            row.sent_time = sent_time
             row.channel_id = channel_id
             row.deleted = deleted
             rows.append(row)
         return FakeResultSet(rows)
 
-    def rooms_select(self) -> ResultSet:
-        rows = list()
-        for _, (room_id, room_name, owners, timestamp) in self.rooms.items():
-            row = FakeResultSet.FakeRow()
-            row.room_id = room_id
-            row.room_name = room_name
-            row.owners = owners
-            row.timestamp = timestamp
-            rows.append(row)
-        return FakeResultSet(rows)
+    def msgs_select_since_time(self, to_user_id: str, time_stamp: int) -> ResultSet:
+        msgs = self.msgs_select(to_user_id, 999999)
+        filtered = list()
+        for msg in msgs:
+            if msg.time_stamp < time_stamp:
+                continue
+            filtered.append(msg)
+        return FakeResultSet(filtered)
 
-    def room_select_name(self, room_id: str) -> ResultSet:
-        if room_id not in self.room_names:
-            return FakeResultSet([])
-        row = FakeResultSet.FakeRow()
-        row.room_name = self.room_names[room_id]
-        return FakeResultSet([row])
-
-    def room_select_users(self, room_id: str) -> ResultSet:
-        users = self.users_in_room.get(room_id, dict())
-        rows = list()
-        for user_id, user_name in users.items():
-            row = FakeResultSet.FakeRow()
-            row.user_id = user_id
-            row.user_name = user_name
-            rows.append(row)
-        return FakeResultSet(rows)
-
-    def room_select_owners(self, room_id: str) -> ResultSet:
-        if room_id not in self.owners:
-            row = FakeResultSet.FakeRow()
-            row.owners = []
-            return FakeResultSet([row])
-
-        row = FakeResultSet.FakeRow()
-        row.owners = self.owners[room_id]
-        return FakeResultSet([row])
-
-    def rooms_select_for_user(self, user_id: str) -> ResultSet:
-        rooms = self.rooms_for_user.get(user_id, list())
-        rows = list()
-
-        for room_id, room_name, *rest in rooms:
-            row = FakeResultSet.FakeRow()
-            row.room_id = room_id
-            row.room_name = room_name
-            rows.append(row)
-        return FakeResultSet(rows)
-
-    def room_insert_user(self, room_id: str, room_name: str, user_id: str, user_name: str) -> None:
-        if user_id not in self.rooms_for_user:
-            self.rooms_for_user[user_id] = list()
-        if room_id not in self.users_in_room:
-            self.users_in_room[room_id] = dict()
-        self.rooms_for_user[user_id].append((room_id, room_name, user_id, user_name))
-        self.users_in_room[room_id][user_id] = user_name
-
-    def room_delete_user(self, room_id: str, user_id: str) -> None:
-        if user_id in self.rooms_for_user:
-            del self.rooms_for_user[user_id]
-        if room_id in self.users_in_room and user_id in self.users_in_room[room_id]:
-            del self.users_in_room[room_id][user_id]
+    def msg_delete(self, message_id: str) -> ResultSet:
+        pass

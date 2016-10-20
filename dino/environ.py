@@ -295,6 +295,17 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     config_dict[ConfigKeys.LOGGER] = create_logger(config_dict)
     config_dict[ConfigKeys.SESSION] = _flask_session
 
+    if ConfigKeys.DATE_FORMAT not in config_dict:
+        date_format = ConfigKeys.DEFAULT_DATE_FORMAT
+        config_dict[ConfigKeys.DATE_FORMAT] = date_format
+    else:
+        from datetime import datetime
+        date_format = config_dict[ConfigKeys.DATE_FORMAT]
+        try:
+            datetime.utcnow().strftime(date_format)
+        except:
+            raise RuntimeError('invalid date format: %s' % date_format)
+
     if ConfigKeys.LOG_FORMAT not in config_dict:
         log_format = ConfigKeys.DEFAULT_LOG_FORMAT
         config_dict[ConfigKeys.LOG_FORMAT] = log_format

@@ -62,7 +62,7 @@ class StorageRedis(object):
 
         self.redis.lrem(RedisKeys.room_history(room_id), found_msg, 1)
 
-    def get_history(self, room_id: str, limit: int = None):
+    def get_history(self, room_id: str, limit: int = 100):
         if limit is None:
             limit = -1
 
@@ -74,3 +74,6 @@ class StorageRedis(object):
             cleaned_messages.append(message_entry.split(',', 3))
 
         return cleaned_messages
+
+    def get_unread_history(self, room_id: str, time_stamp: int, limit: int = 100) -> list:
+        raise NotImplementedError()
