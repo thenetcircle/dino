@@ -1,7 +1,22 @@
-import time
+#!/usr/bin/env python
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import traceback
 from datetime import datetime
 from typing import Union
 from uuid import uuid4 as uuid
+from functools import wraps
 
 import activitystreams as as_parser
 from activitystreams.models.activity import Activity
@@ -11,10 +26,42 @@ from dino import validator
 from dino.config import SessionKeys
 from dino.config import ConfigKeys
 from dino.validator import Validator
+from dino import validation
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 logger = environ.env.logger
+
+
+def validate(validation_name=None):
+    def factory(view_func):
+        @wraps(view_func)
+        def decorator(*args, **kwargs):
+            tb = None
+            try:
+                if not hasattr(validation.request, validation_name):
+                    raise RuntimeError('no such attribute on validation.request: %s' % validation_name)
+
+                data = args[0]
+                data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                data['id'] = str(uuid())
+
+                is_valid, status_code, message = getattr(validation.request, validation_name)()
+                if is_valid:
+                    status_code, message = view_func(*args, **kwargs)
+            except Exception as e:
+                tb = traceback.format_exc()
+                logger.error('%s: %s' % (validation_name, str(e)))
+                return 500, str(e)
+            finally:
+                if tb is not None:
+                    print(tb)
+
+            if status_code != 200:
+                logger.warn('in decorator, status_code: %s, message: %s' % (status_code, str(message)))
+            return status_code, message
+        return decorator
+    return factory
 
 
 def on_add_owner(data: dict) -> (int, Union[str, None]):
@@ -129,7 +176,7 @@ def on_login(data: dict) -> (int, Union[str, None]):
 def on_delete(data):
     activity = as_parser.parse(data)
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -141,6 +188,7 @@ def on_delete(data):
     return 200, None
 
 
+@validate('on_message')
 def on_message(data):
     """
     send any kind of message/event to a target user/group
@@ -155,39 +203,10 @@ def on_message(data):
     """
     # let the server determine the publishing time of the event, not the client
     # use default time format, since activity streams only accept RFC3339 format
-    data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-    data['id'] = str(uuid())
     activity = as_parser.parse(data)
-
-    is_valid, error_msg = validator.validate_request(activity)
-    if not is_valid:
-        return 400, error_msg
 
     room_id = activity.target.id
     from_room_id = activity.actor.url
-
-    if room_id is None or room_id == '':
-        return 400, 'no room id specified when sending message'
-
-    if activity.target.object_type == 'group':
-        channel_id = activity.object.url
-
-        if channel_id is None or channel_id == '':
-            return 400, 'no channel id specified when sending message'
-
-        if not utils.channel_exists(channel_id):
-            return 400, 'channel %s does not exists' % channel_id
-
-        if not utils.room_exists(channel_id, room_id):
-            return 400, 'target room %s does not exist' % room_id
-
-        if from_room_id is not None:
-            if from_room_id != room_id and not utils.room_exists(channel_id, from_room_id):
-                return 400, 'origin room %s does not exist' % from_room_id
-
-        if not utils.is_user_in_room(activity.actor.id, room_id):
-            if not utils.can_send_cross_group(from_room_id, room_id):
-                return 400, 'user not allowed to send cross-group msg from %s to %s' % (from_room_id, room_id)
 
     # only if cross-group should we broadcast the origin group id with the activity; less confusion for clients
     if from_room_id is not None and from_room_id == room_id:
@@ -243,7 +262,7 @@ def on_ban(data):
     """
     activity = as_parser.parse(data)
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -289,7 +308,7 @@ def on_kick(data):
     """
     activity = as_parser.parse(data)
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -324,7 +343,7 @@ def on_create(data):
     """
     activity = as_parser.parse(data)
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -365,7 +384,7 @@ def on_set_acl(data: dict) -> (int, str):
     user_id = activity.actor.id
     room_id = activity.target.id
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -407,7 +426,7 @@ def on_get_acl(data: dict) -> (int, Union[str, dict]):
     room_id = activity.target.id
     activity.target.display_name = utils.get_room_name(room_id)
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -442,7 +461,7 @@ def on_status(data: dict) -> (int, Union[str, None]):
     if user_name is None:
         return 400, 'no user name in session'
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -491,7 +510,7 @@ def on_history(data: dict) -> (int, Union[str, None]):
     if room_id is None or room_id.strip() == '':
         return 400, 'invalid target id'
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -529,7 +548,7 @@ def on_join(data: dict) -> (int, Union[str, None]):
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     image = environ.env.session.get(SessionKeys.image.value, '')
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -565,7 +584,7 @@ def on_users_in_room(data: dict) -> (int, Union[dict, str]):
     activity = as_parser.parse(data)
     room_id = activity.target.id
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -586,7 +605,7 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
     if channel_id is None or channel_id == '':
         return 400, 'need channel ID to list rooms'
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -603,7 +622,7 @@ def on_list_channels(data: dict) -> (int, Union[dict, str]):
     """
     activity = as_parser.parse(data)
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 
@@ -622,7 +641,7 @@ def on_leave(data: dict) -> (int, Union[str, None]):
 
     activity = as_parser.parse(data)
 
-    is_valid, error_msg = validator.validate_request(activity)
+    is_valid, error_msg = validation.request.validate_request(activity)
     if not is_valid:
         return 400, error_msg
 

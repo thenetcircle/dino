@@ -55,12 +55,6 @@ class FakeResultSet(object):
 @implementer(IDriver)
 class FakeCassandraDriver(object):
     def __init__(self):
-        self.acls = dict()
-        self.owners = dict()
-        self.room_names = dict()
-        self.rooms = dict()
-        self.rooms_for_user = dict()
-        self.users_in_room = dict()
         self.msgs_to_user = dict()
 
     def init(self):
@@ -99,4 +93,15 @@ class FakeCassandraDriver(object):
         return FakeResultSet(filtered)
 
     def msg_delete(self, message_id: str) -> ResultSet:
-        pass
+        found = False
+        for room_id, msgs in self.msgs_to_user.items():
+            new_msgs = list()
+            for msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted in msgs:
+                if msg_id == message_id:
+                    found = True
+                    continue
+                new_msgs.append((msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted))
+
+            if found:
+                self.msgs_to_user[room_id] = new_msgs
+                break

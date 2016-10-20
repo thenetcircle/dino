@@ -209,18 +209,6 @@ def validate_session(session: dict) -> (bool, str):
     return True, None
 
 
-def validate_request(activity: Activity) -> (bool, str):
-    if not hasattr(activity.actor, 'id') or activity.actor.id is None:
-        return False, 'no ID on actor'
-
-    session_user_id = environ.env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
-    if activity.actor.id != session_user_id:
-        error_msg = "user_id in session '%s' doesn't match user_id in request '%s'"
-        return False, error_msg % (session_user_id, activity.actor.id)
-
-    return True, None
-
-
 def validate_acl(activity: Activity) -> (bool, str):
     room_id = activity.target.id
     room_name = utils.get_room_name(room_id)
