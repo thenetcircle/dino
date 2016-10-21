@@ -12,29 +12,64 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import traceback
+
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 class RoomManager(BaseManager):
     def __init__(self, env: GNEnvironment):
         self.env = env
 
-    def get_rooms(self, channel_uuid):
-        rooms = self.env.db.rooms_for_channel(channel_uuid)
-        output = list()
+    def get_rooms(self, channel_id: str) -> list:
+        try:
+            rooms = self.env.db.rooms_for_channel(channel_id)
+            output = list()
 
-        for room_id, room_name in rooms.items():
-            output.append({
-                'uuid': room_id,
-                'name': room_name
-            })
-        return output
+            for room_id, room_name in rooms.items():
+                output.append({
+                    'uuid': room_id,
+                    'name': room_name
+                })
+            return output
+        except Exception as e:
+            logger.error('could not list rooms: %s' % str(e))
+            print(traceback.format_exc())
+        return list()
 
-    def create_room(self, room_name: str, room_uuid, channel_id, user_id: str, user_name: str) -> None:
-        self.env.db.create_room(room_name, room_uuid, channel_id, user_id, user_name)
+    def create_room(self, room_name: str, room_id, channel_id, user_id: str, user_name: str) -> None:
+        try:
+            self.env.db.create_room(room_name, room_id, channel_id, user_id, user_name)
+        except Exception as e:
+            logger.error('could not create room: %s' % str(e))
+            print(traceback.format_exc())
 
-    def name_for_uuid(self, room_uuid: str) -> str:
-        return self.env.db.get_room_name(room_uuid)
+    def name_for_uuid(self, room_id: str) -> str:
+        try:
+            return self.env.db.get_room_name(room_id)
+        except Exception as e:
+            logger.error('could not get room name from id %s: %s' % (room_id, str(e)))
+            print(traceback.format_exc())
+        return ''
+
+    def get_owners(self, room_id: str) -> dict:
+        try:
+            return self.env.db.get_owners_room(room_id)
+        except Exception as e:
+            logger.error('could not get room owners from id %s: %s' % (room_id, str(e)))
+            print(traceback.format_exc())
+        return dict()
+
+    def get_moderators(self, room_id: str) -> dict:
+        try:
+            return self.env.db.get_moderators_room(room_id)
+        except Exception as e:
+            logger.error('could not get room moderators from id %s: %s' % (room_id, str(e)))
+            print(traceback.format_exc())
+        return dict()

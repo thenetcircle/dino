@@ -28,15 +28,19 @@ class ChannelManager(BaseManager):
         self.env = env
 
     def get_channels(self) -> list:
-        channels = self.env.db.get_channels()
-        output = list()
+        try:
+            channels = self.env.db.get_channels()
+            output = list()
 
-        for channel_id, channel_name in channels.items():
-            output.append({
-                'uuid': channel_id,
-                'name': channel_name
-            })
-        return output
+            for channel_id, channel_name in channels.items():
+                output.append({
+                    'uuid': channel_id,
+                    'name': channel_name
+                })
+            return output
+        except Exception as e:
+            logger.error('could not list channels: %s' % str(e))
+            print(traceback.format_exc())
 
     def create_channel(self, channel_name: str, channel_id: str, user_id: str) -> None:
         try:
