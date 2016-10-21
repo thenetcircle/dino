@@ -68,6 +68,16 @@ A rough roadmap for possible upcoming features.
     - invisible in chats
 * rest interface
     - to get information about users in room, online users, etc.
+* channel permissions
+    - permissions on channels
+    - e.g. some types of users can not join, like paying members only etc.
+* filter room list
+    - ability to choose to filter out rooms list, not displaying rooms that a user is not allowed to join
+* backend admin interface
+    - show/search message history
+    - create users manually
+    - manage list of admins as user ids
+    - change ownership/moderator status for users in channels/rooms
 * stats
     - messages are sent to kafka
     - use target id as topic partition key, to get sequence id per room/user
