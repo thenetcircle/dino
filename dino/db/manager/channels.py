@@ -12,10 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import traceback
+
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 class ChannelManager(BaseManager):
@@ -34,7 +39,33 @@ class ChannelManager(BaseManager):
         return output
 
     def create_channel(self, channel_name: str, channel_id: str, user_id: str) -> None:
-        self.env.db.create_channel(channel_name, channel_id, user_id)
+        try:
+            self.env.db.create_channel(channel_name, channel_id, user_id)
+        except Exception as e:
+            logger.error('could not create channel: %s' % str(e))
+            print(traceback.format_exc())
+        return ''
 
-    def name_for_uuid(self, channel_uuid: str) -> str:
-        return self.env.db.get_channel_name(channel_uuid)
+    def name_for_uuid(self, channel_id: str) -> str:
+        try:
+            return self.env.db.get_channel_name(channel_id)
+        except Exception as e:
+            logger.error('could not get channel name from id %s: %s' % (channel_id, str(e)))
+            print(traceback.format_exc())
+        return ''
+
+    def get_owners(self, channel_id: str) -> list:
+        try:
+            return self.env.db.get_owners_channel(channel_id)
+        except Exception as e:
+            logger.error('could not get channel owners from id %s: %s' % (channel_id, str(e)))
+            print(traceback.format_exc())
+        return list()
+
+    def get_admins(self, channel_id: str) -> list:
+        try:
+            return self.env.db.get_admins_channel(channel_id)
+        except Exception as e:
+            logger.error('could not get channel admins from id %s: %s' % (channel_id, str(e)))
+            print(traceback.format_exc())
+        return list()

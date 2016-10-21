@@ -40,6 +40,7 @@ from dino.exceptions import NoSuchRoomException
 from dino.exceptions import RoomExistsException
 from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import NoChannelFoundException
+from dino.exceptions import NoSuchUserException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
 
@@ -552,6 +553,56 @@ class DatabaseRdbms(object):
             return None
 
         return last_read.time_stamp
+
+    @with_session
+    def set_user_name(self, user_id: str, user_name: str):
+        user = self.session.query(Users).filter(Users.uuid == user_id).first()
+        if user is None:
+            user = Users()
+            user.uuid = user_id
+        user.name = user_name
+        self.session.add(user)
+        self.session.commit()
+
+    @with_session
+    def get_user_name(self, user_id: str) -> str:
+        # TODO: cache
+        user = self.session.query(Users).filter(Users.uuid == user_id).first()
+        if user is None:
+            raise NoSuchUserException(user_id)
+        return user.name
+
+    def _get_users_with_role(self, roles, role_key):
+        if roles is None or len(roles) == 0:
+            return dict()
+
+        found = dict()
+        for role in roles:
+            if role_key in role.roles.split(','):
+                found[role.user_id] = self.get_user_name(role.user_id)
+        return found
+
+    @with_session
+    def _get_users_with_role_in_channel(self, channel_id: str, role_key: str) -> dict:
+        roles = self.session.query(ChannelRoles).join(ChannelRoles.channel).filter(Channels.uuid == channel_id).all()
+        return self._get_users_with_role(roles, role_key)
+
+    @with_session
+    def _get_users_with_role_in_room(self, room_id: str, role_key: str) -> dict:
+        roles = self.session.query(RoomRoles).join(RoomRoles.room).filter(Rooms.uuid == room_id).all()
+        return self._get_users_with_role(roles, role_key)
+
+    def get_owners_channel(self, channel_id: str) -> dict:
+        return self._get_users_with_role_in_channel(channel_id, RoleKeys.OWNER)
+
+    def get_admins_channel(self, channel_id: str) -> dict:
+        return self._get_users_with_role_in_channel(channel_id, RoleKeys.ADMIN)
+
+    def get_owners_room(self, room_id: str) -> dict:
+        return self._get_users_with_role_in_room(room_id, RoleKeys.OWNER)
+
+    def get_moderators_room(self, room_id: str) -> dict:
+        return self._get_users_with_role_in_room(room_id, RoleKeys.MODERATOR)
 
     def get_room_name(self, room_id: str) -> str:
         @with_session

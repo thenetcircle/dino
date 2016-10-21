@@ -296,6 +296,10 @@ def set_sid_for_user_id(user_id: str, sid: str) -> None:
     environ.env.redis.hset(RedisKeys.sid_for_user_id(), user_id, sid)
 
 
+def set_name_for_user_id(user_id: str, user_name: str) -> None:
+    environ.env.db.set_user_name(user_id, user_name)
+
+
 # TODO: use env.db instead of env.redis
 def get_sid_for_user_id(user_id: str) -> str:
     return environ.env.redis.hmget(RedisKeys.sid_for_user_id(), user_id)
@@ -414,7 +418,7 @@ def get_acls_for_room(room_id: str) -> dict:
 
 
 def get_owners_for_room(room_id: str) -> dict:
-    return environ.env.db.get_owners(room_id)
+    return environ.env.db.get_owners_room(room_id)
 
 
 def channel_exists(channel_id: str) -> bool:

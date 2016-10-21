@@ -57,12 +57,13 @@ def channels():
 @app.route('/channel/<channel_uuid>/rooms', methods=['GET'])
 def rooms_for_channel(channel_uuid):
     form = CreateRoomForm(request.form)
-    channel_name = channel_manager.name_for_uuid(channel_uuid)
     return render_template(
             'rooms.html',
             form=form,
+            owners=channel_manager.get_owners(channel_uuid),
+            admins=channel_manager.get_admins(channel_uuid),
             channel_uuid=channel_uuid,
-            channel_name=channel_name,
+            channel_name=channel_manager.name_for_uuid(channel_uuid),
             rooms=room_manager.get_rooms(channel_uuid))
 
 

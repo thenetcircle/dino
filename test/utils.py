@@ -19,6 +19,7 @@ from uuid import uuid4 as uuid
 
 from dino import environ
 from dino.config import ConfigKeys
+from dino.config import SessionKeys
 from dino.config import RedisKeys
 from dino.config import RoleKeys
 from dino.storage.redis import StorageRedis
@@ -186,6 +187,8 @@ class BaseTest(unittest.TestCase):
         environ.env.redis.set(RedisKeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
         environ.env.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.db.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
+        environ.env.db.redis.hset(RedisKeys.auth_key(BaseTest.USER_ID), SessionKeys.user_name.value, BaseTest.USER_NAME)
+        environ.env.storage.redis.hset(RedisKeys.channel_for_rooms(), BaseTest.ROOM_ID, BaseTest.CHANNEL_ID)
 
         environ.env.render_template = BaseTest._render_template
         environ.env.emit = BaseTest._emit
@@ -208,7 +211,6 @@ class BaseTest(unittest.TestCase):
 
         # TODO: don't do this here, but too many tests that doesn't do it themselves... should remove this base class
         # and only have test logic in each test class, separate it
-        environ.env.storage.redis.hset(RedisKeys.channel_for_rooms(), BaseTest.ROOM_ID, BaseTest.CHANNEL_ID)
         self.env = environ.env
 
     def clear_session(self):
@@ -239,6 +241,7 @@ class BaseTest(unittest.TestCase):
         environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
         environ.env.storage.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.storage.redis.hset(RedisKeys.channel_roles(BaseTest.CHANNEL_ID), BaseTest.USER_ID, RoleKeys.OWNER)
+        environ.env.db.redis.hset(RedisKeys.auth_key(BaseTest.USER_ID), SessionKeys.user_name.value, BaseTest.USER_NAME)
         self.env.db.redis.hset(RedisKeys.channel_for_rooms(), room_id, BaseTest.CHANNEL_ID)
         self.env.cache.set_channel_exists(BaseTest.CHANNEL_ID)
 

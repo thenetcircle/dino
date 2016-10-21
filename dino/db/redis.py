@@ -31,6 +31,7 @@ from dino.exceptions import NoSuchRoomException
 from dino.exceptions import RoomExistsException
 from dino.exceptions import NoChannelFoundException
 from dino.exceptions import NoRoomNameException
+from dino.exceptions import NoSuchUserException
 from dino.exceptions import RoomNameExistsForChannelException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -218,14 +219,49 @@ class DatabaseRedis(object):
         self.env.cache.set_channel_for_room(channel_id, room_id)
         return channel_id
 
-    def get_owners(self, room_id: str) -> dict:
-        owners = self.redis.hgetall(RedisKeys.room_owners(room_id))
+    def set_user_name(self, user_id: str, user_name: str) -> None:
+        key = RedisKeys.auth_key(user_id)
+        self.redis.hset(key, SessionKeys.user_name.value, user_name)
+
+    def get_user_name(self, user_id: str) -> str:
+        key = RedisKeys.auth_key(user_id)
+        name = self.redis.hget(key, SessionKeys.user_name.value)
+        if name is None:
+            raise NoSuchUserException(user_id)
+        return str(name, 'utf-8')
+
+    def _get_users_with_role(self, roles: dict, role_key: str):
+        if roles is None or len(roles) == 0:
+            return dict()
 
         cleaned = dict()
-        for user_id, user_name in owners.items():
-            cleaned[str(user_id, 'utf-8')] = str(user_name, 'utf-8')
-
+        for user_id, user_roles in roles.items():
+            user_id = str(user_id, 'utf-8')
+            user_roles = str(user_roles, 'utf-8')
+            if role_key not in user_roles.split(','):
+                continue
+            cleaned[user_id] = self.get_user_name(user_id)
         return cleaned
+
+    def _get_users_with_role_in_channel(self, channel_id: str, role_key: str):
+        roles = self.redis.hgetall(RedisKeys.channel_roles(channel_id))
+        return self._get_users_with_role(roles, role_key)
+
+    def _get_users_with_role_in_room(self, room_id: str, role_key: str):
+        roles = self.redis.hgetall(RedisKeys.room_roles(room_id))
+        return self._get_users_with_role(roles, role_key)
+
+    def get_admins_channel(self, channel_id: str) -> dict:
+        return self._get_users_with_roles_in_channel(channel_id, RoleKeys.ADMIN)
+
+    def get_owners_channel(self, channel_id: str) -> dict:
+        return self._get_users_with_roles_in_channel(channel_id, RoleKeys.OWNER)
+
+    def get_owners_room(self, room_id: str) -> dict:
+        return self._get_users_with_role_in_room(room_id, RoleKeys.OWNER)
+
+    def get_moderators_room(self, room_id: str) -> dict:
+        return self._get_users_with_role_in_room(room_id, RoleKeys.MODERATOR)
 
     def remove_current_rooms_for_user(self, user_id: str) -> None:
         self.redis.delete(RedisKeys.rooms_for_user(user_id))

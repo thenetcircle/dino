@@ -125,6 +125,60 @@ class IDatabase(Interface):
         :return: true or false
         """
 
+    def set_user_name(self, user_id: str, user_name: str) -> str:
+        """
+        set the user name for this id
+
+        :param user_id: the uuid of the user
+        :param user_name: the name of the user
+        :return: nothing
+        """
+
+    def get_user_name(self, user_id: str) -> str:
+        """
+        the the user name from user id
+
+        :raises NoSuchUserException if a name can't be found
+        :param user_id: the uuid of the user
+        :return: the user name
+        """
+
+    def get_owners_channel(self, channel_id: str) -> dict:
+        """
+        get all owners of a channel
+
+        :raises NoSuchRoomException if channel can't be found
+        :param channel_id: the uuid of the channel
+        :return: a dict of user_id -> user_name
+        """
+
+    def get_admins_channel(self, channel_id: str) -> dict:
+        """
+        get all admins of a channel
+
+        :raises NoSuchRoomException if channel can't be found
+        :param channel_id: the uuid of the channel
+        :return: a dict of user_id -> user_name
+        """
+
+    def get_owners_room(self, room_id: str) -> dict:
+        """
+        get all owners of a room
+
+        :raises NoSuchRoomException if room can't be found
+        :param room_id: the uuid of the room
+        :return: a dict of user_id -> user_name
+        """
+
+    def get_moderators_room(self, room_id: str) -> dict:
+        """
+        get all moderators of a room
+
+        :raises NoSuchRoomException if room can't be found
+        :param room_id: the uuid of the room
+        :return: a dict of user_id -> user_name
+        """
+
     def is_owner_channel(self, channel_id: str, user_id: str) -> bool:
         """
         check if a user is an owner of a channel
@@ -195,8 +249,7 @@ class IDatabase(Interface):
         """
         check if the room allows messages from other rooms
 
-        throws NoSuchRoomException if room doesn't exist
-
+        :raises NoSuchRoomException if room doesn't exist
         :param room_uuid: the room to check for permission
         :return: true if allowed, false otherwise
         """
@@ -205,9 +258,8 @@ class IDatabase(Interface):
         """
         delete an acl from a room
 
-        throws InvalidAclTypeException if the type is invalid
-        throws NoSuchRoomException if room doesn't exist
-
+        :raises InvalidAclTypeException if the type is invalid
+        :raises NoSuchRoomException if room doesn't exist
         :param room_id: the id of the room
         :param acl_type: deletes one acl from this room with this type
         :return: nothing
@@ -217,10 +269,9 @@ class IDatabase(Interface):
         """
         Add acls the room.
 
-        throws InvalidAclTypeException if the type is invalid
-        throws InvalidAclValueException if the value doesn't validate for the type
-        throws NoSuchRoomException if room doesn't exist
-
+        :raises InvalidAclTypeException if the type is invalid
+        :raises InvalidAclValueException if the value doesn't validate for the type
+        :raises NoSuchRoomException if room doesn't exist
         :param room_id: the room id
         :param acls:
         :return: nothing, throws NoSuchRoomException if room doesn't exist
@@ -304,8 +355,8 @@ class IDatabase(Interface):
     def get_room_name(self, room_id: str) -> str:
         """
         get the name of a room from its id
-        throws NoSuchRoomException if no room found with the given id
 
+        :raises NoSuchRoomException if no room found with the given id
         :param room_id: the uuid of the room
         :return: the name of the room
         """
@@ -313,8 +364,8 @@ class IDatabase(Interface):
     def get_channel_name(self, channel_id: str) -> str:
         """
         get the name of a channel from its id
-        throws NoSuchRoomException if no channel found with the given id
 
+        :raises NoSuchRoomException if no channel found with the given id
         :param channel_id: the uuid of the channel
         :return: the name of the channel
         """
