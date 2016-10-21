@@ -54,11 +54,21 @@ def channels():
             channels=channel_manager.get_channels())
 
 
+@app.route('/users', methods=['GET'])
+def users():
+    return render_template('users.html')
+
+
+@app.route('/history', methods=['GET'])
+def history():
+    return render_template('history.html')
+
+
 @app.route('/channel/<channel_uuid>/rooms', methods=['GET'])
 def rooms_for_channel(channel_uuid):
     form = CreateRoomForm(request.form)
     return render_template(
-            'rooms.html',
+            'rooms_in_channel.html',
             form=form,
             owners=channel_manager.get_owners(channel_uuid),
             admins=channel_manager.get_admins(channel_uuid),
@@ -70,7 +80,7 @@ def rooms_for_channel(channel_uuid):
 @app.route('/channel/<channel_uuid>/room/<room_uuid>', methods=['GET'])
 def users_for_room(channel_uuid, room_uuid):
     return render_template(
-            'users.html',
+            'users_in_room.html',
             channel_uuid=channel_uuid,
             room_uuid=room_uuid,
             channel_name=channel_manager.name_for_uuid(channel_uuid),
