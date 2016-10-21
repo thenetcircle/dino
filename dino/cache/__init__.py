@@ -18,4 +18,136 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ICache(Interface):
-    pass
+    def get_room_id_for_name(self, channel_id, room_name):
+        """
+
+        :param channel_id:
+        :param room_name:
+        :return:
+        """
+
+    def set_room_id_for_name(self, channel_id, room_name, room_id):
+        """
+
+        :param channel_id:
+        :param room_name:
+        :param room_id:
+        :return:
+        """
+
+    def get_room_exists(self, channel_id, room_id):
+        """
+
+        :param channel_id:
+        :param room_id:
+        :return:
+        """
+
+    def get_channel_name(self, channel_id: str) -> str:
+        """
+
+        :param channel_id:
+        :return:
+        """
+
+    def get_room_name(self, room_id: str) -> str:
+        """
+
+        :param room_id:
+        :return:
+        """
+
+    def set_room_exists(self, channel_id, room_id, room_name):
+        """
+
+        :param channel_id:
+        :param room_id:
+        :param room_name:
+        :return:
+        """
+
+    def set_channel_exists(self, channel_id: str) -> None:
+        """
+
+        :param channel_id:
+        :return:
+        """
+
+    def set_channel_for_room(self, channel_id: str, room_id: str) -> None:
+        """
+
+        :param channel_id:
+        :param room_id:
+        :return:
+        """
+
+    def get_channel_exists(self, channel_id):
+        """
+
+        :param channel_id:
+        :return:
+        """
+
+    def get_channel_for_room(self, room_id):
+        """
+
+        :param room_id:
+        :return:
+        """
+
+    def get_user_status(self, user_id: str):
+        """
+
+        :param user_id:
+        :return:
+        """
+
+    def user_check_status(self, user_id, other_status):
+        """
+
+        :param user_id:
+        :param other_status:
+        :return:
+        """
+
+    def user_is_offline(self, user_id):
+        """
+
+        :param user_id:
+        :return:
+        """
+
+    def user_is_online(self, user_id):
+        """
+
+        :param user_id:
+        :return:
+        """
+
+    def user_is_invisible(self, user_id):
+        """
+
+        :param user_id:
+        :return:
+        """
+
+    def set_user_offline(self, user_id: str) -> None:
+        """
+
+        :param user_id:
+        :return:
+        """
+
+    def set_user_online(self, user_id: str) -> None:
+        """
+
+        :param user_id:
+        :return:
+        """
+
+    def set_user_invisible(self, user_id: str) -> None:
+        """
+
+        :param user_id:
+        :return:
+        """

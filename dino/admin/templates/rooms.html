@@ -1,0 +1,46 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+<p>
+    <a href="/channels">Channels</a> / {{ channel_name }}
+</p>
+
+{% from "_formhelpers.html" import render_field %}
+<form method="post" action="/create/rooms/{{ rooms_uuid }}/room">
+  <dl>
+    {{ render_field(form.name) }}
+    {{ render_field(form.owner) }}
+    {{ render_field(form.username) }}
+  </dl>
+  <p><input type="submit" value="Create" /></p>
+</form>
+
+<table id="list-roomss" class="display responsive" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <td>
+                Name
+            </td>
+            <td>
+                UUID
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for room in rooms %}
+        <tr>
+            <td>
+                <a class="rooms-link" href="/channel/{{ channel_uuid }}/room/{{ room.uuid }}">{{ room.name }}</a>
+            </td>
+            <td>
+                {{ room.uuid }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script type="text/javascript" src="/static/custom/js/rooms.js"></script>
+
+{% endblock %}

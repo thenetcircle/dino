@@ -233,13 +233,14 @@ class DatabaseRedis(object):
     def get_room_name(self, room_id: str) -> str:
         room_name = self.redis.get(RedisKeys.room_name_for_id(room_id))
         if room_name is None:
-            room_name = str(uuid())
-            environ.env.logger.warn(
-                'WARN: room_name for room_id %s is None, generated new name: %s' % (room_id, room_name))
-            self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
-        else:
-            room_name = room_name.decode('utf-8')
-        return room_name
+            raise NoSuchRoomException(room_id)
+        return room_name.decode('utf-8')
+
+    def get_channel_name(self, channel_id: str) -> str:
+        channel_name = self.redis.hget(RedisKeys.channels(), channel_id)
+        if channel_name is None:
+            raise NoSuchChannelException(channel_id)
+        return channel_name.decode('utf-8')
 
     def rooms_for_user(self, user_id: str) -> dict:
         clean_rooms = dict()

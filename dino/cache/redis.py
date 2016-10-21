@@ -127,12 +127,40 @@ class CacheRedis(object):
         if value is not None:
             return value
 
-        value = self.redis.hget(RedisKeys.channels(), channel_id)
+        value = self.redis.hget(key, channel_id)
         if value is None:
             return None
 
         self.cache.set(cache_key, True)
         return True
+
+    def get_channel_name(self, channel_id: str) -> str:
+        key = RedisKeys.channels()
+        cache_key = '%s-name-%s' % (key, channel_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        value = self.redis.hget(key, channel_id)
+        if value is None:
+            return None
+
+        self.cache.set(cache_key, value)
+        return value
+
+    def get_room_name(self, room_id: str) -> str:
+        key = RedisKeys.room_name_for_id(room_id)
+        cache_key = '%s-name' % key
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        value = self.redis.get(key)
+        if value is None:
+            return None
+
+        self.cache.set(cache_key, value)
+        return value
 
     def get_channel_for_room(self, room_id):
         key = RedisKeys.channel_for_rooms()

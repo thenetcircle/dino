@@ -1,0 +1,36 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+<p>
+    <a href="/channels">Channels</a> / <a href="/channel/{{ channel_uuid }}/rooms">{{ channel_name }}</a> / {{ room_name }}
+</p>
+
+<table id="list-users" class="display responsive" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <td>
+                Name
+            </td>
+            <td>
+                UUID
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>
+                {{ user.name }}
+            </td>
+            <td>
+                {{ user.uuid }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script type="text/javascript" src="/static/custom/js/user.js"></script>
+
+{% endblock %}

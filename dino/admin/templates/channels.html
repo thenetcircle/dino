@@ -1,0 +1,45 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+<p>
+    Channels
+</p>
+
+{% from "_formhelpers.html" import render_field %}
+<form method="post" action="/create/channel">
+  <dl>
+    {{ render_field(form.name) }}
+    {{ render_field(form.owner) }}
+  </dl>
+  <p><input type="submit" value="Create" /></p>
+</form>
+
+<table id="list-channels" class="display responsive" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <td>
+                Name
+            </td>
+            <td>
+                UUID
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for channel in channels %}
+        <tr>
+            <td>
+                <a class="channel-link" href="/channel/{{ channel.uuid }}/rooms">{{ channel.name }}</a>
+            </td>
+            <td>
+                {{ channel.uuid }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script type="text/javascript" src="/static/custom/js/channel.js"></script>
+
+{% endblock %}

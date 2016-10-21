@@ -164,6 +164,14 @@ class DatabaseRdbms(object):
         return rooms
 
     @with_session
+    def users_in_room(self, room_id: str) -> dict:
+        rows = self.session.query(Rooms).join(Rooms.users).filter(Rooms.uuid == room_id).all()
+        users = dict()
+        for row in rows:
+            users[row.uuid] = row.name
+        return users
+
+    @with_session
     def remove_current_rooms_for_user(self, user_id: str) -> None:
         rows = self.session.query(Users).filter(Users.uuid == user_id).all()
         if len(rows) == 0:
@@ -544,3 +552,29 @@ class DatabaseRdbms(object):
             return None
 
         return last_read.time_stamp
+
+    def get_room_name(self, room_id: str) -> str:
+        @with_session
+        def _get_room_name(self):
+            room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+            if room is None:
+                raise NoSuchRoomException(room_id)
+            return room.name
+
+        value = self.env.cache.get_room_name(room_id)
+        if value is not None:
+            return value
+        return _get_room_name(self)
+
+    def get_channel_name(self, channel_id: str) -> str:
+        @with_session
+        def _get_channel_name(self):
+            channel = self.session.query(Channels).filter(Channels.uuid == channel_id).first()
+            if channel is None:
+                raise NoSuchChannelException(channel_id)
+            return channel.name
+
+        value = self.env.cache.get_channel_name(channel_id)
+        if value is not None:
+            return value
+        return _get_channel_name(self)

@@ -300,3 +300,21 @@ class IDatabase(Interface):
         :param user_id: id of the user
         :return: nothing
         """
+
+    def get_room_name(self, room_id: str) -> str:
+        """
+        get the name of a room from its id
+        throws NoSuchRoomException if no room found with the given id
+
+        :param room_id: the uuid of the room
+        :return: the name of the room
+        """
+
+    def get_channel_name(self, channel_id: str) -> str:
+        """
+        get the name of a channel from its id
+        throws NoSuchRoomException if no channel found with the given id
+
+        :param channel_id: the uuid of the channel
+        :return: the name of the channel
+        """

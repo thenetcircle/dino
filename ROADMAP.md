@@ -66,6 +66,8 @@ A rough roadmap for possible upcoming features.
 ---
 * invisibility
     - invisible in chats
+* rest interface
+    - to get information about users in room, online users, etc.
 * stats
     - messages are sent to kafka
     - use target id as topic partition key, to get sequence id per room/user
