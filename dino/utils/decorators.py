@@ -32,8 +32,6 @@ def pre_process(validation_name=None, should_validate_request=True):
     def factory(view_func):
         @wraps(view_func)
         def decorator(*args, **kwargs):
-            tb = None
-
             if not hasattr(validation.request, validation_name):
                 raise RuntimeError('no such attribute on validation.request: %s' % validation_name)
 

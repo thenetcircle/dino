@@ -40,6 +40,7 @@ from dino.exceptions import NoSuchRoomException
 from dino.exceptions import RoomExistsException
 from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import NoChannelFoundException
+from dino.exceptions import UserExistsException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
@@ -164,13 +165,23 @@ class DatabaseRdbms(object):
             rooms[row.uuid] = row.name
         return rooms
 
-    @with_session
     def users_in_room(self, room_id: str) -> dict:
-        rows = self.session.query(Rooms).join(Rooms.users).filter(Rooms.uuid == room_id).all()
-        users = dict()
-        for row in rows:
-            users[row.uuid] = row.name
-        return users
+        @with_session
+        def _users_in_room(self) -> dict:
+            rows = self.session.query(Rooms).join(Rooms.users).filter(Rooms.uuid == room_id).all()
+            users = dict()
+            for row in rows:
+                users[row.uuid] = row.name
+            return users
+
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
+        return _users_in_room(self)
+
+    def room_contains(self, room_id: str, user_id: str) -> bool:
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
+        return room_id in self.rooms_for_user(user_id)
 
     @with_session
     def remove_current_rooms_for_user(self, user_id: str) -> None:
@@ -563,6 +574,23 @@ class DatabaseRdbms(object):
         user.name = user_name
         self.session.add(user)
         self.session.commit()
+
+    def create_user(self, user_id: str, user_name: str) -> None:
+        @with_session
+        def _create_user(self):
+            user = Users()
+            user.uuid = user_id
+            user.name = user_name
+            self.session.add(user)
+            self.session.commit()
+
+        try:
+            self.get_user_name(user_id)
+            raise UserExistsException(user_id)
+        except NoSuchUserException:
+            pass
+
+        return _create_user(self)
 
     @with_session
     def get_user_name(self, user_id: str) -> str:

@@ -15,7 +15,12 @@
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 
+import traceback
+import logging
+
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 class UserManager(BaseManager):
@@ -33,5 +38,9 @@ class UserManager(BaseManager):
             })
         return output
 
-    def create_channel(self, channel_name: str, channel_id: str, user_id: str) -> None:
-        self.env.db.create_channel(channel_name, channel_id, user_id)
+    def create_user_admin(self, user_name: str, user_id: str) -> None:
+        try:
+            self.env.db.create_user(user_id, user_name)
+        except Exception as e:
+            logger.error('could not create user: %s' % str(e))
+            print(traceback.format_exc())

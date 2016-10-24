@@ -29,6 +29,7 @@ from dino.exceptions import NoSuchChannelException
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchRoomException
 from dino.exceptions import RoomExistsException
+from dino.exceptions import UserExistsException
 from dino.exceptions import NoChannelFoundException
 from dino.exceptions import NoRoomNameException
 from dino.exceptions import NoSuchUserException
@@ -150,18 +151,24 @@ class DatabaseRedis(object):
             return False
         return self.redis.hexists(RedisKeys.channels(), channel_id)
 
+    def create_user(self, user_id: str, user_name: str) -> None:
+        try:
+            self.get_user_name(user_id)
+            raise UserExistsException(user_id)
+        except NoSuchUserException:
+            pass
+
+        key = RedisKeys.auth_key(user_id)
+        self.redis.hset(key, SessionKeys.user_id.value, user_id)
+        self.redis.hset(key, SessionKeys.user_name.value, user_name)
+
     def room_contains(self, room_id: str, user_id: str) -> bool:
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
-    def room_owners_contain(self, room_id, user_id) -> bool:
-        if room_id is None or room_id == '':
-            return False
-        if user_id is None or user_id == '':
-            return False
-
-        return self.redis.hexists(RedisKeys.room_owners(room_id), user_id)
-
     def users_in_room(self, room_id: str) -> dict:
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
+
         users = self.redis.hgetall(RedisKeys.users_in_room(room_id))
         cleaned_users = dict()
         for user_id, user_name in users.items():

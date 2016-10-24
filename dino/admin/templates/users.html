@@ -6,6 +6,43 @@
     Users
 </p>
 
+<p>Admins</p>
+
+{% from "_formhelpers.html" import render_field %}
+<form method="post" action="/create/user/admin">
+  <dl>
+    {{ render_field(form.name) }}
+    {{ render_field(form.uuid) }}
+  </dl>
+  <p><input type="submit" value="Create admin user" /></p>
+</form>
+
+<table id="list-admins" class="display responsive" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <td>
+                Name
+            </td>
+            <td>
+                ID
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for admin in admins %}
+        <tr>
+            <td>
+                <a class="channel-link" href="/user/{{ admin.uuid }}">{{ admin.name }}</a>
+            </td>
+            <td>
+                {{ admin.uuid }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
 TODO: create, search, kick, ban, etc.
 
 {% endblock %}

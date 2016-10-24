@@ -28,6 +28,7 @@ from dino.admin.orm import user_manager
 
 from dino.admin.forms import CreateChannelForm
 from dino.admin.forms import CreateRoomForm
+from dino.admin.forms import CreateUserForm
 
 
 logger = logging.getLogger(__name__)
@@ -57,6 +58,11 @@ def channels():
 @app.route('/users', methods=['GET'])
 def users():
     return render_template('users.html')
+
+
+@app.route('/user/<user_uuid>', methods=['GET'])
+def users(user_uuid: str):
+    return render_template('user.html', user=user_manager.get_user(user_uuid))
 
 
 @app.route('/history', methods=['GET'])
@@ -117,6 +123,19 @@ def create_channel():
 
     channel_manager.create_channel(channel_name, channel_uuid, user_uuid)
     return redirect('/channel/%s/rooms' % channel_uuid)
+
+
+@app.route('/create/user/admin', methods=['POST'])
+def create_admin_user():
+    form = CreateUserForm(request.form)
+    user_name = form.name.data
+    user_uuid = form.uuid.data
+
+    if is_blank(user_name) or is_blank(user_uuid):
+        return redirect('/users')
+
+    user_manager.create_admin_user(user_name, user_uuid)
+    return redirect('/user/%s' % user_uuid)
 
 
 @app.route('/static/<path:path>')

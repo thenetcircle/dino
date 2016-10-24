@@ -62,7 +62,7 @@ A rough roadmap for possible upcoming features.
     - search for online users in chats
     - invite user from other room
 
-0.11.0
+0.1X.0
 ---
 * invisibility
     - invisible in chats

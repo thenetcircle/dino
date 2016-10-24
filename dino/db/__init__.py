@@ -68,13 +68,14 @@ class IDatabase(Interface):
         :return: true if exists, false otherwise
         """
 
-    def room_owners_contain(self, room_id, user_id) -> bool:
+    def room_contains(self, room_id: str, user_id: str) -> bool:
         """
-        check if a user is an owner for a room or not
+        check if a user is in a room or not
 
-        :param room_id: the id fo the room to check for
-        :param user_id: the id of the user to check
-        :return: true if owner for room, false otherwise
+        :raises NoSuchRoomException if the room can't be found
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: true if in room, false otherwsie
         """
 
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name) -> None:
@@ -274,7 +275,7 @@ class IDatabase(Interface):
         :raises NoSuchRoomException if room doesn't exist
         :param room_id: the room id
         :param acls:
-        :return: nothing, throws NoSuchRoomException if room doesn't exist
+        :return: nothing
         """
 
     def get_last_read_timestamp(self, room_id: str, user_id: str) -> int:
@@ -300,8 +301,18 @@ class IDatabase(Interface):
         """
         get the access list for a room
 
+        :raises NoSuchRoomException if room doesn't exist
         :param room_id: the room id
-        :return: a dict of acls, empty if no acls, throws NoSuchRoomException if room doesn't exist
+        :return: a dict of acls, empty if no acls
+        """
+
+    def users_in_room(self, room_id: str) -> dict:
+        """
+        get a dict of {user_id: user_name} of users in the given room
+
+        :raises NoSuchRoomException if room doesn't exist
+        :param room_id: the uuid of the room
+        :return: a dict with users
         """
 
     def rooms_for_user(self, user_id: str = None) -> dict:
@@ -368,4 +379,14 @@ class IDatabase(Interface):
         :raises NoSuchRoomException if no channel found with the given id
         :param channel_id: the uuid of the channel
         :return: the name of the channel
+        """
+
+    def create_user(self, user_id: str, user_name: str) -> None:
+        """
+        create a new user
+
+        :raises UserExistsException if the user id already exists
+        :param user_id: the desired id of the user
+        :param user_name: the name of the user
+        :return: nothing
         """

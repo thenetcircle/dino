@@ -26,3 +26,8 @@ class CreateRoomForm(Form):
     name = StringField('Name', validators=[validators.DataRequired])
     owner = StringField('Owner', validators=[validators.DataRequired])
     username = StringField('Username', validators=[validators.DataRequired])
+
+
+class CreateUserForm(Form):
+    name = StringField('Name', validators=[validators.DataRequired])
+    uuid = StringField('ID', validators=[validators.DataRequired])
