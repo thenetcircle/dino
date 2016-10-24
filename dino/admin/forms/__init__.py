@@ -12,22 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from wtforms import Form, StringField, validators, SelectField
+from wtforms import Form, StringField, validators
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class CreateChannelForm(Form):
-    name = StringField('Name', validators=[validators.DataRequired])
-    owner = StringField('Owner', validators=[validators.DataRequired])
+    name = StringField('Name', validators=[validators.DataRequired], description='Channel name')
+    owner = StringField('Owner', validators=[validators.DataRequired], description='Owner ID')
 
 
 class CreateRoomForm(Form):
-    name = StringField('Name', validators=[validators.DataRequired])
-    owner = StringField('Owner', validators=[validators.DataRequired])
-    username = StringField('Username', validators=[validators.DataRequired])
+    name = StringField('Name', validators=[validators.DataRequired], description='Room name')
+    owner = StringField('Owner', validators=[validators.DataRequired], description='Owner ID')
 
 
 class CreateUserForm(Form):
-    name = StringField('Name', validators=[validators.DataRequired])
-    uuid = StringField('ID', validators=[validators.DataRequired])
+    name = StringField('Name', validators=[validators.DataRequired], description='Username')
+    uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')

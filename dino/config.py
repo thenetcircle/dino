@@ -45,6 +45,7 @@ class RoleKeys(object):
     OWNER = 'owner'
     MODERATOR = 'moderator'
     ADMIN = 'admin'
+    SUPER_USER = 'super-user'
 
 
 class UserKeys(object):
@@ -112,13 +113,19 @@ class RedisKeys(object):
     RKEY_CHANNELS = 'channels'
     RKEY_ROOM_ID_FOR_NAME = 'room:id:%s'  # room:id:channel_id
     RKEY_CHANNEL_ROLES = 'channel:roles:%s'  # channel:roles:channel_id
+    RKEY_GLOBAL_ROLES = 'global:roles'
     RKEY_ROOM_ROLES = 'room:roles:%s'  # channel:roles:channel_id
     RKEY_CHANNEL_FOR_ROOMS = 'room:channel'
     RKEY_LAST_READ = 'room:read:%s'  # room:read:room_id
+    RKEY_USER_NAMES = 'user:names'
 
     RKEY_SID_TO_USER_ID = 'user:sid:map'
     RKEY_BANNED_USERS_GLOBAL = 'users:banned'
     RKEY_BANNED_USERS_ROOM = 'users:banned:%s'  # users:banned:room_id
+
+    @staticmethod
+    def user_names() -> str:
+        return RedisKeys.RKEY_USER_NAMES
 
     @staticmethod
     def sid_for_user_id() -> str:
@@ -141,6 +148,10 @@ class RedisKeys(object):
     @staticmethod
     def room_roles(room_id: str) -> str:
         return RedisKeys.RKEY_ROOM_ROLES % room_id
+
+    @staticmethod
+    def global_roles() -> str:
+        return RedisKeys.RKEY_GLOBAL_ROLES
 
     @staticmethod
     def room_id_for_name(channel_id: str) -> str:

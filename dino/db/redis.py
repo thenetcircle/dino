@@ -63,6 +63,12 @@ class DatabaseRedis(object):
             return False
         return role in str(roles, 'utf-8').split(',')
 
+    def _has_global_role(self, role: str, user_id: str) -> bool:
+        roles = self.redis.hget(RedisKeys.global_roles(), user_id)
+        if roles is None:
+            return False
+        return role in str(roles, 'utf-8').split(',')
+
     def _add_channel_role(self, role: str, channel_id: str, user_id: str):
         roles = self.redis.hget(RedisKeys.channel_roles(channel_id), user_id)
         if roles is None:
@@ -82,6 +88,52 @@ class DatabaseRedis(object):
             roles.add(role)
             roles = ','.join(roles)
         self.redis.hset(RedisKeys.room_roles(room_id), user_id, roles)
+
+    def _add_global_role(self, role: str, user_id: str):
+        key = RedisKeys.global_roles()
+        roles = self.redis.hget(key, user_id)
+        if roles is None:
+            roles = role
+        else:
+            roles = set(str(roles, 'utf-8').split(','))
+            roles.add(role)
+            roles = ','.join(roles)
+        self.redis.hset(key, user_id, roles)
+
+    def _remove_global_role(self, role: str, user_id: str):
+        key = RedisKeys.global_roles()
+        roles = self.redis.hget(key, user_id)
+        if roles is None:
+            return
+
+        new_roles = set()
+        roles = set(str(roles, 'utf-8').split(','))
+        if role not in roles:
+            return
+
+        for old_role in roles:
+            if old_role == role:
+                continue
+            new_roles.add(old_role)
+
+        roles = ','.join(new_roles)
+        self.redis.hset(key, user_id, roles)
+
+    def get_super_users(self) -> dict:
+        users = self.redis.hgetall(RedisKeys.global_roles())
+        super_users = dict()
+        for user_id in users.keys():
+            super_users[user_id] = self.get_user_name(user_id)
+        return super_users
+
+    def set_super_user(self, user_id: str) -> None:
+        self._add_global_role(user_id, RoleKeys.SUPER_USER)
+
+    def remove_super_user(self, user_id: str) -> None:
+        self._remove_global_role(user_id, RoleKeys.SUPER_USER)
+
+    def is_super_user(self, user_id: str) -> bool:
+        self._has_global_role(user_id, RoleKeys.SUPER_USER)
 
     def is_admin(self, channel_id: str, user_id: str) -> bool:
         return self._has_role_in_channel(RoleKeys.ADMIN, channel_id, user_id)
@@ -231,8 +283,8 @@ class DatabaseRedis(object):
         self.redis.hset(key, SessionKeys.user_name.value, user_name)
 
     def get_user_name(self, user_id: str) -> str:
-        key = RedisKeys.auth_key(user_id)
-        name = self.redis.hget(key, SessionKeys.user_name.value)
+        key = RedisKeys.user_names()
+        name = self.redis.hget(key, user_id)
         if name is None:
             raise NoSuchUserException(user_id)
         return str(name, 'utf-8')
@@ -259,10 +311,10 @@ class DatabaseRedis(object):
         return self._get_users_with_role(roles, role_key)
 
     def get_admins_channel(self, channel_id: str) -> dict:
-        return self._get_users_with_roles_in_channel(channel_id, RoleKeys.ADMIN)
+        return self._get_users_with_role_in_channel(channel_id, RoleKeys.ADMIN)
 
     def get_owners_channel(self, channel_id: str) -> dict:
-        return self._get_users_with_roles_in_channel(channel_id, RoleKeys.OWNER)
+        return self._get_users_with_role_in_channel(channel_id, RoleKeys.OWNER)
 
     def get_owners_room(self, room_id: str) -> dict:
         return self._get_users_with_role_in_room(room_id, RoleKeys.OWNER)

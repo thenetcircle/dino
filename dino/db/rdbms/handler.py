@@ -26,6 +26,7 @@ from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
 from dino.db.rdbms.models import ChannelRoles
+from dino.db.rdbms.models import GlobalRoles
 from dino.db.rdbms.models import Channels
 from dino.db.rdbms.models import RoomRoles
 from dino.db.rdbms.models import Rooms
@@ -369,11 +370,54 @@ class DatabaseRdbms(object):
 
         return the_role in set(found_role.roles.split(','))
 
+    @with_session
+    def _add_global_role(self, user_id: str, role: str):
+        global_role = self.session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
+        if global_role is None:
+            global_role = GlobalRoles()
+            global_role.user_id = user_id
+            global_role.roles = role
+            self.session.add(global_role)
+            self.session.commit()
+            return
+
+        roles = set(global_role.roles.split(','))
+        if role in roles:
+            return
+
+        roles.add(role)
+        global_role.roles = ','.join(roles)
+
+    @with_session
+    def _remove_global_role(self, user_id: str, role: str):
+        global_role = self.session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
+        if global_role is None:
+            return
+
+        roles = set(global_role.roles.split(','))
+        if role not in roles:
+            return
+
+        roles.remove(role)
+        global_role.roles = ','.join(roles)
+        self.session.commit()
+
+    @with_session
+    def _has_global_role(self, user_id: str, role: str):
+        global_role = self.session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
+        if global_role is None:
+            return False
+
+        roles = set(global_role.roles.split(','))
+        return role in roles
+
+    @with_session
     def _room_has_role_for_user(self, the_role: str, room_id: str, user_id: str) -> bool:
         # TODO: cache
         room = self.session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
         return self._object_has_role_for_user(room, the_role, user_id)
 
+    @with_session
     def _channel_has_role_for_user(self, the_role: str, channel_id: str, user_id: str) -> bool:
         # TODO: cache
         channel = self.session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
@@ -431,47 +475,47 @@ class DatabaseRdbms(object):
         self.session.add(found_role)
         self.session.commit()
 
-    @with_session
+    def set_super_user(self, user_id: str) -> None:
+        self._add_global_role(user_id, RoleKeys.SUPER_USER)
+
+    def remove_super_user(self, user_id: str) -> None:
+        self._remove_global_role(user_id, RoleKeys.SUPER_USER)
+
+    def is_super_user(self, user_id: str) -> bool:
+        self._has_global_role(user_id, RoleKeys.SUPER_USER)
+
     def is_moderator(self, room_id: str, user_id: str) -> bool:
         return self._room_has_role_for_user(RoleKeys.MODERATOR, room_id, user_id)
 
-    @with_session
     def is_admin(self, channel_id: str, user_id: str) -> bool:
         return self._channel_has_role_for_user(RoleKeys.ADMIN, channel_id, user_id)
 
-    @with_session
     def is_owner(self, room_id: str, user_id: str) -> bool:
         return self._room_has_role_for_user(RoleKeys.OWNER, room_id, user_id)
 
-    @with_session
     def is_owner_channel(self, channel_id: str, user_id: str) -> bool:
         return self._channel_has_role_for_user(RoleKeys.OWNER, channel_id, user_id)
 
-    @with_session
     def set_admin(self, channel_id: str, user_id: str) -> None:
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
         self._set_role_on_channel_for_user(RoleKeys.ADMIN, channel_id, user_id)
 
-    @with_session
     def set_moderator(self, room_id: str, user_id: str) -> None:
         if self.channel_for_room(room_id) is None:
             raise NoSuchRoomException(room_id)
         self._set_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
 
-    @with_session
     def set_owner(self, room_id: str, user_id: str) -> None:
         if self.channel_for_room(room_id) is None:
             raise NoSuchRoomException(room_id)
         self._set_role_on_room_for_user(RoleKeys.OWNER, room_id, user_id)
 
-    @with_session
     def set_owner_channel(self, channel_id: str, user_id: str) -> None:
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
         self._set_role_on_channel_for_user(RoleKeys.OWNER, channel_id, user_id)
 
-    @with_session
     def room_allows_cross_group_messaging(self, room_uuid: str) -> bool:
         acls = self.get_acls(room_uuid)
         if SessionKeys.crossgroup.value not in acls:
@@ -593,12 +637,34 @@ class DatabaseRdbms(object):
         return _create_user(self)
 
     @with_session
+    def get_super_users(self) -> dict:
+        roles = self.session.query(GlobalRoles)\
+            .filter(GlobalRoles.roles.like('%{}%'.format(RoleKeys.SUPER_USER)))\
+            .all()
+
+        if roles is None or len(roles) == 0:
+            return dict()
+
+        users = dict()
+        for role in roles:
+            users[role.user_id] = self.get_user_name(role.user_id)
+        return users
+
     def get_user_name(self, user_id: str) -> str:
-        # TODO: cache
-        user = self.session.query(Users).filter(Users.uuid == user_id).first()
-        if user is None:
-            raise NoSuchUserException(user_id)
-        return user.name
+        @with_session
+        def _get_user_name(self):
+            user = self.session.query(Users).filter(Users.uuid == user_id).first()
+            if user is None:
+                raise NoSuchUserException(user_id)
+            return user.name
+
+        user_name = self.env.cache.get_user_name(user_id)
+        if user_name is not None:
+            return user_name
+
+        user_name = _get_user_name(self)
+        self.env.cache.set_user_name(user_id, user_name)
+        return user_name
 
     def _get_users_with_role(self, roles, role_key):
         if roles is None or len(roles) == 0:

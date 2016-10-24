@@ -91,6 +91,26 @@ class CacheRedis(object):
         self.cache.set(cache_key, room_id)
         self.redis.hset(key, room_name, room_id)
 
+    def get_user_name(self, user_id: str) -> str:
+        key = RedisKeys.user_names()
+        cache_key = '%s-%s' % (key, user_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        user_name = self.redis.hget(key, user_id)
+        if user_name is not None:
+            user_name = str(user_name, 'utf-8')
+            self.cache.set(cache_key, user_name)
+            return user_name
+        return user_name
+
+    def set_user_name(self, user_id: str, user_name: str):
+        key = RedisKeys.user_names()
+        cache_key = '%s-%s' % (key, user_id)
+        user_name = self.redis.hset(key, user_id, user_name)
+        self.cache.set(cache_key, user_name)
+
     def get_room_exists(self, channel_id, room_id):
         key = RedisKeys.rooms(channel_id)
         cache_key = '%s-%s' % (channel_id, room_id)

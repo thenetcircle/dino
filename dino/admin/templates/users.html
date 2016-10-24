@@ -6,18 +6,18 @@
     Users
 </p>
 
-<p>Admins</p>
+<p>Super Users</p>
 
 {% from "_formhelpers.html" import render_field %}
-<form method="post" action="/create/user/admin">
+<form method="post" action="/create/super-user">
   <dl>
     {{ render_field(form.name) }}
     {{ render_field(form.uuid) }}
   </dl>
-  <p><input type="submit" value="Create admin user" /></p>
+  <p><input type="submit" value="Create super user" /></p>
 </form>
 
-<table id="list-admins" class="display responsive" cellspacing="0" width="100%">
+<table id="list-superusers" class="display responsive" cellspacing="0" width="100%">
     <thead>
         <tr>
             <td>
@@ -29,20 +29,19 @@
         </tr>
     </thead>
     <tbody>
-        {% for admin in admins %}
+        {% for user in superusers %}
         <tr>
             <td>
-                <a class="channel-link" href="/user/{{ admin.uuid }}">{{ admin.name }}</a>
+                <a class="user-link" href="/user/{{ user.uuid }}">{{ user.name }}</a>
             </td>
             <td>
-                {{ admin.uuid }}
+                {{ user.uuid }}
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
-
-TODO: create, search, kick, ban, etc.
+<script type="text/javascript" src="/static/custom/js/users.js"></script>
 
 {% endblock %}

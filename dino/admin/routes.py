@@ -16,8 +16,6 @@ from flask import redirect
 from flask import request
 from flask import send_from_directory
 from flask import render_template
-from flask import jsonify
-import pkg_resources
 import logging
 from uuid import uuid4 as uuid
 
@@ -57,11 +55,15 @@ def channels():
 
 @app.route('/users', methods=['GET'])
 def users():
-    return render_template('users.html')
+    form = CreateUserForm(request.form)
+    return render_template(
+            'users.html',
+            form=form,
+            superusers=user_manager.get_super_users())
 
 
 @app.route('/user/<user_uuid>', methods=['GET'])
-def users(user_uuid: str):
+def user(user_uuid: str):
     return render_template('user.html', user=user_manager.get_user(user_uuid))
 
 
@@ -96,18 +98,17 @@ def users_for_room(channel_uuid, room_uuid):
             users=user_manager.get_users_for_room(room_uuid))
 
 
-@app.route('/create/channel/<channel_uuid>/room', methods=['POST'])
+@app.route('/channel/<channel_uuid>/create', methods=['POST'])
 def create_room(channel_uuid):
     form = CreateRoomForm(request.form)
     room_name = form.name.data
     room_uuid = str(uuid())
     user_uuid = form.owner.data
-    user_name = form.username.data
 
-    if is_blank(room_name) or is_blank(user_uuid) or is_blank(user_name):
+    if is_blank(room_name) or is_blank(user_uuid):
         return redirect('/channel/%s/rooms' % channel_uuid)
 
-    room_manager.create_room(room_name, room_uuid, channel_uuid, user_uuid, user_name)
+    room_manager.create_room(room_name, room_uuid, channel_uuid, user_uuid)
     return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 
@@ -125,7 +126,7 @@ def create_channel():
     return redirect('/channel/%s/rooms' % channel_uuid)
 
 
-@app.route('/create/user/admin', methods=['POST'])
+@app.route('/create/super-user', methods=['POST'])
 def create_admin_user():
     form = CreateUserForm(request.form)
     user_name = form.name.data
@@ -141,3 +142,8 @@ def create_admin_user():
 @app.route('/static/<path:path>')
 def send_static(path):
     return send_from_directory('admin/static/', path)
+
+
+@app.route('/fonts/<path:path>')
+def send_fonts(path):
+    return send_from_directory('admin/static/fonts/', path)

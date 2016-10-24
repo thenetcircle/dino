@@ -60,11 +60,19 @@ class ChannelManager(BaseManager):
 
     def get_owners(self, channel_id: str) -> list:
         try:
-            return self.env.db.get_owners_channel(channel_id)
+            owners = self.env.db.get_owners_channel(channel_id)
         except Exception as e:
             logger.error('could not get channel owners from id %s: %s' % (channel_id, str(e)))
             print(traceback.format_exc())
-        return list()
+            return list()
+
+        output = list()
+        for owner_id, owner_name in owners.items():
+            output.append({
+                'uuid': owner_id,
+                'name': owner_name
+            })
+        return output
 
     def get_admins(self, channel_id: str) -> list:
         try:

@@ -25,15 +25,20 @@
                             <tr>
                                 <td>Name</td>
                                 <td>UUID</td>
-                                <td>Action</td>
+                                <td>Actions</td>
                             </tr>
                         </thead>
                         <tbody>
                             {% for owner in owners %}
                                 <tr>
-                                    <td>{{ admin.name }}</td>
-                                    <td>{{ admin.uuid }}</td>
-                                    <td><a href="#">Remove</a></td>
+                                    <td>{{ owner.name }}</td>
+                                    <td>{{ owner.uuid }}</td>
+                                    <td>
+                                        <a class="pure-button btn-danger" href="#">
+                                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
+                                            Remove
+                                        </a>
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -48,7 +53,7 @@
                             <tr>
                                 <td>Name</td>
                                 <td>UUID</td>
-                                <td>Action</td>
+                                <td>Actions</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -56,7 +61,12 @@
                                 <tr>
                                     <td>{{ admin.name }}</td>
                                     <td>{{ admin.uuid }}</td>
-                                    <td><a href="#">Remove</a></td>
+                                    <td>
+                                        <a class="pure-button btn-danger" href="#">
+                                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
+                                            Remove
+                                        </a>
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -76,6 +86,9 @@
             <td>
                 UUID
             </td>
+            <td>
+                Actions
+            </td>
         </tr>
     </thead>
     <tbody>
@@ -86,6 +99,16 @@
             </td>
             <td>
                 {{ user.uuid }}
+            </td>
+            <td>
+                <a class="pure-button btn-danger" href="#">
+                    <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
+                    Kick
+                </a>
+                <a class="pure-button btn-danger" href="#">
+                    <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
+                    Ban
+                </a>
             </td>
         </tr>
         {% endfor %}

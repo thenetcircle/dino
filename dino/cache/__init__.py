@@ -35,6 +35,23 @@ class ICache(Interface):
         :return:
         """
 
+    def get_user_name(self, user_id: str) -> str:
+        """
+        the the name of the user from the id
+
+        :param user_id: the id of the user
+        :return: the name of the user
+        """
+
+    def set_user_name(self, user_id: str, user_name: str) -> None:
+        """
+        set the name of a user in the cache
+
+        :param user_id: the id of the user
+        :param user_name: the name of the user
+        :return: nothing
+        """
+
     def get_room_exists(self, channel_id, room_id):
         """
 

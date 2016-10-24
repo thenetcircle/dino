@@ -43,8 +43,9 @@ class RoomManager(BaseManager):
             print(traceback.format_exc())
         return list()
 
-    def create_room(self, room_name: str, room_id, channel_id, user_id: str, user_name: str) -> None:
+    def create_room(self, room_name: str, room_id, channel_id, user_id: str) -> None:
         try:
+            user_name = self.env.db.get_user_name(user_id)
             self.env.db.create_room(room_name, room_id, channel_id, user_id, user_name)
         except Exception as e:
             logger.error('could not create room: %s' % str(e))
@@ -60,7 +61,15 @@ class RoomManager(BaseManager):
 
     def get_owners(self, room_id: str) -> dict:
         try:
-            return self.env.db.get_owners_room(room_id)
+            owners = self.env.db.get_owners_room(room_id)
+            output = list()
+
+            for owner_id, owner_name in owners.items():
+                output.append({
+                    'uuid': owner_id,
+                    'name': owner_name
+                })
+            return output
         except Exception as e:
             logger.error('could not get room owners from id %s: %s' % (room_id, str(e)))
             print(traceback.format_exc())
@@ -68,7 +77,15 @@ class RoomManager(BaseManager):
 
     def get_moderators(self, room_id: str) -> dict:
         try:
-            return self.env.db.get_moderators_room(room_id)
+            moderators = self.env.db.get_moderators_room(room_id)
+            output = list()
+
+            for moderator_id, moderator_name in moderators.items():
+                output.append({
+                    'uuid': moderator_id,
+                    'name': moderator_name
+                })
+            return output
         except Exception as e:
             logger.error('could not get room moderators from id %s: %s' % (room_id, str(e)))
             print(traceback.format_exc())

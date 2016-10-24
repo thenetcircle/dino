@@ -189,6 +189,14 @@ class IDatabase(Interface):
         :return: true or false
         """
 
+    def is_super_user(self, user_id: str) -> bool:
+        """
+        check if a user is a global super admin or not
+
+        :param user_id: the uuid of the user to check for
+        :return: true if super user, false otherwise
+        """
+
     def set_owner(self, room_id: str, user_id: str) -> None:
         """
         set role owner on a room to a user
@@ -222,6 +230,29 @@ class IDatabase(Interface):
 
         :param channel_id: the uuid of the channel
         :param user_id: the uuid of the user
+        :return: nothing
+        """
+
+    def get_super_users(self) -> dict:
+        """
+        get a dict of super users in the form of {user_id: user_name}
+
+        :return: a dict of super users
+        """
+
+    def set_super_user(self, user_id: str) -> None:
+        """
+        set role super user globally for a user
+
+        :param user_id: the uuid of the user
+        :return: nothing
+        """
+
+    def remove_super_user(self, user_id: str) -> None:
+        """
+        remove super user status from a user
+
+        :param user_id: the id of the user to remove the status from
         :return: nothing
         """
 
