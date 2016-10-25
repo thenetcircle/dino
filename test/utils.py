@@ -246,6 +246,7 @@ class BaseTest(unittest.TestCase):
         self.env.cache.set_channel_exists(BaseTest.CHANNEL_ID)
 
     def set_owner(self):
+        environ.env.db.redis.hset(RedisKeys.user_names(), BaseTest.USER_ID, BaseTest.USER_NAME)
         environ.env.db.redis.hset(RedisKeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)
         environ.env.db.redis.hset(RedisKeys.room_roles(BaseTest.ROOM_ID), BaseTest.USER_ID, RoleKeys.OWNER)
 
