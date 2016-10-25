@@ -66,7 +66,7 @@ class CacheRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.cache = MemoryCache()
 
-    def flushall(self):
+    def _flushall(self):
         self.redis.flushdb()
         self.cache.flushall()
 

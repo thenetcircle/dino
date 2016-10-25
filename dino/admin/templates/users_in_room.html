@@ -7,16 +7,36 @@
 </p>
 
 <div class="pure-g">
-    <div class="pure-u-1 pure-u-md-1-2">
-        <table>
+    <table class="pure-table">
+        <thead>
             <tr>
                 <td>Name</td>
-                <td>{{ room_name }}</td>
-            </tr>
-            <tr>
                 <td>UUID</td>
-                <td>{{ room_uuid }}</td>
+                <td>Actions</td>
             </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ room_name }}</td>
+                <td><small>{{ room_uuid }}</small></td>
+                <td>
+                    <a class="pure-button" href="#">
+                        <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>&nbsp;
+                        Rename
+                    </a>
+                    <a class="pure-button btn-danger" href="#">
+                        <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
+                        Remove
+                    </a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="pure-g">
+    <div class="pure-u-1 pure-u-md-1-2">
+        <table class="pure-table">
             <tr>
                 <td>Owners</td>
                 <td>

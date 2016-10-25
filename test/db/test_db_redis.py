@@ -25,7 +25,7 @@ class DatabaseRedisTest(BaseDatabaseTest):
 
     def tearDown(self):
         self.db.redis.flushall()
-        self.env.cache.flushall()
+        self.env.cache._flushall()
 
     def test_is_admin_before_create(self):
         self._test_is_admin_before_create()

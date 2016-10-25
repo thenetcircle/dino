@@ -181,7 +181,7 @@ class BaseTest(unittest.TestCase):
         environ.env.auth.redis.flushall()
         environ.env.storage.redis.flushall()
         environ.env.db.redis.flushall()
-        environ.env.cache.flushall()
+        environ.env.cache._flushall()
 
         environ.env.auth.redis.hmset(RedisKeys.auth_key(BaseTest.USER_ID), self.session)
         environ.env.redis.set(RedisKeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)

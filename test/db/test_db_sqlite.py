@@ -36,7 +36,7 @@ class DatabaseSqliteTest(BaseDatabaseTest):
         trans.commit()
         con.close()
 
-        self.env.cache.flushall()
+        self.env.cache._flushall()
 
     def test_is_admin_before_create(self):
         self._test_is_admin_before_create()
