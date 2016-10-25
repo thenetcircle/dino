@@ -22,11 +22,13 @@ from uuid import uuid4 as uuid
 from dino.web import app
 from dino.admin.orm import channel_manager
 from dino.admin.orm import room_manager
+from dino.admin.orm import acl_manager
 from dino.admin.orm import user_manager
 
 from dino.admin.forms import CreateChannelForm
 from dino.admin.forms import CreateRoomForm
 from dino.admin.forms import CreateUserForm
+from dino.admin.forms import CreateAclForm
 
 
 logger = logging.getLogger(__name__)
@@ -75,11 +77,15 @@ def history():
 @app.route('/channel/<channel_uuid>/rooms', methods=['GET'])
 def rooms_for_channel(channel_uuid):
     form = CreateRoomForm(request.form)
+    acl_form = CreateAclForm(request.form)
+
     return render_template(
             'rooms_in_channel.html',
             form=form,
+            acl_form=acl_form,
             owners=channel_manager.get_owners(channel_uuid),
             admins=channel_manager.get_admins(channel_uuid),
+            acls=acl_manager.get_acls_channel(channel_uuid),
             channel_uuid=channel_uuid,
             channel_name=channel_manager.name_for_uuid(channel_uuid),
             rooms=room_manager.get_rooms(channel_uuid))
@@ -110,6 +116,24 @@ def create_room(channel_uuid):
 
     room_manager.create_room(room_name, room_uuid, channel_uuid, user_uuid)
     return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+
+
+@app.route('/channel/<channel_uuid>/create/acl', methods=['POST'])
+def create_acl_channel(channel_uuid):
+    form = CreateAclForm(request.form)
+    acl_type = form.acl_type.data
+    acl_value = form.acl_value.data
+
+    if is_blank(acl_type) or is_blank(acl_value):
+        return redirect('/channel/%s/rooms' % channel_uuid)
+
+    from dino.validation.acl_validator import AclValidator
+
+    if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
+        return redirect('/channel/%s/rooms' % channel_uuid)
+
+    acl_manager.add_acl(channel_uuid, acl_type, acl_value)
+    return redirect('/channel/%s/rooms' % channel_uuid)
 
 
 @app.route('/create/channel', methods=['POST'])

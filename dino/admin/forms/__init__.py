@@ -12,9 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from wtforms import Form, StringField, validators
+from wtforms import Form, StringField, SelectField, validators
+
+from dino.validation.acl_validator import AclValidator
+from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+
+acl_choices = [
+    (SessionKeys.age.value, 'Age'),
+    (SessionKeys.gender.value, 'Gender'),
+    (SessionKeys.membership.value, 'Membership'),
+    (SessionKeys.group.value, 'Group'),
+    (SessionKeys.country.value, 'Country'),
+    (SessionKeys.city.value, 'City'),
+    (SessionKeys.image.value, 'Image'),
+    (SessionKeys.has_webcam.value, 'Has webcam'),
+    (SessionKeys.fake_checked.value, 'Fake checked')
+]
 
 
 class CreateChannelForm(Form):
@@ -30,3 +46,16 @@ class CreateRoomForm(Form):
 class CreateUserForm(Form):
     name = StringField('Name', validators=[validators.DataRequired], description='Username')
     uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
+
+
+class CreateAclForm(Form):
+    acl_type = SelectField(
+            'Type',
+            choices=acl_choices,
+            validators=[validators.DataRequired],
+            description='Permission type')
+
+    acl_value = StringField(
+            'Value',
+            validators=[validators.DataRequired],
+            description='Permission value')

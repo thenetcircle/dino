@@ -561,6 +561,27 @@ class DatabaseRdbms(object):
         self.session.commit()
 
     @with_session
+    def get_acls_channel(self, channel_id: str) -> dict:
+        channel = self.session.query(Channels).outerjoin(Channels.acl).filter(Channels.uuid == channel_id).first()
+        if channel is None:
+            raise NoSuchChannelException(channel_id)
+
+        found_acl = channel.acl
+        if found_acl is None:
+            return dict()
+
+        acls = dict()
+        for key in AclValidator.ACL_VALIDATORS.keys():
+            if key not in found_acl.__dict__:
+                continue
+
+            value = found_acl.__getattribute__(key)
+            if value is not None:
+                acls[key] = value
+
+        return acls
+
+    @with_session
     def get_acls(self, room_id: str) -> list:
         room = self.session.query(Rooms).outerjoin(Rooms.acl).filter(Rooms.uuid == room_id).first()
         if room is None:

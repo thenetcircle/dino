@@ -6,14 +6,17 @@
     Channels
 </p>
 
-{% from "_formhelpers.html" import render_field %}
-<form method="post" action="/create/channel">
-  <dl>
-    {{ render_field(form.name) }}
-    {{ render_field(form.owner) }}
-  </dl>
-  <p><input type="submit" value="Create" /></p>
-</form>
+<div>
+    {% from "_formhelpers.html" import render_field %}
+    <form method="post" action="/create/channel" class="pure-form">
+        <fieldset>
+             <legend>Create new channel</legend>
+            {{ render_field(form.name) }}
+            {{ render_field(form.owner) }}
+            <p><input type="submit" value="Create" class="pure-button pure-button-primary" /></p>
+        </fieldset>
+    </form>
+</div>
 
 <table id="list-channels" class="display responsive" cellspacing="0" width="100%">
     <thead>

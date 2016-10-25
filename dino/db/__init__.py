@@ -328,12 +328,21 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_acls_channel(self, channel_id: str) -> dict:
+        """
+        get the access list for a channel
+
+        :raises NoSuchChannelException if the channel doesn't exist
+        :param channel_id: the uuid of the channel
+        :return: a dict of acls, empty if no acls
+        """
+
     def get_acls(self, room_id: str) -> dict:
         """
         get the access list for a room
 
         :raises NoSuchRoomException if room doesn't exist
-        :param room_id: the room id
+        :param room_id: the room uuid
         :return: a dict of acls, empty if no acls
         """
 

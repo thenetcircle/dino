@@ -15,5 +15,6 @@
 from dino.db.manager.channels import ChannelManager
 from dino.db.manager.rooms import RoomManager
 from dino.db.manager.users import UserManager
+from dino.db.manager.acls import AclManager
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'

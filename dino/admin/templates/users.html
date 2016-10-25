@@ -2,20 +2,19 @@
 
 {% block content %}
 
-<p>
-    Users
-</p>
+<p><strong>Super Users</strong></p>
 
-<p>Super Users</p>
-
-{% from "_formhelpers.html" import render_field %}
-<form method="post" action="/create/super-user">
-  <dl>
-    {{ render_field(form.name) }}
-    {{ render_field(form.uuid) }}
-  </dl>
-  <p><input type="submit" value="Create super user" /></p>
-</form>
+<div>
+    {% from "_formhelpers.html" import render_field %}
+    <form method="post" action="/create/super-user" class="pure-form">
+        <fieldset>
+             <legend>Create new super user</legend>
+            {{ render_field(form.name) }}
+            {{ render_field(form.uuid) }}
+            <p><input type="submit" value="Create" class="pure-button pure-button-primary" /></p>
+        </fieldset>
+    </form>
+</div>
 
 <table id="list-superusers" class="display responsive" cellspacing="0" width="100%">
     <thead>

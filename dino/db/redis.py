@@ -237,11 +237,21 @@ class DatabaseRedis(object):
 
         self.redis.hdel(RedisKeys.room_acl(room_id), acl_type)
 
+    def add_acls_channel(self, channel_id: str, acls: dict) -> None:
+        if self.channel_for_channel(channel_id) is None:
+            raise NoSuchRoomException(channel_id)
+
+        # TODO: implement
+        self.redis.hmset(RedisKeys.channel_acl(channel_id), acls)
+
     def add_acls(self, room_id: str, acls: dict) -> None:
         if self.channel_for_room(room_id) is None:
             raise NoSuchRoomException(room_id)
 
         self.redis.hmset(RedisKeys.room_acl(room_id), acls)
+
+    def get_acls_channel(self, channel_id: str) -> dict:
+        raise NotImplementedError()
 
     def get_acls(self, room_id: str) -> dict:
         try:

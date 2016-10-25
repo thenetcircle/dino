@@ -17,8 +17,10 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 from dino.db.manager import ChannelManager
 from dino.db.manager import RoomManager
 from dino.db.manager import UserManager
+from dino.db.manager import AclManager
 from dino.environ import env
 
 channel_manager = ChannelManager(env)
 room_manager = RoomManager(env)
 user_manager = UserManager(env)
+acl_manager = AclManager(env)
