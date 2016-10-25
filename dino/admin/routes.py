@@ -132,7 +132,7 @@ def create_acl_channel(channel_uuid):
     if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
         return redirect('/channel/%s/rooms' % channel_uuid)
 
-    acl_manager.add_acl(channel_uuid, acl_type, acl_value)
+    acl_manager.add_acl_channel(channel_uuid, acl_type, acl_value)
     return redirect('/channel/%s/rooms' % channel_uuid)
 
 

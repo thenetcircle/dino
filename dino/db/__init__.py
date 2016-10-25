@@ -309,6 +309,18 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def add_acls_channel(self, channel_id: str, acls: dict) -> None:
+        """
+        Add acls the channel.
+
+        :raises InvalidAclTypeException if the type is invalid
+        :raises InvalidAclValueException if the value doesn't validate for the type
+        :raises NoSuchChannelException if channel doesn't exist
+        :param channel_id: the channel id
+        :param acls:
+        :return: nothing
+        """
+
     def get_last_read_timestamp(self, room_id: str, user_id: str) -> int:
         """
         get the last read timestamp for a user in a group

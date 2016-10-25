@@ -241,7 +241,6 @@ class DatabaseRedis(object):
         if self.channel_for_channel(channel_id) is None:
             raise NoSuchRoomException(channel_id)
 
-        # TODO: implement
         self.redis.hmset(RedisKeys.channel_acl(channel_id), acls)
 
     def add_acls(self, room_id: str, acls: dict) -> None:
@@ -251,7 +250,16 @@ class DatabaseRedis(object):
         self.redis.hmset(RedisKeys.room_acl(room_id), acls)
 
     def get_acls_channel(self, channel_id: str) -> dict:
-        raise NotImplementedError()
+        if not self.channel_exists(channel_id) is None:
+            raise NoSuchChannelException(channel_id)
+
+        acls = self.redis.hgetall(RedisKeys.channel_acl(channel_id))
+        acls_cleaned = dict()
+
+        for acl_type, acl_value in acls.items():
+            acls_cleaned[str(acl_type, 'utf-8')] = str(acl_value, 'utf-8')
+
+        return acls_cleaned
 
     def get_acls(self, room_id: str) -> dict:
         try:

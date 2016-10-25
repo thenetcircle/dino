@@ -534,6 +534,31 @@ class DatabaseRdbms(object):
 
         found_acl.__setattr__(acl_type, None)
         self.session.commit()
+        
+    @with_session
+    def add_acls_channel(self, channel_id: str, acls: dict) -> None:
+        if acls is None or len(acls) == 0:
+            return
+
+        channel = self.session.query(Channels).filter(Channels.uuid == channel_id).first()
+        if channel is None:
+            raise NoSuchChannelException(channel_id)
+
+        acl = self.session.query(Acls).join(Acls.channel).filter(Channels.uuid == channel_id).first()
+        if acl is None:
+            acl = Acls()
+
+        for acl_type, acl_value in acls.items():
+            if acl_type not in AclValidator.ACL_VALIDATORS:
+                raise InvalidAclTypeException(acl_type)
+
+            if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
+                raise InvalidAclValueException(acl_type, acl_value)
+
+            acl.__setattr__(acl_type, acl_value)
+
+        channel.acl = acl
+        self.session.commit()
 
     @with_session
     def add_acls(self, room_id: str, acls: dict) -> None:
