@@ -99,7 +99,7 @@ class Acls(DeclarativeBase):
     channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=True)
     channel = relationship('Channels', back_populates='acl')
 
-    age = Column('age', Integer, nullable=True)
+    age = Column('age', String, nullable=True)
     gender = Column('gender', String, nullable=True)
     membership = Column('membership', String, nullable=True)
     group = Column('group', String, nullable=True)
