@@ -5,12 +5,18 @@ $(document).ready(function(){
             text: "Are you sure you want to delete?",
             title: "Confirmation required",
             confirm: function(button) {
-                remove_url = $(button).find('input.remove-url').val()
+                remove_url = $(button).find('input.remove-url').val();
+                redirect_url = $(button).find('input.redirect-url');
                 $.ajax({
                     method: 'DELETE',
                     url: remove_url
                 }).done(function(data) {
-                    $(button).closest('tr').remove();
+                    if (redirect_url.length == 0) {
+                        $(button).closest('tr').remove();
+                    }
+                    else if (data.status_code == 200) {
+                        $(location).attr('href', redirect_url.val());
+                    }
                 });
             },
             cancel: function(button) {

@@ -394,7 +394,7 @@ class DatabaseRedis(object):
         self.redis.delete(RedisKeys.rooms_for_user(user_id))
 
     def get_room_name(self, room_id: str) -> str:
-        room_name = self.redis.get(RedisKeys.room_name_for_id(room_id))
+        room_name = self.redis.hget(RedisKeys.room_name_for_id(), room_id)
         if room_name is None:
             raise NoSuchRoomException(room_id)
         return room_name.decode('utf-8')
@@ -429,10 +429,23 @@ class DatabaseRedis(object):
         if self.room_name_exists(channel_id, room_name):
             raise RoomNameExistsForChannelException(channel_id, room_name)
 
-        self.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
+        self.redis.hset(RedisKeys.room_name_for_id, room_id, room_name)
         self.redis.hset(RedisKeys.room_owners(room_id), user_id, user_name)
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
         self.redis.hset(RedisKeys.channel_for_rooms(), room_id, channel_id)
+
+    def remove_room(self, channel_id: str, room_id: str) -> None:
+        if self.env.cache.get_channel_exists(channel_id) is None:
+            if not self.channel_exists(channel_id):
+                raise NoSuchChannelException(channel_id)
+
+        if not self.room_exists(channel_id, room_id):
+            raise RoomExistsException(room_id)
+
+        self.redis.hdel(RedisKeys.room_name_for_id(), room_id)
+        self.redis.delete(RedisKeys.room_owners(room_id))
+        self.redis.hdel(RedisKeys.rooms(channel_id), room_id)
+        self.redis.delete(RedisKeys.channel_for_rooms(), room_id)
 
     def create_channel(self, channel_name, channel_id, user_id) -> None:
         if self.channel_exists(channel_id):

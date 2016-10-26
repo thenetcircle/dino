@@ -51,6 +51,13 @@ class RoomManager(BaseManager):
             logger.error('could not create room: %s' % str(e))
             print(traceback.format_exc())
 
+    def remove_room(self, channel_id: str, room_id: str) -> None:
+        try:
+            self.env.db.remove_room(channel_id, room_id)
+        except Exception as e:
+            logger.error('could not remove room: %s' % str(e))
+            print(traceback.format_exc())
+
     def name_for_uuid(self, room_id: str) -> str:
         try:
             return self.env.db.get_room_name(room_id)

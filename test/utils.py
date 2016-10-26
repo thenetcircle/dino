@@ -184,7 +184,7 @@ class BaseTest(unittest.TestCase):
         environ.env.cache._flushall()
 
         environ.env.auth.redis.hmset(RedisKeys.auth_key(BaseTest.USER_ID), self.session)
-        environ.env.redis.set(RedisKeys.room_name_for_id(BaseTest.ROOM_ID), BaseTest.ROOM_NAME)
+        environ.env.redis.hset(RedisKeys.room_name_for_id(), BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
         environ.env.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.db.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.db.redis.hset(RedisKeys.auth_key(BaseTest.USER_ID), SessionKeys.user_name.value, BaseTest.USER_NAME)
@@ -254,7 +254,7 @@ class BaseTest(unittest.TestCase):
         environ.env.storage.redis.hdel(RedisKeys.room_roles(BaseTest.ROOM_ID), BaseTest.USER_ID)
 
     def remove_room(self):
-        environ.env.storage.redis.delete(RedisKeys.room_name_for_id(BaseTest.ROOM_ID))
+        environ.env.storage.redis.hdel(RedisKeys.room_name_for_id(), BaseTest.ROOM_ID)
 
     def set_room_name(self, room_id: str=None, room_name: str=None):
         if room_id is None:
@@ -262,7 +262,7 @@ class BaseTest(unittest.TestCase):
         if room_name is None:
             room_name = BaseTest.ROOM_NAME
 
-        environ.env.storage.redis.set(RedisKeys.room_name_for_id(room_id), room_name)
+        environ.env.storage.redis.hset(RedisKeys.room_name_for_id(), room_id, room_name)
 
     def join_room(self):
         api.on_join(self.activity_for_join())

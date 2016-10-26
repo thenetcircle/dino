@@ -26,7 +26,9 @@
                             <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>&nbsp;
                             Rename
                         </a>
-                        <a class="pure-button btn-danger" href="#">
+                        <a class="pure-button btn-danger remove-button" href="#">
+                            <input type="hidden" class="remove-url" value="/channel/{{ channel_uuid }}/room/{{ room_uuid }}/remove" />
+                            <input type="hidden" class="redirect-url" value="/channel/{{ channel_uuid }}/rooms" />
                             <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
                             Remove
                         </a>

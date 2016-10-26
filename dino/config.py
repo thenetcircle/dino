@@ -105,7 +105,7 @@ class RedisKeys(object):
     RKEY_ONLINE_SET = 'users:online:set'
     RKEY_MULTI_CAST = 'users:multicat'
     RKEY_USER_STATUS = 'user:status:%s'  # user:status:user_id
-    RKEY_ROOM_NAME = 'room:name:%s'  # room:name:room_id
+    RKEY_ROOM_NAME = 'room:names'
     RKEY_ROOM_ACL = 'room:acl:%s'  # room:acl:room_id
     RKEY_CHANNEL_ACL = 'channel:acl:%s'  # channel:acl:channel_id
     RKEY_ROOM_OWNERS = 'room:owners:%s'  # room:owners:room_id
@@ -172,8 +172,8 @@ class RedisKeys(object):
         return RedisKeys.RKEY_ROOMS % channel_id
 
     @staticmethod
-    def room_name_for_id(room_id: str) -> str:
-        return RedisKeys.RKEY_ROOM_NAME % room_id
+    def room_name_for_id() -> str:
+        return RedisKeys.RKEY_ROOM_NAME
 
     @staticmethod
     def online_bitmap() -> str:

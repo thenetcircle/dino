@@ -169,13 +169,13 @@ class CacheRedis(object):
         return value
 
     def get_room_name(self, room_id: str) -> str:
-        key = RedisKeys.room_name_for_id(room_id)
-        cache_key = '%s-name' % key
+        key = RedisKeys.room_name_for_id()
+        cache_key = '%s-%s-name' % (key, room_id)
         value = self.cache.get(cache_key)
         if value is not None:
             return value
 
-        value = self.redis.get(key)
+        value = self.redis.hget(key, room_id)
         if value is None:
             return None
 

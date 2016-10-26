@@ -90,6 +90,17 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def remove_room(self, channel_id: str, room_id: str) -> None:
+        """
+        remove a room
+
+        :raises NoSuchChannel exception if the channel doesn't exist
+        :raises NoSuchRoom exception if the room doesn't exist
+        :param channel_id: the uuid of the channel
+        :param room_id: the uuid of the room
+        :return: nothing
+        """
+
     def leave_room(self, user_id: str, room_id: str) -> None:
         """
         leave a room

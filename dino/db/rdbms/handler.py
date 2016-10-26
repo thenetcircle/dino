@@ -314,6 +314,26 @@ class DatabaseRdbms(object):
         self.session.commit()
 
     @with_session
+    def remove_room(self, channel_id: str, room_id: str) -> None:
+        room = self.session\
+            .query(Rooms)\
+            .join(Rooms.channel)\
+            .filter(Rooms.uuid == room_id)\
+            .filter(Channels.uuid == channel_id)\
+            .first()
+
+        if room is None:
+            raise RoomExistsException(room_id)
+
+        roles = self.session.query(RoomRoles).join(RoomRoles.room).filter(Rooms.uuid == room_id).all()
+        if roles is not None and len(roles) > 0:
+            for role in roles:
+                self.session.delete(role)
+
+        self.session.delete(room)
+        self.session.commit()
+
+    @with_session
     def leave_room(self, user_id: str, room_id: str) -> None:
         room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
         if room is None:

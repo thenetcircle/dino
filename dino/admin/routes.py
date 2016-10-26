@@ -147,6 +147,12 @@ def create_room(channel_uuid):
     return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/remove', methods=['DELETE'])
+def delete_room(channel_uuid: str, room_uuid: str):
+    room_manager.remove_room(channel_uuid, room_uuid)
+    return jsonify({'status_code': 200})
+
+
 @app.route('/channel/<channel_uuid>/create/acl', methods=['POST'])
 def create_acl_channel(channel_uuid: str):
     form = CreateAclForm(request.form)
