@@ -16,8 +16,8 @@ from flask import redirect
 from flask import request
 from flask import send_from_directory
 from flask import render_template
-import logging
 from uuid import uuid4 as uuid
+import logging
 
 from dino.web import app
 from dino.admin.orm import channel_manager
@@ -25,13 +25,14 @@ from dino.admin.orm import room_manager
 from dino.admin.orm import acl_manager
 from dino.admin.orm import user_manager
 
+from dino.validation.acl_validator import AclValidator
+
 from dino.admin.forms import CreateChannelForm
 from dino.admin.forms import CreateRoomForm
 from dino.admin.forms import CreateUserForm
 from dino.admin.forms import CreateAclForm
 from dino.admin.forms import AddModeratorForm
 from dino.admin.forms import AddOwnerForm
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -129,7 +130,7 @@ def create_room(channel_uuid):
 
 
 @app.route('/channel/<channel_uuid>/create/acl', methods=['POST'])
-def create_acl_channel(channel_uuid):
+def create_acl_channel(channel_uuid: str):
     form = CreateAclForm(request.form)
     acl_type = form.acl_type.data
     acl_value = form.acl_value.data
@@ -137,13 +138,27 @@ def create_acl_channel(channel_uuid):
     if is_blank(acl_type) or is_blank(acl_value):
         return redirect('/channel/%s/rooms' % channel_uuid)
 
-    from dino.validation.acl_validator import AclValidator
-
     if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
         return redirect('/channel/%s/rooms' % channel_uuid)
 
     acl_manager.add_acl_channel(channel_uuid, acl_type, acl_value)
     return redirect('/channel/%s/rooms' % channel_uuid)
+
+
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/create/acl', methods=['POST'])
+def create_acl_room(channel_uuid: str, room_uuid: str):
+    form = CreateAclForm(request.form)
+    acl_type = form.acl_type.data
+    acl_value = form.acl_value.data
+
+    if is_blank(acl_type) or is_blank(acl_value):
+        return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+
+    if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
+        return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+
+    acl_manager.add_acl_room(room_uuid, acl_type, acl_value)
+    return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 
 @app.route('/create/channel', methods=['POST'])
