@@ -126,6 +126,59 @@ class IDatabase(Interface):
         :return: true or false
         """
 
+    def is_owner_channel(self, channel_id: str, user_id: str) -> bool:
+        """
+        check if a user is an owner of a channel
+
+        :param channel_id: uuid of the channel
+        :param user_id: uuid of the user
+        :return: true or false
+        """
+
+    def is_super_user(self, user_id: str) -> bool:
+        """
+        check if a user is a global super admin or not
+
+        :param user_id: the uuid of the user to check for
+        :return: true if super user, false otherwise
+        """
+
+    def remove_admin(self, channel_id: str, user_id: str) -> None:
+        """
+        remove the admin role from a user for a channel
+
+        :param channel_id: the uuid of the channel
+        :param user_id: the id of the user
+        :return: nothing
+        """
+
+    def remove_owner_channel(self, channel_id: str, user_id: str) -> None:
+        """
+        remove the owner role from a user for a channel
+
+        :param channel_id: the uuid of the channel
+        :param user_id: the id of the user
+        :return: nothing
+        """
+
+    def remove_moderator(self, room_id: str, user_id: str) -> None:
+        """
+        remove the moderator role from a user for a room
+
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: nothing
+        """
+
+    def remove_owner(self, room_id: str, user_id: str) -> None:
+        """
+        remove the owner role from a user for a room
+
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: nothing
+        """
+
     def set_user_name(self, user_id: str, user_name: str) -> str:
         """
         set the user name for this id
@@ -178,23 +231,6 @@ class IDatabase(Interface):
         :raises NoSuchRoomException if room can't be found
         :param room_id: the uuid of the room
         :return: a dict of user_id -> user_name
-        """
-
-    def is_owner_channel(self, channel_id: str, user_id: str) -> bool:
-        """
-        check if a user is an owner of a channel
-
-        :param channel_id: uuid of the channel
-        :param user_id: uuid of the user
-        :return: true or false
-        """
-
-    def is_super_user(self, user_id: str) -> bool:
-        """
-        check if a user is a global super admin or not
-
-        :param user_id: the uuid of the user to check for
-        :return: true if super user, false otherwise
         """
 
     def set_owner(self, room_id: str, user_id: str) -> None:

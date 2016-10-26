@@ -38,6 +38,30 @@ class UserManager(BaseManager):
             })
         return output
 
+    def add_channel_admin(self, channel_id: str, user_id: str) -> None:
+        self.env.db.set_admin(channel_id, user_id)
+
+    def add_channel_owner(self, channel_id: str, user_id: str) -> None:
+        self.env.db.set_owner_channel(channel_id, user_id)
+
+    def add_room_moderator(self, room_id: str, user_id: str) -> None:
+        self.env.db.set_moderator(room_id, user_id)
+
+    def add_room_owner(self, room_id: str, user_id: str) -> None:
+        self.env.db.set_owner(room_id, user_id)
+
+    def remove_channel_admin(self, channel_id: str, user_id: str) -> None:
+        self.env.db.remove_admin(channel_id, user_id)
+
+    def remove_channel_owner(self, channel_id: str, user_id: str) -> None:
+        self.env.db.remove_owner_channel(channel_id, user_id)
+
+    def remove_room_moderator(self, room_id: str, user_id: str) -> None:
+        self.env.db.remove_moderator(room_id, user_id)
+
+    def remove_room_owner(self, room_id: str, user_id: str) -> None:
+        self.env.db.remove_owner(room_id, user_id)
+
     def create_admin_user(self, user_name: str, user_id: str) -> None:
         try:
             self.env.db.create_user(user_id, user_name)

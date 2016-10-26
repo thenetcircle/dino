@@ -34,6 +34,7 @@ from dino.admin.forms import CreateUserForm
 from dino.admin.forms import CreateAclForm
 from dino.admin.forms import AddModeratorForm
 from dino.admin.forms import AddOwnerForm
+from dino.admin.forms import AddAdminForm
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -45,7 +46,7 @@ def is_blank(s: str):
     return s is None or len(s.strip()) == ''
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
     return render_template('home.html')
 
@@ -82,10 +83,14 @@ def history():
 def rooms_for_channel(channel_uuid):
     form = CreateRoomForm(request.form)
     acl_form = CreateAclForm(request.form)
+    owner_form = AddOwnerForm(request.form)
+    admin_form = AddAdminForm(request.form)
 
     return render_template(
             'rooms_in_channel.html',
             form=form,
+            owner_form=owner_form,
+            admin_form=admin_form,
             acl_form=acl_form,
             owners=channel_manager.get_owners(channel_uuid),
             admins=channel_manager.get_admins(channel_uuid),
@@ -156,6 +161,90 @@ def create_acl_channel(channel_uuid: str):
 
     acl_manager.add_acl_channel(channel_uuid, acl_type, acl_value)
     return redirect('/channel/%s/rooms' % channel_uuid)
+
+
+@app.route('/channel/<channel_uuid>/add/admin', methods=['POST'])
+def create_channel_admin(channel_uuid: str):
+    form = AddAdminForm(request.form)
+    user_id = form.uuid.data
+
+    if is_blank(user_id):
+        return redirect('/channel/%s/rooms' % channel_uuid)
+
+    user_manager.add_channel_admin(channel_uuid, user_id)
+    return redirect('/channel/%s/rooms' % channel_uuid)
+
+
+@app.route('/channel/<channel_uuid>/add/owner', methods=['POST'])
+def create_channel_owner(channel_uuid: str):
+    form = AddOwnerForm(request.form)
+    user_id = form.uuid.data
+
+    if is_blank(user_id):
+        return redirect('/channel/%s/rooms' % channel_uuid)
+
+    user_manager.add_channel_owner(channel_uuid, user_id)
+    return redirect('/channel/%s/rooms' % channel_uuid)
+
+
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/add/owner', methods=['POST'])
+def create_room_owner(channel_uuid: str, room_uuid: str):
+    form = AddOwnerForm(request.form)
+    user_id = form.uuid.data
+
+    if is_blank(user_id):
+        return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+
+    user_manager.add_room_owner(room_uuid, user_id)
+    return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+
+
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/add/moderator', methods=['POST'])
+def create_room_moderator(channel_uuid: str, room_uuid: str):
+    form = AddModeratorForm(request.form)
+    user_id = form.uuid.data
+
+    if is_blank(user_id):
+        return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+
+    user_manager.add_room_moderator(room_uuid, user_id)
+    return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+
+
+@app.route('/channel/<channel_uuid>/remove/admin/<user_id>', methods=['DELETE'])
+def remove_channel_admin(channel_uuid: str, user_id: str):
+    if is_blank(user_id):
+        return jsonify({'status_code': 200})
+
+    user_manager.remove_channel_admin(channel_uuid, user_id)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/channel/<channel_uuid>/remove/owner/<user_id>', methods=['DELETE'])
+def remove_channel_owner(channel_uuid: str, user_id: str):
+    if is_blank(user_id):
+        return redirect('/channel/%s/rooms' % channel_uuid)
+
+    user_manager.remove_channel_owner(channel_uuid, user_id)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/remove/moderator/<user_id>', methods=['DELETE'])
+def remove_room_moderator(channel_uuid: str, room_uuid: str, user_id: str):
+    if is_blank(user_id):
+        return jsonify({'status_code': 200})
+
+    user_manager.remove_room_moderator(room_uuid, user_id)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/remove/owner/<user_id>', methods=['DELETE'])
+def remove_room_owner(channel_uuid: str, room_uuid: str, user_id: str):
+    if is_blank(user_id):
+        return jsonify({'status_code': 200})
+
+    user_manager.remove_room_owner(room_uuid, user_id)
+    return jsonify({'status_code': 200})
 
 
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/create/acl', methods=['POST'])

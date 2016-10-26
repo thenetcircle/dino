@@ -90,6 +90,26 @@ class DatabaseRedis(object):
             roles = ','.join(roles)
         self.redis.hset(RedisKeys.room_roles(room_id), user_id, roles)
 
+    def _remove_channel_role(self, role: str, channel_id: str, user_id: str):
+        roles = self.redis.hget(RedisKeys.channel_roles(channel_id), user_id)
+        if roles is None:
+            return
+
+        roles = set(str(roles, 'utf-8').split(','))
+        roles.remove(role)
+        roles = ','.join(roles)
+        self.redis.hset(RedisKeys.channel_roles(channel_id), user_id, roles)
+
+    def _remove_room_role(self, role: str, room_id: str, user_id: str):
+        roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
+        if roles is None:
+            return
+
+        roles = set(str(roles, 'utf-8').split(','))
+        roles.remove(role)
+        roles = ','.join(roles)
+        self.redis.hset(RedisKeys.room_roles(room_id), user_id, roles)
+
     def _add_global_role(self, role: str, user_id: str):
         key = RedisKeys.global_roles()
         roles = self.redis.hget(key, user_id)
@@ -167,6 +187,26 @@ class DatabaseRedis(object):
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
         self._add_channel_role(RoleKeys.OWNER, channel_id, user_id)
+
+    def remove_admin(self, channel_id: str, user_id: str) -> None:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
+        self._remove_channel_role(RoleKeys.ADMIN, channel_id, user_id)
+
+    def remove_owner_channel(self, channel_id: str, user_id: str) -> None:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
+        self._remove_channel_role(RoleKeys.OWNER, channel_id, user_id)
+
+    def remove_moderator(self, room_id: str, user_id: str) -> None:
+        if not self.channel_for_room(room_id):
+            raise NoSuchRoomException(room_id)
+        self._remove_room_role(RoleKeys.ADMIN, room_id, user_id)
+
+    def remove_owner(self, room_id: str, user_id: str) -> None:
+        if not self.channel_for_room(room_id):
+            raise NoSuchRoomException(room_id)
+        self._remove_room_role(RoleKeys.OWNER, room_id, user_id)
 
     def get_channels(self) -> dict:
         all_channels = self.redis.hgetall(RedisKeys.channels())

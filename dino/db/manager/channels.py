@@ -41,6 +41,7 @@ class ChannelManager(BaseManager):
         except Exception as e:
             logger.error('could not list channels: %s' % str(e))
             print(traceback.format_exc())
+        return list()
 
     def create_channel(self, channel_name: str, channel_id: str, user_id: str) -> None:
         try:
@@ -61,22 +62,29 @@ class ChannelManager(BaseManager):
     def get_owners(self, channel_id: str) -> list:
         try:
             owners = self.env.db.get_owners_channel(channel_id)
+            output = list()
+            for owner_id, owner_name in owners.items():
+                output.append({
+                    'uuid': owner_id,
+                    'name': owner_name
+                })
+            return output
         except Exception as e:
             logger.error('could not get channel owners from id %s: %s' % (channel_id, str(e)))
             print(traceback.format_exc())
-            return list()
-
-        output = list()
-        for owner_id, owner_name in owners.items():
-            output.append({
-                'uuid': owner_id,
-                'name': owner_name
-            })
-        return output
+        return list()
 
     def get_admins(self, channel_id: str) -> list:
         try:
-            return self.env.db.get_admins_channel(channel_id)
+            admins = self.env.db.get_admins_channel(channel_id)
+            output = list()
+
+            for admin_id, admin_name in admins.items():
+                output.append({
+                    'uuid': admin_id,
+                    'name': admin_name
+                })
+            return output
         except Exception as e:
             logger.error('could not get channel admins from id %s: %s' % (channel_id, str(e)))
             print(traceback.format_exc())

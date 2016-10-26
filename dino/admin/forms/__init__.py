@@ -49,12 +49,14 @@ class CreateUserForm(Form):
 
 
 class AddModeratorForm(Form):
-    name = StringField('Name', validators=[validators.DataRequired], description='Username')
     uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
 
 
 class AddOwnerForm(Form):
-    name = StringField('Name', validators=[validators.DataRequired], description='Username')
+    uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
+
+
+class AddAdminForm(Form):
     uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
 
 

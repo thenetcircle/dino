@@ -59,7 +59,7 @@ class RoomManager(BaseManager):
             print(traceback.format_exc())
         return ''
 
-    def get_owners(self, room_id: str) -> dict:
+    def get_owners(self, room_id: str) -> list:
         try:
             owners = self.env.db.get_owners_room(room_id)
             output = list()
@@ -73,9 +73,9 @@ class RoomManager(BaseManager):
         except Exception as e:
             logger.error('could not get room owners from id %s: %s' % (room_id, str(e)))
             print(traceback.format_exc())
-        return dict()
+        return list()
 
-    def get_moderators(self, room_id: str) -> dict:
+    def get_moderators(self, room_id: str) -> list:
         try:
             moderators = self.env.db.get_moderators_room(room_id)
             output = list()
@@ -89,4 +89,4 @@ class RoomManager(BaseManager):
         except Exception as e:
             logger.error('could not get room moderators from id %s: %s' % (room_id, str(e)))
             print(traceback.format_exc())
-        return dict()
+        return list()

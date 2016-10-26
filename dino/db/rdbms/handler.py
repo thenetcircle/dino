@@ -424,8 +424,36 @@ class DatabaseRdbms(object):
         return self._object_has_role_for_user(channel, the_role, user_id)
 
     @with_session
+    def _remove_role_on_room_for_user(self, the_role: str, room_id: str, user_id: str) -> None:
+        room = self.session.query(Rooms).outerjoin(Rooms.roles).filter(Rooms.uuid == room_id).first()
+        if room is None:
+            raise NoSuchRoomException(room_id)
+
+        for role in room.roles:
+            if role.user_id == user_id and the_role in role.roles:
+                roles = set(role.roles.split(','))
+                roles.remove(the_role)
+                role.roles = ','.join(roles)
+                self.session.commit()
+                return
+
+    @with_session
+    def _remove_role_on_channel_for_user(self, the_role: str, channel_id: str, user_id: str) -> None:
+        channel = self.session.query(Channels).outerjoin(Channels.roles).filter(Channels.uuid == channel_id).first()
+        if channel is None:
+            raise NoSuchChannelException(channel_id)
+
+        for role in channel.roles:
+            if role.user_id == user_id and the_role in role.roles:
+                roles = set(role.roles.split(','))
+                roles.remove(the_role)
+                role.roles = ','.join(roles)
+                self.session.commit()
+                return
+
+    @with_session
     def _set_role_on_room_for_user(self, the_role: Rooms, room_id: str, user_id: str):
-        room = self.session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
+        room = self.session.query(Rooms).outerjoin(Rooms.roles).filter(Rooms.uuid == room_id).first()
         if room is None:
             raise NoSuchRoomException(room_id)
 
@@ -450,8 +478,8 @@ class DatabaseRdbms(object):
         self.session.commit()
 
     @with_session
-    def _set_role_on_channel_for_user(self, the_role: Channels, channel_id: str, user_id: str):
-        channel = self.session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
+    def _set_role_on_channel_for_user(self, the_role: str, channel_id: str, user_id: str) -> None:
+        channel = self.session.query(Channels).outerjoin(Channels.roles).filter(Channels.uuid == channel_id).first()
         if channel is None:
             raise NoSuchChannelException(channel_id)
 
@@ -515,6 +543,26 @@ class DatabaseRdbms(object):
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
         self._set_role_on_channel_for_user(RoleKeys.OWNER, channel_id, user_id)
+
+    def remove_admin(self, channel_id: str, user_id: str) -> None:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
+        self._remove_role_on_channel_for_user(RoleKeys.ADMIN, channel_id, user_id)
+
+    def remove_owner_channel(self, channel_id: str, user_id: str) -> None:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
+        self._remove_role_on_channel_for_user(RoleKeys.OWNER, channel_id, user_id)
+
+    def remove_moderator(self, room_id: str, user_id: str) -> None:
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
+        self._remove_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
+
+    def remove_owner(self, room_id: str, user_id: str) -> None:
+        if self.channel_for_room(room_id) is None:
+            raise NoSuchRoomException(room_id)
+        self._remove_role_on_room_for_user(RoleKeys.OWNER, room_id, user_id)
 
     def room_allows_cross_group_messaging(self, room_uuid: str) -> bool:
         acls = self.get_acls(room_uuid)
