@@ -21,3 +21,61 @@ textarea {
     background: rgb(202, 60, 60);
     color: white;
 }
+
+.pure-button {
+    font-size: 80%;
+}
+
+.button-secondary {
+    color: white;
+    background: rgb(66, 184, 221); /* this is a light blue */
+}
+
+.pure-form fieldset {
+    padding: .15em 0 .2em
+}
+
+.pure-form legend {
+    font-size: 100%;
+    font-weight: bold;
+}
+
+.pure-form {
+    margin-bottom: 0em;
+}
+
+div.form-toggler {
+    padding-bottom: 10px;
+    padding-top: 10px;
+    font-size: 130%;
+}
+
+@media screen and (min-width: 64em) {
+    .pure-form input, .pure-form select {
+        width: 140px;
+    }
+}
+
+@media screen and (max-width: 64em) {
+    .pure-form input, .pure-form select {
+        width: 100%;
+    }
+}
+
+@media screen and (min-width: 48em) {
+    div.form-container {
+        display: block;
+    }
+    div.form-toggler {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 48em) {
+    div.form-container {
+        display: none;
+    }
+    div.form-toggler {
+        display: block;
+    }
+}

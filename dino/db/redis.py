@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
 from zope.interface import implementer
-from uuid import uuid4 as uuid
+import logging
 
 from dino.db import IDatabase
 from dino.config import ConfigKeys
@@ -36,6 +35,8 @@ from dino.exceptions import NoSuchUserException
 from dino.exceptions import RoomNameExistsForChannelException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 @implementer(IDatabase)
@@ -317,7 +318,10 @@ class DatabaseRedis(object):
             user_roles = str(user_roles, 'utf-8')
             if role_key not in user_roles.split(','):
                 continue
-            cleaned[user_id] = self.get_user_name(user_id)
+            try:
+                cleaned[user_id] = self.get_user_name(user_id)
+            except NoSuchUserException:
+                logger.error('no username found for user_id %s' % user_id)
         return cleaned
 
     def _get_users_with_role_in_channel(self, channel_id: str, role_key: str):

@@ -48,6 +48,16 @@ class CreateUserForm(Form):
     uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
 
 
+class AddModeratorForm(Form):
+    name = StringField('Name', validators=[validators.DataRequired], description='Username')
+    uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
+
+
+class AddOwnerForm(Form):
+    name = StringField('Name', validators=[validators.DataRequired], description='Username')
+    uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
+
+
 class CreateAclForm(Form):
     acl_type = SelectField(
             'Type',

@@ -29,6 +29,8 @@ from dino.admin.forms import CreateChannelForm
 from dino.admin.forms import CreateRoomForm
 from dino.admin.forms import CreateUserForm
 from dino.admin.forms import CreateAclForm
+from dino.admin.forms import AddModeratorForm
+from dino.admin.forms import AddOwnerForm
 
 
 logger = logging.getLogger(__name__)
@@ -93,10 +95,18 @@ def rooms_for_channel(channel_uuid):
 
 @app.route('/channel/<channel_uuid>/room/<room_uuid>', methods=['GET'])
 def users_for_room(channel_uuid, room_uuid):
+    owner_form = AddOwnerForm(request.form)
+    mod_form = AddModeratorForm(request.form)
+    acl_form = CreateAclForm(request.form)
+
     return render_template(
             'users_in_room.html',
             channel_uuid=channel_uuid,
             room_uuid=room_uuid,
+            owner_form=owner_form,
+            mod_form=mod_form,
+            acl_form=acl_form,
+            acls=acl_manager.get_acls_room(room_uuid),
             channel_name=channel_manager.name_for_uuid(channel_uuid),
             room_name=room_manager.name_for_uuid(room_uuid),
             owners=room_manager.get_owners(room_uuid),

@@ -718,8 +718,13 @@ class DatabaseRdbms(object):
 
         found = dict()
         for role in roles:
-            if role_key in role.roles.split(','):
+            if role_key not in role.roles.split(','):
+                continue
+
+            try:
                 found[role.user_id] = self.get_user_name(role.user_id)
+            except NoSuchUserException:
+                logger.error('no username found for user_id %s' % role.user_id)
         return found
 
     @with_session
