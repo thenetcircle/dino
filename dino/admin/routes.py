@@ -290,11 +290,16 @@ def create_admin_user():
     return redirect('/user/%s' % user_uuid)
 
 
+@app.route('/static/custom/<path:path>')
+def send_custom(path):
+    return send_from_directory('admin/static/custom/', path)
+
+
 @app.route('/static/<path:path>')
 def send_static(path):
-    return send_from_directory('admin/static/', path)
+    return send_from_directory('admin/static/vendor/', path)
 
 
 @app.route('/fonts/<path:path>')
 def send_fonts(path):
-    return send_from_directory('admin/static/fonts/', path)
+    return send_from_directory('admin/static/vendor/fonts/', path)
