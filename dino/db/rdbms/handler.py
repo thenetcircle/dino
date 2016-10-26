@@ -534,7 +534,20 @@ class DatabaseRdbms(object):
 
         found_acl.__setattr__(acl_type, None)
         self.session.commit()
-        
+
+    @with_session
+    def delete_acl_channel(self, channel_id: str, acl_type: str) -> None:
+        channel = self.session.query(Channels).filter(Channels.uuid == channel_id).first()
+        if channel is None:
+            raise NoSuchChannelException(channel_id)
+
+        found_acl = self.session.query(Acls).join(Acls.channel).filter(Channels.uuid == channel_id).first()
+        if found_acl is None:
+            return
+
+        found_acl.__setattr__(acl_type, None)
+        self.session.commit()
+
     @with_session
     def add_acls_channel(self, channel_id: str, acls: dict) -> None:
         if acls is None or len(acls) == 0:

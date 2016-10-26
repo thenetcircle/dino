@@ -291,9 +291,20 @@ class IDatabase(Interface):
         delete an acl from a room
 
         :raises InvalidAclTypeException if the type is invalid
-        :raises NoSuchRoomException if room doesn't exist
+        :raises NoSuchRoomException if the room doesn't exist
         :param room_id: the id of the room
         :param acl_type: deletes one acl from this room with this type
+        :return: nothing
+        """
+
+    def delete_acl_channel(self, channel_id: str, acl_type: str) -> None:
+        """
+        delete an acl from a channel
+
+        :raises InvalidAclTypeException if the type is invalid
+        :raises NoSuchChannelException if the channel doesn't exist
+        :param channel_id: the id of the channel
+        :param acl_type: deletes one acl from this channel with this type
         :return: nothing
         """
 

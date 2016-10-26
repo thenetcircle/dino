@@ -35,6 +35,12 @@ class AclManager(BaseManager):
         acls = self.env.db.get_acls(room_id)
         return self._format_acls(acls)
 
+    def delete_acl_channel(self, channel_id: str, acl_type: str) -> None:
+        self.env.db.delete_acl_channel(channel_id, acl_type)
+
+    def delete_acl_room(self, room_id: str, acl_type: str) -> None:
+        self.env.db.delete_acl(room_id, acl_type)
+
     def add_acl_channel(self, channel_id: str, acl_type: str, acl_value: str) -> None:
         self.env.db.add_acls_channel(channel_id, {acl_type: acl_value})
 

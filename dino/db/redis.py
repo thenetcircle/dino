@@ -238,6 +238,12 @@ class DatabaseRedis(object):
 
         self.redis.hdel(RedisKeys.room_acl(room_id), acl_type)
 
+    def delete_acl_channel(self, channel_id: str, acl_type: str) -> None:
+        if self.channel_for_channel(channel_id) is None:
+            raise NoSuchChannelException(channel_id)
+
+        self.redis.hdel(RedisKeys.channel_acl(channel_id), acl_type)
+
     def add_acls_channel(self, channel_id: str, acls: dict) -> None:
         if self.channel_for_channel(channel_id) is None:
             raise NoSuchRoomException(channel_id)

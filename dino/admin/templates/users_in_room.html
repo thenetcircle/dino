@@ -104,7 +104,8 @@
                                         <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>&nbsp;
                                         Edit
                                     </a>
-                                    <a class="pure-button btn-danger" href="#">
+                                    <a class="pure-button btn-danger acl-remove" href="#" id="{{ acl.type }}">
+                                        <input type="hidden" class="acl-url" value="/channel/{{ channel_uuid }}/room/{{ room_uuid }}/acl/{{ acl.type }}" />
                                         <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
                                         Remove
                                     </a>

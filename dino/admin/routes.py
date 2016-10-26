@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from flask import redirect
+from flask import jsonify
 from flask import request
 from flask import send_from_directory
 from flask import render_template
@@ -113,6 +114,18 @@ def users_for_room(channel_uuid, room_uuid):
             owners=room_manager.get_owners(room_uuid),
             moderators=room_manager.get_moderators(room_uuid),
             users=user_manager.get_users_for_room(room_uuid))
+
+
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<acl_type>', methods=['DELETE'])
+def delete_acl_room(channel_uuid, room_uuid, acl_type):
+    acl_manager.delete_acl_room(room_uuid, acl_type)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/channel/<channel_uuid>/acl/<acl_type>', methods=['DELETE'])
+def delete_acl_channel(channel_uuid, acl_type):
+    acl_manager.delete_acl_channel(channel_uuid, acl_type)
+    return jsonify({'status_code': 200})
 
 
 @app.route('/channel/<channel_uuid>/create', methods=['POST'])
