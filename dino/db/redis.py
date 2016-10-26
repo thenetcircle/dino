@@ -33,6 +33,8 @@ from dino.exceptions import NoChannelFoundException
 from dino.exceptions import NoRoomNameException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import RoomNameExistsForChannelException
+from dino.exceptions import EmptyChannelNameException
+from dino.exceptions import EmptyRoomNameException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -238,6 +240,16 @@ class DatabaseRedis(object):
             room_name = str(room_name, 'utf-8')
 
         return room_name.lower() in cleaned
+    
+    def channel_name_exists(self, channel_name: str) -> bool:
+        cleaned = set()
+        for channel_name in self.redis.hvals(RedisKeys.channels()):
+            cleaned.add(str(channel_name, 'utf-8').lower())
+
+        if type(channel_name) == bytes:
+            channel_name = str(channel_name, 'utf-8')
+
+        return channel_name.lower() in cleaned
 
     def channel_exists(self, channel_id) -> bool:
         if channel_id is None or channel_id == '':
@@ -418,10 +430,21 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.rooms_for_user(user_id), room_id, room_name)
         self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)
 
+    def create_channel(self, channel_name, channel_id, user_id) -> None:
+        if self.channel_exists(channel_id):
+            raise ChannelExistsException(channel_id)
+
+        self.env.cache.set_channel_exists(channel_id)
+        self.redis.hset(RedisKeys.channels(), channel_id, channel_name)
+        self.set_owner_channel(channel_id, user_id)
+
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name) -> None:
         if self.env.cache.get_channel_exists(channel_id) is None:
             if not self.channel_exists(channel_id):
                 raise NoSuchChannelException(channel_id)
+
+        if room_name is None or len(room_name.strip()) == 0:
+            raise EmptyRoomNameException(room_id)
 
         if self.room_exists(channel_id, room_id):
             raise RoomExistsException(room_id)
@@ -433,6 +456,32 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.room_owners(room_id), user_id, user_name)
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
         self.redis.hset(RedisKeys.channel_for_rooms(), room_id, channel_id)
+
+    def rename_channel(self, channel_id: str, channel_name: str) -> None:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
+
+        if channel_name is None or len(channel_name.strip()) == 0:
+            raise EmptyChannelNameException(channel_id)
+
+        self.redis.hset(RedisKeys.channels(), channel_id, channel_name)
+
+    def rename_room(self, channel_id: str, room_id: str, room_name: str) -> None:
+        if self.env.cache.get_channel_exists(channel_id) is None:
+            if not self.channel_exists(channel_id):
+                raise NoSuchChannelException(channel_id)
+
+        if room_name is None or len(room_name.strip()) == 0:
+            raise EmptyRoomNameException(channel_id)
+
+        if not self.room_exists(channel_id, room_id):
+            raise NoSuchRoomException(room_id)
+
+        if self.room_name_exists(channel_id, room_name):
+            raise RoomNameExistsForChannelException(channel_id, room_name)
+
+        self.redis.hset(RedisKeys.room_name_for_id, room_id, room_name)
+        self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
 
     def remove_room(self, channel_id: str, room_id: str) -> None:
         if self.env.cache.get_channel_exists(channel_id) is None:
@@ -446,14 +495,6 @@ class DatabaseRedis(object):
         self.redis.delete(RedisKeys.room_owners(room_id))
         self.redis.hdel(RedisKeys.rooms(channel_id), room_id)
         self.redis.delete(RedisKeys.channel_for_rooms(), room_id)
-
-    def create_channel(self, channel_name, channel_id, user_id) -> None:
-        if self.channel_exists(channel_id):
-            raise ChannelExistsException(channel_id)
-
-        self.env.cache.set_channel_exists(channel_id)
-        self.redis.hset(RedisKeys.channels(), channel_id, channel_name)
-        self.set_owner_channel(channel_id, user_id)
 
     def get_user_status(self, user_id: str) -> str:
         status = self.env.cache.get_user_status(user_id)

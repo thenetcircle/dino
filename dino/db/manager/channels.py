@@ -17,6 +17,7 @@ import traceback
 
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
+from dino.exceptions import ChannelNameExistsException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -58,6 +59,15 @@ class ChannelManager(BaseManager):
             logger.error('could not get channel name from id %s: %s' % (channel_id, str(e)))
             print(traceback.format_exc())
         return ''
+
+    def rename(self, channel_id: str, channel_name: str) -> None:
+        try:
+            self.env.db.rename_channel(channel_id, channel_name)
+        except ChannelNameExistsException:
+            pass  # ignore
+        except Exception as e:
+            logger.error('could not rename channel with ID %s: %s' % (channel_id, str(e)))
+            print(traceback.format_exc())
 
     def get_owners(self, channel_id: str) -> list:
         try:

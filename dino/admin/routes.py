@@ -121,6 +121,32 @@ def users_for_room(channel_uuid, room_uuid):
             users=user_manager.get_users_for_room(room_uuid))
 
 
+@app.route('/channel/<channel_uuid>/rename', methods=['PUT'])
+def rename_channel(channel_uuid: str) -> None:
+    try:
+        json_data = request.get_json()
+        new_name = json_data['name']
+    except Exception as e:
+        logger.error('could not parse json: %s' % str(e))
+        return jsonify({'status_code': 400})
+
+    channel_manager.rename(channel_uuid, new_name)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/rename', methods=['PUT'])
+def rename_room(channel_uuid: str, room_uuid: str) -> None:
+    try:
+        json_data = request.get_json()
+        new_name = json_data['name']
+    except Exception as e:
+        logger.error('could not parse json: %s' % str(e))
+        return jsonify({'status_code': 400})
+
+    room_manager.rename(channel_uuid, room_uuid, new_name)
+    return jsonify({'status_code': 200})
+
+
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<acl_type>', methods=['DELETE'])
 def delete_acl_room(channel_uuid, room_uuid, acl_type):
     acl_manager.delete_acl_room(room_uuid, acl_type)
@@ -299,6 +325,11 @@ def create_admin_user():
 @app.route('/static/custom/<path:path>')
 def send_custom(path):
     return send_from_directory('admin/static/custom/', path)
+
+
+@app.route('/images/<path:path>')
+def send_images(path):
+    return send_from_directory('admin/static/vendor/images/', path)
 
 
 @app.route('/static/<path:path>')

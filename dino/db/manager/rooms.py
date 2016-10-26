@@ -17,6 +17,7 @@ import traceback
 
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
+from dino.exceptions import RoomNameExistsForChannelException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -56,6 +57,15 @@ class RoomManager(BaseManager):
             self.env.db.remove_room(channel_id, room_id)
         except Exception as e:
             logger.error('could not remove room: %s' % str(e))
+            print(traceback.format_exc())
+
+    def rename(self, channel_id: str, room_id: str, room_name: str) -> None:
+        try:
+            self.env.db.rename_room(channel_id, room_id, room_name)
+        except RoomNameExistsForChannelException:
+            pass  # ignore
+        except Exception as e:
+            logger.error('could not rename room with ID %s: %s' % (room_id, str(e)))
             print(traceback.format_exc())
 
     def name_for_uuid(self, room_id: str) -> str:

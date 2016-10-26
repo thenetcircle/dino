@@ -50,6 +50,14 @@ class IDatabase(Interface):
         :return: the channel uuid, or raises NoChannelFoundException if not found
         """
 
+    def channel_name_exists(self, channel_name: str) -> bool:
+        """
+        check if a channel name exists or not
+
+        :param channel_name: the name of the channel to check
+        :return: true if exists, false otherwise
+        """
+
     def room_name_exists(self, channel_id, room_name: str) -> bool:
         """
         check if a room name exists for a given channel or not
@@ -480,6 +488,27 @@ class IDatabase(Interface):
         :raises NoSuchRoomException if no room found with the given id
         :param room_id: the uuid of the room
         :return: the name of the room
+        """
+
+    def rename_channel(self, channel_id: str, channel_name: str) -> None:
+        """
+        rename a channel
+
+        :raises NoSuchChannelException if the channel doesn't exist
+        :param channel_id: the uuid of the channel to rename
+        :param channel_name: the new name to set for the channel
+        :return: nothing
+        """
+
+    def rename_room(self, channel_id: str, room_id: str, room_name: str) -> None:
+        """
+        rename a channel
+
+        :raises NoSuchRoomException if the room doesn't exist
+        :param channel_id: the uuid of the channel for this room
+        :param room_id: the uuid of the room to rename
+        :param room_name: the new name to set for the room
+        :return: nothing
         """
 
     def get_channel_name(self, channel_id: str) -> str:

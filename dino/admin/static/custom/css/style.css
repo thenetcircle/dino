@@ -50,6 +50,10 @@ div.form-toggler {
     font-size: 130%;
 }
 
+div#rename-form {
+    display: none;
+}
+
 @media screen and (min-width: 64em) {
     .pure-form input, .pure-form select {
         width: 140px;

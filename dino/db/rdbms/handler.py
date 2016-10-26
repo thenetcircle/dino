@@ -45,6 +45,9 @@ from dino.exceptions import UserExistsException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
+from dino.exceptions import EmptyChannelNameException
+from dino.exceptions import EmptyRoomNameException
+from dino.exceptions import ChannelNameExistsException
 
 from functools import wraps
 from zope.interface import implementer
@@ -202,6 +205,11 @@ class DatabaseRdbms(object):
             channels[row.uuid] = row.name
         return channels
 
+    @with_session
+    def channel_name_exists(self, channel_name: str) -> bool:
+        rows = self.session.query(Channels).filter(Channels.name == channel_name).all()
+        return rows is not None and len(rows) > 0
+
     def room_name_exists(self, channel_id, room_name: str) -> bool:
         @with_session
         def _room_name_exists(self):
@@ -219,6 +227,46 @@ class DatabaseRdbms(object):
             return exists
 
         return _room_name_exists(self)
+
+    def rename_channel(self, channel_id: str, channel_name: str) -> None:
+        @with_session
+        def _rename_channel(self):
+            channel = self.session.query(Channels).filter(Channels.uuid == channel_id).first()
+            if channel is None:
+                raise NoSuchChannelException(channel_id)
+
+            if channel.name == channel_name.strip():
+                return
+            channel.name = channel_name
+            self.session.commit()
+
+        if channel_name is None or len(channel_name.strip()) == 0:
+            raise EmptyChannelNameException(channel_id)
+
+        channel_name = channel_name.strip()
+        if self.channel_name_exists(channel_name):
+            raise ChannelNameExistsException(channel_name)
+        _rename_channel(self)
+
+    def rename_room(self, channel_id: str, room_id: str, room_name: str) -> None:
+        @with_session
+        def _rename_room(self):
+            room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+            if room is None:
+                raise NoSuchRoomException(room_id)
+
+            if room.name == room_name.strip():
+                return
+            room.name = room_name
+            self.session.commit()
+
+        if room_name is None or len(room_name.strip()) == 0:
+            raise EmptyRoomNameException(room_id)
+
+        room_name = room_name.strip()
+        if self.room_name_exists(channel_id, room_name):
+            raise RoomNameExistsForChannelException(channel_id, room_name)
+        _rename_room(self)
 
     def channel_for_room(self, room_id: str) -> str:
         @with_session
@@ -277,41 +325,49 @@ class DatabaseRdbms(object):
 
             self.env.cache.set_channel_exists(channel_id)
 
+        if channel_name is None or len(channel_name.strip()) == 0:
+            raise EmptyChannelNameException(channel_id)
+
         if self.channel_exists(channel_id):
             raise ChannelExistsException(channel_id)
         _create_channel(self)
 
-    @with_session
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str) -> None:
+        @with_session
+        def _create_room(self):
+            channel = self.session.query(Channels).filter(Channels.uuid == channel_id).first()
+            if channel is None:
+                raise NoSuchChannelException(channel_id)
+
+            room = Rooms()
+            room.uuid = room_id
+            room.name = room_name
+            room.channel = channel
+            room.created = datetime.utcnow()
+            self.session.add(room)
+
+            role = RoomRoles()
+            role.room = room
+            role.user_id = user_id
+            role.roles = RoleKeys.OWNER
+            self.session.add(role)
+
+            room.roles.append(role)
+            self.session.add(role)
+
+            channel.rooms.append(room)
+            self.session.add(channel)
+            self.session.commit()
+
+        if room_name is None or len(room_name.strip()) == 0:
+            raise EmptyRoomNameException(room_id)
+
         if self.room_exists(channel_id, room_id):
             raise RoomExistsException(room_id)
 
         if self.room_name_exists(channel_id, room_name):
             raise RoomNameExistsForChannelException(channel_id, room_name)
-
-        channel = self.session.query(Channels).filter(Channels.uuid == channel_id).first()
-        if channel is None:
-            raise NoSuchChannelException(channel_id)
-
-        room = Rooms()
-        room.uuid = room_id
-        room.name = room_name
-        room.channel = channel
-        room.created = datetime.utcnow()
-        self.session.add(room)
-
-        role = RoomRoles()
-        role.room = room
-        role.user_id = user_id
-        role.roles = RoleKeys.OWNER
-        self.session.add(role)
-
-        room.roles.append(role)
-        self.session.add(role)
-
-        channel.rooms.append(room)
-        self.session.add(channel)
-        self.session.commit()
+        _create_room(self)
 
     @with_session
     def remove_room(self, channel_id: str, room_id: str) -> None:
