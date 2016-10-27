@@ -274,6 +274,7 @@ def choose_queue_instance(config_dict: dict) -> object:
 
 def create_env(config_paths: list = None) -> GNEnvironment:
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
+    logger.info('using environment %s' % gn_environment)
 
     # assuming tests are running
     if gn_environment is None:

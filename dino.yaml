@@ -32,20 +32,32 @@ dev:
     log_level: 'DEBUG'
     database:
         type: 'rdbms'
-        driver: 'sqlite'
+        driver: 'postgres+psycopg2'
+        host: 'localhost'
+        port: 5432
+        db: 'dinodev'
+        user: 'dinouser'
+        password: 'dinopass'
     storage:
         type: 'redis'
-        host: 'maggie-kafka-3:6379'
+        host: 'localhost:6379'
         max_history: 200
-        db: 2
+        db: 6
     queue:
         type: 'redis'
-        host: 'redis://maggie-kafka-3:6379'
-        db: 3
+        host: 'redis://localhost:6379'
+        db: 7
     auth:
         type: 'redis'
         host: 'localhost:6379'
-        db: 0
+        db: 8
+    cache:
+        type: 'redis'
+        host: 'localhost:6379'
+        db: 9
+    history:
+        type: 'unread'  # unread or top
+        limit: 1000
 
 test:
     testing: True
