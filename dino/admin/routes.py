@@ -18,7 +18,9 @@ from flask import request
 from flask import send_from_directory
 from flask import render_template
 from uuid import uuid4 as uuid
+
 import logging
+import traceback
 
 from dino.web import app
 from dino.admin.orm import channel_manager
@@ -27,6 +29,12 @@ from dino.admin.orm import acl_manager
 from dino.admin.orm import user_manager
 
 from dino.validation.acl_validator import AclValidator
+from dino.exceptions import InvalidAclValueException
+from dino.exceptions import InvalidAclTypeException
+from dino.exceptions import RoomNameExistsForChannelException
+from dino.exceptions import ChannelNameExistsException
+from dino.exceptions import EmptyChannelNameException
+from dino.exceptions import EmptyRoomNameException
 
 from dino.admin.forms import CreateChannelForm
 from dino.admin.forms import CreateRoomForm
@@ -130,7 +138,13 @@ def rename_channel(channel_uuid: str) -> None:
         logger.error('could not parse json: %s' % str(e))
         return jsonify({'status_code': 400})
 
-    channel_manager.rename(channel_uuid, new_name)
+    try:
+        channel_manager.rename(channel_uuid, new_name)
+    except ChannelNameExistsException:
+        return jsonify({'status_code': 400, 'message': 'A channel with that name already exists'})
+    except EmptyChannelNameException:
+        return jsonify({'status_code': 400, 'message': 'Blank channel name is not allowed'})
+
     return jsonify({'status_code': 200})
 
 
@@ -143,13 +157,65 @@ def rename_room(channel_uuid: str, room_uuid: str) -> None:
         logger.error('could not parse json: %s' % str(e))
         return jsonify({'status_code': 400})
 
-    room_manager.rename(channel_uuid, room_uuid, new_name)
+    try:
+        room_manager.rename(channel_uuid, room_uuid, new_name)
+    except RoomNameExistsForChannelException:
+        return jsonify({'status_code': 400, 'message': 'A room with that name already exists for this channel'})
+    except EmptyRoomNameException:
+        return jsonify({'status_code': 400, 'message': 'Blank room name is not allowed'})
+
     return jsonify({'status_code': 200})
 
 
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<acl_type>', methods=['DELETE'])
 def delete_acl_room(channel_uuid, room_uuid, acl_type):
     acl_manager.delete_acl_room(room_uuid, acl_type)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<acl_type>', methods=['PUT'])
+def update_acl_room(channel_uuid, room_uuid, acl_type):
+    try:
+        json_data = request.get_json()
+        new_value = json_data['value']
+    except Exception as e:
+        logger.error('could not parse json: %s' % str(e))
+        return jsonify({'status_code': 400})
+
+    try:
+        acl_manager.update_room_acl(channel_uuid, room_uuid, acl_type, new_value)
+    except InvalidAclValueException:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL value'})
+    except InvalidAclTypeException:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL type'})
+    except Exception as e:
+        logger.error('could not update acl for room %s: %s' % (room_uuid, str(e)))
+        print(traceback.format_exc())
+        return jsonify({'status_code': 500, 'message': 'Could not update'})
+
+    return jsonify({'status_code': 200})
+
+
+@app.route('/channel/<channel_uuid>/acl/<acl_type>', methods=['PUT'])
+def update_acl_channel(channel_uuid, acl_type):
+    try:
+        json_data = request.get_json()
+        new_value = json_data['value']
+    except Exception as e:
+        logger.error('could not parse json: %s' % str(e))
+        return jsonify({'status_code': 400})
+
+    try:
+        acl_manager.update_channel_acl(channel_uuid, acl_type, new_value)
+    except InvalidAclValueException:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL value'})
+    except InvalidAclTypeException:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL type'})
+    except Exception as e:
+        logger.error('could not update acl for channel %s: %s' % (channel_uuid, str(e)))
+        print(traceback.format_exc())
+        return jsonify({'status_code': 500, 'message': 'Could not update'})
+
     return jsonify({'status_code': 200})
 
 

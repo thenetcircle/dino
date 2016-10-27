@@ -1,23 +1,13 @@
 
-function checkLength(o, n, min, max) {
+function checkLength(o, n, min, max, tipsFunc) {
     if (o.val().length > max || o.val().length < min) {
         o.addClass('ui-state-error');
-        updateTips('Length of ' + n + ' must be between ' +
+        tipsFunc('Length of ' + n + ' must be between ' +
             min + ' and ' + max + '.');
         return false;
     } else {
         return true;
     }
-}
-
-function rename() {
-}
-
-function updateTips(t) {
-    tips.text(t) .addClass('ui-state-highlight');
-    setTimeout(function() {
-        tips.removeClass('ui-state-highlight', 1500);
-    }, 500);
 }
 
 $(document).ready(function(){
@@ -68,7 +58,34 @@ $(document).ready(function(){
         }
     });
 
-    dialog = $('#rename-form').dialog({
+    editDialog = $('#edit-form').dialog({
+      autoOpen: false,
+      height: 220,
+      width: 300,
+      modal: true,
+      buttons: {
+        'Edit': edit,
+        Cancel: function() {
+          editDialog.dialog('close');
+        }
+      },
+      close: function() {
+        editForm[0].reset();
+        allEditFields.removeClass('ui-state-error');
+      }
+    });
+
+    editForm = editDialog.find('form').on('submit', function(event) {
+        event.preventDefault();
+        edit();
+    });
+
+    $('.edit-button').button().on('click', function() {
+        editUrlField = $(this).find('input.edit-url')[0];
+        editDialog.dialog('open');
+    });
+
+    renameDialog = $('#rename-form').dialog({
       autoOpen: false,
       height: 220,
       width: 300,
@@ -76,21 +93,94 @@ $(document).ready(function(){
       buttons: {
         'Rename': rename,
         Cancel: function() {
-          dialog.dialog('close');
+          renameDialog.dialog('close');
         }
       },
       close: function() {
-        form[0].reset();
-        allFields.removeClass('ui-state-error');
+        renameForm[0].reset();
+        allRenameFields.removeClass('ui-state-error');
       }
     });
 
-    form = dialog.find('form').on('submit', function(event) {
+    renameForm = renameDialog.find('form').on('submit', function(event) {
         event.preventDefault();
         rename();
     });
 
     $('.rename-button').button().on('click', function() {
-        dialog.dialog('open');
+        renameUrlField = $(this).find('input.rename-url')[0];
+        renameDialog.dialog('open');
     });
 });
+
+
+function renameUpdateTips(t) {
+    renameTips.text(t) .addClass('ui-state-highlight');
+    setTimeout(function() {
+        renameTips.removeClass('ui-state-highlight', 1500);
+    }, 500);
+}
+
+function editUpdateTips(t) {
+    editTips.text(t) .addClass('ui-state-highlight');
+    setTimeout(function() {
+        editTips.removeClass('ui-state-highlight', 1500);
+    }, 500);
+}
+
+function rename() {
+    var name = renameElement.val();
+    var rename_url = $(renameUrlField).val();
+    var valid = true;
+
+    allRenameFields.removeClass('ui-state-error');
+    valid = valid && checkLength(renameElement, 'name', 1, 128, renameUpdateTips);
+
+    if (valid) {
+        $.ajax({
+            method: 'PUT',
+            url: rename_url,
+            data: JSON.stringify({'name': name}),
+            contentType: 'application/json;charset=UTF-8'
+        }).done(function(data) {
+            console.log(data)
+            if (data.status_code == 200) {
+                location.reload();
+            }
+            else {
+                renameUpdateTips(data.message);
+            }
+        });
+    }
+    else {
+        return valid;
+    }
+}
+
+function edit() {
+    var value = editElement.val();
+    var edit_url = $(editUrlField).val();
+    var valid = true;
+
+    allEditFields.removeClass('ui-state-error');
+    valid = valid && checkLength(editElement, 'value', 1, 128, editUpdateTips);
+
+    if (valid) {
+        $.ajax({
+            method: 'PUT',
+            url: edit_url,
+            data: JSON.stringify({'value': value}),
+            contentType: 'application/json;charset=UTF-8'
+        }).done(function(data) {
+            if (data.status_code == 200) {
+                location.reload();
+            }
+            else {
+                editUpdateTips(data.message);
+            }
+        });
+    }
+    else {
+        return valid;
+    }
+}

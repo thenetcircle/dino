@@ -24,6 +24,7 @@ from dino.config import UserKeys
 from dino import environ
 
 from dino.environ import GNEnvironment
+from dino.validation.acl_validator import AclValidator
 from dino.exceptions import NoSuchChannelException
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchRoomException
@@ -35,6 +36,8 @@ from dino.exceptions import NoSuchUserException
 from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
+from dino.exceptions import InvalidAclTypeException
+from dino.exceptions import InvalidAclValueException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -53,6 +56,7 @@ class DatabaseRedis(object):
 
         self.env = env
         self.redis = Redis(host=host, port=port, db=db)
+        self.acl_validator = AclValidator()
 
     def _has_role_in_room(self, role: str, room_id: str, user_id: str) -> bool:
         roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
@@ -291,10 +295,34 @@ class DatabaseRedis(object):
         self.redis.hdel(RedisKeys.room_acl(room_id), acl_type)
 
     def delete_acl_channel(self, channel_id: str, acl_type: str) -> None:
-        if self.channel_for_channel(channel_id) is None:
+        if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
 
         self.redis.hdel(RedisKeys.channel_acl(channel_id), acl_type)
+
+    def update_acl_room(self, channel_id: str, room_id: str, acl_type: str, acl_value: str) -> None:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
+        if not self.room_exists(channel_id, room_id):
+            raise NoSuchRoomException(room_id)
+
+        if acl_type not in AclValidator.ACL_VALIDATORS:
+            raise InvalidAclTypeException(acl_type)
+        if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
+            raise InvalidAclValueException(acl_type, acl_value)
+
+        self.add_acls(room_id, {acl_type: acl_value})
+
+    def update_acl_channel(self, channel_id: str, acl_type: str, acl_value: str) -> None:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
+
+        if acl_type not in AclValidator.ACL_VALIDATORS:
+            raise InvalidAclTypeException(acl_type)
+        if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
+            raise InvalidAclValueException(acl_type, acl_value)
+
+        self.add_acls_channel(channel_id, {acl_type: acl_value})
 
     def add_acls_channel(self, channel_id: str, acls: dict) -> None:
         if self.channel_for_channel(channel_id) is None:

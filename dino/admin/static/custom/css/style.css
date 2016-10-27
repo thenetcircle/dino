@@ -70,6 +70,10 @@ div#rename-form {
     border-color: #b42c27;
 }
 
+#rename-form, #edit-form {
+    display: none;
+}
+
 @media screen and (min-width: 64em) {
     .pure-form input, .pure-form select {
         width: 140px;

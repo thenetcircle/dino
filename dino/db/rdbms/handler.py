@@ -722,6 +722,12 @@ class DatabaseRdbms(object):
         room.acl = acl
         self.session.commit()
 
+    def update_acl_room(self, channel_id: str, room_id: str, acl_type: str, acl_value: str) -> None:
+        self.add_acls(room_id, {acl_type: acl_value})
+
+    def update_acl_channel(self, channel_id: str, acl_type: str, acl_value: str) -> None:
+        self.add_acls_channel(channel_id, {acl_type: acl_value})
+
     @with_session
     def get_acls_channel(self, channel_id: str) -> dict:
         channel = self.session.query(Channels).outerjoin(Channels.acl).filter(Channels.uuid == channel_id).first()

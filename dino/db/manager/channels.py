@@ -63,11 +63,10 @@ class ChannelManager(BaseManager):
     def rename(self, channel_id: str, channel_name: str) -> None:
         try:
             self.env.db.rename_channel(channel_id, channel_name)
-        except ChannelNameExistsException:
-            pass  # ignore
         except Exception as e:
             logger.error('could not rename channel with ID %s: %s' % (channel_id, str(e)))
             print(traceback.format_exc())
+            raise e
 
     def get_owners(self, channel_id: str) -> list:
         try:

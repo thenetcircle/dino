@@ -363,6 +363,34 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def update_acl_room(self, channel_id: str, room_id: str, acl_type: str, acl_value: str) -> None:
+        """
+        change the value of an acl for a room
+
+        :raises InvalidAclTypeException if the type is invalid
+        :raises InvalidAclValueException if the value doesn't validate for the type
+        :raises NoSuchChannelException if the channel doesn't exist
+        :raises NoSuchRoomException if room doesn't exist
+        :param channel_id: the channel uuid of the room
+        :param room_id: the uuid of the room
+        :param acl_type: the acl type
+        :param acl_value: the new value for the acl type
+        :return: nothing
+        """
+
+    def update_acl_channel(self, channel_id: str, acl_type: str, acl_value: str) -> None:
+        """
+        change the value of an acl for a channel
+
+        :raises InvalidAclTypeException if the type is invalid
+        :raises InvalidAclValueException if the value doesn't validate for the type
+        :raises NoSuchChannelException if the channel doesn't exist
+        :param channel_id: the channel uuid of the room
+        :param acl_type: the acl type
+        :param acl_value: the new value for the acl type
+        :return: nothing
+        """
+
     def add_acls(self, room_id: str, acls: dict) -> None:
         """
         Add acls the room.

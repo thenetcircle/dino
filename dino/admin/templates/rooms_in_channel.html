@@ -6,21 +6,6 @@
     <a href="/channels">Channels</a> / {{ channel_name }}
 </p>
 
-<div id="rename-form" title="Rename">
-  <p class="validateTips">All form fields are required.</p>
-
-  <form>
-    <fieldset>
-      <label for="rename-name">Name</label>
-      <input type="text" name="rename-name" id="rename-name" value="" class="text ui-widget-content ui-corner-all">
-      <input type="hidden" name="rename-url" id="rename-url" value="/channel/{{ channel_uuid }}/rename" class="text ui-widget-content ui-corner-all">
-
-      <!-- Allow form submission with keyboard without duplicating the dialog button -->
-      <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-    </fieldset>
-  </form>
-</div>
-
 <div class="pure-g">
     <div class="pure-u-1 pure-u-xl-1-3 pure-u-md-1-2">
         <strong>Channel Information</strong>
@@ -42,7 +27,7 @@
                             <input type="hidden" class="redirect-url" value="/channels" />
                             <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
                         </a>
-                        <a class="pure-button ui-button rename ui-button ui-corner-all ui-widget" href="#">
+                        <a class="pure-button ui-button rename-button ui-button ui-corner-all ui-widget" href="#">
                             <input type="hidden" class="rename-url" value="/channel/{{ channel_uuid }}/rename" />
                             <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>
                         </a>
@@ -61,7 +46,7 @@
         <div class="pure-g form-container" style="width: 95%;">
             <div class="pure-u-1 pure-u-lg-1-3 pure-u-md-1-2">
                 <br />
-                {% from "_formhelpers.html" import render_field %}
+                {% from "forms/_formhelpers.html" import render_field %}
                 <form method="post" action="/channel/{{ channel_uuid }}/add/owner" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add owner</legend>
@@ -72,7 +57,7 @@
             </div>
             <div class="pure-u-1 pure-u-lg-1-3 pure-u-md-1-2">
                 <br />
-                {% from "_formhelpers.html" import render_field %}
+                {% from "forms/_formhelpers.html" import render_field %}
                 <form method="post" action="/channel/{{ channel_uuid }}/add/admin" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add admin</legend>
@@ -83,7 +68,7 @@
             </div>
             <div class="pure-u-1 pure-u-lg-1-3">
                 <br />
-                {% from "_formhelpers.html" import render_field %}
+                {% from "forms/_formhelpers.html" import render_field %}
                 <form method="post" action="/channel/{{ channel_uuid }}/create/acl" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add permission</legend>
@@ -119,6 +104,7 @@
                                         <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
                                     </a>
                                     <a class="pure-button ui-button edit-button ui-button ui-corner-all ui-widget" href="#">
+                                        <input type="hidden" class="edit-url" value="/channel/{{ channel_uuid }}/acl/{{ acl.type }}" />
                                         <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>
                                     </a>
                                 </td>
@@ -191,7 +177,7 @@
 <br />
 
 <div>
-    {% from "_formhelpers.html" import render_field %}
+    {% from "forms/_formhelpers.html" import render_field %}
     <form method="post" action="/channel/{{ channel_uuid }}/create" class="pure-form">
         <fieldset>
              <legend>Create new room</legend>
