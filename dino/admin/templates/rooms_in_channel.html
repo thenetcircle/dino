@@ -22,15 +22,8 @@
                     <td>{{ channel_name }}</td>
                     <td><small>{{ channel_uuid }}</small></td>
                     <td class="actions">
-                        <a class="pure-button ui-button-danger ui-button remove-button ui-button ui-corner-all ui-widget" href="#">
-                            <input type="hidden" class="remove-url" value="/channel/{{ channel_uuid }}/remove" />
-                            <input type="hidden" class="redirect-url" value="/channels" />
-                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
-                        </a>
-                        <a class="pure-button ui-button rename-button ui-button ui-corner-all ui-widget" href="#">
-                            <input type="hidden" class="rename-url" value="/channel/{{ channel_uuid }}/rename" />
-                            <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>
-                        </a>
+                        {{ render_remove("/channel/" + channel_uuid + "/remove", "/channels") }}
+                        {{ render_rename("/channel/" + channel_uuid + "/rename") }}
                     </td>
                 </tr>
             </tbody>
@@ -46,7 +39,6 @@
         <div class="pure-g form-container" style="width: 95%;">
             <div class="pure-u-1 pure-u-lg-1-3 pure-u-md-1-2">
                 <br />
-                {% from "forms/_formhelpers.html" import render_field %}
                 <form method="post" action="/channel/{{ channel_uuid }}/add/owner" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add owner</legend>
@@ -57,7 +49,6 @@
             </div>
             <div class="pure-u-1 pure-u-lg-1-3 pure-u-md-1-2">
                 <br />
-                {% from "forms/_formhelpers.html" import render_field %}
                 <form method="post" action="/channel/{{ channel_uuid }}/add/admin" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add admin</legend>
@@ -68,7 +59,6 @@
             </div>
             <div class="pure-u-1 pure-u-lg-1-3">
                 <br />
-                {% from "forms/_formhelpers.html" import render_field %}
                 <form method="post" action="/channel/{{ channel_uuid }}/create/acl" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add permission</legend>
@@ -99,14 +89,8 @@
                                 <td>{{ acl.type }}</td>
                                 <td><small>{{ acl.value }}</small></td>
                                 <td class="actions">
-                                    <a class="pure-button ui-button-danger ui-button remove-button ui-button ui-corner-all ui-widget" href="#">
-                                        <input type="hidden" class="remove-url" value="/channel/{{ channel_uuid }}/acl/{{ acl.type }}" />
-                                        <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
-                                    </a>
-                                    <a class="pure-button ui-button edit-button ui-button ui-corner-all ui-widget" href="#">
-                                        <input type="hidden" class="edit-url" value="/channel/{{ channel_uuid }}/acl/{{ acl.type }}" />
-                                        <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>
-                                    </a>
+                                    {{ render_remove("/channel/" + channel_uuid + "/acl/" + acl.type, "") }}
+                                    {{ render_edit("/channel/" + channel_uuid + "/acl/" + acl.type) }}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -131,10 +115,7 @@
                                     <td>{{ owner.name }}</td>
                                     <td><small>{{ owner.uuid }}</small></td>
                                     <td class="actions">
-                                        <a class="pure-button ui-button-danger ui-button remove-button ui-button ui-corner-all ui-widget" href="#">
-                                            <input type="hidden" class="remove-url" value="/channel/{{ channel_uuid }}/remove/owner/{{ owner.uuid }}" />
-                                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
-                                        </a>
+                                        {{ render_remove("/channel/" + channel_uuid + "/remove/owner/" + owner.uuid, "") }}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -159,10 +140,7 @@
                                     <td>{{ admin.name }}</td>
                                     <td><small>{{ admin.uuid }}</small></td>
                                     <td class="actions">
-                                        <a class="pure-button ui-button-danger ui-button remove-button ui-button ui-corner-all ui-widget" href="#">
-                                            <input type="hidden" class="remove-url" value="/channel/{{ channel_uuid }}/remove/admin/{{ admin.uuid }}" />
-                                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
-                                        </a>
+                                        {{ render_remove("/channel/" + channel_uuid + "/remove/admin/" + admin.uuid, "") }}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -177,7 +155,6 @@
 <br />
 
 <div>
-    {% from "forms/_formhelpers.html" import render_field %}
     <form method="post" action="/channel/{{ channel_uuid }}/create" class="pure-form">
         <fieldset>
              <legend>Create new room</legend>

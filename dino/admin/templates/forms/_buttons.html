@@ -1,0 +1,23 @@
+{% macro render_remove(action_url, redirect_url) %}
+    <a class="pure-button ui-button-danger ui-button remove-button ui-button ui-corner-all ui-widget" href="#">
+        <input type="hidden" class="remove-url" value="{{ action_url }}" />
+        {% if redirect_url != "" %}
+            <input type="hidden" class="redirect-url" value="{{ redirect_url }}" />
+        {% endif %}
+        <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
+    </a>
+{% endmacro %}
+
+{% macro render_rename(action_url) %}
+    <a class="pure-button ui-button rename-button ui-button ui-corner-all ui-widget" href="#">
+        <input type="hidden" class="rename-url" value="{{ action_url }}" />
+        <i class="fa fa-pencil fa-lg" aria-hidden="true"></i>
+    </a>
+{% endmacro %}
+
+{% macro render_edit(action_url) %}
+    <a class="pure-button ui-button edit-button ui-button ui-corner-all ui-widget" href="#">
+        <input type="hidden" class="edit-url" value="{{ action_url }}" />
+        <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>
+    </a>
+{% endmacro %}
