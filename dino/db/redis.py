@@ -240,7 +240,7 @@ class DatabaseRedis(object):
             room_name = str(room_name, 'utf-8')
 
         return room_name.lower() in cleaned
-    
+
     def channel_name_exists(self, channel_name: str) -> bool:
         cleaned = set()
         for channel_name in self.redis.hvals(RedisKeys.channels()):

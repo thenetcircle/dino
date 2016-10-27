@@ -29,24 +29,22 @@
                 <tr>
                     <td>Name</td>
                     <td>UUID</td>
-                    <td style="width: 35%">Actions</td>
+                    <td class="actions">Actions</td>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>{{ room_name }}</td>
                     <td><small>{{ room_uuid }}</small></td>
-                    <td>
-                        <a class="pure-button rename-button" href="#">
-                            <!-- TODO: put rename-url here, so we can have multiple rename forms -->
-                            <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>&nbsp;
-                            Rename
-                        </a>
-                        <a class="pure-button btn-danger remove-button" href="#">
+                    <td class="actions">
+                        <a class="pure-button ui-button-danger ui-button remove-button ui-button ui-corner-all ui-widget" href="#">
                             <input type="hidden" class="remove-url" value="/channel/{{ channel_uuid }}/room/{{ room_uuid }}/remove" />
                             <input type="hidden" class="redirect-url" value="/channel/{{ channel_uuid }}/rooms" />
-                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
-                            Remove
+                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
+                        </a>
+                        <a class="pure-button ui-button remove-button ui-button ui-corner-all ui-widget rename-button" href="#">
+                            <!-- TODO: put rename-url here, so we can have multiple rename forms -->
+                            <i class="fa fa-pencil fa-lg" aria-hidden="true"></i>
                         </a>
                     </td>
                 </tr>
@@ -107,7 +105,7 @@
                         <tr>
                             <td>Type</td>
                             <td>Value</td>
-                            <td>Actions</td>
+                            <td class="actions">Actions</td>
                         </tr>
                     </thead>
                     <tbody>
@@ -115,15 +113,13 @@
                             <tr>
                                 <td>{{ acl.type }}</td>
                                 <td><small>{{ acl.value }}</small></td>
-                                <td>
-                                    <a class="pure-button" href="#">
-                                        <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>&nbsp;
-                                        Edit
-                                    </a>
-                                    <a class="pure-button btn-danger remove-button" href="#" id="{{ acl.type }}">
+                                <td class="actions">
+                                    <a class="pure-button ui-button-danger ui-button remove-button ui-button ui-corner-all ui-widget" href="#" id="{{ acl.type }}">
                                         <input type="hidden" class="remove-url" value="/channel/{{ channel_uuid }}/room/{{ room_uuid }}/acl/{{ acl.type }}" />
-                                        <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
-                                        Remove
+                                        <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
+                                    </a>
+                                    <a class="pure-button ui-button edit-button ui-button ui-corner-all ui-widget" href="#">
+                                        <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -140,7 +136,7 @@
                             <tr>
                                 <td>Name</td>
                                 <td>ID</td>
-                                <td style="width: 35%">Actions</td>
+                                <td class="actions">Actions</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -148,11 +144,10 @@
                                 <tr>
                                     <td>{{ owner.name }}</td>
                                     <td><small>{{ owner.uuid }}</small></td>
-                                    <td>
-                                        <a class="pure-button btn-danger remove-button" href="#">
+                                    <td class="actions">
+                                        <a class="pure-button ui-button-danger ui-button remove-button ui-button ui-corner-all ui-widget" href="#">
                                             <input type="hidden" class="remove-url" value="/channel/{{ channel_uuid }}/room/{{ room_uuid }}/remove/owner/{{ owner.uuid }}" />
-                                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
-                                            Remove
+                                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -169,7 +164,7 @@
                             <tr>
                                 <td>Name</td>
                                 <td>ID</td>
-                                <td style="width: 35%">Actions</td>
+                                <td class="actions">Actions</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -177,11 +172,10 @@
                                 <tr>
                                     <td>{{ moderator.name }}</td>
                                     <td><small>{{ moderator.uuid }}</small></td>
-                                    <td>
-                                        <a class="pure-button btn-danger remove-button" href="#">
+                                    <td class="actions">
+                                        <a class="pure-button ui-button-danger ui-button remove-button ui-button ui-corner-all ui-widget" href="#">
                                             <input type="hidden" class="remove-url" value="/channel/{{ channel_uuid }}/room/{{ room_uuid }}/remove/moderator/{{ moderator.uuid }}" />
-                                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>&nbsp;
-                                            Remove
+                                            <i class="fa fa-trash-o fa-lg" aria-hidden="true"></i>
                                         </a>
                                     </td>
                                 </tr>

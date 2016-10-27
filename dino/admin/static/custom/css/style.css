@@ -50,8 +50,24 @@ div.form-toggler {
     font-size: 130%;
 }
 
+td.actions {
+    width: 130px;
+}
+
 div#rename-form {
     display: none;
+}
+
+.ui-button-danger {
+    color: #ffffff !important;
+    background-color: #d9534f;
+    border-color: #c9312c;
+}
+
+.ui-button-danger:hover {
+    color: #ffffff !important;
+    background-color: #d43f3a;
+    border-color: #b42c27;
 }
 
 @media screen and (min-width: 64em) {
