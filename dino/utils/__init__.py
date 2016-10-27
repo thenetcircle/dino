@@ -329,7 +329,7 @@ def is_banned(user_id: str, room_id: str=None) -> (bool, Union[str, None]):
 
 def ban_user(room_id: str, user_id: str, ban_duration: str) -> None:
     ban_timestamp = ban_duration_to_timestamp(ban_duration)
-    environ.env.db.ban_user(user_id, ban_timestamp, ban_duration, room_id)
+    environ.env.db.ban_user_room(user_id, ban_timestamp, ban_duration, room_id)
 
 
 def get_current_user_role() -> str:
