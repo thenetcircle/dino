@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from dino.db.rdbms import DeclarativeBase
@@ -40,7 +40,7 @@ class Channels(DeclarativeBase):
 
     rooms = relationship('Rooms', back_populates='channel')
     roles = relationship('ChannelRoles', back_populates='channel')
-
+    bans = relationship('Bans', back_populates='channel')
     acl = relationship('Acls', uselist=False, back_populates='channel')
 
 
@@ -55,14 +55,32 @@ class Rooms(DeclarativeBase):
     channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=False)
     channel = relationship('Channels', back_populates='rooms')
 
-    acl = relationship('Acls', uselist=False, back_populates='room')
-
     roles = relationship('RoomRoles', back_populates='room')
+    bans = relationship('Bans', back_populates='room')
+    acl = relationship('Acls', uselist=False, back_populates='room')
 
     users = relationship(
         'Users',
         secondary=rooms_users_association_table,
         back_populates='rooms')
+
+
+class Bans(DeclarativeBase):
+    __tablename__ = 'bans'
+    
+    id = Column(Integer, primary_key=True)
+    uuid = Column('uuid', String, nullable=False, index=True)
+    user_id = Column('user_id', String, nullable=False, index=True)
+    duration = Column('duration', String, nullable=False)
+    timestamp = Column('timestamp', DateTime, nullable=False)
+
+    room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=False)
+    room = relationship('Rooms', back_populates='bans')
+
+    channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=False)
+    channel = relationship('Channels', back_populates='bans')
+
+    is_global = Column('is_global', Boolean, nullable=False, index=True, default=False)
 
 
 class Users(DeclarativeBase):

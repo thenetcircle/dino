@@ -68,6 +68,13 @@ def channels():
             channels=channel_manager.get_channels())
 
 
+@app.route('/banned', methods=['GET'])
+def channels():
+    return render_template(
+            'banned.html',
+            users=user_manager.get_banned_users())
+
+
 @app.route('/users', methods=['GET'])
 def users():
     form = CreateUserForm(request.form)

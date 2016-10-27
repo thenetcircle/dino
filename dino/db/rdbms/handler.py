@@ -34,6 +34,7 @@ from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
 from dino.db.rdbms.models import LastReads
+from dino.db.rdbms.models import Bans
 
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
@@ -917,3 +918,114 @@ class DatabaseRdbms(object):
         if value is not None:
             return value
         return _get_channel_name(self)
+
+    def _get_banned_users(self, all_bans):
+        output = dict()
+        if all_bans is None or len(all_bans) == 0:
+            return output
+
+        should_commit = False
+        now = datetime.utcnow()
+
+        for ban in all_bans:
+            if now > ban.timestamp:
+                self.session.delete(ban)
+                should_commit = True
+                continue
+
+            output[ban.user_id] = {
+                'duration': ban.duration,
+                'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+            }
+
+        if should_commit:
+            self.session.commit()
+        return output
+
+    @with_session
+    def get_banned_users_global(self, room_id: str) -> dict:
+        all_bans = self.session.query(Bans).filter(Bans.is_global.is_(True)).all()
+        return self._get_banned_users(all_bans)
+
+    @with_session
+    def get_banned_users_for_channel(self, channel_id: str) -> dict:
+        all_bans = self.session.query(Bans).join(Bans.channel).filter(Channels.uuid == channel_id).all()
+        return self._get_banned_users(all_bans)
+
+    @with_session
+    def get_banned_users_for_room(self, room_id: str) -> dict:
+        all_bans = self.session.query(Bans).join(Bans.room).filter(Rooms.uuid == room_id).all()
+        return self._get_banned_users(all_bans)
+
+    @with_session
+    def get_banned_users(self):
+        output = {
+            'global': dict(),
+            'channels': dict(),
+            'rooms': dict()
+        }
+
+        all_bans = self.session.query(Bans).outerjoin(Bans.room).outerjoin(Bans.channel).all()
+        if all_bans is None or len(all_bans) == 0:
+            return output
+
+        should_commit = False
+        now = datetime.utcnow()
+
+        for ban in all_bans:
+            timestamp = ban.timestamp
+            if now > timestamp:
+                self.session.delete(ban)
+                should_commit = True
+                continue
+
+            if ban.room is not None:
+                if ban.room_uuid not in output['rooms']:
+                    output['rooms'][ban.room_uuid] = dict()
+                output['rooms'][ban.room_uuid][ban.user_id] = {
+                    'duration': ban.duration,
+                    'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                }
+            elif ban.channel is not None:
+                if ban.channel_uuid not in output['channels']:
+                    output['channels'][ban.channel_uuid] = dict()
+                output['channels'][ban.channel_uuid][ban.user_id] = {
+                    'duration': ban.duration,
+                    'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                }
+            elif ban.is_global:
+                output['global']['user_id'] = {
+                    'duration': ban.duration,
+                    'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                }
+
+        if should_commit:
+            self.session.commit()
+        return output
+
+    @with_session
+    def ban_user(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+        is_global_ban = room_id is None or len(room_id.strip()) == 0
+
+        if is_global_ban:
+            ban = self.session.query(Bans)\
+                .filter(Bans.user_id == user_id).first()
+            if ban is None:
+                ban = Bans()
+                ban.user_id = user_id
+        else:
+            ban = self.session.query(Bans)\
+                .join(Bans.room)\
+                .filter(Bans.user_id == user_id)\
+                .filter(Rooms.uuid == room_id).first()
+            if ban is None:
+                room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+                ban = Bans()
+                ban.user_id = user_id
+                ban.room = room
+
+        ban.timestamp = datetime.fromtimestamp(int(ban_timestamp))
+        ban.duration = ban_duration
+
+        self.session.add(ban)
+        self.session.commit()

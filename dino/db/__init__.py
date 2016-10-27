@@ -113,9 +113,76 @@ class IDatabase(Interface):
         """
         leave a room
 
-        :param user_id:
-        :param room_id:
+        :param user_id: the id of the user leaving
+        :param room_id: the uuid of the room to leave
         :return:
+        """
+    def get_banned_users_global(self) -> dict:
+        """
+        get all users banned globally
+
+        :return: a dict of {"<user_id>": {"duration": "<duration time>", "timestamp": "<ban end timestamp>"}
+        """
+
+    def get_banned_users_for_channel(self, channel_id: str) -> dict:
+        """
+        get all users banned from this channel
+
+        :param channel_id: the uuid of the room
+        :return: a dict of {"<user_id>": {"duration": "<duration time>", "timestamp": "<ban end timestamp>"}
+        """
+
+    def get_banned_users_for_room(self, room_id: str) -> dict:
+        """
+        get all users banned from this room
+
+        :param room_id: the uuid of the room
+        :return: a dict of {"<user_id>": {"duration": "<duration time>", "timestamp": "<ban end timestamp>"}
+        """
+
+    def get_banned_users(self) -> dict:
+        """
+        get all banned users, both globally and for each room
+
+        example return value:
+
+            {
+                "global": {
+                    "<user_id>": {
+                        "duration": "<duration time>",
+                        "timestamp": "<ban end timestamp>"
+                    }
+                },
+                "channels": {
+                    "<channel_uuid>": {
+                        "<user_id>": {
+                            "duration": "<duration time>",
+                            "timestamp": "<ban end timestamp>"
+                        }
+                    }
+                },
+                "rooms": {
+                    "<room_uuid>": {
+                        "<user_id>": {
+                            "duration": "<duration time>",
+                            "timestamp": "<ban end timestamp>"
+                        }
+                    }
+                }
+            }
+
+        :return: a dict with banned users
+        """
+
+    def ban_user(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+        """
+        ban a user from either a room or globally (if empty room_id then the ban is considered global)
+
+        :param user_id: the id of the user to ban
+        :param ban_timestamp: end time of the ban
+        :param ban_duration: how long this ban is for
+        :param room_id: the uuid of the room to ban for, or blank if global ban
+        :return: nothing
         """
 
     def is_admin(self, channel_id: str, user_id: str) -> bool:

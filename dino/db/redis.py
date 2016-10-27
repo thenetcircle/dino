@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from zope.interface import implementer
+from datetime import datetime
 import logging
 
 from dino.db import IDatabase
@@ -335,6 +336,114 @@ class DatabaseRedis(object):
             raise NoSuchRoomException(room_id)
 
         self.redis.hmset(RedisKeys.room_acl(room_id), acls)
+
+    # TODO: use @lru_cache?
+    def get_banned_users_global(self) -> dict:
+        now = datetime.utcnow()
+        output = dict()
+
+        def for_global_ban(user_id, ban_info):
+            ban_duration, ban_timestamp = ban_info.split('|')
+            if datetime.fromtimestamp(int(ban_timestamp)) > now:
+                self.redis.hdel(RedisKeys.banned_users(), user_id)
+                return
+
+            output[user_id] = {
+                'duration': ban_duration,
+                'timestamp': datetime.fromtimestamp(int(ban_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+            }
+
+        global_bans = self.redis.hgetall(RedisKeys.banned_users())
+        for user_id, ban_info in global_bans.items():
+            user_id = str(user_id, 'utf-8')
+            ban_info = str(ban_info, 'utf-8')
+            for_global_ban(user_id, ban_info)
+
+        return output
+
+    # TODO: use @lru_cache?
+    def get_banned_users_for_channel(self, channel_id):
+        now = datetime.utcnow()
+        output = dict()
+
+        def for_local_ban_channel(user_id, channel_id, ban_info):
+            ban_duration, ban_timestamp = ban_info.split('|')
+            if datetime.fromtimestamp(int(ban_timestamp)) > now:
+                self.redis.hdel(RedisKeys.banned_users_channel(channel_id), user_id)
+                return
+
+            output[user_id] = {
+                'duration': ban_duration,
+                'timestamp': datetime.fromtimestamp(int(ban_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+            }
+
+        channel_bans = self.redis.hgetall(RedisKeys.banned_users_channel(channel_id))
+        for user_id, ban_info in channel_bans.items():
+            user_id = str(user_id, 'utf-8')
+            ban_info = str(ban_info, 'utf-8')
+            for_local_ban_channel(user_id, channel_id, ban_info)
+
+        return output
+
+    # TODO: use @lru_cache?
+    def get_banned_users_for_room(self, room_id) -> dict:
+        now = datetime.utcnow()
+        output = dict()
+
+        def for_local_ban(user_id, room_id, ban_info):
+            ban_duration, ban_timestamp = ban_info.split('|')
+            if datetime.fromtimestamp(int(ban_timestamp)) > now:
+                self.redis.hdel(RedisKeys.banned_users(room_id), user_id)
+                return
+
+            if user_id not in output:
+                output[user_id] = dict()
+
+            output[user_id] = {
+                'duration': ban_duration,
+                'timestamp': datetime.fromtimestamp(int(ban_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+            }
+
+        local_bans = self.redis.hgetall(RedisKeys.banned_users(room_id))
+        for user_id, ban_info in local_bans.items():
+            user_id = str(user_id, 'utf-8')
+            ban_info = str(ban_info, 'utf-8')
+            for_local_ban(user_id, room_id, ban_info)
+
+        return output
+
+    def get_banned_users(self) -> dict:
+        all_channels = self.redis.hgetall(RedisKeys.channels())
+
+        def get_banned_users_all_channels() -> dict:
+            output = dict()
+            for channel_id, _ in all_channels.items():
+                channel_id = str(channel_id, 'utf-8')
+                output[channel_id] = self.get_banned_users_for_channel(channel_id)
+            return output
+
+        def get_banned_users_all_rooms(self, all_channels) -> dict:
+            output = dict()
+            for channel_id, _ in all_channels.items():
+                channel_id = str(channel_id, 'utf-8')
+                rooms_for_channel = self.redis.hgetall(RedisKeys.rooms(channel_id))
+                for room_id, _ in rooms_for_channel.items():
+                    room_id = str(room_id, 'utf-8')
+                    output[room_id] = self.get_banned_users_for_room(room_id)
+            return output
+
+        return {
+            'global': self.get_banned_users_global(),
+            'channels': self.get_banned_users_all_channels(all_channels),
+            'rooms': self.get_banned_users_all_rooms(all_channels)
+        }
+
+    def ban_user(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+        is_global_ban = room_id is None or room_id == ''
+        if is_global_ban:
+            environ.env.redis.hset(RedisKeys.banned_users(), user_id, '%s|%s' % (ban_duration, ban_timestamp))
+        else:
+            environ.env.redis.hset(RedisKeys.banned_users(room_id), user_id, '%s|%s' % (ban_duration, ban_timestamp))
 
     def get_acls_channel(self, channel_id: str) -> dict:
         if not self.channel_exists(channel_id) is None:

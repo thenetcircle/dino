@@ -327,15 +327,9 @@ def is_banned(user_id: str, room_id: str=None) -> (bool, Union[str, None]):
     return False, None
 
 
-# TODO: use env.db instead of env.redis
 def ban_user(room_id: str, user_id: str, ban_duration: str) -> None:
     ban_timestamp = ban_duration_to_timestamp(ban_duration)
-    is_global_ban = room_id is None or room_id == ''
-
-    if is_global_ban:
-        environ.env.redis.hset(RedisKeys.banned_users(), user_id, ban_timestamp)
-    else:
-        environ.env.redis.hset(RedisKeys.banned_users(room_id), user_id, ban_timestamp)
+    environ.env.db.ban_user(user_id, ban_timestamp, ban_duration, room_id)
 
 
 def get_current_user_role() -> str:
