@@ -182,9 +182,31 @@ class IDatabase(Interface):
         :return: a dict with banned users
         """
 
-    def ban_user(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+    def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str):
         """
-        ban a user from either a room or globally (if empty room_id then the ban is considered global)
+        ban a user from either a channel
+
+        :param user_id: the id of the user to ban
+        :param ban_timestamp: end time of the ban
+        :param ban_duration: how long this ban is for
+        :param channel_id: the uuid of the channel to ban for
+        :return: nothing
+        """
+
+    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+        """
+        ban a user from either a room
+
+        :param user_id: the id of the user to ban
+        :param ban_timestamp: end time of the ban
+        :param ban_duration: how long this ban is for
+        :param room_id: the uuid of the room to ban for
+        :return: nothing
+        """
+
+    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):
+        """
+        ban a user globally
 
         :param user_id: the id of the user to ban
         :param ban_timestamp: end time of the ban

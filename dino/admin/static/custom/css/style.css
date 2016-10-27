@@ -50,7 +50,15 @@ div.form-toggler {
     font-size: 130%;
 }
 
+td.timestamp {
+    font-size: small;
+}
+
 td.actions {
+    width: 130px;
+}
+
+td.actions-small {
     width: 130px;
 }
 

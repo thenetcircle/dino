@@ -11,11 +11,13 @@
         <link rel="stylesheet" href="/static/grids-responsive-min.css">
         <link rel="stylesheet" type="text/css" media="all" href="/static/jquery-ui.min.css"/>
 
+        <script type="text/javascript" src="/static/moment.min.js"></script>
         <script type="text/javascript" src="/static/jquery-2.2.2.min.js"></script>
         <script type="text/javascript" src="/static/jquery.confirm.min.js"></script>
         <script type="text/javascript" src="/static/datatables.min.js"></script>
         <script type="text/javascript" src="/static/switchery.min.js"></script>
         <script type="text/javascript" src="/static/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="/static/jquery.countdown.min.js"></script>
 
         <script type="text/javascript" src="/static/custom/js/index.js"></script>
         <link rel="stylesheet" type="text/css" href="/static/custom/css/style.css" />
@@ -26,6 +28,7 @@
         {% from "forms/_buttons.html" import render_rename %}
         {% from "forms/_buttons.html" import render_edit %}
         {% from "forms/_formhelpers.html" import render_field %}
+        {% from "forms/_formhelpers.html" import render_form %}
 
         {% include 'menu.html' %}
         {% include 'forms/forms.html' %}

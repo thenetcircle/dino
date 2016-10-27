@@ -73,12 +73,12 @@ class Bans(DeclarativeBase):
     user_id = Column('user_id', String, nullable=False, index=True)
     user_name = Column('user_name', String, nullable=True, index=False)
     duration = Column('duration', String, nullable=False)
-    timestamp = Column('timestamp', DateTime, nullable=False)
+    timestamp = Column('time_stamp', DateTime, nullable=False)
 
-    room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=False)
+    room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=True)
     room = relationship('Rooms', back_populates='bans')
 
-    channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=False)
+    channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=True)
     channel = relationship('Channels', back_populates='bans')
 
     is_global = Column('is_global', Boolean, nullable=False, index=True, default=False)

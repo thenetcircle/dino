@@ -18,7 +18,7 @@ from typing import Union
 from dino.config import SessionKeys
 from dino.config import ConfigKeys
 from dino import environ
-from dino.validation.generic_validator import GenericValidator
+from dino.validation.duration import DurationValidator
 from dino.config import RedisKeys
 from dino.config import UserKeys
 from datetime import timedelta
@@ -339,27 +339,22 @@ def get_current_user_role() -> str:
 
 
 def ban_duration_to_timestamp(ban_duration: str) -> str:
-    if ban_duration is None or ban_duration == '':
-        raise ValueError('empty ban duration')
-
-    if not ban_duration.endswith('s') and not ban_duration.endswith('m') and not ban_duration.endswith('d'):
-        raise ValueError('invalid ban duration: %s' % ban_duration)
-
-    if ban_duration.startswith('-'):
-        raise ValueError('can not set negative ban duration: %s' % ban_duration)
-
-    if ban_duration.startswith('+'):
-        ban_duration = ban_duration[1:]
-
-    if not GenericValidator.is_digit(ban_duration[:-1]):
-        raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
+    DurationValidator(ban_duration)
 
     days = 0
+    hours = 0
     seconds = 0
     if ban_duration.endswith('d'):
         ban_duration = ban_duration[:-1]
         try:
             days = int(ban_duration)
+        except ValueError as e:
+            environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
+            raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
+    elif ban_duration.endswith('h'):
+        ban_duration = ban_duration[:-1]
+        try:
+            hours = int(ban_duration)
         except ValueError as e:
             environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
             raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
@@ -380,8 +375,8 @@ def ban_duration_to_timestamp(ban_duration: str) -> str:
     else:
         raise ValueError('unknown ban duration: %s' % ban_duration)
 
-    now = datetime.now()
-    ban_time = timedelta(days=days, seconds=seconds)
+    now = datetime.utcnow()
+    ban_time = timedelta(days=days, hours=hours, seconds=seconds)
     end_date = now + ban_time
 
     return str(int(end_date.timestamp()))

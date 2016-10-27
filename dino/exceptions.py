@@ -15,6 +15,11 @@
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
+class UnknownBanType(Exception):
+    def __init__(self, ban_type):
+        self.ban_type = ban_type
+
+
 class NoSuchChannelException(Exception):
     def __init__(self, uuid):
         self.uuid = uuid

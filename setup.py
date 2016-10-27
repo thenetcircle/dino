@@ -41,5 +41,6 @@ setup(
         'cassandra-driver==3.7.0',
         'kombu==3.0.37',
         'typing==3.5.2.2',
-        'nose-parameterized==0.5.0'
+        'nose-parameterized==0.5.0',
+        'python-dateutil==2.5.3'
     ])

@@ -35,6 +35,7 @@ from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import ChannelNameExistsException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
+from dino.exceptions import UnknownBanType
 
 from dino.admin.forms import CreateChannelForm
 from dino.admin.forms import CreateRoomForm
@@ -43,6 +44,7 @@ from dino.admin.forms import CreateAclForm
 from dino.admin.forms import AddModeratorForm
 from dino.admin.forms import AddOwnerForm
 from dino.admin.forms import AddAdminForm
+from dino.admin.forms import BanForm
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -68,11 +70,25 @@ def channels():
             channels=channel_manager.get_channels())
 
 
-@app.route('/banned', methods=['GET'])
+@app.route('/banned', methods=['GET', 'POST'])
 def banned():
+    ban_form = BanForm(request.form)
+
+    if request.method == 'POST' and ban_form.validate():
+        try:
+            user_manager.ban_user(
+                    ban_form.uuid.data,
+                    ban_form.target_id.data,
+                    ban_form.duration.data,
+                    ban_form.target_type.data)
+            return redirect('/banned')
+        except UnknownBanType as e:
+            ban_form.target_type.errors.append('Unkonwn ban type "%s"' % e.ban_type)
+
     bans = user_manager.get_banned_users()
     return render_template(
             'banned.html',
+            form=ban_form,
             globally=bans['global'],
             channels=bans['channels'],
             rooms=bans['rooms'])

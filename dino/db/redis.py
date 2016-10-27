@@ -445,18 +445,29 @@ class DatabaseRedis(object):
             'rooms': self.get_banned_users_all_rooms(all_channels)
         }
 
-    def ban_user(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
-        is_global_ban = room_id is None or room_id == ''
+    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):
         user_name = ''
         try:
             user_name = self.get_user_name(user_id)
         except NoSuchUserException:
             pass
+        environ.env.redis.hset(RedisKeys.banned_users(), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
-        if is_global_ban:
-            environ.env.redis.hset(RedisKeys.banned_users(), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
-        else:
-            environ.env.redis.hset(RedisKeys.banned_users(room_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
+    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+        user_name = ''
+        try:
+            user_name = self.get_user_name(user_id)
+        except NoSuchUserException:
+            pass
+        environ.env.redis.hset(RedisKeys.banned_users(room_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
+
+    def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str):
+        user_name = ''
+        try:
+            user_name = self.get_user_name(user_id)
+        except NoSuchUserException:
+            pass
+        environ.env.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
     def get_acls_channel(self, channel_id: str) -> dict:
         if not self.channel_exists(channel_id) is None:

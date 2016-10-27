@@ -6,43 +6,55 @@
     Banned Users
 </p>
 
+<div>
+    <form method="post" action="/banned" class="pure-form">
+        {{ render_form("Create new ban", "Create", form) }}
+    </form>
+</div>
+
 <strong>Global Bans</strong>
 <table id="list-global-bans" class="display responsive" cellspacing="0" width="100%">
     <thead>
         <tr>
-            <td>
+            <td data-priority="10">
                 User Name
             </td>
-            <td>
+            <td data-priority="100">
                 ID
             </td>
-            <td>
+            <td data-priority="90">
                 Duration
             </td>
-            <td>
+            <td data-priority="80">
                 End time
             </td>
-            <td class="actions">
+            <td data-priority="70">
+                Time Left
+            </td>
+            <td data-priority="50">
                 Actions
             </td>
         </tr>
     </thead>
     <tbody>
-        {% for user_id, gban in globally.items() %}
+        {% for user_id, ban in globally.items() %}
         <tr>
             <td>
-                {{ gban['name'] }}
+                {{ ban['name'] }}
             </td>
             <td>
                 <small>{{ user_id }}</small>
             </td>
             <td>
-                {{ gban['duration'] }}
+                {{ ban['duration'] }}
+            </td>
+            <td class="timestamp">
+                {{ ban['timestamp'] }}
+            </td>
+            <td class="timeleft">
+                &nbsp;
             </td>
             <td>
-                {{ gban['endtime'] }}
-            </td>
-                <td class="actions">
                     {{ render_remove("/banned/" + user_id, "") }}
             </td>
         </tr>
@@ -54,25 +66,28 @@
 <table id="list-channel-bans" class="display responsive" cellspacing="0" width="100%">
     <thead>
         <tr>
-            <td>
+            <td data-priority="20">
                 Channel Name
             </td>
-            <td>
+            <td data-priority="100">
                 Channel UUID
             </td>
-            <td>
+            <td data-priority="10">
                 User Name
             </td>
-            <td>
+            <td data-priority="90">
                 User ID
             </td>
-            <td>
+            <td data-priority="80">
                 Duration
             </td>
-            <td>
+            <td data-priority="70">
                 End time
             </td>
-            <td class="actions">
+            <td data-priority="50">
+                Time Left
+            </td>
+            <td data-priority="30">
                 Actions
             </td>
         </tr>
@@ -96,10 +111,13 @@
                 <td>
                     {{ ban['duration'] }}
                 </td>
-                <td>
-                    {{ ban['endtime'] }}
+                <td class="timestamp">
+                    {{ ban['timestamp'] }}
                 </td>
-                <td class="actions">
+                <td class="timeleft">
+                    &nbsp;
+                </td>
+                <td>
                     {{ render_remove("/banned/channel/" + channel_id + "/user/" + user_id, "") }}
                 </td>
             </tr>
@@ -112,25 +130,28 @@
 <table id="list-room-bans" class="display responsive" cellspacing="0" width="100%">
     <thead>
         <tr>
-            <td>
+            <td data-priority="20">
                 Room Name
             </td>
-            <td>
+            <td data-priority="100">
                 Room UUID
             </td>
-            <td>
+            <td data-priority="10">
                 User Name
             </td>
-            <td>
+            <td data-priority="90">
                 User ID
             </td>
-            <td>
+            <td data-priority="80">
                 Duration
             </td>
-            <td>
-                End time
+            <td data-priority="70">
+                End Time
             </td>
-            <td class="actions">
+            <td data-priority="50">
+                Time Left
+            </td>
+            <td data-priority="30">
                 Actions
             </td>
         </tr>
@@ -154,10 +175,13 @@
                 <td>
                     {{ ban['duration'] }}
                 </td>
-                <td>
-                    {{ ban['endtime'] }}
+                <td class="timestamp">
+                    {{ ban['timestamp'] }}
                 </td>
-                <td class="actions">
+                <td class="timeleft">
+                    &nbsp;
+                </td>
+                <td>
                     {{ render_remove("/banned/room/" + room_id + "/user/" + user_id, "") }}
                 </td>
             </tr>

@@ -13,9 +13,11 @@
 # limitations under the License.
 
 from wtforms import Form, StringField, SelectField, validators
+from wtforms.validators import ValidationError
+from wtforms.compat import string_types
 
-from dino.validation.acl_validator import AclValidator
 from dino.config import SessionKeys
+from dino.validation.duration import DurationValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -41,6 +43,41 @@ class CreateChannelForm(Form):
 class CreateRoomForm(Form):
     name = StringField('Name', validators=[validators.DataRequired], description='Room name')
     owner = StringField('Owner', validators=[validators.DataRequired], description='Owner ID')
+
+
+class TargetRequiredIfNotGlobal(object):
+    field_flags = ('required', )
+
+    def __init__(self, message=None):
+        self.message = message
+
+    def __call__(self, form, field):
+        if form.target_type.data != 'global':
+            if field.data is None or len(field.data.strip()) == 0:
+                raise ValidationError('Need target ID if type is not global ban')
+
+
+class DurationRequired(object):
+    field_flags = ('required', )
+
+    def __init__(self, message=None):
+        self.message = message
+
+    def __call__(self, form, field):
+        try:
+            DurationValidator(field.data)
+        except Exception as e:
+            raise ValidationError(str(e))
+
+
+class BanForm(Form):
+    uuid = StringField('ID', validators=[validators.DataRequired()], description='User ID')
+    target_id = StringField('Target UUID', validators=[TargetRequiredIfNotGlobal()], description='Target UUID')
+    duration = StringField('Duration', validators=[validators.DataRequired(), DurationRequired()])
+    target_type = SelectField(
+            'Type',
+            choices=[('global', 'Global'), ('channel', 'Channel'), ('room', 'Room')],
+            validators=[validators.DataRequired()])
 
 
 class CreateUserForm(Form):
