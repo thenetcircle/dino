@@ -38,17 +38,16 @@ class UserManager(BaseManager):
             })
         return output
 
-    def get_banned_users(self) -> list:
+    def get_banned_users(self) -> dict:
         try:
-            users = self.env.db.get_banned_users()
+            return self.env.db.get_banned_users()
         except Exception as e:
             logger.error('could not get banned users: %s' % str(e))
-            return list()
-
-        output = list()
-        for user in users:
-            pass
-        return output
+            return {
+                'global': dict(),
+                'channels': dict(),
+                'rooms': dict()
+            }
 
     def add_channel_admin(self, channel_id: str, user_id: str) -> None:
         self.env.db.set_admin(channel_id, user_id)

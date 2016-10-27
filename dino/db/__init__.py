@@ -155,17 +155,25 @@ class IDatabase(Interface):
                 },
                 "channels": {
                     "<channel_uuid>": {
-                        "<user_id>": {
-                            "duration": "<duration time>",
-                            "timestamp": "<ban end timestamp>"
+                        "name": "<channel name>",
+                        "users": {
+                            "<user_id>": {
+                                "name": "<user name>",
+                                "duration": "<duration time>",
+                                "timestamp": "<ban end timestamp>"
+                            }
                         }
                     }
                 },
                 "rooms": {
                     "<room_uuid>": {
-                        "<user_id>": {
-                            "duration": "<duration time>",
-                            "timestamp": "<ban end timestamp>"
+                        "name": "<room name>",
+                        "users": {
+                            "<user_id>": {
+                                "name": "<user name>",
+                                "duration": "<duration time>",
+                                "timestamp": "<ban end timestamp>"
+                            }
                         }
                     }
                 }

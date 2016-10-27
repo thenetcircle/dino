@@ -1,10 +1,171 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'index.html' %}
 
-</body>
-</html>
+{% block content %}
+
+<p>
+    Banned Users
+</p>
+
+<strong>Global Bans</strong>
+<table id="list-global-bans" class="display responsive" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <td>
+                User Name
+            </td>
+            <td>
+                ID
+            </td>
+            <td>
+                Duration
+            </td>
+            <td>
+                End time
+            </td>
+            <td class="actions">
+                Actions
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user_id, gban in globally.items() %}
+        <tr>
+            <td>
+                {{ gban['name'] }}
+            </td>
+            <td>
+                <small>{{ user_id }}</small>
+            </td>
+            <td>
+                {{ gban['duration'] }}
+            </td>
+            <td>
+                {{ gban['endtime'] }}
+            </td>
+                <td class="actions">
+                    {{ render_remove("/banned/" + user_id, "") }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<strong>Channel Bans</strong>
+<table id="list-channel-bans" class="display responsive" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <td>
+                Channel Name
+            </td>
+            <td>
+                Channel UUID
+            </td>
+            <td>
+                User Name
+            </td>
+            <td>
+                User ID
+            </td>
+            <td>
+                Duration
+            </td>
+            <td>
+                End time
+            </td>
+            <td class="actions">
+                Actions
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for channel_id, channel in channels.items() %}
+            {% for user_id, ban in channel['users'].items() %}
+            <tr>
+                <td>
+                    {{ channel['name'] }}
+                </td>
+                <td>
+                    <small>{{ channel_id }}</small>
+                </td>
+                <td>
+                    {{ ban['name'] }}
+                </td>
+                <td>
+                    <small>{{ user_id }}</small>
+                </td>
+                <td>
+                    {{ ban['duration'] }}
+                </td>
+                <td>
+                    {{ ban['endtime'] }}
+                </td>
+                <td class="actions">
+                    {{ render_remove("/banned/channel/" + channel_id + "/user/" + user_id, "") }}
+                </td>
+            </tr>
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+
+<strong>Room Bans</strong>
+<table id="list-room-bans" class="display responsive" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <td>
+                Room Name
+            </td>
+            <td>
+                Room UUID
+            </td>
+            <td>
+                User Name
+            </td>
+            <td>
+                User ID
+            </td>
+            <td>
+                Duration
+            </td>
+            <td>
+                End time
+            </td>
+            <td class="actions">
+                Actions
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for room_id, room in rooms.items() %}
+            {% for user_id, ban in room['users'].items() %}
+            <tr>
+                <td>
+                    {{ room['name'] }}
+                </td>
+                <td>
+                    <small>{{ room_id }}</small>
+                </td>
+                <td>
+                    {{ ban['name'] }}
+                </td>
+                <td>
+                    <small>{{ user_id }}</small>
+                </td>
+                <td>
+                    {{ ban['duration'] }}
+                </td>
+                <td>
+                    {{ ban['endtime'] }}
+                </td>
+                <td class="actions">
+                    {{ render_remove("/banned/room/" + room_id + "/user/" + user_id, "") }}
+                </td>
+            </tr>
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+
+<script type="text/javascript" src="/static/custom/js/banned.js"></script>
+
+{% endblock %}

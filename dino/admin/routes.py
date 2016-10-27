@@ -69,10 +69,13 @@ def channels():
 
 
 @app.route('/banned', methods=['GET'])
-def channels():
+def banned():
+    bans = user_manager.get_banned_users()
     return render_template(
             'banned.html',
-            users=user_manager.get_banned_users())
+            globally=bans['global'],
+            channels=bans['channels'],
+            rooms=bans['rooms'])
 
 
 @app.route('/users', methods=['GET'])

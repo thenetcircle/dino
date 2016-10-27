@@ -67,10 +67,11 @@ class Rooms(DeclarativeBase):
 
 class Bans(DeclarativeBase):
     __tablename__ = 'bans'
-    
+
     id = Column(Integer, primary_key=True)
-    uuid = Column('uuid', String, nullable=False, index=True)
+    uuid = Column('uuid', String, nullable=False, index=True, unique=True)
     user_id = Column('user_id', String, nullable=False, index=True)
+    user_name = Column('user_name', String, nullable=True, index=False)
     duration = Column('duration', String, nullable=False)
     timestamp = Column('timestamp', DateTime, nullable=False)
 

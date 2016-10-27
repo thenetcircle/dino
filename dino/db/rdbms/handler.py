@@ -14,6 +14,7 @@
 
 from datetime import datetime
 from typing import Union
+from uuid import uuid4 as uuid
 
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
@@ -934,6 +935,7 @@ class DatabaseRdbms(object):
                 continue
 
             output[ban.user_id] = {
+                'name': ban.user_name,
                 'duration': ban.duration,
                 'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
@@ -982,19 +984,28 @@ class DatabaseRdbms(object):
             if ban.room is not None:
                 if ban.room_uuid not in output['rooms']:
                     output['rooms'][ban.room_uuid] = dict()
+                    output['rooms'][ban.room_uuid]['name'] = self.get_room_name(ban.room_uuid)
+                    output['rooms'][ban.room_uuid]['users'] = dict()
+
                 output['rooms'][ban.room_uuid][ban.user_id] = {
+                    'name': ban.user_name,
                     'duration': ban.duration,
                     'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                 }
             elif ban.channel is not None:
                 if ban.channel_uuid not in output['channels']:
                     output['channels'][ban.channel_uuid] = dict()
-                output['channels'][ban.channel_uuid][ban.user_id] = {
+                    output['channels'][ban.channel_uuid]['name'] = self.get_channel_name(ban.channel_uuid)
+                    output['channels'][ban.channel_uuid]['users'] = dict()
+
+                output['channels'][ban.channel_uuid]['users'][ban.user_id] = {
+                    'name': ban.user_name,
                     'duration': ban.duration,
                     'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                 }
             elif ban.is_global:
                 output['global']['user_id'] = {
+                    'name': ban.user_name,
                     'duration': ban.duration,
                     'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                 }
@@ -1012,6 +1023,7 @@ class DatabaseRdbms(object):
                 .filter(Bans.user_id == user_id).first()
             if ban is None:
                 ban = Bans()
+                ban.uuid = str(uuid())
                 ban.user_id = user_id
         else:
             ban = self.session.query(Bans)\
@@ -1021,6 +1033,7 @@ class DatabaseRdbms(object):
             if ban is None:
                 room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
                 ban = Bans()
+                ban.uuid = str(uuid())
                 ban.user_id = user_id
                 ban.room = room
 
