@@ -320,11 +320,10 @@ def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
     now = datetime.utcnow()
     end = datetime.strptime(timestamp, ConfigKeys.DEFAULT_DATE_FORMAT)
     diff = (end - now)
-    seconds_left = diff.seconds()
-    if seconds_left < 0:
+    if diff.seconds < 0:
         logger.error(
                 'is_banned_globally(): time left for ban "%s" is negative for user_id "%s"' %
-                (str(seconds_left), user_id))
+                (str(diff.seconds), user_id))
 
 
 def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
@@ -338,16 +337,16 @@ def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
     now = datetime.utcnow()
 
     if global_time != '':
-        end = datetime.strptime(global_time, ConfigKeys.DEFAULT_DATE_FORMAT)
-        return True, 'banned globally for another "%s" seconds"' % str((end - now).seconds())
+        end = datetime.fromtimestamp(int(global_time))
+        return True, 'banned globally for another "%s" seconds"' % str((end - now).seconds)
 
     if channel_time != '':
-        end = datetime.strptime(global_time, ConfigKeys.DEFAULT_DATE_FORMAT)
-        return True, 'banned from channel for another "%s" seconds"' % str((end - now).seconds())
+        end = datetime.fromtimestamp(int(channel_time))
+        return True, 'banned from channel for another "%s" seconds"' % str((end - now).seconds)
 
     if room_time != '':
-        end = datetime.strptime(global_time, ConfigKeys.DEFAULT_DATE_FORMAT)
-        return True, 'banned from room for another "%s" seconds"' % str((end - now).seconds())
+        end = datetime.fromtimestamp(int(room_time))
+        return True, 'banned from room for another "%s" seconds"' % str((end - now).seconds)
 
     return False, None
 

@@ -61,6 +61,7 @@ class UserManager(BaseManager):
             return self.env.db.get_banned_users()
         except Exception as e:
             logger.error('could not get banned users: %s' % str(e))
+            print(traceback.format_exc())
             return {
                 'global': dict(),
                 'channels': dict(),

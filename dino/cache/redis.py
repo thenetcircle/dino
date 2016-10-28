@@ -91,11 +91,11 @@ class CacheRedis(object):
         cache_key = '%s-%s' % (key, user_id)
         value = self.cache.get(cache_key)
         if value is not None:
-            return value
+            return value.split('|', 2)
 
         ban_info = self.redis.hget(key, user_id)
         if ban_info is None:
-            return None
+            return None, None, None
 
         ban_info = str(ban_info, 'utf-8')
         return ban_info.split('|', 2)
