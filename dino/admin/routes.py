@@ -35,7 +35,8 @@ from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import ChannelNameExistsException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
-from dino.exceptions import UnknownBanType
+from dino.exceptions import UnknownBanTypeException
+from dino.exceptions import ValidationException
 
 from dino.admin.forms import CreateChannelForm
 from dino.admin.forms import CreateRoomForm
@@ -82,7 +83,9 @@ def banned():
                     ban_form.duration.data,
                     ban_form.target_type.data)
             return redirect('/banned')
-        except UnknownBanType as e:
+        except ValidationException as e:
+            ban_form.target_type.errors.append('Ban not valid: "%s"' % e.msg)
+        except UnknownBanTypeException as e:
             ban_form.target_type.errors.append('Unkonwn ban type "%s"' % e.ban_type)
 
     bans = user_manager.get_banned_users()

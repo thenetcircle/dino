@@ -19,6 +19,7 @@ from dino.config import SessionKeys
 from dino.config import ConfigKeys
 from dino import environ
 from dino.validation.duration import DurationValidator
+from dino.validation.generic_validator import GenericValidator
 from dino.config import RedisKeys
 from dino.config import UserKeys
 from datetime import timedelta
@@ -26,6 +27,7 @@ from datetime import datetime
 
 from dino.exceptions import NoOriginRoomException
 from dino.exceptions import NoTargetRoomException
+from dino.exceptions import ValidationException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -344,36 +346,28 @@ def ban_duration_to_timestamp(ban_duration: str) -> str:
     days = 0
     hours = 0
     seconds = 0
-    if ban_duration.endswith('d'):
-        ban_duration = ban_duration[:-1]
-        try:
+    duration_unit = ban_duration[-1]
+    ban_duration = ban_duration[:-1]
+
+    try:
+        if duration_unit == 'd' and GenericValidator.is_digit(ban_duration):
             days = int(ban_duration)
-        except ValueError as e:
-            environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
-            raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
-    elif ban_duration.endswith('h'):
-        ban_duration = ban_duration[:-1]
-        try:
+        elif duration_unit == 'h' and GenericValidator.is_digit(ban_duration):
             hours = int(ban_duration)
-        except ValueError as e:
-            environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
-            raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
-    elif ban_duration.endswith('m'):
-        ban_duration = ban_duration[:-1]
-        try:
+        elif duration_unit == 'm' and GenericValidator.is_digit(ban_duration):
             seconds = int(ban_duration) * 60
-        except ValueError as e:
-            environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
-            raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
-    elif ban_duration.endswith('s'):
-        ban_duration = ban_duration[:-1]
-        try:
+        elif duration_unit == 's' and GenericValidator.is_digit(ban_duration):
             seconds = int(ban_duration)
-        except ValueError as e:
-            environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
-            raise ValueError('invalid ban duration, not a number: %s' % ban_duration)
-    else:
-        raise ValueError('unknown ban duration: %s' % ban_duration)
+        else:
+            raise ValidationException(
+                'unknown ban duration: %s, allowed units are: %s' %
+                (ban_duration, DurationValidator.durations_help))
+    except ValueError as e:
+        environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
+        raise ValidationException('invalid ban duration, not a number: %s' % ban_duration)
+
+    if days < 0 or hours < 0 or seconds < 0:
+        raise ValidationException('need positive ban duration, got: %sd, %sh %ss' % (str(days), str(hours), str(seconds)))
 
     now = datetime.utcnow()
     ban_time = timedelta(days=days, hours=hours, seconds=seconds)

@@ -15,7 +15,7 @@
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 from dino.utils import ban_duration_to_timestamp
-from dino.exceptions import UnknownBanType
+from dino.exceptions import UnknownBanTypeException
 
 import traceback
 import logging
@@ -49,7 +49,7 @@ class UserManager(BaseManager):
         elif target_type == 'room':
             self.env.db.ban_user_room(user_id, timestamp, duration, target_id)
         else:
-            raise UnknownBanType(target_type)
+            raise UnknownBanTypeException(target_type)
 
     def get_banned_users(self) -> dict:
         try:

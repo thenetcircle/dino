@@ -18,6 +18,14 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class DurationValidator(object):
+    durations = {
+        'd': 'days',
+        'h': 'hours',
+        'm': 'minutes',
+        's': 'seconds'
+    }
+    durations_help = ', '.join('%s (%s)' % (unit, human) for unit, human in durations.items())
+
     def __init__(self, ban_duration):
         if ban_duration is None or ban_duration == '':
             raise ValueError('empty ban duration')
