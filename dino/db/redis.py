@@ -503,6 +503,24 @@ class DatabaseRedis(object):
     def kick_user(self, room_id: str, user_id: str) -> None:
         self.leave_room(user_id, room_id)
 
+    def _get_ban_timestamp(self, ban) -> (str, str, str):
+        if ban is None:
+            return None, None, None
+        ban = str(ban, 'utf-8')
+        return ban.split('|', 2)
+
+    def get_global_ban_timestamp(self, user_id: str) -> (str, str, str):
+        ban = environ.env.redis.hset(RedisKeys.banned_users(), user_id)
+        return self._get_ban_timestamp(ban)
+
+    def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> (str, str, str):
+        ban = environ.env.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id)
+        return self._get_ban_timestamp(ban)
+
+    def get_room_ban_timestamp(self, room_id: str, user_id: str) -> (str, str, str):
+        ban = environ.env.redis.hset(RedisKeys.banned_users(room_id), user_id)
+        return self._get_ban_timestamp(ban)
+
     def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):
         user_name = ''
         try:

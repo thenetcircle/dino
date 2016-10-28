@@ -328,8 +328,6 @@ def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
 
 def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
     bans = environ.env.db.get_user_ban_status(room_id, user_id)
-    from pprint import pprint
-    pprint(bans)
 
     global_time = bans['global']
     channel_time = bans['channel']

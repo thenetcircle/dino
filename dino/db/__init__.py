@@ -144,6 +144,32 @@ class IDatabase(Interface):
         :return:
         """
 
+    def get_global_ban_timestamp(self, user_id: str) -> (str, str, str):
+        """
+        get the duration, timestamp and username for a global ban of this user
+
+        :param user_id: the id of the user
+        :return: (duration, timestamp, username) or (None, None, None) if no such ban
+        """
+
+    def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> (str, str, str):
+        """
+        get the duration, timestamp and username for a channel ban of this user
+
+        :param user_id: the id of the user
+        :param channel_id: the uuid of the channel
+        :return: (duration, timestamp, username) or (None, None, None) if no such ban
+        """
+
+    def get_room_ban_timestamp(self, room_id: str, user_id: str) -> (str, str, str):
+        """
+        get the duration, timestamp and username for a room ban of this user
+
+        :param user_id: the id of the user
+        :param room_id: the uuid of the room
+        :return: (duration, timestamp, username) or (None, None, None) if no such ban
+        """
+
     def get_user_ban_status(self, room_id: str, user_id: str) -> dict:
         """
         get the ban status of a user for a room
