@@ -476,7 +476,6 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
             default=ConfigKeys.DEFAULT_HISTORY_LIMIT)
 
     if history == 'top':
-        print('doing top')
         return environ.env.storage.get_history(room_id, limit)
 
     if last_read is None:
@@ -484,7 +483,6 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
         if last_read is None:
             return list()
 
-    print('last_read: %s' % str(last_read))
     return environ.env.storage.get_unread_history(room_id, last_read)
 
 
