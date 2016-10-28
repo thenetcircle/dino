@@ -71,6 +71,26 @@ def channels():
             channels=channel_manager.get_channels())
 
 
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/user/<user_uuid>/kick', methods=['PUT'])
+def kick_user(channel_uuid: str, room_uuid: str, user_uuid: str):
+    try:
+        user_manager.kick_user(room_uuid, user_uuid)
+    except Exception as e:
+        logger.error('could not kick user: %s' % str(e))
+        return jsonify({'status_code': 500, 'message': str(e)})
+    return jsonify({'status_code': 200})
+
+
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/user/<user_uuid>/ban', methods=['PUT'])
+def ban_user_room(channel_uuid: str, room_uuid: str, user_uuid: str):
+    return jsonify({'status_code': 200})
+
+
+@app.route('/channel/<channel_uuid>/user/<user_uuid>/ban', methods=['PUT'])
+def ban_user_channel(channel_uuid: str, user_uuid: str):
+    return jsonify({'status_code': 200})
+
+
 @app.route('/banned', methods=['GET', 'POST'])
 def banned():
     ban_form = BanForm(request.form)

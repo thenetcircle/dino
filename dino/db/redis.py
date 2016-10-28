@@ -445,6 +445,9 @@ class DatabaseRedis(object):
             'rooms': self.get_banned_users_all_rooms(all_channels)
         }
 
+    def kick_user(self, room_id: str, user_id: str) -> None:
+        self.leave_room(user_id, room_id)
+
     def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):
         user_name = ''
         try:

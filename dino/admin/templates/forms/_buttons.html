@@ -21,3 +21,19 @@
         <i class="fa fa-pencil fa-fw" aria-hidden="true"></i>
     </a>
 {% endmacro %}
+
+{% macro render_ban(action_url) %}
+    <a class="pure-button ui-button-danger ui-button ban-button ui-button ui-corner-all ui-widget" href="#">
+        <input type="hidden" class="ban-url" value="{{ action_url }}" />
+        <i class="fa fa-ban fa-lg" aria-hidden="true"></i>&nbsp;
+        Ban
+    </a>
+{% endmacro %}
+
+{% macro render_kick(action_url) %}
+    <a class="pure-button ui-button-danger ui-button kick-button ui-button ui-corner-all ui-widget" href="#">
+        <input type="hidden" class="kick-url" value="{{ action_url }}" />
+        <i class="fa fa-minus-square-o fa-lg" aria-hidden="true"></i>&nbsp;
+        Kick
+    </a>
+{% endmacro %}

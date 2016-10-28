@@ -54,6 +54,8 @@ def respond_with(gn_event_name=None):
                 logger.warn('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
             if data is not None:
                 environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
+            else:
+                environ.env.emit(gn_event_name, {'status_code': status_code})
             return status_code
         return decorator
     return factory
@@ -304,8 +306,8 @@ def on_list_rooms(data: dict) -> (int, Union[dict, str]):
 
 @socketio.on('list_channels', namespace='/chat')
 @respond_with('gn_list_channels')
-def on_list_rooms(data: dict) -> (int, Union[dict, str]):
-    return api.on_list_rooms(data)
+def on_list_channels(data: dict) -> (int, Union[dict, str]):
+    return api.on_list_channels(data)
 
 
 @socketio.on('leave', namespace='/chat')

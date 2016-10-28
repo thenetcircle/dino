@@ -51,6 +51,24 @@
                     });
                 });
             };
+            
+            on_channel_click = function() {
+                $('a.channel').click(function() {
+                    channel_id = $(this).attr('id').split('channel-id-', 2)[1]
+                    $('#channel-id').val(channel_id);
+
+                    socket.emit('list_rooms', {
+                        actor: {
+                            id: '{{ user_id }}',
+                            summary: '{{ user_name }}'
+                        },
+                        object: {
+                            url: channel_id
+                        },
+                        verb: 'list'
+                    });
+                });
+            }
 
             on_user_click = function() {
                 $('a.user').click(function() {
@@ -110,17 +128,37 @@
                                 }
                             ]
                         }
+                    }, function(data) {
+                        console.log('did login');
+                        console.log(data);
                     });
                 });
 
                 socket.on('gn_login', function(data) {
-                    socket.emit('list_rooms', {
+                    console.log('logged in');
+                    console.log(data);
+                    socket.emit('list_channels', {
                         actor: {
                             id: '{{ user_id }}',
                             summary: '{{ user_name }}'
                         },
                         verb: 'list'
                     });
+                });
+
+                socket.on('gn_list_channels', function(response) {
+                    console.log('listing channels');
+                    console.log(response);
+
+                    channels = response.data.object.attachments
+
+                    $('#channels').html('');
+                    for (i = 0; i < channels.length; i++) {
+                        channel_name = channels[i].content
+                        channel_id = channels[i].id
+                        $('#channels').html('<a href="#" id="channel-id-' + channel_id + '" class="channel">' + channel_name + '</a>' + ' ' + $('#channels').html());
+                    }
+                    on_channel_click();
                 });
 
                 socket.on('gn_status', function(response) {
@@ -299,7 +337,9 @@
                 socket.on('gn_message', function(response) {
                     console.log(response);
                     data = response.data
-                    handle_message(data);
+                    if (response.status_code == 200) {
+                        handle_message(data);
+                    }
                 });
 
                 socket.on('message', function(data) {
@@ -327,6 +367,7 @@
                         text = $('#text').val();
                         room_name = $('#target').val();
                         room_id = $('#room-id').val();
+                        channel_id = $('#channel-id').val();
                         $('#text').val('');
 
                         target_type = 'group';
@@ -342,11 +383,12 @@
                             verb: 'send',
                             target: {
                                 id: room_id,
-                                displayName: room_name
+                                displayName: room_name,
+                                objectType: target_type
                             },
                             object: {
                                 content: text,
-                                objectType: target_type
+                                url: channel_id
                             }
                         });
                     }
@@ -534,11 +576,13 @@
 
         <input id="target" type="hidden" />
         <input id="room-id" type="hidden" />
+        <input id="channel-id" type="hidden" />
         <input id="private" type="checkbox" hidden />
         <br /><br />
 
-        Users in current room: <span id="users_in_room"></span><br />
-        All rooms: <span id="rooms"></span><br /><br />
+        Users in current room: <span id="users_in_room"></span><br /><br />
+        All channels: <span id="channels"></span><br />
+        All rooms in the channel: <span id="rooms"></span><br /><br />
 
         <a id="leave" href="#">Leave this room</a><br /><br /><br />
 

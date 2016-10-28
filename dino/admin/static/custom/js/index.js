@@ -2,11 +2,30 @@
 function checkLength(o, n, min, max, tipsFunc) {
     if (o.val().length > max || o.val().length < min) {
         o.addClass('ui-state-error');
-        tipsFunc('Length of ' + n + ' must be between ' +
-            min + ' and ' + max + '.');
+        tipsFunc('Length of ' + n + ' must be between ' + min + ' and ' + max + '.');
         return false;
     } else {
         return true;
+    }
+}
+
+function checkLastCharIsIn(o, n, possibles, tipsFunc) {
+    if (possibles.indexOf(o.val().slice(-1)) >= 0) {
+        return true;
+    } else {
+        o.addClass('ui-state-error');
+        tipsFunc('Invalid unit for duration, use one of "' + possibles.join() + '"');
+        return false;
+    }
+}
+
+function checkAllButLastIsDigit(o, n, tipsFunc) {
+    if (/^\d+$/.test(o.val().slice(0, -1))) {
+        return true;
+    } else {
+        o.addClass('ui-state-error');
+        tipsFunc('Value before duration is not a number');
+        return false;
     }
 }
 
@@ -42,6 +61,36 @@ $(document).ready(function(){
         });
     });
 
+    $('a.kick-button').each(function() {
+        $(this).confirm({
+            text: "Are you sure you want to kick the user?",
+            title: "Confirmation required",
+            confirm: function(button) {
+                kick_url = $(button).find('input.kick-url').val();
+                $.ajax({
+                    method: 'PUT',
+                    url: kick_url
+                }).done(function(data) {
+                    if (data.status_code == 200) {
+                        $(button).closest('tr').remove();
+                    }
+                    else {
+                        console.log(data);
+                    }
+                });
+            },
+            cancel: function(button) {
+                // nothing to do
+            },
+            confirmButton: "Yes",
+            cancelButton: "No",
+            post: true,
+            confirmButtonClass: "btn-danger",
+            cancelButtonClass: "btn-default",
+            dialogClass: "modal-dialog modal-lg" // Bootstrap classes for large modal
+        });
+    });
+
     $('.toggle-form').click(function() {
         img = $($(this).find('i')[0]);
         if (img.hasClass('fa-caret-square-o-right')) {
@@ -58,10 +107,11 @@ $(document).ready(function(){
         }
     });
 
+    // EDIT
     editDialog = $('#edit-form').dialog({
       autoOpen: false,
       height: 220,
-      width: 300,
+      width: 350,
       modal: true,
       buttons: {
         'Edit': edit,
@@ -74,21 +124,20 @@ $(document).ready(function(){
         allEditFields.removeClass('ui-state-error');
       }
     });
-
     editForm = editDialog.find('form').on('submit', function(event) {
         event.preventDefault();
         edit();
     });
-
     $('.edit-button').button().on('click', function() {
         editUrlField = $(this).find('input.edit-url')[0];
         editDialog.dialog('open');
     });
 
+    // RENAME
     renameDialog = $('#rename-form').dialog({
       autoOpen: false,
       height: 220,
-      width: 300,
+      width: 350,
       modal: true,
       buttons: {
         'Rename': rename,
@@ -101,15 +150,39 @@ $(document).ready(function(){
         allRenameFields.removeClass('ui-state-error');
       }
     });
-
     renameForm = renameDialog.find('form').on('submit', function(event) {
         event.preventDefault();
         rename();
     });
-
     $('.rename-button').button().on('click', function() {
         renameUrlField = $(this).find('input.rename-url')[0];
         renameDialog.dialog('open');
+    });
+    
+    // BAN
+    banDialog = $('#ban-form').dialog({
+      autoOpen: false,
+      height: 220,
+      width: 350,
+      modal: true,
+      buttons: {
+        'Ban': ban,
+        Cancel: function() {
+          banDialog.dialog('close');
+        }
+      },
+      close: function() {
+        banForm[0].reset();
+        allBanFields.removeClass('ui-state-error');
+      }
+    });
+    banForm = banDialog.find('form').on('submit', function(event) {
+        event.preventDefault();
+        ban();
+    });
+    $('.ban-button').button().on('click', function() {
+        banUrlField = $(this).find('input.ban-url')[0];
+        banDialog.dialog('open');
     });
 });
 
@@ -125,6 +198,13 @@ function editUpdateTips(t) {
     editTips.text(t) .addClass('ui-state-highlight');
     setTimeout(function() {
         editTips.removeClass('ui-state-highlight', 1500);
+    }, 500);
+}
+
+function banUpdateTips(t) {
+    banTips.text(t) .addClass('ui-state-highlight');
+    setTimeout(function() {
+        banTips.removeClass('ui-state-highlight', 1500);
     }, 500);
 }
 
@@ -177,6 +257,44 @@ function edit() {
             }
             else {
                 editUpdateTips(data.message);
+            }
+        });
+    }
+    else {
+        return valid;
+    }
+}
+
+function ban() {
+    var value = banElement.val();
+    var ban_url = $(banUrlField).val();
+    var valid = true;
+
+    allBanFields.removeClass('ui-state-error');
+    valid = valid && checkLength(banElement, 'duration', 2, 6, banUpdateTips);
+    valid = valid && checkLastCharIsIn(banElement, 'duration', ['d', 'h', 'm', 's'], banUpdateTips);
+    valid = valid && checkAllButLastIsDigit(banElement, 'duration', banUpdateTips);
+
+    if (valid) {
+        var user_id = $($(banUrlField).closest('tr')[0]).attr('id').split('user-id-', 2)[1]
+        data_to_send = {
+            'duration': value,
+            'user_id': user_id,
+            'room_id': $('span#room-id').val()
+        }
+        console.log(data_to_send);
+        $.ajax({
+            method: 'PUT',
+            url: ban_url,
+            data: JSON.stringify(data_to_send),
+            contentType: 'application/json;charset=UTF-8'
+        }).done(function(data) {
+            if (data.status_code == 200) {
+                $('tr#user-id-' + user_id).remove();
+                banDialog.dialog('close');
+            }
+            else {
+                banUpdateTips(data.message);
             }
         });
     }

@@ -87,7 +87,6 @@ def on_message(data, activity: Activity = None):
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<same AS as client sent, plus timestamp>'}
     """
     activity = as_parser.parse(data)
-
     room_id = activity.target.id
     from_room_id = activity.actor.url
 
@@ -171,6 +170,9 @@ def on_kick(data: dict, activity: Activity = None) -> (int, None):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
     """
+    room_id = activity.target.id
+    user_id = activity.object.id
+    utils.kick_user(room_id, user_id)
     _kick_user(activity)
     return 200, None
 
@@ -311,6 +313,7 @@ def on_join(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
+    last_read = activity.updated
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     image = environ.env.session.get(SessionKeys.image.value, '')
 
@@ -320,7 +323,7 @@ def on_join(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
     environ.env.emit('gn_user_joined', activity_json, room=room_id, broadcast=True, include_self=False)
 
-    messages = utils.get_history_for_room(room_id, 10)
+    messages = utils.get_history_for_room(room_id, user_id, last_read)
     owners = utils.get_owners_for_room(room_id)
     acls = utils.get_acls_for_room(room_id)
     users = utils.get_users_in_room(room_id)

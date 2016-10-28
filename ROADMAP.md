@@ -58,9 +58,12 @@ A rough roadmap for possible upcoming features.
     - list channels
     - create channels/roms
     - ban users
+    - kick users
     - create admin users manually
     - manage list of admins as user ids
     - change ownership/moderator status for users in channels/rooms
+* permissions
+    - ACLs on channels for who can create rooms in the channel
 * invite
     - search for online users in chats
     - invite user from other room
@@ -68,14 +71,21 @@ A rough roadmap for possible upcoming features.
     - permissions on channels
     - e.g. some types of users can not join, like paying members only etc.
 
-0.1X.0
+0.11.0
 ---
-* invisibility
-    - invisible in chats
+* emit event on socket for kick/ban
+    - to be able for clients to do ui updates in response to being kicked/banned 
+* response codes
+    - use defined response codes for front-end to be able to display correct error messages
 * rest interface
     - to get information about users in room, online users, etc.
 * filter room list
     - ability to choose to filter out rooms list, not displaying rooms that a user is not allowed to join
+
+0.1X.0
+---
+* invisibility
+    - invisible in chats
 * backend admin interface
     - show/search message history
 * stats

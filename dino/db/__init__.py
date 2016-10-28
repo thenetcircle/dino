@@ -193,7 +193,7 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str) -> None:
         """
         ban a user from either a room
 
@@ -204,7 +204,16 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):
+    def kick_user(self, room_id: str, user_id: str) -> None:
+        """
+        kick a user from a room
+
+        :param room_id: the uuid of the room to kick the user from
+        :param user_id: the id of the user to kick
+        :return: nothing
+        """
+
+    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str) -> None:
         """
         ban a user globally
 

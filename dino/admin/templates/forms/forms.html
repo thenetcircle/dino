@@ -27,3 +27,18 @@
         </fieldset>
     </form>
 </div>
+
+<div id="ban-form" title="Ban">
+    <p class="validateBanTips">All form fields are required.</p>
+
+    <form>
+        <fieldset>
+            <label for="ban-duration">Duration</label>
+            <input type="text" name="ban-duration" id="ban-duration" value="" class="text ui-widget-content ui-corner-all">
+            <input type="hidden" class="ban-url" value="" />
+
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>

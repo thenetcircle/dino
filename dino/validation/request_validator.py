@@ -18,6 +18,7 @@ from dino import utils
 from dino import environ
 from dino.config import SessionKeys
 from dino.validation.base_validator import BaseValidator
+from dino.exceptions import NoChannelFoundException
 from dino import validation
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -27,11 +28,13 @@ class RequestValidator(BaseValidator):
     def on_message(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
         from_room_id = activity.actor.url
+        user_id = activity.actor.id
+        object_type = activity.target.object_type
 
         if room_id is None or room_id == '':
             return False, 400, 'no room id specified when sending message'
 
-        if activity.target.object_type == 'group':
+        if object_type == 'group':
             channel_id = activity.object.url
 
             if channel_id is None or channel_id == '':
@@ -47,9 +50,22 @@ class RequestValidator(BaseValidator):
                 if from_room_id != room_id and not utils.room_exists(channel_id, from_room_id):
                     return False, 400, 'origin room %s does not exist' % from_room_id
 
-            if not utils.is_user_in_room(activity.actor.id, room_id):
+            if not utils.is_user_in_room(user_id, room_id):
+                if from_room_id is None:
+                    return False, 400, 'user is not in target room'
+                if not utils.is_user_in_room(user_id, from_room_id):
+                    return False, 400, 'user is not in origin room, cannot send message from there'
                 if not utils.can_send_cross_group(from_room_id, room_id):
                     return False, 400, 'user not allowed to send cross-group msg from %s to %s' % (from_room_id, room_id)
+
+        elif object_type == 'private':
+            try:
+                utils.get_channel_for_room(room_id)
+                return False, 400, 'target is not a private chat, use object_type "group" instead'
+            except NoChannelFoundException:
+                pass
+        else:
+            return False, 400, 'invalid object_type "%s", need to be either "group" or "private"' % object_type
 
         return True, None, None
 

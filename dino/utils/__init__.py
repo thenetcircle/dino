@@ -290,6 +290,8 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
 
 
 def is_user_in_room(user_id, room_id):
+    if room_id is None or len(room_id.strip()) == 0:
+        return False
     return environ.env.db.room_contains(room_id, user_id)
 
 
@@ -327,6 +329,10 @@ def is_banned(user_id: str, room_id: str=None) -> (bool, Union[str, None]):
             environ.env.redis.hdel(RedisKeys.banned_users(room_id), user_id)
 
     return False, None
+
+
+def kick_user(room_id: str, user_id: str) -> None:
+    environ.env.db.kick_user(room_id, user_id)
 
 
 def ban_user(room_id: str, user_id: str, ban_duration: str) -> None:
@@ -440,7 +446,7 @@ def can_send_cross_group(from_room_uuid: str, to_room_uuid: str) -> bool:
 
 
 def get_channel_for_room(room_uuid: str) -> str:
-    return environ.env.db.get_room
+    return environ.env.db.channel_for_room(room_uuid)
 
 
 def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
@@ -458,9 +464,9 @@ def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
     return False
 
 
-def get_history_for_room(room_id: str, user_id, last_read: str = None) -> list:
+def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> list:
     history = environ.env.config.get(
-            ConfigKeys.STRATEGY,
+            ConfigKeys.TYPE,
             domain=ConfigKeys.HISTORY,
             default=ConfigKeys.DEFAULT_HISTORY_STRATEGY)
 
@@ -470,6 +476,7 @@ def get_history_for_room(room_id: str, user_id, last_read: str = None) -> list:
             default=ConfigKeys.DEFAULT_HISTORY_LIMIT)
 
     if history == 'top':
+        print('doing top')
         return environ.env.storage.get_history(room_id, limit)
 
     if last_read is None:
@@ -477,6 +484,7 @@ def get_history_for_room(room_id: str, user_id, last_read: str = None) -> list:
         if last_read is None:
             return list()
 
+    print('last_read: %s' % str(last_read))
     return environ.env.storage.get_unread_history(room_id, last_read)
 
 

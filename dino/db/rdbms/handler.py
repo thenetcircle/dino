@@ -178,7 +178,8 @@ class DatabaseRdbms(object):
             rows = self.session.query(Rooms).join(Rooms.users).filter(Rooms.uuid == room_id).all()
             users = dict()
             for row in rows:
-                users[row.uuid] = row.name
+                for user in row.users:
+                    users[user.uuid] = user.name
             return users
 
         if self.channel_for_room(room_id) is None:
@@ -186,8 +187,12 @@ class DatabaseRdbms(object):
         return _users_in_room(self)
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
-        if self.channel_for_room(room_id) is None:
+        try:
+            if self.channel_for_room(room_id) is None:
+                raise NoSuchRoomException(room_id)
+        except NoChannelFoundException:
             raise NoSuchRoomException(room_id)
+
         return room_id in self.rooms_for_user(user_id)
 
     @with_session
@@ -408,7 +413,6 @@ class DatabaseRdbms(object):
             # user is not in the room, so nothing to do
             return
 
-        room = user.rooms[0]
         room.users.remove(user)
         self.session.commit()
 
@@ -792,7 +796,7 @@ class DatabaseRdbms(object):
     @with_session
     def get_last_read_timestamp(self, room_id: str, user_id: str) -> int:
         last_read = self.session.query(LastReads)\
-            .filter(LastReads.user_uuid == user_id)\
+            .filter(LastReads.user_id == user_id)\
             .filter(LastReads.room_uuid == room_id)\
             .first()
 
@@ -1013,6 +1017,10 @@ class DatabaseRdbms(object):
         if should_commit:
             self.session.commit()
         return output
+
+    @with_session
+    def kick_user(self, room_id: str, user_id: str) -> None:
+        self.leave_room(user_id, room_id)
 
     @with_session
     def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):

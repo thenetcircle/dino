@@ -102,8 +102,8 @@ class LastReads(DeclarativeBase):
 
     id = Column(Integer, primary_key=True)
 
-    room_uuid = Column('uuid', String, nullable=False, index=True)
-    user_uuid = Column('user_id', String, nullable=False, index=True)
+    room_uuid = Column('room_uuid', String, nullable=False, index=True)
+    user_id = Column('user_id', String, nullable=False, index=True)
     time_stamp = Column('time_stamp', Integer, nullable=False)
 
 
