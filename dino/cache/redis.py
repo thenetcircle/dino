@@ -70,7 +70,49 @@ class CacheRedis(object):
         self.redis.flushdb()
         self.cache.flushall()
 
-    def get_room_id_for_name(self, channel_id, room_name):
+    def _set_ban_timestamp(self, key: str, user_id: str, timestamp: str) -> None:
+        cache_key = '%s-%s' % (key, user_id)
+        self.cache.set(cache_key, timestamp)
+        self.redis.hset(key, user_id, timestamp)
+
+    def set_global_ban_timestamp(self, user_id: str, duration: str, timestamp: str, username: str) -> None:
+        key = RedisKeys.banned_users()
+        self._set_ban_timestamp(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
+
+    def set_channel_ban_timestamp(self, channel_id: str, user_id: str, duration: str, timestamp: str, username: str) -> None:
+        key = RedisKeys.banned_users_channel(channel_id)
+        self._set_ban_timestamp(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
+
+    def set_room_ban_timestamp(self, room_id: str, user_id: str, duration: str, timestamp: str, username: str) -> None:
+        key = RedisKeys.banned_users(room_id)
+        self._set_ban_timestamp(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
+
+    def _get_ban_timestamp(self, key: str, user_id: str) -> str:
+        cache_key = '%s-%s' % (key, user_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        ban_info = self.redis.hget(key, user_id)
+        if ban_info is None:
+            return None
+
+        ban_info = str(ban_info, 'utf-8')
+        return ban_info.split('|', 2)
+
+    def get_global_ban_timestamp(self, user_id: str) -> str:
+        key = RedisKeys.banned_users()
+        return self._get_ban_timestamp(key, user_id)
+
+    def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> str:
+        key = RedisKeys.banned_users_channel(channel_id)
+        return self._get_ban_timestamp(key, user_id)
+
+    def get_room_ban_timestamp(self, room_id: str, user_id: str) -> str:
+        key = RedisKeys.banned_users(room_id)
+        return self._get_ban_timestamp(key, user_id)
+
+    def get_room_id_for_name(self, channel_id: str, room_name: str) -> str:
         key = RedisKeys.room_id_for_name(channel_id)
         cache_key = '%s-%s' % (key, room_name)
         value = self.cache.get(cache_key)

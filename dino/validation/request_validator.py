@@ -80,7 +80,7 @@ class RequestValidator(BaseValidator):
     def on_login(self, activity: Activity) -> (bool, int, str):
         user_id = activity.actor.id
 
-        is_banned, duration = utils.is_banned(user_id)
+        is_banned, duration = utils.is_banned_globally(user_id)
         if is_banned:
             return False, 400, 'user is banned from chatting for: %ss' % duration
 
@@ -149,9 +149,9 @@ class RequestValidator(BaseValidator):
         if not is_valid:
             return False, 400, error_msg
 
-        is_banned, duration = utils.is_banned(user_id, room_id=room_id)
+        is_banned, msg = utils.is_banned(user_id, room_id)
         if is_banned:
-            return False, 400, 'user is banned from joining room for: %ss' % duration
+            return False, 400, msg
 
         return True, None, None
 

@@ -197,12 +197,13 @@ class DatabaseRdbms(object):
 
     @with_session
     def remove_current_rooms_for_user(self, user_id: str) -> None:
-        rows = self.session.query(Users).filter(Users.uuid == user_id).all()
-        if len(rows) == 0:
+        user = self.session.query(Users).filter(Users.uuid == user_id).first()
+        if user is None:
             return
 
-        for row in rows:
-            self.session.delete(row)
+        if user.rooms is not None and len(user.rooms) > 0:
+            for room in user.rooms:
+                user.rooms.remove(room)
         self.session.commit()
 
     @with_session
@@ -949,6 +950,209 @@ class DatabaseRdbms(object):
             self.session.commit()
         return output
 
+    def is_banned_globally(self, user_id: str) -> (bool, Union[str, None]):
+        now = datetime.utcnow()
+        duration, time, username = self.env.cache.get_global_ban_timestamp(user_id)
+        if time is not None:
+            if time == '':
+                return False, None
+
+            time = datetime.fromtimestamp(time)
+            if now > time:
+                self.remove_global_ban(user_id)
+                return False, None
+            return True, str((time-now).seconds())
+
+        duration, time, username = self.get_global_ban_timestamp(user_id)
+        if time is None:
+            self.env.cache.set_global_ban_timestamp(user_id, '', '', '')
+            return False, None
+        if now > time:
+            self.remove_global_ban(user_id)
+            return False, None
+
+        self.env.cache.set_global_ban_timestamp(user_id, time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT))
+        return True, str((time-now).seconds())
+
+    def is_banned_from_channel(self, channel_id: str, user_id: str) -> (bool, Union[str, None]):
+        now = datetime.utcnow()
+        duration, time, username = self.env.cache.get_channel_ban_timestamp(channel_id, user_id)
+        if time is not None:
+            if time == '':
+                return False, None
+
+            time = datetime.fromtimestamp(time)
+            if now > time:
+                self.remove_channel_ban(channel_id, user_id)
+                return False, None
+            return True, str((time-now).seconds())
+
+        duration, time, username = self.get_channel_ban_timestamp(channel_id, user_id)
+        if time is None:
+            self.env.cache.set_channel_ban_timestamp(channel_id, user_id, '', '', '')
+            return False, None
+        if now > time:
+            self.remove_channel_ban(channel_id, user_id)
+            return False, None
+
+        self.env.cache.set_channel_ban_timestamp(channel_id, user_id, time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT))
+        return True, str((time-now).seconds())
+
+    def is_banned_from_room(self, room_id: str, user_id: str) -> (bool, Union[str, None]):
+        now = datetime.utcnow()
+        duration, time, username = self.env.cache.get_room_ban_timestamp(room_id, user_id)
+        if time is not None:
+            if time == '':
+                return False, None
+
+            time = datetime.fromtimestamp(time)
+            if now > time:
+                self.remove_room_ban(room_id, user_id)
+                return False, None
+            return True, str((time-now).seconds())
+
+        duration, time, username = self.get_room_ban_timestamp(room_id, user_id)
+        if time is None:
+            self.env.cache.set_room_ban_timestamp(room_id, user_id, '', '', '')
+            return False, None
+        if now > time:
+            self.remove_room_ban(room_id, user_id)
+            return False, None
+
+        self.env.cache.set_room_ban_timestamp(room_id, user_id, time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT))
+        return True, str((time-now).seconds())
+
+    @with_session
+    def get_global_ban_timestamp(self, user_id: str) -> datetime:
+        global_ban = self.session.query(Bans)\
+            .filter(Bans.is_global.is_(True))\
+            .filter(Bans.user_id == user_id)\
+            .first()
+
+        if global_ban is not None:
+            return global_ban.duration, global_ban.timestamp, global_ban.user_name
+        return None, None, None
+
+    @with_session
+    def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> datetime:
+        channel_ban = self.session.query(Bans)\
+            .join(Bans.channel)\
+            .filter(Bans.is_global.is_(False))\
+            .filter(Channels.uuid == channel_id)\
+            .filter(Bans.user_id == user_id)\
+            .first()
+
+        if channel_ban is not None:
+            return channel_ban.duration, channel_ban.timestamp, channel_ban.use_rname
+        return None, None, None
+
+    @with_session
+    def get_room_ban_timestamp(self, room_id: str, user_id: str) -> datetime:
+        room_ban = self.session.query(Bans)\
+            .join(Bans.room)\
+            .filter(Bans.is_global.is_(False))\
+            .filter(Rooms.uuid == room_id)\
+            .filter(Bans.user_id == user_id)\
+            .first()
+
+        if room_ban is not None:
+            return room_ban.duration, room_ban.timestamp, room_ban.use_rname
+        return None, None, None
+
+    def get_user_ban_status(self, room_id: str, user_id: str) -> dict:
+        def _has_passed(the_time):
+            now = datetime.utcnow()
+            return now > datetime.strptime(the_time, ConfigKeys.DEFAULT_DATE_FORMAT)
+        
+        def _set_in_cache_if_none(_gtime, _ctime, _rtime):
+            if _gtime is None:
+                _gtime = self.get_global_ban_timestamp(user_id)
+                if _gtime is None:
+                    _gtime = ('', '', '')
+                else:
+                    _gtime = _gtime.timestamp()
+                self.env.cache.set_global_ban_timestamp(user_id, *_gtime)
+            if _ctime is None:
+                _ctime = self.get_channel_ban_timestamp(channel_id, user_id)
+                if _ctime is None:
+                    _ctime = ('', '', '')
+                else:
+                    _ctime = _ctime.timestamp()
+                self.env.cache.set_channel_ban_timestamp(channel_id, user_id, *_ctime)
+            if _rtime is None:
+                _rtime = self.get_room_ban_timestamp(room_id, user_id)
+                if _rtime is None:
+                    _rtime = ('', '', '')
+                else:
+                    _rtime = _rtime.timestamp()
+                self.env.cache.set_room_ban_timestamp(room_id, user_id, *_rtime)
+
+        def _update_if_passed(_gtime, _ctime, _rtime):
+            if _gtime is not None and _gtime[1] != '':
+                if _has_passed(_gtime):
+                    self.remove_global_ban(user_id)
+                    _gtime = ('', '', '')
+            if _ctime is not None and _ctime[1] != '':
+                if _has_passed(_ctime):
+                    self.remove_channel_ban(channel_id, user_id)
+                    _ctime = ('', '', '')
+            if _rtime is not None and _rtime[1] != '':
+                if _has_passed(_rtime):
+                    self.remove_room_ban(room_id, user_id)
+                    _rtime = ('', '', '')
+            return _gtime or ('', '', ''), _ctime or ('', '', ''), _rtime or ('', '', '')
+
+        channel_id = self.channel_for_room(room_id)
+        gtime = self.env.cache.get_global_ban_timestamp(user_id)
+        ctime = self.env.cache.get_channel_ban_timestamp(channel_id, user_id)
+        rtime = self.env.cache.get_room_ban_timestamp(room_id, user_id)
+
+        # even if no ban, set in cache so we don't have to check db
+        _set_in_cache_if_none(gtime, ctime, rtime)
+
+        # empty string means there is no ban
+        gtime, ctime, rtime = _update_if_passed(gtime, ctime, rtime)
+
+        return {
+            'global': gtime[1],
+            'channel': ctime[1],
+            'room': rtime[1]
+        }
+
+    @with_session
+    def remove_global_ban(self, user_id):
+        self.env.cache.set_global_ban_timestamp(user_id, '', '', '')
+        ban = self.session.query(Bans)\
+            .filter(Bans.user_id == user_id)\
+            .filter(Bans.is_global.is_(True)).first()
+        if ban is None:
+            return
+        self.session.delete(ban)
+
+    @with_session
+    def remove_channel_ban(self, channel_id, user_id):
+        self.env.cache.set_channel_ban_timestamp(channel_id, user_id, '', '', '')
+        ban = self.session.query(Bans)\
+            .join(Bans.channel)\
+            .filter(Channels.uuid == channel_id)\
+            .filter(Bans.user_id == user_id)\
+            .filter(Bans.is_global.is_(False)).first()
+        if ban is None:
+            return
+        self.session.delete(ban)
+
+    @with_session
+    def remove_room_ban(self, room_id, user_id):
+        self.env.cache.set_room_ban_timestamp(room_id, user_id, '', '', '')
+        ban = self.session.query(Bans)\
+            .join(Bans.room)\
+            .filter(Rooms.uuid == room_id)\
+            .filter(Bans.user_id == user_id)\
+            .filter(Bans.is_global.is_(False)).first()
+        if ban is None:
+            return
+        self.session.delete(ban)
+
     @with_session
     def get_banned_users_global(self, room_id: str) -> dict:
         all_bans = self.session.query(Bans).filter(Bans.is_global.is_(True)).all()
@@ -1022,6 +1226,34 @@ class DatabaseRdbms(object):
     def kick_user(self, room_id: str, user_id: str) -> None:
         self.leave_room(user_id, room_id)
 
+    def _remove_user_from_room(self, session, room_id: str, user_id: str) -> None:
+        room = self.session.query(Rooms)\
+            .join(Rooms.users)\
+            .filter(Rooms.uuid == room_id)\
+            .filter(Users.uuid == user_id)\
+            .first()
+
+        if room is not None:
+            room.users.remove(room.users[0])
+            self.session.add(room)
+
+    def _remove_user_from_rooms_in_channel(self, session, channel_id: str, user_id: str) -> None:
+        channel = self.session.query(Channels)\
+            .join(Channels.rooms)\
+            .join(Rooms.users)\
+            .filter(Channels.uuid == channel_id)\
+            .filter(Users.uuid == user_id)\
+            .first()
+
+        if channel is not None:
+            if channel.rooms is not None and len(channel.rooms) > 0:
+                for room in channel.rooms:
+                    if room.users is not None and len(room.users) > 0:
+                        for user in room.users:
+                            if user.uuid == user_id:
+                                room.users.remove(user)
+                    self.session.add(room)
+
     @with_session
     def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):
         ban = self.session.query(Bans)\
@@ -1033,6 +1265,10 @@ class DatabaseRdbms(object):
             username = self.get_user_name(user_id)
         except NoSuchUserException:
             pass
+
+        self.remove_current_rooms_for_user(user_id)
+        self.env.cache.set_global_ban_timestamp(
+                user_id, ban_timestamp, ban_duration, self.get_user_name(user_id))
 
         if ban is None:
             ban = Bans()
@@ -1059,6 +1295,10 @@ class DatabaseRdbms(object):
             username = self.get_user_name(user_id)
         except NoSuchUserException:
             pass
+
+        self._remove_user_from_room(self.session, room_id, user_id)
+        self.env.cache.set_room_ban_timestamp(
+                room_id, user_id, ban_timestamp, ban_duration, self.get_user_name(user_id))
 
         ban = self.session.query(Bans)\
             .join(Bans.room)\
@@ -1089,6 +1329,10 @@ class DatabaseRdbms(object):
             username = self.get_user_name(user_id)
         except NoSuchUserException:
             pass
+
+        self._remove_user_from_rooms_in_channel(self.session, channel_id, user_id)
+        self.env.cache.set_channel_ban_timestamp(
+                channel_id, user_id, ban_timestamp, ban_duration, self.get_user_name(user_id))
 
         ban = self.session.query(Bans)\
             .join(Bans.channel)\

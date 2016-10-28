@@ -14,6 +14,7 @@
 
 from activitystreams import Activity
 from typing import Union
+import logging
 
 from dino.config import SessionKeys
 from dino.config import ConfigKeys
@@ -30,6 +31,8 @@ from dino.exceptions import NoTargetRoomException
 from dino.exceptions import ValidationException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
@@ -309,24 +312,42 @@ def get_sid_for_user_id(user_id: str) -> str:
     return environ.env.redis.hmget(RedisKeys.sid_for_user_id(), user_id)
 
 
-# TODO: use env.db instead of env.redis
-def is_banned(user_id: str, room_id: str=None) -> (bool, Union[str, None]):
-    if room_id is None or room_id == '':
-        duration = environ.env.redis.hget(RedisKeys.banned_users(room_id), user_id)
-    else:
-        duration = environ.env.redis.hget(RedisKeys.banned_users(room_id), user_id)
+def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
+    user_is_banned, timestamp = environ.env.db.is_banned_globally(user_id)
+    if not user_is_banned or timestamp is None or timestamp == '':
+        return False, None
 
-    if duration is not None and duration != '':
-        end = datetime.fromtimestamp(duration)
-        now = datetime.now()
-        diff = end - now
-        if diff.seconds() > 0:
-            return True, str(diff.seconds())
+    now = datetime.utcnow()
+    end = datetime.strptime(timestamp, ConfigKeys.DEFAULT_DATE_FORMAT)
+    diff = (end - now)
+    seconds_left = diff.seconds()
+    if seconds_left < 0:
+        logger.error(
+                'is_banned_globally(): time left for ban "%s" is negative for user_id "%s"' %
+                (str(seconds_left), user_id))
 
-        if room_id is None or room_id == '':
-            environ.env.redis.hdel(RedisKeys.banned_users(), user_id)
-        else:
-            environ.env.redis.hdel(RedisKeys.banned_users(room_id), user_id)
+
+def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
+    bans = environ.env.db.get_user_ban_status(room_id, user_id)
+    from pprint import pprint
+    pprint(bans)
+
+    global_time = bans['global']
+    channel_time = bans['channel']
+    room_time = bans['room']
+    now = datetime.utcnow()
+
+    if global_time != '':
+        end = datetime.strptime(global_time, ConfigKeys.DEFAULT_DATE_FORMAT)
+        return True, 'banned globally for another "%s" seconds"' % str((end - now).seconds())
+
+    if channel_time != '':
+        end = datetime.strptime(global_time, ConfigKeys.DEFAULT_DATE_FORMAT)
+        return True, 'banned from channel for another "%s" seconds"' % str((end - now).seconds())
+
+    if room_time != '':
+        end = datetime.strptime(global_time, ConfigKeys.DEFAULT_DATE_FORMAT)
+        return True, 'banned from room for another "%s" seconds"' % str((end - now).seconds())
 
     return False, None
 

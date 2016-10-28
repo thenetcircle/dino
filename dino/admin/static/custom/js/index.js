@@ -283,6 +283,7 @@ function ban() {
             'room_id': $('span#room-id').val()
         }
         console.log(data_to_send);
+        console.log(ban_url)
         $.ajax({
             method: 'PUT',
             url: ban_url,

@@ -117,6 +117,58 @@ class IDatabase(Interface):
         :param room_id: the uuid of the room to leave
         :return:
         """
+
+    def remove_global_ban(self, user_id: str) -> str:
+        """
+        remove a global ban for a user, e.g. when the ban has expired
+
+        :param user_id: the id of the user
+        :return: nothing
+        """
+
+    def remove_channel_ban(self, channel_id: str, user_id: str) -> str:
+        """
+        remove a channel ban for a user, e.g. when the ban has expired
+
+        :param channel_id: the uuid of the channel
+        :param user_id: the id of the user
+        :return:
+        """
+
+    def remove_room_ban(self, room_id: str, user_id: str) -> str:
+        """
+        remove a room ban for a user, e.g. when the ban has expired
+
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return:
+        """
+
+    def get_user_ban_status(self, room_id: str, user_id: str) -> dict:
+        """
+        get the ban status of a user for a room
+
+        will return status based on global ban, and status of ban for the channel of the room and for the room:
+
+            {
+                "global": "2016-11-29T11:30:21Z",
+                "channel": "2016-11-29T12:51:09Z",
+                "room": "2016-12-01T01:00:00Z"
+            }
+
+        or if no bans:
+
+            {
+                "global": "",
+                "channel": "",
+                "room": ""
+            }
+
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: a dict with possible bans for global, channel and room
+        """
+
     def get_banned_users_global(self) -> dict:
         """
         get all users banned globally
@@ -222,6 +274,32 @@ class IDatabase(Interface):
         :param ban_duration: how long this ban is for
         :param room_id: the uuid of the room to ban for, or blank if global ban
         :return: nothing
+        """
+
+    def is_banned_globally(self, user_id: str) -> (bool, Union[str, None]):
+        """
+        check if a user is banned globally or not
+
+        :param user_id: the id of the user
+        :return: "True, <end datetime sting>" or "False, None"
+        """
+
+    def is_banned_from_channel(self, channel_id: str, user_id: str) -> (bool, Union[str, None]):
+        """
+        check if a user is banned from a channel or not
+
+        :param user_id: the id of the user
+        :param channel_id: the uuid of the channel
+        :return: "True, <end datetime sting>" or "False, None"
+        """
+
+    def is_banned_from_room(self, room_id: str, user_id: str) -> (bool, Union[str, None]):
+        """
+        check if a user is banned from a room or not
+
+        :param user_id: the id of the user
+        :param room_id: the uuid of the room
+        :return: "True, <end datetime sting>" or "False, None"
         """
 
     def is_admin(self, channel_id: str, user_id: str) -> bool:

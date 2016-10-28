@@ -18,7 +18,68 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ICache(Interface):
-    def get_room_id_for_name(self, channel_id, room_name):
+    def set_global_ban_timestamp(self, user_id: str, duration: str, timestamp: str, username: str) -> None:
+        """
+        set the global ban timestamp for a user to a given timestamp
+
+        :param user_id: the id of the user
+        :param duration: the duration, e.g. 12d
+        :param timestamp: the timestamp
+        :param username: the username of this user
+        :return: nothing
+        """
+
+    def set_channel_ban_timestamp(self, channel_id: str, user_id: str, duration: str, timestamp: str, username: str) -> None:
+        """
+        set the ban timestamp on channel for a user to a given timestamp
+
+        :param user_id: the id of the user
+        :param channel_id: the uuid of the channel
+        :param duration: the duration, e.g. 12d
+        :param timestamp: the timestamp
+        :param username: the username of this user
+        :return: nothing
+        """
+
+    def set_room_ban_timestamp(self, room_id: str, user_id: str, duration: str, timestamp: str, username: str) -> None:
+        """
+        set the ban timestamp on a room for a user to a given timestamp
+
+        :param user_id: the id of the user
+        :param room_id: the uuid of the room
+        :param duration: the duration, e.g. 12d
+        :param timestamp: the timestamp
+        :param username: the username of this user
+        :return: nothing
+        """
+
+    def get_global_ban_timestamp(self, user_id: str) -> str:
+        """
+        get the ban timestamp of the user in the given room, or empty string if no ban exist
+
+        :param user_id: the id of the user
+        :return: the timestamp in ConfigKeys.DEFAULT_DATE_FORMAT format, or '' if no ban exists
+        """
+
+    def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> str:
+        """
+        get the ban timestamp of the user in the given channel, or empty string if no ban exist
+
+        :param channel_id: the uuid of the channel
+        :param user_id: the id of the user
+        :return: the timestamp in ConfigKeys.DEFAULT_DATE_FORMAT format, or '' if no ban exists
+        """
+
+    def get_room_ban_timestamp(self, room_id: str, user_id: str) -> str:
+        """
+        get the ban timestamp of the user in the given room, or empty string if no ban exist
+
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: the timestamp in ConfigKeys.DEFAULT_DATE_FORMAT format, or '' if no ban exists
+        """
+
+    def get_room_id_for_name(self, channel_id: str, room_name: str) -> str:
         """
 
         :param channel_id:

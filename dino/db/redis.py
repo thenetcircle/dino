@@ -14,6 +14,7 @@
 
 from zope.interface import implementer
 from datetime import datetime
+from typing import Union
 import logging
 
 from dino.db import IDatabase
@@ -336,6 +337,60 @@ class DatabaseRedis(object):
             raise NoSuchRoomException(room_id)
 
         self.redis.hmset(RedisKeys.room_acl(room_id), acls)
+
+    def _is_banned(self, ban):
+        time = None
+        if ban is not None:
+            ban = str(ban, 'utf-8')
+            time = ban.split('|', 2)[1]
+        return time is not None, time
+
+    def is_banned_globally(self, user_id: str) -> (bool, Union[str, None]):
+        ban = self.redis.hget(RedisKeys.banned_users(), user_id)
+        return self._is_banned(ban)
+
+    def is_banned_from_channel(self, channel_id: str, user_id: str) -> (bool, Union[str, None]):
+        ban = self.redis.hget(RedisKeys.banned_users_channel(channel_id), user_id)
+        return self._is_banned(ban)
+
+    def is_banned_from_room(self, room_id: str, user_id: str) -> (bool, Union[str, None]):
+        ban = self.redis.hget(RedisKeys.banned_users(room_id), user_id)
+        return self._is_banned(ban)
+
+    def remove_global_ban(self, user_id: str) -> str:
+        self.redis.hdel(RedisKeys.banned_users(), user_id)
+
+    def remove_channel_ban(self, channel_id: str, user_id: str) -> str:
+        self.redis.hdel(RedisKeys.banned_users_channel(channel_id), user_id)
+
+    def remove_room_ban(self, room_id: str, user_id: str) -> str:
+        self.redis.hdel(RedisKeys.banned_users(room_id), user_id)
+
+    def get_user_ban_status(self, room_id: str, user_id: str) -> dict:
+        channel_id = self.channel_for_room(room_id)
+        global_ban = self.redis.hget(RedisKeys.banned_users(), user_id)
+        channel_ban = self.redis.hget(RedisKeys.banned_users_channel(channel_id), user_id)
+        room_ban = self.redis.hget(RedisKeys.banned_users(room_id), user_id)
+
+        global_timestamp = ''
+        channel_timestamp = ''
+        room_timestamp = ''
+
+        if global_ban is not None:
+            global_ban = str(global_ban, 'utf-8')
+            global_timestamp = global_ban.split('|', 2)[1]
+        if channel_ban is not None:
+            channel_ban = str(channel_ban, 'utf-8')
+            channel_timestamp = channel_ban.split('|', 2)[1]
+        if global_ban is not None:
+            room_ban = str(room_ban, 'utf-8')
+            room_timestamp = room_ban.split('|', 2)[1]
+
+        return {
+            'global': global_timestamp,
+            'channel': channel_timestamp,
+            'room': room_timestamp
+        }
 
     # TODO: use @lru_cache?
     def get_banned_users_global(self) -> dict:
