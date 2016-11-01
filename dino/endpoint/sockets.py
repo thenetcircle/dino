@@ -14,7 +14,9 @@
 
 import threading
 import time
+import traceback
 from typing import Union
+from uuid import uuid4 as uuid
 
 import activitystreams as as_parser
 from activitystreams.exception import ActivityException
@@ -23,14 +25,15 @@ from dino import api
 from dino import environ
 from dino import utils
 from dino.config import ConfigKeys
+from dino.config import SessionKeys
+from dino.config import RedisKeys
 from dino.forms import LoginForm
 from dino.server import app, socketio
 from dino.utils.handlers import GracefulInterruptHandler
+from flask_socketio import disconnect
 from functools import wraps
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
-from flask_socketio import disconnect
-import traceback
 
 logger = environ.env.logger
 
@@ -162,18 +165,27 @@ if not environ.env.config.get(ConfigKeys.TESTING, False):
 def index():
     form = LoginForm.create()
     if form.validate_on_submit():
-        # temporary until we get ID from community
-        environ.env.session['user_name'] = form.user_name.data
-        environ.env.session['user_id'] = int(float(''.join([str(ord(x)) for x in form.user_name.data])) % 1000000)
-        environ.env.session['age'] = form.age.data
-        environ.env.session['gender'] = form.gender.data
-        environ.env.session['membership'] = form.membership.data
-        environ.env.session['fake_checked'] = form.fake_checked.data
-        environ.env.session['has_webcam'] = form.has_webcam.data
-        environ.env.session['image'] = form.image.data
-        environ.env.session['country'] = form.country.data
-        environ.env.session['city'] = form.city.data
+        # only for the reference implementation, generate a user id and token
+        user_id = int(float(''.join([str(ord(x)) for x in form.user_name.data])) % 1000000)
+        token = str(uuid())
+
+        environ.env.session[SessionKeys.user_id.value] = user_id
+        environ.env.session[SessionKeys.token.value] = token
+        environ.env.auth.redis.hset(RedisKeys.auth_key(str(user_id)), SessionKeys.user_id.value, user_id)
+        environ.env.auth.redis.hset(RedisKeys.auth_key(str(user_id)), SessionKeys.token.value, token)
+
+        for session_key in SessionKeys:
+            key = session_key.value
+            if not isinstance(key, str):
+                continue
+            if not hasattr(form, key):
+                continue
+            form_value = form.__getattribute__(key).data
+            environ.env.session[key] = form_value
+            environ.env.auth.redis.hset(RedisKeys.auth_key(str(user_id)), key, form_value)
+
         return environ.env.redirect(environ.env.url_for('.chat'))
+
     elif environ.env.request.method == 'GET':
         form.user_name.data = environ.env.session.get('user_name', '')
         form.age.data = environ.env.session.get('age', '')

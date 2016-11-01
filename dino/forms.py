@@ -14,7 +14,7 @@ choice_country = [('cn', 'China'), ('de', 'Germany'), ('se', 'Sweden')]
 class LoginForm(object):
     @staticmethod
     def create():
-        if environ.env.config.get(ConfigKeys.TESTING):
+        if environ.env.config.get(ConfigKeys.TESTING, default=False):
             return _MockLoginForm()
         return _LoginForm()
 
