@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from activitystreams.models.activity import Activity
 
 from dino.validation.generic import GenericValidator
@@ -20,6 +22,8 @@ from dino import environ
 from dino import utils
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 class AclValidator(object):
@@ -314,6 +318,7 @@ class AclConfigValidator(object):
     def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
         validation_methods = ['str_in_csv', 'anything', 'range']
         validations = acls.get('validation')
+
         for validation in validations:
             if validation not in available_acls:
                 raise RuntimeError('validation for unknown ACL "%s"' % validation)
@@ -321,6 +326,18 @@ class AclConfigValidator(object):
                 raise RuntimeError('no type in validation for ACL "%s"' % validation)
 
             validation_method = validations[validation]['type']
+            if 'value' in validations[validation]:
+                validation_value = validations[validation]['value']
+                if validation_method == 'anything':
+                    logger.warn(
+                            'validation method set to "anything" but a validation value also '
+                            'specified, "%s", ignoring the value' % validation_value)
+
+            if validation_method == 'str_in_csv':
+                if 'value' not in validations[validation] or len(validations[validation]['value'].strip()) == 0:
+                    raise RuntimeError(
+                            'validation method set to "%s" but no validation value specified' % validation_method)
+
             if validation_method not in validation_methods:
                 raise RuntimeError(
                         'unknown validation method "%s", use one of [%s]' %

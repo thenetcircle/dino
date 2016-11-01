@@ -600,5 +600,3 @@ if 'DINO_CONFIG' in os.environ:
     _config_paths = [os.environ['DINO_CONFIG']]
 env = create_env(_config_paths)
 initialize_env(env)
-
-logger.debug(str(env.config))
