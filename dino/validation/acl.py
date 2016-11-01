@@ -295,3 +295,103 @@ class AclValidator(object):
                 return False, error_msg
 
         return True, None
+
+
+class AclConfigValidator(object):
+    @staticmethod
+    def check_acl_roots(acls: dict) -> None:
+        valid_roots = ['validation', 'room', 'available', 'channel']
+        if 'available' not in acls.keys():
+            raise RuntimeError('no ACLs in root "available"')
+        if 'acls' not in acls['available']:
+            raise RuntimeError('no ACLs defined in available ACLs')
+
+        for root in acls.keys():
+            if root not in valid_roots:
+                raise RuntimeError('invalid ACL root "%s"' % str(root))
+
+    @staticmethod
+    def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
+        validation_methods = ['str_in_csv', 'anything', 'range']
+        validations = acls.get('validation')
+        for validation in validations:
+            if validation not in available_acls:
+                raise RuntimeError('validation for unknown ACL "%s"' % validation)
+            if 'type' not in validations[validation]:
+                raise RuntimeError('no type in validation for ACL "%s"' % validation)
+
+            validation_method = validations[validation]['type']
+            if validation_method not in validation_methods:
+                raise RuntimeError(
+                        'unknown validation method "%s", use one of [%s]' %
+                        (str(validation_method), ','.join(validation_methods)))
+
+    @staticmethod
+    def check_acl_excludes(available_acls: list, excludes: list) -> None:
+        for exclude in excludes:
+            if exclude not in available_acls:
+                raise RuntimeError('can not exclude "%s", not in available acls' % exclude)
+
+    @staticmethod
+    def check_acl_keys_in_available(available_acls: list, acl_target: str, keys: set) -> None:
+        for acl in keys:
+            if acl in available_acls:
+                continue
+            raise RuntimeError(
+                    'specified %s ACL "%s" is not in "available": %s' %
+                    (acl_target, acl, ','.join(available_acls)))
+
+    @staticmethod
+    def check_acl_rules(acls: dict, all_actions: dict, rules: list) -> None:
+        for target, actions in acls.items():
+            if target not in all_actions:
+                continue
+
+            for acl in actions:
+                for rule in actions[acl]:
+                    if rule not in rules:
+                        raise RuntimeError('unknown rule "%s", need to be one of [%s]' % (str(rule), ','.join(rules)))
+
+    @staticmethod
+    def check_acl_actions(check_acls: list, actions: dict, available_acls: list) -> None:
+        for acl_target, acls in check_acls:
+            if acls is None or len(acls) == 0:
+                continue
+
+            for action in acls:
+                if action not in actions[acl_target]:
+                    raise RuntimeError(
+                            'action "%s" is not available for target type "%s"' %
+                            (action, acl_target))
+
+                if acls[action] is None:
+                    continue
+
+                if not isinstance(acls[action], dict):
+                    raise RuntimeError(
+                            'acls for actions needs to be a dict but was of type %s' %
+                            str(type(acls[action])))
+
+                if 'acls' not in acls[action]:
+                    continue
+
+                keys = set(acls[action]['acls'])
+                AclConfigValidator.check_acl_keys_in_available(available_acls, acl_target, keys)
+
+                if 'exclude' in acls[action]:
+                    excludes = acls[action]['exclude']
+                    AclConfigValidator.check_acl_excludes(available_acls, excludes)
+
+    @staticmethod
+    def validate_acl_config(acls: dict, check_acls: list) -> None:
+        available_acls = acls['available']['acls']
+        rules = ['acls', 'exclude']
+        actions = {
+            'room': ['join', 'create', 'list', 'kick', 'message', 'crossroom', 'ban'],
+            'channel': ['create', 'list', 'create', 'message', 'crossroom', 'ban']
+        }
+
+        AclConfigValidator.check_acl_roots(acls)
+        AclConfigValidator.check_acl_validation_methods(acls, available_acls)
+        AclConfigValidator.check_acl_rules(acls, actions, rules)
+        AclConfigValidator.check_acl_actions(check_acls, actions, available_acls)

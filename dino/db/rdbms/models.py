@@ -118,16 +118,12 @@ class Acls(DeclarativeBase):
     channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=True)
     channel = relationship('Channels', back_populates='acl')
 
-    age = Column('age', String, nullable=True)
-    gender = Column('gender', String, nullable=True)
-    membership = Column('membership', String, nullable=True)
-    group = Column('group', String, nullable=True)
-    country = Column('country', String, nullable=True)
-    city = Column('city', String, nullable=True)
-    image = Column('image', String, nullable=True)
-    has_webcam = Column('has_webcam', String, nullable=True)
-    fake_checked = Column('fake_checked', String, nullable=True)
-    crossgroup = Column('crossgroup', String, nullable=True)
+    # action: join/create/kick etc.
+    action = Column('action', String, nullable=False)
+
+    # acl_type: gender/age/city etc.
+    acl_type = Column('acl_type', String, nullable=False)
+    acl_value = Column('acl_value', String, nullable=False)
 
 
 class RoomRoles(DeclarativeBase):
@@ -146,9 +142,7 @@ class GlobalRoles(DeclarativeBase):
     __tablename__ = 'global_roles'
 
     id = Column(Integer, primary_key=True)
-
     user_id = Column('user_id', String(128), nullable=ForeignKey, index=True)
-
     roles = Column('roles', String(256), nullable=False)
 
 

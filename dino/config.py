@@ -85,6 +85,7 @@ class ConfigKeys(object):
     LOGGER = '_logger'
     REDIS = '_redis'
     SESSION = '_session'
+    ACL = '_acl'
 
     DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)-18s - %(levelname)-7s - %(message)s"
     DEFAULT_DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'

@@ -1,0 +1,88 @@
+available: &AVAILABLE
+  acls:
+    - age
+    - gender
+    - membership
+    - group
+    - country
+    - city
+    - image
+    - has_webcam
+    - fake_checked
+    - owner
+    - admin
+    - moderator
+    - superuser
+
+validation:
+    gender:
+        type: "str_in_csv"
+        value: "##db##"
+    membership:
+        type: "str_in_csv"
+        value: "##db##"
+    age:
+        type: "range"
+    group:
+        type: "anything"
+    country:
+        type: "anything"
+    city:
+        type: "anything"
+    image:
+        type: "str_in_csv"
+        value: "y,n"
+    has_webcam:
+        type: "str_in_csv"
+        value: "y,n"
+    fake_checked:
+        type: "str_in_csv"
+        value: "y,n"
+    owner:
+        type: "str_in_csv"
+        value: "y,n"
+    admin:
+        type: "str_in_csv"
+        value: "y,n"
+    moderator:
+        type: "str_in_csv"
+        value: "y,n"
+    superuser:
+        type: "str_in_csv"
+        value: "y,n"
+
+channel:
+    list:
+        <<: *AVAILABLE
+    create:
+        <<: *AVAILABLE
+    message:
+        <<: *AVAILABLE
+    crossroom:
+        <<: *AVAILABLE
+    ban:
+        acls:
+            - owner
+            - admin
+            - superuser
+
+room:
+    join:
+        <<: *AVAILABLE
+    list:
+        <<: *AVAILABLE
+    message:
+        <<: *AVAILABLE
+    crossroom:
+        <<: *AVAILABLE
+    kick:
+        acls:
+            - owner
+            - moderator
+            - admin
+            - superuser
+    ban:
+        acls:
+            - owner
+            - admin
+            - superuser

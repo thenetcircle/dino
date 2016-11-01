@@ -7,6 +7,7 @@ import logging
 from logging import RootLogger
 from redis import Redis
 from typing import Union
+from types import MappingProxyType
 
 from kombu import Exchange
 from kombu import Queue
@@ -32,6 +33,7 @@ from flask import render_template as _flask_render_template
 from flask import session as _flask_session
 
 from dino.config import ConfigKeys
+from dino.validation.acl import AclConfigValidator
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
 
@@ -250,6 +252,39 @@ def find_config(config_paths: list) -> str:
     return config_dict, config_path
 
 
+def find_config_acl(acl_paths: list) -> str:
+    default_paths = ["acl.yaml", "acl.json"]
+    acl_dict = dict()
+    acl_path = None
+
+    if acl_paths is None:
+        acl_paths = default_paths
+
+    for conf in acl_paths:
+        path = os.path.join(os.getcwd(), conf)
+
+        if not os.path.isfile(path):
+            continue
+
+        try:
+            if conf.endswith(".yaml"):
+                acl_dict = yaml.load(open(path))
+            elif conf.endswith(".json"):
+                acl_dict = json.load(open(path))
+            else:
+                raise RuntimeError("Unsupported file extension: {0}".format(conf))
+        except Exception as e:
+            raise RuntimeError("Failed to open acl configuration {0}: {1}".format(conf, str(e)))
+
+        acl_path = path
+        break
+
+    if not acl_dict:
+        raise RuntimeError('No acl configuration found: {0}\n'.format(', '.join(acl_paths)))
+
+    return acl_dict, acl_path
+
+
 def choose_queue_instance(config_dict: dict) -> object:
     # TODO: should choose between RabbitMQ and Redis
     queue_type = config_dict.get(ConfigKeys.QUEUE).get(ConfigKeys.TYPE, 'mock')
@@ -344,6 +379,8 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     if ConfigKeys.LOG_LEVEL not in config_dict:
         config_dict[ConfigKeys.LOG_LEVEL] = ConfigKeys.DEFAULT_LOG_LEVEL
 
+    config_dict[ConfigKeys.ACL] = get_acl_config()
+
     root_path = os.path.dirname(config_path)
 
     gn_env = GNEnvironment(root_path, ConfigDict(config_dict))
@@ -351,6 +388,55 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     logger.info('read config and created environment')
     logger.debug(str(config_dict))
     return gn_env
+
+
+def get_acl_config() -> dict:
+    acl_paths = None
+    if 'DINO_ACL' in os.environ:
+        acl_paths = [os.environ['DINO_ACL']]
+
+    acls, _ = find_config_acl(acl_paths)
+
+    if acls is None or len(acls) == 0:
+        return MappingProxyType({
+            'room': dict(),
+            'channel': dict(),
+            'available': dict(),
+        })
+
+    check_acls = [
+        ('channel', acls.get('channel', None)),
+        ('room', acls.get('room', None))
+    ]
+    checked_acls = {
+        'available': dict(),
+        'room': dict(),
+        'channel': dict()
+    }
+
+    AclConfigValidator.validate_acl_config(acls, check_acls)
+
+    for acl_target, target_acls in check_acls:
+        if target_acls is None or len(target_acls) == 0:
+            continue
+        for action in target_acls:
+            if target_acls[action] is None:
+                continue
+
+            keys = set(target_acls[action]['acls'])
+
+            if 'exclude' in target_acls[action]:
+                excludes = target_acls[action]['exclude']
+                for exclude in excludes:
+                    keys.remove(exclude)
+
+            if action not in checked_acls[acl_target]:
+                checked_acls[acl_target][action] = list()
+            for acl in keys:
+                checked_acls[acl_target][action].append(acl)
+
+    # make immutable
+    return MappingProxyType(acls)
 
 
 def init_storage_engine(gn_env: GNEnvironment) -> None:
@@ -510,8 +596,9 @@ def initialize_env(dino_env):
 
 
 _config_paths = None
-if 'CONFIG' in os.environ:
-    _config_paths = [os.environ['CONFIG']]
-    print(_config_paths)
+if 'DINO_CONFIG' in os.environ:
+    _config_paths = [os.environ['DINO_CONFIG']]
 env = create_env(_config_paths)
 initialize_env(env)
+
+logger.debug(str(env.config))
