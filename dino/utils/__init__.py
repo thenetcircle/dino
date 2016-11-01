@@ -400,6 +400,10 @@ def ban_duration_to_timestamp(ban_duration: str) -> str:
     return str(int(end_date.timestamp()))
 
 
+def is_super_user(user_id: str) -> bool:
+    return environ.env.db.is_super_user(user_id)
+
+
 def is_owner(room_id: str, user_id: str) -> bool:
     return environ.env.db.is_owner(room_id, user_id)
 
@@ -412,8 +416,8 @@ def is_moderator(room_id: str, user_id: str) -> bool:
     return environ.env.db.is_moderator(room_id, user_id)
 
 
-def is_admin(user_id: str) -> bool:
-    return environ.env.db.is_admin(user_id)
+def is_admin(channel_id: str, user_id: str) -> bool:
+    return environ.env.db.is_admin(channel_id, user_id)
 
 
 def get_users_in_room(room_id: str) -> dict:

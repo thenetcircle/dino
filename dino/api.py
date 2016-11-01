@@ -213,20 +213,27 @@ def on_set_acl(data: dict, activity: Activity = None) -> (int, str):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
-    room_id = activity.target.id
+    target_id = activity.target.id
+    is_for_channel = activity.target.object_type == 'channel'
 
     acl_dict = dict()
     for acl in activity.object.attachments:
         # if the content is None, it means we're removing this ACL
         if acl.content is None:
-            environ.env.db.delete_acl(room_id, acl.object_type)
+            if is_for_channel:
+                pass
+            else:
+                environ.env.db.delete_acl(target_id, acl.object_type)
             continue
 
         acl_dict[acl.object_type] = acl.content
 
     # might have only removed acls, so could be size 0
     if len(acl_dict) > 0:
-        environ.env.db.add_acls(room_id, acl_dict)
+        if is_for_channel:
+            pass
+        else:
+            environ.env.db.add_acls(target_id, acl_dict)
 
     return 200, None
 

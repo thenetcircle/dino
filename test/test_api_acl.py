@@ -33,7 +33,8 @@ class ApiAclTest(BaseTest):
             'actor': {
             },
             'target': {
-                'id': ApiAclTest.ROOM_ID
+                'id': ApiAclTest.ROOM_ID,
+                'objectType': 'room'
             },
             'verb': 'list'
         })

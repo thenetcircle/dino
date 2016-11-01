@@ -5,7 +5,7 @@ from test.utils import BaseTest
 
 from dino.validation.acl import AclValidator
 from dino.validation import acl
-from dino.validation import request 
+from dino.validation import request
 from dino.config import SessionKeys
 
 

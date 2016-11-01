@@ -125,11 +125,39 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_set_acl(self, activity: Activity) -> (bool, int, str):
-        user_id = activity.actor.id
-        room_id = activity.target.id
+        def _can_edit_acl(_target_id: str, _user_id: str) -> bool:
+            object_type = activity.target.object_type
+            is_for_channel = object_type == 'channel'
 
-        if not utils.is_owner(room_id, user_id):
-            return False, 400, 'user not an owner of room'
+            if is_for_channel:
+                if utils.is_owner_channel(_target_id, _user_id):
+                    return True
+                if utils.is_admin(_target_id, _user_id):
+                    return True
+            else:
+                if utils.is_owner(_target_id, _user_id):
+                    return True
+                if activity.object is not None:
+                    channel_id = activity.object.url
+                    if channel_id is not None and utils.is_owner_channel(channel_id, _user_id):
+                        return True
+
+            if utils.is_super_user(_user_id):
+                return True
+            return False
+
+        user_id = activity.actor.id
+        target_id = activity.target.id
+        object_type = activity.target.object_type
+
+        if object_type is None or len(object_type.strip()) == 0:
+            return False, 400, 'empty object_type, must be one of [channel, room]'
+
+        if object_type not in ['channel', 'room']:
+            return False, 400, 'invalid object_type "%s", but be one of [channel, room]'
+
+        if not _can_edit_acl(target_id, user_id):
+            return False, 400, 'user is not allowed to change acls on the target'
 
         # validate all acls before actually changing anything
         acls = activity.object.attachments
