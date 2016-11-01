@@ -18,9 +18,11 @@ validation:
     gender:
         type: "str_in_csv"
         value: "##db##"
+        default: "m,f"
     membership:
         type: "str_in_csv"
         value: "##db##"
+        default: "0,1,2,3"
     age:
         type: "range"
     group:

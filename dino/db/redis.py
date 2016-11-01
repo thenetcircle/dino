@@ -40,6 +40,7 @@ from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
+from dino.exceptions import AclValueNotFoundException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -544,6 +545,15 @@ class DatabaseRedis(object):
         except NoSuchUserException:
             pass
         environ.env.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
+
+    def get_acl_validation_value(self, acl_type: str, validation_method) -> str:
+        value = environ.env.redis.hget(RedisKeys.acl_validations(acl_type), validation_method)
+        if value is None:
+            raise AclValueNotFoundException(acl_type, validation_method)
+        value = str(value, 'utf-8')
+        if len(value.strip()) == 0:
+            raise AclValueNotFoundException(acl_type, validation_method)
+        return value
 
     def get_acls_channel(self, channel_id: str) -> dict:
         if not self.channel_exists(channel_id):

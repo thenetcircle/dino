@@ -17,6 +17,7 @@ import logging
 from activitystreams.models.activity import Activity
 
 from dino.validation.generic import GenericValidator
+from dino.exceptions import ValidationException
 from dino.config import SessionKeys
 from dino import environ
 from dino import utils
@@ -299,6 +300,50 @@ class AclValidator(object):
                 return False, error_msg
 
         return True, None
+
+
+class AclAnythingValidator(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        pass
+
+
+class AclStrInCsvValidator(object):
+    def __init__(self, csv: str):
+        if csv is None or len(csv.strip()) == 0:
+            raise ValidationException('blank csv when creating AclStrInCsvValidator')
+        self.values = set(csv.split(','))
+
+    def __call__(self, *args, **kwargs):
+        return args[0] in self.values
+
+
+class AclRangeValidator(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        acl_range = args[0]
+        if acl_range is None or len(acl_range.strip()) == 0:
+            raise ValidationException('blank range when creating AclRangeValidator')
+        range_min, range_max = acl_range.split(':', 1)
+        if range_min == '':
+            range_min = None
+        if range_max == '':
+            range_max = None
+
+        value = args[1]
+        if value is None or len(value.strip()) == 0:
+            raise ValidationException('blank value in AclRangeValidator')
+
+        value = int(value)
+        if range_min is not None and range_min > value:
+            return False
+        if range_max is not None and range_max < value:
+            return False
+        return True
 
 
 class AclConfigValidator(object):

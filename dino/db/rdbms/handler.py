@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from typing import Union
 from uuid import uuid4 as uuid
 
@@ -33,6 +32,7 @@ from dino.db.rdbms.models import Channels
 from dino.db.rdbms.models import RoomRoles
 from dino.db.rdbms.models import Rooms
 from dino.db.rdbms.models import Acls
+from dino.db.rdbms.models import AclConfigs
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
 from dino.db.rdbms.models import LastReads
@@ -48,6 +48,7 @@ from dino.exceptions import UserExistsException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
+from dino.exceptions import AclValueNotFoundException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
 from dino.exceptions import ChannelNameExistsException
@@ -735,6 +736,17 @@ class DatabaseRdbms(object):
 
     def update_acl_channel(self, channel_id: str, acl_type: str, acl_value: str) -> None:
         self.add_acls_channel(channel_id, {acl_type: acl_value})
+
+    @with_session
+    def get_acl_validation_value(self, acl_type: str, validation_method) -> str:
+        acl_config = self.session.query(AclConfigs)\
+            .filter(AclConfigs.acl_type == acl_type)\
+            .filter(AclConfigs.method == validation_method)\
+            .first()
+
+        if acl_config is None or acl_config.acl_value is None or len(acl_config.acl_value.strip()) == 0:
+            raise AclValueNotFoundException(acl_type, validation_method)
+        return acl_config.acl_value
 
     @with_session
     def get_acls_channel(self, channel_id: str) -> dict:

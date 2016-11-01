@@ -644,6 +644,17 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_acl_validation_value(self, acl_type: str, validation_method) -> str:
+        """
+        get the configured validation value for this acl type and method; e.g. a configured value for validating gender
+        might be 'm,f' or 'male,female'
+
+        :raises AclValueNotFoundException if no such value has been configured
+        :param acl_type: the type of the acl from the config file, e.g. 'gender' or 'group'
+        :param validation_method: e.g. 'str_in_csv'
+        :return: the configured validation value
+        """
+
     def get_acls_channel(self, channel_id: str) -> dict:
         """
         get the access list for a channel

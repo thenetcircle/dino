@@ -71,6 +71,12 @@ class InvalidAclValueException(Exception):
         self.acl_value = acl_value
 
 
+class AclValueNotFoundException(Exception):
+    def __init__(self, acl_type: str, validation_method: str):
+        self.acl_type = acl_type
+        self.validation_method = validation_method
+
+
 class NoSuchUserException(Exception):
     def __init__(self, uuid):
         self.uuid = uuid

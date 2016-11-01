@@ -126,6 +126,21 @@ class Acls(DeclarativeBase):
     acl_value = Column('acl_value', String, nullable=False)
 
 
+class AclConfigs(DeclarativeBase):
+    __tablename__ = 'aclconfigs'
+
+    id = Column(Integer, primary_key=True)
+
+    # method: str_in_csv/range etc.
+    method = Column('method', String, nullable=False)
+
+    # acl_type: gender/age/city etc.
+    acl_type = Column('acl_type', String, nullable=False)
+
+    # acl_value: the configured value, e.g. 'm,f' for an acl_type 'gender'
+    acl_value = Column('acl_value', String, nullable=False)
+
+
 class RoomRoles(DeclarativeBase):
     __tablename__ = 'room_roles'
 

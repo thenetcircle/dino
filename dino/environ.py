@@ -34,6 +34,10 @@ from flask import session as _flask_session
 
 from dino.config import ConfigKeys
 from dino.validation.acl import AclConfigValidator
+from dino.validation.acl import AclRangeValidator
+from dino.validation.acl import AclStrInCsvValidator
+from dino.validation.acl import AclAnythingValidator
+from dino.exceptions import AclValueNotFoundException
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
 
@@ -434,9 +438,40 @@ def get_acl_config() -> dict:
                 checked_acls[acl_target][action] = list()
             for acl in keys:
                 checked_acls[acl_target][action].append(acl)
+    return acls
 
-    # make immutable
-    return MappingProxyType(acls)
+
+def init_acl_validators(gn_env: GNEnvironment) -> None:
+    acl_config = gn_env.config.get(ConfigKeys.ACL)
+
+    validators = acl_config['validation']
+    for acl_type, validation_config in validators.items():
+        validation_type = validation_config['type']
+
+        if validation_type == 'anything':
+            validation_config['value'] = AclAnythingValidator()
+
+        elif validation_type == 'str_in_csv':
+            csv = validation_config['value']
+            if csv == '##db##':
+                try:
+                    csv = gn_env.db.get_acl_validation_value(acl_type, 'str_in_csv')
+                except AclValueNotFoundException:
+                    logger.warning(
+                            'acl config specifies to get value from db but no value found for type '
+                            '"%s" and method "str_in_csv", will check for default value' % acl_type)
+                    if 'default' not in validation_config or len(validation_config['default'].strip()) == 0:
+                        raise RuntimeError('no default value found for type "%s" and method "str_in_csv"' % acl_type)
+                    csv = validation_config['default']
+            validation_config['value'] = AclStrInCsvValidator(csv)
+
+        elif validation_type == 'range':
+            validation_config['value'] = AclRangeValidator()
+
+        else:
+            raise RuntimeError('unknown validation type "%s"' % validation_type)
+
+    gn_env.config.set(ConfigKeys.ACL, MappingProxyType(acl_config))
 
 
 def init_storage_engine(gn_env: GNEnvironment) -> None:
@@ -593,6 +628,7 @@ def initialize_env(dino_env):
     init_auth_service(dino_env)
     init_cache_service(dino_env)
     init_pub_sub(dino_env)
+    init_acl_validators(dino_env)
 
 
 _config_paths = None
