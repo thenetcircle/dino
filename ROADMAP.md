@@ -62,13 +62,12 @@ A rough roadmap for possible upcoming features.
     - create admin users manually
     - manage list of admins as user ids
     - change ownership/moderator status for users in channels/rooms
-* permissions
-    - ACLs on channels for who can create rooms in the channel
 * invite
     - search for online users in chats
     - invite user from other room
 * channel permissions
     - permissions on channels
+    - ACLs on channels for who can create rooms in the channel
     - e.g. some types of users can not join, like paying members only etc.
 
 0.11.0
