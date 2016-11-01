@@ -14,7 +14,7 @@
 
 from activitystreams.models.activity import Activity
 
-from dino.validation.generic_validator import GenericValidator
+from dino.validation.generic import GenericValidator
 from dino.config import SessionKeys
 from dino import environ
 from dino import utils

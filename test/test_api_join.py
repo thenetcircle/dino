@@ -216,7 +216,7 @@ class ApiJoinTest(BaseTest):
         })
         invalid_key = 'invalidstuff'
         self.set_session(invalid_key, 't')
-        from dino.validation.acl_validator import AclValidator
+        from dino.validation.acl import AclValidator
         AclValidator.ACL_MATCHERS[invalid_key] = 'definitely-not-callable'
         self.set_acl_single(invalid_key, 't,r,e,w')
         self.assert_join_fails()

@@ -17,7 +17,7 @@ from activitystreams.models.activity import Activity
 from dino import utils
 from dino import environ
 from dino.config import SessionKeys
-from dino.validation.base_validator import BaseValidator
+from dino.validation.base import BaseValidator
 from dino.exceptions import NoChannelFoundException
 from dino import validation
 

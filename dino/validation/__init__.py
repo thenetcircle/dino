@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dino.validation.request_validator import RequestValidator
-from dino.validation.acl_validator import AclValidator
+from dino.validation.request import RequestValidator
+from dino.validation.acl import AclValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 

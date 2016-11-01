@@ -26,7 +26,7 @@ from dino.config import UserKeys
 from dino import environ
 
 from dino.environ import GNEnvironment
-from dino.validation.acl_validator import AclValidator
+from dino.validation.acl import AclValidator
 from dino.exceptions import NoSuchChannelException
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchRoomException

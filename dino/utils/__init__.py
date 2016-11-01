@@ -20,7 +20,7 @@ from dino.config import SessionKeys
 from dino.config import ConfigKeys
 from dino import environ
 from dino.validation.duration import DurationValidator
-from dino.validation.generic_validator import GenericValidator
+from dino.validation.generic import GenericValidator
 from dino.config import RedisKeys
 from dino.config import UserKeys
 from datetime import timedelta

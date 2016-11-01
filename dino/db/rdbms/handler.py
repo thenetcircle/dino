@@ -22,7 +22,7 @@ from dino.config import RoleKeys
 from dino.config import UserKeys
 from dino.config import SessionKeys
 
-from dino.validation.acl_validator import AclValidator
+from dino.validation.acl import AclValidator
 
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database

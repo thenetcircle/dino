@@ -28,7 +28,7 @@ from dino.admin.orm import room_manager
 from dino.admin.orm import acl_manager
 from dino.admin.orm import user_manager
 
-from dino.validation.acl_validator import AclValidator
+from dino.validation.acl import AclValidator
 from dino.exceptions import InvalidAclValueException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import RoomNameExistsForChannelException

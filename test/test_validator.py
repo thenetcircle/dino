@@ -3,7 +3,7 @@ from uuid import uuid4 as uuid
 
 from test.utils import BaseTest
 
-from dino.validation.acl_validator import AclValidator
+from dino.validation.acl import AclValidator
 from dino.validation import acl
 from dino.validation import request 
 from dino.config import SessionKeys

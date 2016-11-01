@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dino.validation.generic_validator import GenericValidator
+from dino.validation.generic import GenericValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
