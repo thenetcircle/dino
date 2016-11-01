@@ -238,12 +238,12 @@ class BaseTest(unittest.TestCase):
         if room_name is None:
             room_name = BaseTest.ROOM_NAME
 
-        environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
-        environ.env.storage.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
-        environ.env.storage.redis.hset(RedisKeys.channel_roles(BaseTest.CHANNEL_ID), BaseTest.USER_ID, RoleKeys.OWNER)
+        environ.env.db.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
+        environ.env.db.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
+        environ.env.db.redis.hset(RedisKeys.channel_roles(BaseTest.CHANNEL_ID), BaseTest.USER_ID, RoleKeys.OWNER)
         environ.env.db.redis.hset(RedisKeys.auth_key(BaseTest.USER_ID), SessionKeys.user_name.value, BaseTest.USER_NAME)
-        self.env.db.redis.hset(RedisKeys.channel_for_rooms(), room_id, BaseTest.CHANNEL_ID)
-        self.env.cache.set_channel_exists(BaseTest.CHANNEL_ID)
+        environ.env.db.redis.hset(RedisKeys.channel_for_rooms(), room_id, BaseTest.CHANNEL_ID)
+        environ.env.cache.set_channel_exists(BaseTest.CHANNEL_ID)
 
     def set_owner(self):
         environ.env.db.redis.hset(RedisKeys.user_names(), BaseTest.USER_ID, BaseTest.USER_NAME)

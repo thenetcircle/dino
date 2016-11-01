@@ -476,15 +476,16 @@ def get_channel_for_room(room_uuid: str) -> str:
 
 
 def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
+    channel_id = get_channel_for_room(room_id)
     if is_owner(room_id, user_id):
-        return True
-    if is_admin(user_id):
         return True
     if is_moderator(room_id, user_id):
         return True
-
-    channel_id = get_channel_for_room(room_id)
     if is_owner_channel(channel_id, user_id):
+        return True
+    if is_admin(channel_id, user_id):
+        return True
+    if is_super_user(user_id):
         return True
 
     return False

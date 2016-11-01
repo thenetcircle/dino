@@ -546,7 +546,7 @@ class DatabaseRedis(object):
         environ.env.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
     def get_acls_channel(self, channel_id: str) -> dict:
-        if not self.channel_exists(channel_id) is None:
+        if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
 
         acls = self.redis.hgetall(RedisKeys.channel_acl(channel_id))
@@ -580,7 +580,7 @@ class DatabaseRedis(object):
 
     def channel_for_room(self, room_id: str) -> str:
         if room_id is None or len(room_id.strip()) == 0:
-            raise NoSuchRoomException
+            raise NoSuchRoomException(room_id)
 
         value = self.env.cache.get_channel_for_room(room_id)
         if value is not None:
