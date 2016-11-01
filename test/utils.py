@@ -522,7 +522,8 @@ class BaseTest(unittest.TestCase):
                 'id': BaseTest.USER_ID
             },
             'target': {
-                'id': BaseTest.ROOM_ID
+                'id': BaseTest.ROOM_ID,
+                'objectType': 'room'
             },
             'verb': 'list'
         }

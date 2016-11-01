@@ -154,7 +154,7 @@ class RequestValidator(BaseValidator):
             return False, 400, 'empty object_type, must be one of [channel, room]'
 
         if object_type not in ['channel', 'room']:
-            return False, 400, 'invalid object_type "%s", but be one of [channel, room]'
+            return False, 400, 'invalid object_type "%s", but be one of [channel, room]' % object_type
 
         if not _can_edit_acl(target_id, user_id):
             return False, 400, 'user is not allowed to change acls on the target'
@@ -231,6 +231,18 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_get_acl(self, activity: Activity) -> (bool, int, str):
+        if activity.target is None:
+            return False, 400, 'no target on activity'
+        if activity.target.id is None or len(activity.target.id.strip()) == 0:
+            return False, 400, 'blank target id on activity'
+
+        object_type = activity.target.object_type
+
+        if object_type is None or len(object_type.strip()) == 0:
+            return False, 400, 'blank object type on activity'
+        if object_type not in ['room', 'channel']:
+            return False, 400, 'unknown object type "%s", must be one of [channel, room]' % object_type
+
         return True, None, None
 
     def on_kick(self, activity: Activity) -> (bool, int, str):
