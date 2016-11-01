@@ -196,6 +196,9 @@ class RequestValidator(BaseValidator):
 
         if channel_id is None or channel_id == '':
             return False, 400, 'need channel ID to list rooms'
+        is_valid, msg = validation.acl.validate_acl_channel(activity)
+        if not is_valid:
+            return False, 400, msg
 
         return True, None, None
 

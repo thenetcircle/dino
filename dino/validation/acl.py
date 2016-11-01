@@ -177,18 +177,21 @@ class AclValidator(object):
 
         # owners can always join
         # todo: maybe not if banned? or remove owner status if banned?
-        # todo: let admins always be able to join any room
         if utils.is_owner(room_id, user_id):
             _msg = 'user %s (%s) is an owner of room %s (%s), skipping ACL validation'
+            environ.env.logger.debug(_msg % (user_id, user_name, room_id, room_name))
+            return True, None
+        if utils.is_admin(channel_id, user_id):
+            _msg = 'user %s (%s) is an admin of channel %s, skipping ACL validation'
+            environ.env.logger.debug(_msg % (user_id, user_name, channel_id))
+            return True, None
+        if utils.is_owner_channel(channel_id, user_id):
+            _msg = 'user %s (%s) is an owner of the channel for room %s (%s), skipping ACL validation'
             environ.env.logger.debug(_msg % (user_id, user_name, room_id, room_name))
             return True, None
         if utils.is_super_user(user_id):
             _msg = 'user %s (%s) is a super user, skipping ACL validation'
             environ.env.logger.debug(_msg % (user_id, user_name))
-            return True, None
-        if utils.is_owner_channel(channel_id, user_id):
-            _msg = 'user %s (%s) is an owner of the channel for room %s (%s), skipping ACL validation'
-            environ.env.logger.debug(_msg % (user_id, user_name, room_id, room_name))
             return True, None
 
         room_acls = environ.env.db.get_acls(room_id)
@@ -231,5 +234,64 @@ class AclValidator(object):
                     error_msg %= (session_value, acl_key, acl_val, user_id, user_name, room_id, room_name)
                     environ.env.logger.info(error_msg)
                     return False, error_msg
+
+        return True, None
+
+    def validate_acl_channel(self, activity: Activity) -> (bool, str):
+        channel_id = activity.object.url
+        user_id = environ.env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
+        user_name = environ.env.session.get('user_name', 'NOT_FOUND_IN_SESSION')
+
+        # owners can always join
+        # todo: maybe not if banned? or remove owner status if banned?
+        if utils.is_owner_channel(channel_id, user_id):
+            _msg = 'user %s (%s) is an owner of channel %s, skipping ACL validation'
+            environ.env.logger.debug(_msg % (user_id, user_name, channel_id))
+            return True, None
+        if utils.is_admin(channel_id, user_id):
+            _msg = 'user %s (%s) is an admin of channel %s, skipping ACL validation'
+            environ.env.logger.debug(_msg % (user_id, user_name, channel_id))
+            return True, None
+        if utils.is_super_user(user_id):
+            _msg = 'user %s (%s) is a super user, skipping ACL validation'
+            environ.env.logger.debug(_msg % (user_id, user_name))
+            return True, None
+
+        acls = environ.env.db.get_acls_channel(channel_id)
+        if len(acls) == 0:
+            return True, None
+
+        for acl_key, acl_val in acls.items():
+            if acl_key not in environ.env.session:
+                error_msg = 'Key "%s" not in session for user, cannot let "%s" (%s) join channel "%s"'
+                error_msg %= (acl_key, user_id, user_name, channel_id)
+                environ.env.logger.error(error_msg)
+                return False, error_msg
+
+            session_value = environ.env.session.get(acl_key, None)
+            if session_value is None:
+                error_msg = 'Value for key "%s" not in session, cannot let "%s" (%s) join channel "%s"'
+                error_msg %= (acl_key, user_id, user_name, channel_id)
+                environ.env.logger.error(error_msg)
+                return False, error_msg
+
+            if acl_key not in AclValidator.ACL_MATCHERS:
+                error_msg = 'No validator for ACL type "%s", cannot let "%s" (%s) join join channel "%s"'
+                error_msg %= (acl_key, user_id, user_name, channel_id)
+                environ.env.logger.error(error_msg)
+                return False, error_msg
+
+            validator = AclValidator.ACL_MATCHERS[acl_key]
+            if not callable(validator):
+                error_msg = 'Validator for ACL type "%s" is not callable, cannot let "%s" (%s) join channel "%s"'
+                error_msg %= (acl_key, user_id, user_name, channel_id)
+                environ.env.logger.error(error_msg)
+                return False, error_msg
+
+            if not validator(acl_val, session_value):
+                error_msg = 'Value "%s" not valid for ACL "%s" (value "%s"), cannot let "%s" (%s) join channel "%s"'
+                error_msg %= (session_value, acl_key, acl_val, user_id, user_name, channel_id)
+                environ.env.logger.info(error_msg)
+                return False, error_msg
 
         return True, None

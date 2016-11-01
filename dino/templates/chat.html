@@ -247,6 +247,9 @@
 
                 socket.on('gn_list_rooms', function(response) {
                     console.log(response);
+                    if (response.status_code != 200) {
+                        return;
+                    }
 
                     rooms = response.data.object.attachments
 
