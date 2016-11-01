@@ -442,6 +442,10 @@ def get_acl_config() -> dict:
 
 
 def init_acl_validators(gn_env: GNEnvironment) -> None:
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
     acl_config = gn_env.config.get(ConfigKeys.ACL)
 
     validators = acl_config['validation']

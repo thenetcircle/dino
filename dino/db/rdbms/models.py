@@ -107,6 +107,26 @@ class LastReads(DeclarativeBase):
     time_stamp = Column('time_stamp', Integer, nullable=False)
 
 
+class AclsRevamp(DeclarativeBase):
+    __tablename__ = 'aclsrevamp'
+
+    id = Column(Integer, primary_key=True)
+
+    # TODO: when done with redoing acls
+    # room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=True)
+    # room = relationship('Rooms', back_populates='acl')
+
+    # channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=True)
+    # channel = relationship('Channels', back_populates='acl')
+
+    # action: join/create/kick etc.
+    action = Column('action', String, nullable=False)
+
+    # acl_type: gender/age/city etc.
+    acl_type = Column('acl_type', String, nullable=False)
+    acl_value = Column('acl_value', String, nullable=False)
+
+
 class Acls(DeclarativeBase):
     __tablename__ = 'acls'
 
@@ -118,12 +138,16 @@ class Acls(DeclarativeBase):
     channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=True)
     channel = relationship('Channels', back_populates='acl')
 
-    # action: join/create/kick etc.
-    action = Column('action', String, nullable=False)
-
-    # acl_type: gender/age/city etc.
-    acl_type = Column('acl_type', String, nullable=False)
-    acl_value = Column('acl_value', String, nullable=False)
+    age = Column('age', String, nullable=True)
+    gender = Column('gender', String, nullable=True)
+    membership = Column('membership', String, nullable=True)
+    group = Column('group', String, nullable=True)
+    country = Column('country', String, nullable=True)
+    city = Column('city', String, nullable=True)
+    image = Column('image', String, nullable=True)
+    has_webcam = Column('has_webcam', String, nullable=True)
+    fake_checked = Column('fake_checked', String, nullable=True)
+    crossgroup = Column('crossgroup', String, nullable=True)
 
 
 class AclConfigs(DeclarativeBase):

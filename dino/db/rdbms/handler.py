@@ -708,6 +708,7 @@ class DatabaseRdbms(object):
 
     @with_session
     def add_acls(self, room_id: str, acls: dict) -> None:
+        # TODO: use new acls
         if acls is None or len(acls) == 0:
             return
 

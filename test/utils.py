@@ -167,6 +167,7 @@ class BaseTest(unittest.TestCase):
             'token': str(uuid())
         }
 
+        environ.env.config = environ.ConfigDict()
         environ.env.config.set(ConfigKeys.TESTING, True)
         environ.env.config = environ.env.config.sub(**self.session)
         environ.env.auth = AuthRedis('mock')

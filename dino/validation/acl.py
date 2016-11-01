@@ -19,6 +19,7 @@ from activitystreams.models.activity import Activity
 from dino.validation.generic import GenericValidator
 from dino.exceptions import ValidationException
 from dino.config import SessionKeys
+from dino.config import ConfigKeys
 from dino import environ
 from dino import utils
 
@@ -173,6 +174,59 @@ class AclValidator(object):
             return False
         return validator(acl_value)
 
+    def validate_acl_for_action(self, activity: Activity, target: str, action: str, target_acls: dict) -> (bool, str):
+        all_acls = environ.env.config.get(ConfigKeys.ACL)
+
+        if target == 'room' and activity.target.object_type != 'group':
+            return True, None
+
+        # no acls for this target (room/channel) and action (join/kick/etc)
+        if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
+            return True, None
+
+        user_id = activity.actor.id
+        channel_id = activity.object.url
+
+        if utils.is_admin(channel_id, user_id):
+            return True, None
+        if utils.is_owner_channel(channel_id, user_id):
+            return True, None
+        if utils.is_super_user(user_id):
+            return True, None
+
+        if target == 'channel':
+            pass
+        elif target == 'room':
+            room_id = activity.target.id
+            if utils.is_owner(room_id, user_id):
+                return True, None
+        else:
+            return False, 'unknown target "%s", must be one of [channel, room]' % target
+
+        possible_acls = all_acls[target][action]
+        for acl_rule, acl_values in possible_acls.items():
+            if acl_rule != 'acls':
+                continue
+
+            for acl in acl_values:
+                if acl not in target_acls.keys():
+                    continue
+
+                session_value = environ.env.session.get(acl)
+                if session_value is None:
+                    logger.warning('no session value for acl "%s" for user "%s"' % (acl, user_id))
+                    return False, 'no session value for acl"%s" for user "%s"' % (acl, user_id)
+
+                is_valid_func = all_acls['validation'][acl]['value']
+                if not is_valid_func(target_acls[acl], session_value):
+                    logger.info(
+                            'session value "%s" did not validate for target acl "%s"' %
+                            (session_value, target_acls[acl]))
+                    return False, 'session value "%s" did not validate for target acl "%s"' % (
+                        session_value, target_acls[acl])
+
+        return True, None
+
     def validate_acl(self, activity: Activity) -> (bool, str):
         room_id = activity.target.id
         room_name = utils.get_room_name(room_id)
@@ -302,27 +356,66 @@ class AclValidator(object):
         return True, None
 
 
-class AclAnythingValidator(object):
+class BaseAclValidator(object):
+    def validate_new_acl(self, values):
+        raise NotImplementedError('validate_new_acl')
+
+
+class AclAnythingValidator(BaseAclValidator):
     def __init__(self):
         pass
+
+    def validate_new_acl(self, values):
+        return
 
     def __call__(self, *args, **kwargs):
         pass
 
 
-class AclStrInCsvValidator(object):
-    def __init__(self, csv: str):
-        if csv is None or len(csv.strip()) == 0:
-            raise ValidationException('blank csv when creating AclStrInCsvValidator')
-        self.values = set(csv.split(','))
+class AclStrInCsvValidator(BaseAclValidator):
+    def __init__(self, csv):
+        self.valid_csvs = csv.split(',')
+
+    def validate_new_acl(self, values):
+        if values is None or len(values.strip()) == 0:
+            return
+
+        new_values = values.split(',')
+        for new_value in new_values:
+            if new_value in self.valid_csvs:
+                continue
+
+            raise ValidationException(
+                    'new acl values "%s" does not match configured possible values "%s"' %
+                    (values, self.valid_csvs))
 
     def __call__(self, *args, **kwargs):
-        return args[0] in self.values
+        acl_values = args[0]
+        if acl_values.strip() == '':
+            return True
+        acl_values = acl_values.split(',')
+        session_value = args[1]
+        return session_value in acl_values
 
 
-class AclRangeValidator(object):
+class AclRangeValidator(BaseAclValidator):
     def __init__(self):
         pass
+
+    def validate_new_acl(self, values):
+        if values is None or len(values.strip()) == 0:
+            raise ValidationException('blank range when creating AclRangeValidator')
+
+        if ':' not in values:
+            raise ValidationException('value not a range, no colon in value: "%s"' % values)
+
+        range_min, range_max = values.split(':', 1)
+        if range_min != '':
+            if not GenericValidator.is_digit(range_min):
+                raise ValidationException('first value in range "%s" is not a number' % values)
+        if range_max != '':
+            if not GenericValidator.is_digit(range_max):
+                raise ValidationException('last value in range "%s" is not a number' % values)
 
     def __call__(self, *args, **kwargs):
         acl_range = args[0]
