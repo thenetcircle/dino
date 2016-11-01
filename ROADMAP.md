@@ -73,7 +73,7 @@ A rough roadmap for possible upcoming features.
 
 0.11.0
 ---
-* emit event on socket for kick/ban
+* emit event on socket for kick/ban from ui
     - to be able for clients to do ui updates in response to being kicked/banned 
 * response codes
     - use defined response codes for front-end to be able to display correct error messages
@@ -84,6 +84,8 @@ A rough roadmap for possible upcoming features.
 
 0.1X.0
 ---
+* test coverage to 90%+
+* refactoring and cleanup
 * invisibility
     - invisible in chats
 * backend admin interface
