@@ -247,7 +247,10 @@ def on_get_acl(data: dict, activity: Activity = None) -> (int, Union[str, dict])
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<AS with acl as object.attachments>'}
     """
-    acls = utils.get_acls_for_room(activity.target.id)
+    if activity.target.object_type == 'channel':
+        acls = utils.get_acls_for_channel(activity.target.id)
+    else:
+        acls = utils.get_acls_for_room(activity.target.id)
     return 200, utils.activity_for_get_acl(activity, acls)
 
 

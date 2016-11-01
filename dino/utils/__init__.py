@@ -428,6 +428,10 @@ def get_acls_for_room(room_id: str) -> dict:
     return environ.env.db.get_acls(room_id)
 
 
+def get_acls_for_channel(channel_id: str) -> dict:
+    return environ.env.db.get_acls_channel(channel_id)
+
+
 def get_owners_for_room(room_id: str) -> dict:
     return environ.env.db.get_owners_room(room_id)
 
