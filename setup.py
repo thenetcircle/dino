@@ -28,7 +28,6 @@ setup(
         'flask-socketio==2.7.1',
         'flask_wtf==0.12',
         'wtforms==2.1',
-        'eventlet==0.19.0',
         'gevent==1.1.2',
         'mysqlclient==1.3.7',
         'gunicorn==19.6.0',
