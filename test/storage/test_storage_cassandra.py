@@ -95,7 +95,7 @@ class StorageMockCassandraTest(BaseTest):
     def act_message(self):
         data = self.activity_for_message()
         data['id'] = str(uuid())
-        data['target']['objectType'] = 'group'
+        data['target']['objectType'] = 'room'
         data['object']['url'] = BaseTest.CHANNEL_ID
         data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
         return parse(data)

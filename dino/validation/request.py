@@ -36,10 +36,10 @@ class RequestValidator(BaseValidator):
         if room_id is None or room_id == '':
             return False, 400, 'no room id specified when sending message'
 
-        if object_type not in ['group', 'private']:
+        if object_type not in ['room', 'private']:
             return False, 400, 'invalid object_type "%s", need to be either "group" or "private"' % object_type
 
-        if object_type == 'group':
+        if object_type == 'room':
             channel_id = activity.object.url
 
             if channel_id is None or channel_id == '':
@@ -200,7 +200,9 @@ class RequestValidator(BaseValidator):
 
         if channel_id is None or channel_id == '':
             return False, 400, 'need channel ID to list rooms'
-        is_valid, msg = validation.acl.validate_acl_channel(activity)
+
+        acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
+        is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.LIST, acls)
         if not is_valid:
             return False, 400, msg
 

@@ -439,6 +439,10 @@ def get_acls_in_room_for_action(room_id: str, action: str) -> dict:
     return environ.env.db.get_acls_in_room_for_action(room_id, action)
 
 
+def get_acls_in_channel_for_action(channel_id: str, action: str) -> dict:
+    return environ.env.db.get_acls_in_channel_for_action(channel_id, action)
+
+
 def get_acls_for_channel(channel_id: str) -> dict:
     return environ.env.db.get_acls_channel(channel_id)
 

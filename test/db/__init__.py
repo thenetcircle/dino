@@ -71,7 +71,7 @@ class BaseDatabaseTest(BaseTest):
     def act_message(self):
         data = self.activity_for_message()
         data['id'] = BaseDatabaseTest.MESSAGE_ID
-        data['target']['objectType'] = 'group'
+        data['target']['objectType'] = 'room'
         data['published'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%dT%H:%M:%SZ')
         return parse(data)
 

@@ -30,7 +30,7 @@ class ApiMessageTest(BaseTest):
         self.create_room(room_id=new_room_id)
 
         activity = self.activity_for_message()
-        activity['target']['objectType'] = 'group'
+        activity['target']['objectType'] = 'room'
         activity['target']['id'] = new_room_id
         response_data = api.on_message(activity)
         self.assertEqual(400, response_data[0])
@@ -38,7 +38,7 @@ class ApiMessageTest(BaseTest):
     def test_send_message_non_existing_room(self):
         new_room_id = str(uuid())
         activity = self.activity_for_message()
-        activity['target']['objectType'] = 'group'
+        activity['target']['objectType'] = 'room'
         activity['target']['id'] = new_room_id
         response_data = api.on_message(activity)
         self.assertEqual(400, response_data[0])
@@ -52,7 +52,7 @@ class ApiMessageTest(BaseTest):
 
         self.set_acl({ApiActions.CROSSROOM: {'samechannel': ''}}, room_id=new_room_id)
         activity = self.activity_for_message()
-        activity['target']['objectType'] = 'group'
+        activity['target']['objectType'] = 'room'
         activity['target']['id'] = new_room_id
         activity['actor']['url'] = BaseTest.ROOM_ID
 
@@ -69,7 +69,7 @@ class ApiMessageTest(BaseTest):
         self.set_acl({ApiActions.CROSSROOM: {'disallow': ''}}, room_id=new_room_id)
 
         activity = self.activity_for_message()
-        activity['target']['objectType'] = 'group'
+        activity['target']['objectType'] = 'room'
         activity['target']['id'] = new_room_id
         activity['actor']['url'] = BaseTest.ROOM_ID
 

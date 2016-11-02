@@ -181,6 +181,6 @@ class TestAclValidator(TestCase):
             },
             'target': {
                 'id': TestAclValidator.ROOM_ID,
-                'objectType': 'group'
+                'objectType': 'room'
             }
         }

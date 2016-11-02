@@ -180,7 +180,8 @@ class AclValidator(object):
         if activity.target.object_type is None:
             return False, 'target.objectType must not be none'
 
-        if target == 'room' and activity.target.object_type != 'group':
+        # one-to-one is sending message that users private room, so target is room, but object_type would not be
+        if target == 'room' and activity.target.object_type != 'room':
             return True, None
 
         user_id = activity.actor.id
@@ -188,7 +189,7 @@ class AclValidator(object):
 
         # no acls for this target (room/channel) and action (join/kick/etc)
         if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
-            return False, 'no acl set that allows action "%s" for target type "%s"'
+            return False, 'no acl set that allows action "%s" for target type "%s"' % (action, target)
 
         if utils.is_admin(channel_id, user_id):
             return True, None
