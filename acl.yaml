@@ -26,11 +26,11 @@ validation:
     age:
         type: "range"
     group:
-        type: "anything"
+        type: "str_in_csv"
     country:
-        type: "anything"
+        type: "str_in_csv"
     city:
-        type: "anything"
+        type: "str_in_csv"
     image:
         type: "str_in_csv"
         value: "y,n"

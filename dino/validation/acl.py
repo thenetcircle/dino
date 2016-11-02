@@ -361,22 +361,17 @@ class BaseAclValidator(object):
         raise NotImplementedError('validate_new_acl')
 
 
-class AclAnythingValidator(BaseAclValidator):
-    def __init__(self):
-        pass
-
-    def validate_new_acl(self, values):
-        return
-
-    def __call__(self, *args, **kwargs):
-        pass
-
-
 class AclStrInCsvValidator(BaseAclValidator):
-    def __init__(self, csv):
-        self.valid_csvs = csv.split(',')
+    def __init__(self, csv=None):
+        self.valid_csvs = None
+        if csv is not None:
+            self.valid_csvs = csv.split(',')
 
     def validate_new_acl(self, values):
+        # all new values accepted, e.g. for city or country
+        if self.valid_csvs is None:
+            return
+
         if values is None or len(values.strip()) == 0:
             return
 
@@ -422,10 +417,16 @@ class AclRangeValidator(BaseAclValidator):
         if acl_range is None or len(acl_range.strip()) == 0:
             raise ValidationException('blank range when creating AclRangeValidator')
         range_min, range_max = acl_range.split(':', 1)
+
         if range_min == '':
             range_min = None
+        else:
+            range_min = int(range_min)
+
         if range_max == '':
             range_max = None
+        else:
+            range_max = int(range_max)
 
         value = args[1]
         if value is None or len(value.strip()) == 0:

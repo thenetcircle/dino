@@ -36,7 +36,6 @@ from dino.config import ConfigKeys
 from dino.validation.acl import AclConfigValidator
 from dino.validation.acl import AclRangeValidator
 from dino.validation.acl import AclStrInCsvValidator
-from dino.validation.acl import AclAnythingValidator
 from dino.exceptions import AclValueNotFoundException
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
@@ -452,10 +451,7 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
     for acl_type, validation_config in validators.items():
         validation_type = validation_config['type']
 
-        if validation_type == 'anything':
-            validation_config['value'] = AclAnythingValidator()
-
-        elif validation_type == 'str_in_csv':
+        if validation_type == 'str_in_csv':
             csv = validation_config['value']
             if csv == '##db##':
                 try:
@@ -466,7 +462,9 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
                             '"%s" and method "str_in_csv", will check for default value' % acl_type)
                     if 'default' not in validation_config or len(validation_config['default'].strip()) == 0:
                         raise RuntimeError('no default value found for type "%s" and method "str_in_csv"' % acl_type)
+
                     csv = validation_config['default']
+
             validation_config['value'] = AclStrInCsvValidator(csv)
 
         elif validation_type == 'range':

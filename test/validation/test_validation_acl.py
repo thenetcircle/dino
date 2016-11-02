@@ -24,6 +24,7 @@ from dino.config import SessionKeys
 from dino.config import RedisKeys
 from dino.validation import AclValidator
 from dino.validation.acl import AclStrInCsvValidator
+from dino.validation.acl import AclRangeValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -79,19 +80,36 @@ class TestAclValidator(TestCase):
                 'room': {
                     'join': {
                         'acls': [
-                            'gender'
+                            'gender',
+                            'age',
+                            'country'
+                        ]
+                    },
+                    'message': {
+                        'acls': [
+                            'gender',
+                            'age'
                         ]
                     }
                 },
                 'available': {
                     'acls': [
-                        'gender'
+                        'gender',
+                        'age'
                     ]
                 },
                 'validation': {
+                    'country': {
+                        'type': 'anything',
+                        'value': AclStrInCsvValidator()
+                    },
                     'gender': {
                         'type': 'str_in_csv',
                         'value': AclStrInCsvValidator('m,f')
+                    },
+                    'age': {
+                        'type': 'range',
+                        'value': AclRangeValidator()
                     }
                 }
             }
@@ -100,12 +118,45 @@ class TestAclValidator(TestCase):
         self.validator = AclValidator()
 
     def test_validate_acl_for_action_join(self):
-        is_valid, msg = self.validator.validate_acl_for_action(self.act(), 'room', 'join', self.acls())
+        is_valid, msg = self.validator.validate_acl_for_action(
+                self.act(), 'room', 'join', self.acls_for_room_join())
         self.assertTrue(is_valid)
 
-    def acls(self):
+    def test_validate_acl_for_action_join_country(self):
+        is_valid, msg = self.validator.validate_acl_for_action(
+                self.act(), 'room', 'join', self.acls_for_room_join_country())
+        self.assertTrue(is_valid)
+
+    def test_validate_acl_for_action_join_wrong_country(self):
+        environ.env.session[SessionKeys.country.value] = 'xx'
+        is_valid, msg = self.validator.validate_acl_for_action(
+                self.act(), 'room', 'join', self.acls_for_room_join_country())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_join_wrong_gender(self):
+        environ.env.session[SessionKeys.gender.value] = 'm'
+        is_valid, msg = self.validator.validate_acl_for_action(
+                self.act(), 'room', 'join', self.acls_for_room_join())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_message_too_young(self):
+        is_valid, msg = self.validator.validate_acl_for_action(
+                self.act(), 'room', 'message', self.acls_for_room_message())
+        self.assertFalse(is_valid)
+
+    def acls_for_room_join(self):
         return {
-            'gender': 'm,f'
+            'gender': 'f'
+        }
+
+    def acls_for_room_join_country(self):
+        return {
+            'country': 'cn,de'
+        }
+
+    def acls_for_room_message(self):
+        return {
+            'age': '35:'
         }
 
     def act(self):
