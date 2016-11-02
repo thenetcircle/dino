@@ -22,7 +22,7 @@ from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
 from dino.config import RoleKeys
-from dino.config import ApiTargets
+from dino.config import ApiActions
 from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis
 from dino.db.redis import DatabaseRedis
@@ -422,6 +422,18 @@ class BaseTest(unittest.TestCase):
 
     def get_acls(self):
         return environ.env.storage.redis.hgetall(RedisKeys.room_acl(BaseTest.ROOM_ID))
+
+    def get_acls_for_join(self):
+        acls = environ.env.db.redis.hgetall(RedisKeys.room_acl(BaseTest.ROOM_ID))
+        acls_cleaned = dict()
+
+        for acl_key, acl_value in acls.items():
+            acl_action, acl_type = str(acl_key, 'utf-8').split('|', 1)
+            if acl_action != ApiActions.JOIN:
+                continue
+            acls_cleaned[acl_type] = str(acl_value, 'utf-8')
+
+        return acls_cleaned
 
     def set_acl(self, acls: dict, room_id=ROOM_ID):
         for api_action, acls_items in acls.items():

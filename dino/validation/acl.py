@@ -167,12 +167,28 @@ class AclValidator(object):
     }
 
     def is_acl_valid(self, acl_type, acl_value):
-        validator = AclValidator.ACL_VALIDATORS.get(acl_type, None)
-        if validator is None:
+        all_acls = environ.env.config.get(ConfigKeys.ACL)
+        all_validators = all_acls['validation']
+
+        if acl_type not in all_validators:
+            logger.warn('acl type "%s" does not have a validator' % acl_type)
             return False
-        if not callable(validator):
+
+        validator_func = all_validators[acl_type]['value']
+        if not callable(validator_func):
+            logger.error('validator for acl type "%s" is not callable' % acl_type)
             return False
-        return validator(acl_value)
+        if not isinstance(validator_func, BaseAclValidator):
+            logger.error(
+                    'validator for acl type "%s" is not of instance BaseAclValidator but "%s"' %
+                    (acl_type, str(type(validator_func))))
+            return False
+
+        # blank means we're removing it
+        if acl_value is None or len(acl_value.strip()) == 0:
+            return True
+
+        return validator_func.validate_new_acl(acl_value)
 
     def validate_acl_for_action(self, activity: Activity, target: str, action: str, target_acls: dict) -> (bool, str):
         all_acls = environ.env.config.get(ConfigKeys.ACL)
@@ -633,8 +649,8 @@ class AclConfigValidator(object):
         available_acls = acls['available']['acls']
         rules = ['acls', 'exclude']
         actions = {
-            'room': ['join', 'history', 'create', 'list', 'kick', 'message', 'crossroom', 'ban'],
-            'channel': ['create', 'list', 'create', 'message', 'crossroom', 'ban']
+            'room': ['join', 'setacl', 'history', 'create', 'list', 'kick', 'message', 'crossroom', 'ban'],
+            'channel': ['create', 'setacl', 'list', 'create', 'message', 'crossroom', 'ban']
         }
 
         AclConfigValidator.check_acl_roots(acls)

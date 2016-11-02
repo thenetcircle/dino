@@ -54,6 +54,7 @@ class ApiActions(object):
     BAN = 'ban'
     LIST = 'list'
     HISTORY = 'history'
+    SETACL = 'setacl'
 
     @staticmethod
     def all_api_actions():

@@ -22,6 +22,7 @@ from activitystreams.models.activity import Activity
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
+from dino.config import ApiActions
 from dino.utils.decorators import pre_process
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
@@ -221,9 +222,9 @@ def on_set_acl(data: dict, activity: Activity = None) -> (int, str):
         # if the content is None, it means we're removing this ACL
         if acl.content is None:
             if is_for_channel:
-                pass
+                environ.env.db.delete_acl_in_channel_for_action(target_id, acl.object_type, ApiActions.SETACL)
             else:
-                environ.env.db.delete_acl(target_id, acl.object_type)
+                environ.env.db.delete_acl_in_room_for_action(target_id, acl.object_type, ApiActions.SETACL)
             continue
 
         acl_dict[acl.object_type] = acl.content

@@ -19,6 +19,7 @@ from dino import environ
 from dino.config import SessionKeys
 from dino.config import ApiActions
 from dino.config import ApiTargets
+from dino.config import ConfigKeys
 from dino.validation.base import BaseValidator
 from dino.exceptions import NoChannelFoundException
 from dino import validation
@@ -122,8 +123,8 @@ class RequestValidator(BaseValidator):
         if not is_global_ban:
             if not utils.is_owner(room_id, user_id):
                 return False, 400, 'only owners can ban'
-        elif not utils.is_admin(user_id):
-                return False, 400, 'only admins can do global bans'
+        elif not utils.is_admin(channel_id, user_id) and not utils.is_super_user(user_id):
+            return False, 400, 'only admins and super users can do global bans'
 
         return True, None, None
 
@@ -164,8 +165,11 @@ class RequestValidator(BaseValidator):
 
         # validate all acls before actually changing anything
         acls = activity.object.attachments
+        from pprint import pprint
+        all_available_acls_types = environ.env.config.get(ConfigKeys.ACL)['available']['acls']
         for acl in acls:
-            if acl.object_type not in validation.acl.ACL_MATCHERS.keys():
+            pprint(acl.__dict__)
+            if acl.object_type not in all_available_acls_types:
                 return False, 400, 'invalid acl type "%s"' % acl.object_type
             if not validation.acl.is_acl_valid(acl.object_type, acl.content):
                 return False, 400, 'invalid acl value "%s" for type "%s"' % (acl.content, acl.object_type)

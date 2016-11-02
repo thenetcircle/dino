@@ -292,17 +292,19 @@ class DatabaseRedis(object):
         self.redis.hdel(RedisKeys.users_in_room(room_id), user_id)
         self.redis.hdel(RedisKeys.rooms_for_user(user_id), room_id)
 
-    def delete_acl(self, room_id: str, acl_type: str) -> None:
+    def delete_acl_in_room_for_action(self, room_id: str, acl_type: str, action: str) -> None:
         if self.channel_for_room(room_id) is None:
             raise NoSuchRoomException(room_id)
 
-        self.redis.hdel(RedisKeys.room_acl(room_id), acl_type)
+        key = '%s|%s' % (action, acl_type)
+        self.redis.hdel(RedisKeys.room_acl(room_id), key)
 
-    def delete_acl_channel(self, channel_id: str, acl_type: str) -> None:
+    def delete_acl_in_channel_for_action(self, channel_id: str, acl_type: str, action: str) -> None:
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
 
-        self.redis.hdel(RedisKeys.channel_acl(channel_id), acl_type)
+        key = '%s|%s' % (action, acl_type)
+        self.redis.hdel(RedisKeys.channel_acl(channel_id), key)
 
     def update_acl_room(self, channel_id: str, room_id: str, acl_type: str, acl_value: str) -> None:
         if not self.channel_exists(channel_id):

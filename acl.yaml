@@ -75,6 +75,11 @@ channel:
             - samechannel
     crossroom:
         <<: *AVAILABLE
+    setacl:
+        acls:
+            - owner
+            - admin
+            - superuser
     ban:
         acls:
             - owner
@@ -103,6 +108,11 @@ room:
             - samechannel
     crossroom:
         <<: *AVAILABLE
+    setacl:
+        acls:
+            - owner
+            - admin
+            - superuser
     kick:
         acls:
             - owner

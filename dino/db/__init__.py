@@ -542,25 +542,23 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def delete_acl(self, room_id: str, acl_type: str) -> None:
+    def delete_acl_in_channel_for_action(self, channel_id: str, acl_type: str, action: str) -> None:
         """
-        delete an acl from a room
+        delete an acl in a channel for a certain action
 
-        :raises InvalidAclTypeException if the type is invalid
-        :raises NoSuchRoomException if the room doesn't exist
-        :param room_id: the id of the room
-        :param acl_type: deletes one acl from this room with this type
+        :param channel_id: the uuid of the channel
+        :param acl_type: the type of the acl (e.g. gender/membership etc.)
+        :param action: the action to delete for (e.g. join/kick/history etc.)
         :return: nothing
         """
 
-    def delete_acl_channel(self, channel_id: str, acl_type: str) -> None:
+    def delete_acl_in_room_for_action(self, room_id: str, acl_type: str, action: str) -> None:
         """
-        delete an acl from a channel
+        delete an acl in a room for a certain action
 
-        :raises InvalidAclTypeException if the type is invalid
-        :raises NoSuchChannelException if the channel doesn't exist
-        :param channel_id: the id of the channel
-        :param acl_type: deletes one acl from this channel with this type
+        :param room_id: the uuid of the room
+        :param acl_type: the type of the acl (e.g. gender/membership etc.)
+        :param action: the action to delete for (e.g. join/kick/history etc.)
         :return: nothing
         """
 
