@@ -53,6 +53,7 @@ class ApiActions(object):
     KICK = 'kick'
     BAN = 'ban'
     LIST = 'list'
+    HISTORY = 'history'
 
     @staticmethod
     def all_api_actions():

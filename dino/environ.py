@@ -33,12 +33,14 @@ from flask import render_template as _flask_render_template
 from flask import session as _flask_session
 
 from dino.config import ConfigKeys
+from dino.exceptions import AclValueNotFoundException
+
 from dino.validation.acl import AclConfigValidator
 from dino.validation.acl import AclRangeValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
+from dino.validation.acl import AclSameRoomValidator
 from dino.validation.acl import AclDisallowValidator
-from dino.exceptions import AclValueNotFoundException
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
 
@@ -477,6 +479,9 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
 
         elif validation_type == 'samechannel':
             validation_config['value'] = AclSameChannelValidator()
+
+        elif validation_type == 'sameroom':
+            validation_config['value'] = AclSameRoomValidator()
 
         else:
             raise RuntimeError('unknown validation type "%s"' % validation_type)

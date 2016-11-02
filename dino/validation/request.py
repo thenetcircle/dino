@@ -215,7 +215,10 @@ class RequestValidator(BaseValidator):
         if room_id is None or room_id.strip() == '':
             return False, 400, 'invalid target id'
 
-        is_valid, error_msg = validation.acl.validate_acl(activity)
+        acls = utils.get_acls_in_room_for_action(room_id, ApiActions.HISTORY)
+        is_valid, error_msg = validation.acl.validate_acl_for_action(
+                activity, ApiTargets.ROOM, ApiActions.HISTORY, acls)
+
         if not is_valid:
             return False, 400, error_msg
 

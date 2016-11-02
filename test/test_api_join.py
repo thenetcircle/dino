@@ -1,4 +1,19 @@
+#!/usr/bin/env python
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from dino import api
+from dino.config import ApiActions
 from test.utils import BaseTest
 
 
@@ -22,133 +37,175 @@ class ApiJoinTest(BaseTest):
 
     def test_join_owner_ignores_acl(self):
         self.set_owner()
-        self.set_acl({'age': '18:25'})
+        self.set_acl({ApiActions.JOIN: {'age': '18:25'}})
         self.assert_join_succeeds()
 
     def test_join_non_owner_too_young(self):
-        self.set_acl({'age': '35:40'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'age': '35:40'}})
         self.assert_join_fails()
 
     def test_join_non_owner_too_old(self):
-        self.set_acl({'age': '18:25'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'age': '18:25'}})
         self.assert_join_fails()
 
     def test_join_non_owner_in_age_range(self):
-        self.set_acl({'age': '18:40'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'age': '18:40'}})
         self.assert_join_succeeds()
 
     def test_join_non_owner_wrong_gender(self):
-        self.set_acl({'gender': 'ts,m'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'gender': 'ts,m'}})
         self.assert_join_fails()
 
     def test_join_non_owner_wrong_membership(self):
-        self.set_acl({'membership': '1,2'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'membership': '1,2'}})
         self.assert_join_fails()
 
     def test_join_non_owner_correct_membership(self):
-        self.set_acl({'membership': '0,1,2'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'membership': '0,1,2'}})
         self.assert_join_succeeds()
 
     def test_join_non_owner_no_image(self):
-        self.set_acl({'image': 'n'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'image': 'n'}})
         self.assert_join_fails()
 
     def test_join_non_owner_has_image(self):
-        self.set_acl({'image': 'y'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'image': 'y'}})
         self.assert_join_succeeds()
 
     def test_join_non_owner_fake_checkede(self):
-        self.set_acl({'fake_checked': 'y'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'fake_checked': 'y'}})
         self.assert_join_fails()
 
     def test_join_non_owner_not_fake_checked(self):
-        self.set_acl({'fake_checked': 'n'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'fake_checked': 'n'}})
         self.assert_join_succeeds()
 
     def test_join_non_owner_webcam(self):
-        self.set_acl({'has_webcam': 'y'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'has_webcam': 'y'}})
         self.assertEqual(200, self.response_code_for_joining())
         self.assert_in_room(True)
 
     def test_join_non_owner_no_webcam(self):
-        self.set_acl({'has_webcam': 'n'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'has_webcam': 'n'}})
         self.assert_join_fails()
 
     def test_join_non_owner_invalid_acl(self):
-        self.set_acl({'unknown_acl': 'asdf'})
-        self.assert_join_fails()
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'unknown_acl': 'asdf'}})
+        self.assert_join_succeeds()
 
     def test_join_owner_invalid_acl(self):
-        self.set_acl({'unknown_acl': 'asdf'})
-        self.assert_join_fails()
+        self.set_acl({ApiActions.JOIN: {'unknown_acl': 'asdf'}})
+        self.assert_join_succeeds()
 
     def test_join_owner_wrong_country(self):
-        self.set_acl({'country': 'de,dk'})
+        self.set_acl({ApiActions.JOIN: {'country': 'de,dk'}})
         self.set_owner()
         self.assert_join_succeeds()
 
     def test_join_non_owner_wrong_country(self):
-        self.set_acl({'country': 'de,dk'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'country': 'de,dk'}})
         self.assert_join_fails()
 
     def test_join_non_owner_correct_country(self):
-        self.set_acl({'country': 'de,cn,dk'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'country': 'de,cn,dk'}})
         self.assert_join_succeeds()
 
     def test_join_owner_correct_country(self):
-        self.set_acl({'country': 'de,cn,dk'})
+        self.set_acl({ApiActions.JOIN: {'country': 'de,cn,dk'}})
         self.set_owner()
         self.assert_join_succeeds()
 
     def test_join_owner_correct_city(self):
-        self.set_acl({'city': 'Shanghai,Berlin,Copenhagen'})
+        self.set_acl({ApiActions.JOIN: {'city': 'Shanghai,Berlin,Copenhagen'}})
         self.set_owner()
         self.assert_join_succeeds()
 
     def test_join_non_owner_correct_city(self):
-        self.set_acl({'city': 'Shanghai,Berlin,Copenhagen'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'city': 'Shanghai,Berlin,Copenhagen'}})
         self.assert_join_succeeds()
 
     def test_join_owner_wrong_city(self):
-        self.set_acl({'city': 'Berlin,Copenhagen'})
+        self.set_acl({ApiActions.JOIN: {'city': 'Berlin,Copenhagen'}})
         self.set_owner()
         self.assert_join_succeeds()
 
     def test_join_non_owner_wrong_city(self):
-        self.set_acl({'city': 'Berlin,Copenhagen'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'city': 'Berlin,Copenhagen'}})
         self.assert_join_fails()
 
     def test_join_owner_correct_country_and_city(self):
-        self.set_acl({'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'})
+        self.set_acl({ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}})
         self.set_owner()
         self.assert_join_succeeds()
 
     def test_join_owner_correct_country_wrong_city(self):
-        self.set_acl({'country': 'de,cn,dk', 'city': 'Beijing,Berlin,Copenhagen'})
+        self.set_acl({ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Beijing,Berlin,Copenhagen'}})
         self.set_owner()
         self.assert_join_succeeds()
 
     def test_join_owner_wrong_country_correct_city(self):
         # stupid test, but what the hell; should not be able to set a city in a country that's not allowed anyway
-        self.set_acl({'country': 'de,dk', 'city': 'Beijing,Berlin,Copenhagen'})
+        self.set_acl({ApiActions.JOIN: {'country': 'de,dk', 'city': 'Beijing,Berlin,Copenhagen'}})
         self.set_owner()
         self.assert_join_succeeds()
 
     def test_join_non_owner_correct_country_and_city(self):
-        self.set_acl({'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}})
         self.assert_join_succeeds()
 
     def test_join_non_owner_correct_country_wrong_city(self):
-        self.set_acl({'country': 'de,cn,dk', 'city': 'Beijing,Berlin,Copenhagen'})
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Beijing,Berlin,Copenhagen'}})
         self.assert_join_fails()
 
     def test_join_non_owner_wrong_country_correct_city(self):
+        self.remove_owner_channel()
+        self.remove_owner()
         # stupid test, but what the hell; should not be able to set a city in a country that's not allowed anyway
-        self.set_acl({'country': 'de,dk', 'city': 'Beijing,Berlin,Copenhagen'})
+        self.set_acl({ApiActions.JOIN: {'country': 'de,dk', 'city': 'Beijing,Berlin,Copenhagen'}})
         self.assert_join_fails()
 
     def test_join_non_owner_with_all_acls(self):
-        self.set_acl({
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {
             'country': 'de,cn,dk',
             'city': 'Beijing,Shanghai,Berlin,Copenhagen',
             'age': '18:45',
@@ -157,12 +214,12 @@ class ApiJoinTest(BaseTest):
             'has_webcam': 'y',
             'fake_checked': 'y,n',
             'image': 'y'
-        })
+        }})
         self.assert_join_succeeds()
 
     def test_join_owner_with_all_acls(self):
         self.set_owner()
-        self.set_acl({
+        self.set_acl({ApiActions.JOIN: {
             'country': 'de,cn,dk',
             'city': 'Beijing,Shanghai,Berlin,Copenhagen',
             'age': '18:45',
@@ -171,11 +228,13 @@ class ApiJoinTest(BaseTest):
             'has_webcam': 'y',
             'fake_checked': 'y,n',
             'image': 'n'
-        })
+        }})
         self.assert_join_succeeds()
 
     def test_join_non_owner_with_all_acls_one_incorrect(self):
-        self.set_acl({
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {
             'country': 'de,cn,dk',
             'city': 'Beijing,Shanghai,Berlin,Copenhagen',
             'age': '18:45',
@@ -184,11 +243,13 @@ class ApiJoinTest(BaseTest):
             'has_webcam': 'y',  # the test user has a webcam, everything else checks out
             'fake_checked': 'y,n',
             'image': 'n'
-        })
+        }})
         self.assert_join_fails()
 
     def test_join_non_owner_with_all_acls_one_missing(self):
-        self.set_acl({
+        self.remove_owner_channel()
+        self.remove_owner()
+        self.set_acl({ApiActions.JOIN: {
             'country': 'de,cn,dk',
             'city': 'Beijing,Shanghai,Berlin,Copenhagen',
             'age': '18:45',
@@ -197,34 +258,20 @@ class ApiJoinTest(BaseTest):
             'has_webcam': 'y',
             'fake_checked': 'y,n',
             'image': 'n'
-        })
+        }})
         self.set_session('has_webcam', None)
         self.assert_join_fails()
 
     def test_join_invalid_acl_in_redis(self):
-        self.set_acl({
-            'country': 'de,cn,dk'
-        })
-        invalid_key = 'invalidstuff'
+        self.set_acl({ApiActions.JOIN: {'country': 'de,cn,dk'}})
+        invalid_key = 'invalid|stuff'
         self.set_session(invalid_key, 't')
         self.set_acl_single(invalid_key, 't,r,e,w')
-        self.assert_join_fails()
-
-    def test_join_acl_matcher_not_callable(self):
-        self.set_acl({
-            'country': 'de,cn,dk'
-        })
-        invalid_key = 'invalidstuff'
-        self.set_session(invalid_key, 't')
-        from dino.validation.acl import AclValidator
-        AclValidator.ACL_MATCHERS[invalid_key] = 'definitely-not-callable'
-        self.set_acl_single(invalid_key, 't,r,e,w')
-        self.assert_join_fails()
-        del AclValidator.ACL_MATCHERS[invalid_key]
+        self.assert_join_succeeds()
 
     def test_join_owner_with_all_acls_one_incorrect(self):
         self.set_owner()
-        self.set_acl({
+        self.set_acl({ApiActions.JOIN: {
             'country': 'de,cn,dk',
             'city': 'Beijing,Shanghai,Berlin,Copenhagen',
             'age': '18:45',
@@ -233,7 +280,7 @@ class ApiJoinTest(BaseTest):
             'has_webcam': 'y',
             'fake_checked': 'y,n',
             'image': 'n'
-        })
+        }})
         self.assert_join_succeeds()
 
     def test_join_returns_activity_with_4_attachments(self):
@@ -309,7 +356,7 @@ class ApiJoinTest(BaseTest):
         self.assertEqual(ApiJoinTest.USER_NAME, user_name)
 
     def test_join_returns_correct_nr_of_acls(self):
-        correct_acls = {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}
+        correct_acls = {ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}}
         self.set_acl(correct_acls)
         self.set_owner()
         response = api.on_join(self.activity_for_join())
@@ -318,7 +365,7 @@ class ApiJoinTest(BaseTest):
         self.assertEqual(len(correct_acls), len(returned_acls))
 
     def test_join_returns_correct_acls(self):
-        correct_acls = {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}
+        correct_acls = {ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}}
         self.set_acl(correct_acls)
         self.set_owner()
         response = api.on_join(self.activity_for_join())

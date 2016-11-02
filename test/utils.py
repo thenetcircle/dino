@@ -22,6 +22,7 @@ from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
 from dino.config import RoleKeys
+from dino.config import ApiTargets
 from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis
 from dino.db.redis import DatabaseRedis
@@ -30,6 +31,7 @@ from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclRangeValidator
 from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclDisallowValidator
+from dino.validation.acl import AclSameRoomValidator
 
 environ.env.config.set(ConfigKeys.TESTING, True)
 environ.env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
@@ -178,55 +180,162 @@ class BaseTest(unittest.TestCase):
                 'room': {
                     'join': {
                         'acls': [
-                            'gender',
                             'age',
-                            'country'
+                            'gender',
+                            'membership',
+                            'group',
+                            'country',
+                            'city',
+                            'image',
+                            'has_webcam',
+                            'fake_checked',
+                            'owner',
+                            'admin',
+                            'moderator',
+                            'superuser',
+                            'crossroom',
+                            'samechannel',
+                            'sameroom',
+                            'disallow',
                         ]
                     },
                     'message': {
                         'acls': [
+                            'age',
                             'gender',
-                            'age'
+                            'membership',
+                            'group',
+                            'country',
+                            'city',
+                            'image',
+                            'has_webcam',
+                            'fake_checked',
+                            'owner',
+                            'admin',
+                            'moderator',
+                            'superuser',
+                            'crossroom',
+                            'samechannel',
+                            'sameroom',
+                            'disallow',
+                        ]
+                    },
+                    'history': {
+                        'acls': [
+                            'age',
+                            'gender',
+                            'membership',
+                            'group',
+                            'country',
+                            'city',
+                            'image',
+                            'has_webcam',
+                            'fake_checked',
+                            'owner',
+                            'admin',
+                            'moderator',
+                            'superuser',
+                            'crossroom',
+                            'samechannel',
+                            'sameroom',
+                            'disallow',
                         ]
                     },
                     'crossroom': {
                         'acls': [
-                            'gender',
                             'age',
-                            'channel',
-                            'disallow'
+                            'gender',
+                            'membership',
+                            'group',
+                            'country',
+                            'city',
+                            'image',
+                            'has_webcam',
+                            'fake_checked',
+                            'owner',
+                            'admin',
+                            'moderator',
+                            'superuser',
+                            'crossroom',
+                            'samechannel',
+                            'sameroom',
+                            'disallow',
                         ]
                     }
                 },
                 'channel': {
                     'message': {
                         'acls': [
+                            'age',
                             'gender',
-                            'age'
+                            'membership',
+                            'group',
+                            'country',
+                            'city',
+                            'image',
+                            'has_webcam',
+                            'fake_checked',
+                            'owner',
+                            'admin',
+                            'moderator',
+                            'superuser',
+                            'crossroom',
+                            'samechannel',
+                            'sameroom',
+                            'disallow',
                         ]
                     },
                     'crossroom': {
                         'acls': [
-                            'gender',
                             'age',
-                            'channel',
-                            'disallow'
+                            'gender',
+                            'membership',
+                            'group',
+                            'country',
+                            'city',
+                            'image',
+                            'has_webcam',
+                            'fake_checked',
+                            'owner',
+                            'admin',
+                            'moderator',
+                            'superuser',
+                            'crossroom',
+                            'samechannel',
+                            'sameroom',
+                            'disallow',
                         ]
                     }
                 },
                 'available': {
                     'acls': [
-                        'gender',
                         'age',
-                        'channel',
+                        'gender',
+                        'membership',
+                        'group',
+                        'country',
+                        'city',
+                        'image',
+                        'has_webcam',
+                        'fake_checked',
+                        'owner',
+                        'admin',
+                        'moderator',
+                        'superuser',
+                        'crossroom',
+                        'samechannel',
+                        'sameroom',
                         'disallow',
-                        'country'
                     ]
                 },
                 'validation': {
-                    'channel': {
+                    'samechannel': {
                         'type': 'samechannel',
                         'value': AclSameChannelValidator()
+                    },
+                    'sameroom': {
+                        'type': 'sameroom',
+                        'value': AclSameRoomValidator()
                     },
                     'country': {
                         'type': 'str_in_csv',
@@ -239,6 +348,30 @@ class BaseTest(unittest.TestCase):
                     'gender': {
                         'type': 'str_in_csv',
                         'value': AclStrInCsvValidator('m,f')
+                    },
+                    'membership': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator()
+                    },
+                    'city': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator()
+                    },
+                    'has_webcam': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('y,n')
+                    },
+                    'fake_checked': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('y,n')
+                    },
+                    'image': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('y,n')
+                    },
+                    'group': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('')
                     },
                     'age': {
                         'type': 'range',
@@ -413,11 +546,16 @@ class BaseTest(unittest.TestCase):
     def activity_for_history(self, skip: set=None):
         data = {
             'actor': {
-                'id': BaseTest.USER_ID
+                'id': BaseTest.USER_ID,
+                'url': BaseTest.ROOM_ID
+            },
+            'object': {
+                'url': BaseTest.CHANNEL_ID
             },
             'verb': 'history',
             'target': {
                 'id': BaseTest.ROOM_ID,
+                'objectType': 'group'
             }
         }
 
@@ -555,7 +693,7 @@ class BaseTest(unittest.TestCase):
             },
             'target': {
                 'id': BaseTest.ROOM_ID,
-                'objectType': 'room'
+                'objectType': 'group'
             },
             'verb': 'set',
             'object': {
@@ -585,8 +723,12 @@ class BaseTest(unittest.TestCase):
                 'id': BaseTest.USER_ID
             },
             'verb': 'join',
+            'object': {
+                'url': BaseTest.CHANNEL_ID
+            },
             'target': {
-                'id': BaseTest.ROOM_ID
+                'id': BaseTest.ROOM_ID,
+                'objectType': 'group'
             }
         }
 
@@ -609,7 +751,7 @@ class BaseTest(unittest.TestCase):
             },
             'target': {
                 'id': BaseTest.ROOM_ID,
-                'objectType': 'room'
+                'objectType': 'group'
             },
             'verb': 'list'
         }

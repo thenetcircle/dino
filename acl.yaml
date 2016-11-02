@@ -13,7 +13,9 @@ available: &AVAILABLE
     - admin
     - moderator
     - superuser
+    - crossroom
     - samechannel
+    - sameroom
     - disallow
 
 validation:
@@ -27,6 +29,8 @@ validation:
         default: "0,1,2,3"
     samechannel:
         type: "samechannel"
+    sameroom:
+        type: "sameroom"
     disallow:
         type: "disallow"
     age:
@@ -88,6 +92,10 @@ room:
         exclude:
             - crossroom
             - samechannel
+    history:
+        <<: *AVAILABLE
+        exclude:
+            - crossroom
     message:
         <<: *AVAILABLE
         exclude:

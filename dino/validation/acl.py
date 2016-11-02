@@ -177,6 +177,9 @@ class AclValidator(object):
     def validate_acl_for_action(self, activity: Activity, target: str, action: str, target_acls: dict) -> (bool, str):
         all_acls = environ.env.config.get(ConfigKeys.ACL)
 
+        if activity.target.object_type is None:
+            return False, 'target.objectType must not be none'
+
         if target == 'room' and activity.target.object_type != 'group':
             return True, None
 
@@ -387,7 +390,7 @@ class AclSameChannelValidator(BaseAclValidator):
         # acl_type = args[2]
         # acl_values = args[3]
 
-        origin_channel_id = activity.actor.url
+        origin_channel_id = activity.object.url
         if origin_channel_id is None or len(origin_channel_id.strip()) == 0:
             return False, 'no origin channel uuid in actor.url'
 
@@ -398,6 +401,34 @@ class AclSameChannelValidator(BaseAclValidator):
         if origin_channel_id == target_channel_id:
             return True, None
         return False, 'channels are not the same'
+
+
+class AclSameRoomValidator(BaseAclValidator):
+    def __init__(self):
+        pass
+
+    def validate_new_acl(self, values):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        activity = args[0]
+        # env = args[1]
+        # acl_type = args[2]
+        # acl_values = args[3]
+        origin_room_id = activity.actor.url
+        if origin_room_id is None or len(origin_room_id.strip()) == 0:
+            return False, 'no origin room uuid in actor.url'
+
+        target_room_id = activity.object.url
+        if target_room_id is None or len(target_room_id.strip()) == 0:
+            return False, 'no target room uuid in object.url'
+
+        if not utils.is_user_in_room(activity.actor.id, target_room_id):
+            return False, 'user is not in room, not allowed'
+
+        if origin_room_id == target_room_id:
+            return True, None
+        return False, 'rooms are not the same'
 
 
 class AclStrInCsvValidator(BaseAclValidator):
@@ -492,10 +523,10 @@ class AclRangeValidator(BaseAclValidator):
             return False, 'session value "%s" is not a valid number' % session_value
 
         if range_min is not None and range_min > value:
-            return False
+            return False, 'value too low'
         if range_max is not None and range_max < value:
-            return False
-        return True
+            return False, 'value too high'
+        return True, None
 
 
 class AclConfigValidator(object):
@@ -513,7 +544,7 @@ class AclConfigValidator(object):
 
     @staticmethod
     def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
-        validation_methods = ['str_in_csv', 'range', 'samechannel', 'disallow']
+        validation_methods = ['str_in_csv', 'range', 'samechannel', 'sameroom', 'disallow']
         validations = acls.get('validation')
 
         for validation in validations:
@@ -601,7 +632,7 @@ class AclConfigValidator(object):
         available_acls = acls['available']['acls']
         rules = ['acls', 'exclude']
         actions = {
-            'room': ['join', 'create', 'list', 'kick', 'message', 'crossroom', 'ban'],
+            'room': ['join', 'history', 'create', 'list', 'kick', 'message', 'crossroom', 'ban'],
             'channel': ['create', 'list', 'create', 'message', 'crossroom', 'ban']
         }
 
