@@ -455,7 +455,7 @@ class AclConfigValidator(object):
 
     @staticmethod
     def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
-        validation_methods = ['str_in_csv', 'anything', 'range']
+        validation_methods = ['str_in_csv', 'range']
         validations = acls.get('validation')
 
         for validation in validations:
@@ -473,9 +473,9 @@ class AclConfigValidator(object):
                             'specified, "%s", ignoring the value' % validation_value)
 
             if validation_method == 'str_in_csv':
-                if 'value' not in validations[validation] or len(validations[validation]['value'].strip()) == 0:
+                if 'value' in validations[validation] and len(validations[validation]['value'].strip()) == 0:
                     raise RuntimeError(
-                            'validation method set to "%s" but no validation value specified' % validation_method)
+                            'validation method set to "%s" but blank validation value specified' % validation_method)
 
             if validation_method not in validation_methods:
                 raise RuntimeError(
