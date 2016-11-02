@@ -227,6 +227,7 @@ class AclValidator(object):
 
         return True, None
 
+    """
     def validate_acl(self, activity: Activity) -> (bool, str):
         room_id = activity.target.id
         room_name = utils.get_room_name(room_id)
@@ -253,8 +254,8 @@ class AclValidator(object):
             environ.env.logger.debug(_msg % (user_id, user_name))
             return True, None
 
-        room_acls = environ.env.db.get_acls(room_id)
-        channel_acls = environ.env.db.get_acls_channel(channel_id)
+        room_acls = environ.env.db.get_all_acls_room(room_id)
+        channel_acls = environ.env.db.get_all_acls_channel(channel_id)
         if len(channel_acls) == 0 and len(room_acls) == 0:
             return True, None
 
@@ -354,6 +355,7 @@ class AclValidator(object):
                 return False, error_msg
 
         return True, None
+    """
 
 
 class BaseAclValidator(object):

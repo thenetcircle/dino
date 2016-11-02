@@ -107,7 +107,7 @@ class LastReads(DeclarativeBase):
     time_stamp = Column('time_stamp', Integer, nullable=False)
 
 
-class AclsRevamp(DeclarativeBase):
+class Acls(DeclarativeBase):
     __tablename__ = 'aclsrevamp'
 
     id = Column(Integer, primary_key=True)

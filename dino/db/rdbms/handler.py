@@ -52,6 +52,7 @@ from dino.exceptions import AclValueNotFoundException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
 from dino.exceptions import ChannelNameExistsException
+from dino.exceptions import ValidationException
 
 from functools import wraps
 from zope.interface import implementer
@@ -744,13 +745,24 @@ class DatabaseRdbms(object):
             if not self._validate_acl_for_target_and_action('room', action, acl_type, acl_value):
                 raise InvalidAclValueException(acl_type, acl_value)
 
-            acl.__setattr__(acl_type, acl_value)
+            acl = Acls()
+            acl.action = action
+            acl.acl_type = acl_type
+            acl.acl_value = acl_value
+            acl.room = room
+            self.session.add(acl)
+            room.acls.append(acl)
 
-        room.acl = acl
         self.session.commit()
 
     def _validate_acl_for_target_and_action(self, target: str, action: str, acl_type: str, acl_value: str):
         validators = self._get_acls_for_target('validation')
+        try:
+            validators[acl_type].validate_new_acl(acl_value)
+        except ValidationException as e:
+            logger.info('new acl values "%s" did not validate for type "%s": %s' % (acl_value, acl_type, str(e)))
+            return False
+        return True
 
     def _get_acls(self):
         return self.env.config.get(ConfigKeys.ACL)

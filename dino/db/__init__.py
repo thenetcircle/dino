@@ -542,15 +542,6 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def room_allows_cross_group_messaging(self, room_uuid: str) -> bool:
-        """
-        check if the room allows messages from other rooms
-
-        :raises NoSuchRoomException if room doesn't exist
-        :param room_uuid: the room to check for permission
-        :return: true if allowed, false otherwise
-        """
-
     def delete_acl(self, room_id: str, acl_type: str) -> None:
         """
         delete an acl from a room
