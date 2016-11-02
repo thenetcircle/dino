@@ -1,6 +1,6 @@
 from uuid import uuid4 as uuid
 
-from dino.config import SessionKeys
+from dino.config import ApiActions
 from dino import api
 from test.utils import BaseTest
 
@@ -47,8 +47,10 @@ class ApiMessageTest(BaseTest):
         new_room_id = str(uuid())
         self.create_and_join_room()
         self.create_channel_and_room(room_id=new_room_id, room_name='asdf')
+        self.remove_owner()
+        self.remove_owner_channel()
 
-        self.set_acl({SessionKeys.crossgroup.value: 'y'}, room_id=new_room_id)
+        self.set_acl({ApiActions.CROSSROOM: {'samechannel': ''}}, room_id=new_room_id)
         activity = self.activity_for_message()
         activity['target']['objectType'] = 'group'
         activity['target']['id'] = new_room_id
@@ -61,6 +63,10 @@ class ApiMessageTest(BaseTest):
         new_room_id = str(uuid())
         self.create_and_join_room()
         self.create_channel_and_room(room_id=new_room_id, room_name='asdf')
+        self.remove_owner()
+        self.remove_owner_channel()
+
+        self.set_acl({ApiActions.CROSSROOM: {'disallow': ''}}, room_id=new_room_id)
 
         activity = self.activity_for_message()
         activity['target']['objectType'] = 'group'

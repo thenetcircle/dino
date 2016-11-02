@@ -57,7 +57,7 @@ class Rooms(DeclarativeBase):
 
     roles = relationship('RoomRoles', back_populates='room')
     bans = relationship('Bans', back_populates='room')
-    acl = relationship('Acls', uselist=False, back_populates='room')
+    acls = relationship('Acls', uselist=False, back_populates='room')
 
     users = relationship(
         'Users',
@@ -112,12 +112,11 @@ class AclsRevamp(DeclarativeBase):
 
     id = Column(Integer, primary_key=True)
 
-    # TODO: when done with redoing acls
-    # room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=True)
-    # room = relationship('Rooms', back_populates='acl')
+    room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=True)
+    room = relationship('Rooms', back_populates='acls')
 
-    # channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=True)
-    # channel = relationship('Channels', back_populates='acl')
+    channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=True)
+    channel = relationship('Channels', back_populates='acls')
 
     # action: join/create/kick etc.
     action = Column('action', String, nullable=False)
@@ -127,6 +126,7 @@ class AclsRevamp(DeclarativeBase):
     acl_value = Column('acl_value', String, nullable=False)
 
 
+"""
 class Acls(DeclarativeBase):
     __tablename__ = 'acls'
 
@@ -148,6 +148,7 @@ class Acls(DeclarativeBase):
     has_webcam = Column('has_webcam', String, nullable=True)
     fake_checked = Column('fake_checked', String, nullable=True)
     crossgroup = Column('crossgroup', String, nullable=True)
+"""
 
 
 class AclConfigs(DeclarativeBase):

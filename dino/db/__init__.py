@@ -655,22 +655,60 @@ class IDatabase(Interface):
         :return: the configured validation value
         """
 
-    def get_acls_channel(self, channel_id: str) -> dict:
+    def get_all_acls_channel(self, channel_id: str) -> dict:
         """
-        get the access list for a channel
+        get all acls for a channel, seperated by actions
 
-        :raises NoSuchChannelException if the channel doesn't exist
+        example response:
+
+        {
+            'list': {
+                'gender': 'm,f'
+            },
+            'create': {
+                'moderator': 'y'
+            }
+        }
+
         :param channel_id: the uuid of the channel
-        :return: a dict of acls, empty if no acls
+        :return: a dict with acls separated by action
         """
 
-    def get_acls(self, room_id: str) -> dict:
+    def get_all_acls_room(self, room_id: str) -> dict:
         """
-        get the access list for a room
+        get all acls for a room, seperated by actions
 
-        :raises NoSuchRoomException if room doesn't exist
-        :param room_id: the room uuid
-        :return: a dict of acls, empty if no acls
+        example response:
+
+        {
+            'message': {
+                'gender': 'm,f'
+            },
+            'kick': {
+                'moderator': 'y'
+            }
+        }
+
+        :param room_id: the uuid of the room
+        :return: a dict with acls separated by action
+        """
+
+    def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
+        """
+        get acls in a room with a certain action (join/kick/message etc.)
+
+        :param room_id: the uuid of the room
+        :param action: the action to get acls for
+        :return: a dict of acls for this action
+        """
+
+    def get_acls_in_channel_for_action(self, channel_id: str, action: str) -> dict:
+        """
+        get acls in a channel with a certain action (join/kick/message etc.)
+
+        :param channel_id: the uuid of the channel
+        :param action: the action to get acls for
+        :return: a dict of acls for this action
         """
 
     def users_in_room(self, room_id: str) -> dict:

@@ -21,8 +21,11 @@ from dino.config import ConfigKeys
 from dino import environ
 from dino.validation.duration import DurationValidator
 from dino.validation.generic import GenericValidator
+from dino import validation
 from dino.config import RedisKeys
 from dino.config import UserKeys
+from dino.config import ApiActions
+from dino.config import ApiTargets
 from datetime import timedelta
 from datetime import datetime
 
@@ -424,8 +427,16 @@ def get_users_in_room(room_id: str) -> dict:
     return environ.env.db.users_in_room(room_id)
 
 
-def get_acls_for_room(room_id: str) -> dict:
-    return environ.env.db.get_acls(room_id)
+def get_all_acls_for_room(room_id: str) -> dict:
+    return environ.env.db.get_all_acls_room(room_id)
+
+
+def get_all_acls_for_channel(room_id: str) -> dict:
+    return environ.env.db.get_all_acls_room(room_id)
+
+
+def get_acls_in_room_for_action(room_id: str, action: str) -> dict:
+    return environ.env.db.get_acls_in_room_for_action(room_id, action)
 
 
 def get_acls_for_channel(channel_id: str) -> dict:
@@ -452,7 +463,7 @@ def room_exists(channel_id: str, room_id: str) -> bool:
     return environ.env.db.room_exists(channel_id, room_id)
 
 
-def can_send_cross_group(from_room_uuid: str, to_room_uuid: str) -> bool:
+def can_send_cross_group(activity: Activity, from_room_uuid: str, to_room_uuid: str) -> bool:
     if from_room_uuid is None:
         raise NoOriginRoomException()
     if to_room_uuid is None:
@@ -468,7 +479,11 @@ def can_send_cross_group(from_room_uuid: str, to_room_uuid: str) -> bool:
     if from_channel_id != to_channel_id:
         return False
 
-    return environ.env.db.room_allows_cross_group_messaging(to_room_uuid)
+    room_acls = get_all_acls_for_room(to_room_uuid)
+    is_valid, msg = validation.acl.validate_acl_for_action(
+        activity, ApiTargets.ROOM, ApiActions.CROSSROOM, room_acls.get(ApiActions.CROSSROOM) or dict())
+
+    return is_valid
 
 
 def get_channel_for_room(room_uuid: str) -> str:

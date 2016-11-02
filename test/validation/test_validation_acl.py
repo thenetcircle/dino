@@ -144,6 +144,14 @@ class TestAclValidator(TestCase):
                 self.act(), 'room', 'message', self.acls_for_room_message())
         self.assertFalse(is_valid)
 
+    def test_validate_acl_for_action_message_crossroom_same_channel(self):
+        json_act = self.json_act()
+        other_room_id = str(uuid())
+        json_act['actor']['url'] = other_room_id
+        is_valid, msg = self.validator.validate_acl_for_action(
+                self.act(), 'room', 'message', self.acls_for_room_message())
+        self.assertFalse(is_valid)
+
     def acls_for_room_join(self):
         return {
             'gender': 'f'
@@ -160,7 +168,10 @@ class TestAclValidator(TestCase):
         }
 
     def act(self):
-        return as_parser({
+        return as_parser(self.json_act())
+
+    def json_act(self):
+        return {
             'actor': {
                 'id': TestAclValidator.USER_ID
             },
@@ -172,4 +183,4 @@ class TestAclValidator(TestCase):
                 'id': TestAclValidator.ROOM_ID,
                 'objectType': 'group'
             }
-        })
+        }

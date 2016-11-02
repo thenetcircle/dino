@@ -707,30 +707,59 @@ class DatabaseRdbms(object):
         self.session.commit()
 
     @with_session
-    def add_acls(self, room_id: str, acls: dict) -> None:
-        # TODO: use new acls
+    def add_room_acls_for_action(self, room_id: str, action: str, acls: dict) -> None:
         if acls is None or len(acls) == 0:
             return
 
-        room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+        room = self.session.query(Rooms)\
+            .outerjoin(Rooms.acls)\
+            .filter(Rooms.uuid == room_id)\
+            .first()
+
         if room is None:
             raise NoSuchRoomException(room_id)
 
-        acl = self.session.query(Acls).join(Acls.room).filter(Rooms.uuid == room_id).first()
-        if acl is None:
-            acl = Acls()
+        updated_acls = set()
+        acls = room.acls
+        if acls is not None and len(acls) > 0:
+            for acl in acls:
+                if acl.acl_action != action:
+                    continue
+                if acl.acl_type in acls.keys():
+                    new_value = acls[acl.acl_type]
+                    if new_value is None or len(new_value.strip()) == 0:
+                        self.session.delete(acl)
+                    else:
+                        acl.acl_value = new_value
+                    updated_acls.add(acl.acl_type)
 
         for acl_type, acl_value in acls.items():
-            if acl_type not in AclValidator.ACL_VALIDATORS:
+            # already deleted/updated
+            if acl_type in updated_acls:
+                continue
+
+            if acl_type not in self._get_acls_for_target_and_action('room', action).keys():
                 raise InvalidAclTypeException(acl_type)
 
-            if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
+            if not self._validate_acl_for_target_and_action('room', action, acl_type, acl_value):
                 raise InvalidAclValueException(acl_type, acl_value)
 
             acl.__setattr__(acl_type, acl_value)
 
         room.acl = acl
         self.session.commit()
+
+    def _validate_acl_for_target_and_action(self, target: str, action: str, acl_type: str, acl_value: str):
+        validators = self._get_acls_for_target('validation')
+
+    def _get_acls(self):
+        return self.env.config.get(ConfigKeys.ACL)
+
+    def _get_acls_for_target(self, target: str):
+        return self._get_acls().get(target)
+
+    def _get_acls_for_target_and_action(self, target, action):
+        return self._get_acls_for_target(target).get(action)
 
     def update_acl_room(self, channel_id: str, room_id: str, acl_type: str, acl_value: str) -> None:
         self.add_acls(room_id, {acl_type: acl_value})
@@ -770,25 +799,90 @@ class DatabaseRdbms(object):
 
         return acls
 
-    @with_session
-    def get_acls(self, room_id: str) -> list:
-        room = self.session.query(Rooms).outerjoin(Rooms.acl).filter(Rooms.uuid == room_id).first()
-        if room is None:
-            raise NoSuchRoomException(room_id)
+    def get_all_acls_channel(self, channel_id: str) -> dict:
+        # TODO: cache
+        channel = self.session.query(Channels)\
+            .outerjoin(Channels.acls)\
+            .filter(Channels.uuid == channel_id)\
+            .first()
 
-        found_acl = room.acl
-        if found_acl is None:
+        if channel is None:
+            raise NoSuchChannelException(channel_id)
+
+        found_acls = channel.acls
+        if found_acls is None or len(found_acls) == 0:
             return dict()
 
         acls = dict()
-        for key in AclValidator.ACL_VALIDATORS.keys():
-            if key not in found_acl.__dict__:
+        for acl in found_acls:
+            if acl.action not in acls:
+                acls[acl.action] = dict()
+            acls[acl.acl_type] = acl.acl_value
+        return acls
+
+    def get_all_acls_room(self, room_id: str) -> dict:
+        # TODO: cache
+        room = self.session.query(Rooms)\
+            .outerjoin(Rooms.acls)\
+            .filter(Rooms.uuid == room_id)\
+            .first()
+
+        if room is None:
+            raise NoSuchRoomException(room_id)
+
+        found_acls = room.acls
+        if found_acls is None or len(found_acls) == 0:
+            return dict()
+
+        acls = dict()
+        for acl in found_acls:
+            if acl.action not in acls:
+                acls[acl.action] = dict()
+            acls[acl.acl_action][acl.acl_type] = acl.acl_value
+        return acls
+
+    @with_session
+    def get_acls_in_room_for_action(self, room_id: str, action: str):
+        # TODO: cache
+        room = self.session.query(Rooms)\
+            .outerjoin(Rooms.acls)\
+            .filter(Rooms.uuid == room_id)\
+            .first()
+
+        if room is None:
+            raise NoSuchRoomException(room_id)
+
+        found_acls = room.acls
+        if found_acls is None or len(found_acls) == 0:
+            return dict()
+
+        acls = dict()
+        for found_acl in found_acls:
+            if found_acl.action != action:
                 continue
+            acls[found_acl.acl_type] = found_acl.acl_value
+        return acls
 
-            value = found_acl.__getattribute__(key)
-            if value is not None:
-                acls[key] = value
+    @with_session
+    def get_acls_in_channel_for_action(self, channel_id: str, action: str):
+        # TODO: cache
+        channel = self.session.query(Channels)\
+            .outerjoin(Channels.acls)\
+            .filter(Channels.uuid == channel_id)\
+            .first()
 
+        if channel is None:
+            raise NoSuchChannelException(channel_id)
+
+        found_acls = channel.acls
+        if found_acls is None or len(found_acls) == 0:
+            return dict()
+
+        acls = dict()
+        for found_acl in found_acls:
+            if found_acl.action != action:
+                continue
+            acls[found_acl.acl_type] = found_acl.acl_value
         return acls
 
     @with_session

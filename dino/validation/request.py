@@ -17,6 +17,8 @@ from activitystreams.models.activity import Activity
 from dino import utils
 from dino import environ
 from dino.config import SessionKeys
+from dino.config import ApiActions
+from dino.config import ApiTargets
 from dino.validation.base import BaseValidator
 from dino.exceptions import NoChannelFoundException
 from dino import validation
@@ -33,6 +35,9 @@ class RequestValidator(BaseValidator):
 
         if room_id is None or room_id == '':
             return False, 400, 'no room id specified when sending message'
+
+        if object_type not in ['group', 'private']:
+            return False, 400, 'invalid object_type "%s", need to be either "group" or "private"' % object_type
 
         if object_type == 'group':
             channel_id = activity.object.url
@@ -55,7 +60,7 @@ class RequestValidator(BaseValidator):
                     return False, 400, 'user is not in target room'
                 if not utils.is_user_in_room(user_id, from_room_id):
                     return False, 400, 'user is not in origin room, cannot send message from there'
-                if not utils.can_send_cross_group(from_room_id, room_id):
+                if not utils.can_send_cross_group(activity, from_room_id, room_id):
                     return False, 400, 'user not allowed to send cross-group msg from %s to %s' % (from_room_id, room_id)
 
         elif object_type == 'private':
@@ -64,8 +69,6 @@ class RequestValidator(BaseValidator):
                 return False, 400, 'target is not a private chat, use object_type "group" instead'
             except NoChannelFoundException:
                 pass
-        else:
-            return False, 400, 'invalid object_type "%s", need to be either "group" or "private"' % object_type
 
         return True, None, None
 
@@ -173,7 +176,8 @@ class RequestValidator(BaseValidator):
         room_id = activity.target.id
         user_id = activity.actor.id
 
-        is_valid, error_msg = validation.acl.validate_acl(activity)
+        acls = utils.get_acls_in_room_for_action(room_id, ApiActions.JOIN)
+        is_valid, error_msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.JOIN, acls)
         if not is_valid:
             return False, 400, error_msg
 

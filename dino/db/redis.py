@@ -23,6 +23,7 @@ from dino.config import SessionKeys
 from dino.config import RedisKeys
 from dino.config import RoleKeys
 from dino.config import UserKeys
+from dino.config import ApiActions
 from dino import environ
 
 from dino.environ import GNEnvironment
@@ -555,19 +556,7 @@ class DatabaseRedis(object):
             raise AclValueNotFoundException(acl_type, validation_method)
         return value
 
-    def get_acls_channel(self, channel_id: str) -> dict:
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
-
-        acls = self.redis.hgetall(RedisKeys.channel_acl(channel_id))
-        acls_cleaned = dict()
-
-        for acl_type, acl_value in acls.items():
-            acls_cleaned[str(acl_type, 'utf-8')] = str(acl_value, 'utf-8')
-
-        return acls_cleaned
-
-    def get_acls(self, room_id: str) -> dict:
+    def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
         try:
             if self.channel_for_room(room_id) is None:
                 raise NoSuchRoomException(room_id)
@@ -577,16 +566,61 @@ class DatabaseRedis(object):
         acls = self.redis.hgetall(RedisKeys.room_acl(room_id))
         acls_cleaned = dict()
 
-        for acl_type, acl_value in acls.items():
-            acls_cleaned[str(acl_type, 'utf-8')] = str(acl_value, 'utf-8')
+        for acl_key, acl_value in acls.items():
+            acl_action, acl_type = str(acl_key, 'utf-8').split('|', 1)
+            if acl_action != action:
+                continue
+            acls_cleaned[acl_type] = str(acl_value, 'utf-8')
 
         return acls_cleaned
 
-    def room_allows_cross_group_messaging(self, room_uuid: str) -> bool:
-        acls = self.get_acls(room_uuid)
-        if SessionKeys.crossgroup.value not in acls.keys():
-            return False
-        return acls[SessionKeys.crossgroup.value] == 'y'
+    def get_acls_in_channel_for_action(self, channel_id: str, action: str) -> dict:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
+
+        acls = self.redis.hgetall(RedisKeys.channel_acl(channel_id))
+        acls_cleaned = dict()
+
+        for acl_key, acl_value in acls.items():
+            acl_action, acl_type = str(acl_key, 'utf-8').split('|', 1)
+            if acl_action != action:
+                continue
+            acls_cleaned[acl_type] = str(acl_value, 'utf-8')
+
+        return acls_cleaned
+
+    def get_all_acls_channel(self, channel_id: str) -> dict:
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
+
+        acls = self.redis.hgetall(RedisKeys.channel_acl(channel_id))
+        acls_cleaned = dict()
+
+        for acl_key, acl_value in acls.items():
+            acl_action, acl_type = str(acl_key, 'utf-8').split('|', 1)
+            if acl_action not in acls_cleaned:
+                acls_cleaned[acl_action] = dict()
+            acls_cleaned[acl_action][acl_type] = str(acl_value, 'utf-8')
+
+        return acls_cleaned
+
+    def get_all_acls_room(self, room_id: str) -> dict:
+        try:
+            if self.channel_for_room(room_id) is None:
+                raise NoSuchRoomException(room_id)
+        except NoChannelFoundException:
+            raise NoSuchRoomException(room_id)
+
+        acls = self.redis.hgetall(RedisKeys.room_acl(room_id))
+        acls_cleaned = dict()
+
+        for acl_key, acl_value in acls.items():
+            acl_action, acl_type = str(acl_key, 'utf-8').split('|', 1)
+            if acl_action not in acls_cleaned:
+                acls_cleaned[acl_action] = dict()
+            acls_cleaned[acl_action][acl_type] = str(acl_value, 'utf-8')
+
+        return acls_cleaned
 
     def channel_for_room(self, room_id: str) -> str:
         if room_id is None or len(room_id.strip()) == 0:

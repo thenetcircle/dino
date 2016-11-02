@@ -180,12 +180,12 @@ class AclValidator(object):
         if target == 'room' and activity.target.object_type != 'group':
             return True, None
 
-        # no acls for this target (room/channel) and action (join/kick/etc)
-        if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
-            return True, None
-
         user_id = activity.actor.id
         channel_id = activity.object.url
+
+        # no acls for this target (room/channel) and action (join/kick/etc)
+        if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
+            return False, 'no acl set that allows action "%s" for target type "%s"'
 
         if utils.is_admin(channel_id, user_id):
             return True, None
@@ -203,6 +203,10 @@ class AclValidator(object):
         else:
             return False, 'unknown target "%s", must be one of [channel, room]' % target
 
+        # no acls for this target and action
+        if target_acls is None or len(target_acls) == 0:
+            return True, None
+
         possible_acls = all_acls[target][action]
         for acl_rule, acl_values in possible_acls.items():
             if acl_rule != 'acls':
@@ -212,18 +216,14 @@ class AclValidator(object):
                 if acl not in target_acls.keys():
                     continue
 
-                session_value = environ.env.session.get(acl)
-                if session_value is None:
-                    logger.warning('no session value for acl "%s" for user "%s"' % (acl, user_id))
-                    return False, 'no session value for acl"%s" for user "%s"' % (acl, user_id)
-
                 is_valid_func = all_acls['validation'][acl]['value']
-                if not is_valid_func(target_acls[acl], session_value):
+                is_valid, msg = is_valid_func(activity, environ.env, acl, target_acls[acl])
+                if not is_valid:
                     logger.info(
-                            'session value "%s" did not validate for target acl "%s"' %
-                            (session_value, target_acls[acl]))
-                    return False, 'session value "%s" did not validate for target acl "%s"' % (
-                        session_value, target_acls[acl])
+                            'acl "%s" did not validate for target acl "%s": %s' %
+                            (acl, target_acls[acl], msg))
+                    return False, 'acl "%s" did not validate for target acl "%s": %s' % (
+                        acl, target_acls[acl], msg)
 
         return True, None
 
@@ -361,6 +361,43 @@ class BaseAclValidator(object):
         raise NotImplementedError('validate_new_acl')
 
 
+class AclDisallowValidator(BaseAclValidator):
+    def __init__(self):
+        pass
+
+    def validate_new_acl(self, values):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return False, 'not allowed'
+
+
+class AclSameChannelValidator(BaseAclValidator):
+    def __init__(self):
+        pass
+
+    def validate_new_acl(self, values):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        activity = args[0]
+        # env = args[1]
+        # acl_type = args[2]
+        # acl_values = args[3]
+
+        origin_channel_id = activity.actor.url
+        if origin_channel_id is None or len(origin_channel_id.strip()) == 0:
+            return False, 'no origin channel uuid in actor.url'
+
+        target_channel_id = activity.object.url
+        if target_channel_id is None or len(target_channel_id.strip()) == 0:
+            return False, 'no target channel uuid in object.url'
+
+        if origin_channel_id == target_channel_id:
+            return True, None
+        return False, 'channels are not the same'
+
+
 class AclStrInCsvValidator(BaseAclValidator):
     def __init__(self, csv=None):
         self.valid_csvs = None
@@ -385,12 +422,21 @@ class AclStrInCsvValidator(BaseAclValidator):
                     (values, self.valid_csvs))
 
     def __call__(self, *args, **kwargs):
-        acl_values = args[0]
+        # activity = args[0]
+        env = args[1]
+        acl_type = args[2]
+        acl_values = args[3]
+
         if acl_values.strip() == '':
             return True
         acl_values = acl_values.split(',')
-        session_value = args[1]
-        return session_value in acl_values
+
+        session_value = env.session.get(acl_type)
+        if session_value is None or session_value not in acl_values:
+            logger.warning('no session value for acl "%s"' % acl_type)
+            return False, 'no session value for acl"%s"' % acl_type
+
+        return True, None
 
 
 class AclRangeValidator(BaseAclValidator):
@@ -413,9 +459,16 @@ class AclRangeValidator(BaseAclValidator):
                 raise ValidationException('last value in range "%s" is not a number' % values)
 
     def __call__(self, *args, **kwargs):
-        acl_range = args[0]
+        # activity = args[0]
+        env = args[1]
+        acl_type = args[2]
+        acl_range = args[3]
+
+        session_value = env.session.get(acl_type)
+
         if acl_range is None or len(acl_range.strip()) == 0:
-            raise ValidationException('blank range when creating AclRangeValidator')
+            return False, 'blank range when creating AclRangeValidator'
+
         range_min, range_max = acl_range.split(':', 1)
 
         if range_min == '':
@@ -428,11 +481,14 @@ class AclRangeValidator(BaseAclValidator):
         else:
             range_max = int(range_max)
 
-        value = args[1]
-        if value is None or len(value.strip()) == 0:
-            raise ValidationException('blank value in AclRangeValidator')
+        if session_value is None or len(session_value.strip()) == 0:
+            return False, 'blank value in AclRangeValidator'
 
-        value = int(value)
+        try:
+            value = int(session_value)
+        except ValueError:
+            return False, 'session value "%s" is not a valid number' % session_value
+
         if range_min is not None and range_min > value:
             return False
         if range_max is not None and range_max < value:
@@ -455,7 +511,7 @@ class AclConfigValidator(object):
 
     @staticmethod
     def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
-        validation_methods = ['str_in_csv', 'range']
+        validation_methods = ['str_in_csv', 'range', 'samechannel', 'disallow']
         validations = acls.get('validation')
 
         for validation in validations:

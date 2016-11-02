@@ -13,6 +13,8 @@ available: &AVAILABLE
     - admin
     - moderator
     - superuser
+    - samechannel
+    - disallow
 
 validation:
     gender:
@@ -23,6 +25,10 @@ validation:
         type: "str_in_csv"
         value: "##db##"
         default: "0,1,2,3"
+    samechannel:
+        type: "samechannel"
+    disallow:
+        type: "disallow"
     age:
         type: "range"
     group:
@@ -60,6 +66,9 @@ channel:
         <<: *AVAILABLE
     message:
         <<: *AVAILABLE
+        exclude:
+            - crossroom
+            - samechannel
     crossroom:
         <<: *AVAILABLE
     ban:
@@ -71,10 +80,19 @@ channel:
 room:
     join:
         <<: *AVAILABLE
+        exclude:
+            - crossroom
+            - samechannel
     list:
         <<: *AVAILABLE
+        exclude:
+            - crossroom
+            - samechannel
     message:
         <<: *AVAILABLE
+        exclude:
+            - crossroom
+            - samechannel
     crossroom:
         <<: *AVAILABLE
     kick:

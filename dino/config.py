@@ -29,7 +29,7 @@ class SessionKeys(Enum):
     country = 'country'
     city = 'city'
     image = 'image'
-    crossgroup = 'crossgroup'
+    crossgroup = 'crossgroup'  # TODO: rename to crossroom
     has_webcam = 'has_webcam'
     fake_checked = 'fake_checked'
     token = 'token'
@@ -39,6 +39,30 @@ class SessionKeys(Enum):
         user_name,
         token
     }
+
+
+class ApiTargets(object):
+    ROOM = 'room'
+    CHANNEL = 'channel'
+
+
+class ApiActions(object):
+    JOIN = 'join'
+    CROSSROOM = 'crossroom'
+    MESSAGE = 'message'
+    KICK = 'kick'
+    BAN = 'ban'
+    LIST = 'list'
+
+    @staticmethod
+    def all_api_actions():
+        _dict = ApiActions.__dict__
+        actions = set()
+        for d in _dict:
+            if d.startswith('_') or d[0].islower():
+                continue
+            actions.add(d)
+        return actions
 
 
 class RoleKeys(object):

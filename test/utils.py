@@ -26,6 +26,10 @@ from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis
 from dino.db.redis import DatabaseRedis
 from dino.cache.miss import CacheAllMiss
+from dino.validation.acl import AclStrInCsvValidator
+from dino.validation.acl import AclRangeValidator
+from dino.validation.acl import AclSameChannelValidator
+from dino.validation.acl import AclDisallowValidator
 
 environ.env.config.set(ConfigKeys.TESTING, True)
 environ.env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
@@ -170,6 +174,80 @@ class BaseTest(unittest.TestCase):
         environ.env.config = environ.ConfigDict()
         environ.env.config.set(ConfigKeys.TESTING, True)
         environ.env.config = environ.env.config.sub(**self.session)
+        environ.env.config.set(ConfigKeys.ACL, {
+                'room': {
+                    'join': {
+                        'acls': [
+                            'gender',
+                            'age',
+                            'country'
+                        ]
+                    },
+                    'message': {
+                        'acls': [
+                            'gender',
+                            'age'
+                        ]
+                    },
+                    'crossroom': {
+                        'acls': [
+                            'gender',
+                            'age',
+                            'channel',
+                            'disallow'
+                        ]
+                    }
+                },
+                'channel': {
+                    'message': {
+                        'acls': [
+                            'gender',
+                            'age'
+                        ]
+                    },
+                    'crossroom': {
+                        'acls': [
+                            'gender',
+                            'age',
+                            'channel',
+                            'disallow'
+                        ]
+                    }
+                },
+                'available': {
+                    'acls': [
+                        'gender',
+                        'age',
+                        'channel',
+                        'disallow',
+                        'country'
+                    ]
+                },
+                'validation': {
+                    'channel': {
+                        'type': 'samechannel',
+                        'value': AclSameChannelValidator()
+                    },
+                    'country': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator()
+                    },
+                    'disallow': {
+                        'type': 'disallow',
+                        'value': AclDisallowValidator()
+                    },
+                    'gender': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('m,f')
+                    },
+                    'age': {
+                        'type': 'range',
+                        'value': AclRangeValidator()
+                    }
+                }
+            }
+        )
+
         environ.env.auth = AuthRedis('mock')
         environ.env.storage = StorageRedis('mock')
         environ.env.db = DatabaseRedis(environ.env, 'mock')
@@ -189,7 +267,8 @@ class BaseTest(unittest.TestCase):
         environ.env.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.db.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.db.redis.hset(RedisKeys.auth_key(BaseTest.USER_ID), SessionKeys.user_name.value, BaseTest.USER_NAME)
-        environ.env.storage.redis.hset(RedisKeys.channel_for_rooms(), BaseTest.ROOM_ID, BaseTest.CHANNEL_ID)
+        environ.env.db.redis.hset(RedisKeys.channel_for_rooms(), BaseTest.ROOM_ID, BaseTest.CHANNEL_ID)
+        environ.env.db.redis.delete(RedisKeys.room_acl(BaseTest.ROOM_ID))
 
         environ.env.render_template = BaseTest._render_template
         environ.env.emit = BaseTest._emit
@@ -254,6 +333,9 @@ class BaseTest(unittest.TestCase):
     def remove_owner(self):
         environ.env.storage.redis.hdel(RedisKeys.room_roles(BaseTest.ROOM_ID), BaseTest.USER_ID)
 
+    def remove_owner_channel(self):
+        environ.env.storage.redis.hdel(RedisKeys.channel_roles(BaseTest.CHANNEL_ID), BaseTest.USER_ID)
+
     def remove_room(self):
         environ.env.storage.redis.hdel(RedisKeys.room_name_for_id(), BaseTest.ROOM_ID)
 
@@ -312,7 +394,10 @@ class BaseTest(unittest.TestCase):
         return environ.env.storage.redis.hgetall(RedisKeys.room_acl(BaseTest.ROOM_ID))
 
     def set_acl(self, acls: dict, room_id=ROOM_ID):
-        environ.env.storage.redis.hmset(RedisKeys.room_acl(room_id), acls)
+        for api_action, acls_items in acls.items():
+            for acl_type, acl_value in acls_items.items():
+                r_key = '%s|%s' % (api_action, acl_type)
+                environ.env.storage.redis.hset(RedisKeys.room_acl(room_id), r_key, acl_value)
 
     def set_acl_single(self, key: str, acls: str):
         environ.env.storage.redis.hset(RedisKeys.room_acl(BaseTest.ROOM_ID), key, acls)
