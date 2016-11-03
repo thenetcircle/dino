@@ -286,11 +286,13 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     }
 
     response['object']['attachments'] = list()
-    for acl_type, acl_value in acl_values.items():
-        response['object']['attachments'].append({
-            'objectType': acl_type,
-            'content': acl_value
-        })
+    for api_action, acls in acl_values.items():
+        for acl_type, acl_value in acls.items():
+            response['object']['attachments'].append({
+                'objectType': acl_type,
+                'content': acl_value,
+                'summary': api_action
+            })
 
     return response
 
@@ -427,14 +429,6 @@ def get_users_in_room(room_id: str) -> dict:
     return environ.env.db.users_in_room(room_id)
 
 
-def get_all_acls_for_room(room_id: str) -> dict:
-    return environ.env.db.get_all_acls_room(room_id)
-
-
-def get_all_acls_for_channel(room_id: str) -> dict:
-    return environ.env.db.get_all_acls_room(room_id)
-
-
 def get_acls_in_room_for_action(room_id: str, action: str) -> dict:
     return environ.env.db.get_acls_in_room_for_action(room_id, action)
 
@@ -443,8 +437,12 @@ def get_acls_in_channel_for_action(channel_id: str, action: str) -> dict:
     return environ.env.db.get_acls_in_channel_for_action(channel_id, action)
 
 
+def get_acls_for_room(room_id: str) -> dict:
+    return environ.env.db.get_all_acls_room(room_id)
+
+
 def get_acls_for_channel(channel_id: str) -> dict:
-    return environ.env.db.get_acls_channel(channel_id)
+    return environ.env.db.get_all_acls_channel(channel_id)
 
 
 def get_owners_for_room(room_id: str) -> dict:

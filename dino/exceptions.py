@@ -71,6 +71,11 @@ class InvalidAclValueException(Exception):
         self.acl_value = acl_value
 
 
+class InvalidApiActionException(Exception):
+    def __init__(self, action):
+        self.action = action
+
+
 class AclValueNotFoundException(Exception):
     def __init__(self, acl_type: str, validation_method: str):
         self.acl_type = acl_type

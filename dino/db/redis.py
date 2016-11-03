@@ -42,6 +42,7 @@ from dino.exceptions import EmptyRoomNameException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
 from dino.exceptions import AclValueNotFoundException
+from dino.exceptions import InvalidApiActionException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -306,41 +307,63 @@ class DatabaseRedis(object):
         key = '%s|%s' % (action, acl_type)
         self.redis.hdel(RedisKeys.channel_acl(channel_id), key)
 
-    def update_acl_room(self, channel_id: str, room_id: str, acl_type: str, acl_value: str) -> None:
+    def update_acl_in_room_for_action(self, channel_id: str, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
         if not self.room_exists(channel_id, room_id):
             raise NoSuchRoomException(room_id)
 
-        if acl_type not in AclValidator.ACL_VALIDATORS:
+        acl_configs = environ.env.config.get(ConfigKeys.ACL)
+
+        if action not in ApiActions.all_api_actions:
+            raise InvalidApiActionException(action)
+
+        if acl_type not in acl_configs['available']:
             raise InvalidAclTypeException(acl_type)
-        if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
+
+        if not acl_configs['validation'][acl_type](acl_value):
             raise InvalidAclValueException(acl_type, acl_value)
 
-        self.add_acls(room_id, {acl_type: acl_value})
+        self.add_acls_in_room_for_action(room_id, action, {acl_type: acl_value})
 
-    def update_acl_channel(self, channel_id: str, acl_type: str, acl_value: str) -> None:
+    def update_acl_in_channel_for_action(self, channel_id: str, action: str, acl_type: str, acl_value: str) -> None:
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
 
-        if acl_type not in AclValidator.ACL_VALIDATORS:
+        acl_configs = environ.env.config.get(ConfigKeys.ACL)
+
+        if action not in ApiActions.all_api_actions:
+            raise InvalidApiActionException(action)
+
+        if acl_type not in acl_configs['available']:
             raise InvalidAclTypeException(acl_type)
-        if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
+
+        if not acl_configs['validation'][acl_type](acl_value):
             raise InvalidAclValueException(acl_type, acl_value)
 
-        self.add_acls_channel(channel_id, {acl_type: acl_value})
+        self.add_acls_in_channel_for_action(channel_id, action, {acl_type: acl_value})
 
-    def add_acls_channel(self, channel_id: str, acls: dict) -> None:
+    def add_acls_in_channel_for_action(self, channel_id: str, action: str, acls: dict) -> None:
         if self.channel_for_channel(channel_id) is None:
             raise NoSuchRoomException(channel_id)
 
+        new_acls = dict()
+        for acl_type, acl_value in acls.items():
+            key = '%s|%s' % (action, acl_type)
+            new_acls[key] = acl_value
+
         self.redis.hmset(RedisKeys.channel_acl(channel_id), acls)
 
-    def add_acls(self, room_id: str, acls: dict) -> None:
+    def add_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
         if self.channel_for_room(room_id) is None:
             raise NoSuchRoomException(room_id)
 
-        self.redis.hmset(RedisKeys.room_acl(room_id), acls)
+        new_acls = dict()
+        for acl_type, acl_value in acls.items():
+            key = '%s|%s' % (action, acl_type)
+            new_acls[key] = acl_value
+
+        self.redis.hmset(RedisKeys.room_acl(room_id), new_acls)
 
     def _is_banned(self, ban):
         time = None

@@ -188,7 +188,12 @@ class AclValidator(object):
         if acl_value is None or len(acl_value.strip()) == 0:
             return True
 
-        return validator_func.validate_new_acl(acl_value)
+        try:
+            validator_func.validate_new_acl(acl_value)
+        except ValidationException as e:
+            logger.info('new acl value "%s" for type "%s" did not validate: %s' % (acl_value, acl_type, str(e)))
+            return False
+        return True
 
     def validate_acl_for_action(self, activity: Activity, target: str, action: str, target_acls: dict) -> (bool, str):
         all_acls = environ.env.config.get(ConfigKeys.ACL)

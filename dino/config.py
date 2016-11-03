@@ -47,6 +47,8 @@ class ApiTargets(object):
 
 
 class ApiActions(object):
+    all_api_actions = list()
+
     JOIN = 'join'
     CROSSROOM = 'crossroom'
     MESSAGE = 'message'
@@ -56,15 +58,8 @@ class ApiActions(object):
     HISTORY = 'history'
     SETACL = 'setacl'
 
-    @staticmethod
-    def all_api_actions():
-        _dict = ApiActions.__dict__
-        actions = set()
-        for d in _dict:
-            if d.startswith('_') or d[0].islower():
-                continue
-            actions.add(d)
-        return actions
+ApiActions.all_api_actions = \
+    [getattr(ApiActions, d) for d in ApiActions.__dict__ if not d.startswith('_') and not d[0].islower()]
 
 
 class RoleKeys(object):

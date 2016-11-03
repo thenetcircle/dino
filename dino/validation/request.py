@@ -165,12 +165,14 @@ class RequestValidator(BaseValidator):
 
         # validate all acls before actually changing anything
         acls = activity.object.attachments
-        from pprint import pprint
         all_available_acls_types = environ.env.config.get(ConfigKeys.ACL)['available']['acls']
         for acl in acls:
-            pprint(acl.__dict__)
             if acl.object_type not in all_available_acls_types:
                 return False, 400, 'invalid acl type "%s"' % acl.object_type
+
+            if acl.summary is None or acl.summary not in ApiActions.all_api_actions:
+                return False, 400, 'invalid api action "%s"' % acl.summary
+
             if not validation.acl.is_acl_valid(acl.object_type, acl.content):
                 return False, 400, 'invalid acl value "%s" for type "%s"' % (acl.content, acl.object_type)
 

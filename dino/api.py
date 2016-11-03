@@ -22,7 +22,7 @@ from activitystreams.models.activity import Activity
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
-from dino.config import ApiActions
+from dino.config import ApiTargets
 from dino.utils.decorators import pre_process
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
@@ -222,19 +222,22 @@ def on_set_acl(data: dict, activity: Activity = None) -> (int, str):
         # if the content is None, it means we're removing this ACL
         if acl.content is None:
             if is_for_channel:
-                environ.env.db.delete_acl_in_channel_for_action(target_id, acl.object_type, ApiActions.SETACL)
+                environ.env.db.delete_acl_in_channel_for_action(target_id, acl.object_type, acl.summary)
             else:
-                environ.env.db.delete_acl_in_room_for_action(target_id, acl.object_type, ApiActions.SETACL)
+                environ.env.db.delete_acl_in_room_for_action(target_id, acl.object_type, acl.summary)
             continue
 
-        acl_dict[acl.object_type] = acl.content
+        if acl.summary not in acl_dict:
+            acl_dict[acl.summary] = dict()
+        acl_dict[acl.summary][acl.object_type] = acl.content
 
     # might have only removed acls, so could be size 0
     if len(acl_dict) > 0:
-        if is_for_channel:
-            pass
-        else:
-            environ.env.db.add_acls(target_id, acl_dict)
+        for api_action, acls in acl_dict.items():
+            if is_for_channel:
+                environ.env.db.add_acls_in_channel_for_action(target_id, api_action, acls)
+            else:
+                environ.env.db.add_acls_in_room_for_action(target_id, api_action, acls)
 
     return 200, None
 
@@ -248,7 +251,7 @@ def on_get_acl(data: dict, activity: Activity = None) -> (int, Union[str, dict])
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<AS with acl as object.attachments>'}
     """
-    if activity.target.object_type == 'channel':
+    if activity.target.object_type == ApiTargets.CHANNEL:
         acls = utils.get_acls_for_channel(activity.target.id)
     else:
         acls = utils.get_acls_for_room(activity.target.id)

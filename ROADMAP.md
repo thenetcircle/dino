@@ -72,6 +72,8 @@ A rough roadmap for possible upcoming features.
 
 0.11.0
 ---
+* unique error codes
+    - so tests can know an api call failed for the right reason, and clients can know what went wrong
 * emit event on socket for kick/ban from ui
     - to be able for clients to do ui updates in response to being kicked/banned 
 * response codes

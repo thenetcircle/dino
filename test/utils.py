@@ -421,7 +421,15 @@ class BaseTest(unittest.TestCase):
         return BaseTest.emit_args[-1].get('status_code')
 
     def get_acls(self):
-        return environ.env.storage.redis.hgetall(RedisKeys.room_acl(BaseTest.ROOM_ID))
+        all_acls = environ.env.storage.redis.hgetall(RedisKeys.room_acl(BaseTest.ROOM_ID))
+        cleaned = dict()
+
+        for acl_key, acl_value in all_acls.items():
+            api_action, acl_type = str(acl_key, 'utf-8').split('|', 1)
+            if api_action not in cleaned:
+                cleaned[api_action] = dict()
+            cleaned[api_action][acl_type] = str(acl_value, 'utf-8')
+        return cleaned
 
     def get_acls_for_join(self):
         acls = environ.env.db.redis.hgetall(RedisKeys.room_acl(BaseTest.ROOM_ID))
@@ -596,7 +604,8 @@ class BaseTest(unittest.TestCase):
         if attachments is None:
             attachments = [{
                 'objectType': 'gender',
-                'content': 'm,f'
+                'content': 'm,f',
+                'summary': ApiActions.JOIN
             }]
 
         return {
