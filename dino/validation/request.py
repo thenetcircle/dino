@@ -38,7 +38,7 @@ class RequestValidator(BaseValidator):
             return False, 400, 'no room id specified when sending message'
 
         if object_type not in ['room', 'private']:
-            return False, 400, 'invalid object_type "%s", need to be either "group" or "private"' % object_type
+            return False, 400, 'invalid object_type "%s", must be one of [room, private]' % object_type
 
         if object_type == 'room':
             channel_id = activity.object.url
@@ -158,7 +158,7 @@ class RequestValidator(BaseValidator):
             return False, 400, 'empty object_type, must be one of [channel, room]'
 
         if object_type not in ['channel', 'room']:
-            return False, 400, 'invalid object_type "%s", but be one of [channel, room]' % object_type
+            return False, 400, 'invalid object_type "%s", must be one of [channel, room]' % object_type
 
         if not _can_edit_acl(target_id, user_id):
             return False, 400, 'user is not allowed to change acls on the target'

@@ -44,9 +44,13 @@
                             id: '{{ user_id }}',
                             summary: '{{ user_name }}'
                         },
+                        object: {
+                            url: channel_id
+                        },
                         verb: 'join',
                         target: {
-                            id: room_id
+                            id: room_id,
+                            objectType: 'room'
                         }
                     });
                 });
@@ -64,6 +68,9 @@
                         },
                         object: {
                             url: channel_id
+                        },
+                        target: {
+                            objectType: 'room'
                         },
                         verb: 'list'
                     });
@@ -373,7 +380,7 @@
                         channel_id = $('#channel-id').val();
                         $('#text').val('');
 
-                        target_type = 'group';
+                        target_type = 'room';
                         if ($('#private').attr('checked')) {
                             target_type = 'private';
                         }
@@ -496,7 +503,8 @@
                             ]
                         },
                         target: {
-                            id: $('#room-id').val()
+                            id: $('#room-id').val(),
+                            objectType: 'room'
                         }
                     });
                 });

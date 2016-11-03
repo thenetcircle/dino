@@ -19,6 +19,7 @@ from activitystreams.models.activity import Activity
 from dino.validation.generic import GenericValidator
 from dino.exceptions import ValidationException
 from dino.config import ConfigKeys
+from dino.config import ApiTargets
 from dino import environ
 from dino import utils
 
@@ -60,11 +61,18 @@ class AclValidator(object):
     def validate_acl_for_action(self, activity: Activity, target: str, action: str, target_acls: dict) -> (bool, str):
         all_acls = environ.env.config.get(ConfigKeys.ACL)
 
-        if activity.target.object_type is None:
+        if not hasattr(activity, 'target') or not hasattr(activity.target, 'object_type'):
+            return False, 'target.objectType must not be none'
+        if activity.target.object_type is None or len(activity.target.object_type.strip()) == 0:
             return False, 'target.objectType must not be none'
 
+        if not hasattr(activity, 'object') or not hasattr(activity.object, 'url'):
+            return False, 'object.url must not be none'
+        if activity.object.url is None or len(activity.object.url.strip()) == 0:
+            return False, 'object.url must not be none'
+
         # one-to-one is sending message that users private room, so target is room, but object_type would not be
-        if target == 'room' and activity.target.object_type != 'room':
+        if target == ApiTargets.ROOM and activity.target.object_type != 'room':
             return True, None
 
         user_id = activity.actor.id

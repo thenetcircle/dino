@@ -62,26 +62,24 @@ A rough roadmap for possible upcoming features.
     - create admin users manually
     - manage list of admins as user ids
     - change ownership/moderator status for users in channels/rooms
-* invite
-    - search for online users in chats
-    - invite user from other room
 * redo permissions
     - able to set different permissions on rooms/channels based on the api action
     - ACLs on channels for who can create rooms in the channel
     - e.g. some types of users can not join (channel or room), like paying members only etc.
+    - ability to choose to filter out rooms list, not displaying rooms that a user is not allowed to join
 
 0.11.0
 ---
+* invite
+    - search for online users in chats
+    - invite user from other room
 * unique error codes
     - so tests can know an api call failed for the right reason, and clients can know what went wrong
+    - use defined response codes for front-end to be able to display correct error messages
 * emit event on socket for kick/ban from ui
     - to be able for clients to do ui updates in response to being kicked/banned 
-* response codes
-    - use defined response codes for front-end to be able to display correct error messages
 * rest interface
     - to get information about users in room, online users, etc.
-* filter room list
-    - ability to choose to filter out rooms list, not displaying rooms that a user is not allowed to join
 
 0.1X.0
 ---
