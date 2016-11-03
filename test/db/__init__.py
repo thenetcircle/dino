@@ -26,7 +26,6 @@ from dino.config import ApiActions
 from dino.cache.redis import CacheRedis
 from dino.db.rdbms.handler import DatabaseRdbms
 from dino.environ import GNEnvironment
-from dino.config import SessionKeys
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclSameRoomValidator
@@ -477,12 +476,12 @@ class BaseDatabaseTest(BaseTest):
             'gender': 'm,f',
             'membership': '0,1,2'
         }
-        self.db.add_acls(BaseTest.ROOM_ID, acls)
-        fetched = self.db.get_acls(BaseTest.ROOM_ID)
+        self.db.add_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN, acls)
+        fetched = self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN)
         self.assertEqual(fetched.items(), acls.items())
 
-        self.db.delete_acl(BaseTest.ROOM_ID, 'image')
-        fetched = self.db.get_acls(BaseTest.ROOM_ID)
+        self.db.delete_acl_in_room_for_action(BaseTest.ROOM_ID, 'image', ApiActions.JOIN)
+        fetched = self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN)
 
         self.assertEqual(fetched.items(), acls.items())
 
@@ -493,20 +492,20 @@ class BaseDatabaseTest(BaseTest):
             'gender': 'm,f',
             'membership': '0,1,2'
         }
-        self.db.add_acls(BaseTest.ROOM_ID, acls)
-        fetched = self.db.get_acls(BaseTest.ROOM_ID)
+        self.db.add_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN, acls)
+        fetched = self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN)
         self.assertEqual(fetched.items(), acls.items())
 
-        self.db.add_acls(BaseTest.ROOM_ID, {'image': 'y'})
+        self.db.add_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN, {'image': 'y'})
         acls['image'] = 'y'
-        fetched = self.db.get_acls(BaseTest.ROOM_ID)
+        fetched = self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN)
 
         self.assertEqual(fetched.items(), acls.items())
 
     def _test_get_acl(self):
         self._create_channel()
         self._create_room()
-        self.assertEqual(0, len(self.db.get_acls(BaseTest.ROOM_ID)))
+        self.assertEqual(0, len(self.db.get_all_acls_room(BaseTest.ROOM_ID)))
 
     def _test_set_acl(self):
         self._create_channel()
@@ -515,8 +514,8 @@ class BaseDatabaseTest(BaseTest):
             'gender': 'm,f',
             'membership': '0,1,2'
         }
-        self.db.add_acls(BaseTest.ROOM_ID, acls)
-        fetched = self.db.get_acls(BaseTest.ROOM_ID)
+        self.db.add_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN, acls)
+        fetched = self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN)
         self.assertEqual(fetched.items(), acls.items())
 
     def _test_delete_one_acl(self):
@@ -526,13 +525,13 @@ class BaseDatabaseTest(BaseTest):
             'gender': 'm,f',
             'membership': '0,1,2'
         }
-        self.db.add_acls(BaseTest.ROOM_ID, acls)
-        fetched = self.db.get_acls(BaseTest.ROOM_ID)
+        self.db.add_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN, acls)
+        fetched = self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN)
         self.assertEqual(fetched.items(), acls.items())
         del acls['gender']
 
-        self.db.delete_acl(BaseTest.ROOM_ID, 'gender')
-        fetched = self.db.get_acls(BaseTest.ROOM_ID)
+        self.db.delete_acl_in_room_for_action(BaseTest.ROOM_ID, 'gender', ApiActions.JOIN)
+        fetched = self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN)
 
         self.assertEqual(fetched.items(), acls.items())
 
@@ -543,20 +542,24 @@ class BaseDatabaseTest(BaseTest):
 
     def _test_get_room_allows_cross_group_messaging_no_room(self):
         self._create_channel()
-        self.assertRaises(NoSuchRoomException, self._get_allow_cross_group)
+        self.assertRaises(NoSuchRoomException, self._room_allows_cross_group_messaging)
 
     def _test_get_room_allows_cross_group_messaging(self):
         self._create_channel()
         self._create_room()
         self._set_allow_cross_group()
-        self.assertTrue(self._get_allow_cross_group())
+        self.assertTrue(self._room_allows_cross_group_messaging())
 
     def _test_get_room_does_not_allow_cross_group_messaging(self):
         self._create_channel()
         self._create_room()
-        self.assertFalse(self._get_allow_cross_group())
+        self.assertFalse(self._room_allows_cross_group_messaging())
+
+    def _test_room_allows_cross_group_messaging_no_channel(self):
+        self.assertRaises(NoSuchChannelException, self._room_allows_cross_group_messaging)
 
     def _test_room_allows_cross_group_messaging_no_room(self):
+        self._create_channel()
         self.assertRaises(NoSuchRoomException, self._room_allows_cross_group_messaging)
 
     def _test_room_allows_cross_group_messaging(self):
@@ -577,10 +580,12 @@ class BaseDatabaseTest(BaseTest):
                 BaseTest.ROOM_ID, ApiActions.CROSSROOM, {'samechannel': ''})
 
     def _room_allows_cross_group_messaging(self):
-        return self.db.room_allows_cross_group_messaging(BaseTest.ROOM_ID)
-
-    def _get_allow_cross_group(self):
-        acls = self.db.get_acls(BaseTest.ROOM_ID)
-        if SessionKeys.crossgroup.value not in acls:
+        channel_acls = self.db.get_acls_in_channel_for_action(BaseTest.CHANNEL_ID, ApiActions.CROSSROOM)
+        if 'disallow' in channel_acls.keys():
             return False
-        return acls[SessionKeys.crossgroup.value] == 'y'
+
+        room_acls = self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.CROSSROOM)
+        if 'disallow' in room_acls.keys():
+            return False
+
+        return 'samechannel' in channel_acls or 'samechannel' in room_acls

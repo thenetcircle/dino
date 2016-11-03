@@ -661,11 +661,15 @@ class DatabaseRdbms(object):
         if action not in ApiActions.all_api_actions:
             raise InvalidApiActionException(action)
 
-        found_acl = self.session.query(Acls).join(Acls.room).filter(Rooms.uuid == room_id).first()
+        found_acl = self.session.query(Acls)\
+            .join(Acls.room)\
+            .filter(Acls.acl_type == acl_type)\
+            .filter(Rooms.uuid == room_id).first()
+
         if found_acl is None:
             return
 
-        found_acl.__setattr__(acl_type, None)
+        self.session.delete(found_acl)
         self.session.commit()
 
     @with_session
@@ -695,7 +699,7 @@ class DatabaseRdbms(object):
             if room is None:
                 raise NoSuchRoomException(room_id)
             existing_acls = room.acls
-            to_delete, to_add = self._add_acls(existing_acls, new_acls, action, ApiTargets.CHANNEL)
+            to_delete, to_add = self._add_acls(existing_acls, new_acls, action, ApiTargets.ROOM)
 
             for acl in to_delete:
                 self.session.delete(acl)
@@ -780,14 +784,25 @@ class DatabaseRdbms(object):
             return False
         return True
 
-    def _get_acls(self):
+    def _get_acls(self) -> dict:
         return self.env.config.get(ConfigKeys.ACL)
 
-    def _get_acls_for_target(self, target: str):
+    def _get_acls_for_target(self, target: str) -> dict:
         return self._get_acls().get(target)
 
-    def _get_acls_for_target_and_action(self, target, action):
-        return self._get_acls_for_target(target).get(action).get('acls')
+    def _get_acls_for_target_and_action(self, target, action) -> list:
+        acls_for_target = self._get_acls_for_target(target)
+        if acls_for_target is None:
+            return list()
+
+        acls_for_action = acls_for_target.get(action)
+        if acls_for_action is None:
+            return list()
+
+        acls = acls_for_action.get('acls')
+        if acls is None:
+            return list()
+        return acls
 
     def update_acl_in_room_for_action(self, channel_id: str, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
         self.add_acls(room_id, {acl_type: acl_value})

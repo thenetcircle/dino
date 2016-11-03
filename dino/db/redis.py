@@ -355,7 +355,7 @@ class DatabaseRedis(object):
             key = '%s|%s' % (action, acl_type)
             new_acls[key] = acl_value
 
-        self.redis.hmset(RedisKeys.channel_acl(channel_id), acls)
+        self.redis.hmset(RedisKeys.channel_acl(channel_id), new_acls)
 
     def add_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
         if self.channel_for_room(room_id) is None:
