@@ -65,10 +65,10 @@ A rough roadmap for possible upcoming features.
 * invite
     - search for online users in chats
     - invite user from other room
-* channel permissions
-    - permissions on channels
+* redo permissions
+    - able to set different permissions on rooms/channels based on the api action
     - ACLs on channels for who can create rooms in the channel
-    - e.g. some types of users can not join, like paying members only etc.
+    - e.g. some types of users can not join (channel or room), like paying members only etc.
 
 0.11.0
 ---

@@ -232,14 +232,14 @@ def rename_room(channel_uuid: str, room_uuid: str) -> None:
     return jsonify({'status_code': 200})
 
 
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<acl_type>', methods=['DELETE'])
-def delete_acl_room(channel_uuid, room_uuid, acl_type):
-    acl_manager.delete_acl_room(room_uuid, acl_type)
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<action>/type/<acl_type>', methods=['DELETE'])
+def delete_acl_room(channel_uuid, room_uuid, action, acl_type):
+    acl_manager.delete_acl_room(room_uuid, action, acl_type)
     return jsonify({'status_code': 200})
 
 
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<acl_type>', methods=['PUT'])
-def update_acl_room(channel_uuid, room_uuid, acl_type):
+@app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<action>/type/<acl_type>', methods=['PUT'])
+def update_acl_room(channel_uuid, room_uuid, action, acl_type):
     try:
         json_data = request.get_json()
         new_value = json_data['value']
@@ -248,7 +248,7 @@ def update_acl_room(channel_uuid, room_uuid, acl_type):
         return jsonify({'status_code': 400})
 
     try:
-        acl_manager.update_room_acl(channel_uuid, room_uuid, acl_type, new_value)
+        acl_manager.update_room_acl(channel_uuid, room_uuid, action, acl_type, new_value)
     except InvalidAclValueException:
         return jsonify({'status_code': 400, 'message': 'Invalid ACL value'})
     except InvalidAclTypeException:
@@ -261,8 +261,8 @@ def update_acl_room(channel_uuid, room_uuid, acl_type):
     return jsonify({'status_code': 200})
 
 
-@app.route('/channel/<channel_uuid>/acl/<acl_type>', methods=['PUT'])
-def update_acl_channel(channel_uuid, acl_type):
+@app.route('/channel/<channel_uuid>/acl/<action>/type/<acl_type>', methods=['PUT'])
+def update_acl_channel(channel_uuid, action, acl_type):
     try:
         json_data = request.get_json()
         new_value = json_data['value']
@@ -271,7 +271,7 @@ def update_acl_channel(channel_uuid, acl_type):
         return jsonify({'status_code': 400})
 
     try:
-        acl_manager.update_channel_acl(channel_uuid, acl_type, new_value)
+        acl_manager.update_channel_acl(channel_uuid, action, acl_type, new_value)
     except InvalidAclValueException:
         return jsonify({'status_code': 400, 'message': 'Invalid ACL value'})
     except InvalidAclTypeException:
@@ -284,9 +284,9 @@ def update_acl_channel(channel_uuid, acl_type):
     return jsonify({'status_code': 200})
 
 
-@app.route('/channel/<channel_uuid>/acl/<acl_type>', methods=['DELETE'])
-def delete_acl_channel(channel_uuid, acl_type):
-    acl_manager.delete_acl_channel(channel_uuid, acl_type)
+@app.route('/channel/<channel_uuid>/acl/<action>/type/<acl_type>', methods=['DELETE'])
+def delete_acl_channel(channel_uuid, action, acl_type):
+    acl_manager.delete_acl_channel(channel_uuid, action, acl_type)
     return jsonify({'status_code': 200})
 
 
@@ -313,16 +313,16 @@ def delete_room(channel_uuid: str, room_uuid: str):
 @app.route('/channel/<channel_uuid>/create/acl', methods=['POST'])
 def create_acl_channel(channel_uuid: str):
     form = CreateAclForm(request.form)
+    action = form.api_action.data
     acl_type = form.acl_type.data
     acl_value = form.acl_value.data
 
     if is_blank(acl_type) or is_blank(acl_value):
         return redirect('/channel/%s/rooms' % channel_uuid)
 
-    if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
-        return redirect('/channel/%s/rooms' % channel_uuid)
+    # TODO: validate here
 
-    acl_manager.add_acl_channel(channel_uuid, acl_type, acl_value)
+    acl_manager.add_acl_channel(channel_uuid, action, acl_type, acl_value)
     return redirect('/channel/%s/rooms' % channel_uuid)
 
 
@@ -413,16 +413,16 @@ def remove_room_owner(channel_uuid: str, room_uuid: str, user_id: str):
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/create/acl', methods=['POST'])
 def create_acl_room(channel_uuid: str, room_uuid: str):
     form = CreateAclForm(request.form)
+    action = form.api_action.data
     acl_type = form.acl_type.data
     acl_value = form.acl_value.data
 
     if is_blank(acl_type) or is_blank(acl_value):
         return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
 
-    if not AclValidator.ACL_VALIDATORS[acl_type](acl_value):
-        return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+    # TODO: validate here
 
-    acl_manager.add_acl_room(room_uuid, acl_type, acl_value)
+    acl_manager.add_acl_room(room_uuid, action, acl_type, acl_value)
     return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 

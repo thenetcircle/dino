@@ -14,9 +14,9 @@
 
 from wtforms import Form, StringField, SelectField, validators
 from wtforms.validators import ValidationError
-from wtforms.compat import string_types
 
 from dino.config import SessionKeys
+from dino.config import ApiActions
 from dino.validation.duration import DurationValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -33,6 +33,8 @@ acl_choices = [
     (SessionKeys.has_webcam.value, 'Has webcam'),
     (SessionKeys.fake_checked.value, 'Fake checked')
 ]
+
+api_actions = [(a, a.upper()) for a in ApiActions.all_api_actions]
 
 
 class CreateChannelForm(Form):
@@ -98,13 +100,22 @@ class AddAdminForm(Form):
 
 
 class CreateAclForm(Form):
+    api_action = SelectField(
+        'Action',
+        choices=api_actions,
+        validators=[validators.DataRequired],
+        description='Permission type'
+    )
+
     acl_type = SelectField(
-            'Type',
-            choices=acl_choices,
-            validators=[validators.DataRequired],
-            description='Permission type')
+        'Type',
+        choices=acl_choices,  # TODO: use ajax to get possible choices after action has been selected
+        validators=[validators.DataRequired],
+        description='Permission type'
+    )
 
     acl_value = StringField(
-            'Value',
-            validators=[validators.DataRequired],
-            description='Permission value')
+        'Value',
+        validators=[validators.DataRequired],
+        description='Permission value'
+    )

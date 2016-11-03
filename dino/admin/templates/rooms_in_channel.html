@@ -14,7 +14,7 @@
                 <tr>
                     <td>Name</td>
                     <td>UUID</td>
-                    <td class="actions">Actions</td>
+                    <td class="actions"></td>
                 </tr>
             </thead>
             <tbody>
@@ -62,6 +62,7 @@
                 <form method="post" action="/channel/{{ channel_uuid }}/create/acl" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add permission</legend>
+                        {{ render_field(acl_form.api_action) }}
                         {{ render_field(acl_form.acl_type) }}
                         {{ render_field(acl_form.acl_value) }}
                         <p><input type="submit" value="Add" class="pure-button pure-button-primary" /></p>
@@ -78,19 +79,21 @@
                 <table class="pure-table" style="width: 95%;">
                     <thead>
                         <tr>
+                            <td>Action</td>
                             <td>Type</td>
                             <td>Value</td>
-                            <td class="actions">Actions</td>
+                            <td class="actions"></td>
                         </tr>
                     </thead>
                     <tbody>
                         {% for acl in acls %}
                             <tr>
+                                <td>{{ acl.action }}</td>
                                 <td>{{ acl.type }}</td>
                                 <td><small>{{ acl.value }}</small></td>
                                 <td class="actions">
-                                    {{ render_remove("/channel/" + channel_uuid + "/acl/" + acl.type, "") }}
-                                    {{ render_edit("/channel/" + channel_uuid + "/acl/" + acl.type) }}
+                                    {{ render_remove("/channel/" + channel_uuid + "/acl/" + acl.action + "/type/" + acl.type, "") }}
+                                    {{ render_edit("/channel/" + channel_uuid + "/acl/" + acl.action + "/type/" + acl.type) }}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -106,7 +109,7 @@
                             <tr>
                                 <td>Name</td>
                                 <td>ID</td>
-                                <td class="actions">Actions</td>
+                                <td class="actions"></td>
                             </tr>
                         </thead>
                         <tbody>
@@ -131,7 +134,7 @@
                             <tr>
                                 <td>Name</td>
                                 <td>UUID</td>
-                                <td class="actions">Actions</td>
+                                <td class="actions"></td>
                             </tr>
                         </thead>
                         <tbody>

@@ -681,11 +681,15 @@ class DatabaseRdbms(object):
         if action not in ApiActions.all_api_actions:
             raise InvalidApiActionException(action)
 
-        found_acl = self.session.query(Acls).join(Acls.channel).filter(Channels.uuid == channel_id).first()
+        found_acl = self.session.query(Acls)\
+            .join(Acls.channel)\
+            .filter(Acls.acl_type == acl_type)\
+            .filter(Channels.uuid == channel_id).first()
+
         if found_acl is None:
             return
 
-        found_acl.__setattr__(acl_type, None)
+        self.session.delete(found_acl)
         self.session.commit()
 
     def add_acls_in_room_for_action(self, room_id: str, action: str, new_acls: dict) -> None:
@@ -761,6 +765,7 @@ class DatabaseRdbms(object):
             if acl_type in updated_acls:
                 continue
 
+            print('target: %s, action: %s' % (target, action))
             if acl_type not in self._get_acls_for_target_and_action(target, action):
                 raise InvalidAclTypeException(acl_type)
 
@@ -805,10 +810,10 @@ class DatabaseRdbms(object):
         return acls
 
     def update_acl_in_room_for_action(self, channel_id: str, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
-        self.add_acls(room_id, {acl_type: acl_value})
+        self.add_acls_in_room_for_action(room_id, action, {acl_type: acl_value})
 
-    def update_acl_in_channel_for_action(self, channel_id: str, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
-        self.add_acls_channel(channel_id, {acl_type: acl_value})
+    def update_acl_in_channel_for_action(self, channel_id: str, action: str, acl_type: str, acl_value: str) -> None:
+        self.add_acls_in_channel_for_action(channel_id, action, {acl_type: acl_value})
 
     @with_session
     def get_acl_validation_value(self, acl_type: str, validation_method) -> str:
@@ -839,7 +844,7 @@ class DatabaseRdbms(object):
         for acl in found_acls:
             if acl.action not in acls:
                 acls[acl.action] = dict()
-            acls[acl.acl_type] = acl.acl_value
+            acls[acl.action][acl.acl_type] = acl.acl_value
         return acls
 
     def get_all_acls_room(self, room_id: str) -> dict:
@@ -860,7 +865,7 @@ class DatabaseRdbms(object):
         for acl in found_acls:
             if acl.action not in acls:
                 acls[acl.action] = dict()
-            acls[acl.acl_action][acl.acl_type] = acl.acl_value
+            acls[acl.action][acl.acl_type] = acl.acl_value
         return acls
 
     @with_session

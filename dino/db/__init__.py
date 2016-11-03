@@ -581,7 +581,7 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def update_acl_in_room_for_action(self, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
+    def update_acl_in_room_for_action(self, channel_id: str, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
         """
         change the value of an acl for a room
 
@@ -589,6 +589,7 @@ class IDatabase(Interface):
         :raises InvalidAclTypeException if the type is invalid
         :raises InvalidAclValueException if the value doesn't validate for the type
         :raises NoSuchRoomException if room doesn't exist
+        :param channel_id: the channel uuid
         :param room_id: the room uuid
         :param action: the api action (kick/join etc)
         :param acl_type: the acl type

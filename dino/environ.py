@@ -456,7 +456,10 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
         validation_type = validation_config['type']
 
         if validation_type == 'str_in_csv':
-            csv = validation_config['value']
+            csv = None
+            if 'value' in validation_config:
+                csv = validation_config['value']
+
             if csv == '##db##':
                 try:
                     csv = gn_env.db.get_acl_validation_value(acl_type, 'str_in_csv')

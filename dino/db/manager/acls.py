@@ -28,36 +28,38 @@ class AclManager(BaseManager):
         self.env = env
 
     def get_acls_channel(self, channel_id: str) -> list:
-        acls = self.env.db.get_acls_channel(channel_id)
+        acls = self.env.db.get_all_acls_channel(channel_id)
         return self._format_acls(acls)
 
     def get_acls_room(self, room_id: str) -> list:
-        acls = self.env.db.get_acls(room_id)
+        acls = self.env.db.get_all_acls_room(room_id)
         return self._format_acls(acls)
 
-    def delete_acl_channel(self, channel_id: str, acl_type: str) -> None:
-        self.env.db.delete_acl_channel(channel_id, acl_type)
+    def delete_acl_channel(self, channel_id: str, action: str, acl_type: str) -> None:
+        self.env.db.delete_acl_in_channel_for_action(channel_id, acl_type, action)
 
-    def update_channel_acl(self, channel_id: str, acl_type: str, acl_value: str) -> None:
-        self.env.db.update_acl_channel(channel_id, acl_type, acl_value)
+    def update_channel_acl(self, channel_id: str, action: str, acl_type: str, acl_value: str) -> None:
+        self.env.db.update_acl_in_channel_for_action(channel_id, action, acl_type, acl_value)
 
-    def update_room_acl(self, channel_id: str, room_id: str, acl_type: str, acl_value: str) -> None:
-        self.env.db.update_acl_room(channel_id, room_id, acl_type, acl_value)
+    def update_room_acl(self, channel_id: str, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
+        self.env.db.update_acl_in_room_for_action(channel_id, room_id, action, acl_type, acl_value)
 
-    def delete_acl_room(self, room_id: str, acl_type: str) -> None:
-        self.env.db.delete_acl(room_id, acl_type)
+    def delete_acl_room(self, room_id: str, action: str, acl_type: str) -> None:
+        self.env.db.delete_acl_in_room_for_action(room_id, acl_type, action)
 
-    def add_acl_channel(self, channel_id: str, acl_type: str, acl_value: str) -> None:
-        self.env.db.add_acls_channel(channel_id, {acl_type: acl_value})
+    def add_acl_channel(self, channel_id: str, action: str, acl_type: str, acl_value: str) -> None:
+        self.env.db.add_acls_in_channel_for_action(channel_id, action, {acl_type: acl_value})
 
-    def add_acl_room(self, room_id: str, acl_type: str, acl_value: str) -> None:
-        self.env.db.add_acls(room_id, {acl_type: acl_value})
+    def add_acl_room(self, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
+        self.env.db.add_acls_in_room_for_action(room_id, action, {acl_type: acl_value})
 
-    def _format_acls(self, acls: dict) -> list:
+    def _format_acls(self, all_acls: dict) -> list:
         output = list()
-        for acl_type, acl_value in acls.items():
-            output.append({
-                'type': acl_type,
-                'value': acl_value
-            })
+        for action, acls in all_acls.items():
+            for acl_type, acl_value in acls.items():
+                output.append({
+                    'action': action,
+                    'type': acl_type,
+                    'value': acl_value
+                })
         return output
