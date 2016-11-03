@@ -97,6 +97,14 @@ class UserExistsException(Exception):
         self.uuid = uuid
 
 
+class NoOriginChannelException(Exception):
+    pass
+
+
+class NoTargetChannelException(Exception):
+    pass
+
+
 class NoOriginRoomException(Exception):
     pass
 

@@ -61,7 +61,7 @@ class RequestValidator(BaseValidator):
                     return False, 400, 'user is not in target room'
                 if not utils.is_user_in_room(user_id, from_room_id):
                     return False, 400, 'user is not in origin room, cannot send message from there'
-                if not utils.can_send_cross_room_for_action(activity, from_room_id, room_id, ApiActions.CROSSROOM):
+                if not utils.can_send_cross_room(activity, from_room_id, room_id):
                     return False, 400, 'user not allowed to send cross-group msg from %s to %s' % (from_room_id, room_id)
 
         elif object_type == 'private':

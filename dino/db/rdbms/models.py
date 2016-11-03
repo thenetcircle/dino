@@ -41,7 +41,7 @@ class Channels(DeclarativeBase):
     rooms = relationship('Rooms', back_populates='channel')
     roles = relationship('ChannelRoles', back_populates='channel')
     bans = relationship('Bans', back_populates='channel')
-    acl = relationship('Acls', uselist=False, back_populates='channel')
+    acls = relationship('Acls', back_populates='channel')
 
 
 class Rooms(DeclarativeBase):
@@ -57,7 +57,7 @@ class Rooms(DeclarativeBase):
 
     roles = relationship('RoomRoles', back_populates='room')
     bans = relationship('Bans', back_populates='room')
-    acls = relationship('Acls', uselist=False, back_populates='room')
+    acls = relationship('Acls', back_populates='room')
 
     users = relationship(
         'Users',
@@ -124,31 +124,6 @@ class Acls(DeclarativeBase):
     # acl_type: gender/age/city etc.
     acl_type = Column('acl_type', String, nullable=False)
     acl_value = Column('acl_value', String, nullable=False)
-
-
-"""
-class Acls(DeclarativeBase):
-    __tablename__ = 'acls'
-
-    id = Column(Integer, primary_key=True)
-
-    room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=True)
-    room = relationship('Rooms', back_populates='acl')
-
-    channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=True)
-    channel = relationship('Channels', back_populates='acl')
-
-    age = Column('age', String, nullable=True)
-    gender = Column('gender', String, nullable=True)
-    membership = Column('membership', String, nullable=True)
-    group = Column('group', String, nullable=True)
-    country = Column('country', String, nullable=True)
-    city = Column('city', String, nullable=True)
-    image = Column('image', String, nullable=True)
-    has_webcam = Column('has_webcam', String, nullable=True)
-    fake_checked = Column('fake_checked', String, nullable=True)
-    crossgroup = Column('crossgroup', String, nullable=True)
-"""
 
 
 class AclConfigs(DeclarativeBase):

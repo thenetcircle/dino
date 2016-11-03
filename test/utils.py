@@ -572,6 +572,9 @@ class BaseTest(unittest.TestCase):
                 'id': BaseTest.USER_ID,
                 'url': BaseTest.ROOM_ID
             },
+            'provider': {
+                'url': BaseTest.CHANNEL_ID
+            },
             'verb': 'send',
             'target': {
                 'id': BaseTest.ROOM_ID,

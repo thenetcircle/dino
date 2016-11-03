@@ -22,10 +22,16 @@ import time
 from dino.environ import ConfigDict
 
 from dino.config import ConfigKeys
+from dino.config import ApiActions
 from dino.cache.redis import CacheRedis
 from dino.db.rdbms.handler import DatabaseRdbms
 from dino.environ import GNEnvironment
 from dino.config import SessionKeys
+from dino.validation.acl import AclStrInCsvValidator
+from dino.validation.acl import AclSameChannelValidator
+from dino.validation.acl import AclSameRoomValidator
+from dino.validation.acl import AclDisallowValidator
+from dino.validation.acl import AclRangeValidator
 
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
@@ -49,6 +55,106 @@ class BaseDatabaseTest(BaseTest):
     def set_up_env(self, db):
         self.env = BaseDatabaseTest.FakeEnv()
         self.env.config.set(ConfigKeys.TESTING, False)
+        all_acls = [
+            'age',
+            'gender',
+            'membership',
+            'group',
+            'country',
+            'city',
+            'image',
+            'has_webcam',
+            'fake_checked',
+            'owner',
+            'admin',
+            'moderator',
+            'superuser',
+            'crossroom',
+            'samechannel',
+            'sameroom',
+            'disallow'
+        ]
+        self.env.config.set(ConfigKeys.ACL, {
+                'room': {
+                    'join': {
+                        'acls': all_acls
+                    },
+                    'message': {
+                        'acls': all_acls
+                    },
+                    'history': {
+                        'acls': all_acls
+                    },
+                    'crossroom': {
+                        'acls': all_acls
+                    }
+                },
+                'channel': {
+                    'message': {
+                        'acls': all_acls
+                    },
+                    'list': {
+                        'acls': all_acls
+                    },
+                    'crossroom': {
+                        'acls': all_acls
+                    }
+                },
+                'available': {
+                    'acls': all_acls
+                },
+                'validation': {
+                    'samechannel': {
+                        'type': 'samechannel',
+                        'value': AclSameChannelValidator()
+                    },
+                    'sameroom': {
+                        'type': 'sameroom',
+                        'value': AclSameRoomValidator()
+                    },
+                    'country': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator()
+                    },
+                    'disallow': {
+                        'type': 'disallow',
+                        'value': AclDisallowValidator()
+                    },
+                    'gender': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('m,f')
+                    },
+                    'membership': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator()
+                    },
+                    'city': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator()
+                    },
+                    'has_webcam': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('y,n')
+                    },
+                    'fake_checked': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('y,n')
+                    },
+                    'image': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('y,n')
+                    },
+                    'group': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('')
+                    },
+                    'age': {
+                        'type': 'range',
+                        'value': AclRangeValidator()
+                    }
+                }
+            }
+        )
 
         if db == 'postgres':
             self.env.config.set(ConfigKeys.DRIVER, 'postgres+psycopg2', domain=ConfigKeys.DATABASE)
@@ -465,7 +571,10 @@ class BaseDatabaseTest(BaseTest):
         self.assertFalse(self._room_allows_cross_group_messaging())
 
     def _set_allow_cross_group(self):
-        self.db.add_acls(BaseTest.ROOM_ID, {SessionKeys.crossgroup.value: 'y'})
+        self.db.add_acls_in_channel_for_action(
+                BaseTest.CHANNEL_ID, ApiActions.CROSSROOM, {'samechannel': ''})
+        self.db.add_acls_in_room_for_action(
+                BaseTest.ROOM_ID, ApiActions.CROSSROOM, {'samechannel': ''})
 
     def _room_allows_cross_group_messaging(self):
         return self.db.room_allows_cross_group_messaging(BaseTest.ROOM_ID)

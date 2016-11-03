@@ -412,7 +412,7 @@ class AclSameChannelValidator(BaseAclValidator):
         # acl_type = args[2]
         # acl_values = args[3]
 
-        origin_channel_id = activity.actor.url
+        origin_channel_id = activity.provider.url
         if origin_channel_id is None or len(origin_channel_id.strip()) == 0:
             return False, 'no origin channel uuid in actor.url'
 

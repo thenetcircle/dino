@@ -344,8 +344,8 @@ class DatabaseRedis(object):
         self.add_acls_in_channel_for_action(channel_id, action, {acl_type: acl_value})
 
     def add_acls_in_channel_for_action(self, channel_id: str, action: str, acls: dict) -> None:
-        if self.channel_for_channel(channel_id) is None:
-            raise NoSuchRoomException(channel_id)
+        if not self.channel_exists(channel_id):
+            raise NoSuchChannelException(channel_id)
 
         if action not in ApiActions.all_api_actions:
             raise InvalidApiActionException(action)

@@ -54,7 +54,6 @@ class ApiMessageTest(BaseTest):
         activity = self.activity_for_message()
         activity['target']['objectType'] = 'room'
         activity['target']['id'] = new_room_id
-        activity['actor']['url'] = BaseTest.ROOM_ID
 
         response_data = api.on_message(activity)
         self.assertEqual(200, response_data[0])

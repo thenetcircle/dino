@@ -690,7 +690,6 @@ class DatabaseRdbms(object):
             room = self.session.query(Rooms)\
                 .outerjoin(Rooms.acls)\
                 .filter(Rooms.uuid == room_id)\
-                .filter(Acls.action == action)\
                 .first()
 
             if room is None:
@@ -716,7 +715,6 @@ class DatabaseRdbms(object):
             channel = self.session.query(Channels)\
                 .outerjoin(Channels.acls)\
                 .filter(Channels.uuid == channel_id)\
-                .filter(Acls.action == action)\
                 .first()
 
             if channel is None:
@@ -736,19 +734,22 @@ class DatabaseRdbms(object):
             return
         _add_acls_in_channel_for_action(self)
 
-    @with_session
     def _add_acls(self, existing_acls: list, new_acls: dict, action: str, target: str) -> (list, list):
         updated_acls = set()
         to_delete = list()
         if existing_acls is not None and len(existing_acls) > 0:
             for acl in existing_acls:
-                if acl.acl_type in new_acls.keys():
-                    new_value = new_acls[acl.acl_type]
-                    if new_value is None or len(new_value.strip()) == 0:
-                        to_delete.append(acl)
-                    else:
-                        acl.acl_value = new_value
-                    updated_acls.add(acl.acl_type)
+                if acl.action != action:
+                    continue
+                if acl.acl_type not in new_acls.keys():
+                    continue
+
+                new_value = new_acls[acl.acl_type]
+                if new_value is None or len(new_value.strip()) == 0:
+                    to_delete.append(acl)
+                else:
+                    acl.acl_value = new_value
+                updated_acls.add(acl.acl_type)
 
         to_add = list()
         for acl_type, acl_value in new_acls.items():
@@ -756,7 +757,7 @@ class DatabaseRdbms(object):
             if acl_type in updated_acls:
                 continue
 
-            if acl_type not in self._get_acls_for_target_and_action(target, action).keys():
+            if acl_type not in self._get_acls_for_target_and_action(target, action):
                 raise InvalidAclTypeException(acl_type)
 
             if not self._validate_acl_for_target_and_action(target, action, acl_type, acl_value):
@@ -773,7 +774,7 @@ class DatabaseRdbms(object):
     def _validate_acl_for_target_and_action(self, target: str, action: str, acl_type: str, acl_value: str):
         validators = self._get_acls_for_target('validation')
         try:
-            validators[acl_type].validate_new_acl(acl_value)
+            validators[acl_type]['value'].validate_new_acl(acl_value)
         except ValidationException as e:
             logger.info('new acl values "%s" did not validate for type "%s": %s' % (acl_value, acl_type, str(e)))
             return False
@@ -786,7 +787,7 @@ class DatabaseRdbms(object):
         return self._get_acls().get(target)
 
     def _get_acls_for_target_and_action(self, target, action):
-        return self._get_acls_for_target(target).get(action)
+        return self._get_acls_for_target(target).get(action).get('acls')
 
     def update_acl_in_room_for_action(self, channel_id: str, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
         self.add_acls(room_id, {acl_type: acl_value})
