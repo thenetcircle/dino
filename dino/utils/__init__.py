@@ -465,7 +465,7 @@ def room_exists(channel_id: str, room_id: str) -> bool:
     return environ.env.db.room_exists(channel_id, room_id)
 
 
-def can_send_cross_group(activity: Activity, from_room_uuid: str, to_room_uuid: str) -> bool:
+def can_send_cross_room_for_action(activity: Activity, from_room_uuid: str, to_room_uuid: str, action: str) -> bool:
     if from_room_uuid is None:
         raise NoOriginRoomException()
     if to_room_uuid is None:
@@ -474,16 +474,26 @@ def can_send_cross_group(activity: Activity, from_room_uuid: str, to_room_uuid: 
     if from_room_uuid == to_room_uuid:
         return True
 
-    from_channel_id = environ.env.db.channel_for_room(from_room_uuid)
-    to_channel_id = environ.env.db.channel_for_room(to_room_uuid)
+    from_channel_id = get_channel_for_room(from_room_uuid)
+    to_channel_id = get_channel_for_room(to_room_uuid)
 
     # can not sent between channels
     if from_channel_id != to_channel_id:
         return False
 
-    room_acls = get_all_acls_for_room(to_room_uuid)
+    channel_acls = get_acls_in_channel_for_action(to_channel_id, action)
+    is_valid, msg = validation.acl.validate_acl_for_action(
+        activity, ApiTargets.CHANNEL, ApiActions.CROSSROOM, channel_acls.get(ApiActions.CROSSROOM) or dict())
+    if not is_valid:
+        logger.debug('not allowed to send crossroom in channel: %s' % msg)
+        return False
+
+    room_acls = get_acls_in_room_for_action(to_room_uuid, action)
     is_valid, msg = validation.acl.validate_acl_for_action(
         activity, ApiTargets.ROOM, ApiActions.CROSSROOM, room_acls.get(ApiActions.CROSSROOM) or dict())
+    if not is_valid:
+        logger.debug('not allowed to send crossroom in room: %s' % msg)
+        return False
 
     return is_valid
 

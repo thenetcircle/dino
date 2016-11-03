@@ -546,6 +546,8 @@ class IDatabase(Interface):
         """
         delete an acl in a channel for a certain action
 
+        :raises InvalidApiActionException if the api action is invalid
+        :raises NoSuchChannelException if the channel doesn't exist
         :param channel_id: the uuid of the channel
         :param acl_type: the type of the acl (e.g. gender/membership etc.)
         :param action: the action to delete for (e.g. join/kick/history etc.)
@@ -556,60 +558,68 @@ class IDatabase(Interface):
         """
         delete an acl in a room for a certain action
 
+        :raises InvalidApiActionException if the api action is invalid
+        :raises NoSuchRoomException if the room doesn't exist
         :param room_id: the uuid of the room
         :param acl_type: the type of the acl (e.g. gender/membership etc.)
         :param action: the action to delete for (e.g. join/kick/history etc.)
         :return: nothing
         """
 
-    def update_acl_room(self, channel_id: str, room_id: str, acl_type: str, acl_value: str) -> None:
-        """
-        change the value of an acl for a room
-
-        :raises InvalidAclTypeException if the type is invalid
-        :raises InvalidAclValueException if the value doesn't validate for the type
-        :raises NoSuchChannelException if the channel doesn't exist
-        :raises NoSuchRoomException if room doesn't exist
-        :param channel_id: the channel uuid of the room
-        :param room_id: the uuid of the room
-        :param acl_type: the acl type
-        :param acl_value: the new value for the acl type
-        :return: nothing
-        """
-
-    def update_acl_channel(self, channel_id: str, acl_type: str, acl_value: str) -> None:
+    def update_acl_in_channel_for_action(self, channel_id: str, action: str, acl_type: str, acl_value: str) -> None:
         """
         change the value of an acl for a channel
 
+        :raises InvalidApiActionException if the api action is invalid
         :raises InvalidAclTypeException if the type is invalid
         :raises InvalidAclValueException if the value doesn't validate for the type
         :raises NoSuchChannelException if the channel doesn't exist
         :param channel_id: the channel uuid of the room
+        :param action: the api action (kick/join etc)
         :param acl_type: the acl type
         :param acl_value: the new value for the acl type
         :return: nothing
         """
 
-    def add_acls(self, room_id: str, acls: dict) -> None:
+    def update_acl_in_room_for_action(self, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
         """
-        Add acls the room.
+        change the value of an acl for a room
 
+        :raises InvalidApiActionException if the api action is invalid
         :raises InvalidAclTypeException if the type is invalid
         :raises InvalidAclValueException if the value doesn't validate for the type
         :raises NoSuchRoomException if room doesn't exist
-        :param room_id: the room id
+        :param room_id: the room uuid
+        :param action: the api action (kick/join etc)
+        :param acl_type: the acl type
+        :param acl_value: the new value for the acl type
+        :return: nothing
+        """
+
+    def add_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
+        """
+        Add acls the room.
+
+        :raises InvalidApiActionException if the api action is invalid
+        :raises InvalidAclTypeException if the type is invalid
+        :raises InvalidAclValueException if the value doesn't validate for the type
+        :raises NoSuchRoomException if room doesn't exist
+        :param room_id: the room uuid
+        :param action: the api action (kick/join etc)
         :param acls:
         :return: nothing
         """
 
-    def add_acls_channel(self, channel_id: str, acls: dict) -> None:
+    def add_acls_in_channel_for_action(self, channel_id: str, action: str, acls: dict) -> None:
         """
         Add acls the channel.
 
+        :raises InvalidApiActionException if the api action is invalid
         :raises InvalidAclTypeException if the type is invalid
         :raises InvalidAclValueException if the value doesn't validate for the type
         :raises NoSuchChannelException if channel doesn't exist
         :param channel_id: the channel id
+        :param action: the api action (kick/join etc)
         :param acls:
         :return: nothing
         """

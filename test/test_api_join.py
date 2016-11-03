@@ -362,7 +362,7 @@ class ApiJoinTest(BaseTest):
         response = api.on_join(self.activity_for_join())
         attachments = response[1]['object']['attachments']
         returned_acls = self.get_attachment_for_key(attachments, 'acl')
-        self.assertEqual(len(correct_acls), len(returned_acls))
+        self.assertEqual(len(correct_acls.get(ApiActions.JOIN)), len(returned_acls))
 
     def test_join_returns_correct_acls(self):
         correct_acls = {ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}}
@@ -374,8 +374,8 @@ class ApiJoinTest(BaseTest):
         for acl in returned_acls:
             acl_key = acl['objectType']
             acl_value = acl['content']
-            self.assertTrue(acl_key in correct_acls)
-            self.assertEqual(correct_acls[acl_key], acl_value)
+            self.assertTrue(acl_key in correct_acls.get(ApiActions.JOIN))
+            self.assertEqual(correct_acls.get(ApiActions.JOIN)[acl_key], acl_value)
 
     def test_join_returns_history(self):
         msg = 'this is a test message'

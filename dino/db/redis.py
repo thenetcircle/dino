@@ -347,6 +347,9 @@ class DatabaseRedis(object):
         if self.channel_for_channel(channel_id) is None:
             raise NoSuchRoomException(channel_id)
 
+        if action not in ApiActions.all_api_actions:
+            raise InvalidApiActionException(action)
+
         new_acls = dict()
         for acl_type, acl_value in acls.items():
             key = '%s|%s' % (action, acl_type)
@@ -357,6 +360,9 @@ class DatabaseRedis(object):
     def add_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
         if self.channel_for_room(room_id) is None:
             raise NoSuchRoomException(room_id)
+
+        if action not in ApiActions.all_api_actions:
+            raise InvalidApiActionException(action)
 
         new_acls = dict()
         for acl_type, acl_value in acls.items():
