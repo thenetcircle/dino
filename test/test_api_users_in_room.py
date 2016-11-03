@@ -36,7 +36,9 @@ class ApiUsersInRoomTest(BaseTest):
         self.assert_in_room(True)
 
         response_data = api.on_users_in_room(self.activity_for_users_in_room())
-        self.assertEqual(ApiUsersInRoomTest.USER_ID, response_data[1]['object']['attachments'][0]['id'])
+        self.assertEqual(
+                self.env.db.get_private_room(BaseTest.USER_ID)[0],
+                response_data[1]['object']['attachments'][0]['id'])
 
     def test_users_in_room_is_correct_name(self):
         self.assert_in_room(False)

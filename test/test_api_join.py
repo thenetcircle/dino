@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from dino import api
+from dino.config import RedisKeys
 from dino.config import ApiActions
 from test.utils import BaseTest
 
@@ -336,7 +337,9 @@ class ApiJoinTest(BaseTest):
         response = api.on_join(self.activity_for_join())
         attachments = response[1]['object']['attachments']
         user = self.get_attachment_for_key(attachments, 'user')[0]
-        self.assertEqual(ApiJoinTest.USER_ID, user['id'])
+        room_id = self.env.db.redis.hget(RedisKeys.private_rooms(), ApiJoinTest.USER_ID)
+        room_id = str(room_id, 'utf-8')
+        self.assertEqual(room_id, user['id'])
         self.assertEqual(ApiJoinTest.USER_NAME, user['content'])
 
     def test_join_returns_activity_with_one_owner(self):

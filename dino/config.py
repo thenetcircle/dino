@@ -141,12 +141,27 @@ class RedisKeys(object):
     RKEY_CHANNEL_FOR_ROOMS = 'room:channel'
     RKEY_LAST_READ = 'room:read:%s'  # room:read:room_id
     RKEY_USER_NAMES = 'user:names'
+    RKEY_ROOMS_PRIVATE = 'room:private'
+    RKEY_PRIVATE_ROOMS_IN_CHANNEL = 'room:private:%s'  # room:private:channel_prefix
+    RKEY_PRIVATE_CHANNEL_FOR_PREFIX = 'channel:private'
     RKEY_ACL_VALIDATION = 'acl:validation:%s'  # acl:validation:acl_type (e.g. acl:validation:gender)
 
     RKEY_SID_TO_USER_ID = 'user:sid:map'
     RKEY_BANNED_USERS_GLOBAL = 'users:banned:global'
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
+
+    @staticmethod
+    def private_channel_for_prefix():
+        return RedisKeys.RKEY_PRIVATE_CHANNEL_FOR_PREFIX
+
+    @staticmethod
+    def private_rooms_in_channel(channel_prefix):
+        return RedisKeys.RKEY_PRIVATE_ROOMS_IN_CHANNEL % channel_prefix
+
+    @staticmethod
+    def private_rooms():
+        return RedisKeys.RKEY_ROOMS_PRIVATE
 
     @staticmethod
     def acl_validations(acl_type: str) -> str:

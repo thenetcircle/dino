@@ -19,6 +19,46 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class IDatabase(Interface):
+    def get_private_room(self, user_id: str) -> (str, str):
+        """
+        get the user's private room (used for one-to-one messaging), and create it if necessary
+
+        :param user_id: the id of the user
+        :return: nothing
+        """
+
+    def get_private_channel_for_room(self, room_id: str) -> str:
+        """
+        get the private channel uuid for this room uuid
+
+        :param room_id: the first two chars in this room uuid is the prefix of the private channel
+        :return: the uuid of the private channel
+        """
+
+    def get_private_channel_for_prefix(self, channel_prefix: str) -> str:
+        """
+        get the private channel uuid for this prefix
+
+        :param channel_prefix: the first two chars in a room's uuid
+        :return: the uuid of the private channel
+        """
+
+    def create_private_channel_for_room(self, room_id: str) -> str:
+        """
+        create a private channel for this room uuid
+
+        :param room_id: the prefix for the new channel is the first two chars in this room uuid
+        :return: the new channel uuid
+        """
+
+    def create_private_channel_for_prefix(self, channel_prefix: str) -> str:
+        """
+        create a private channel for this prefix
+
+        :param channel_prefix: the prefix to use (first two chars in the room uuid)
+        :return: the new channel uuid
+        """
+
     def get_channels(self) -> dict:
         """
         get all channels on the server

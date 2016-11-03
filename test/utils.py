@@ -115,6 +115,9 @@ class BaseTest(unittest.TestCase):
 
     @staticmethod
     def _join_room(room):
+        if room == BaseTest.USER_ID:
+            room = environ.env.db.redis.hget(RedisKeys.private_rooms(), room)
+            room = str(room, 'utf-8')
         if room not in BaseTest.users_in_room:
             BaseTest.users_in_room[room] = list()
         BaseTest.users_in_room[room].append(BaseTest.USER_ID)
@@ -457,8 +460,14 @@ class BaseTest(unittest.TestCase):
                          BaseTest.USER_ID in BaseTest.users_in_room[BaseTest.ROOM_ID])
 
     def assert_in_own_room(self, is_in_room):
-        self.assertEqual(is_in_room, BaseTest.USER_ID in BaseTest.users_in_room and
-                         BaseTest.USER_ID in BaseTest.users_in_room[BaseTest.USER_ID])
+        private_room = environ.env.db.redis.hget(RedisKeys.private_rooms(), BaseTest.USER_ID)
+        if private_room is None:
+            self.assertEqual(is_in_room, False)
+            return
+
+        private_room = str(private_room, 'utf-8')
+        self.assertEqual(is_in_room, private_room in BaseTest.users_in_room and
+                         BaseTest.USER_ID in BaseTest.users_in_room[private_room])
 
     def activity_for_history(self, skip: set=None):
         data = {

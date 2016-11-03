@@ -37,6 +37,7 @@ class Channels(DeclarativeBase):
     uuid = Column('uuid', String, nullable=False, index=True)
     name = Column('name', String, nullable=False)
     created = Column('created', DateTime, nullable=False)
+    private = Column('private', Boolean, nullable=False, default=False, index=True)
 
     rooms = relationship('Rooms', back_populates='channel')
     roles = relationship('ChannelRoles', back_populates='channel')
@@ -51,6 +52,7 @@ class Rooms(DeclarativeBase):
     uuid = Column('uuid', String, nullable=False, index=True)
     name = Column('name', String, nullable=False, index=True)
     created = Column('created', DateTime, nullable=False)
+    private = Column('private', Boolean, nullable=False, default=False)
 
     channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=False)
     channel = relationship('Channels', back_populates='rooms')

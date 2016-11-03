@@ -15,6 +15,7 @@
 from zope.interface import implementer
 from datetime import datetime
 from typing import Union
+from uuid import uuid4 as uuid
 import logging
 
 from dino.db import IDatabase
@@ -62,6 +63,39 @@ class DatabaseRedis(object):
         self.env = env
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
+
+    def get_private_room(self, user_id: str) -> (str, str):
+        room_id = self.redis.hget(RedisKeys.private_rooms(), user_id)
+        if room_id is None:
+            room_id = str(uuid())
+            channel_prefix = room_id[:2]
+
+            channel_id = self.get_private_channel_for_room(room_id)
+            if channel_id is None:
+                channel_id = self.create_private_channel_for_room(room_id)
+
+            self.redis.hset(RedisKeys.private_rooms_in_channel(channel_prefix), channel_id, room_id)
+            self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)
+        else:
+            channel_id = self.get_private_channel_for_room(room_id)
+        return room_id, channel_id
+
+    def get_private_channel_for_room(self, room_id: str) -> str:
+        return self.get_private_channel_for_prefix(room_id[:2])
+
+    def get_private_channel_for_prefix(self, channel_predix):
+        channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), channel_predix)
+        if channel_id is None:
+            return self.create_private_channel_for_prefix(channel_predix)
+        return channel_id
+
+    def create_private_channel_for_room(self, room_id):
+        return self.create_private_channel_for_prefix(room_id[:2])
+
+    def create_private_channel_for_prefix(self, channel_prefix):
+        channel_id = str(uuid())
+        self.redis.hset(RedisKeys.private_channel_for_prefix(), channel_prefix, channel_id)
+        return channel_id
 
     def _has_role_in_room(self, role: str, room_id: str, user_id: str) -> bool:
         roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
@@ -286,7 +320,9 @@ class DatabaseRedis(object):
         users = self.redis.hgetall(RedisKeys.users_in_room(room_id))
         cleaned_users = dict()
         for user_id, user_name in users.items():
-            cleaned_users[str(user_id, 'utf-8')] = str(user_name, 'utf-8')
+            user_id = str(user_id, 'utf-8')
+            private_room_id = self.get_private_room(user_id)[0]
+            cleaned_users[private_room_id] = str(user_name, 'utf-8')
         return cleaned_users
 
     def leave_room(self, user_id: str, room_id: str) -> None:

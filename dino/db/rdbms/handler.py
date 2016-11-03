@@ -21,8 +21,8 @@ from dino.config import RoleKeys
 from dino.config import UserKeys
 from dino.config import ApiTargets
 from dino.config import ApiActions
-
-from dino.validation.acl import AclValidator
+from dino.config import SessionKeys
+from dino.environ import GNEnvironment
 
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
@@ -84,7 +84,7 @@ def with_session(view_func):
 
 @implementer(IDatabase)
 class DatabaseRdbms(object):
-    def __init__(self, env):
+    def __init__(self, env: GNEnvironment):
         self.env = env
         self.session = None
         if self.env.config.get(ConfigKeys.TESTING, False):
@@ -95,6 +95,62 @@ class DatabaseRdbms(object):
     @with_session
     def _session(self):
         return self.session
+
+    @with_session
+    def get_private_room(self, user_id: str) -> (str, str):
+        user = self.session.query(Users).filter(Users.uuid == user_id).first()
+        if user is not None:
+            room = self.session.query(Rooms).join(Rooms.channel).filter(Rooms.uuid == user.private_room_id).first()
+            return room.uuid, room.channel.uuid
+
+        private_room_id = str(uuid())
+
+        user = Users()
+        user.uuid = user_id
+        user.name = self.env.session.get(SessionKeys.user_name.value)
+        user.private_room_id = private_room_id
+
+        self.session.add(user)
+
+        private_channel_id = self.get_private_channel_for_room(private_room_id)
+
+        private_room = Rooms()
+        private_room.uuid = private_room_id
+        private_room.users.add(user)
+        private_room.name = user.name
+        private_room.created = datetime.utcnow()
+        private_room.channel = self.session.query(Channels).filter(Channels.uuid == private_channel_id).first()
+        self.session.add(private_room)
+
+        return private_room_id, private_channel_id
+
+    def get_private_channel_for_room(self, room_id: str) -> str:
+        return self.create_private_channel_for_prefix(room_id[:2])
+
+    @with_session
+    def get_private_channel_for_prefix(self, channel_prefix: str) -> str:
+        channel = self.session.query(Channels)\
+            .filter(Channels.private.is_(True))\
+            .filter(Channels.name == channel_prefix)\
+            .first()
+
+        if channel is not None:
+            return channel.uuid
+
+        return self.create_private_channel_for_prefix(channel_prefix)
+
+    def create_private_channel_for_room(self, room_id: str) -> str:
+        return self.create_private_channel_for_prefix(room_id[:2])
+
+    @with_session
+    def create_private_channel_for_prefix(self, channel_prefix: str) -> str:
+        channel = Channels()
+        channel.uuid = str(uuid())
+        channel.name = channel_prefix
+        channel.private = True
+        channel.created = datetime.utcnow()
+        self.session.add(channel)
+        return channel.uuid
 
     def room_exists(self, channel_id: str, room_id: str) -> bool:
         @with_session
@@ -183,7 +239,8 @@ class DatabaseRdbms(object):
             users = dict()
             for row in rows:
                 for user in row.users:
-                    users[user.uuid] = user.name
+                    private_room_id = self.get_private_room(user.uuid)[0]
+                    users[private_room_id] = user.name
             return users
 
         if self.channel_for_room(room_id) is None:
@@ -765,7 +822,6 @@ class DatabaseRdbms(object):
             if acl_type in updated_acls:
                 continue
 
-            print('target: %s, action: %s' % (target, action))
             if acl_type not in self._get_acls_for_target_and_action(target, action):
                 raise InvalidAclTypeException(acl_type)
 

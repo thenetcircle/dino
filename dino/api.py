@@ -60,7 +60,8 @@ def on_login(data: dict, activity: Activity = None) -> (int, Union[str, None]):
 
     utils.set_sid_for_user_id(user_id, environ.env.request.sid)
 
-    environ.env.join_room(user_id)
+    private_room_id, _ = environ.env.db.get_private_room(user_id)
+    environ.env.join_room(private_room_id)
     return 200, None
 
 
@@ -78,20 +79,20 @@ def on_message(data, activity: Activity = None):
     """
     send any kind of message/event to a target user/group
 
-    object.url: channel_id
-    target.id: room_id
+    object.url: target channel_id
+    target.id: target room_id
     actor.id: sender user_id
     actor.url: sender room_id
 
-    :param data: activity streams format, must include target.id (room/user id) and object.id (channel id)
+    :param data: activity streams format, must include target.id (room/user id) and object.url (channel id)
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
-    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<same AS as client sent, plus timestamp>'}
+    :return: {'status_code': 200, 'data': '<same AS as client sent, plus timestamp>'}
     """
     activity = as_parser.parse(data)
     room_id = activity.target.id
     from_room_id = activity.actor.url
 
-    # only if cross-group should we broadcast the origin group id with the activity; less confusion for clients
+    # only if cross-group should we broadcast the origin room id with the activity; less confusion for clients
     if from_room_id is not None and from_room_id == room_id:
         del data['actor']['url']
 
@@ -423,7 +424,8 @@ def on_disconnect() -> (int, None):
     if user_id is None or not isinstance(user_id, str) or user_name is None:
         return 400, 'no user in session, not connected'
 
-    environ.env.leave_room(user_id)
+    private_room_id = environ.env.db.get_private_room(user_id)[0]
+    environ.env.leave_room(private_room_id)
     rooms = environ.env.db.rooms_for_user(user_id)
 
     for room_id, room_name in rooms.items():
