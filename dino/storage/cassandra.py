@@ -16,13 +16,10 @@ import logging
 
 from zope.interface import implementer
 from activitystreams.models.activity import Activity
-from cassandra.cluster import Cluster
-from datetime import datetime
 
 from dino.storage import IStorage
-from dino import environ
-from dino.storage.cassandra_driver import Driver
 from dino.config import ConfigKeys
+from dino import environ
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -46,6 +43,8 @@ class CassandraStorage(object):
         self.validate(hosts, replications, strategy)
 
     def init(self):
+        from cassandra.cluster import Cluster
+        from dino.storage.cassandra_driver import Driver
         cluster = Cluster(self.hosts)
         self.driver = Driver(cluster.connect(), self.key_space, self.strategy, self.replications)
         self.driver.init()
