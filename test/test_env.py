@@ -21,7 +21,6 @@ class TestEnvironment(unittest.TestCase):
         self.assertTrue(ConfigKeys.LOGGER in env.config.keys())
         self.assertTrue(ConfigKeys.REDIS in env.config.keys())
         self.assertTrue(ConfigKeys.SESSION in env.config.keys())
-        self.assertTrue(ConfigKeys.VERSION in env.config.keys())
 
     def test_create_non_existing_config_file(self):
         os.environ['ENVIRONMENT'] = 'test'
