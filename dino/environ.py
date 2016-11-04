@@ -335,8 +335,13 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     # TODO: rename to ConfigKeys.QUEUE, could be either redis or rabbitmq
     config_dict[ConfigKeys.REDIS] = choose_queue_instance(config_dict)
 
+    try:
+        config_dict[ConfigKeys.VERSION] = pkg_resources.require('dino')[0].version
+    except Exception:
+        # ignore, it will fail when running tests on CI because we don't include all requirements for dino; no need
+        pass
+
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
-    config_dict[ConfigKeys.VERSION] = pkg_resources.require('dino')[0].version
     config_dict[ConfigKeys.LOGGER] = create_logger(config_dict)
     config_dict[ConfigKeys.SESSION] = _flask_session
 
