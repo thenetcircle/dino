@@ -18,6 +18,22 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ICache(Interface):
+    def set_user_for_private_room(self, room_id: str, user_id: str) -> None:
+        """
+        set the user id for a private room uuid
+
+        :param room_id: the uuid of the private room
+        :param user_id: the id of the user
+        :return: nothing
+        """
+
+    def get_user_for_private_room(self, room_id: str) -> str:
+        """
+        get the user id for the private room
+
+        :param room_id: the private room uui
+        :return: the user id, or None if not found
+        """
     def get_private_room_and_channel(self, user_id: str) -> (str, str):
         """
         get the private room uuid and private channel uuid of a user

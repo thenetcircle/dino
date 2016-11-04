@@ -132,8 +132,31 @@ def ban_user_room(channel_uuid: str, room_uuid: str, user_uuid: str):
     return jsonify({'status_code': 200})
 
 
+# TODO: currently no way in the cms to ban a user from a channel (or globally)
 @app.route('/channel/<channel_uuid>/user/<user_uuid>/ban', methods=['PUT'])
 def ban_user_channel(channel_uuid: str, user_uuid: str):
+    try:
+        json_data = request.get_json()
+        duration = json_data['duration']
+    except Exception as e:
+        logger.error('could not parse json: %s' % str(e))
+        return jsonify({'status_code': 400, 'data': 'invalid json'})
+
+    try:
+        user_manager.ban_user(user_uuid, channel_uuid, duration, 'channel')
+    except ValidationException as e:
+        return jsonify({'status_code': 400, 'data': 'invalid duration: %s' % str(e)})
+    except UnknownBanTypeException as e:
+        return jsonify({'status_code': 500, 'data': 'could not ban user: %s' % str(e)})
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({'status_code': 500, 'data': str(e)})
+    return jsonify({'status_code': 200})
+
+
+@app.route('/banned/room/<room_uuid>/user/<user_uuid>', methods=['DELETE'])
+def remove_ban(room_uuid: str, user_uuid: str):
+    user_manager.remove_ban(user_uuid, room_uuid, 'room')
     return jsonify({'status_code': 200})
 
 

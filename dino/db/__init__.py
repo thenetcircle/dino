@@ -37,6 +37,14 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_user_for_private_room(self, room_id: str) -> str:
+        """
+        get the user id for a private room uuid
+
+        :param room_id: the uuid of the private room
+        :return: the id of the user
+        """
+
     def get_private_room(self, user_id: str) -> (str, str):
         """
         get the user's private room (used for one-to-one messaging), and create it if necessary

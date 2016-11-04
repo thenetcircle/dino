@@ -358,6 +358,10 @@ class BaseTest(unittest.TestCase):
         environ.env.db.redis.hset(RedisKeys.channel_for_rooms(), room_id, BaseTest.CHANNEL_ID)
         environ.env.cache.set_channel_exists(BaseTest.CHANNEL_ID)
 
+    def create_user(self, user_id, user_name):
+        environ.env.db.get_private_room(user_id)
+        environ.env.db.redis.hset(RedisKeys.user_names(), BaseTest.OTHER_USER_ID, BaseTest.OTHER_USER_NAME)
+
     def set_owner(self):
         environ.env.db.redis.hset(RedisKeys.user_names(), BaseTest.USER_ID, BaseTest.USER_NAME)
         environ.env.db.redis.hset(RedisKeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)

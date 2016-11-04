@@ -69,7 +69,7 @@ class RequestValidator(BaseValidator):
             try:
                 if not utils.is_room_private(room_id):
                     return False, 400, 'target is not a private chat, use object_type "group" instead'
-            except Exception as e:
+            except Exception:
                 print(traceback.format_exc())
                 return False, 400, 'could not check private room'
 

@@ -89,6 +89,25 @@ class CacheRedis(object):
         key = RedisKeys.banned_users(room_id)
         self._set_ban_timestamp(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
 
+    def set_user_for_private_room(self, room_id: str, user_id: str) -> None:
+        key = RedisKeys.user_for_private_room()
+        cache_key = '%s-%s' % (key, room_id)
+        self.cache.set(cache_key, user_id, ttl=EIGHT_HOURS_IN_SECONDS)
+        self.redis.hset(key, room_id, user_id)
+
+    def get_user_for_private_room(self, room_id: str) -> str:
+        key = RedisKeys.user_for_private_room()
+        cache_key = '%s-%s' % (key, room_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        user_id = self.redis.hget(key, room_id)
+        if user_id is None or len(str(user_id, 'utf-8').strip()) == 0:
+            return None
+
+        return str(user_id, 'utf-8')
+
     def get_private_room_and_channel(self, user_id: str) -> (str, str):
         key = RedisKeys.private_rooms()
         cache_key = '%s-%s' % (key, user_id)

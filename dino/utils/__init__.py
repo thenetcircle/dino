@@ -34,6 +34,7 @@ from dino.exceptions import NoTargetRoomException
 from dino.exceptions import NoTargetChannelException
 from dino.exceptions import NoOriginChannelException
 from dino.exceptions import ValidationException
+from dino.exceptions import NoSuchUserException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -360,14 +361,18 @@ def kick_user(room_id: str, user_id: str) -> None:
     environ.env.db.kick_user(room_id, user_id)
 
 
-def ban_user(room_id: str, user_id: str, ban_duration: str) -> None:
+def ban_user(room_id: str, private_room_id: str, ban_duration: str) -> None:
+    user_id = environ.env.db.get_user_for_private_room(private_room_id)
+    if user_id is None:
+        raise NoSuchUserException(private_room_id)
     ban_timestamp = ban_duration_to_timestamp(ban_duration)
     environ.env.db.ban_user_room(user_id, ban_timestamp, ban_duration, room_id)
 
 
+# TODO: not used since new acls implemented, maybe use in the future?
 def get_current_user_role() -> str:
-    if is_admin(environ.env.config.get(SessionKeys.USER_ID)):
-        return 'admin'
+    # if is_admin(environ.env.config.get(SessionKeys.USER_ID)):
+    #     return 'admin'
     return 'user'
 
 

@@ -97,6 +97,21 @@ class DatabaseRdbms(object):
     def _session(self):
         return self.session
 
+    def get_user_for_private_room(self, room_id: str) -> str:
+        @with_session
+        def _get_user_for_private_room(self):
+            user = self.session.query(Users).filter(Users.private_room_id == room_id).first()
+            if user is None:
+                raise NoSuchRoomException(room_id)
+
+            self.env.cache.set_user_for_private_room(room_id, user.uuid)
+            return user.uuid
+
+        user_id = self.env.cache.get_user_for_private_room(room_id)
+        if user_id is None:
+            return _get_user_for_private_room(self)
+        return user_id
+
     def get_private_room(self, user_id: str, user_name=None) -> (str, str):
         @with_session
         def _get_private_room(self):
@@ -1116,7 +1131,7 @@ class DatabaseRdbms(object):
         def _get_user_name(self):
             user = self.session.query(Users).filter(Users.uuid == user_id).first()
             if user is None:
-                raise NoSuchUserException(user_id)
+                return None
             return user.name
 
         user_name = self.env.cache.get_user_name(user_id)
@@ -1411,7 +1426,7 @@ class DatabaseRdbms(object):
         self.session.delete(ban)
 
     @with_session
-    def remove_room_ban(self, room_id, user_id):
+    def remove_room_ban(self, room_id: str, user_id: str):
         self.env.cache.set_room_ban_timestamp(room_id, user_id, '', '', '')
         ban = self.session.query(Bans)\
             .join(Bans.room)\
@@ -1421,6 +1436,7 @@ class DatabaseRdbms(object):
         if ban is None:
             return
         self.session.delete(ban)
+        self.session.commit()
 
     @with_session
     def get_banned_users_global(self, room_id: str) -> dict:

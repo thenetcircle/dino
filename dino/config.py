@@ -144,6 +144,7 @@ class RedisKeys(object):
     RKEY_ROOMS_PRIVATE = 'room:private'
     RKEY_PRIVATE_ROOMS_IN_CHANNEL = 'room:private:%s'  # room:private:channel_prefix
     RKEY_PRIVATE_CHANNEL_FOR_PREFIX = 'channel:private'
+    RKEY_USER_FOR_PRIVATE_ROOM = 'room:private:users'
     RKEY_ACL_VALIDATION = 'acl:validation:%s'  # acl:validation:acl_type (e.g. acl:validation:gender)
 
     RKEY_SID_TO_USER_ID = 'user:sid:map'
@@ -158,6 +159,10 @@ class RedisKeys(object):
     @staticmethod
     def private_rooms_in_channel(channel_prefix):
         return RedisKeys.RKEY_PRIVATE_ROOMS_IN_CHANNEL % channel_prefix
+
+    @staticmethod
+    def user_for_private_room():
+        return RedisKeys.RKEY_USER_FOR_PRIVATE_ROOM
 
     @staticmethod
     def private_rooms():

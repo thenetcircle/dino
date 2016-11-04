@@ -24,6 +24,7 @@ from dino import utils
 from dino.config import SessionKeys
 from dino.config import ApiTargets
 from dino.utils.decorators import pre_process
+from dino.exceptions import NoSuchUserException
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
@@ -150,7 +151,11 @@ def on_ban(data: dict, activity: Activity = None) -> None:
     kicked_id = activity.object.id
     ban_duration = activity.object.summary
 
-    utils.ban_user(room_id, kicked_id, ban_duration)
+    try:
+        utils.ban_user(room_id, kicked_id, ban_duration)
+    except NoSuchUserException as e:
+        return 400, 'could not find the specified user: %s' % str(e)
+
     _kick_user(activity)
 
     return 200, None

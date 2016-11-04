@@ -64,6 +64,7 @@ def respond_with(gn_event_name=None):
     return factory
 
 
+# TODO: this is not used since new acls are implemented, maybe remove?
 def requires_roles(*roles):
     def wrapper(f):
         @wraps(f)
@@ -256,14 +257,12 @@ def on_message(data):
 
 @socketio.on('delete', namespace='/chat')
 @respond_with('gn_delete')
-@requires_roles('admin')
 def on_message(data):
     return api.on_delete(data)
 
 
 @socketio.on('create', namespace='/chat')
 @respond_with('gn_create')
-@requires_roles('admin')
 def on_create(data):
     return api.on_create(data)
 

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+from uuid import uuid4 as uuid
 os.environ['ENVIRONMENT'] = 'test'
 
 from dino import environ
@@ -24,10 +25,27 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ApiBanTest(BaseTest):
-    def test_ban(self):
+
+    def test_ban_no_such_user(self):
         self.create_and_join_room()
         self.set_owner()
-        response_code, messgae = api.on_ban(self.activity_for_ban())
+
+        json = self.activity_for_ban()
+        json['object']['id'] = str(uuid())
+        response_code, _ = api.on_ban(json)
+
+        self.assertEqual(400, response_code)
+
+    def test_ban_user_exists(self):
+        self.create_and_join_room()
+        self.set_owner()
+        self.create_user(BaseTest.OTHER_USER_ID, BaseTest.OTHER_USER_NAME)
+
+        json = self.activity_for_ban()
+        json['object']['id'] = str(self.env.db.redis.hget(
+                RedisKeys.private_rooms(), ApiBanTest.OTHER_USER_ID), 'utf-8')
+
+        response_code, _ = api.on_ban(json)
         self.assertEqual(200, response_code)
 
     def create_room(self, room_id: str=None, room_name: str=None):
@@ -46,7 +64,6 @@ class ApiBanTest(BaseTest):
             },
             'verb': 'ban',
             'object': {
-                'id': ApiBanTest.OTHER_USER_ID,
                 'content': ApiBanTest.OTHER_USER_NAME,
                 'objectType': 'user',
                 'summary': '30m',

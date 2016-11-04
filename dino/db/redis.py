@@ -80,6 +80,7 @@ class DatabaseRedis(object):
 
             self.redis.hset(RedisKeys.private_rooms_in_channel(channel_prefix), channel_id, room_id)
             self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)
+            self.redis.hset(RedisKeys.user_for_private_room(), room_id, user_id)
         else:
             room_id = str(room_id, 'utf-8')
             channel_id = self.get_private_channel_for_room(room_id)
@@ -779,6 +780,12 @@ class DatabaseRedis(object):
             room_id, room_name = str(room_id, 'utf-8'), str(room_name, 'utf-8')
             clean_rooms[room_id] = room_name
         return clean_rooms
+
+    def get_user_for_private_room(self, room_id: str) -> str:
+        room_id = self.redis.hget(RedisKeys.user_for_private_room(), room_id)
+        if room_id is None:
+            return None
+        return str(room_id, 'utf-8')
 
     def join_private_room(self, user_id: str, user_name: str, room_id: str) -> None:
         self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)

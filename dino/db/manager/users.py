@@ -16,6 +16,7 @@ from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 from dino.utils import ban_duration_to_timestamp
 from dino.exceptions import UnknownBanTypeException
+from dino.exceptions import NoSuchUserException
 
 import traceback
 import logging
@@ -44,7 +45,11 @@ class UserManager(BaseManager):
         self.env.db.kick_user(room_id, user_id)
         # TODO: need to emit kick event on socket
 
-    def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str) -> None:
+    def ban_user(self, private_room_id: str, target_id: str, duration: str, target_type: str) -> None:
+        user_id = self.env.db.get_user_for_private_room(private_room_id)
+        if user_id is None or len(user_id.strip()) == 0:
+            raise NoSuchUserException(private_room_id)
+
         timestamp = ban_duration_to_timestamp(duration)
         if target_type == 'global':
             self.env.db.ban_user_global(user_id, timestamp, duration)
@@ -55,6 +60,16 @@ class UserManager(BaseManager):
         else:
             raise UnknownBanTypeException(target_type)
         # TODO: need to emit ban event on socket
+
+    def remove_ban(self, user_id: str, target_id: str, target_type: str) -> None:
+        if target_type == 'global':
+            self.env.db.remove_global_ban(user_id)
+        elif target_type == 'channel':
+            self.env.db.remove_channel_ban(target_id, user_id)
+        elif target_type == 'room':
+            self.env.db.remove_room_ban(target_id, user_id)
+        else:
+            raise UnknownBanTypeException(target_type)
 
     def get_banned_users(self) -> dict:
         try:
