@@ -97,7 +97,6 @@ def on_message(data, activity: Activity = None):
         del data['actor']['url']
 
     environ.env.storage.store_message(activity)
-    print('sending message to room: %s' % room_id)
     environ.env.send(data, json=True, room=room_id, broadcast=True)
 
     # TODO: update last reads in background thread, want to finish here as soon as possible and ack the user

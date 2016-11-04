@@ -81,6 +81,7 @@ class DatabaseRedis(object):
             self.redis.hset(RedisKeys.private_rooms_in_channel(channel_prefix), channel_id, room_id)
             self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)
         else:
+            room_id = str(room_id, 'utf-8')
             channel_id = self.get_private_channel_for_room(room_id)
         return room_id, channel_id
 
@@ -91,7 +92,7 @@ class DatabaseRedis(object):
         channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), channel_predix)
         if channel_id is None:
             return self.create_private_channel_for_prefix(channel_predix)
-        return channel_id
+        return str(channel_id, 'utf-8')
 
     def create_private_channel_for_room(self, room_id):
         return self.create_private_channel_for_prefix(room_id[:2])

@@ -97,50 +97,56 @@ class DatabaseRdbms(object):
     def _session(self):
         return self.session
 
-    @with_session
     def get_private_room(self, user_id: str, user_name=None) -> (str, str):
-        user = self.session.query(Users).filter(Users.uuid == user_id).first()
-        if user is not None:
-            room = self.session.query(Rooms).join(Rooms.channel).filter(Rooms.uuid == user.private_room_id).first()
-            return room.uuid, room.channel.uuid
+        @with_session
+        def _get_private_room(self):
+            user = self.session.query(Users).filter(Users.uuid == user_id).first()
+            if user is not None:
+                room = self.session.query(Rooms).join(Rooms.channel).filter(Rooms.uuid == user.private_room_id).first()
+                return room.uuid, room.channel.uuid
 
-        private_room_id = str(uuid())
+            private_room_id = str(uuid())
 
-        user = Users()
-        user.uuid = user_id
-        user.private_room_id = private_room_id
+            user = Users()
+            user.uuid = user_id
+            user.private_room_id = private_room_id
 
-        if user_name is not None:
-            user.name = user_name
-        else:
-            user.name = self.env.session.get(SessionKeys.user_name.value)
+            if user_name is not None:
+                user.name = user_name
+            else:
+                user.name = self.env.session.get(SessionKeys.user_name.value)
 
-        self.session.add(user)
+            self.session.add(user)
 
-        private_channel = self.session.query(Channels)\
-            .filter(Channels.private.is_(True))\
-            .filter(Channels.name == private_room_id[:2])\
-            .first()
+            private_channel = self.session.query(Channels)\
+                .filter(Channels.private.is_(True))\
+                .filter(Channels.name == private_room_id[:2])\
+                .first()
 
-        if private_channel is None:
-            private_channel = Channels()
-            private_channel.uuid = str(uuid())
-            private_channel.name = private_room_id[:2]
-            private_channel.private = True
-            private_channel.created = datetime.utcnow()
-            self.session.add(private_channel)
+            if private_channel is None:
+                private_channel = Channels()
+                private_channel.uuid = str(uuid())
+                private_channel.name = private_room_id[:2]
+                private_channel.private = True
+                private_channel.created = datetime.utcnow()
+                self.session.add(private_channel)
 
-        private_room = Rooms()
-        private_room.uuid = private_room_id
-        private_room.users.append(user)
-        private_room.name = user.name
-        private_room.private = True
-        private_room.created = datetime.utcnow()
-        private_room.channel = private_channel
-        self.session.add(private_room)
-        self.session.commit()
+            private_room = Rooms()
+            private_room.uuid = private_room_id
+            private_room.users.append(user)
+            private_room.name = user.name
+            private_room.private = True
+            private_room.created = datetime.utcnow()
+            private_room.channel = private_channel
+            self.session.add(private_room)
+            self.session.commit()
 
-        return private_room_id, private_channel.uuid
+            return private_room_id, private_channel.uuid
+
+        private_room_id, private_channel_id = self.env.cache.get_private_room_and_channel(user_id)
+        if private_room_id is None:
+            return _get_private_room(self)
+        return private_room_id, private_channel_id
 
     def get_private_channel_for_room(self, room_id: str) -> str:
         return self.get_private_channel_for_prefix(room_id[:2])
@@ -242,7 +248,12 @@ class DatabaseRdbms(object):
 
     @with_session
     def rooms_for_user(self, user_id: str = None) -> dict:
-        rows = self.session.query(Rooms).join(Rooms.users).filter(Users.uuid == user_id).all()
+        rows = self.session.query(Rooms)\
+            .join(Rooms.users)\
+            .filter(Users.uuid == user_id)\
+            .filter(Rooms.private.is_(False))\
+            .all()
+
         rooms = dict()
         for row in rows:
             rooms[row.uuid] = row.name
@@ -250,7 +261,12 @@ class DatabaseRdbms(object):
 
     @with_session
     def rooms_for_channel(self, channel_id) -> dict:
-        rows = self.session.query(Rooms).join(Rooms.channel).filter(Channels.uuid == channel_id).all()
+        rows = self.session.query(Rooms)\
+            .join(Rooms.channel)\
+            .filter(Rooms.private.is_(False))\
+            .filter(Channels.uuid == channel_id)\
+            .all()
+
         rooms = dict()
         for row in rows:
             rooms[row.uuid] = row.name
@@ -286,9 +302,17 @@ class DatabaseRdbms(object):
         if user is None:
             return
 
-        if user.rooms is not None and len(user.rooms) > 0:
-            for room in user.rooms:
-                user.rooms.remove(room)
+        rooms = self.session.query(Rooms)\
+            .join(Rooms.users)\
+            .filter(Rooms.private.is_(False))\
+            .filter(Users.uuid == user_id)\
+            .all()
+
+        if rooms is None or len(rooms) == 0:
+            return
+
+        for room in rooms:
+            room.users.remove(user)
         self.session.commit()
 
     @with_session
@@ -522,25 +546,31 @@ class DatabaseRdbms(object):
         self.session.add(room)
         self.session.commit()
 
-    @with_session
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
-        room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
-        if room is None:
-            raise NoSuchRoomException(room_id)
+        private_room_id = self.get_private_room(user_id)[0]
 
-        user = self.session.query(Users).filter(Users.uuid == user_id).first()
-        if user is None:
-            user = Users()
-            user.uuid = user_id
-            user.name = user_name
-            self.session.add(user)
+        @with_session
+        def _join_room(self):
+            room = self.session.query(Rooms).filter(Rooms.uuid == room_id).first()
+            if room is None:
+                raise NoSuchRoomException(room_id)
 
-        user.rooms.append(room)
-        self.session.add(room)
+            user = self.session.query(Users).filter(Users.uuid == user_id).first()
+            if user is None:
+                user = Users()
+                user.uuid = user_id
+                user.name = user_name
+                user.private_room_id = private_room_id
+                self.session.add(user)
 
-        room.users.append(user)
-        self.session.add(room)
-        self.session.commit()
+            user.rooms.append(room)
+            self.session.add(room)
+
+            room.users.append(user)
+            self.session.add(room)
+            self.session.commit()
+
+        _join_room(self)
 
     def _object_has_role_for_user(self, obj: Union[Rooms, Channels], the_role: str, user_id: str) -> bool:
         if obj is None:

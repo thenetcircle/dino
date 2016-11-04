@@ -23,6 +23,7 @@ from dino.environ import ConfigDict
 
 from dino.config import ConfigKeys
 from dino.config import ApiActions
+from dino.config import SessionKeys
 from dino.cache.redis import CacheRedis
 from dino.db.rdbms.handler import DatabaseRdbms
 from dino.environ import GNEnvironment
@@ -48,6 +49,7 @@ class BaseDatabaseTest(BaseTest):
             super(BaseDatabaseTest.FakeEnv, self).__init__(None, ConfigDict(), skip_init=True)
             self.config = ConfigDict()
             self.cache = CacheRedis('mock')
+            self.session = dict()
 
     MESSAGE_ID = str(uuid())
 
@@ -154,6 +156,8 @@ class BaseDatabaseTest(BaseTest):
                 }
             }
         )
+
+        self.env.session[SessionKeys.user_name.value] = BaseTest.USER_NAME
 
         if db == 'postgres':
             self.env.config.set(ConfigKeys.DRIVER, 'postgres+psycopg2', domain=ConfigKeys.DATABASE)

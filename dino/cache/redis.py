@@ -24,6 +24,8 @@ from datetime import timedelta
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
+EIGHT_HOURS_IN_SECONDS = 8*60*60
+
 
 class MemoryCache(object):
     def __init__(self):
@@ -86,6 +88,25 @@ class CacheRedis(object):
     def set_room_ban_timestamp(self, room_id: str, user_id: str, duration: str, timestamp: str, username: str) -> None:
         key = RedisKeys.banned_users(room_id)
         self._set_ban_timestamp(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
+
+    def get_private_room_and_channel(self, user_id: str) -> (str, str):
+        key = RedisKeys.private_rooms()
+        cache_key = '%s-%s' % (key, user_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value.split('|')
+
+        room_id = self.redis.hget(key, user_id)
+        if room_id is None:
+            return None, None
+
+        room_id = str(room_id, 'utf-8')
+        channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), room_id[:2])
+        channel_id = str(channel_id, 'utf-8')
+
+        # we can cache this for a long time, it doesn't change
+        self.cache.set(cache_key, '%s|%s' % (room_id, channel_id), ttl=EIGHT_HOURS_IN_SECONDS)
+        return room_id, channel_id
 
     def _get_ban_timestamp(self, key: str, user_id: str) -> str:
         cache_key = '%s-%s' % (key, user_id)

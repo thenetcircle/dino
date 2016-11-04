@@ -18,6 +18,14 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ICache(Interface):
+    def get_private_room_and_channel(self, user_id: str) -> (str, str):
+        """
+        get the private room uuid and private channel uuid of a user
+
+        :param user_id: the id of the user
+        :return: (private_room_uuid, private_channel_uuid)
+        """
+
     def set_global_ban_timestamp(self, user_id: str, duration: str, timestamp: str, username: str) -> None:
         """
         set the global ban timestamp for a user to a given timestamp
