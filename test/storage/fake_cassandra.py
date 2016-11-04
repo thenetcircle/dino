@@ -15,7 +15,6 @@
 # limitations under the License.
 
 from zope.interface import implementer
-from cassandra.cluster import ResultSet
 from datetime import datetime
 
 from dino.storage.cassandra_driver import IDriver
@@ -66,7 +65,7 @@ class FakeCassandraDriver(object):
         time_stamp = int(datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT).strftime('%s'))
         self.msgs_to_user[to_user].append((msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted))
 
-    def msgs_select(self, to_user_id: str, limit: int=100) -> ResultSet:
+    def msgs_select(self, to_user_id: str, limit: int=100) -> FakeResultSet:
         msgs = self.msgs_to_user.get(to_user_id, list())[:limit]
         rows = list()
         for msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted in msgs:
@@ -83,7 +82,7 @@ class FakeCassandraDriver(object):
             rows.append(row)
         return FakeResultSet(rows)
 
-    def msgs_select_since_time(self, to_user_id: str, time_stamp: int) -> ResultSet:
+    def msgs_select_since_time(self, to_user_id: str, time_stamp: int) -> FakeResultSet:
         msgs = self.msgs_select(to_user_id, 999999)
         filtered = list()
         for msg in msgs:
@@ -92,7 +91,7 @@ class FakeCassandraDriver(object):
             filtered.append(msg)
         return FakeResultSet(filtered)
 
-    def msg_delete(self, message_id: str) -> ResultSet:
+    def msg_delete(self, message_id: str) -> FakeResultSet:
         found = False
         for room_id, msgs in self.msgs_to_user.items():
             new_msgs = list()
