@@ -15,26 +15,33 @@
 from wtforms import Form, StringField, SelectField, validators
 from wtforms.validators import ValidationError
 
-from dino.config import SessionKeys
-from dino.config import ApiActions
+from dino.config import ApiTargets
+from dino.config import ConfigKeys
+from dino import environ
 from dino.validation.duration import DurationValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
+acl_config = environ.env.config.get(ConfigKeys.ACL)
+api_channel_actions = [(a, a.upper()) for a in acl_config[ApiTargets.CHANNEL].keys()]
+api_room_actions = [(a, a.upper()) for a in acl_config[ApiTargets.ROOM].keys()]
 
-acl_choices = [
-    (SessionKeys.age.value, 'Age'),
-    (SessionKeys.gender.value, 'Gender'),
-    (SessionKeys.membership.value, 'Membership'),
-    (SessionKeys.group.value, 'Group'),
-    (SessionKeys.country.value, 'Country'),
-    (SessionKeys.city.value, 'City'),
-    (SessionKeys.image.value, 'Image'),
-    (SessionKeys.has_webcam.value, 'Has webcam'),
-    (SessionKeys.fake_checked.value, 'Fake checked')
-]
+channel_config = acl_config[ApiTargets.CHANNEL][api_channel_actions[0][0]]
+channel_acls = set(channel_config['acls'])
 
-api_actions = [(a, a.upper()) for a in ApiActions.all_api_actions]
+if 'exclude' in channel_config:
+    for exclude in channel_config['exclude']:
+        channel_acls.remove(exclude)
+
+room_config = acl_config[ApiTargets.ROOM][api_room_actions[0][0]]
+room_acls = set(room_config['acls'])
+
+if 'exclude' in room_config:
+    for exclude in room_config['exclude']:
+        room_acls.remove(exclude)
+
+acl_channel_choices = [(a, a.capitalize()) for a in channel_acls]
+acl_room_choices = [(a, a.capitalize()) for a in room_acls]
 
 
 class CreateChannelForm(Form):
@@ -59,6 +66,17 @@ class TargetRequiredIfNotGlobal(object):
                 raise ValidationError('Need target ID if type is not global ban')
 
 
+class NonBlankString(object):
+    field_flags = ('required', )
+
+    def __init__(self, value=None):
+        self.value = value
+
+    def __call__(self, form, field):
+        if field.data is None or len(field.data.strip()) == 0:
+            raise ValidationError('Need non-blank value')
+
+
 class DurationRequired(object):
     field_flags = ('required', )
 
@@ -79,43 +97,65 @@ class BanForm(Form):
     target_type = SelectField(
             'Type',
             choices=[('global', 'Global'), ('channel', 'Channel'), ('room', 'Room')],
-            validators=[validators.DataRequired()])
+            validators=[validators.DataRequired(), NonBlankString()])
 
 
 class CreateUserForm(Form):
-    name = StringField('Name', validators=[validators.DataRequired], description='Username')
-    uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
+    name = StringField('Name', validators=[validators.DataRequired(), NonBlankString()], description='Username')
+    uuid = StringField('ID', validators=[validators.DataRequired(), NonBlankString()], description='ID of the user')
 
 
 class AddModeratorForm(Form):
-    uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
+    uuid = StringField('ID', validators=[validators.DataRequired(), NonBlankString()], description='ID of the user')
 
 
 class AddOwnerForm(Form):
-    uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
+    uuid = StringField('ID', validators=[validators.DataRequired(), NonBlankString()], description='ID of the user')
 
 
 class AddAdminForm(Form):
-    uuid = StringField('ID', validators=[validators.DataRequired], description='ID of the user')
+    uuid = StringField('ID', validators=[validators.DataRequired(), NonBlankString()], description='ID of the user')
 
 
-class CreateAclForm(Form):
+class CreateChannelAclForm(Form):
     api_action = SelectField(
         'Action',
-        choices=api_actions,
-        validators=[validators.DataRequired],
+        choices=api_channel_actions,
+        validators=[validators.DataRequired(), NonBlankString()],
         description='Permission type'
     )
 
     acl_type = SelectField(
         'Type',
-        choices=acl_choices,  # TODO: use ajax to get possible choices after action has been selected
-        validators=[validators.DataRequired],
+        choices=acl_channel_choices,
+        validators=[validators.DataRequired(), NonBlankString()],
         description='Permission type'
     )
 
     acl_value = StringField(
         'Value',
-        validators=[validators.DataRequired],
+        validators=[validators.DataRequired(), NonBlankString()],
+        description='Permission value'
+    )
+
+
+class CreateRoomAclForm(Form):
+    api_action = SelectField(
+        'Action',
+        choices=api_room_actions,
+        validators=[validators.DataRequired(), NonBlankString()],
+        description='Permission type'
+    )
+
+    acl_type = SelectField(
+        'Type',
+        choices=acl_room_choices,
+        validators=[validators.DataRequired(), NonBlankString()],
+        description='Permission type'
+    )
+
+    acl_value = StringField(
+        'Value',
+        validators=[validators.DataRequired(), NonBlankString()],
         description='Permission value'
     )

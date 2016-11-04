@@ -57,7 +57,7 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
 def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
     return {
         'actor': {
-            'id': user_id,
+            'id': environ.env.db.get_private_room(user_id)[0],
             'summary': user_name,
             'image': {
                 'url': image_url
@@ -510,8 +510,12 @@ def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: s
     return is_valid
 
 
-def get_channel_for_room(room_uuid: str) -> str:
-    return environ.env.db.channel_for_room(room_uuid)
+def get_channel_for_room(room_id: str) -> str:
+    return environ.env.db.channel_for_room(room_id)
+
+
+def is_room_private(room_id: str) -> bool:
+    return environ.env.db.is_room_private(room_id)
 
 
 def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
@@ -555,6 +559,11 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
     environ.env.leave_room(room_id)
     environ.env.db.leave_room(user_id, room_id)
+
+
+def join_private_room(user_id: str, user_name: str, room_id: str) -> None:
+    environ.env.db.join_private_room(user_id, user_name, room_id)
+    environ.env.join_room(room_id)
 
 
 def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) -> None:

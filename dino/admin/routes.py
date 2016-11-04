@@ -22,6 +22,10 @@ from uuid import uuid4 as uuid
 import logging
 import traceback
 
+from dino import environ
+from dino.config import ConfigKeys
+from dino.config import ApiTargets
+
 from dino.web import app
 from dino.admin.orm import channel_manager
 from dino.admin.orm import room_manager
@@ -41,7 +45,8 @@ from dino.exceptions import ValidationException
 from dino.admin.forms import CreateChannelForm
 from dino.admin.forms import CreateRoomForm
 from dino.admin.forms import CreateUserForm
-from dino.admin.forms import CreateAclForm
+from dino.admin.forms import CreateChannelAclForm
+from dino.admin.forms import CreateRoomAclForm
 from dino.admin.forms import AddModeratorForm
 from dino.admin.forms import AddOwnerForm
 from dino.admin.forms import AddAdminForm
@@ -51,6 +56,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+acl_config = environ.env.config.get(ConfigKeys.ACL)
 
 
 def is_blank(s: str):
@@ -69,6 +76,29 @@ def channels():
             'channels.html',
             form=form,
             channels=channel_manager.get_channels())
+
+
+@app.route('/acl/<target>/action/<api_action>/types', methods=['GET'])
+def acl_types_for_target_and_action(target: str, api_action: str):
+    if target not in [ApiTargets.CHANNEL, ApiTargets.ROOM]:
+        return jsonify({'status_code': 400, 'message': 'unknown target type "%s"' % target})
+
+    config = acl_config[target][api_action]
+    acls = set(config['acls'])
+    excludes = set()
+    if 'exclude' in config:
+        excludes = set(config['exclude'])
+
+    output = list()
+    for acl in acls:
+        if acl in excludes:
+            continue
+
+        output.append({
+            'acl_type': acl,
+            'name': acl.capitalize()
+        })
+    return jsonify(output)
 
 
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/user/<user_uuid>/kick', methods=['PUT'])
@@ -155,7 +185,7 @@ def history():
 @app.route('/channel/<channel_uuid>/rooms', methods=['GET'])
 def rooms_for_channel(channel_uuid):
     form = CreateRoomForm(request.form)
-    acl_form = CreateAclForm(request.form)
+    acl_form = CreateChannelAclForm(request.form)
     owner_form = AddOwnerForm(request.form)
     admin_form = AddAdminForm(request.form)
 
@@ -177,7 +207,7 @@ def rooms_for_channel(channel_uuid):
 def users_for_room(channel_uuid, room_uuid):
     owner_form = AddOwnerForm(request.form)
     mod_form = AddModeratorForm(request.form)
-    acl_form = CreateAclForm(request.form)
+    acl_form = CreateRoomAclForm(request.form)
 
     return render_template(
             'users_in_room.html',
@@ -293,9 +323,9 @@ def delete_acl_channel(channel_uuid, action, acl_type):
 @app.route('/channel/<channel_uuid>/create', methods=['POST'])
 def create_room(channel_uuid):
     form = CreateRoomForm(request.form)
-    room_name = form.name.data
+    room_name = str(form.name.data)
     room_uuid = str(uuid())
-    user_uuid = form.owner.data
+    user_uuid = str(form.owner.data)
 
     if is_blank(room_name) or is_blank(user_uuid):
         return redirect('/channel/%s/rooms' % channel_uuid)
@@ -312,7 +342,7 @@ def delete_room(channel_uuid: str, room_uuid: str):
 
 @app.route('/channel/<channel_uuid>/create/acl', methods=['POST'])
 def create_acl_channel(channel_uuid: str):
-    form = CreateAclForm(request.form)
+    form = CreateChannelAclForm(request.form)
     action = form.api_action.data
     acl_type = form.acl_type.data
     acl_value = form.acl_value.data
@@ -412,10 +442,10 @@ def remove_room_owner(channel_uuid: str, room_uuid: str, user_id: str):
 
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/create/acl', methods=['POST'])
 def create_acl_room(channel_uuid: str, room_uuid: str):
-    form = CreateAclForm(request.form)
-    action = form.api_action.data
-    acl_type = form.acl_type.data
-    acl_value = form.acl_value.data
+    form = CreateRoomAclForm(request.form)
+    action = str(form.api_action.data).strip()
+    acl_type = str(form.acl_type.data).strip()
+    acl_value = str(form.acl_value.data).strip()
 
     if is_blank(acl_type) or is_blank(acl_value):
         return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
@@ -429,9 +459,9 @@ def create_acl_room(channel_uuid: str, room_uuid: str):
 @app.route('/create/channel', methods=['POST'])
 def create_channel():
     form = CreateChannelForm(request.form)
-    channel_name = form.name.data
+    channel_name = str(form.name.data).strip()
     channel_uuid = str(uuid())
-    user_uuid = form.owner.data
+    user_uuid = str(form.owner.data).strip()
 
     if is_blank(channel_name) or is_blank(user_uuid):
         return redirect('/channels')
@@ -443,14 +473,14 @@ def create_channel():
 @app.route('/create/super-user', methods=['POST'])
 def create_admin_user():
     form = CreateUserForm(request.form)
-    user_name = form.name.data
-    user_uuid = form.uuid.data
+    user_name = str(form.name.data).strip()
+    user_id = str(form.uuid.data).strip()
 
-    if is_blank(user_name) or is_blank(user_uuid):
+    if is_blank(user_name) or is_blank(user_id):
         return redirect('/users')
 
-    user_manager.create_admin_user(user_name, user_uuid)
-    return redirect('/user/%s' % user_uuid)
+    user_manager.create_admin_user(user_name, user_id)
+    return redirect('/user/%s' % user_id)
 
 
 @app.route('/static/custom/<path:path>')

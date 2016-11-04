@@ -44,9 +44,15 @@ class RoomManager(BaseManager):
             print(traceback.format_exc())
         return list()
 
-    def create_room(self, room_name: str, room_id, channel_id, user_id: str) -> None:
+    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str) -> None:
         try:
-            user_name = self.env.db.get_user_name(user_id)
+            user_id = user_id.strip()
+            user_name = str(self.env.db.get_user_name(user_id)).strip()
+            room_name = str(room_name).strip()
+            room_id = str(room_id).strip()
+            channel_id = str(channel_id).strip()
+            user_id = str(user_id).strip()
+
             self.env.db.create_room(room_name, room_id, channel_id, user_id, user_name)
         except Exception as e:
             logger.error('could not create room: %s' % str(e))

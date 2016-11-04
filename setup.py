@@ -20,27 +20,28 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'zope.interface==4.3.2',   # interfaces
-        'pyyaml==3.11',            # configuration files
-        'redis==2.10.5',           # redis client
-        'psycopg2==2.6.2',
-        'sqlalchemy==1.1.1',
-        'flask-socketio==2.7.1',
-        'flask_wtf==0.12',
-        'wtforms==2.1',
-        'gevent==1.1.2',
-        'mysqlclient==1.3.7',
-        'gunicorn==19.6.0',
-        'activitystreams==0.1.5',
-        'codecov==2.0.5',
-        'fakeredis==0.8.1',
-        'nose==1.3.7',
-        'codecov==2.0.5',
-        'coverage==4.2',
-        'cassandra-driver==3.7.0',
-        'kombu==3.0.37',
-        'typing==3.5.2.2',
-        'nose-parameterized==0.5.0',
-        'python-dateutil==2.5.3',
-        'psycogreen==1.0'
+        'zope.interface',   # interfaces
+        'pyyaml',            # configuration files
+        'redis',           # redis client
+        'psycopg2',
+        'sqlalchemy',
+        'flask-socketio',
+        'flask_wtf',
+        'wtforms',
+        'gevent',
+        'mysqlclient',
+        'gunicorn',
+        'activitystreams',
+        'codecov',
+        'fakeredis',
+        'nose',
+        'codecov',
+        'coverage',
+        'cassandra-driver',
+        'kombu',
+        'typing',
+        'nose-parameterized',
+        'python-dateutil',
+        'psycogreen',
+        'sqlalchemy_gevent'
     ])

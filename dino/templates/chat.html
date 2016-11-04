@@ -79,7 +79,7 @@
 
             on_user_click = function() {
                 $('a.user').click(function() {
-                    room_id = $(this).attr('id').split('-', 2)[1];
+                    room_id = $(this).attr('id').split('user-', 2)[1];
                     $('#target').val($(this).text());
                     $('#private').attr('checked', true);
                     $('#room-id').val(room_id)
@@ -328,6 +328,9 @@
                 handle_message = function(data) {
                     if ($('#room-id').val() == data.target.id || $('#room-id').val() == data.actor.id) {
                         add_to_chat(data.published + ' <' + data.actor.summary + '> ' + data.object.content + '\n');
+                    }
+                    else if (data.target.objectType == 'private') {
+                        add_to_chat(data.published + ' [private msg] <' + data.actor.summary + '> ' + data.object.content + '\n');
                     }
                     room_id = data.target.id
                     if ('{{ user_id }}' === data.target.id) {

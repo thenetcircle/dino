@@ -92,6 +92,7 @@ class Users(DeclarativeBase):
     id = Column(Integer, primary_key=True)
     uuid = Column('uuid', String, nullable=False, index=True)
     name = Column('name', String, nullable=False)
+    private_room_id = Column('private_room_id', String, nullable=False)
 
     rooms = relationship(
         'Rooms',

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 
@@ -41,7 +42,8 @@ class Database(object):
         self.driver = self.env.config.get(ConfigKeys.DRIVER, domain=ConfigKeys.DATABASE, default='postgres+psycopg2')
         self.engine = self.db_connect()
         self.create_tables(self.engine)
-        self.Session = sessionmaker(bind=self.engine)
+        session_factory = sessionmaker(bind=self.engine)
+        self.Session = scoped_session(session_factory)
 
     def db_connect(self):
         """

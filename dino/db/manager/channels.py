@@ -46,7 +46,7 @@ class ChannelManager(BaseManager):
 
     def create_channel(self, channel_name: str, channel_id: str, user_id: str) -> None:
         try:
-            self.env.db.create_channel(channel_name, channel_id, user_id)
+            self.env.db.create_channel(channel_name.strip(), channel_id.strip(), user_id.strip())
         except Exception as e:
             logger.error('could not create channel: %s' % str(e))
             print(traceback.format_exc())

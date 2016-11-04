@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from activitystreams.models.activity import Activity
+import traceback
 
 from dino import utils
 from dino import environ
@@ -66,10 +67,11 @@ class RequestValidator(BaseValidator):
 
         elif object_type == 'private':
             try:
-                utils.get_channel_for_room(room_id)
-                return False, 400, 'target is not a private chat, use object_type "group" instead'
-            except NoChannelFoundException:
-                pass
+                if not utils.is_room_private(room_id):
+                    return False, 400, 'target is not a private chat, use object_type "group" instead'
+            except Exception as e:
+                print(traceback.format_exc())
+                return False, 400, 'could not check private room'
 
         return True, None, None
 

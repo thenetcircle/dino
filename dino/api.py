@@ -61,7 +61,7 @@ def on_login(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     utils.set_sid_for_user_id(user_id, environ.env.request.sid)
 
     private_room_id, _ = environ.env.db.get_private_room(user_id)
-    environ.env.join_room(private_room_id)
+    utils.join_private_room(user_id, activity.actor.summary, private_room_id)
     return 200, None
 
 
@@ -97,6 +97,7 @@ def on_message(data, activity: Activity = None):
         del data['actor']['url']
 
     environ.env.storage.store_message(activity)
+    print('sending message to room: %s' % room_id)
     environ.env.send(data, json=True, room=room_id, broadcast=True)
 
     # TODO: update last reads in background thread, want to finish here as soon as possible and ack the user

@@ -64,6 +64,10 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def is_room_private(self, room_id: str) -> bool:
+        channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), room_id[:2])
+        return channel_id is not None and len(str(channel_id, 'utf-8').strip()) > 0
+
     def get_private_room(self, user_id: str) -> (str, str):
         room_id = self.redis.hget(RedisKeys.private_rooms(), user_id)
         if room_id is None:
@@ -309,6 +313,7 @@ class DatabaseRedis(object):
         key = RedisKeys.auth_key(user_id)
         self.redis.hset(key, SessionKeys.user_id.value, user_id)
         self.redis.hset(key, SessionKeys.user_name.value, user_name)
+        self.get_private_room(user_id)
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
@@ -773,6 +778,11 @@ class DatabaseRedis(object):
             room_id, room_name = str(room_id, 'utf-8'), str(room_name, 'utf-8')
             clean_rooms[room_id] = room_name
         return clean_rooms
+
+    def join_private_room(self, user_id: str, user_name: str, room_id: str) -> None:
+        self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)
+        channel_id = self.get_private_channel_for_room(room_id)
+        self.redis.hset(RedisKeys.private_rooms_in_channel(room_id[:2]), channel_id, room_id)
 
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.redis.hset(RedisKeys.rooms_for_user(user_id), room_id, room_name)

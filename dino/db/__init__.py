@@ -19,6 +19,24 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class IDatabase(Interface):
+    def is_room_private(self, room_id: str) -> bool:
+        """
+        check if a room is private or not
+
+        :param room_id: the uuid of the room
+        :return: true if private, false otherwise (false if room doesn't exist)
+        """
+
+    def join_private_room(self, user_id: str, user_name: str, room_id: str) -> None:
+        """
+        join the private room of this user
+
+        :param user_id: the id of the user
+        :param user_name: the name of this user
+        :param room_id: the uuid of the private room
+        :return: nothing
+        """
+
     def get_private_room(self, user_id: str) -> (str, str):
         """
         get the user's private room (used for one-to-one messaging), and create it if necessary
