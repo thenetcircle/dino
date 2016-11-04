@@ -6,6 +6,7 @@ python:
 
 install: 
   - "pip install -r test_requirements.txt"
+  - "pip install ."
 
 script:
   - nosetests-3.4 --with-coverage --cover-package dino -s test
