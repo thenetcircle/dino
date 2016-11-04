@@ -16,9 +16,9 @@ import logging
 
 from cassandra.cluster import ResultSet
 from cassandra.cluster import Session
+from dino.storage.cassandra_interface import IDriver
 from enum import Enum
 from zope.interface import implementer
-from zope.interface import Interface
 
 from dino.config import ConfigKeys
 from datetime import datetime
@@ -32,46 +32,6 @@ class StatementKeys(Enum):
     msgs_select = 'msgs_select'
     msgs_select_by_time_stamp = 'msgs_select_by_time_stamp'
     msg_select_one = 'msg_select_one'
-
-
-class IDriver(Interface):
-    def init(self):
-        """
-        creates keyspace, tables, views etc.
-
-        :return: nothing
-        """
-
-    def msg_select(self, msg_id) -> ResultSet:
-        """
-        select one message
-
-        :param msg_id: uuid of the message
-        :return: the message, if found
-        """
-
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=False) -> None:
-        """
-        store a new message
-
-        :param msg_id: uuid of the message
-        :param from_user: id of the user sending the message
-        :param to_user: id of the user receiving the message (or uuid of the target room)
-        :param body: the message text
-        :param domain: private/group
-        :param timestamp: published timestamp
-        :param channel_id: the channel of the room
-        :param deleted: if the message is deleted or not
-        :return: nothing
-        """
-
-    def msgs_select(self, to_user_id: str) -> ResultSet:
-        """
-        find all messages sent to a user id/room id
-
-        :param to_user_id: either a user id or room uuid
-        :return: all messages to this user/room
-        """
 
 
 @implementer(IDriver)

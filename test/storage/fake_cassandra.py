@@ -17,7 +17,7 @@
 from zope.interface import implementer
 from datetime import datetime
 
-from dino.storage.cassandra_driver import IDriver
+from dino.storage.cassandra_interface import IDriver
 from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
