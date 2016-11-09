@@ -294,13 +294,18 @@ class DatabaseRdbms(object):
             users = dict()
             for row in rows:
                 for user in row.users:
-                    private_room_id = self.get_private_room(user.uuid)[0]
-                    users[private_room_id] = user.name
+                    users[user.uuid] = user.name
             return users
 
         if self.channel_for_room(room_id) is None:
             raise NoSuchRoomException(room_id)
-        return _users_in_room(self)
+
+        users_ids = _users_in_room(self)
+        private_room_ids = dict()
+
+        for user_id, user_name in users_ids.items():
+            private_room_ids[self.get_private_room(user_id)] = user_name
+        return private_room_ids
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
         try:
