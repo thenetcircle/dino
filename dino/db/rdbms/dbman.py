@@ -61,8 +61,6 @@ class Database(object):
             patch_psycopg()
         elif self.driver.startswith('mysql'):
             import MySQLdb
-            params['pool_recycle'] = 280
-            params['pool_size'] = 100
 
         host = self.env.config.get(ConfigKeys.HOST, default=None, domain=domain)
         port = self.env.config.get(ConfigKeys.PORT, default=None, domain=domain)
@@ -81,7 +79,7 @@ class Database(object):
         if database is not None and database != '':
             params['database'] = database
 
-        return create_engine(URL(**params))
+        return create_engine(URL(**params), pool_recycle=280, pool_size=100)
 
     def truncate(self):
         DeclarativeBase.metadata.drop_all(self.engine)

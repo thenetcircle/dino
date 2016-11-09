@@ -32,12 +32,12 @@ dev:
     log_level: 'DEBUG'
     database:
         type: 'rdbms'
-        driver: 'postgres+psycopg2'
+        driver: 'mysql+mysqldb'
         host: 'localhost'
-        port: 5432
-        db: 'dinodev'
-        user: 'dinouser'
-        password: 'dinopass'
+        port: 3306
+        db: 'dino'
+        user: 'dino'
+        password: 'dino'
     storage:
         type: 'redis'
         host: 'localhost:6379'
