@@ -236,6 +236,26 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
     return response
 
 
+def activity_for_invite(
+        inviter_id: str, inviter_name: str, room_id: str, room_name: str,
+        channel_id: str, channel_name: str) -> dict:
+    return {
+        'actor': {
+            'id': inviter_id,
+            'summary': inviter_name
+        },
+        'verb': 'invite',
+        'object': {
+            'url': channel_id,
+            'summary': channel_name
+        },
+        'target': {
+            'id': room_id,
+            'displayName': room_name
+        }
+    }
+
+
 def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     response = {
         'object': {
@@ -462,6 +482,10 @@ def channel_exists(channel_id: str) -> bool:
 
 def get_user_name_for(user_id: str) -> str:
     return environ.env.config.get(SessionKeys.user_name.value)
+
+
+def get_channel_name(channel_id: str) -> str:
+    return environ.env.db.get_channel_name(channel_id)
 
 
 def get_room_name(room_id: str) -> str:

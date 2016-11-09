@@ -184,8 +184,39 @@ def on_kick(data: dict, activity: Activity = None) -> (int, None):
     return 200, None
 
 
+@pre_process('on_invite')
+def on_invite(data, activity) -> (int, None):
+    return _on_invite(data, activity)
+
+
+def _on_invite(data: dict, activity: Activity = None) -> (int, None):
+    """
+    invite a user to the a room this user is in
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    user_id = activity.actor.id
+    invitee = activity.target.id
+    invite_room = activity.actor.url
+    channel_id = activity.object.url
+
+    channel_name = utils.get_channel_name(channel_id)
+    invitee_name = utils.get_user_name_for(user_id)
+    room_name = utils.get_room_name(invite_room)
+
+    activity_json = utils.activity_for_invite(invitee, invitee_name, invite_room, room_name, channel_id, channel_name)
+    environ.env.send('gn_invitation', activity_json, json=True, room=invitee)
+    return 200, None
+
+
 @pre_process('on_create')
 def on_create(data: dict, activity: Activity = None) -> (int, dict):
+    return _on_create(data, activity)
+
+
+def _on_create(data: dict, activity: Activity = None) -> (int, dict):
     """
     create a new room
 
