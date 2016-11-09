@@ -190,7 +190,7 @@ class CacheRedis(object):
     def set_user_name(self, user_id: str, user_name: str):
         key = RedisKeys.user_names()
         cache_key = '%s-%s' % (key, user_id)
-        user_name = self.redis.hset(key, user_id, user_name)
+        self.redis.hset(key, user_id, user_name)
         self.cache.set(cache_key, user_name)
 
     def get_room_exists(self, channel_id, room_id):
