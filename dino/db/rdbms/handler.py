@@ -1105,8 +1105,8 @@ class DatabaseRdbms(object):
             self.session.commit()
 
         try:
-            self.get_user_name(user_id)
-            raise UserExistsException(user_id)
+            if self.get_user_name(user_id) is not None:
+                raise UserExistsException(user_id)
         except NoSuchUserException:
             pass
 
