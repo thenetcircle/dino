@@ -73,6 +73,14 @@ A rough roadmap for possible upcoming features.
 * invite
     - search for online users in chats
     - invite user from other room
+* request admin
+    - open invitation to room instead of single user
+    - the room would be a support room, or admin room
+    - predefined room?
+* whisper
+    - identical to event "message", but set "verb" to "whisper" instead of "send"
+    - whisper logic, how to send to one in group?
+    - how to handle two targets? one is the room, the other is the user in the room
 * unique error codes
     - so tests can know an api call failed for the right reason, and clients can know what went wrong
     - use defined response codes for front-end to be able to display correct error messages
@@ -118,7 +126,3 @@ FUTURE
 * search
     - full-text search using elasticsearch
     - storage app listening to message topics now also stores a copy in elasticsearch (previously only to cassandra/redis)
-* whisper
-    - identical to event "message", but set "verb" to "whisper" instead of "send"
-    - whisper logic, how to send to one in group?
-    - how to handle two targets? one is the room, the other is the user in the room
