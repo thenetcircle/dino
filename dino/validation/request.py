@@ -22,7 +22,6 @@ from dino.config import ApiActions
 from dino.config import ApiTargets
 from dino.config import ConfigKeys
 from dino.validation.base import BaseValidator
-from dino.exceptions import NoChannelFoundException
 from dino import validation
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -282,16 +281,20 @@ class RequestValidator(BaseValidator):
         if not environ.env.db.room_exists(channel_id, room_id):
             return False, 400, 'no room with id "%s" exists' % room_id
 
-        if utils.is_owner(room_id, user_id):
-            return True, None, None
-        if utils.is_owner_channel(channel_id, user_id):
-            return True, None, None
-        if utils.is_moderator(room_id, user_id):
-            return True, None, None
-        if utils.is_admin(user_id):
-            return True, None, None
+        channel_acls = utils.get_acls_in_room_for_action(channel_id, ApiActions.KICK)
+        is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.KICK, channel_acls)
+        if not is_valid:
+            return False, 400, msg
 
-        return False, 400, 'only owners/admins/moderators can kick'
+        room_acls = utils.get_acls_in_room_for_action(room_id, ApiActions.KICK)
+        is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.KICK, room_acls)
+        if not is_valid:
+            return False, 400, msg
+
+        return True, None, None
+
+    def on_invite(self, activity: Activity) -> (bool, int, str):
+        pass
 
     def on_create(self, activity: Activity) -> (bool, int, str):
         room_name = activity.target.display_name
