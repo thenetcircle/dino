@@ -1105,7 +1105,8 @@ class DatabaseRdbms(object):
             self.session.commit()
 
         try:
-            if self.get_user_name(user_id) is not None:
+            username = self.get_user_name(user_id)
+            if username is not None:
                 raise UserExistsException(user_id)
         except NoSuchUserException:
             pass
@@ -1139,7 +1140,8 @@ class DatabaseRdbms(object):
             return user_name
 
         user_name = _get_user_name(self)
-        self.env.cache.set_user_name(user_id, user_name)
+        if user_name is not None:
+            self.env.cache.set_user_name(user_id, user_name)
         return user_name
 
     def _get_users_with_role(self, roles, role_key):
