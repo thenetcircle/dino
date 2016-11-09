@@ -65,7 +65,7 @@ Example nginx configuration:
 
 Some package requirements (debian/ubuntu):
 
-    $ sudo apt-get install libssl-dev libmysqlclient-dev
+    $ sudo apt-get install libssl-dev libmysqlclient-dev libpg-dev
     TODO: more requirements...
 
 Requires Python >=3.5. Download and install from source:

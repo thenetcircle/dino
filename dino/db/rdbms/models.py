@@ -26,7 +26,7 @@ class UserStatus(DeclarativeBase):
     __tablename__ = 'user_status'
 
     id = Column(Integer, primary_key=True)
-    uuid = Column('uuid', String, nullable=False, index=True, unique=True)
+    uuid = Column('uuid', String(128), nullable=False, index=True, unique=True)
     status = Column('status', Integer, nullable=False, default=UserKeys.STATUS_UNKNOWN)
 
 
@@ -34,8 +34,8 @@ class Channels(DeclarativeBase):
     __tablename__ = 'channels'
 
     id = Column(Integer, primary_key=True)
-    uuid = Column('uuid', String, nullable=False, index=True)
-    name = Column('name', String, nullable=False)
+    uuid = Column('uuid', String(128), nullable=False, index=True)
+    name = Column('name', String(128), nullable=False)
     created = Column('created', DateTime, nullable=False)
     private = Column('private', Boolean, nullable=False, default=False, index=True)
 
@@ -49,8 +49,8 @@ class Rooms(DeclarativeBase):
     __tablename__ = 'rooms'
 
     id = Column(Integer, primary_key=True)
-    uuid = Column('uuid', String, nullable=False, index=True)
-    name = Column('name', String, nullable=False, index=True)
+    uuid = Column('uuid', String(128), nullable=False, index=True)
+    name = Column('name', String(128), nullable=False, index=True)
     created = Column('created', DateTime, nullable=False)
     private = Column('private', Boolean, nullable=False, default=False)
 
@@ -71,10 +71,10 @@ class Bans(DeclarativeBase):
     __tablename__ = 'bans'
 
     id = Column(Integer, primary_key=True)
-    uuid = Column('uuid', String, nullable=False, index=True, unique=True)
-    user_id = Column('user_id', String, nullable=False, index=True)
-    user_name = Column('user_name', String, nullable=True, index=False)
-    duration = Column('duration', String, nullable=False)
+    uuid = Column('uuid', String(128), nullable=False, index=True, unique=True)
+    user_id = Column('user_id', String(128), nullable=False, index=True)
+    user_name = Column('user_name', String(128), nullable=True, index=False)
+    duration = Column('duration', String(128), nullable=False)
     timestamp = Column('time_stamp', DateTime, nullable=False)
 
     room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=True)
@@ -90,9 +90,9 @@ class Users(DeclarativeBase):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    uuid = Column('uuid', String, nullable=False, index=True)
-    name = Column('name', String, nullable=False)
-    private_room_id = Column('private_room_id', String, nullable=False)
+    uuid = Column('uuid', String(128), nullable=False, index=True)
+    name = Column('name', String(128), nullable=False)
+    private_room_id = Column('private_room_id', String(128), nullable=False)
 
     rooms = relationship(
         'Rooms',
@@ -105,8 +105,8 @@ class LastReads(DeclarativeBase):
 
     id = Column(Integer, primary_key=True)
 
-    room_uuid = Column('room_uuid', String, nullable=False, index=True)
-    user_id = Column('user_id', String, nullable=False, index=True)
+    room_uuid = Column('room_uuid', String(128), nullable=False, index=True)
+    user_id = Column('user_id', String(128), nullable=False, index=True)
     time_stamp = Column('time_stamp', Integer, nullable=False)
 
 
@@ -122,11 +122,11 @@ class Acls(DeclarativeBase):
     channel = relationship('Channels', back_populates='acls')
 
     # action: join/create/kick etc.
-    action = Column('action', String, nullable=False)
+    action = Column('action', String(128), nullable=False)
 
     # acl_type: gender/age/city etc.
-    acl_type = Column('acl_type', String, nullable=False)
-    acl_value = Column('acl_value', String, nullable=False)
+    acl_type = Column('acl_type', String(128), nullable=False)
+    acl_value = Column('acl_value', String(128), nullable=False)
 
 
 class AclConfigs(DeclarativeBase):
@@ -135,13 +135,13 @@ class AclConfigs(DeclarativeBase):
     id = Column(Integer, primary_key=True)
 
     # method: str_in_csv/range etc.
-    method = Column('method', String, nullable=False)
+    method = Column('method', String(128), nullable=False)
 
     # acl_type: gender/age/city etc.
-    acl_type = Column('acl_type', String, nullable=False)
+    acl_type = Column('acl_type', String(128), nullable=False)
 
     # acl_value: the configured value, e.g. 'm,f' for an acl_type 'gender'
-    acl_value = Column('acl_value', String, nullable=False)
+    acl_value = Column('acl_value', String(128), nullable=False)
 
 
 class RoomRoles(DeclarativeBase):
