@@ -304,7 +304,7 @@ class DatabaseRdbms(object):
         private_room_ids = dict()
 
         for user_id, user_name in users_ids.items():
-            private_room_ids[self.get_private_room(user_id)] = user_name
+            private_room_ids[self.get_private_room(user_id)[0]] = user_name
         return private_room_ids
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
