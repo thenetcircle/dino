@@ -349,6 +349,82 @@ Response data if successful:
         }
     }
 
+### invite
+
+Invite another user to a room the current user is already in.
+
+Responds with "gn_invite".
+
+Request contains:
+
+    {
+        "target": {
+            "id": "<UUID of the user to invite>"
+        },
+        "actor": {
+            "id": "<the user making the invitation>",
+            "url": "<the room UUID the invitation is for>"
+        },
+        "object": {
+            "url": "<channel UUID>"
+        },
+        "verb": "invite"
+    }
+
+Response data if successful:
+
+    {
+        "status_code": 200
+    }
+
+### kick
+
+Kick a user from a room.
+
+Responds with "gn_kick".
+
+Request contains:
+
+    {
+        "target": {
+            "id": "<UUID of the room to kick from>"
+        },
+        "object": {
+            "id": "<UUID of the user to kick>"
+        },
+        "verb": "kick"
+    }
+
+Response data if successful:
+
+    {
+        "status_code": 200
+    }
+
+### ban
+
+Ban a user from a room for a given amount of time.
+
+Responds with "gn_ban".
+
+Request contains:
+    {
+        "target": {
+            "id": "<UUID of the room to ban from>"
+        },
+        "object": {
+            "id": "<UUID of the user to ban>",
+            "summary": "<ban duration, an integer suffixed with one of [d, h, m, s]>"
+        },
+        "verb": "kick"
+    }
+
+Response data if successful:
+
+    {
+        "status_code": 200
+    }
+
 ### message
 
 Send a message to a "room" UUID (can be the user UUID or an actual room UUID).
