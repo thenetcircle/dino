@@ -326,13 +326,13 @@ def is_user_in_room(user_id, room_id):
     return environ.env.db.room_contains(room_id, user_id)
 
 
+def set_name_for_user_id(user_id: str, user_name: str) -> None:
+    environ.env.db.set_user_name(user_id, user_name)
+
+
 # TODO: use env.db instead of env.redis
 def set_sid_for_user_id(user_id: str, sid: str) -> None:
     environ.env.redis.hset(RedisKeys.sid_for_user_id(), user_id, sid)
-
-
-def set_name_for_user_id(user_id: str, user_name: str) -> None:
-    environ.env.db.set_user_name(user_id, user_name)
 
 
 # TODO: use env.db instead of env.redis
