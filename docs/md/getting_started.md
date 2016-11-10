@@ -83,3 +83,19 @@ of channels in the response. For these events the data part is always a JSON in 
             "verb": "list"
         }
     }
+
+### Authentication
+
+If the `redis` authentication method is configured, then when clients send the `login` event to the server, the
+supplied `token` and `actor.id` parameter must already exist in Redis. When the server gets the login event it will
+check if the token matches the one stored in Redis for this user ID, otherwise it will not authenticate the session.
+
+Therefor, before a client can login, these two values (and any other possible values used for permissions) needs to
+first be set in the Redis `hset` with key `user:auth:<user ID>`.
+
+Example:
+
+    $ redis-cli
+    127.0.0.1:6379> hset user:auth:1234 token 302fe6be-a72f-11e6-b5fc-330653beb4be
+    127.0.0.1:6379> hset user:auth:1234 age 35
+    127.0.0.1:6379> hset user:auth:1234 gender m
