@@ -157,7 +157,6 @@ def consume():
 if not environ.env.config.get(ConfigKeys.TESTING, False):
     # preferably "emit" should be set during env creation, but the socketio object is not created until after env is
     environ.env.out_of_scope_emit = socketio.emit
-
     environ.env.consume_thread = threading.Thread(target=consume)
     environ.env.consume_thread.start()
 

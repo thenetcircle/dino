@@ -1,0 +1,376 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>dino.utils package &#8212; Dino 0.10.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Dino 0.10.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dino-utils-package">
+<h1>dino.utils package<a class="headerlink" href="#dino-utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-dino.utils.decorators">
+<span id="dino-utils-decorators-module"></span><h2>dino.utils.decorators module<a class="headerlink" href="#module-dino.utils.decorators" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="dino.utils.decorators.pre_process">
+<code class="descclassname">dino.utils.decorators.</code><code class="descname">pre_process</code><span class="sig-paren">(</span><em>validation_name=None</em>, <em>should_validate_request=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.utils.decorators.pre_process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-dino.utils.handlers">
+<span id="dino-utils-handlers-module"></span><h2>dino.utils.handlers module<a class="headerlink" href="#module-dino.utils.handlers" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dino.utils.handlers.GracefulInterruptHandler">
+<em class="property">class </em><code class="descclassname">dino.utils.handlers.</code><code class="descname">GracefulInterruptHandler</code><span class="sig-paren">(</span><em>sig=&lt;Signals.SIGINT: 2&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.utils.handlers.GracefulInterruptHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="dino.utils.handlers.GracefulInterruptHandler.release">
+<code class="descname">release</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dino.utils.handlers.GracefulInterruptHandler.release" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-dino.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-dino.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="dino.utils.activity_for_connect">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_connect</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_create_room">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_create_room</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_create_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_disconnect">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_disconnect</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_disconnect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_get_acl">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_get_acl</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em>, <em>acl_values: dict</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_get_acl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_history">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_history</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em>, <em>messages: list</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_history" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_join">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_join</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em>, <em>acls: dict</em>, <em>messages: list</em>, <em>owners: dict</em>, <em>users: dict</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_join" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_leave">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_leave</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em>, <em>room_id: str</em>, <em>room_name: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_leave" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_list_channels">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_list_channels</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em>, <em>channels: dict</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_list_channels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_list_rooms">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_list_rooms</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em>, <em>rooms: dict</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_list_rooms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_owners">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_owners</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em>, <em>owners: dict</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_owners" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_user_joined">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_user_joined</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em>, <em>room_id: str</em>, <em>room_name: str</em>, <em>image_url: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_user_joined" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_user_kicked">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_user_kicked</code><span class="sig-paren">(</span><em>kicker_id: str</em>, <em>kicker_name: str</em>, <em>kicked_id: str</em>, <em>kicked_name: str</em>, <em>room_id: str</em>, <em>room_name: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_user_kicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.activity_for_users_in_room">
+<code class="descclassname">dino.utils.</code><code class="descname">activity_for_users_in_room</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em>, <em>users: dict</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.activity_for_users_in_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.ban_duration_to_timestamp">
+<code class="descclassname">dino.utils.</code><code class="descname">ban_duration_to_timestamp</code><span class="sig-paren">(</span><em>ban_duration: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.utils.ban_duration_to_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.ban_user">
+<code class="descclassname">dino.utils.</code><code class="descname">ban_user</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em>, <em>ban_duration: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.utils.ban_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.can_send_cross_room">
+<code class="descclassname">dino.utils.</code><code class="descname">can_send_cross_room</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em>, <em>from_room_uuid: str</em>, <em>to_room_uuid: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.can_send_cross_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.channel_exists">
+<code class="descclassname">dino.utils.</code><code class="descname">channel_exists</code><span class="sig-paren">(</span><em>channel_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.channel_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_acls_for_channel">
+<code class="descclassname">dino.utils.</code><code class="descname">get_acls_for_channel</code><span class="sig-paren">(</span><em>channel_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.get_acls_for_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_acls_for_room">
+<code class="descclassname">dino.utils.</code><code class="descname">get_acls_for_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.get_acls_for_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_acls_in_channel_for_action">
+<code class="descclassname">dino.utils.</code><code class="descname">get_acls_in_channel_for_action</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>action: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.get_acls_in_channel_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_acls_in_room_for_action">
+<code class="descclassname">dino.utils.</code><code class="descname">get_acls_in_room_for_action</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>action: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.get_acls_in_room_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_channel_for_room">
+<code class="descclassname">dino.utils.</code><code class="descname">get_channel_for_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.utils.get_channel_for_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_current_user_role">
+<code class="descclassname">dino.utils.</code><code class="descname">get_current_user_role</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.utils.get_current_user_role" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_history_for_room">
+<code class="descclassname">dino.utils.</code><code class="descname">get_history_for_room</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em>, <em>last_read: str = None</em><span class="sig-paren">)</span> &rarr; list<a class="headerlink" href="#dino.utils.get_history_for_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_last_read_for">
+<code class="descclassname">dino.utils.</code><code class="descname">get_last_read_for</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.utils.get_last_read_for" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_owners_for_room">
+<code class="descclassname">dino.utils.</code><code class="descname">get_owners_for_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.get_owners_for_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_room_name">
+<code class="descclassname">dino.utils.</code><code class="descname">get_room_name</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.utils.get_room_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_sid_for_user_id">
+<code class="descclassname">dino.utils.</code><code class="descname">get_sid_for_user_id</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.utils.get_sid_for_user_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_user_name_for">
+<code class="descclassname">dino.utils.</code><code class="descname">get_user_name_for</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.utils.get_user_name_for" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_user_status">
+<code class="descclassname">dino.utils.</code><code class="descname">get_user_status</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.utils.get_user_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.get_users_in_room">
+<code class="descclassname">dino.utils.</code><code class="descname">get_users_in_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.utils.get_users_in_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.is_admin">
+<code class="descclassname">dino.utils.</code><code class="descname">is_admin</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.is_admin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.is_banned">
+<code class="descclassname">dino.utils.</code><code class="descname">is_banned</code><span class="sig-paren">(</span><em>user_id: str, room_id: str) -&gt; (&lt;class 'bool'&gt;, typing.Union[str, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.utils.is_banned" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.is_banned_globally">
+<code class="descclassname">dino.utils.</code><code class="descname">is_banned_globally</code><span class="sig-paren">(</span><em>user_id: str) -&gt; (&lt;class 'bool'&gt;, typing.Union[str, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.utils.is_banned_globally" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.is_moderator">
+<code class="descclassname">dino.utils.</code><code class="descname">is_moderator</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.is_moderator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.is_owner">
+<code class="descclassname">dino.utils.</code><code class="descname">is_owner</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.is_owner" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.is_owner_channel">
+<code class="descclassname">dino.utils.</code><code class="descname">is_owner_channel</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.is_owner_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.is_room_private">
+<code class="descclassname">dino.utils.</code><code class="descname">is_room_private</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.is_room_private" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.is_super_user">
+<code class="descclassname">dino.utils.</code><code class="descname">is_super_user</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.is_super_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.is_user_in_room">
+<code class="descclassname">dino.utils.</code><code class="descname">is_user_in_room</code><span class="sig-paren">(</span><em>user_id</em>, <em>room_id</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.utils.is_user_in_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.join_the_room">
+<code class="descclassname">dino.utils.</code><code class="descname">join_the_room</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em>, <em>room_id: str</em>, <em>room_name: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.utils.join_the_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.kick_user">
+<code class="descclassname">dino.utils.</code><code class="descname">kick_user</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.utils.kick_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.remove_user_from_room">
+<code class="descclassname">dino.utils.</code><code class="descname">remove_user_from_room</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em>, <em>room_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.utils.remove_user_from_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.room_exists">
+<code class="descclassname">dino.utils.</code><code class="descname">room_exists</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>room_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.room_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.set_name_for_user_id">
+<code class="descclassname">dino.utils.</code><code class="descname">set_name_for_user_id</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.utils.set_name_for_user_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.set_sid_for_user_id">
+<code class="descclassname">dino.utils.</code><code class="descname">set_sid_for_user_id</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>sid: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.utils.set_sid_for_user_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.update_last_reads">
+<code class="descclassname">dino.utils.</code><code class="descname">update_last_reads</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.utils.update_last_reads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="dino.utils.user_is_allowed_to_delete_message">
+<code class="descclassname">dino.utils.</code><code class="descname">user_is_allowed_to_delete_message</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.utils.user_is_allowed_to_delete_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">dino.utils package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-dino.utils.decorators">dino.utils.decorators module</a></li>
+<li><a class="reference internal" href="#module-dino.utils.handlers">dino.utils.handlers module</a></li>
+<li><a class="reference internal" href="#module-dino.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dino.utils.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Oscar Eriksson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/dino.utils.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

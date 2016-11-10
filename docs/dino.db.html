@@ -1,0 +1,574 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>dino.db package &#8212; Dino 0.10.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Dino 0.10.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dino-db-package">
+<h1>dino.db package<a class="headerlink" href="#dino-db-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dino.db.manager.html">dino.db.manager package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.manager.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.manager.html#module-dino.db.manager.acls">dino.db.manager.acls module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.manager.html#module-dino.db.manager.base">dino.db.manager.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.manager.html#module-dino.db.manager.channels">dino.db.manager.channels module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.manager.html#module-dino.db.manager.rooms">dino.db.manager.rooms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.manager.html#module-dino.db.manager.users">dino.db.manager.users module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.manager.html#module-dino.db.manager">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dino.db.rdbms.html">dino.db.rdbms package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.rdbms.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.rdbms.html#module-dino.db.rdbms.dbman">dino.db.rdbms.dbman module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.rdbms.html#module-dino.db.rdbms.handler">dino.db.rdbms.handler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.rdbms.html#module-dino.db.rdbms.mock">dino.db.rdbms.mock module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.rdbms.html#module-dino.db.rdbms.models">dino.db.rdbms.models module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dino.db.rdbms.html#module-dino.db.rdbms">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-dino.db.redis">
+<span id="dino-db-redis-module"></span><h2>dino.db.redis module<a class="headerlink" href="#module-dino.db.redis" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dino.db.redis.DatabaseRedis">
+<em class="property">class </em><code class="descclassname">dino.db.redis.</code><code class="descname">DatabaseRedis</code><span class="sig-paren">(</span><em>env: dino.environ.GNEnvironment</em>, <em>host: str</em>, <em>port: int = 6379</em>, <em>db: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.add_acls_in_channel_for_action">
+<code class="descname">add_acls_in_channel_for_action</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>action: str</em>, <em>acls: dict</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.add_acls_in_channel_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.add_acls_in_room_for_action">
+<code class="descname">add_acls_in_room_for_action</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>action: str</em>, <em>acls: dict</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.add_acls_in_room_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.ban_user_channel">
+<code class="descname">ban_user_channel</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>ban_timestamp: str</em>, <em>ban_duration: str</em>, <em>channel_id: str</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.ban_user_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.ban_user_global">
+<code class="descname">ban_user_global</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>ban_timestamp: str</em>, <em>ban_duration: str</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.ban_user_global" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.ban_user_room">
+<code class="descname">ban_user_room</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>ban_timestamp: str</em>, <em>ban_duration: str</em>, <em>room_id: str</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.ban_user_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.channel_exists">
+<code class="descname">channel_exists</code><span class="sig-paren">(</span><em>channel_id</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.channel_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.channel_for_room">
+<code class="descname">channel_for_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.channel_for_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.channel_name_exists">
+<code class="descname">channel_name_exists</code><span class="sig-paren">(</span><em>channel_name: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.channel_name_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.create_channel">
+<code class="descname">create_channel</code><span class="sig-paren">(</span><em>channel_name</em>, <em>channel_id</em>, <em>user_id</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.create_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.create_private_channel_for_prefix">
+<code class="descname">create_private_channel_for_prefix</code><span class="sig-paren">(</span><em>channel_prefix</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.create_private_channel_for_prefix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.create_private_channel_for_room">
+<code class="descname">create_private_channel_for_room</code><span class="sig-paren">(</span><em>room_id</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.create_private_channel_for_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.create_room">
+<code class="descname">create_room</code><span class="sig-paren">(</span><em>room_name: str</em>, <em>room_id: str</em>, <em>channel_id: str</em>, <em>user_id: str</em>, <em>user_name</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.create_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.create_user">
+<code class="descname">create_user</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.create_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.delete_acl_in_channel_for_action">
+<code class="descname">delete_acl_in_channel_for_action</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>acl_type: str</em>, <em>action: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.delete_acl_in_channel_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.delete_acl_in_room_for_action">
+<code class="descname">delete_acl_in_room_for_action</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>acl_type: str</em>, <em>action: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.delete_acl_in_room_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_acl_validation_value">
+<code class="descname">get_acl_validation_value</code><span class="sig-paren">(</span><em>acl_type: str</em>, <em>validation_method</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_acl_validation_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_acls_in_channel_for_action">
+<code class="descname">get_acls_in_channel_for_action</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>action: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_acls_in_channel_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_acls_in_room_for_action">
+<code class="descname">get_acls_in_room_for_action</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>action: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_acls_in_room_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_admins_channel">
+<code class="descname">get_admins_channel</code><span class="sig-paren">(</span><em>channel_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_admins_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_all_acls_channel">
+<code class="descname">get_all_acls_channel</code><span class="sig-paren">(</span><em>channel_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_all_acls_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_all_acls_room">
+<code class="descname">get_all_acls_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_all_acls_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_banned_users">
+<code class="descname">get_banned_users</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_banned_users" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_banned_users_for_channel">
+<code class="descname">get_banned_users_for_channel</code><span class="sig-paren">(</span><em>channel_id</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_banned_users_for_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_banned_users_for_room">
+<code class="descname">get_banned_users_for_room</code><span class="sig-paren">(</span><em>room_id</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_banned_users_for_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_banned_users_global">
+<code class="descname">get_banned_users_global</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_banned_users_global" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_channel_ban_timestamp">
+<code class="descname">get_channel_ban_timestamp</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str) -&gt; (&lt;class 'str'&gt;</em>, <em>&lt;class 'str'&gt;</em>, <em>&lt;class 'str'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_channel_ban_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_channel_name">
+<code class="descname">get_channel_name</code><span class="sig-paren">(</span><em>channel_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_channel_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_channels">
+<code class="descname">get_channels</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_channels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_global_ban_timestamp">
+<code class="descname">get_global_ban_timestamp</code><span class="sig-paren">(</span><em>user_id: str) -&gt; (&lt;class 'str'&gt;</em>, <em>&lt;class 'str'&gt;</em>, <em>&lt;class 'str'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_global_ban_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_last_read_timestamp">
+<code class="descname">get_last_read_timestamp</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; int<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_last_read_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_moderators_room">
+<code class="descname">get_moderators_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_moderators_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_owners_channel">
+<code class="descname">get_owners_channel</code><span class="sig-paren">(</span><em>channel_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_owners_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_owners_room">
+<code class="descname">get_owners_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_owners_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_private_channel_for_prefix">
+<code class="descname">get_private_channel_for_prefix</code><span class="sig-paren">(</span><em>channel_predix</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_private_channel_for_prefix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_private_channel_for_room">
+<code class="descname">get_private_channel_for_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_private_channel_for_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_private_room">
+<code class="descname">get_private_room</code><span class="sig-paren">(</span><em>user_id: str) -&gt; (&lt;class 'str'&gt;</em>, <em>&lt;class 'str'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_private_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_room_ban_timestamp">
+<code class="descname">get_room_ban_timestamp</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str) -&gt; (&lt;class 'str'&gt;</em>, <em>&lt;class 'str'&gt;</em>, <em>&lt;class 'str'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_room_ban_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_room_name">
+<code class="descname">get_room_name</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_room_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_super_users">
+<code class="descname">get_super_users</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_super_users" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_user_ban_status">
+<code class="descname">get_user_ban_status</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_user_ban_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_user_name">
+<code class="descname">get_user_name</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_user_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.get_user_status">
+<code class="descname">get_user_status</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.get_user_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.is_admin">
+<code class="descname">is_admin</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.is_admin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.is_banned_from_channel">
+<code class="descname">is_banned_from_channel</code><span class="sig-paren">(</span><em>channel_id: str, user_id: str) -&gt; (&lt;class 'bool'&gt;, typing.Union[str, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.is_banned_from_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.is_banned_from_room">
+<code class="descname">is_banned_from_room</code><span class="sig-paren">(</span><em>room_id: str, user_id: str) -&gt; (&lt;class 'bool'&gt;, typing.Union[str, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.is_banned_from_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.is_banned_globally">
+<code class="descname">is_banned_globally</code><span class="sig-paren">(</span><em>user_id: str) -&gt; (&lt;class 'bool'&gt;, typing.Union[str, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.is_banned_globally" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.is_moderator">
+<code class="descname">is_moderator</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.is_moderator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.is_owner">
+<code class="descname">is_owner</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.is_owner" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.is_owner_channel">
+<code class="descname">is_owner_channel</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.is_owner_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.is_room_private">
+<code class="descname">is_room_private</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.is_room_private" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.is_super_user">
+<code class="descname">is_super_user</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.is_super_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.join_room">
+<code class="descname">join_room</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em>, <em>room_id: str</em>, <em>room_name: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.join_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.kick_user">
+<code class="descname">kick_user</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.kick_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.leave_room">
+<code class="descname">leave_room</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>room_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.leave_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dino.db.redis.DatabaseRedis.redis">
+<code class="descname">redis</code><em class="property"> = None</em><a class="headerlink" href="#dino.db.redis.DatabaseRedis.redis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_admin">
+<code class="descname">remove_admin</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_admin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_channel_ban">
+<code class="descname">remove_channel_ban</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_channel_ban" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_current_rooms_for_user">
+<code class="descname">remove_current_rooms_for_user</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_current_rooms_for_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_global_ban">
+<code class="descname">remove_global_ban</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_global_ban" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_moderator">
+<code class="descname">remove_moderator</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_moderator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_owner">
+<code class="descname">remove_owner</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_owner" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_owner_channel">
+<code class="descname">remove_owner_channel</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_owner_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_room">
+<code class="descname">remove_room</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>room_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_room_ban">
+<code class="descname">remove_room_ban</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; str<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_room_ban" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.remove_super_user">
+<code class="descname">remove_super_user</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.remove_super_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.rename_channel">
+<code class="descname">rename_channel</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>channel_name: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.rename_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.rename_room">
+<code class="descname">rename_room</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>room_id: str</em>, <em>room_name: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.rename_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.room_contains">
+<code class="descname">room_contains</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.room_contains" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.room_exists">
+<code class="descname">room_exists</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>room_id: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.room_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.room_name_exists">
+<code class="descname">room_name_exists</code><span class="sig-paren">(</span><em>channel_id</em>, <em>room_name: str</em><span class="sig-paren">)</span> &rarr; bool<a class="headerlink" href="#dino.db.redis.DatabaseRedis.room_name_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.rooms_for_channel">
+<code class="descname">rooms_for_channel</code><span class="sig-paren">(</span><em>channel_id</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.rooms_for_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.rooms_for_user">
+<code class="descname">rooms_for_user</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.rooms_for_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.set_admin">
+<code class="descname">set_admin</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.set_admin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.set_moderator">
+<code class="descname">set_moderator</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.set_moderator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.set_owner">
+<code class="descname">set_owner</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.set_owner" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.set_owner_channel">
+<code class="descname">set_owner_channel</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>user_id: str</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.db.redis.DatabaseRedis.set_owner_channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.set_super_user">
+<code class="descname">set_super_user</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.set_super_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.set_user_invisible">
+<code class="descname">set_user_invisible</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.set_user_invisible" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.set_user_name">
+<code class="descname">set_user_name</code><span class="sig-paren">(</span><em>user_id: str</em>, <em>user_name: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.set_user_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.set_user_offline">
+<code class="descname">set_user_offline</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.set_user_offline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.set_user_online">
+<code class="descname">set_user_online</code><span class="sig-paren">(</span><em>user_id: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.set_user_online" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.update_acl_in_channel_for_action">
+<code class="descname">update_acl_in_channel_for_action</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>action: str</em>, <em>acl_type: str</em>, <em>acl_value: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.update_acl_in_channel_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.update_acl_in_room_for_action">
+<code class="descname">update_acl_in_room_for_action</code><span class="sig-paren">(</span><em>channel_id: str</em>, <em>room_id: str</em>, <em>action: str</em>, <em>acl_type: str</em>, <em>acl_value: str</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.update_acl_in_room_for_action" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.update_last_read_for">
+<code class="descname">update_last_read_for</code><span class="sig-paren">(</span><em>users: str</em>, <em>room_id: str</em>, <em>time_stamp: int</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.db.redis.DatabaseRedis.update_last_read_for" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.db.redis.DatabaseRedis.users_in_room">
+<code class="descname">users_in_room</code><span class="sig-paren">(</span><em>room_id: str</em><span class="sig-paren">)</span> &rarr; dict<a class="headerlink" href="#dino.db.redis.DatabaseRedis.users_in_room" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-dino.db">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-dino.db" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">dino.db package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-dino.db.redis">dino.db.redis module</a></li>
+<li><a class="reference internal" href="#module-dino.db">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dino.db.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Oscar Eriksson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/dino.db.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

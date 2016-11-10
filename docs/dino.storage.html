@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>dino.storage package &#8212; Dino 0.10.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Dino 0.10.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dino-storage-package">
+<h1>dino.storage package<a class="headerlink" href="#dino-storage-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-dino.storage.cassandra">
+<span id="dino-storage-cassandra-module"></span><h2>dino.storage.cassandra module<a class="headerlink" href="#module-dino.storage.cassandra" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dino.storage.cassandra.CassandraStorage">
+<em class="property">class </em><code class="descclassname">dino.storage.cassandra.</code><code class="descname">CassandraStorage</code><span class="sig-paren">(</span><em>hosts: list</em>, <em>replications=None</em>, <em>strategy=None</em>, <em>key_space='dino'</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.storage.cassandra.CassandraStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="dino.storage.cassandra.CassandraStorage.delete_message">
+<code class="descname">delete_message</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>message_id: str</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.storage.cassandra.CassandraStorage.delete_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dino.storage.cassandra.CassandraStorage.driver">
+<code class="descname">driver</code><em class="property"> = None</em><a class="headerlink" href="#dino.storage.cassandra.CassandraStorage.driver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.cassandra.CassandraStorage.get_history">
+<code class="descname">get_history</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>limit: int = 100</em><span class="sig-paren">)</span> &rarr; list<a class="headerlink" href="#dino.storage.cassandra.CassandraStorage.get_history" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.cassandra.CassandraStorage.get_unread_history">
+<code class="descname">get_unread_history</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>last_read: int</em><span class="sig-paren">)</span> &rarr; list<a class="headerlink" href="#dino.storage.cassandra.CassandraStorage.get_unread_history" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.cassandra.CassandraStorage.init">
+<code class="descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dino.storage.cassandra.CassandraStorage.init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dino.storage.cassandra.CassandraStorage.session">
+<code class="descname">session</code><em class="property"> = None</em><a class="headerlink" href="#dino.storage.cassandra.CassandraStorage.session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.cassandra.CassandraStorage.store_message">
+<code class="descname">store_message</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.storage.cassandra.CassandraStorage.store_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.cassandra.CassandraStorage.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>hosts</em>, <em>replications</em>, <em>strategy</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.storage.cassandra.CassandraStorage.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-dino.storage.cassandra_driver">
+<span id="dino-storage-cassandra-driver-module"></span><h2>dino.storage.cassandra_driver module<a class="headerlink" href="#module-dino.storage.cassandra_driver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dino.storage.cassandra_driver.Driver">
+<em class="property">class </em><code class="descclassname">dino.storage.cassandra_driver.</code><code class="descname">Driver</code><span class="sig-paren">(</span><em>session: cassandra.cluster.Session</em>, <em>key_space: str</em>, <em>strategy: str</em>, <em>replications: int</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.storage.cassandra_driver.Driver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="dino.storage.cassandra_driver.Driver.init">
+<code class="descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dino.storage.cassandra_driver.Driver.init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.cassandra_driver.Driver.msg_delete">
+<code class="descname">msg_delete</code><span class="sig-paren">(</span><em>message_id: str</em><span class="sig-paren">)</span> &rarr; cassandra.cluster.ResultSet<a class="headerlink" href="#dino.storage.cassandra_driver.Driver.msg_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>We&#8217;re doing three queries here, one to get primary index of messages table from message_id, then getting the
+complete row from messages table, and finally updating that row. This could be lowered to two queries by
+duplicating everything from messages table to messages_by_id materialized view, but would also double storage
+requirements. Since message deletion is likely not a frequent operation we can accept doing three queries.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message_id</strong> &#8211; the uuid of the message to &#8216;delete&#8217; (will only flag as deleted, will not remove)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.cassandra_driver.Driver.msg_insert">
+<code class="descname">msg_insert</code><span class="sig-paren">(</span><em>msg_id</em>, <em>from_user</em>, <em>to_user</em>, <em>body</em>, <em>domain</em>, <em>sent_time</em>, <em>channel_id</em>, <em>deleted=False</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.storage.cassandra_driver.Driver.msg_insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.cassandra_driver.Driver.msgs_select">
+<code class="descname">msgs_select</code><span class="sig-paren">(</span><em>to_user_id: str</em>, <em>limit: int = 100</em><span class="sig-paren">)</span> &rarr; cassandra.cluster.ResultSet<a class="headerlink" href="#dino.storage.cassandra_driver.Driver.msgs_select" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.cassandra_driver.Driver.msgs_select_since_time">
+<code class="descname">msgs_select_since_time</code><span class="sig-paren">(</span><em>to_user_id: str</em>, <em>time_stamp: int</em><span class="sig-paren">)</span> &rarr; cassandra.cluster.ResultSet<a class="headerlink" href="#dino.storage.cassandra_driver.Driver.msgs_select_since_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dino.storage.cassandra_driver.StatementKeys">
+<em class="property">class </em><code class="descclassname">dino.storage.cassandra_driver.</code><code class="descname">StatementKeys</code><a class="headerlink" href="#dino.storage.cassandra_driver.StatementKeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="dino.storage.cassandra_driver.StatementKeys.msg_insert">
+<code class="descname">msg_insert</code><em class="property"> = &lt;StatementKeys.msg_insert: 'msg_insert'&gt;</em><a class="headerlink" href="#dino.storage.cassandra_driver.StatementKeys.msg_insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dino.storage.cassandra_driver.StatementKeys.msg_select">
+<code class="descname">msg_select</code><em class="property"> = &lt;StatementKeys.msg_select: 'msg_select'&gt;</em><a class="headerlink" href="#dino.storage.cassandra_driver.StatementKeys.msg_select" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dino.storage.cassandra_driver.StatementKeys.msg_select_one">
+<code class="descname">msg_select_one</code><em class="property"> = &lt;StatementKeys.msg_select_one: 'msg_select_one'&gt;</em><a class="headerlink" href="#dino.storage.cassandra_driver.StatementKeys.msg_select_one" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dino.storage.cassandra_driver.StatementKeys.msgs_select">
+<code class="descname">msgs_select</code><em class="property"> = &lt;StatementKeys.msgs_select: 'msgs_select'&gt;</em><a class="headerlink" href="#dino.storage.cassandra_driver.StatementKeys.msgs_select" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dino.storage.cassandra_driver.StatementKeys.msgs_select_by_time_stamp">
+<code class="descname">msgs_select_by_time_stamp</code><em class="property"> = &lt;StatementKeys.msgs_select_by_time_stamp: 'msgs_select_by_time_stamp'&gt;</em><a class="headerlink" href="#dino.storage.cassandra_driver.StatementKeys.msgs_select_by_time_stamp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="dino-storage-cassandra-interface-module">
+<h2>dino.storage.cassandra_interface module<a class="headerlink" href="#dino-storage-cassandra-interface-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-dino.storage.redis">
+<span id="dino-storage-redis-module"></span><h2>dino.storage.redis module<a class="headerlink" href="#module-dino.storage.redis" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dino.storage.redis.StorageRedis">
+<em class="property">class </em><code class="descclassname">dino.storage.redis.</code><code class="descname">StorageRedis</code><span class="sig-paren">(</span><em>host: str</em>, <em>port: int = 6379</em>, <em>db: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.storage.redis.StorageRedis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="dino.storage.redis.StorageRedis.delete_message">
+<code class="descname">delete_message</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>message_id: str</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.storage.redis.StorageRedis.delete_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.redis.StorageRedis.get_history">
+<code class="descname">get_history</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>limit: int = 100</em><span class="sig-paren">)</span><a class="headerlink" href="#dino.storage.redis.StorageRedis.get_history" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.redis.StorageRedis.get_unread_history">
+<code class="descname">get_unread_history</code><span class="sig-paren">(</span><em>room_id: str</em>, <em>time_stamp: int</em>, <em>limit: int = 100</em><span class="sig-paren">)</span> &rarr; list<a class="headerlink" href="#dino.storage.redis.StorageRedis.get_unread_history" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dino.storage.redis.StorageRedis.redis">
+<code class="descname">redis</code><em class="property"> = None</em><a class="headerlink" href="#dino.storage.redis.StorageRedis.redis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dino.storage.redis.StorageRedis.store_message">
+<code class="descname">store_message</code><span class="sig-paren">(</span><em>activity: activitystreams.models.activity.Activity</em><span class="sig-paren">)</span> &rarr; None<a class="headerlink" href="#dino.storage.redis.StorageRedis.store_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-dino.storage">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-dino.storage" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">dino.storage package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-dino.storage.cassandra">dino.storage.cassandra module</a></li>
+<li><a class="reference internal" href="#module-dino.storage.cassandra_driver">dino.storage.cassandra_driver module</a></li>
+<li><a class="reference internal" href="#dino-storage-cassandra-interface-module">dino.storage.cassandra_interface module</a></li>
+<li><a class="reference internal" href="#module-dino.storage.redis">dino.storage.redis module</a></li>
+<li><a class="reference internal" href="#module-dino.storage">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dino.storage.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Oscar Eriksson.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/dino.storage.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
