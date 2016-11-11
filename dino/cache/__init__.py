@@ -27,6 +27,14 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def get_admin_room_for_channel(self, channel_id: str) -> str:
+        """
+        get the room uuid of the admin room in this channel, or None if no such room exists
+
+        :param channel_id: the uuid of the channel
+        :return: the uuid of the admin room, or None of not found
+        """
+
     def get_user_for_private_room(self, room_id: str) -> str:
         """
         get the user id for the private room

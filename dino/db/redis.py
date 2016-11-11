@@ -82,6 +82,12 @@ class DatabaseRedis(object):
         self.add_acls_in_room_for_action(room_id, ApiActions.CROSSROOM, samechannel)
         return room_id
 
+    def admin_room_for_channel(self, channel_id: str) -> str:
+        room_id = self.redis.hget(RedisKeys.admin_room_for_channel(), channel_id)
+        if room_id is None or len(str(room_id, 'utf-8').strip()) == 0:
+            return None
+        return str(room_id, 'utf-8')
+
     def is_room_private(self, room_id: str) -> bool:
         channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), room_id[:2])
         return channel_id is not None and len(str(channel_id, 'utf-8').strip()) > 0

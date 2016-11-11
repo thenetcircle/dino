@@ -119,6 +119,7 @@ class DatabaseRdbms(object):
         room = Rooms()
         room.name = 'Admins'
         room.created = datetime.utcnow()
+        room.admin = True
         room.uuid = str(uuid())
         room.channel = channel
         room.acls.append(join_acl)
@@ -126,6 +127,25 @@ class DatabaseRdbms(object):
 
         self.session.add(room)
         self.session.commit()
+
+    def admin_room_for_channel(self, channel_id: str) -> str:
+        @with_session
+        def _admin_room_for_channel(self):
+            room = self.session.query(Rooms)\
+                .join(Rooms.channel)\
+                .filter(Channels.uuid == channel_id)\
+                .filter(Rooms.admin.is_(True))\
+                .first()
+
+            if room is None:
+                return None
+
+            return room.uuid
+
+        room_id = self.env.cache.get_admin_room_for_channel(channel_id)
+        if room_id is None:
+            return _admin_room_for_channel(self)
+        return room_id
 
     def get_user_for_private_room(self, room_id: str) -> str:
         @with_session

@@ -125,6 +125,23 @@ def activity_for_user_kicked(
     }
 
 
+def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_name: str, message: str):
+    return {
+        'actor': {
+            'id': user_id,
+            'summary': b64e(user_name)
+        },
+        'verb': 'request',
+        'object': {
+            'content': b64e(message)
+        },
+        'target': {
+            'id': room_id,
+            'displayName': b64e(room_name)
+        }
+    }
+
+
 def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
@@ -511,7 +528,7 @@ def channel_exists(channel_id: str) -> bool:
 
 
 def get_user_name_for(user_id: str) -> str:
-    return environ.env.config.get(SessionKeys.user_name.value)
+    return environ.env.session.get(SessionKeys.user_name.value)
 
 
 def get_channel_name(channel_id: str) -> str:
@@ -571,6 +588,10 @@ def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: s
         return False
 
     return is_valid
+
+
+def get_admin_room_for_channel(channel_id: str) -> str:
+    return environ.env.db.admin_room_for_channel(channel_id)
 
 
 def get_channel_for_room(room_id: str) -> str:

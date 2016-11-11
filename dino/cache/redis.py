@@ -95,6 +95,21 @@ class CacheRedis(object):
         self.cache.set(cache_key, user_id, ttl=EIGHT_HOURS_IN_SECONDS)
         self.redis.hset(key, room_id, user_id)
 
+    def get_admin_room_for_channel(self, channel_id: str) -> str:
+        key = RedisKeys.admin_room_for_channel()
+        cache_key = '%s-%s' % (key, channel_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        room_id = self.redis.hget(key, channel_id)
+        if room_id is None or len(str(room_id, 'utf-8').strip()) == 0:
+            return None
+
+        room_id = str(room_id, 'utf-8')
+        self.cache.set(cache_key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
+        return room_id
+
     def get_user_for_private_room(self, room_id: str) -> str:
         key = RedisKeys.user_for_private_room()
         cache_key = '%s-%s' % (key, room_id)
@@ -106,7 +121,9 @@ class CacheRedis(object):
         if user_id is None or len(str(user_id, 'utf-8').strip()) == 0:
             return None
 
-        return str(user_id, 'utf-8')
+        user_id = str(user_id, 'utf-8')
+        self.cache.set(cache_key, user_id, ttl=EIGHT_HOURS_IN_SECONDS)
+        return user_id
 
     def get_private_room_and_channel(self, user_id: str) -> (str, str):
         key = RedisKeys.private_rooms()

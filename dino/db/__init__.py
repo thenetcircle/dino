@@ -27,6 +27,14 @@ class IDatabase(Interface):
         :return: the newly created room's uuid
         """
 
+    def admin_room_for_channel(self, channel_id: str) -> str:
+        """
+        get the uuid of the admin room for this channel, or None of not found
+
+        :param channel_id: the uuid of this channel
+        :return: the uuid of the admin room, or None of not found
+        """
+
     def is_room_private(self, room_id: str) -> bool:
         """
         check if a room is private or not

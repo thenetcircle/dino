@@ -78,7 +78,7 @@ def on_delete(data: dict, activity: Activity = None):
 @pre_process('on_message')
 def on_message(data, activity: Activity = None):
     """
-    send any kind of message/event to a target user/group
+    send any kind of message/event to a target user/room
 
     object.url: target channel_id
     target.id: target room_id
@@ -93,7 +93,7 @@ def on_message(data, activity: Activity = None):
     room_id = activity.target.id
     from_room_id = activity.actor.url
 
-    # only if cross-group should we broadcast the origin room id with the activity; less confusion for clients
+    # only if cross-room should we broadcast the origin room id with the activity; less confusion for clients
     if from_room_id is not None and from_room_id == room_id:
         del data['actor']['url']
 
@@ -208,6 +208,36 @@ def _on_invite(data: dict, activity: Activity = None) -> (int, None):
 
     activity_json = utils.activity_for_invite(invitee, invitee_name, invite_room, room_name, channel_id, channel_name)
     environ.env.send('gn_invitation', activity_json, json=True, room=invitee)
+    return 200, None
+
+
+@pre_process('on_request_admin')
+def on_request_admin(data: dict, activity: Activity = None) -> (int, None):
+    return _on_request_admin(data, activity)
+
+
+def _on_request_admin(data: dict, activity: Activity) -> (int, None):
+    """
+    request the presence of an admin in the current room
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    user_id = activity.actor.id
+    username = utils.get_user_name_for(user_id)
+    message = activity.object.content
+    room_id = activity.actor.url
+    room_name = utils.get_room_name(room_id)
+    channel_id = utils.get_channel_for_room(room_id)
+    admin_room_id = utils.get_admin_room_for_channel(channel_id)
+
+    if admin_room_id is None or len(admin_room_id.strip()) == 0:
+        logger.error('no admin room found for channel "%s"' % channel_id)
+        return 500, 'no admin room for this channel'
+
+    activity_json = utils.activity_for_request_admin(user_id, username, room_id, room_name, message)
+    environ.env.emit('gn_request_admin', activity_json, json=True, broadcast=True, room=admin_room_id)
     return 200, None
 
 
