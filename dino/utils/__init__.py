@@ -526,6 +526,10 @@ def room_exists(channel_id: str, room_id: str) -> bool:
     return environ.env.db.room_exists(channel_id, room_id)
 
 
+def room_name_restricted(room_name: str):
+    return room_name.strip().lower() in ['admins', 'admin']
+
+
 def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: str) -> bool:
     if from_room_uuid is None:
         raise NoOriginRoomException()

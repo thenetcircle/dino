@@ -97,6 +97,35 @@ class DatabaseRdbms(object):
     def _session(self):
         return self.session
 
+    @with_session
+    def create_admin_room_for(self, channel_id: str) -> str:
+        channel = self.session.query(Channels).filter(Channels.uuid == channel_id).first()
+        if channel is None:
+            raise NoSuchChannelException(channel_id)
+
+        # only need to set admin, super users will be able to join as well, since they bypass acl validation anyway
+        join_acl = Acls()
+        join_acl.action = ApiActions.JOIN
+        join_acl.acl_type = RoleKeys.ADMIN
+        join_acl.acl_value = ''
+        self.session.add(join_acl)
+
+        list_acl = Acls()
+        list_acl.action = ApiActions.LIST
+        list_acl.acl_type = RoleKeys.ADMIN
+        list_acl.acl_value = ''
+        self.session.add(list_acl)
+
+        room = Rooms()
+        room.name = 'Admins'
+        room.uuid = str(uuid())
+        room.channel = channel
+        room.acls.append(join_acl)
+        room.acls.append(list_acl)
+
+        self.session.add(room)
+        self.session.commit()
+
     def get_user_for_private_room(self, room_id: str) -> str:
         @with_session
         def _get_user_for_private_room(self):

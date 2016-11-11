@@ -317,9 +317,13 @@ class RequestValidator(BaseValidator):
 
         if not self._is_base64(room_name):
             return False, 400, 'invalid room name, not base64 encoded'
+        room_name = utils.b64d(room_name)
 
         if not environ.env.db.channel_exists(channel_id):
             return False, 400, 'channel does not exist'
+
+        if utils.room_name_restricted(room_name):
+            return False, 400, 'restricted room name'
 
         if environ.env.db.room_name_exists(channel_id, room_name):
             return False, 400, 'a room with that name already exists'

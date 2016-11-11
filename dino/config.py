@@ -142,6 +142,7 @@ class RedisKeys(object):
     RKEY_LAST_READ = 'room:read:%s'  # room:read:room_id
     RKEY_USER_NAMES = 'user:names'
     RKEY_ROOMS_PRIVATE = 'room:private'
+    RKEY_ROOMS_ADMINS = 'room:admins'
     RKEY_PRIVATE_ROOMS_IN_CHANNEL = 'room:private:%s'  # room:private:channel_prefix
     RKEY_PRIVATE_CHANNEL_FOR_PREFIX = 'channel:private'
     RKEY_USER_FOR_PRIVATE_ROOM = 'room:private:users'
@@ -218,6 +219,10 @@ class RedisKeys(object):
     @staticmethod
     def users_in_room(room_id: str) -> str:
         return RedisKeys.RKEY_USERS_IN_ROOM % room_id
+
+    @staticmethod
+    def admin_room_for_channel() -> str:
+        return RedisKeys.RKEY_ROOMS_ADMINS
 
     @staticmethod
     def rooms(channel_id) -> str:

@@ -111,7 +111,7 @@ class LastReads(DeclarativeBase):
 
 
 class Acls(DeclarativeBase):
-    __tablename__ = 'aclsrevamp'
+    __tablename__ = 'acls'
 
     id = Column(Integer, primary_key=True)
 

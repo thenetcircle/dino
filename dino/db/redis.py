@@ -64,6 +64,24 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def create_admin_room_for(self, channel_id: str) -> str:
+        room_id = str(uuid())
+        self.redis.hset(RedisKeys.admin_room_for_channel(), channel_id, room_id)
+        self.redis.hset(RedisKeys.room_name_for_id, room_id, 'Admins')
+        self.redis.hset(RedisKeys.rooms(channel_id), room_id, 'Admins')
+        self.redis.hset(RedisKeys.channel_for_rooms(), room_id, channel_id)
+        acls = {
+            RoleKeys.ADMIN: '',
+            RoleKeys.SUPER_USER: ''
+        }
+        samechannel = {
+            'samechannel': ''
+        }
+        self.add_acls_in_room_for_action(room_id, ApiActions.JOIN, acls)
+        self.add_acls_in_room_for_action(room_id, ApiActions.LIST, acls)
+        self.add_acls_in_room_for_action(room_id, ApiActions.CROSSROOM, samechannel)
+        return room_id
+
     def is_room_private(self, room_id: str) -> bool:
         channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), room_id[:2])
         return channel_id is not None and len(str(channel_id, 'utf-8').strip()) > 0

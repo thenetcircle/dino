@@ -19,6 +19,14 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class IDatabase(Interface):
+    def create_admin_room_for(self, channel_id: str) -> str:
+        """
+        create the special admin room for a channel
+
+        :param channel_id: the uuid of the channel
+        :return: the newly created room's uuid
+        """
+
     def is_room_private(self, room_id: str) -> bool:
         """
         check if a room is private or not
