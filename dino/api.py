@@ -85,7 +85,6 @@ def on_message(data, activity: Activity = None):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: {'status_code': 200, 'data': '<same AS as client sent, plus timestamp>'}
     """
-    activity = as_parser.parse(data)
     room_id = activity.target.id
     from_room_id = activity.actor.url
 

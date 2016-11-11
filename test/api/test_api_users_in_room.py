@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from test.utils import BaseTest
+from activitystreams import parse as as_parser
 
 from dino import api
 from dino.utils import b64d
@@ -25,25 +26,17 @@ class ApiUsersInRoomTest(BaseTest):
         api.on_join(self.activity_for_join())
         self.assert_in_room(True)
 
-        response_data = api.on_users_in_room(self.activity_for_users_in_room())
+        act = self.activity_for_users_in_room()
+        response_data = api.on_users_in_room(act, as_parser(act))
         self.assertEqual(200, response_data[0])
-
-    def test_users_in_room_missing_actor_id_status_code_400(self):
-        self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
-        self.assert_in_room(True)
-
-        activity = self.activity_for_users_in_room()
-        del activity['actor']['id']
-        response_data = api.on_users_in_room(activity)
-        self.assertEqual(400, response_data[0])
 
     def test_users_in_room_is_only_one(self):
         self.assert_in_room(False)
         api.on_join(self.activity_for_join())
         self.assert_in_room(True)
 
-        response_data = api.on_users_in_room(self.activity_for_users_in_room())
+        act = self.activity_for_users_in_room()
+        response_data = api.on_users_in_room(act, as_parser(act))
         self.assertEqual(1, len(response_data[1]['object']['attachments']))
 
     def test_users_in_room_is_correct_id(self):
@@ -51,7 +44,8 @@ class ApiUsersInRoomTest(BaseTest):
         api.on_join(self.activity_for_join())
         self.assert_in_room(True)
 
-        response_data = api.on_users_in_room(self.activity_for_users_in_room())
+        act = self.activity_for_users_in_room()
+        response_data = api.on_users_in_room(act, as_parser(act))
         self.assertEqual(
                 self.env.db.get_private_room(BaseTest.USER_ID)[0],
                 response_data[1]['object']['attachments'][0]['id'])
@@ -61,19 +55,22 @@ class ApiUsersInRoomTest(BaseTest):
         api.on_join(self.activity_for_join())
         self.assert_in_room(True)
 
-        response_data = api.on_users_in_room(self.activity_for_users_in_room())
+        act = self.activity_for_users_in_room()
+        response_data = api.on_users_in_room(act, as_parser(act))
         self.assertEqual(
                 ApiUsersInRoomTest.USER_NAME,
                 b64d(response_data[1]['object']['attachments'][0]['content']))
 
     def test_users_in_room_status_code_200_when_empty(self):
         self.assert_in_room(False)
-        response_data = api.on_users_in_room(self.activity_for_users_in_room())
+        act = self.activity_for_users_in_room()
+        response_data = api.on_users_in_room(act, as_parser(act))
         self.assertEqual(200, response_data[0])
 
     def test_users_in_room_attachments_empty_when_no_user_in_room(self):
         self.assert_in_room(False)
-        response_data = api.on_users_in_room(self.activity_for_users_in_room())
+        act = self.activity_for_users_in_room()
+        response_data = api.on_users_in_room(act, as_parser(act))
         self.assertEqual(0, len(response_data[1]['object']['attachments']))
 
     def assert_leave_succeeds(self):

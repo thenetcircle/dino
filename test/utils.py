@@ -15,7 +15,9 @@
 import unittest
 import logging
 
+from activitystreams import parse as as_parser
 from uuid import uuid4 as uuid
+from datetime import datetime
 
 from dino import environ
 from dino.config import ConfigKeys
@@ -386,7 +388,8 @@ class BaseTest(unittest.TestCase):
         environ.env.storage.redis.hset(RedisKeys.room_name_for_id(), room_id, room_name)
 
     def join_room(self):
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
 
     def clear_emit_args(self):
         self.emit_kwargs.clear()
@@ -402,7 +405,7 @@ class BaseTest(unittest.TestCase):
     def leave_room(self, data=None):
         if data is None:
             data = self.activity_for_leave()
-        return api.on_leave(data)
+        return api.on_leave(data, as_parser(data))
 
     def assert_join_fails(self):
         self.assertEqual(400, self.response_code_for_joining())
@@ -413,10 +416,12 @@ class BaseTest(unittest.TestCase):
         self.assert_in_room(True)
 
     def response_code_for_joining(self):
-        return api.on_join(self.activity_for_join())[0]
+        act = self.activity_for_join()
+        return api.on_join(act, as_parser(act))[0]
 
     def send_message(self, message: str) -> dict:
-        return api.on_message(self.activity_for_message(message))
+        act = self.activity_for_message(message)
+        return api.on_message(act, as_parser(act))
 
     def remove_from_session(self, key: str):
         del environ.env.session[key]
@@ -594,6 +599,8 @@ class BaseTest(unittest.TestCase):
                 'id': BaseTest.ROOM_ID,
                 'objectType': 'room'
             },
+            'id': str(uuid()),
+            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
             'object': {
                 'content': b64e(msg),
                 'url': BaseTest.CHANNEL_ID

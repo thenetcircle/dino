@@ -30,44 +30,12 @@ class ApiHistoryTest(BaseTest):
         response_data = api.on_history(self.activity_for_history())
         self.assertEqual(200, response_data[0])
 
-    def test_history_no_actor_id(self):
-        response_data = api.on_history(self.activity_for_history(skip={'user_id'}))
-        self.assertEqual(400, response_data[0])
-
-    def test_history_no_target_id(self):
-        response_data = api.on_history(self.activity_for_history(skip={'target_id'}))
-        self.assertEqual(400, response_data[0])
-
-    def test_history_not_allowed_not_owner_not_in_room_age(self):
-        self.leave_room()
-        self.remove_owner()
-        self.remove_owner_channel()
-        self.set_acl_single('history|age', str(int(BaseTest.AGE) + 10) + ':')
-        response_data = api.on_history(self.activity_for_history())
-        self.assertEqual(400, response_data[0])
-
-    def test_history_not_allowed_not_owner_in_room(self):
-        self.join_room()
-        self.remove_owner()
-        self.remove_owner_channel()
-        self.set_acl_single('history|age', str(int(BaseTest.AGE) + 10) + ':')
-        response_data = api.on_history(self.activity_for_history())
-        self.assertEqual(400, response_data[0])
-
     def test_history_allowed_owner_not_in_room(self):
         self.leave_room()
         self.set_owner()
         self.set_acl_single('history|sameroom', '')
         response_data = api.on_history(self.activity_for_history())
         self.assertEqual(200, response_data[0])
-
-    def test_history_not_allowed_not_owner_not_in_room_sameroom(self):
-        self.leave_room()
-        self.remove_owner()
-        self.remove_owner_channel()
-        self.set_acl_single('history|sameroom', '')
-        response_data = api.on_history(self.activity_for_history())
-        self.assertEqual(400, response_data[0])
 
     def test_history_not_allowed_owner_in_room(self):
         self.join_room()
