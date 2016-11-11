@@ -42,10 +42,7 @@ class RequestValidator(BaseValidator):
         if message is None or len(message.strip()) == 0:
             return False, 400, 'empty message body'
 
-        try:
-            str(base64.b64decode(bytes(message, 'utf-8')), 'utf-8')
-        except Exception as e:
-            logger.warning('invalid message content, could not decode base64: %s' % str(e))
+        if not self._is_base64(message):
             return False, 400, 'invalid message content, not base64 encoded'
 
         if room_id is None or room_id == '':
@@ -308,6 +305,7 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_invite(self, activity: Activity) -> (bool, int, str):
+        # TODO: implement
         pass
 
     def on_create(self, activity: Activity) -> (bool, int, str):
@@ -317,6 +315,9 @@ class RequestValidator(BaseValidator):
         if room_name is None or room_name.strip() == '':
             return False, 400, 'got blank room name, can not create'
 
+        if not self._is_base64(room_name):
+            return False, 400, 'invalid room name, not base64 encoded'
+
         if not environ.env.db.channel_exists(channel_id):
             return False, 400, 'channel does not exist'
 
@@ -324,3 +325,12 @@ class RequestValidator(BaseValidator):
             return False, 400, 'a room with that name already exists'
 
         return True, None, None
+
+    def _is_base64(self, s):
+        try:
+            str(base64.b64decode(bytes(s, 'utf-8')), 'utf-8')
+        except Exception as e:
+            logger.warning('invalid message content, could not decode base64: %s' % str(e))
+            print(traceback.format_exc())
+            return False
+        return True
