@@ -23,7 +23,6 @@ from dino import environ
 from dino import utils
 from dino.config import SessionKeys
 from dino.config import ApiTargets
-from dino.utils.decorators import pre_process
 from dino.exceptions import NoSuchUserException
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
@@ -40,7 +39,6 @@ def on_connect() -> (int, None):
     return 200, None
 
 
-@pre_process('on_login', should_validate_request=False)
 def on_login(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
@@ -66,7 +64,6 @@ def on_login(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     return 200, None
 
 
-@pre_process('on_delete')
 def on_delete(data: dict, activity: Activity = None):
     message_id = activity.object.id
     room_id = activity.target.id
@@ -75,7 +72,6 @@ def on_delete(data: dict, activity: Activity = None):
     return 200, None
 
 
-@pre_process('on_message')
 def on_message(data, activity: Activity = None):
     """
     send any kind of message/event to a target user/room
@@ -130,7 +126,6 @@ def _kick_user(activity: Activity):
     environ.env.publish(kick_activity)
 
 
-@pre_process('on_ban')
 def on_ban(data: dict, activity: Activity = None) -> None:
     """
     ban a user from a room (if user is an owner/admin/moderator)
@@ -161,7 +156,6 @@ def on_ban(data: dict, activity: Activity = None) -> None:
     return 200, None
 
 
-@pre_process('on_kick')
 def on_kick(data: dict, activity: Activity = None) -> (int, None):
     """
     kick a user from a room (if user is an owner)
@@ -184,12 +178,7 @@ def on_kick(data: dict, activity: Activity = None) -> (int, None):
     return 200, None
 
 
-@pre_process('on_invite')
-def on_invite(data, activity) -> (int, None):
-    return _on_invite(data, activity)
-
-
-def _on_invite(data: dict, activity: Activity = None) -> (int, None):
+def on_invite(data: dict, activity: Activity = None) -> (int, None):
     """
     invite a user to the a room this user is in
 
@@ -211,12 +200,7 @@ def _on_invite(data: dict, activity: Activity = None) -> (int, None):
     return 200, None
 
 
-@pre_process('on_request_admin')
-def on_request_admin(data: dict, activity: Activity = None) -> (int, None):
-    return _on_request_admin(data, activity)
-
-
-def _on_request_admin(data: dict, activity: Activity) -> (int, None):
+def on_request_admin(data: dict, activity: Activity) -> (int, None):
     """
     request the presence of an admin in the current room
 
@@ -241,12 +225,7 @@ def _on_request_admin(data: dict, activity: Activity) -> (int, None):
     return 200, None
 
 
-@pre_process('on_create')
 def on_create(data: dict, activity: Activity = None) -> (int, dict):
-    return _on_create(data, activity)
-
-
-def _on_create(data: dict, activity: Activity = None) -> (int, dict):
     """
     create a new room
 
@@ -272,7 +251,6 @@ def _on_create(data: dict, activity: Activity = None) -> (int, dict):
     return 200, data
 
 
-@pre_process('on_set_acl')
 def on_set_acl(data: dict, activity: Activity = None) -> (int, str):
     """
     change ACL of a room; only allowed if the user is the owner of the room
@@ -309,7 +287,6 @@ def on_set_acl(data: dict, activity: Activity = None) -> (int, str):
     return 200, None
 
 
-@pre_process('on_get_acl')
 def on_get_acl(data: dict, activity: Activity = None) -> (int, Union[str, dict]):
     """
     change ACL of a room; only allowed if the user is the owner of the room
@@ -325,7 +302,6 @@ def on_get_acl(data: dict, activity: Activity = None) -> (int, Union[str, dict])
     return 200, utils.activity_for_get_acl(activity, acls)
 
 
-@pre_process('on_status')
 def on_status(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     change online status
@@ -360,7 +336,6 @@ def on_status(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     return 200, None
 
 
-@pre_process('on_history')
 def on_history(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     get the history of a room
@@ -381,7 +356,6 @@ def on_history(data: dict, activity: Activity = None) -> (int, Union[str, None])
     return 200, utils.activity_for_history(activity, messages)
 
 
-@pre_process('on_join')
 def on_join(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     join a room
@@ -412,7 +386,6 @@ def on_join(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     return 200, utils.activity_for_join(activity, acls, messages, owners, users)
 
 
-@pre_process('on_users_in_room')
 def on_users_in_room(data: dict, activity: Activity = None) -> (int, Union[dict, str]):
     """
     get a list of users in a room
@@ -427,7 +400,6 @@ def on_users_in_room(data: dict, activity: Activity = None) -> (int, Union[dict,
     return 200, utils.activity_for_users_in_room(activity, users)
 
 
-@pre_process('on_list_rooms')
 def on_list_rooms(data: dict, activity: Activity = None) -> (int, Union[dict, str]):
     """
     get a list of rooms
@@ -441,7 +413,6 @@ def on_list_rooms(data: dict, activity: Activity = None) -> (int, Union[dict, st
     return 200, utils.activity_for_list_rooms(activity, rooms)
 
 
-@pre_process('on_list_channels')
 def on_list_channels(data: dict, activity: Activity = None) -> (int, Union[dict, str]):
     """
     get a list of channels
@@ -454,7 +425,6 @@ def on_list_channels(data: dict, activity: Activity = None) -> (int, Union[dict,
     return 200, utils.activity_for_list_channels(activity, channels)
 
 
-@pre_process('on_leave')
 def on_leave(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     leave a room

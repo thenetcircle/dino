@@ -70,6 +70,7 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.room_name_for_id, room_id, 'Admins')
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, 'Admins')
         self.redis.hset(RedisKeys.channel_for_rooms(), room_id, channel_id)
+
         acls = {
             RoleKeys.ADMIN: '',
             RoleKeys.SUPER_USER: ''
@@ -77,6 +78,7 @@ class DatabaseRedis(object):
         samechannel = {
             'samechannel': ''
         }
+
         self.add_acls_in_room_for_action(room_id, ApiActions.JOIN, acls)
         self.add_acls_in_room_for_action(room_id, ApiActions.LIST, acls)
         self.add_acls_in_room_for_action(room_id, ApiActions.CROSSROOM, samechannel)
