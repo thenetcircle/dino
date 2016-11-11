@@ -15,11 +15,12 @@
 from zope.interface import implementer
 from activitystreams.models.activity import Activity
 
-from dino.storage import IStorage
 from dino import environ
+from dino.storage import IStorage
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
+from dino.utils import b64d
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -39,7 +40,7 @@ class StorageRedis(object):
     def store_message(self, activity: Activity) -> None:
         target = activity.target.id
         user_name = environ.env.session.get(SessionKeys.user_name.value)
-        msg = activity.object.content
+        msg = b64d(activity.object.content)
 
         self.redis.lpush(
                 RedisKeys.room_history(target),

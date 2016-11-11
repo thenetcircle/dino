@@ -18,6 +18,7 @@ from unittest import TestCase
 from uuid import uuid4 as uuid
 
 from dino import environ
+from dino.utils import b64e
 from dino.auth.redis import AuthRedis
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
@@ -193,6 +194,7 @@ class TestRequestValidator(TestCase):
             'verb': 'join',
             'object': {
                 'url': TestRequestValidator.CHANNEL_ID,
+                'content': b64e('this is the message')
             },
             'target': {
                 'id': TestRequestValidator.ROOM_ID,

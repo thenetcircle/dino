@@ -37,6 +37,7 @@ environ.env.config.set(ConfigKeys.TESTING, True)
 environ.env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
 
 from dino import api
+from dino.utils import b64e
 
 logging.basicConfig(level='DEBUG')
 logger = logging.getLogger(__name__)
@@ -509,7 +510,7 @@ class BaseTest(unittest.TestCase):
             },
             'verb': 'create',
             'target': {
-                'displayName': BaseTest.ROOM_NAME,
+                'displayName': b64e(BaseTest.ROOM_NAME),
                 'objectType': 'room'
             }
         }
@@ -594,7 +595,7 @@ class BaseTest(unittest.TestCase):
                 'objectType': 'room'
             },
             'object': {
-                'content': msg,
+                'content': b64e(msg),
                 'url': BaseTest.CHANNEL_ID
             }
         }

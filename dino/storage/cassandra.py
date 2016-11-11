@@ -19,6 +19,7 @@ from activitystreams.models.activity import Activity
 
 from dino.storage import IStorage
 from dino.config import ConfigKeys
+from dino.utils import b64d
 from dino import environ
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -50,11 +51,12 @@ class CassandraStorage(object):
         self.driver.init()
 
     def store_message(self, activity: Activity) -> None:
+        message = b64d(activity.object.content)
         self.driver.msg_insert(
                 msg_id=activity.id,
                 from_user=activity.actor.id,
                 to_user=activity.target.id,
-                body=activity.object.content,
+                body=message,
                 domain=activity.target.object_type,
                 sent_time=activity.published,
                 channel_id=activity.object.url,

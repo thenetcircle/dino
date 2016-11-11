@@ -14,6 +14,8 @@
 
 from activitystreams.models.activity import Activity
 import traceback
+import base64
+import logging
 
 from dino import utils
 from dino import environ
@@ -26,6 +28,8 @@ from dino import validation
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
+logger = logging.getLogger(__name__)
+
 
 class RequestValidator(BaseValidator):
     def on_message(self, activity: Activity) -> (bool, int, str):
@@ -33,6 +37,16 @@ class RequestValidator(BaseValidator):
         from_room_id = activity.actor.url
         user_id = activity.actor.id
         object_type = activity.target.object_type
+        message = activity.object.content
+
+        if message is None or len(message.strip()) == 0:
+            return False, 400, 'empty message body'
+
+        try:
+            str(base64.b64decode(bytes(message, 'utf-8')), 'utf-8')
+        except Exception as e:
+            logger.warning('invalid message content, could not decode base64: %s' % str(e))
+            return False, 400, 'invalid message content, not base64 encoded'
 
         if room_id is None or room_id == '':
             return False, 400, 'no room id specified when sending message'
