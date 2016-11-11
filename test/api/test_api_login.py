@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
 from test.utils import BaseTest
 from activitystreams import parse as as_parser
 

@@ -47,7 +47,7 @@ class RequestUsersInRoomTest(BaseTest):
 
         activity = self.activity_for_users_in_room()
         del activity['actor']['id']
-        response_data = request.on_users_in_room(activity)
+        response_data = request.on_users_in_room(as_parser(activity))
         self.assertEqual(True, response_data[0])
 
     def test_users_in_room_status_code_True_when_empty(self):

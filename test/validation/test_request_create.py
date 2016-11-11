@@ -13,19 +13,24 @@
 from test.utils import BaseTest
 from activitystreams import parse as as_parser
 
-from dino import api
-from dino.exceptions import RoomNameExistsForChannelException
+from dino.validation import request
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-class ApiCreateTest(BaseTest):
+class RequestCreateTest(BaseTest):
     def test_create(self):
-        act = self.activity_for_create()
-        response_data = api.on_create(act, as_parser(act))
-        self.assertEqual(200, response_data[0])
+        response_data = request.on_create(as_parser(self.activity_for_create()))
+        self.assertEqual(True, response_data[0])
 
-    def test_create_already_existing(self):
-        act = self.activity_for_create()
-        api.on_create(act, as_parser(act))
-        self.assertRaises(RoomNameExistsForChannelException, api.on_create, act, as_parser(act))
+    def test_create_missing_target_display_name(self):
+        activity = self.activity_for_create()
+        del activity['target']['displayName']
+        response_data = request.on_create(as_parser(activity))
+        self.assertEqual(False, response_data[0])
+
+    def test_create_missing_actor_id(self):
+        activity = self.activity_for_create()
+        del activity['actor']['id']
+        response_data = request.on_create(as_parser(activity))
+        self.assertEqual(True, response_data[0])

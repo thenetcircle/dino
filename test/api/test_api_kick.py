@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -12,15 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
-from unittest import TestCase
-from uuid import uuid4 as uuid
-from activitystreams import parse
+from activitystreams import parse as as_parser
 
 import os
 os.environ['ENVIRONMENT'] = 'test'
 
-from dino import environ
 from dino import api
 from test.utils import BaseTest
 
@@ -31,7 +25,8 @@ class ApiKickTest(BaseTest):
     def test_kick(self):
         self.create_and_join_room()
         self.set_owner()
-        api.on_kick(self.activity_for_kick())
+        act = self.activity_for_kick()
+        self.assertEqual(200, api.on_kick(act, as_parser(act))[0])
 
     def activity_for_kick(self):
         return {

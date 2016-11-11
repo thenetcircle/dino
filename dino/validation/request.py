@@ -227,6 +227,9 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_users_in_room(self, activity: Activity) -> (bool, int, str):
+        room_id = activity.target.id
+        if room_id is None or len(room_id.strip()) == 0:
+            return False, 400, 'no room id specified'
         return True, None, None
 
     def on_history(self, activity: Activity) -> (bool, int, str):

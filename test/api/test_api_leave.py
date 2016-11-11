@@ -1,4 +1,19 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
 from uuid import uuid4 as uuid
+from activitystreams import parse as as_parser
 
 from dino import api
 from test.utils import BaseTest
@@ -16,33 +31,28 @@ class ApiLeaveTest(BaseTest):
         self.assert_leave_succeeds()
         self.assert_in_room(False)
 
-    def test_leave_without_actor_id_status_code_400(self):
-        api.on_join(self.activity_for_join())
-        self.assert_in_room(True)
-
-        activity = self.activity_for_leave()
-        del activity['actor']['id']
-        response_data = api.on_leave(activity)
-        self.assertEqual(400, response_data[0])
-
     def test_leave_without_actor_status_code_400(self):
         api.on_join(self.activity_for_join())
         self.assert_in_room(True)
 
-        activity = self.activity_for_leave(skip={'actor'})
-        response_data = api.on_leave(activity)
-        self.assertEqual(400, response_data[0])
+        act = self.activity_for_leave(skip={'actor'})
+        try:
+            api.on_leave(act, as_parser(act))
+            self.fail('should raise exception, not actor')
+        except AttributeError:
+            pass
 
     def test_leave_without_target_id(self):
         self.assert_in_room(False)
         api.on_join(self.activity_for_join())
         self.assert_in_room(True)
 
-        data = self.activity_for_leave(skip={'target'})
-        response_data = api.on_leave(data)
-
-        self.assertEqual(400, response_data[0])
-        self.assert_in_room(True)
+        act = self.activity_for_leave(skip={'target'})
+        try:
+            api.on_leave(act, as_parser(act))
+            self.fail('should raise exception, not target')
+        except AttributeError:
+            pass
 
     def test_leave_different_room_stays_in_current(self):
         self.assert_in_room(False)
@@ -53,7 +63,7 @@ class ApiLeaveTest(BaseTest):
         self.set_room_name(tmp_room_id, tmp_room_id)
         data = self.activity_for_leave()
         data['target']['id'] = tmp_room_id
-        response_data = api.on_leave(data)
+        response_data = api.on_leave(data, as_parser(data))
 
         self.assertEqual(200, response_data[0])
         self.assert_in_room(True)
