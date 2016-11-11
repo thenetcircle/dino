@@ -51,17 +51,15 @@ validation:
         type: "str_in_csv"
         value: "y,n"
     owner:
-        type: "str_in_csv"
+        type: "str_in_csv"  # TODO: change to room_owner and channel_owner, doesn't work as expected now
         value: "y,n"
     admin:
-        type: "str_in_csv"
-        value: "y,n"
+        type: "is_admin"
     moderator:
-        type: "str_in_csv"
+        type: "str_in_csv"  # TODO: how?
         value: "y,n"
     superuser:
-        type: "str_in_csv"
-        value: "y,n"
+        type: "is_super_user"
 
 channel:
     list:

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+import traceback
 
 from activitystreams.models.activity import Activity
 
@@ -128,6 +129,56 @@ class BaseAclValidator(object):
         raise NotImplementedError('validate_new_acl')
 
 
+class AclIsAdminValidator(BaseAclValidator):
+    def __init__(self):
+        pass
+
+    def validate_new_acl(self, values):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        activity = args[0]
+        env = args[1]
+        # acl_type = args[2]
+        # acl_values = args[3]
+
+        user_id = activity.actor.id
+        channel_id = activity.object.url
+
+        try:
+            is_admin = env.db.is_admin(channel_id, user_id)
+            if is_admin:
+                return True, None
+        except Exception as e:
+            logger.error('could not check if user "%s" is admin for channel "%s": %s' % (user_id, channel_id, str(e)))
+            print(traceback.format_exc())
+        return False, 'not admin'
+
+
+class AclIsSuperUserValidator(BaseAclValidator):
+    def __init__(self):
+        pass
+
+    def validate_new_acl(self, values):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        activity = args[0]
+        env = args[1]
+        # acl_type = args[2]
+        # acl_values = args[3]
+
+        user_id = activity.actor.id
+        try:
+            is_super_user = env.db.is_super_user(user_id)
+            if is_super_user:
+                return True, None
+        except Exception as e:
+            logger.error('could not check if user "%s" is super user: %s' % (user_id, str(e)))
+            print(traceback.format_exc())
+        return False, 'not super user'
+
+
 class AclDisallowValidator(BaseAclValidator):
     def __init__(self):
         pass
@@ -223,7 +274,7 @@ class AclStrInCsvValidator(BaseAclValidator):
         acl_values = args[3]
 
         if acl_values.strip() == '':
-            return True
+            return True, None
         acl_values = acl_values.split(',')
 
         session_value = env.session.get(acl_type)
@@ -306,7 +357,7 @@ class AclConfigValidator(object):
 
     @staticmethod
     def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
-        validation_methods = ['str_in_csv', 'range', 'samechannel', 'sameroom', 'disallow']
+        validation_methods = ['str_in_csv', 'range', 'samechannel', 'sameroom', 'disallow', 'is_admin', 'is_super_user']
         validations = acls.get('validation')
 
         for validation in validations:

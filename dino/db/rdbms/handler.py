@@ -118,6 +118,7 @@ class DatabaseRdbms(object):
 
         room = Rooms()
         room.name = 'Admins'
+        room.created = datetime.utcnow()
         room.uuid = str(uuid())
         room.channel = channel
         room.acls.append(join_acl)

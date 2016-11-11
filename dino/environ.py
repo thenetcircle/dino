@@ -41,6 +41,8 @@ from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclSameRoomValidator
 from dino.validation.acl import AclDisallowValidator
+from dino.validation.acl import AclIsAdminValidator
+from dino.validation.acl import AclIsSuperUserValidator
 
 ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
 
@@ -490,6 +492,12 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
 
         elif validation_type == 'sameroom':
             validation_config['value'] = AclSameRoomValidator()
+
+        elif validation_type == 'is_admin':
+            validation_config['value'] = AclIsAdminValidator()
+
+        elif validation_type == 'is_super_user':
+            validation_config['value'] = AclIsSuperUserValidator()
 
         else:
             raise RuntimeError('unknown validation type "%s"' % validation_type)
