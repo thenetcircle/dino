@@ -28,6 +28,8 @@ from dino.config import ApiActions
 from dino.config import ApiTargets
 from datetime import timedelta
 from datetime import datetime
+from base64 import b64encode
+from base64 import b64decode
 
 from dino.exceptions import NoOriginRoomException
 from dino.exceptions import NoTargetRoomException
@@ -41,15 +43,45 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 logger = logging.getLogger(__name__)
 
 
+def b64d(s: str) -> str:
+    if s is None:
+        return ''
+
+    s = s.strip()
+    if len(s) == 0:
+        return ''
+
+    try:
+        return str(b64decode(bytes(s, 'utf-8')), 'utf-8')
+    except Exception as e:
+        logger.error('could not b64decode because: %s' % str(e))
+    return ''
+
+
+def b64e(s: str) -> str:
+    if s is None:
+        return ''
+
+    s = s.strip()
+    if len(s) == 0:
+        return ''
+
+    try:
+        return str(b64encode(bytes(s, 'utf-8')), 'utf-8')
+    except Exception as e:
+        logger.error('could not b64encode because: %s, value was: \n%s' % (str(e), str(s)))
+    return ''
+
+
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'summary': user_name
+            'summary': b64e(user_name)
         },
         'target': {
             'id': room_id,
-            'displayName': room_name
+            'displayName': b64e(room_name)
         },
         'verb': 'leave'
     }
@@ -59,14 +91,14 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
     return {
         'actor': {
             'id': environ.env.db.get_private_room(user_id)[0],
-            'summary': user_name,
+            'summary': b64e(user_name),
             'image': {
                 'url': image_url
             }
         },
         'target': {
             'id': room_id,
-            'displayName': room_name,
+            'displayName': b64e(room_name),
             'objectType': 'group'
         },
         'verb': 'join'
@@ -78,15 +110,15 @@ def activity_for_user_kicked(
     return {
         'actor': {
             'id': kicker_id,
-            'summary': kicker_name
+            'summary': b64e(kicker_name)
         },
         'object': {
             'id': kicked_id,
-            'summary': kicked_name
+            'summary': b64e(kicked_name)
         },
         'target': {
             'id': room_id,
-            'displayName': room_name,
+            'displayName': b64e(room_name),
             'objectType': 'group'
         },
         'verb': 'kick'
@@ -97,7 +129,7 @@ def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'summary': user_name
+            'summary': b64e(user_name)
         },
         'verb': 'disconnect'
     }
@@ -107,7 +139,7 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'summary': user_name
+            'summary': b64e(user_name)
         },
         'verb': 'connect'
     }
@@ -117,16 +149,14 @@ def activity_for_create_room(activity: Activity) -> dict:
     return {
         'actor': {
             'id': activity.actor.id,
-            'content': activity.actor.content
+            'summary': b64e(activity.actor.summary)
         },
         'object': {
-            'id': activity.object.id,
-            'content': activity.object.content,
             'url': activity.object.url
         },
         'target': {
             'id': activity.target.id,
-            'displayName': activity.target.display_name
+            'displayName': b64e(activity.target.display_name)
         },
         'verb': 'create'
     }
@@ -140,7 +170,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
         'verb': 'history',
         'target': {
             'id': activity.target.id,
-            'displayName': get_room_name(activity.target.id)
+            'displayName': b64e(get_room_name(activity.target.id))
         }
     }
 
@@ -148,8 +178,8 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
     for msg_id, timestamp, user_name, msg in messages:
         response['object']['attachments'].append({
             'id': msg_id,
-            'content': msg,
-            'summary': user_name,
+            'content': b64e(msg),
+            'summary': b64e(user_name),
             'published': timestamp
         })
 
@@ -165,7 +195,7 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
         'verb': 'join',
         'target': {
             'id': activity.target.id,
-            'displayName': get_room_name(activity.target.id)
+            'displayName': b64e(get_room_name(activity.target.id))
         }
     }
 
@@ -203,7 +233,7 @@ def activity_for_owners(activity: Activity, owners: dict) -> dict:
         },
         'target': {
             'id': activity.target.id,
-            'displayName': activity.target.display_name
+            'displayName': b64e(activity.target.display_name)
         },
         'verb': 'list'
     }
@@ -212,7 +242,7 @@ def activity_for_owners(activity: Activity, owners: dict) -> dict:
     for user_id, user_name in owners.items():
         response['object']['attachments'].append({
             'id': user_id,
-            'content': user_name
+            'content': b64e(user_name)
         })
 
     return response
@@ -230,7 +260,7 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
     for channel_id, channel_name in channels.items():
         response['object']['attachments'].append({
             'id': channel_id,
-            'content': channel_name
+            'content': b64e(channel_name)
         })
 
     return response
@@ -242,16 +272,16 @@ def activity_for_invite(
     return {
         'actor': {
             'id': inviter_id,
-            'summary': inviter_name
+            'summary': b64e(inviter_name)
         },
         'verb': 'invite',
         'object': {
             'url': channel_id,
-            'summary': channel_name
+            'summary': b64e(channel_name)
         },
         'target': {
             'id': room_id,
-            'displayName': room_name
+            'displayName': b64e(room_name)
         }
     }
 
@@ -269,7 +299,7 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     for room_id, room_name in rooms.items():
         response['object']['attachments'].append({
             'id': room_id,
-            'content': room_name
+            'content': b64e(room_name)
         })
 
     return response
@@ -279,7 +309,7 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     response = {
         'target': {
             'id': activity.target.id,
-            'displayName': activity.target.display_name
+            'displayName': b64e(activity.target.display_name)
         },
         'object': {
             'objectType': 'users'
@@ -291,7 +321,7 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     for user_id, user_name in users.items():
         response['object']['attachments'].append({
             'id': user_id,
-            'content': user_name
+            'content': b64e(user_name)
         })
 
     return response

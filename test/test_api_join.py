@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from test.utils import BaseTest
+
 from dino import api
 from dino.config import RedisKeys
 from dino.config import ApiActions
-from test.utils import BaseTest
+from dino.utils import b64d
 
 
 class ApiJoinTest(BaseTest):
@@ -340,7 +342,7 @@ class ApiJoinTest(BaseTest):
         room_id = self.env.db.redis.hget(RedisKeys.private_rooms(), ApiJoinTest.USER_ID)
         room_id = str(room_id, 'utf-8')
         self.assertEqual(room_id, user['id'])
-        self.assertEqual(ApiJoinTest.USER_NAME, user['content'])
+        self.assertEqual(ApiJoinTest.USER_NAME, b64d(user['content']))
 
     def test_join_returns_activity_with_one_owner(self):
         self.set_owner()
@@ -356,7 +358,7 @@ class ApiJoinTest(BaseTest):
         owners = self.get_attachment_for_key(attachments, 'owner')
         user_id, user_name = owners[0]['id'], owners[0]['content']
         self.assertEqual(ApiJoinTest.USER_ID, user_id)
-        self.assertEqual(ApiJoinTest.USER_NAME, user_name)
+        self.assertEqual(ApiJoinTest.USER_NAME, b64d(user_name))
 
     def test_join_returns_correct_nr_of_acls(self):
         correct_acls = {ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}}
@@ -406,9 +408,9 @@ class ApiJoinTest(BaseTest):
         history_obj = self.get_attachment_for_key(attachments, 'history')[0]
 
         self.assertEqual(msg_response['id'], history_obj['id'])
-        self.assertEqual(msg, history_obj['content'])
+        self.assertEqual(msg, b64d(history_obj['content']))
         self.assertEqual(msg_response['published'], history_obj['published'])
-        self.assertEqual(ApiJoinTest.USER_NAME, history_obj['summary'])
+        self.assertEqual(ApiJoinTest.USER_NAME, b64d(history_obj['summary']))
 
     def assert_attachment_equals(self, attachments, key, value):
         found = self.get_attachment_for_key(attachments, key)

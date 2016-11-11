@@ -73,6 +73,9 @@ A rough roadmap for possible upcoming features.
 * invite
     - search for online users in chats
     - invite user from other room
+* base64 all free-text
+    - message body
+    - room/channel/user names
 * request admin
     - open invitation to room instead of single user
     - the room would be a support room, or admin room

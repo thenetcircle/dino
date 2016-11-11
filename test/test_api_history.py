@@ -1,7 +1,24 @@
-from dino import api
+#!/usr/bin/env python
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 from test.utils import BaseTest
 from activitystreams import parse as as_parser
 from strict_rfc3339 import validate_rfc3339 as validate_timestamp
+
+from dino import api
+from dino.utils import b64d
 
 
 class ApiHistoryTest(BaseTest):
@@ -114,7 +131,7 @@ class ApiHistoryTest(BaseTest):
 
         response_data = api.on_history(self.activity_for_history())
         activity = as_parser(response_data[1])
-        self.assertEqual(message, activity.object.attachments[0].content)
+        self.assertEqual(message, b64d(activity.object.attachments[0].content))
 
     def test_history_contains_timestamp(self):
         self.join_room()
@@ -144,7 +161,7 @@ class ApiHistoryTest(BaseTest):
 
         response_data = api.on_history(self.activity_for_history())
         activity = as_parser(response_data[1])
-        self.assertEqual(BaseTest.USER_NAME, activity.object.attachments[0].summary)
+        self.assertEqual(BaseTest.USER_NAME, b64d(activity.object.attachments[0].summary))
 
     def test_history_contains_valid_timestamp(self):
         self.join_room()
