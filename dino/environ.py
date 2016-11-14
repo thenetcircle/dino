@@ -637,8 +637,11 @@ def init_cache_service(gn_env: GNEnvironment):
 
 def init_pub_sub(gn_env: GNEnvironment):
     def publish(message):
+        print('about to publish: ' % message)
         with producers[gn_env.queue_connection].acquire(block=True) as producer:
-            producer.publish(message, exchange=gn_env.exchange, declare=[gn_env.exchange, gn_env.queue])
+            print('ok, publishing')
+            retval = producer.publish(message, exchange=gn_env.exchange, declare=[gn_env.exchange, gn_env.queue])
+            print('publish returned: %s' % str(retval))
 
     def mock_publish(message):
         pass

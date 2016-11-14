@@ -404,7 +404,12 @@ def set_sid_for_user_id(user_id: str, sid: str) -> None:
 
 # TODO: use env.db instead of env.redis
 def get_sid_for_user_id(user_id: str) -> str:
-    return environ.env.redis.hmget(RedisKeys.sid_for_user_id(), user_id)
+    sid = environ.env.redis.hget(RedisKeys.sid_for_user_id(), user_id)
+    return str(sid, 'utf-8')
+
+
+def get_user_for_private_room(room_id: str) -> str:
+    return environ.env.db.get_user_for_private_room(room_id)
 
 
 def is_banned_globally(user_id: str) -> (bool, Union[str, None]):

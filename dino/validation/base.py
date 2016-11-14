@@ -26,7 +26,7 @@ class BaseValidator(object):
             return False, 'no ID on actor'
 
         session_user_id = environ.env.session.get('user_id', 'NOT_FOUND_IN_SESSION')
-        if activity.actor.id != session_user_id:
+        if str(activity.actor.id).strip() != str(session_user_id).strip():
             error_msg = "user_id in session '%s' doesn't match user_id in request '%s'"
             return False, error_msg % (session_user_id, activity.actor.id)
 

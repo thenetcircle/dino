@@ -43,7 +43,23 @@ class UserManager(BaseManager):
 
     def kick_user(self, room_id: str, user_id: str) -> None:
         self.env.db.kick_user(room_id, user_id)
-        # TODO: need to emit kick event on socket
+        kick_activity = {
+            'actor': {
+                'id': '',
+                'summary': 'admin'
+            },
+            'verb': 'kick',
+            'object': {
+                'id': user_id,
+                'summary': self.env.db.get_user_name(user_id)
+            },
+            'target': {
+                'id': room_id,
+                'displayName': self.env.db.get_room_name(room_id),
+                'url': '/chat'
+            }
+        }
+        self.env.publish(kick_activity)
 
     def ban_user(self, private_room_id: str, target_id: str, duration: str, target_type: str) -> None:
         user_id = self.env.db.get_user_for_private_room(private_room_id)
@@ -59,7 +75,22 @@ class UserManager(BaseManager):
             self.env.db.ban_user_room(user_id, timestamp, duration, target_id)
         else:
             raise UnknownBanTypeException(target_type)
-        # TODO: need to emit ban event on socket
+
+        ban_activity = {
+            'actor': {
+                'id': '',
+                'summary': 'admin'
+            },
+            'verb': 'kick',
+            'object': {
+                'id': user_id,
+                'summary': self.env.db.get_user_name(user_id)
+            },
+            'target': {
+                'url': '/chat'
+            }
+        }
+        self.env.publish(ban_activity)
 
     def remove_ban(self, user_id: str, target_id: str, target_type: str) -> None:
         if target_type == 'global':
