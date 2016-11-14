@@ -31,31 +31,14 @@ class ApiAclTest(BaseTest):
 
         self.set_acl({ApiActions.JOIN: {acl_type: acl_value}})
 
-        response_data = api.on_get_acl(self.activity_for_get_acl())
+        act = self.activity_for_get_acl()
+        response_data = api.on_get_acl(act, as_parser(act))
         self.assertEqual(response_data[0], 200)
 
         activity = as_parser(response_data[1])  # 0 is the status_code, 1 is the data (activity stream)
 
         self.assertEqual(activity.object.attachments[0].object_type, acl_type)
         self.assertEqual(activity.object.attachments[0].content, acl_value)
-
-    def test_get_acl_missing_actor_id(self):
-        acl_type = 'gender'
-        acl_value = 'm,f'
-
-        self.set_acl({ApiActions.JOIN: {acl_type: acl_value}})
-
-        response_data = api.on_get_acl({
-            'actor': {
-            },
-            'target': {
-                'id': ApiAclTest.ROOM_ID,
-                'objectType': 'room'
-            },
-            'verb': 'list'
-        })
-
-        self.assertEqual(response_data[0], 400)
 
     def test_set_acl_one_acl(self):
         acl_type = 'gender'
@@ -70,59 +53,6 @@ class ApiAclTest(BaseTest):
         self.assertEqual(len(acls_decoded), 1)
         self.assertTrue(acl_type in acls_decoded.keys())
         self.assertEqual(acls_decoded[acl_type], acl_value)
-
-    def test_set_acl_missing_actor_id_returns_400(self):
-        acl_type = 'gender'
-        acl_value = 'm,f'
-
-        activity = self.activity_for_set_acl([{
-            'objectType': acl_type,
-            'content': acl_value,
-            'summary': ApiActions.JOIN
-        }])
-
-        del activity['actor']['id']
-        response_data = api.on_set_acl(activity)
-        self.assertEqual(response_data[0], 400)
-
-    def test_set_acl_not_owner_returns_code_400(self):
-        acl_type = 'gender'
-        acl_value = 'm,f'
-
-        activity = self.activity_for_set_acl([{
-            'objectType': acl_type,
-            'content': acl_value,
-            'summary': ApiActions.JOIN
-        }])
-
-        self.remove_owner()
-        response_data = api.on_set_acl(activity)
-        self.assertEqual(response_data[0], 400)
-
-    def test_set_acl_unknown_type(self):
-        acl_type = 'unknown'
-        acl_value = 'm,f'
-
-        activity = self.activity_for_set_acl([{
-            'objectType': acl_type,
-            'content': acl_value
-        }])
-
-        response_data = api.on_set_acl(activity)
-        self.assertEqual(response_data[0], 400)
-
-    def test_set_acl_invalid_value(self):
-        acl_type = 'gender'
-        acl_value = 'm,999'
-
-        activity = self.activity_for_set_acl([{
-            'objectType': acl_type,
-            'content': acl_value,
-            'summary': ApiActions.JOIN
-        }])
-
-        response_data = api.on_set_acl(activity)
-        self.assertEqual(response_data[0], 400)
 
     def test_set_acl_two_acl(self):
         acl_tuples = [('gender', 'm,f'), ('image', 'y')]
@@ -176,7 +106,7 @@ class ApiAclTest(BaseTest):
             'summary': ApiActions.JOIN
         }])
 
-        response_data = api.on_set_acl(activity)
+        response_data = api.on_set_acl(activity, as_parser(activity))
         self.assertEqual(response_data[0], 200)
 
         acls = self.get_acls_for_join()
@@ -189,7 +119,7 @@ class ApiAclTest(BaseTest):
             'summary': ApiActions.JOIN
         }])
 
-        response_data = api.on_set_acl(activity)
+        response_data = api.on_set_acl(activity, as_parser(activity))
         self.assertEqual(response_data[0], 200)
 
         acls = self.get_acls()
@@ -198,6 +128,6 @@ class ApiAclTest(BaseTest):
     def get_acl_after_set(self, attachments):
         activity = self.activity_for_set_acl(attachments)
 
-        response_data = api.on_set_acl(activity)
+        response_data = api.on_set_acl(activity, as_parser(activity))
         self.assertEqual(response_data[0], 200)
         return self.get_acls().get(ApiActions.JOIN)

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,6 +14,8 @@ import os
 from uuid import uuid4 as uuid
 os.environ['ENVIRONMENT'] = 'test'
 
+from activitystreams import parse as as_parser
+
 from dino import environ
 from dino import api
 from dino.config import RedisKeys
@@ -25,14 +25,13 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ApiBanTest(BaseTest):
-
     def test_ban_no_such_user(self):
         self.create_and_join_room()
         self.set_owner()
 
         json = self.activity_for_ban()
         json['object']['id'] = str(uuid())
-        response_code, _ = api.on_ban(json)
+        response_code, _ = api.on_ban(json, as_parser(json))
 
         self.assertEqual(400, response_code)
 
@@ -45,7 +44,7 @@ class ApiBanTest(BaseTest):
         json['object']['id'] = str(self.env.db.redis.hget(
                 RedisKeys.private_rooms(), ApiBanTest.OTHER_USER_ID), 'utf-8')
 
-        response_code, _ = api.on_ban(json)
+        response_code, _ = api.on_ban(json, as_parser(json))
         self.assertEqual(200, response_code)
 
     def create_room(self, room_id: str=None, room_name: str=None):

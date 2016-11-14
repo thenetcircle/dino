@@ -125,7 +125,7 @@ def _kick_user(activity: Activity):
     environ.env.publish(kick_activity)
 
 
-def on_ban(data: dict, activity: Activity = None) -> None:
+def on_ban(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     """
     ban a user from a room (if user is an owner/admin/moderator)
 
