@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from test.utils import BaseTest
+from activitystreams import parse as as_parser
 
 from dino import api
 from dino.config import RedisKeys
@@ -68,56 +69,66 @@ class ApiJoinTest(BaseTest):
         self.assert_join_succeeds()
 
     def test_join_returns_activity_with_4_attachments(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         self.assertEqual(4, len(response[1]['object']['attachments']))
 
     def test_join_returns_activity_with_acl_attachment(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         acls = self.get_attachment_for_key(attachments, 'acl')
         self.assertIsNotNone(acls)
 
     def test_join_returns_activity_with_history_attachment(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         history = self.get_attachment_for_key(attachments, 'history')
         self.assertIsNotNone(history)
 
     def test_join_returns_activity_with_owner_attachment(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         owners = self.get_attachment_for_key(attachments, 'owner')
         self.assertIsNotNone(owners)
 
     def test_join_returns_activity_with_users_attachment(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         users = self.get_attachment_for_key(attachments, 'user')
         self.assertIsNotNone(users)
 
     def test_join_returns_activity_with_empty_acl_attachment(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         self.assert_attachment_equals(attachments, 'acl', [])
 
     def test_join_returns_activity_with_empty_history_attachment(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         self.assert_attachment_equals(attachments, 'history', [])
 
     def test_join_returns_activity_with_empty_owner_attachment(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         self.assert_attachment_equals(attachments, 'owner', [])
 
     def test_join_returns_activity_with_one_user_as_attachment(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         users = self.get_attachment_for_key(attachments, 'user')
         self.assertEqual(1, len(users))
 
     def test_join_returns_activity_with_this_user_as_attachment(self):
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         user = self.get_attachment_for_key(attachments, 'user')[0]
         room_id = self.env.db.redis.hget(RedisKeys.private_rooms(), ApiJoinTest.USER_ID)
@@ -127,14 +138,16 @@ class ApiJoinTest(BaseTest):
 
     def test_join_returns_activity_with_one_owner(self):
         self.set_owner()
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         owners = self.get_attachment_for_key(attachments, 'owner')
         self.assertEqual(1, len(owners))
 
     def test_join_returns_activity_with_correct_owner(self):
         self.set_owner()
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         owners = self.get_attachment_for_key(attachments, 'owner')
         user_id, user_name = owners[0]['id'], owners[0]['content']
@@ -145,7 +158,8 @@ class ApiJoinTest(BaseTest):
         correct_acls = {ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}}
         self.set_acl(correct_acls)
         self.set_owner()
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         returned_acls = self.get_attachment_for_key(attachments, 'acl')
         self.assertEqual(len(correct_acls.get(ApiActions.JOIN)), len(returned_acls))
@@ -154,7 +168,8 @@ class ApiJoinTest(BaseTest):
         correct_acls = {ApiActions.JOIN: {'country': 'de,cn,dk', 'city': 'Shanghai,Berlin,Copenhagen'}}
         self.set_acl(correct_acls)
         self.set_owner()
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         returned_acls = self.get_attachment_for_key(attachments, 'acl')
         for acl in returned_acls:
@@ -172,7 +187,8 @@ class ApiJoinTest(BaseTest):
         self.leave_room()
         self.assert_in_room(False)
 
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         returned_history = self.get_attachment_for_key(attachments, 'history')
         self.assertEqual(1, len(returned_history))
@@ -184,7 +200,8 @@ class ApiJoinTest(BaseTest):
         msg_response = self.send_message(msg)[1]
         self.leave_room()
 
-        response = api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         history_obj = self.get_attachment_for_key(attachments, 'history')[0]
 

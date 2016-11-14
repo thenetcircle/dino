@@ -10,19 +10,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dino import api
 from test.utils import BaseTest
+from activitystreams import parse as as_parser
+
+from dino import api
 
 
 class ApiStatusTest(BaseTest):
     def test_status_online(self):
-        response_data = api.on_status(self.activity_for_status('online'))
+        act = self.activity_for_status('online')
+        response_data = api.on_status(act, as_parser(act))
         self.assertEqual(200, response_data[0])
 
     def test_status_invisible(self):
-        response_data = api.on_status(self.activity_for_status('invisible'))
+        act = self.activity_for_status('invisible')
+        response_data = api.on_status(act, as_parser(act))
         self.assertEqual(200, response_data[0])
 
     def test_status_offline(self):
-        response_data = api.on_status(self.activity_for_status('offline'))
+        act = self.activity_for_status('offline')
+        response_data = api.on_status(act, as_parser(act))
         self.assertEqual(200, response_data[0])

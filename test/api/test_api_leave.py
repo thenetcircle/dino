@@ -26,25 +26,16 @@ class ApiLeaveTest(BaseTest):
         self.assert_in_room(False)
 
     def test_leave_when_in_room_is_okay(self):
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
         self.assert_leave_succeeds()
         self.assert_in_room(False)
 
-    def test_leave_without_actor_status_code_400(self):
-        api.on_join(self.activity_for_join())
-        self.assert_in_room(True)
-
-        act = self.activity_for_leave(skip={'actor'})
-        try:
-            api.on_leave(act, as_parser(act))
-            self.fail('should raise exception, not actor')
-        except AttributeError:
-            pass
-
     def test_leave_without_target_id(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
 
         act = self.activity_for_leave(skip={'target'})
@@ -56,7 +47,8 @@ class ApiLeaveTest(BaseTest):
 
     def test_leave_different_room_stays_in_current(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
 
         tmp_room_id = str(uuid())

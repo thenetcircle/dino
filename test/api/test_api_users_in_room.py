@@ -23,7 +23,8 @@ class ApiUsersInRoomTest(BaseTest):
     def test_users_in_room_status_code_200(self):
         self.create_channel_and_room()
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
 
         act = self.activity_for_users_in_room()
@@ -32,7 +33,8 @@ class ApiUsersInRoomTest(BaseTest):
 
     def test_users_in_room_is_only_one(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
 
         act = self.activity_for_users_in_room()
@@ -41,7 +43,8 @@ class ApiUsersInRoomTest(BaseTest):
 
     def test_users_in_room_is_correct_id(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
 
         act = self.activity_for_users_in_room()
@@ -52,7 +55,8 @@ class ApiUsersInRoomTest(BaseTest):
 
     def test_users_in_room_is_correct_name(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
 
         act = self.activity_for_users_in_room()

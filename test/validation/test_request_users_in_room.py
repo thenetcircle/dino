@@ -23,7 +23,8 @@ class RequestUsersInRoomTest(BaseTest):
     def test_users_in_room_status_code_true(self):
         self.create_channel_and_room()
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
 
         response_data = request.on_users_in_room(as_parser(self.activity_for_users_in_room()))
@@ -32,7 +33,8 @@ class RequestUsersInRoomTest(BaseTest):
     def test_users_in_room_no_room_id(self):
         self.create_channel_and_room()
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
 
         act = self.activity_for_users_in_room()
@@ -42,7 +44,8 @@ class RequestUsersInRoomTest(BaseTest):
 
     def test_users_in_room_missing_actor_id_status_code_true(self):
         self.assert_in_room(False)
-        api.on_join(self.activity_for_join())
+        act = self.activity_for_join()
+        api.on_join(act, as_parser(act))
         self.assert_in_room(True)
 
         activity = self.activity_for_users_in_room()

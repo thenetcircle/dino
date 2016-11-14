@@ -17,7 +17,6 @@ import logging
 from typing import Union
 from uuid import uuid4 as uuid
 
-import activitystreams as as_parser
 from activitystreams.models.activity import Activity
 from dino import environ
 from dino import utils
@@ -333,8 +332,6 @@ def on_status(data: dict, activity: Activity) -> (int, Union[str, None]):
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     # todo: leave rooms on invisible/offline?
-
-    activity = as_parser.parse(data)
     user_id = activity.actor.id
     user_name = environ.env.session.get(SessionKeys.user_name.value, None)
     status = activity.verb
@@ -368,7 +365,6 @@ def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
-    activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
     last_read = activity.updated
@@ -386,7 +382,6 @@ def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
     # todo: how to deal with invisibility here?
-    activity = as_parser.parse(data)
     room_id = activity.target.id
     user_id = activity.actor.id
     last_read = activity.updated
