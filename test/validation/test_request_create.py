@@ -14,6 +14,7 @@ from test.utils import BaseTest
 from activitystreams import parse as as_parser
 
 from dino.validation import request
+from dino.config import ErrorCodes
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -21,16 +22,17 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class RequestCreateTest(BaseTest):
     def test_create(self):
         response_data = request.on_create(as_parser(self.activity_for_create()))
-        self.assertEqual(True, response_data[0])
+        self.assertTrue(response_data[0])
 
     def test_create_missing_target_display_name(self):
         activity = self.activity_for_create()
         del activity['target']['displayName']
         response_data = request.on_create(as_parser(activity))
-        self.assertEqual(False, response_data[0])
+        self.assertFalse(response_data[0])
+        self.assertEqual(ErrorCodes.MISSING_TARGET_DISPLAY_NAME, response_data[1])
 
     def test_create_missing_actor_id(self):
         activity = self.activity_for_create()
         del activity['actor']['id']
         response_data = request.on_create(as_parser(activity))
-        self.assertEqual(True, response_data[0])
+        self.assertTrue(response_data[0])

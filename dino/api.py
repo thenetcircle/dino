@@ -22,6 +22,7 @@ from dino import environ
 from dino import utils
 from dino.config import SessionKeys
 from dino.config import ApiTargets
+from dino.config import ErrorCodes as ECodes
 from dino.exceptions import NoSuchUserException
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
@@ -35,7 +36,7 @@ def connect() -> (int, None):
 
     :return: {'status_code': 200}
     """
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
@@ -60,7 +61,7 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
 
     private_room_id, _ = environ.env.db.get_private_room(user_id)
     utils.join_private_room(user_id, activity.actor.summary, private_room_id)
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_delete(data: dict, activity: Activity):
@@ -68,7 +69,7 @@ def on_delete(data: dict, activity: Activity):
     room_id = activity.target.id
     environ.env.storage.delete_message(message_id)
     environ.env.send(data, json=True, room=room_id, broadcast=True)
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_message(data, activity: Activity):
@@ -82,7 +83,7 @@ def on_message(data, activity: Activity):
 
     :param data: activity streams format, must include target.id (room/user id) and object.url (channel id)
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
-    :return: {'status_code': 200, 'data': '<same AS as client sent, plus timestamp>'}
+    :return: {'status_code': ECodes.OK, 'data': '<same AS as client sent, plus timestamp>'}
     """
     room_id = activity.target.id
     from_room_id = activity.actor.url
@@ -97,7 +98,7 @@ def on_message(data, activity: Activity):
     # TODO: update last reads in background thread, want to finish here as soon as possible and ack the user
     utils.update_last_reads(room_id)
 
-    return 200, data
+    return ECodes.OK, data
 
 
 def _kick_user(activity: Activity):
@@ -147,11 +148,11 @@ def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     try:
         utils.ban_user(room_id, kicked_id, ban_duration)
     except NoSuchUserException as e:
-        return 400, 'could not find the specified user: %s' % str(e)
+        return ECodes.NO_SUCH_USER, 'could not find the specified user: %s' % str(e)
 
     _kick_user(activity)
 
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_kick(data: dict, activity: Activity) -> (int, None):
@@ -173,7 +174,7 @@ def on_kick(data: dict, activity: Activity) -> (int, None):
     user_id = activity.object.id
     utils.kick_user(room_id, user_id)
     _kick_user(activity)
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_whisper(data: dict, activity: Activity) -> (int, None):
@@ -195,7 +196,7 @@ def on_whisper(data: dict, activity: Activity) -> (int, None):
 
     activity_json = utils.activity_for_whisper(whisperer, whisperer_name, room_id, room_name, channel_id, channel_name)
     environ.env.send('gn_whisper', activity_json, json=True, room=user_room)
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_invite(data: dict, activity: Activity) -> (int, None):
@@ -217,7 +218,7 @@ def on_invite(data: dict, activity: Activity) -> (int, None):
 
     activity_json = utils.activity_for_invite(invitee, invitee_name, invite_room, room_name, channel_id, channel_name)
     environ.env.send('gn_invitation', activity_json, json=True, room=invitee)
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_request_admin(data: dict, activity: Activity) -> (int, None):
@@ -238,11 +239,11 @@ def on_request_admin(data: dict, activity: Activity) -> (int, None):
 
     if admin_room_id is None or len(admin_room_id.strip()) == 0:
         logger.error('no admin room found for channel "%s"' % channel_id)
-        return 500, 'no admin room for this channel'
+        return ECodes.NO_ADMIN_ROOM_FOUND, 'no admin room for this channel'
 
     activity_json = utils.activity_for_request_admin(user_id, username, room_id, room_name, message)
     environ.env.emit('gn_request_admin', activity_json, json=True, broadcast=True, room=admin_room_id)
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_create(data: dict, activity: Activity) -> (int, dict):
@@ -251,7 +252,7 @@ def on_create(data: dict, activity: Activity) -> (int, dict):
 
     :param data: activity streams format, must include target.display_name (room name) and object.id (channel id)
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
-    :return: if ok: {'status_code': 200, 'data': '<same AS as in the request, with addition of target.id (generated UUID
+    :return: if ok: {'status_code': ECodes.OK, 'data': '<same AS as in the request, with addition of target.id (generated UUID
     for the new room>'}, else: {'status_code': 400, 'data': '<error message>'}
     """
     # generate a uuid for this room
@@ -268,7 +269,7 @@ def on_create(data: dict, activity: Activity) -> (int, dict):
     activity_json = utils.activity_for_create_room(activity)
     environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
 
-    return 200, data
+    return ECodes.OK, data
 
 
 def on_set_acl(data: dict, activity: Activity) -> (int, str):
@@ -304,7 +305,7 @@ def on_set_acl(data: dict, activity: Activity) -> (int, str):
             else:
                 environ.env.db.add_acls_in_room_for_action(target_id, api_action, acls)
 
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict]):
@@ -319,7 +320,7 @@ def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict]):
         acls = utils.get_acls_for_channel(activity.target.id)
     else:
         acls = utils.get_acls_for_room(activity.target.id)
-    return 200, utils.activity_for_get_acl(activity, acls)
+    return ECodes.OK, utils.activity_for_get_acl(activity, acls)
 
 
 def on_status(data: dict, activity: Activity) -> (int, Union[str, None]):
@@ -351,7 +352,7 @@ def on_status(data: dict, activity: Activity) -> (int, Union[str, None]):
         activity_json = utils.activity_for_disconnect(user_id, user_name)
         environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
 
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
@@ -370,7 +371,7 @@ def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
     last_read = activity.updated
 
     messages = utils.get_history_for_room(room_id, user_id, last_read)
-    return 200, utils.activity_for_history(activity, messages)
+    return ECodes.OK, utils.activity_for_history(activity, messages)
 
 
 def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
@@ -399,7 +400,7 @@ def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     acls = utils.get_acls_for_room(room_id)
     users = utils.get_users_in_room(room_id)
 
-    return 200, utils.activity_for_join(activity, acls, messages, owners, users)
+    return ECodes.OK, utils.activity_for_join(activity, acls, messages, owners, users)
 
 
 def on_users_in_room(data: dict, activity: Activity) -> (int, Union[dict, str]):
@@ -408,12 +409,12 @@ def on_users_in_room(data: dict, activity: Activity) -> (int, Union[dict, str]):
 
     :param data: activity streams format, need target.id (room id)
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
-    :return: if ok, {'status_code': 200, 'data': <AS with users as object.attachments>}
+    :return: if ok, {'status_code': ECodes.OK, 'data': <AS with users as object.attachments>}
     """
     # TODO: should people not in the room be able to list users in the room?
     room_id = activity.target.id
     users = utils.get_users_in_room(room_id)
-    return 200, utils.activity_for_users_in_room(activity, users)
+    return ECodes.OK, utils.activity_for_users_in_room(activity, users)
 
 
 def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
@@ -422,11 +423,11 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
 
     :param data: activity streams format, needs actor.id (user id) and object.id (channel id)
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
-    :return: if ok, {'status_code': 200, 'data': <AS with rooms as object.attachments>}
+    :return: if ok, {'status_code': ECodes.OK, 'data': <AS with rooms as object.attachments>}
     """
     channel_id = activity.object.url
     rooms = environ.env.db.rooms_for_channel(channel_id)
-    return 200, utils.activity_for_list_rooms(activity, rooms)
+    return ECodes.OK, utils.activity_for_list_rooms(activity, rooms)
 
 
 def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
@@ -435,10 +436,10 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
 
     :param data: activity streams format, needs actor.id (user id)
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
-    :return: if ok, {'status_code': 200, 'data': <AS with channels as object.attachments>}
+    :return: if ok, {'status_code': ECodes.OK, 'data': <AS with channels as object.attachments>}
     """
     channels = environ.env.db.get_channels()
-    return 200, utils.activity_for_list_channels(activity, channels)
+    return ECodes.OK, utils.activity_for_list_channels(activity, channels)
 
 
 def on_leave(data: dict, activity: Activity) -> (int, Union[str, None]):
@@ -460,7 +461,7 @@ def on_leave(data: dict, activity: Activity) -> (int, Union[str, None]):
     activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
     environ.env.emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
 
-    return 200, None
+    return ECodes.OK, None
 
 
 def on_disconnect() -> (int, None):
@@ -474,7 +475,7 @@ def on_disconnect() -> (int, None):
     user_name = environ.env.session.get(SessionKeys.user_name.value)
 
     if user_id is None or not isinstance(user_id, str) or user_name is None:
-        return 400, 'no user in session, not connected'
+        return ECodes.NO_USER_IN_SESSION, 'no user in session, not connected'
 
     private_room_id = environ.env.db.get_private_room(user_id)[0]
     environ.env.leave_room(private_room_id)
@@ -489,4 +490,4 @@ def on_disconnect() -> (int, None):
 
     activity_json = utils.activity_for_disconnect(user_id, user_name)
     environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
-    return 200, None
+    return ECodes.OK, None

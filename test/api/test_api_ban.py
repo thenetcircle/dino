@@ -15,11 +15,12 @@ from uuid import uuid4 as uuid
 os.environ['ENVIRONMENT'] = 'test'
 
 from activitystreams import parse as as_parser
+from test.utils import BaseTest
 
 from dino import environ
 from dino import api
 from dino.config import RedisKeys
-from test.utils import BaseTest
+from dino.config import ErrorCodes
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -33,7 +34,7 @@ class ApiBanTest(BaseTest):
         json['object']['id'] = str(uuid())
         response_code, _ = api.on_ban(json, as_parser(json))
 
-        self.assertEqual(400, response_code)
+        self.assertEqual(ErrorCodes.NO_SUCH_USER, response_code)
 
     def test_ban_user_exists(self):
         self.create_and_join_room()
@@ -45,7 +46,7 @@ class ApiBanTest(BaseTest):
                 RedisKeys.private_rooms(), ApiBanTest.OTHER_USER_ID), 'utf-8')
 
         response_code, _ = api.on_ban(json, as_parser(json))
-        self.assertEqual(200, response_code)
+        self.assertEqual(ErrorCodes.OK, response_code)
 
     def create_room(self, room_id: str=None, room_name: str=None):
         if room_id is None:
