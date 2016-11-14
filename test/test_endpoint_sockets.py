@@ -1,67 +1,47 @@
-from dino.endpoint import sockets
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import unittest
+from nose_parameterized import parameterized
+
+from dino.config import ConfigKeys
 from dino import environ
+environ.env.config.set(ConfigKeys.TESTING, True)
 
-from test.utils import BaseTest
+import dino.api
+import dino.endpoint.sockets
 
 
-# TODO: cannot seem to wrap the socketio class to mock the @socketio.on() decorator... disabled until fixed
+class SocketsHasApiMethodsTest(unittest.TestCase):
+    api_methods = [name for name in dino.api.__dict__.keys() if name.startswith('on_')]
 
-"""
-class EndpointSocketsTest(BaseTest):
     def setUp(self):
-        super(EndpointSocketsTest, self).setUp()
-        self.assertTrue(len(BaseTest.emit_args) == 0)
-        self.assertTrue(len(BaseTest.emit_kwargs) == 0)
+        self.socket_methods = set(
+                [key for key in dino.endpoint.sockets.__dict__.keys() if key.startswith('on_')]
+        )
 
-    def test_connect(self):
-        sockets.connect()
-        self.assertEqual(200, self.get_emit_status_code())
+    @parameterized.expand(api_methods)
+    def test_api_method_is_in_endpoint(self, method):
+        self.assertIn(method, self.socket_methods)
 
-    def test_disconnect(self):
-        sockets.on_disconnect()
-        self.assertEqual(200, self.get_emit_status_code())
 
-    def test_join(self):
-        sockets.on_join(self.activity_for_join())
-        self.assertEqual(200, self.get_emit_status_code())
+class SocketsHasOnlyApiMethodsTest(unittest.TestCase):
+    socket_methods = set(
+            [key for key in dino.endpoint.sockets.__dict__.keys() if key.startswith('on_')]
+    )
 
-    def test_leave(self):
-        sockets.on_join(self.activity_for_join())
-        self.clear_emit_args()
-        sockets.on_leave(self.activity_for_leave())
-        self.assertEqual(200, self.get_emit_status_code())
+    def setUp(self):
+        self.api_methods = [name for name in dino.api.__dict__.keys() if name.startswith('on_')]
 
-    def test_history(self):
-        sockets.on_history(self.activity_for_history())
-        self.assertEqual(200, self.get_emit_status_code())
-
-    def test_create(self):
-        sockets.on_create(self.activity_for_create())
-        self.assertEqual(200, self.get_emit_status_code())
-
-    def test_message(self):
-        self.create_and_join_room()
-        sockets.on_message(self.activity_for_message())
-        self.assertEqual(200, self.get_emit_status_code())
-
-    def test_get_acl(self):
-        self.create_and_join_room()
-        sockets.on_get_acl(self.activity_for_get_acl())
-        self.assertEqual(200, self.get_emit_status_code())
-
-    def test_set_acl(self):
-        self.create_and_join_room()
-        self.set_owner()
-        sockets.on_get_acl(self.activity_for_set_acl())
-        self.assertEqual(200, self.get_emit_status_code())
-
-    def test_list_rooms(self):
-        sockets.on_list_rooms(self.activity_for_list_rooms())
-        self.assertEqual(200, self.get_emit_status_code())
-
-    def test_clear_emit_args(self):
-        sockets.on_join(self.activity_for_join())
-        self.assertTrue(len(self.emit_args) > 0)
-        self.clear_emit_args()
-        self.assertTrue(len(self.emit_args) == 0)
-"""
+    @parameterized.expand(socket_methods)
+    def test_endpoint_method_is_in_api(self, method):
+        self.assertIn(method, self.api_methods)

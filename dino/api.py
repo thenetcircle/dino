@@ -30,7 +30,7 @@ __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 logger = logging.getLogger(__name__)
 
 
-def on_connect() -> (int, None):
+def connect() -> (int, None):
     """
     connect to the server
 

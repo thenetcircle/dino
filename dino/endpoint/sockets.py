@@ -235,7 +235,7 @@ def send_css(path):
 @socketio.on('connect', namespace='/chat')
 @respond_with('gn_connect')
 def connect() -> (int, None):
-    return api.on_connect()
+    return api.connect()
 
 
 @socketio.on('login', namespace='/chat')
@@ -278,6 +278,20 @@ def on_request_admin(data: dict, activity: Activity) -> (int, Union[str, dict, N
 @pre_process('on_create')
 def on_create(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
     return api.on_create(data, activity)
+
+
+@socketio.on('invite', namespace='/chat')
+@respond_with('gn_invite')
+@pre_process('on_invite')
+def on_invite(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
+    return api.on_invite(data, activity)
+
+
+@socketio.on('ban', namespace='/chat')
+@respond_with('gn_ban')
+@pre_process('on_ban')
+def on_ban(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
+    return api.on_ban(data, activity)
 
 
 @socketio.on('kick', namespace='/chat')
