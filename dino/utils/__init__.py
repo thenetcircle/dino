@@ -303,6 +303,26 @@ def activity_for_invite(
     }
 
 
+def activity_for_whisper(
+        whisperer_id: str, whisperer_name: str, room_id: str, room_name: str,
+        channel_id: str, channel_name: str) -> dict:
+    return {
+        'actor': {
+            'id': whisperer_id,
+            'summary': b64e(whisperer_name)
+        },
+        'verb': 'whisper',
+        'object': {
+            'url': channel_id,
+            'summary': b64e(channel_name)
+        },
+        'target': {
+            'id': room_id,
+            'displayName': b64e(room_name)
+        }
+    }
+
+
 def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     response = {
         'object': {

@@ -287,6 +287,13 @@ def on_invite(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
     return api.on_invite(data, activity)
 
 
+@socketio.on('whisper', namespace='/chat')
+@respond_with('gn_whisper')
+@pre_process('on_whisper')
+def on_whisper(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
+    return api.on_whisper(data, activity)
+
+
 @socketio.on('ban', namespace='/chat')
 @respond_with('gn_ban')
 @pre_process('on_ban')

@@ -39,7 +39,7 @@ def connect() -> (int, None):
     return 200, None
 
 
-def on_login(data: dict, activity: Activity = None) -> (int, Union[str, None]):
+def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
 
@@ -64,7 +64,7 @@ def on_login(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     return 200, None
 
 
-def on_delete(data: dict, activity: Activity = None):
+def on_delete(data: dict, activity: Activity):
     message_id = activity.object.id
     room_id = activity.target.id
     environ.env.storage.delete_message(message_id)
@@ -72,7 +72,7 @@ def on_delete(data: dict, activity: Activity = None):
     return 200, None
 
 
-def on_message(data, activity: Activity = None):
+def on_message(data, activity: Activity):
     """
     send any kind of message/event to a target user/room
 
@@ -125,7 +125,7 @@ def _kick_user(activity: Activity):
     environ.env.publish(kick_activity)
 
 
-def on_ban(data: dict, activity: Activity = None) -> (int, Union[str, None]):
+def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     ban a user from a room (if user is an owner/admin/moderator)
 
@@ -155,7 +155,7 @@ def on_ban(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     return 200, None
 
 
-def on_kick(data: dict, activity: Activity = None) -> (int, None):
+def on_kick(data: dict, activity: Activity) -> (int, None):
     """
     kick a user from a room (if user is an owner)
 
@@ -177,7 +177,29 @@ def on_kick(data: dict, activity: Activity = None) -> (int, None):
     return 200, None
 
 
-def on_invite(data: dict, activity: Activity = None) -> (int, None):
+def on_whisper(data: dict, activity: Activity) -> (int, None):
+    """
+    whisper to another person in the same room, only that person will receive the event. Functions as a private message
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    user_room = activity.target.id
+    whisperer = activity.actor.id
+    room_id = activity.actor.url
+    channel_id = activity.object.url
+
+    whisperer_name = utils.get_user_name_for(whisperer)
+    channel_name = utils.get_channel_name(channel_id)
+    room_name = utils.get_room_name(room_id)
+
+    activity_json = utils.activity_for_whisper(whisperer, whisperer_name, room_id, room_name, channel_id, channel_name)
+    environ.env.send('gn_whisper', activity_json, json=True, room=user_room)
+    return 200, None
+
+
+def on_invite(data: dict, activity: Activity) -> (int, None):
     """
     invite a user to the a room this user is in
 
@@ -224,7 +246,7 @@ def on_request_admin(data: dict, activity: Activity) -> (int, None):
     return 200, None
 
 
-def on_create(data: dict, activity: Activity = None) -> (int, dict):
+def on_create(data: dict, activity: Activity) -> (int, dict):
     """
     create a new room
 
@@ -250,7 +272,7 @@ def on_create(data: dict, activity: Activity = None) -> (int, dict):
     return 200, data
 
 
-def on_set_acl(data: dict, activity: Activity = None) -> (int, str):
+def on_set_acl(data: dict, activity: Activity) -> (int, str):
     """
     change ACL of a room; only allowed if the user is the owner of the room
 
@@ -286,7 +308,7 @@ def on_set_acl(data: dict, activity: Activity = None) -> (int, str):
     return 200, None
 
 
-def on_get_acl(data: dict, activity: Activity = None) -> (int, Union[str, dict]):
+def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict]):
     """
     change ACL of a room; only allowed if the user is the owner of the room
 
@@ -301,7 +323,7 @@ def on_get_acl(data: dict, activity: Activity = None) -> (int, Union[str, dict])
     return 200, utils.activity_for_get_acl(activity, acls)
 
 
-def on_status(data: dict, activity: Activity = None) -> (int, Union[str, None]):
+def on_status(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     change online status
 
@@ -335,7 +357,7 @@ def on_status(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     return 200, None
 
 
-def on_history(data: dict, activity: Activity = None) -> (int, Union[str, None]):
+def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     get the history of a room
 
@@ -355,7 +377,7 @@ def on_history(data: dict, activity: Activity = None) -> (int, Union[str, None])
     return 200, utils.activity_for_history(activity, messages)
 
 
-def on_join(data: dict, activity: Activity = None) -> (int, Union[str, None]):
+def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     join a room
 
@@ -385,7 +407,7 @@ def on_join(data: dict, activity: Activity = None) -> (int, Union[str, None]):
     return 200, utils.activity_for_join(activity, acls, messages, owners, users)
 
 
-def on_users_in_room(data: dict, activity: Activity = None) -> (int, Union[dict, str]):
+def on_users_in_room(data: dict, activity: Activity) -> (int, Union[dict, str]):
     """
     get a list of users in a room
 
@@ -399,7 +421,7 @@ def on_users_in_room(data: dict, activity: Activity = None) -> (int, Union[dict,
     return 200, utils.activity_for_users_in_room(activity, users)
 
 
-def on_list_rooms(data: dict, activity: Activity = None) -> (int, Union[dict, str]):
+def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     """
     get a list of rooms
 
@@ -412,7 +434,7 @@ def on_list_rooms(data: dict, activity: Activity = None) -> (int, Union[dict, st
     return 200, utils.activity_for_list_rooms(activity, rooms)
 
 
-def on_list_channels(data: dict, activity: Activity = None) -> (int, Union[dict, str]):
+def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     """
     get a list of channels
 
@@ -424,7 +446,7 @@ def on_list_channels(data: dict, activity: Activity = None) -> (int, Union[dict,
     return 200, utils.activity_for_list_channels(activity, channels)
 
 
-def on_leave(data: dict, activity: Activity = None) -> (int, Union[str, None]):
+def on_leave(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     leave a room
 
