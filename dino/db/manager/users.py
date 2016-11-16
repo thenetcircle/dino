@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -42,7 +40,8 @@ class UserManager(BaseManager):
         return output
 
     def kick_user(self, room_id: str, user_id: str) -> None:
-        self.env.db.kick_user(room_id, user_id)
+        real_user_id = self.env.db.get_user_for_private_room(user_id)
+        self.env.db.kick_user(room_id, real_user_id)
         kick_activity = {
             'actor': {
                 'id': '',
@@ -51,7 +50,7 @@ class UserManager(BaseManager):
             'verb': 'kick',
             'object': {
                 'id': user_id,
-                'summary': self.env.db.get_user_name(user_id)
+                'summary': self.env.db.get_user_name(real_user_id)
             },
             'target': {
                 'id': room_id,

@@ -58,8 +58,13 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
         environ.env.session[SessionKeys.image.value] = 'y'
 
     utils.set_sid_for_user_id(user_id, environ.env.request.sid)
-
+    user_name = environ.env.session.get(SessionKeys.user_name.value)
     private_room_id, _ = environ.env.db.get_private_room(user_id)
+
+    if user_name is not None and len(user_name.strip()) > 0:
+        print('setting name "%s" for user id "%s"' % (user_name, user_id))
+        utils.set_name_for_user_id(user_id, user_name)
+
     utils.join_private_room(user_id, activity.actor.summary, private_room_id)
     return ECodes.OK, None
 
@@ -389,6 +394,8 @@ def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     image = environ.env.session.get(SessionKeys.image.value, '')
 
+    utils.set_sid_for_user_id(user_id, environ.env.request.sid)
+
     room_name = utils.get_room_name(room_id)
     utils.join_the_room(user_id, user_name, room_id, room_name)
 
@@ -483,7 +490,7 @@ def on_disconnect() -> (int, None):
 
     for room_id, room_name in rooms.items():
         utils.remove_user_from_room(user_id, user_name, room_id)
-        environ.env.send(utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_id)
+        environ.env.emit('gn_user_left', utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_id)
 
     environ.env.db.remove_current_rooms_for_user(user_id)
     environ.env.db.set_user_offline(user_id)

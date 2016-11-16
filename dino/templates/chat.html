@@ -313,6 +313,12 @@
                     add_to_chat('<< ' + b64d(data.actor.summary) + ' has left room ' + b64d(data.target.displayName) + ' >>\n');
                 });
 
+                socket.on('gn_user_kicked', function(data) {
+                    console.log(data);
+                    $('a#user-' + data.actor.id).remove();
+                    add_to_chat('<< ' + b64d(data.object.summary) + ' has been kicked from room ' + b64d(data.target.displayName) + ' >>\n');
+                });
+
                 socket.on('gn_user_joined', function(data) {
                     console.log(data);
 
@@ -334,6 +340,7 @@
                 });
 
                 handle_message = function(data) {
+                    console.log(data);
                     if ($('#room-id').val() == data.target.id || $('#room-id').val() == data.actor.id) {
                         add_to_chat(data.published + ' <' + b64d(data.actor.summary) + '> ' + b64d(data.object.content) + '\n');
                     }

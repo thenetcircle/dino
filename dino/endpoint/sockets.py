@@ -91,8 +91,6 @@ class Worker(ConsumerMixin):
             self.should_stop = True
 
     def process_task(self, body, message):
-        print('got task with body: %s' % str(body))
-        print('task message: %s' % str(message))
         try:
             handle_server_activity(as_parser.parse(body))
         except (ActivityException, AttributeError) as e:
@@ -102,22 +100,21 @@ class Worker(ConsumerMixin):
 
 def handle_server_activity(activity: Activity):
     def _kick(_room_id, _user_id, _user_sid):
-        print('about to kick %s from %s' % (_user_sid, room_id))
-        print('rooms for namespace %s: %s' % (namespace, str(socketio.server.manager.rooms[namespace])))
         try:
             _users = socketio.server.manager.rooms[namespace][_room_id]
         except Exception as e:
-            print('could not: %s' % str(e))
+            logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, _room_id, str(e)))
+            print(traceback.format_exc())
             return
-        print('here')
-        print('sid %s, got users in room %s: %s' % (_user_sid, _room_id, str(_users)))
+
         if _user_sid in _users:
             try:
                 socketio.server.leave_room(_user_sid, _room_id, '/chat')
             except Exception as e:
                 logger.error('could not kick user %s from room %s: %s' % (_user_id, _room_id, str(e)))
                 return
-            environ.env.out_of_scope_emit('gn_user_kicked', activity_json, json=True, room=_room_id, broadcast=True)
+            environ.env.out_of_scope_emit(
+                    'gn_user_kicked', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
 
     if activity.verb == 'kick':
         kicker_id = activity.actor.id
@@ -132,16 +129,14 @@ def handle_server_activity(activity: Activity):
         namespace = activity.target.url
 
         if kicked_sid is None or kicked_sid == [None] or kicked_sid == '':
-            logger.info('no sid found for user id %s' % kicked_id)
+            logger.warn('no sid found for user id %s' % kicked_id)
             return
 
         activity_json = utils.activity_for_user_kicked(
                 kicker_id, kicker_name, kicked_id, kicked_name, room_id, room_name)
 
         try:
-            print('namespaces: %s' % ','.join(socketio.server.manager.rooms.keys()))
             # user just got banned globally, kick from all rooms
-            print('room_id: %s' % str(room_id))
             if room_id is None or room_id == '':
                 for room_key in socketio.server.manager.rooms[namespace].keys():
                     _kick(room_key, kicked_id, kicked_sid)
@@ -263,6 +258,7 @@ def on_login(data: dict, activity: Activity) -> (int, str):
         return status_code, msg
     except Exception as e:
         logger.error('could not login, will disconnect client: %s' % str(e))
+        print(traceback.format_exc())
         return 500, str(e)
 
 

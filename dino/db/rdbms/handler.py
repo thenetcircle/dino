@@ -1149,6 +1149,7 @@ class DatabaseRdbms(object):
         user.name = user_name
         self.session.add(user)
         self.session.commit()
+        self.env.cache.set_user_name(user_id, user_name)
 
     def create_user(self, user_id: str, user_name: str) -> None:
         @with_session
@@ -1191,11 +1192,11 @@ class DatabaseRdbms(object):
             return user.name
 
         user_name = self.env.cache.get_user_name(user_id)
-        if user_name is not None:
+        if user_name is not None and len(user_name.strip()) > 0:
             return user_name
 
         user_name = _get_user_name(self)
-        if user_name is not None:
+        if user_name is not None and len(user_name.strip()) > 0:
             self.env.cache.set_user_name(user_id, user_name)
         return user_name
 
