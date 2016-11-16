@@ -105,6 +105,26 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
     }
 
 
+def activity_for_user_banned(
+        banner_id: str, banner_name: str, banned_id: str, banned_name: str, room_id: str, room_name: str) -> dict:
+    return {
+        'actor': {
+            'id': banner_id,
+            'summary': b64e(banner_name)
+        },
+        'object': {
+            'id': banned_id,
+            'summary': b64e(banned_name)
+        },
+        'target': {
+            'id': room_id,
+            'displayName': b64e(room_name),
+            'objectType': 'group'
+        },
+        'verb': 'ban'
+    }
+
+
 def activity_for_user_kicked(
         kicker_id: str, kicker_name: str, kicked_id: str, kicked_name: str, room_id: str, room_name: str) -> dict:
     return {

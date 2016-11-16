@@ -49,7 +49,7 @@ class UserManager(BaseManager):
             },
             'verb': 'kick',
             'object': {
-                'id': user_id,
+                'id': real_user_id,
                 'summary': self.env.db.get_user_name(real_user_id)
             },
             'target': {
@@ -65,12 +65,18 @@ class UserManager(BaseManager):
         if user_id is None or len(user_id.strip()) == 0:
             raise NoSuchUserException(private_room_id)
 
+        target_name = None
         timestamp = ban_duration_to_timestamp(duration)
+
         if target_type == 'global':
             self.env.db.ban_user_global(user_id, timestamp, duration)
+
         elif target_type == 'channel':
+            target_name = self.env.db.get_room_name(target_id)
             self.env.db.ban_user_channel(user_id, timestamp, duration, target_id)
+
         elif target_type == 'room':
+            target_name = self.env.db.get_channel_name(target_id)
             self.env.db.ban_user_room(user_id, timestamp, duration, target_id)
         else:
             raise UnknownBanTypeException(target_type)
@@ -89,6 +95,11 @@ class UserManager(BaseManager):
                 'url': '/chat'
             }
         }
+
+        if target_name is not None:
+            ban_activity['target']['id'] = target_id
+            ban_activity['target']['displayName'] = target_name
+
         self.env.publish(ban_activity)
 
     def remove_ban(self, user_id: str, target_id: str, target_type: str) -> None:

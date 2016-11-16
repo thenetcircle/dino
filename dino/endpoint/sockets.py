@@ -115,6 +115,33 @@ def handle_server_activity(activity: Activity):
                 return
             environ.env.out_of_scope_emit(
                     'gn_user_kicked', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
+            
+    def _ban_room(_room_id, _user_id, _user_sid):
+        try:
+            _users = socketio.server.manager.rooms[namespace][_room_id]
+        except Exception as e:
+            logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, _room_id, str(e)))
+            print(traceback.format_exc())
+            return
+
+        if _user_sid in _users:
+            try:
+                socketio.server.leave_room(_user_sid, _room_id, '/chat')
+            except Exception as e:
+                logger.error('could not ban user %s from room %s: %s' % (_user_id, _room_id, str(e)))
+                return
+            environ.env.out_of_scope_emit(
+                    'gn_user_banned', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
+            
+    def _ban_channel(_channel_id, _user_id, _user_sid):
+        rooms_in_channel = environ.env.db.rooms_for_channel(_channel_id)
+        for room in rooms_in_channel:
+            _ban_room(room, _user_id, _user_sid)
+
+    def _ban_globally(_channel_id, _user_id, _user_sid):
+        rooms_for_user = environ.env.db.rooms_for_user(_channel_id)
+        for room in rooms_for_user:
+            _ban_room(room, _user_id, _user_sid)
 
     if activity.verb == 'kick':
         kicker_id = activity.actor.id
@@ -142,6 +169,38 @@ def handle_server_activity(activity: Activity):
                     _kick(room_key, kicked_id, kicked_sid)
             else:
                 _kick(room_id, kicked_id, kicked_sid)
+        except KeyError:
+            pass
+
+    if activity.verb == 'ban':
+        banner_id = activity.actor.id
+        banner_name = activity.actor.summary
+        banned_id = activity.object.id
+        banned_name = activity.object.summary
+
+        banned_id = utils.get_user_for_private_room(banned_id)
+        banned_sid = utils.get_sid_for_user_id(banned_id)
+        target_id = activity.target.id
+        target_name = activity.target.display_name
+        namespace = activity.target.url
+        target_type = activity.target.object_type
+
+        if banned_sid is None or banned_sid == [None] or banned_sid == '':
+            logger.warn('no sid found for user id %s' % banned_id)
+            return
+
+        activity_json = utils.activity_for_user_banned(
+                banner_id, banner_name, banned_id, banned_name, target_id, target_name)
+
+        try:
+            # user just got banned globally, ban from all rooms
+            if target_id is None or target_id == '':
+                for room_key in socketio.server.manager.rooms[namespace].keys():
+                    _ban_globally(room_key, banned_id, banned_sid)
+            elif target_type == 'channel':
+                _ban_channel(target_id, banned_id, banned_sid)
+            else:
+                _ban_room(target_id, banned_id, banned_sid)
         except KeyError:
             pass
 
