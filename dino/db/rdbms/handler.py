@@ -310,7 +310,7 @@ class DatabaseRdbms(object):
         _set_user_online()
 
     @with_session
-    def rooms_for_user(self, user_id: str = None, session=None) -> dict:
+    def rooms_for_user(self, user_id: str, session=None) -> dict:
         rows = session.query(Rooms)\
             .join(Rooms.users)\
             .filter(Users.uuid == user_id)\
@@ -1259,30 +1259,6 @@ class DatabaseRdbms(object):
             return value
         return _get_channel_name()
 
-    def _get_banned_users(self, all_bans, session=None):
-        output = dict()
-        if all_bans is None or len(all_bans) == 0:
-            return output
-
-        should_commit = False
-        now = datetime.utcnow()
-
-        for ban in all_bans:
-            if now > ban.timestamp:
-                session.delete(ban)
-                should_commit = True
-                continue
-
-            output[ban.user_id] = {
-                'name': ban.user_name,
-                'duration': ban.duration,
-                'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-            }
-
-        if should_commit:
-            session.commit()
-        return output
-
     def is_banned_globally(self, user_id: str) -> (bool, Union[str, None]):
         now = datetime.utcnow()
         duration, time, username = self.env.cache.get_global_ban_timestamp(user_id)
@@ -1491,6 +1467,30 @@ class DatabaseRdbms(object):
         session.delete(ban)
         session.commit()
 
+    def _get_banned_users(self, all_bans, session=None):
+        output = dict()
+        if all_bans is None or len(all_bans) == 0:
+            return output
+
+        should_commit = False
+        now = datetime.utcnow()
+
+        for ban in all_bans:
+            if now > ban.timestamp:
+                session.delete(ban)
+                should_commit = True
+                continue
+
+            output[ban.user_id] = {
+                'name': ban.user_name,
+                'duration': ban.duration,
+                'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+            }
+
+        if should_commit:
+            session.commit()
+        return output
+
     @with_session
     def get_banned_users_global(self, room_id: str, session=None) -> dict:
         all_bans = session.query(Bans).filter(Bans.is_global.is_(True)).all()
@@ -1659,7 +1659,7 @@ class DatabaseRdbms(object):
                 .join(Bans.channel)\
                 .filter(Bans.user_id == user_id)\
                 .filter(Channels.uuid == channel_id).first()
-    
+
             if ban is None:
                 channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
                 ban = Bans()
@@ -1667,12 +1667,12 @@ class DatabaseRdbms(object):
                 ban.user_id = user_id
                 ban.channel = channel
                 ban.user_name = username
-    
+
             ban.timestamp = datetime.fromtimestamp(int(ban_timestamp))
             ban.duration = ban_duration
 
             _remove_user_from_rooms_in_channel(session)
-    
+
             session.add(ban)
             session.commit()
 

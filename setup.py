@@ -25,6 +25,7 @@ setup(
         'redis',           # redis client
         'psycopg2',
         'sqlalchemy',
+        'flask-restful',
         'flask-socketio',
         'flask_wtf',
         'wtforms',
