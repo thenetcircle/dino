@@ -1571,24 +1571,6 @@ class DatabaseRdbms(object):
 
     def kick_user(self, room_id: str, user_id: str) -> None:
         self.leave_room(user_id, room_id)
-    
-    @with_session
-    def remove_user_from_rooms_in_channel(self, channel_id: str, user_id: str, session=None) -> None:
-        channel = session.query(Channels)\
-            .join(Channels.rooms)\
-            .join(Rooms.users)\
-            .filter(Channels.uuid == channel_id)\
-            .filter(Users.uuid == user_id)\
-            .first()
-
-        if channel is not None:
-            if channel.rooms is not None and len(channel.rooms) > 0:
-                for room in channel.rooms:
-                    if room.users is not None and len(room.users) > 0:
-                        for user in room.users:
-                            if user.uuid == user_id:
-                                room.users.remove(user)
-                    session.add(room)
 
     @with_session
     def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str, session=None):
@@ -1688,9 +1670,28 @@ class DatabaseRdbms(object):
     
             ban.timestamp = datetime.fromtimestamp(int(ban_timestamp))
             ban.duration = ban_duration
+
+            _remove_user_from_rooms_in_channel(session)
     
             session.add(ban)
             session.commit()
+
+        def _remove_user_from_rooms_in_channel(session) -> None:
+            channel = session.query(Channels)\
+                .join(Channels.rooms)\
+                .join(Rooms.users)\
+                .filter(Channels.uuid == channel_id)\
+                .filter(Users.uuid == user_id)\
+                .first()
+
+            if channel is not None:
+                if channel.rooms is not None and len(channel.rooms) > 0:
+                    for room in channel.rooms:
+                        if room.users is not None and len(room.users) > 0:
+                            for user in room.users:
+                                if user.uuid == user_id:
+                                    room.users.remove(user)
+                        session.add(room)
 
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
@@ -1701,7 +1702,6 @@ class DatabaseRdbms(object):
         except NoSuchUserException:
             pass
 
-        self.remove_user_from_rooms_in_channel(channel_id, user_id)
         self.env.cache.set_channel_ban_timestamp(
                 channel_id, user_id, ban_duration, ban_timestamp, self.get_user_name(user_id))
 
