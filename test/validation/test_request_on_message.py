@@ -21,6 +21,7 @@ from dino.auth.redis import AuthRedis
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
+from dino.config import ErrorCodes
 from dino.validation import RequestValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
@@ -33,6 +34,7 @@ class FakeDb(object):
     _channel_exists = dict()
     _room_exists = dict()
     _room_contains = dict()
+    _private_rooms = dict()
 
     _ban_status = {
         'global': '',
@@ -62,6 +64,11 @@ class FakeDb(object):
     def is_super_user(self, *args):
         return False
 
+    def is_room_private(self, room_id):
+        if room_id not in FakeDb._private_rooms:
+            return False
+        return FakeDb._private_rooms[room_id]
+
     def get_acls_in_channel_for_action(self, channel_id, action):
         return FakeDb._channel_acls[action]
 
@@ -81,7 +88,7 @@ class FakeDb(object):
         return user_id in FakeDb._room_contains[room_id]
 
 
-class TestRequestValidator(TestCase):
+class RequestMessageTest(TestCase):
     CHANNEL_ID = '8765'
     ROOM_ID = '4567'
     OTHER_ROOM_ID = '9999'
@@ -102,10 +109,44 @@ class TestRequestValidator(TestCase):
         is_valid, code, msg = self.validator.on_message(self.act())
         self.assertTrue(is_valid)
 
+    def test_no_object_content(self):
+        act = self.json_act()
+        del act['object']['content']
+        is_valid, code, msg = self.validator.on_message(as_parser(act))
+        self.assertFalse(is_valid)
+
+    def test_blank_object_content(self):
+        act = self.json_act()
+        act['object']['content'] = ''
+        is_valid, code, msg = self.validator.on_message(as_parser(act))
+        self.assertFalse(is_valid)
+
+    def test_object_content_not_base64(self):
+        act = self.json_act()
+        act['object']['content'] = 'this is not base64'
+        is_valid, code, msg = self.validator.on_message(as_parser(act))
+        self.assertFalse(is_valid)
+
+    def test_private_object_type_private_room(self):
+        json_act = self.json_act()
+        json_act['target']['id'] = RequestMessageTest.OTHER_ROOM_ID
+        json_act['target']['objectType'] = 'private'
+        is_valid, code, msg = self.validator.on_message(as_parser(json_act))
+        self.assertTrue(is_valid)
+
+    def test_private_object_type_non_private_room(self):
+        json_act = self.json_act()
+        json_act['target']['id'] = RequestMessageTest.ROOM_ID
+        json_act['target']['objectType'] = 'private'
+        is_valid, code, msg = self.validator.on_message(as_parser(json_act))
+        self.assertEqual(code, ErrorCodes.INVALID_TARGET_TYPE)
+        self.assertFalse(is_valid)
+
     def test_wrong_object_type(self):
         json_act = self.json_act()
         json_act['target']['objectType'] = 'foo'
         is_valid, code, msg = self.validator.on_message(as_parser(json_act))
+        self.assertEqual(code, ErrorCodes.INVALID_TARGET_TYPE)
         self.assertFalse(is_valid)
 
     def test_no_room_id(self):
@@ -121,62 +162,62 @@ class TestRequestValidator(TestCase):
         self.assertFalse(is_valid)
 
     def test_channel_does_not_exist(self):
-        FakeDb._channel_exists[TestRequestValidator.CHANNEL_ID] = False
+        FakeDb._channel_exists[RequestMessageTest.CHANNEL_ID] = False
         json_act = self.json_act()
         is_valid, code, msg = self.validator.on_message(as_parser(json_act))
         self.assertFalse(is_valid)
 
     def test_room_does_not_exist(self):
-        FakeDb._room_exists[TestRequestValidator.ROOM_ID] = False
+        FakeDb._room_exists[RequestMessageTest.ROOM_ID] = False
         json_act = self.json_act()
         is_valid, code, msg = self.validator.on_message(as_parser(json_act))
         self.assertFalse(is_valid)
 
     def test_origin_room_does_not_exist(self):
         json_act = self.json_act()
-        json_act['actor']['url'] = TestRequestValidator.OTHER_ROOM_ID
+        json_act['actor']['url'] = RequestMessageTest.OTHER_ROOM_ID
         is_valid, code, msg = self.validator.on_message(as_parser(json_act))
         self.assertFalse(is_valid)
 
     def test_not_in_target_room(self):
         json_act = self.json_act()
-        FakeDb._room_contains[TestRequestValidator.ROOM_ID].remove(TestRequestValidator.USER_ID)
+        FakeDb._room_contains[RequestMessageTest.ROOM_ID].remove(RequestMessageTest.USER_ID)
         is_valid, code, msg = self.validator.on_message(as_parser(json_act))
         self.assertFalse(is_valid)
 
     def test_cross_room_not_same_channel(self):
         json_act = self.json_act()
-        json_act['actor']['url'] = TestRequestValidator.ROOM_ID
+        json_act['actor']['url'] = RequestMessageTest.ROOM_ID
         json_act['provider'] = dict()
-        json_act['provider']['url'] = TestRequestValidator.OTHER_CHANNEL_ID
-        json_act['target']['id'] = TestRequestValidator.OTHER_ROOM_ID
+        json_act['provider']['url'] = RequestMessageTest.OTHER_CHANNEL_ID
+        json_act['target']['id'] = RequestMessageTest.OTHER_ROOM_ID
 
-        FakeDb._room_exists[TestRequestValidator.OTHER_ROOM_ID] = True
-        FakeDb._channel_exists[TestRequestValidator.OTHER_CHANNEL_ID] = True
+        FakeDb._room_exists[RequestMessageTest.OTHER_ROOM_ID] = True
+        FakeDb._channel_exists[RequestMessageTest.OTHER_CHANNEL_ID] = True
 
         is_valid, code, msg = self.validator.on_message(as_parser(json_act))
         self.assertFalse(is_valid)
 
     def test_cross_room_same_channel(self):
         json_act = self.json_act()
-        json_act['actor']['url'] = TestRequestValidator.ROOM_ID
+        json_act['actor']['url'] = RequestMessageTest.ROOM_ID
         json_act['provider'] = dict()
-        json_act['provider']['url'] = TestRequestValidator.CHANNEL_ID
+        json_act['provider']['url'] = RequestMessageTest.CHANNEL_ID
 
-        FakeDb._room_exists[TestRequestValidator.OTHER_ROOM_ID] = True
-        FakeDb._room_contains[TestRequestValidator.OTHER_ROOM_ID].add(TestRequestValidator.USER_ID)
+        FakeDb._room_exists[RequestMessageTest.OTHER_ROOM_ID] = True
+        FakeDb._room_contains[RequestMessageTest.OTHER_ROOM_ID].add(RequestMessageTest.USER_ID)
 
         is_valid, code, msg = self.validator.on_message(as_parser(json_act))
         self.assertTrue(is_valid)
 
     def test_cross_room_same_channel_not_in_origin_room(self):
         json_act = self.json_act()
-        json_act['actor']['url'] = TestRequestValidator.ROOM_ID
+        json_act['actor']['url'] = RequestMessageTest.ROOM_ID
         json_act['provider'] = dict()
-        json_act['provider']['url'] = TestRequestValidator.CHANNEL_ID
+        json_act['provider']['url'] = RequestMessageTest.CHANNEL_ID
 
-        FakeDb._room_exists[TestRequestValidator.OTHER_ROOM_ID] = True
-        FakeDb._room_contains[TestRequestValidator.ROOM_ID].remove(TestRequestValidator.USER_ID)
+        FakeDb._room_exists[RequestMessageTest.OTHER_ROOM_ID] = True
+        FakeDb._room_contains[RequestMessageTest.ROOM_ID].remove(RequestMessageTest.USER_ID)
 
         is_valid, code, msg = self.validator.on_message(as_parser(json_act))
         self.assertFalse(is_valid)
@@ -187,15 +228,15 @@ class TestRequestValidator(TestCase):
     def json_act(self):
         return {
             'actor': {
-                'id': TestRequestValidator.USER_ID
+                'id': RequestMessageTest.USER_ID
             },
             'verb': 'join',
             'object': {
-                'url': TestRequestValidator.CHANNEL_ID,
+                'url': RequestMessageTest.CHANNEL_ID,
                 'content': b64e('this is the message')
             },
             'target': {
-                'id': TestRequestValidator.ROOM_ID,
+                'id': RequestMessageTest.ROOM_ID,
                 'objectType': 'room'
             }
         }
@@ -203,35 +244,40 @@ class TestRequestValidator(TestCase):
     def setUp(self):
         environ.env.db = FakeDb()
         FakeDb._channel_exists = {
-            TestRequestValidator.CHANNEL_ID: True,
-            TestRequestValidator.OTHER_CHANNEL_ID: False
+            RequestMessageTest.CHANNEL_ID: True,
+            RequestMessageTest.OTHER_CHANNEL_ID: False
         }
 
         FakeDb._room_exists = {
-            TestRequestValidator.ROOM_ID: True,
-            TestRequestValidator.OTHER_ROOM_ID: False
+            RequestMessageTest.ROOM_ID: True,
+            RequestMessageTest.OTHER_ROOM_ID: False
         }
 
         FakeDb._room_contains = {
-            TestRequestValidator.ROOM_ID: {
-                TestRequestValidator.USER_ID
+            RequestMessageTest.ROOM_ID: {
+                RequestMessageTest.USER_ID
             },
-            TestRequestValidator.OTHER_ROOM_ID: set()
+            RequestMessageTest.OTHER_ROOM_ID: set()
+        }
+
+        FakeDb._private_rooms = {
+            RequestMessageTest.ROOM_ID: False,
+            RequestMessageTest.OTHER_ROOM_ID: True
         }
 
         self.auth = AuthRedis(host='mock')
         environ.env.session = {
-            SessionKeys.user_id.value: TestRequestValidator.USER_ID,
-            SessionKeys.user_name.value: TestRequestValidator.USER_NAME,
-            SessionKeys.age.value: TestRequestValidator.AGE,
-            SessionKeys.gender.value: TestRequestValidator.GENDER,
-            SessionKeys.membership.value: TestRequestValidator.MEMBERSHIP,
-            SessionKeys.image.value: TestRequestValidator.IMAGE,
-            SessionKeys.has_webcam.value: TestRequestValidator.HAS_WEBCAM,
-            SessionKeys.fake_checked.value: TestRequestValidator.FAKE_CHECKED,
-            SessionKeys.country.value: TestRequestValidator.COUNTRY,
-            SessionKeys.city.value: TestRequestValidator.CITY,
-            SessionKeys.token.value: TestRequestValidator.TOKEN
+            SessionKeys.user_id.value: RequestMessageTest.USER_ID,
+            SessionKeys.user_name.value: RequestMessageTest.USER_NAME,
+            SessionKeys.age.value: RequestMessageTest.AGE,
+            SessionKeys.gender.value: RequestMessageTest.GENDER,
+            SessionKeys.membership.value: RequestMessageTest.MEMBERSHIP,
+            SessionKeys.image.value: RequestMessageTest.IMAGE,
+            SessionKeys.has_webcam.value: RequestMessageTest.HAS_WEBCAM,
+            SessionKeys.fake_checked.value: RequestMessageTest.FAKE_CHECKED,
+            SessionKeys.country.value: RequestMessageTest.COUNTRY,
+            SessionKeys.city.value: RequestMessageTest.CITY,
+            SessionKeys.token.value: RequestMessageTest.TOKEN
         }
 
         environ.env.config = {
@@ -290,5 +336,5 @@ class TestRequestValidator(TestCase):
                 }
             }
         }
-        self.auth.redis.hmset(RedisKeys.auth_key(TestRequestValidator.USER_ID), environ.env.session)
+        self.auth.redis.hmset(RedisKeys.auth_key(RequestMessageTest.USER_ID), environ.env.session)
         self.validator = RequestValidator()

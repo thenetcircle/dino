@@ -441,9 +441,9 @@ def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
     end = datetime.strptime(timestamp, ConfigKeys.DEFAULT_DATE_FORMAT)
     diff = (end - now)
     if diff.seconds < 0:
-        logger.error(
-                'is_banned_globally(): time left for ban "%s" is negative for user_id "%s"' %
-                (str(diff.seconds), user_id))
+        environ.env.db.remove
+        return False, None
+    return True, diff.seconds
 
 
 def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):

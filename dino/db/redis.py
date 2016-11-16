@@ -449,6 +449,7 @@ class DatabaseRedis(object):
 
     def is_banned_globally(self, user_id: str) -> (bool, Union[str, None]):
         ban = self.redis.hget(RedisKeys.banned_users(), user_id)
+        # TODO: remove ban if passed, like rdbms implementation
         return self._is_banned(ban)
 
     def is_banned_from_channel(self, channel_id: str, user_id: str) -> (bool, Union[str, None]):

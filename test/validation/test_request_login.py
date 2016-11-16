@@ -13,15 +13,20 @@
 from test.utils import BaseTest
 from activitystreams import parse as as_parser
 
+import datetime
+
 from dino import environ
 from dino.validation import request
 from dino.config import RedisKeys
+from dino.config import ConfigKeys
+from dino.config import ErrorCodes
 
 
 class RequestLogintest(BaseTest):
     def setUp(self):
         super(RequestLogintest, self).setUp()
         self.clear_session()
+        environ.env.db.redis.hdel(RedisKeys.banned_users(), BaseTest.USER_ID)
 
     def assert_login_ok(self, act: dict = None):
         if act is None:
@@ -37,8 +42,30 @@ class RequestLogintest(BaseTest):
             response = request.on_login(as_parser(act))[0]
         self.assertFalse(response)
 
+    def ban_user(self, past=False):
+        if past:
+            bantime = datetime.datetime.utcnow() - datetime.timedelta(0, 240)  # 4 minutes ago
+        else:
+            bantime = datetime.datetime.utcnow() + datetime.timedelta(0, 240)  # 4 minutes left
+
+        bantime = bantime.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        environ.env.db.redis.hset(RedisKeys.banned_users(), BaseTest.USER_ID, 'asdf|%s' % bantime)
+
     def test_login(self):
         self.assert_login_ok()
+
+    def test_login_is_banned(self):
+        self.ban_user()
+        is_valid, code, message = request.on_login(as_parser(self.activity_for_login()))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.USER_IS_BANNED)
+
+    """
+    def test_login_was_banned(self):
+        self.ban_user(past=True)
+        is_valid, code, message = request.on_login(as_parser(self.activity_for_login()))
+        self.assertTrue(is_valid)
+    """
 
     def test_login_session_contains_user_id(self):
         self.assert_not_in_session('user_id', RequestLogintest.USER_ID)

@@ -75,12 +75,8 @@ class RequestValidator(BaseValidator):
                     return False, ECodes.NOT_ALLOWED, 'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
 
         elif object_type == 'private':
-            try:
-                if not utils.is_room_private(room_id):
-                    return False, ECodes.INVALID_TARGET_TYPE, 'target is not a private chat, use object_type "group" instead'
-            except Exception:
-                print(traceback.format_exc())
-                return False, ECodes.UNKNOWN_ERROR, 'could not check private room'
+            if not utils.is_room_private(room_id):
+                return False, ECodes.INVALID_TARGET_TYPE, 'target is not a private chat, use object_type "group" instead'
 
         return True, None, None
 
@@ -337,6 +333,6 @@ class RequestValidator(BaseValidator):
             str(base64.b64decode(bytes(s, 'utf-8')), 'utf-8')
         except Exception as e:
             logger.warning('invalid message content, could not decode base64: %s' % str(e))
-            print(traceback.format_exc())
+            logger.warning(traceback.format_exc())
             return False
         return True
