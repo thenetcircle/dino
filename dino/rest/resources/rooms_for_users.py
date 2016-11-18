@@ -68,14 +68,14 @@ class RoomsForUsersResource(BaseResource):
         is_valid, msg, json = self.validate_json()
         if not is_valid:
             logging.error('invalid json: %s' % msg)
-            return
+            return dict()
 
         if 'users' not in json:
             return dict()
 
         output = dict()
         for user in json['users']:
-            output[user] = self._do_get(user)
+            output[user] = self.do_get_with_params(user)
         return output
 
     def _get_lru_method(self):
