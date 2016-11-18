@@ -22,6 +22,7 @@ from dino.auth.redis import AuthRedis
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
+from dino.config import ApiTargets
 from dino.exceptions import ValidationException
 from dino.validation import AclValidator
 from dino.validation.acl import AclStrInCsvValidator
@@ -483,6 +484,25 @@ class TestAclConfigValidationMethodsValidator(BaseAclValidator):
         }
         self.assertRaises(RuntimeError, AclConfigValidator.check_acl_validation_methods, acls, acls['available']['acls'])
 
+    def test_missing_type(self):
+        acls = {
+            'available': {'acls': ['gender']},
+            'validation': {'gender': {
+                'value': 'm,f'
+            }},
+        }
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_validation_methods, acls, acls['available']['acls'])
+
+    def test_invalid_type(self):
+        acls = {
+            'available': {'acls': ['gender']},
+            'validation': {'gender': {
+                'type': 'foo',
+                'value': 'm,f'
+            }},
+        }
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_validation_methods, acls, acls['available']['acls'])
+
     def test_blank_value_with_str_in_csv_method(self):
         acls = {
             'available': {'acls': ['gender']},
@@ -492,6 +512,20 @@ class TestAclConfigValidationMethodsValidator(BaseAclValidator):
             }},
         }
         self.assertRaises(RuntimeError, AclConfigValidator.check_acl_validation_methods, acls, acls['available']['acls'])
+
+
+class TestKeysInAvailableValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestKeysInAvailableValidator, self).setUp()
+        self.available = ['gender', 'membership', 'age']
+
+    def test_in_types(self):
+        keys = {'gender', 'membership'}
+        AclConfigValidator.check_acl_keys_in_available(self.available, ApiTargets.ROOM, keys)
+
+    def test_invalid_type(self):
+        keys = {'gender', 'foo'}
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_keys_in_available, self.available, ApiTargets.ROOM, keys)
 
 
 class TestAclConfigExcludeValidator(BaseAclValidator):
@@ -523,8 +557,10 @@ class TestAclRulesValidator(BaseAclValidator):
     def test_rules(self):
         acls = {
             'room': {
-                'acls': [],
-                'excludes': []
+                'gender': {
+                    'acls': [],
+                    'exclude': []
+                }
             }
         }
         AclConfigValidator.check_acl_rules(acls, self.actions, self.rules)
@@ -532,17 +568,29 @@ class TestAclRulesValidator(BaseAclValidator):
     def test_invalid_rule(self):
         acls = {
             'room': {
-                'foo': [],
-                'excludes': []
+                'gender': {
+                    'foo': [],
+                    'exclude': []
+                }
             }
         }
-        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_rules(acls, self.actions, self.rules))
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_rules, acls, self.actions, self.rules)
 
     def test_ignore_unknown_actions(self):
         acls = {
             'foo': {
-                'bar': [],
-                'excludes': []
+                'bar': {
+                    'acls': [],
+                    'exclude': []
+                }
+            }
+        }
+        AclConfigValidator.check_acl_rules(acls, self.actions, self.rules)
+
+    def test_action_is_none(self):
+        acls = {
+            'foo': {
+                'bar': None
             }
         }
         AclConfigValidator.check_acl_rules(acls, self.actions, self.rules)
@@ -551,10 +599,92 @@ class TestAclRulesValidator(BaseAclValidator):
 class TestCheckAclActionsValidator(BaseAclValidator):
     def setUp(self):
         super(TestCheckAclActionsValidator, self).setUp()
+        self.rules = ['acls', 'exclude']
+        self.available = ['foo', 'bar', 'baz']
+        self.actions = {
+            'room': ['join', 'kick'],
+            'channel': ['create']
+        }
 
     def test_actions(self):
-        # TODO: implement
-        pass
+        acls = {
+            'room': {
+                'join': {
+                    'acls': [],
+                    'exclude': []
+                }
+            }
+        }
+        check_acls = [
+            ('channel', acls.get('channel', None)),
+            ('room', acls.get('room', None))
+        ]
+        AclConfigValidator.check_acl_actions(check_acls, self.actions, self.available)
+
+    def test_action_is_none(self):
+        acls = {
+            'room': {
+                'join': None
+            }
+        }
+        check_acls = [
+            ('channel', acls.get('channel', None)),
+            ('room', acls.get('room', None))
+        ]
+        AclConfigValidator.check_acl_actions(check_acls, self.actions, self.available)
+
+    def test_empty_acl(self):
+        acls = {
+            'room': {
+                'join': None
+            }
+        }
+        check_acls = [
+            ('channel', []),
+            ('room', acls.get('room', None))
+        ]
+        AclConfigValidator.check_acl_actions(check_acls, self.actions, self.available)
+
+    def test_invalid_action(self):
+        acls = {
+            'room': {
+                'foo': {
+                    'acls': [],
+                    'exclude': []
+                }
+            }
+        }
+        check_acls = [
+            ('channel', acls.get('channel', None)),
+            ('room', acls.get('room', None))
+        ]
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_actions, check_acls, self.actions, self.available)
+
+    def test_no_acls_for_action(self):
+        acls = {
+            'room': {
+                'join': {
+                    'exclude': []
+                }
+            }
+        }
+        check_acls = [
+            ('channel', acls.get('channel', None)),
+            ('room', acls.get('room', None))
+        ]
+        AclConfigValidator.check_acl_actions(check_acls, self.actions, self.available)
+
+    def test_acls_not_dict(self):
+        acls = {
+            'room': {
+                'join': []
+            }
+        }
+        check_acls = [
+            ('channel', acls.get('channel', None)),
+            ('room', acls.get('room', None))
+        ]
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_actions, check_acls, self.actions, self.available)
 
 
 class TestIsAclValid(BaseAclValidator):
