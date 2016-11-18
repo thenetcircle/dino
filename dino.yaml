@@ -31,29 +31,25 @@ oscar:
 dev:
     log_level: 'DEBUG'
     database:
-        type: 'rdbms'
-        driver: 'mysql+mysqldb'
-        host: 'localhost'
-        port: 3306
-        db: 'dino'
-        user: 'dino'
-        password: 'dino'
+        type: 'redis'
+        host: 'mock'
+        db: 12
     storage:
         type: 'redis'
-        host: 'localhost:6379'
+        host: 'mock'
         max_history: 200
         db: 6
     queue:
         type: 'redis'
-        host: 'redis://localhost:6379'
+        host: 'mock'
         db: 7
     auth:
         type: 'redis'
-        host: 'localhost:6379'
+        host: 'mock'
         db: 8
     cache:
         type: 'redis'
-        host: 'localhost:6379'
+        host: 'mock'
         db: 9
     history:
         type: 'unread'  # unread or top

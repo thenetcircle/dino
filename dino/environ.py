@@ -223,14 +223,6 @@ class GNEnvironment(object):
         # TODO: remove this, go through storage interface
         self.redis = config.get(ConfigKeys.REDIS, None)
 
-    """
-    def __setattr__(self, attr, value):
-        if attr == 'config' and hasattr(self, attr):
-            raise Exception("Attempting to alter read-only value")
-
-        self.__dict__[attr] = value
-    """
-
 
 def create_logger(_config_dict: dict) -> RootLogger:
     logging.basicConfig(
@@ -579,7 +571,7 @@ def init_database(gn_env: GNEnvironment):
         from dino.db.rdbms.handler import DatabaseRdbms
         gn_env.db = DatabaseRdbms(gn_env)
     else:
-        raise RuntimeError('unknown db type "%s", use one of [mock, redis, rdbms, mysql]' % db_type)
+        raise RuntimeError('unknown db type "%s", use one of [mock, redis, rdbms]' % db_type)
 
 
 def init_auth_service(gn_env: GNEnvironment):

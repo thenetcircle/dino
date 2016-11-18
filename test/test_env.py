@@ -16,6 +16,13 @@ import tempfile
 
 from dino.environ import create_env
 from dino.config import ConfigKeys
+from dino import environ
+from dino.exceptions import AclValueNotFoundException
+
+
+class FakeDb(object):
+    def get_acl_validation_value(self, *args):
+        raise AclValueNotFoundException('asdf', 'asdf')
 
 
 class TestEnvironment(unittest.TestCase):
@@ -33,6 +40,36 @@ class TestEnvironment(unittest.TestCase):
         self.assertTrue(ConfigKeys.LOGGER in env.config.keys())
         self.assertTrue(ConfigKeys.REDIS in env.config.keys())
         self.assertTrue(ConfigKeys.SESSION in env.config.keys())
+
+    def test_init_cache_service(self):
+        os.environ['ENVIRONMENT'] = 'dev'
+        env = create_env()
+        env.db = FakeDb()
+        environ.init_cache_service(env)
+
+    def test_init_auth_service(self):
+        os.environ['ENVIRONMENT'] = 'dev'
+        env = create_env()
+        env.db = FakeDb()
+        environ.init_auth_service(env)
+
+    def test_init_storage_engine(self):
+        os.environ['ENVIRONMENT'] = 'dev'
+        env = create_env()
+        env.db = FakeDb()
+        environ.init_storage_engine(env)
+
+    def test_init_database(self):
+        os.environ['ENVIRONMENT'] = 'dev'
+        env = create_env()
+        env.db = FakeDb()
+        environ.init_database(env)
+
+    def test_init_acl_validators(self):
+        os.environ['ENVIRONMENT'] = 'dev'
+        env = create_env()
+        env.db = FakeDb()
+        environ.init_acl_validators(env)
 
     def test_create_non_existing_config_file(self):
         os.environ['ENVIRONMENT'] = 'test'
