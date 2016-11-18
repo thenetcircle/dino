@@ -124,7 +124,7 @@ class RequestValidator(BaseValidator):
         if kicked_id is None or kicked_id.strip() == '':
             return False, ECodes.MISSING_OBJECT_ID, 'got blank user id, can not ban'
 
-        if not utils.room_exists(channel_id, room_id):
+        if not is_global_ban and not utils.room_exists(channel_id, room_id):
             return False, ECodes.NO_SUCH_ROOM, 'no room with id "%s" exists' % room_id
 
         if not is_global_ban:
