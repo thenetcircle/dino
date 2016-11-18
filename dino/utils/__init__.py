@@ -439,11 +439,7 @@ def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
 
     now = datetime.utcnow()
     end = datetime.strptime(timestamp, ConfigKeys.DEFAULT_DATE_FORMAT)
-    diff = (end - now)
-    if diff.seconds < 0:
-        environ.env.db.remove
-        return False, None
-    return True, diff.seconds
+    return True, (end - now).seconds
 
 
 def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):

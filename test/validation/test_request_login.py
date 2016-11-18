@@ -60,12 +60,10 @@ class RequestLogintest(BaseTest):
         self.assertFalse(is_valid)
         self.assertEqual(code, ErrorCodes.USER_IS_BANNED)
 
-    """
     def test_login_was_banned(self):
         self.ban_user(past=True)
         is_valid, code, message = request.on_login(as_parser(self.activity_for_login()))
         self.assertTrue(is_valid)
-    """
 
     def test_login_session_contains_user_id(self):
         self.assert_not_in_session('user_id', RequestLogintest.USER_ID)
