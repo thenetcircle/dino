@@ -39,9 +39,6 @@ class AclValidator(object):
             return False
 
         validator_func = all_validators[acl_type]['value']
-        if not callable(validator_func):
-            logger.error('validator for acl type "%s" is not callable' % acl_type)
-            return False
         if not isinstance(validator_func, BaseAclValidator):
             logger.error(
                     'validator for acl type "%s" is not of instance BaseAclValidator but "%s"' %
@@ -96,8 +93,6 @@ class AclValidator(object):
             room_id = activity.target.id
             if utils.is_owner(room_id, user_id):
                 return True, None
-        else:
-            return False, 'unknown target "%s", must be one of [channel, room]' % target
 
         # no acls for this target and action
         if target_acls is None or len(target_acls) == 0:
@@ -278,9 +273,12 @@ class AclStrInCsvValidator(BaseAclValidator):
         acl_values = acl_values.split(',')
 
         session_value = env.session.get(acl_type)
-        if session_value is None or session_value not in acl_values:
+        if session_value is None:
             logger.warning('no session value for acl "%s"' % acl_type)
             return False, 'no session value for acl"%s"' % acl_type
+
+        if session_value not in acl_values:
+            return False, 'session value %s not in allowed values [%s]' % (session_value, ','.join(acl_values))
 
         return True, None
 

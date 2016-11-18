@@ -25,25 +25,41 @@ from dino.config import RedisKeys
 from dino.validation import AclValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclRangeValidator
+from dino.validation.acl import AclIsAdminValidator
+from dino.validation.acl import AclIsSuperUserValidator
+from dino.validation.acl import AclDisallowValidator
+from dino.validation.acl import AclSameRoomValidator
+from dino.validation.acl import AclSameChannelValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class FakeDb(object):
-    def is_admin(self, *args):
-        return False
+    _admins = dict()
+    _super_users = set()
+    _owners = dict()
 
-    def is_owner(self, *args):
-        return False
+    def is_admin(self, channel_id, user_id):
+        if channel_id not in FakeDb._admins:
+            return False
+        return user_id in FakeDb._admins[channel_id]
+
+    def is_owner(self, room_id, user_id):
+        if room_id not in FakeDb._owners:
+            return False
+        return user_id in FakeDb._owners[room_id]
 
     def is_owner_channel(self, *args):
         return False
 
-    def is_super_user(self, *args):
-        return False
+    def is_super_user(self, user_id):
+        return user_id in FakeDb._super_users
+
+    def room_contains(self, room_id, user_id):
+        return True
 
 
-class TestAclValidator(TestCase):
+class BaseAclValidator(TestCase):
     CHANNEL_ID = '8765'
     ROOM_ID = '4567'
     USER_ID = '1234'
@@ -58,27 +74,77 @@ class TestAclValidator(TestCase):
     CITY = 'Shanghai'
     TOKEN = str(uuid())
 
+    def acls_for_room_join(self):
+        return {
+            'gender': 'f'
+        }
+
+    def acls_for_room_join_country(self):
+        return {
+            'country': 'cn,de'
+        }
+
+    def acls_for_room_message(self):
+        return {
+            'age': '35:'
+        }
+
+    def act(self):
+        return as_parser(self.json_act())
+
+    def json_act(self):
+        return {
+            'actor': {
+                'id': BaseAclValidator.USER_ID,
+                'url': BaseAclValidator.ROOM_ID
+            },
+            'provider': {
+                'url': BaseAclValidator.CHANNEL_ID
+            },
+            'verb': 'join',
+            'object': {
+                'url': BaseAclValidator.CHANNEL_ID,
+            },
+            'target': {
+                'id': BaseAclValidator.ROOM_ID,
+                'objectType': 'room'
+            }
+        }
+
+    def set_owner(self):
+        FakeDb._owners[BaseAclValidator.ROOM_ID] = {BaseAclValidator.USER_ID}
+
+    def set_admin(self):
+        FakeDb._admins[BaseAclValidator.CHANNEL_ID] = {BaseAclValidator.USER_ID}
+
+    def set_super_user(self):
+        FakeDb._super_users.add(BaseAclValidator.USER_ID)
+
     def setUp(self):
         environ.env.db = FakeDb()
         self.auth = AuthRedis(host='mock')
         environ.env.session = {
-            SessionKeys.user_id.value: TestAclValidator.USER_ID,
-            SessionKeys.user_name.value: TestAclValidator.USER_NAME,
-            SessionKeys.age.value: TestAclValidator.AGE,
-            SessionKeys.gender.value: TestAclValidator.GENDER,
-            SessionKeys.membership.value: TestAclValidator.MEMBERSHIP,
-            SessionKeys.image.value: TestAclValidator.IMAGE,
-            SessionKeys.has_webcam.value: TestAclValidator.HAS_WEBCAM,
-            SessionKeys.fake_checked.value: TestAclValidator.FAKE_CHECKED,
-            SessionKeys.country.value: TestAclValidator.COUNTRY,
-            SessionKeys.city.value: TestAclValidator.CITY,
-            SessionKeys.token.value: TestAclValidator.TOKEN
+            SessionKeys.user_id.value: BaseAclValidator.USER_ID,
+            SessionKeys.user_name.value: BaseAclValidator.USER_NAME,
+            SessionKeys.age.value: BaseAclValidator.AGE,
+            SessionKeys.gender.value: BaseAclValidator.GENDER,
+            SessionKeys.membership.value: BaseAclValidator.MEMBERSHIP,
+            SessionKeys.image.value: BaseAclValidator.IMAGE,
+            SessionKeys.has_webcam.value: BaseAclValidator.HAS_WEBCAM,
+            SessionKeys.fake_checked.value: BaseAclValidator.FAKE_CHECKED,
+            SessionKeys.country.value: BaseAclValidator.COUNTRY,
+            SessionKeys.city.value: BaseAclValidator.CITY,
+            SessionKeys.token.value: BaseAclValidator.TOKEN
         }
+
+        FakeDb._admins = dict()
+        FakeDb._super_users = set()
 
         environ.env.config = {
             ConfigKeys.ACL: {
                 'room': {
                     'join': {
+                        'ecludes': [],
                         'acls': [
                             'gender',
                             'age',
@@ -86,6 +152,7 @@ class TestAclValidator(TestCase):
                         ]
                     },
                     'message': {
+                        'ecludes': [],
                         'acls': [
                             'gender',
                             'age'
@@ -114,10 +181,205 @@ class TestAclValidator(TestCase):
                 }
             }
         }
-        self.auth.redis.hmset(RedisKeys.auth_key(TestAclValidator.USER_ID), environ.env.session)
+        self.auth.redis.hmset(RedisKeys.auth_key(BaseAclValidator.USER_ID), environ.env.session)
         self.validator = AclValidator()
 
+
+class TestIsAdminValidator(BaseAclValidator):
+    def test_call_not_admin(self):
+        validator = AclIsAdminValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env)
+        self.assertFalse(is_valid)
+
+    def test_call_is_admin(self):
+        self.set_admin()
+        validator = AclIsAdminValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env)
+        self.assertTrue(is_valid)
+
+
+class TestIsSuperUserValidator(BaseAclValidator):
+    def test_call_not_super_user(self):
+        validator = AclIsSuperUserValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env)
+        self.assertFalse(is_valid)
+
+    def test_call_is_super_user(self):
+        self.set_super_user()
+        validator = AclIsSuperUserValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env)
+        self.assertTrue(is_valid)
+
+
+class TestDisallowValidator(BaseAclValidator):
+    def test_call_not_super_user(self):
+        validator = AclDisallowValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env)
+        self.assertFalse(is_valid)
+
+    def test_call_is_super_user(self):
+        self.set_super_user()
+        validator = AclDisallowValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env)
+        self.assertFalse(is_valid)
+
+
+class TestSameChannelValidator(BaseAclValidator):
+    def test_call(self):
+        validator = AclSameChannelValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env)
+        self.assertTrue(is_valid)
+
+    def test_call_not_same_channel(self):
+        validator = AclSameChannelValidator()
+        act = self.json_act()
+        act['provider']['url'] = str(uuid())
+        is_valid, msg = validator(as_parser(act), environ.env)
+        self.assertFalse(is_valid)
+
+
+class TestSameRoomValidator(BaseAclValidator):
+    def test_call(self):
+        validator = AclSameRoomValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env)
+        self.assertTrue(is_valid)
+
+    def test_call_not_same_channel(self):
+        validator = AclSameRoomValidator()
+        act = self.json_act()
+        act['actor']['url'] = str(uuid())
+        is_valid, msg = validator(as_parser(act), environ.env)
+        self.assertFalse(is_valid)
+
+
+class TestIsAclValid(BaseAclValidator):
+    def setUp(self):
+        super(TestIsAclValid, self).setUp()
+
+    def test_invalid_value(self):
+        is_valid = self.validator.is_acl_valid('gender', 'h')
+        self.assertFalse(is_valid)
+
+    def test_valid_value(self):
+        is_valid = self.validator.is_acl_valid('gender', 'm')
+        self.assertTrue(is_valid)
+
+    def test_invalid_type(self):
+        is_valid = self.validator.is_acl_valid('something-invalid', 'm')
+        self.assertFalse(is_valid)
+
+    def test_blank_value(self):
+        is_valid = self.validator.is_acl_valid('gender', '')
+        self.assertTrue(is_valid)
+
+    def test_invalid_validator_class(self):
+        class FakeValidator(object):
+            pass
+
+        new_acls = environ.env.config.get(ConfigKeys.ACL)
+        new_acls['validation']['age']['value'] = FakeValidator()
+        environ.env.config = {ConfigKeys.ACL: new_acls}
+        is_valid = self.validator.is_acl_valid('age', '28:35')
+        self.assertFalse(is_valid)
+
+
+class TestAclValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestAclValidator, self).setUp()
+
+    def test_validate_acl_for_action_no_target(self):
+        act = self.json_act()
+        del act['target']
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_no_target_object_type(self):
+        act = self.json_act()
+        del act['target']['objectType']
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_blank_target_object_type(self):
+        act = self.json_act()
+        act['target']['objectType'] = ''
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_no_object_url(self):
+        act = self.json_act()
+        del act['object']['url']
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_no_object(self):
+        act = self.json_act()
+        del act['object']
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_blank_object_url(self):
+        act = self.json_act()
+        act['object']['url'] = ''
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_unknown_target(self):
+        act = self.json_act()
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'other-target', 'join', self.acls_for_room_join())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_private_chat_ignores_wrong_gender(self):
+        environ.env.session[SessionKeys.gender.value] = 'k'
+        act = self.json_act()
+        act['target']['objectType'] = 'private'
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertTrue(is_valid)
+
+    def test_validate_acl_for_action_non_private_does_not_ignore_wrong_gender(self):
+        environ.env.session[SessionKeys.gender.value] = 'k'
+        act = self.json_act()
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertFalse(is_valid)
+
+    def test_validate_acl_for_action_admin_ignores(self):
+        environ.env.session[SessionKeys.gender.value] = 'k'
+        self.set_admin()
+        act = self.json_act()
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertTrue(is_valid)
+
+    def test_validate_acl_for_action_super_user_ignores(self):
+        environ.env.session[SessionKeys.gender.value] = 'k'
+        self.set_super_user()
+        act = self.json_act()
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertTrue(is_valid)
+
+    def test_validate_acl_for_action_owner_ignores(self):
+        environ.env.session[SessionKeys.gender.value] = 'k'
+        self.set_owner()
+        act = self.json_act()
+        is_valid, msg = self.validator.validate_acl_for_action(
+                as_parser(act), 'room', 'join', self.acls_for_room_join())
+        self.assertTrue(is_valid)
+
     def test_validate_acl_for_action_join(self):
+        is_valid, msg = self.validator.validate_acl_for_action(
+                self.act(), 'room', 'join', self.acls_for_room_join())
+        self.assertTrue(is_valid)
+
+    def test_is_acl_valid_invalid_type(self):
         is_valid, msg = self.validator.validate_acl_for_action(
                 self.act(), 'room', 'join', self.acls_for_room_join())
         self.assertTrue(is_valid)
@@ -151,36 +413,3 @@ class TestAclValidator(TestCase):
         is_valid, msg = self.validator.validate_acl_for_action(
                 self.act(), 'room', 'message', self.acls_for_room_message())
         self.assertFalse(is_valid)
-
-    def acls_for_room_join(self):
-        return {
-            'gender': 'f'
-        }
-
-    def acls_for_room_join_country(self):
-        return {
-            'country': 'cn,de'
-        }
-
-    def acls_for_room_message(self):
-        return {
-            'age': '35:'
-        }
-
-    def act(self):
-        return as_parser(self.json_act())
-
-    def json_act(self):
-        return {
-            'actor': {
-                'id': TestAclValidator.USER_ID
-            },
-            'verb': 'join',
-            'object': {
-                'url': TestAclValidator.CHANNEL_ID,
-            },
-            'target': {
-                'id': TestAclValidator.ROOM_ID,
-                'objectType': 'room'
-            }
-        }
