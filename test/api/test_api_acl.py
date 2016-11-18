@@ -17,7 +17,7 @@ from activitystreams import parse as as_parser
 from dino import api
 from dino.config import ApiActions
 
-from test.utils import BaseTest
+from test.base import BaseTest
 
 
 class ApiAclTest(BaseTest):

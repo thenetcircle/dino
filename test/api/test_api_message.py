@@ -13,7 +13,7 @@
 from activitystreams import parse as as_parser
 
 from dino import api
-from test.utils import BaseTest
+from test.base import BaseTest
 
 
 class ApiMessageTest(BaseTest):

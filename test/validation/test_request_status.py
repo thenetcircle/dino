@@ -13,7 +13,7 @@
 from activitystreams import parse as as_parser
 
 from dino.validation import request
-from test.utils import BaseTest
+from test.base import BaseTest
 from dino.config import SessionKeys
 
 

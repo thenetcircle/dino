@@ -22,7 +22,7 @@ from uuid import uuid4 as uuid
 from datetime import datetime
 import time
 
-from test.utils import BaseTest
+from test.base import BaseTest
 
 from dino import environ
 from dino.config import ConfigKeys

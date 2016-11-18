@@ -11,7 +11,7 @@
 # limitations under the License.
 
 
-from test.utils import BaseTest
+from test.base import BaseTest
 from activitystreams import parse as as_parser
 from strict_rfc3339 import validate_rfc3339 as validate_timestamp
 

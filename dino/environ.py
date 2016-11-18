@@ -279,6 +279,7 @@ def find_config_acl(acl_paths: list) -> str:
     acl_dict = dict()
     acl_path = None
 
+    print(acl_paths)
     if acl_paths is None:
         acl_paths = default_paths
 

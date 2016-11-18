@@ -15,7 +15,7 @@
 from activitystreams import parse as as_parser
 import datetime
 
-from test.utils import BaseTest
+from test.base import BaseTest
 
 from dino.config import ApiActions
 from dino.config import ConfigKeys

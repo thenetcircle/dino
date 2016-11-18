@@ -15,7 +15,7 @@ from uuid import uuid4 as uuid
 os.environ['ENVIRONMENT'] = 'test'
 
 from activitystreams import parse as as_parser
-from test.utils import BaseTest
+from test.base import BaseTest
 
 from dino import environ
 from dino import api

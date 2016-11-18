@@ -15,7 +15,7 @@ from activitystreams import parse as as_parser
 
 from dino import api
 from dino.validation import request
-from test.utils import BaseTest
+from test.base import BaseTest
 
 
 class RequestLeaveTest(BaseTest):

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from test.utils import BaseTest
+from test.base import BaseTest
 
 from activitystreams import parse
 from uuid import uuid4 as uuid

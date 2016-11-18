@@ -12,7 +12,7 @@
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-from test.utils import BaseTest
+from test.base import BaseTest
 from activitystreams import parse as as_parser
 
 from dino import api

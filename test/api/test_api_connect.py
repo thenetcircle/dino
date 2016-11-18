@@ -1,5 +1,5 @@
 from dino import api
-from test.utils import BaseTest
+from test.base import BaseTest
 
 
 class ApiConnectTest(BaseTest):

@@ -16,7 +16,7 @@ import os
 os.environ['ENVIRONMENT'] = 'test'
 
 from dino import api
-from test.utils import BaseTest
+from test.base import BaseTest
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
