@@ -102,7 +102,6 @@ class AclValidator(object):
         for acl_rule, acl_values in possible_acls.items():
             if acl_rule != 'acls':
                 continue
-
             for acl in acl_values:
                 if acl not in target_acls.keys():
                     continue

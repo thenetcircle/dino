@@ -477,13 +477,6 @@ def ban_user(room_id: str, private_room_id: str, ban_duration: str) -> None:
     environ.env.db.ban_user_room(user_id, ban_timestamp, ban_duration, room_id)
 
 
-# TODO: not used since new acls implemented, maybe use in the future?
-def get_current_user_role() -> str:
-    # if is_admin(environ.env.config.get(SessionKeys.USER_ID)):
-    #     return 'admin'
-    return 'user'
-
-
 def ban_duration_to_timestamp(ban_duration: str) -> str:
     DurationValidator(ban_duration)
 
@@ -493,25 +486,14 @@ def ban_duration_to_timestamp(ban_duration: str) -> str:
     duration_unit = ban_duration[-1]
     ban_duration = ban_duration[:-1]
 
-    try:
-        if duration_unit == 'd' and GenericValidator.is_digit(ban_duration):
-            days = int(ban_duration)
-        elif duration_unit == 'h' and GenericValidator.is_digit(ban_duration):
-            hours = int(ban_duration)
-        elif duration_unit == 'm' and GenericValidator.is_digit(ban_duration):
-            seconds = int(ban_duration) * 60
-        elif duration_unit == 's' and GenericValidator.is_digit(ban_duration):
-            seconds = int(ban_duration)
-        else:
-            raise ValidationException(
-                'unknown ban duration: %s, allowed units are: %s' %
-                (ban_duration, DurationValidator.durations_help))
-    except ValueError as e:
-        environ.env.logger.error('could not convert ban duration "%s" to int: %s' % (ban_duration, str(e)))
-        raise ValidationException('invalid ban duration, not a number: %s' % ban_duration)
-
-    if days < 0 or hours < 0 or seconds < 0:
-        raise ValidationException('need positive ban duration, got: %sd, %sh %ss' % (str(days), str(hours), str(seconds)))
+    if duration_unit == 'd' and GenericValidator.is_digit(ban_duration):
+        days = int(ban_duration)
+    elif duration_unit == 'h' and GenericValidator.is_digit(ban_duration):
+        hours = int(ban_duration)
+    elif duration_unit == 'm' and GenericValidator.is_digit(ban_duration):
+        seconds = int(ban_duration) * 60
+    elif duration_unit == 's' and GenericValidator.is_digit(ban_duration):
+        seconds = int(ban_duration)
 
     now = datetime.utcnow()
     ban_time = timedelta(days=days, hours=hours, seconds=seconds)
