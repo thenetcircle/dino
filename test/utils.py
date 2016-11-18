@@ -462,6 +462,12 @@ class BaseTest(unittest.TestCase):
                 r_key = '%s|%s' % (api_action, acl_type)
                 environ.env.storage.redis.hset(RedisKeys.room_acl(room_id), r_key, acl_value)
 
+    def set_channel_acl(self, acls: dict, channel_id=CHANNEL_ID):
+        for api_action, acls_items in acls.items():
+            for acl_type, acl_value in acls_items.items():
+                r_key = '%s|%s' % (api_action, acl_type)
+                environ.env.storage.redis.hset(RedisKeys.channel_acl(channel_id), r_key, acl_value)
+
     def set_acl_single(self, key: str, acls: str):
         environ.env.storage.redis.hset(RedisKeys.room_acl(BaseTest.ROOM_ID), key, acls)
 

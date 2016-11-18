@@ -16,7 +16,8 @@ from test.utils import BaseTest
 from activitystreams import parse as as_parser
 
 from dino.validation import request
-from dino.utils import b64d
+from dino.config import ErrorCodes
+from dino.config import ApiActions
 
 
 class RequestListRoomsTest(BaseTest):
@@ -38,12 +39,21 @@ class RequestListRoomsTest(BaseTest):
         response_data = request.on_list_rooms(as_parser(activity))
         self.assertEqual(True, response_data[0])
 
+    def test_list_rooms_not_allowed(self):
+        self.assert_in_room(False)
+        self.set_channel_acl({ApiActions.LIST: {'gender': 'm'}})
+        activity = self.activity_for_list_rooms()
+        is_valid, code, msg = request.on_list_rooms(as_parser(activity))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.NOT_ALLOWED)
+
     def test_list_rooms_no_channel_id_status_code_false(self):
         self.assert_in_room(False)
         activity = self.activity_for_list_rooms()
         del activity['object']['url']
-        response_data = request.on_list_rooms(as_parser(activity))
-        self.assertEqual(False, response_data[0])
+        is_valid, code, msg = request.on_list_rooms(as_parser(activity))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.MISSING_OBJECT_URL)
 
     def test_list_rooms_status_code_true_if_no_rooms(self):
         self.assert_in_room(False)

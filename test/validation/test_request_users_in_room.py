@@ -17,6 +17,7 @@ from activitystreams import parse as as_parser
 
 from dino import api
 from dino.validation import request
+from dino.config import ErrorCodes
 
 
 class RequestUsersInRoomTest(BaseTest):
@@ -31,16 +32,17 @@ class RequestUsersInRoomTest(BaseTest):
         self.assertEqual(True, response_data[0])
 
     def test_users_in_room_no_room_id(self):
-        self.create_channel_and_room()
-        self.assert_in_room(False)
-        act = self.activity_for_join()
-        api.on_join(act, as_parser(act))
-        self.assert_in_room(True)
-
         act = self.activity_for_users_in_room()
         del act['actor']['id']
         response_data = request.on_users_in_room(as_parser(act))
         self.assertEqual(True, response_data[0])
+
+    def test_users_in_room_no_target_id(self):
+        act = self.activity_for_users_in_room()
+        del act['target']['id']
+        is_valid, code, msg = request.on_users_in_room(as_parser(act))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.MISSING_TARGET_ID)
 
     def test_users_in_room_missing_actor_id_status_code_true(self):
         self.assert_in_room(False)

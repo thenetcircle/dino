@@ -451,15 +451,15 @@ def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
     now = datetime.utcnow()
 
     if global_time != '':
-        end = datetime.fromtimestamp(int(global_time))
+        end = datetime.strptime(global_time, ConfigKeys.DEFAULT_DATE_FORMAT)
         return True, 'banned globally for another "%s" seconds"' % str((end - now).seconds)
 
     if channel_time != '':
-        end = datetime.fromtimestamp(int(channel_time))
+        end = datetime.strptime(channel_time, ConfigKeys.DEFAULT_DATE_FORMAT)
         return True, 'banned from channel for another "%s" seconds"' % str((end - now).seconds)
 
     if room_time != '':
-        end = datetime.fromtimestamp(int(room_time))
+        end = datetime.strptime(room_time, ConfigKeys.DEFAULT_DATE_FORMAT)
         return True, 'banned from room for another "%s" seconds"' % str((end - now).seconds)
 
     return False, None

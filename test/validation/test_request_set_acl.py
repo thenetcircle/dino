@@ -129,6 +129,34 @@ class RequestSetAclTest(TestCase):
         act = self.activity_for_get_acl()
         self.assertTrue(request.on_get_acl(as_parser(act))[0])
 
+    def test_get_acl_no_target(self):
+        act = self.activity_for_get_acl()
+        del act['target']
+        is_valid, code, msg = request.on_get_acl(as_parser(act))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.MISSING_TARGET_ID)
+
+    def test_get_acl_blank_target_id(self):
+        act = self.activity_for_get_acl()
+        act['target']['id'] = ''
+        is_valid, code, msg = request.on_get_acl(as_parser(act))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.MISSING_TARGET_ID)
+
+    def test_get_acl_blank_object_type(self):
+        act = self.activity_for_get_acl()
+        del act['target']['objectType']
+        is_valid, code, msg = request.on_get_acl(as_parser(act))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.INVALID_OBJECT_TYPE)
+
+    def test_get_acl_blank_invalid_object_type(self):
+        act = self.activity_for_get_acl()
+        act['target']['objectType'] = 'something-invalid'
+        is_valid, code, msg = request.on_get_acl(as_parser(act))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.INVALID_OBJECT_TYPE)
+
     def test_set_room_acls_channel_owner_no_object_type(self):
         self.set_channel_owner()
         acl_type = 'gender'
@@ -174,6 +202,7 @@ class RequestSetAclTest(TestCase):
         self.assertEqual(code, ErrorCodes.INVALID_TARGET_TYPE)
 
     def test_set_room_acls_channel_owner(self):
+        self.remove_owner()
         self.set_channel_owner()
         acl_type = 'gender'
         acl_value = 'm,f'
@@ -365,6 +394,7 @@ class RequestSetAclTest(TestCase):
             },
             'verb': 'set',
             'object': {
+                'url': RequestSetAclTest.CHANNEL_ID,
                 'objectType': 'acl',
                 'attachments': attachments
             }

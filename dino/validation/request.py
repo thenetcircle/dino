@@ -148,7 +148,7 @@ class RequestValidator(BaseValidator):
             else:
                 if utils.is_owner(_target_id, _user_id):
                     return True
-                if activity.object is not None:
+                if activity.object is not None and activity.object.url is not None:
                     channel_id = activity.object.url
                     if channel_id is not None and utils.is_owner_channel(channel_id, _user_id):
                         return True
@@ -259,7 +259,7 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_get_acl(self, activity: Activity) -> (bool, int, str):
-        if activity.target is None:
+        if activity.target is None or not hasattr(activity.target, 'id'):
             return False, ECodes.MISSING_TARGET_ID, 'no target on activity'
         if activity.target.id is None or len(activity.target.id.strip()) == 0:
             return False, ECodes.MISSING_TARGET_ID, 'blank target id on activity'
@@ -290,7 +290,7 @@ class RequestValidator(BaseValidator):
         if not environ.env.db.room_exists(channel_id, room_id):
             return False, ECodes.NO_SUCH_ROOM, 'no room with id "%s" exists' % room_id
 
-        channel_acls = utils.get_acls_in_room_for_action(channel_id, ApiActions.KICK)
+        channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.KICK)
         is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.KICK, channel_acls)
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, msg
@@ -304,7 +304,7 @@ class RequestValidator(BaseValidator):
 
     def on_invite(self, activity: Activity) -> (bool, int, str):
         # TODO: implement
-        pass
+        return True, None, None
 
     def on_create(self, activity: Activity) -> (bool, int, str):
         room_name = activity.target.display_name

@@ -13,10 +13,14 @@
 # limitations under the License.
 
 from activitystreams import parse as as_parser
+import datetime
 
 from test.utils import BaseTest
 
 from dino.config import ApiActions
+from dino.config import ConfigKeys
+from dino.config import RedisKeys
+from dino.config import ErrorCodes
 from dino.validation import request
 
 
@@ -24,6 +28,15 @@ class RequestJoinTest(BaseTest):
     def setUp(self):
         super(RequestJoinTest, self).setUp()
         self.create_channel_and_room()
+
+    def ban_user(self, past=False):
+        if past:
+            bantime = datetime.datetime.utcnow() - datetime.timedelta(0, 240)  # 4 minutes ago
+        else:
+            bantime = datetime.datetime.utcnow() + datetime.timedelta(0, 240)  # 4 minutes left
+
+        bantime = bantime.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        self.env.db.redis.hset(RedisKeys.banned_users(), BaseTest.USER_ID, 'asdf|%s' % bantime)
 
     def test_join_non_owner_no_acl(self):
         self.assertEqual(True, request.on_join(as_parser(self.activity_for_join()))[0])
@@ -33,6 +46,13 @@ class RequestJoinTest(BaseTest):
         del activity['actor']['id']
         response = request.on_join(as_parser(activity))
         self.assertEqual(True, response[0])
+
+    def test_join_is_banned(self):
+        self.ban_user()
+        activity = self.activity_for_join()
+        is_valid, code, msg = request.on_join(as_parser(activity))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.USER_IS_BANNED)
 
     def test_join_owner_no_acl(self):
         self.set_owner()

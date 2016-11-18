@@ -493,7 +493,7 @@ class DatabaseRedis(object):
         if channel_ban is not None:
             channel_ban = str(channel_ban, 'utf-8')
             channel_timestamp = channel_ban.split('|', 2)[1]
-        if global_ban is not None:
+        if room_ban is not None:
             room_ban = str(room_ban, 'utf-8')
             room_timestamp = room_ban.split('|', 2)[1]
 

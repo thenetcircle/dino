@@ -232,7 +232,7 @@ class AclSameRoomValidator(BaseAclValidator):
         if origin_room_id is None or len(origin_room_id.strip()) == 0:
             return False, 'no origin room uuid in actor.url'
 
-        target_room_id = activity.object.url
+        target_room_id = activity.target.id
         if target_room_id is None or len(target_room_id.strip()) == 0:
             return False, 'no target room uuid in object.url'
 
