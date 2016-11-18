@@ -31,6 +31,7 @@ from dino.validation.acl import AclIsSuperUserValidator
 from dino.validation.acl import AclDisallowValidator
 from dino.validation.acl import AclSameRoomValidator
 from dino.validation.acl import AclSameChannelValidator
+from dino.validation.acl import AclConfigValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -384,6 +385,176 @@ class TestAclRangeValidator(BaseAclValidator):
 
     def test_call_new_vals_no_limit(self):
         AclRangeValidator().validate_new_acl(':')
+
+
+class TestAclConfigRootsValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestAclConfigRootsValidator, self).setUp()
+
+    def test_check_acl_roots(self):
+        AclConfigValidator.check_acl_roots({
+            'available': {
+                'acls': []
+            },
+            'room': {
+                'acls': []
+            },
+            'channel': {
+                'acls': []
+            },
+            'validation': {
+            },
+        })
+
+    def test_check_acl_roots_no_available(self):
+        acls = {
+            'room': {
+                'acls': []
+            },
+            'channel': {
+                'acls': []
+            },
+            'validation': {
+            },
+        }
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_roots, acls)
+
+    def test_check_acl_roots_unknown_root(self):
+        acls = {
+            'available': {
+                'acls': []
+            },
+            'what-is-this': {
+                'acls': []
+            },
+            'channel': {
+                'acls': []
+            },
+            'validation': {
+            },
+        }
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_roots, acls)
+
+    def test_check_acl_roots_no_acls_in_available(self):
+        acls = {
+            'available': {
+                'foo': []
+            },
+            'room': {
+                'acls': []
+            },
+            'channel': {
+                'acls': []
+            },
+            'validation': {
+            },
+        }
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_roots, acls)
+
+
+class TestAclConfigValidationMethodsValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestAclConfigValidationMethodsValidator, self).setUp()
+
+    def test_empty_methods(self):
+        acls = {
+            'available': {'acls': []},
+            'validation': {},
+        }
+        AclConfigValidator.check_acl_validation_methods(acls, acls['available']['acls'])
+
+    def test_str_in_csv_method(self):
+        acls = {
+            'available': {'acls': ['gender']},
+            'validation': {'gender': {
+                'type': 'str_in_csv',
+                'value': 'm,f'
+            }},
+        }
+        AclConfigValidator.check_acl_validation_methods(acls, acls['available']['acls'])
+
+    def test_invalid_method(self):
+        acls = {
+            'available': {'acls': ['gender']},
+            'validation': {'foo': {
+                'type': 'str_in_csv',
+                'value': 'm,f'
+            }},
+        }
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_validation_methods, acls, acls['available']['acls'])
+
+    def test_blank_value_with_str_in_csv_method(self):
+        acls = {
+            'available': {'acls': ['gender']},
+            'validation': {'gender': {
+                'type': 'str_in_csv',
+                'value': ''
+            }},
+        }
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_validation_methods, acls, acls['available']['acls'])
+
+
+class TestAclConfigExcludeValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestAclConfigExcludeValidator, self).setUp()
+
+    def test_exclude_existing(self):
+        AclConfigValidator.check_acl_excludes(['foo', 'bar', 'baz'], ['foo', 'bar'])
+
+    def test_exclude_nothing(self):
+        AclConfigValidator.check_acl_excludes(['foo', 'bar', 'baz'], [])
+
+    def test_exclude_nothing_and_no_available(self):
+        AclConfigValidator.check_acl_excludes([], [])
+
+    def test_exclude_unavailable(self):
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_excludes, ['foo', 'bar'], ['baz'])
+
+
+class TestAclRulesValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestAclRulesValidator, self).setUp()
+        self.rules = ['acls', 'exclude']
+        self.actions = {
+            'room': ['foo', 'bar'],
+            'channel': ['baz']
+        }
+
+    def test_rules(self):
+        acls = {
+            'room': {
+                'acls': [],
+                'excludes': []
+            }
+        }
+        AclConfigValidator.check_acl_rules(acls, self.actions, self.rules)
+
+    def test_invalid_rule(self):
+        acls = {
+            'room': {
+                'foo': [],
+                'excludes': []
+            }
+        }
+        self.assertRaises(RuntimeError, AclConfigValidator.check_acl_rules(acls, self.actions, self.rules))
+
+    def test_ignore_unknown_actions(self):
+        acls = {
+            'foo': {
+                'bar': [],
+                'excludes': []
+            }
+        }
+        AclConfigValidator.check_acl_rules(acls, self.actions, self.rules)
+
+
+class TestCheckAclActionsValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestCheckAclActionsValidator, self).setUp()
+
+    def test_actions(self):
+        # TODO: implement
+        pass
 
 
 class TestIsAclValid(BaseAclValidator):

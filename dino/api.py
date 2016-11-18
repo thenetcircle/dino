@@ -62,7 +62,6 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     private_room_id, _ = environ.env.db.get_private_room(user_id)
 
     if user_name is not None and len(user_name.strip()) > 0:
-        print('setting name "%s" for user id "%s"' % (user_name, user_id))
         utils.set_name_for_user_id(user_id, user_name)
 
     utils.join_private_room(user_id, activity.actor.summary, private_room_id)

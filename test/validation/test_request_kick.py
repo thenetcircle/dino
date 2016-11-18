@@ -91,7 +91,6 @@ class FakeDb(object):
     def get_acls_in_channel_for_action(self, channel_id, action):
         if action not in FakeDb._channel_acls:
             return dict()
-        print(FakeDb._channel_acls[action])
         return FakeDb._channel_acls[action]
 
     def get_acls_in_room_for_action(self, room_id: str, action: str):
@@ -109,8 +108,6 @@ class FakeDb(object):
         return room_id in FakeDb._room_exists
 
     def room_contains(self, room_id, user_id):
-        print(room_id)
-        print(FakeDb._room_contains)
         if room_id not in FakeDb._room_contains:
             return False
         return user_id in FakeDb._room_contains[room_id]
