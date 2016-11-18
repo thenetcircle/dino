@@ -66,18 +66,6 @@ def respond_with(gn_event_name=None):
     return factory
 
 
-# TODO: this is not used since new acls are implemented, maybe remove?
-def requires_roles(*roles):
-    def wrapper(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            if utils.get_current_user_role() not in roles:
-                return 403, 'forbidden for user role'
-            return f(*args, **kwargs)
-        return wrapped
-    return wrapper
-
-
 class Worker(ConsumerMixin):
     def __init__(self, connection, signal_handler: GracefulInterruptHandler):
         self.connection = connection

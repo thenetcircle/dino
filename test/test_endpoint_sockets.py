@@ -12,13 +12,16 @@
 
 import unittest
 from nose_parameterized import parameterized
+from activitystreams import parse as as_parser
+from fakeredis import FakeRedis
 
 from dino.config import ConfigKeys
+from dino.config import RedisKeys
 from dino import environ
 environ.env.config.set(ConfigKeys.TESTING, True)
 
 import dino.api
-import dino.endpoint.sockets
+from dino.endpoint import sockets
 
 
 class SocketsHasApiMethodsTest(unittest.TestCase):
@@ -26,7 +29,7 @@ class SocketsHasApiMethodsTest(unittest.TestCase):
 
     def setUp(self):
         self.socket_methods = set(
-                [key for key in dino.endpoint.sockets.__dict__.keys() if key.startswith('on_')]
+                [key for key in sockets.__dict__.keys() if key.startswith('on_')]
         )
 
     @parameterized.expand(api_methods)
@@ -36,7 +39,7 @@ class SocketsHasApiMethodsTest(unittest.TestCase):
 
 class SocketsHasOnlyApiMethodsTest(unittest.TestCase):
     socket_methods = set(
-            [key for key in dino.endpoint.sockets.__dict__.keys() if key.startswith('on_')]
+            [key for key in sockets.__dict__.keys() if key.startswith('on_')]
     )
 
     def setUp(self):
@@ -45,3 +48,85 @@ class SocketsHasOnlyApiMethodsTest(unittest.TestCase):
     @parameterized.expand(socket_methods)
     def test_endpoint_method_is_in_api(self, method):
         self.assertIn(method, self.api_methods)
+
+
+class MockManager(object):
+    def __init__(self):
+        self.rooms = {
+            '/chat': {
+                '8888': ['1111']
+            }
+        }
+
+
+class MockServer(object):
+    def __init__(self):
+        self.manager = MockManager()
+
+    def leave_room(self, *args):
+        pass
+
+
+class FakeDb(object):
+    def get_user_for_private_room(self, *args):
+        return '1234'
+
+    def rooms_for_user(self, *args):
+        return {'8888': 'some name'}
+
+
+class FakeLogger(object):
+    def error(*args, **kwargs):
+        pass
+
+    def info(*args, **kwargs):
+        pass
+
+
+class SocketsTest(unittest.TestCase):
+    @staticmethod
+    def out_of_scope_emit(*args, **kwargs):
+        pass
+
+    def setUp(self):
+        environ.env.db = FakeDb()
+        environ.env.redis = FakeRedis()
+        environ.env.redis.hset(RedisKeys.sid_for_user_id(), '1234', '1111')
+        environ.env.out_of_scope_emit = self.out_of_scope_emit
+        environ.env.logger = FakeLogger()
+
+    def test_handle_activity_kick(self):
+        activity = {
+            'actor': {
+                'id': '1234',
+                'summary': 'good-guy'
+            },
+            'verb': 'kick',
+            'object': {
+                'id': '4321',
+                'summary': 'bad-guy'
+            },
+            'target': {
+                'url': '/chat'
+            }
+        }
+        sockets.socketio.server = MockServer()
+        sockets.handle_server_activity(as_parser(activity))
+
+    def test_handle_activity_ban(self):
+        activity = {
+            'actor': {
+                'id': '1234',
+                'summary': 'good-guy'
+            },
+            'verb': 'ban',
+            'object': {
+                'id': '4321',
+                'summary': 'bad-guy'
+            },
+            'target': {
+                'url': '/chat'
+            }
+        }
+        sockets.socketio.server = MockServer()
+        sockets.handle_server_activity(as_parser(activity))
