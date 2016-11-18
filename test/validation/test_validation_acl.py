@@ -22,6 +22,7 @@ from dino.auth.redis import AuthRedis
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
+from dino.exceptions import ValidationException
 from dino.validation import AclValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclRangeValidator
@@ -186,6 +187,9 @@ class BaseAclValidator(TestCase):
 
 
 class TestIsAdminValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestIsAdminValidator, self).setUp()
+
     def test_call_not_admin(self):
         validator = AclIsAdminValidator()
         is_valid, msg = validator(as_parser(self.json_act()), environ.env)
@@ -199,6 +203,9 @@ class TestIsAdminValidator(BaseAclValidator):
 
 
 class TestIsSuperUserValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestIsSuperUserValidator, self).setUp()
+
     def test_call_not_super_user(self):
         validator = AclIsSuperUserValidator()
         is_valid, msg = validator(as_parser(self.json_act()), environ.env)
@@ -212,6 +219,9 @@ class TestIsSuperUserValidator(BaseAclValidator):
 
 
 class TestDisallowValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestDisallowValidator, self).setUp()
+
     def test_call_not_super_user(self):
         validator = AclDisallowValidator()
         is_valid, msg = validator(as_parser(self.json_act()), environ.env)
@@ -225,6 +235,9 @@ class TestDisallowValidator(BaseAclValidator):
 
 
 class TestSameChannelValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestSameChannelValidator, self).setUp()
+
     def test_call(self):
         validator = AclSameChannelValidator()
         is_valid, msg = validator(as_parser(self.json_act()), environ.env)
@@ -237,8 +250,25 @@ class TestSameChannelValidator(BaseAclValidator):
         is_valid, msg = validator(as_parser(act), environ.env)
         self.assertFalse(is_valid)
 
+    def test_call_blank_origin_channel(self):
+        validator = AclSameChannelValidator()
+        act = self.json_act()
+        act['provider']['url'] = ''
+        is_valid, msg = validator(as_parser(act), environ.env)
+        self.assertFalse(is_valid)
+
+    def test_call_blank_target_channel(self):
+        validator = AclSameChannelValidator()
+        act = self.json_act()
+        act['object']['url'] = ''
+        is_valid, msg = validator(as_parser(act), environ.env)
+        self.assertFalse(is_valid)
+
 
 class TestSameRoomValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestSameRoomValidator, self).setUp()
+
     def test_call(self):
         validator = AclSameRoomValidator()
         is_valid, msg = validator(as_parser(self.json_act()), environ.env)
@@ -250,6 +280,110 @@ class TestSameRoomValidator(BaseAclValidator):
         act['actor']['url'] = str(uuid())
         is_valid, msg = validator(as_parser(act), environ.env)
         self.assertFalse(is_valid)
+
+    def test_call_blank_origin_room(self):
+        validator = AclSameRoomValidator()
+        act = self.json_act()
+        act['actor']['url'] = ''
+        is_valid, msg = validator(as_parser(act), environ.env)
+        self.assertFalse(is_valid)
+
+    def test_call_blank_target_room(self):
+        validator = AclSameRoomValidator()
+        act = self.json_act()
+        act['target']['id'] = ''
+        is_valid, msg = validator(as_parser(act), environ.env)
+        self.assertFalse(is_valid)
+
+
+class TestAclStrInCsvValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestAclStrInCsvValidator, self).setUp()
+
+    def test_call(self):
+        validator = AclStrInCsvValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'gender', 'm,f')
+        self.assertTrue(is_valid)
+
+    def test_call_blank_values(self):
+        validator = AclStrInCsvValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'gender', '')
+        self.assertTrue(is_valid)
+
+    def test_call_not_in_session(self):
+        validator = AclStrInCsvValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'other-stuff', 'a,b,c')
+        self.assertFalse(is_valid)
+
+
+class TestAclRangeValidator(BaseAclValidator):
+    def setUp(self):
+        super(TestAclRangeValidator, self).setUp()
+
+    def test_call(self):
+        validator = AclRangeValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'age', '25:50')
+        self.assertTrue(is_valid)
+
+    def test_call_no_end(self):
+        validator = AclRangeValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'age', '25:')
+        self.assertTrue(is_valid)
+
+    def test_call_no_beginning(self):
+        validator = AclRangeValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'age', ':50')
+        self.assertTrue(is_valid)
+
+    def test_call_blank_values(self):
+        validator = AclRangeValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'age', '')
+        self.assertFalse(is_valid)
+
+    def test_call_not_in_session(self):
+        validator = AclRangeValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'other-stuff', '')
+        self.assertFalse(is_valid)
+
+    def test_call_blank_in_session(self):
+        validator = AclRangeValidator()
+        environ.env.session[SessionKeys.age.value] = ''
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'age', ':50')
+        self.assertFalse(is_valid)
+
+    def test_call_session_value_invalid(self):
+        environ.env.session[SessionKeys.age.value] = 'k'
+        validator = AclRangeValidator()
+        is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'age', ':50')
+        self.assertFalse(is_valid)
+
+    def test_call_new_vals_blank_values(self):
+        validator = AclRangeValidator()
+        self.assertRaises(ValidationException, validator.validate_new_acl, '')
+
+    def test_call_new_vals_no_range(self):
+        validator = AclRangeValidator()
+        self.assertRaises(ValidationException, validator.validate_new_acl, '25')
+
+    def test_call_new_vals(self):
+        AclRangeValidator().validate_new_acl('25:50')
+
+    def test_call_new_vals_invalid_end(self):
+        validator = AclRangeValidator()
+        self.assertRaises(ValidationException, validator.validate_new_acl, '25:a')
+
+    def test_call_new_vals_invalid_beginning(self):
+        validator = AclRangeValidator()
+        self.assertRaises(ValidationException, validator.validate_new_acl, 'a:25')
+
+    def test_call_new_vals_no_end(self):
+        AclRangeValidator().validate_new_acl('25:')
+
+    def test_call_new_vals_no_beginning(self):
+        AclRangeValidator().validate_new_acl(':25')
+
+    def test_call_new_vals_no_limit(self):
+        AclRangeValidator().validate_new_acl(':')
 
 
 class TestIsAclValid(BaseAclValidator):
