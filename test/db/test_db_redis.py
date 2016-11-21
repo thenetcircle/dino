@@ -185,3 +185,117 @@ class DatabaseRedisTest(BaseDatabaseTest):
 
     def test_room_does_not_allow_cross_group_messaging_no_room(self):
         self._test_room_does_not_allow_cross_group_messaging_no_room()
+
+    def test_create_admin_room(self):
+        self._test_create_admin_room()
+
+    def test_get_private_room(self):
+        self._test_get_private_room()
+
+    def test_is_room_private(self):
+        self._test_is_room_private()
+
+    def test_get_private_channel_for_room(self):
+        self._test_get_private_channel_for_room()
+
+    def test_get_private_channel_for_prefix(self):
+        self._test_get_private_channel_for_prefix()
+
+    def test_create_private_channel_for_room(self):
+        self._test_create_private_channel_for_room()
+
+    def test_is_super_user(self):
+        self._test_is_super_user()
+
+    def test_get_admin_room_for_channel(self):
+        self._test_get_admin_room_for_channel()
+
+    def test_set_owner_and_moderator(self):
+        self._test_set_owner_and_moderator()
+
+    def test_remove_channel_role(self):
+        self._test_remove_channel_role()
+
+    def test_remove_room_role(self):
+        self._test_remove_room_role()
+
+    def test_remove_super_user(self):
+        self._test_remove_super_user()
+
+    def test_get_super_users(self):
+        self._test_get_super_users()
+
+    def test_remove_owner(self):
+        self._test_remove_owner()
+
+    def test_remove_channel_owner(self):
+        self._test_remove_channel_owner()
+
+    def test_remove_admin(self):
+        self._test_remove_admin()
+
+    def test_remove_moderator(self):
+        self._test_remove_moderator()
+
+    def test_set_owner_is_unique(self):
+        self._test_set_owner_is_unique()
+
+    def test_set_owner_channel_is_unique(self):
+        self._test_set_owner_channel_is_unique()
+
+    def test_set_moderator_is_unique(self):
+        self._test_set_moderator_is_unique()
+
+    def test_set_admin_is_unique(self):
+        self._test_set_admin_is_unique()
+
+    def test_set_super_user_is_unique(self):
+        self._test_set_super_user_is_unique()
+
+    def test_remove_super_user_without_setting(self):
+        self._test_remove_super_user_without_setting()
+
+    def test_remove_owner_without_setting(self):
+        self._test_remove_owner_without_setting()
+
+    def test_remove_channel_owner_without_setting(self):
+        self._test_remove_channel_owner_without_setting()
+
+    def test_remove_admin_without_setting(self):
+        self._test_remove_admin_without_setting()
+
+    def test_remove_moderator_without_setting(self):
+        self._test_remove_moderator_without_setting()
+
+    def test_remove_other_role_channel(self):
+        self._test_remove_other_role_channel()
+
+    def test_remove_other_role_room(self):
+        self._test_remove_other_role_room()
+
+    def test_set_admin_no_such_channel(self):
+        self._test_set_admin_no_such_channel()
+
+    def test_remove_admin_no_such_channel(self):
+        self._test_remove_admin_no_such_room()
+
+    def test_remove_moderator_no_such_room(self):
+        self._test_remove_moderator_no_such_room()
+
+    def test_channel_name_exists(self):
+        self._test_channel_name_exists()
+
+    def test_channel_exists(self):
+        self._test_channel_exists()
+
+    def test_create_user(self):
+        self._test_create_user()
+
+    def test_users_in_room(self):
+        self._test_users_in_room()
+
+    def test_delete_acl_in_channel_for_action(self):
+        self._test_delete_acl_in_channel_for_action()
+
+    def test_delete_acl_in_room_for_action(self):
+        self._test_delete_acl_in_room_for_action()

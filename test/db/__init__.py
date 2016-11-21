@@ -38,6 +38,7 @@ from dino.exceptions import NoSuchChannelException
 from dino.exceptions import RoomExistsException
 from dino.exceptions import NoChannelFoundException
 from dino.exceptions import NoSuchRoomException
+from dino.exceptions import NoSuchUserException
 from dino.exceptions import RoomNameExistsForChannelException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -593,3 +594,318 @@ class BaseDatabaseTest(BaseTest):
             return False
 
         return 'samechannel' in channel_acls or 'samechannel' in room_acls
+
+    def _test_create_admin_room(self):
+        self._create_channel()
+        self.db.create_admin_room_for(BaseTest.CHANNEL_ID)
+        room_id = self.db.admin_room_for_channel(BaseTest.CHANNEL_ID)
+        self.assertIsNotNone(room_id)
+
+    def _test_get_private_room(self):
+        room_id, channel_id = self.db.get_private_room(BaseTest.USER_ID)
+        self.assertIsNotNone(room_id)
+
+    def _test_is_room_private(self):
+        room_id, _ = self.db.get_private_room(BaseTest.USER_ID)
+        self.assertTrue(self.db.is_room_private(room_id))
+
+    def _test_get_private_channel_for_room(self):
+        room_id, channel_id = self.db.get_private_room(BaseTest.USER_ID)
+        self.assertEqual(self.db.get_private_channel_for_room(room_id), channel_id)
+
+    def _test_get_private_channel_for_prefix(self):
+        room_id, channel_id = self.db.get_private_room(BaseTest.USER_ID)
+        private_channel_id = self.db.get_private_channel_for_prefix(room_id[:2])
+        self.assertEqual(private_channel_id, channel_id)
+
+    def _test_create_private_channel_for_room(self):
+        room_id = str(uuid())
+        channel_id = self.db.create_private_channel_for_room(room_id)
+        private_channel_id = self.db.get_private_channel_for_room(room_id)
+        self.assertEqual(private_channel_id, channel_id)
+
+    def _test_is_super_user(self):
+        self.assertFalse(self.db.is_super_user(BaseTest.USER_ID))
+        self.db.set_super_user(BaseTest.USER_ID)
+        self.assertTrue(self.db.is_super_user(BaseTest.USER_ID))
+
+    def _test_get_admin_room_for_channel(self):
+        self._create_channel()
+        room_id = self.db.create_admin_room_for(BaseTest.CHANNEL_ID)
+        self.assertIsNotNone(room_id)
+
+    def _test_set_owner_and_moderator(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+        self.assertTrue(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.remove_owner(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.set_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.db.set_owner(BaseTest.ROOM_ID, BaseTest.USER_ID)
+
+        self.assertTrue(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+        self.assertTrue(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+    def _test_remove_channel_role(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        self.db.remove_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+    def _test_remove_room_role(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.remove_owner(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+    def _test_get_super_users(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self.db.is_super_user(BaseTest.USER_ID))
+        self.db.set_super_user(BaseTest.USER_ID)
+        self.assertTrue(self.db.is_super_user(BaseTest.USER_ID))
+
+        super_users = self.db.get_super_users()
+        self.assertEqual(1, len(super_users))
+        self.assertIn(BaseTest.USER_ID, super_users.keys())
+        self.assertIn(BaseTest.USER_NAME, super_users.values())
+
+    def _test_remove_super_user(self):
+        self.assertFalse(self.db.is_super_user(BaseTest.USER_ID))
+
+        self.db.set_super_user(BaseTest.USER_ID)
+        self.assertTrue(self.db.is_super_user(BaseTest.USER_ID))
+
+        self.db.remove_super_user(BaseTest.USER_ID)
+        self.assertFalse(self.db.is_super_user(BaseTest.USER_ID))
+
+    def _test_remove_owner(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.remove_owner(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+    def _test_remove_channel_owner(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        self.db.remove_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+    def _test_remove_admin(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        self.db.set_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        self.db.remove_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+    def _test_remove_moderator(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.set_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.remove_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+    def _test_set_owner_is_unique(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.set_owner(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        users = self.db.get_owners_room(BaseTest.ROOM_ID)
+        self.assertEqual(1, len(users))
+        self.assertIn(BaseTest.USER_ID, users.keys())
+        self.assertIn(BaseTest.USER_NAME, users.values())
+
+    def _test_set_owner_channel_is_unique(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        self.db.set_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        users = self.db.get_owners_channel(BaseTest.CHANNEL_ID)
+        self.assertEqual(1, len(users))
+        self.assertIn(BaseTest.USER_ID, users.keys())
+        self.assertIn(BaseTest.USER_NAME, users.values())
+
+    def _test_set_moderator_is_unique(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.set_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.set_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        users = self.db.get_moderators_room(BaseTest.ROOM_ID)
+        self.assertEqual(1, len(users))
+        self.assertIn(BaseTest.USER_ID, users.keys())
+        self.assertIn(BaseTest.USER_NAME, users.values())
+
+    def _test_set_admin_is_unique(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        self.db.set_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        self.db.set_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        users = self.db.get_admins_channel(BaseTest.CHANNEL_ID)
+        self.assertEqual(1, len(users))
+        self.assertIn(BaseTest.USER_ID, users.keys())
+        self.assertIn(BaseTest.USER_NAME, users.values())
+
+    def _test_set_super_user_is_unique(self):
+        self._create_channel()
+        self._create_room()
+        self.assertFalse(self.db.is_super_user(BaseTest.USER_ID))
+
+        self.db.set_super_user(BaseTest.USER_ID)
+        self.assertTrue(self.db.is_super_user(BaseTest.USER_ID))
+
+        self.db.set_super_user(BaseTest.USER_ID)
+        self.assertTrue(self.db.is_super_user(BaseTest.USER_ID))
+
+        users = self.db.get_super_users()
+        self.assertEqual(1, len(users))
+        self.assertIn(BaseTest.USER_ID, users.keys())
+        self.assertIn(BaseTest.USER_NAME, users.values())
+
+    def _test_remove_super_user_without_setting(self):
+        self._create_channel()
+        self._create_room()
+
+        self.assertFalse(self.db.is_super_user(BaseTest.OTHER_USER_ID))
+        self.db.remove_super_user(BaseTest.OTHER_USER_ID)
+        self.assertFalse(self.db.is_super_user(BaseTest.OTHER_USER_ID))
+
+    def _test_remove_owner_without_setting(self):
+        self._create_channel()
+        self._create_room()
+
+        self.assertFalse(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.OTHER_USER_ID))
+        self.db.remove_owner(BaseTest.ROOM_ID, BaseTest.OTHER_USER_ID)
+        self.assertFalse(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.OTHER_USER_ID))
+
+    def _test_remove_channel_owner_without_setting(self):
+        self._create_channel()
+        self._create_room()
+
+        self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.OTHER_USER_ID))
+        self.db.remove_owner_channel(BaseTest.CHANNEL_ID, BaseTest.OTHER_USER_ID)
+        self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.OTHER_USER_ID))
+
+    def _test_remove_admin_without_setting(self):
+        self._create_channel()
+        self._create_room()
+
+        self.assertFalse(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.OTHER_USER_ID))
+        self.db.remove_admin(BaseTest.CHANNEL_ID, BaseTest.OTHER_USER_ID)
+        self.assertFalse(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.OTHER_USER_ID))
+
+    def _test_remove_moderator_without_setting(self):
+        self._create_channel()
+        self._create_room()
+
+        self.assertFalse(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.OTHER_USER_ID))
+        self.db.remove_moderator(BaseTest.ROOM_ID, BaseTest.OTHER_USER_ID)
+        self.assertFalse(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.OTHER_USER_ID))
+
+    def _test_remove_other_role_channel(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+        self.assertFalse(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        self.db.set_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+        self.db.remove_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+        self.assertTrue(self.db.is_admin(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+    def _test_remove_other_role_room(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+        self.assertFalse(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.set_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertTrue(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+        self.db.remove_owner(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner(BaseTest.ROOM_ID, BaseTest.USER_ID))
+        self.assertTrue(self.db.is_moderator(BaseTest.ROOM_ID, BaseTest.USER_ID))
+
+    def _test_set_admin_no_such_channel(self):
+        self.assertRaises(NoSuchChannelException, self.db.set_admin, BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+
+    def _test_remove_admin_no_such_room(self):
+        self.assertRaises(NoSuchChannelException, self.db.remove_admin, BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+
+    def _test_remove_moderator_no_such_room(self):
+        self.assertRaises(NoSuchRoomException, self.db.remove_moderator, BaseTest.ROOM_ID, BaseTest.USER_ID)
+
+    def _test_channel_name_exists(self):
+        self.assertFalse(self.db.channel_name_exists(BaseTest.CHANNEL_NAME))
+        self._create_channel()
+        self.assertTrue(self.db.channel_name_exists(BaseTest.CHANNEL_NAME))
+
+    def _test_channel_exists(self):
+        self.assertFalse(self.db.channel_exists(''))
+        self.assertFalse(self.db.channel_exists(None))
+        self.assertFalse(self.db.channel_exists(BaseTest.CHANNEL_ID))
+        self._create_channel()
+        self.assertTrue(self.db.channel_exists(BaseTest.CHANNEL_ID))
+
+    def _test_create_user(self):
+        self.assertRaises(NoSuchUserException, self.db.get_user_name, BaseTest.USER_ID)
+        self.db.create_user(BaseTest.USER_ID, BaseTest.USER_NAME)
+        self.assertEqual(BaseTest.USER_NAME, self.db.get_user_name(BaseTest.USER_ID))
+
+    def _test_users_in_room(self):
+        self.assertRaises(NoChannelFoundException, self.db.users_in_room, BaseTest.ROOM_ID)
+        self._create_channel()
+        self.assertRaises(NoChannelFoundException, self.db.users_in_room, BaseTest.ROOM_ID)
+
+        self._create_room()
+        self.assertEqual(0, len(self.db.users_in_room(BaseTest.ROOM_ID)))
+
+    def _test_delete_acl_in_room_for_action(self):
+        self.assertRaises(NoSuchRoomException, self.db.delete_acl_in_room_for_action, BaseTest.ROOM_ID, 'gender', ApiActions.JOIN)
+        self._create_channel()
+        self.assertRaises(NoSuchRoomException, self.db.delete_acl_in_room_for_action, BaseTest.ROOM_ID, 'gender', ApiActions.JOIN)
+        self._create_room()
+        self.db.delete_acl_in_room_for_action(BaseTest.ROOM_ID, 'gender', ApiActions.JOIN)
+
+    def _test_delete_acl_in_channel_for_action(self):
+        self.assertRaises(NoSuchChannelException, self.db.delete_acl_in_channel_for_action, BaseTest.CHANNEL_ID, 'gender', ApiActions.JOIN)
+        self._create_channel()
+        self.db.delete_acl_in_channel_for_action(BaseTest.CHANNEL_ID, 'gender', ApiActions.LIST)

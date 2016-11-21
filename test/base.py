@@ -367,7 +367,6 @@ class BaseTest(unittest.TestCase):
 
     def set_owner(self):
         environ.env.db.redis.hset(RedisKeys.user_names(), BaseTest.USER_ID, BaseTest.USER_NAME)
-        environ.env.db.redis.hset(RedisKeys.room_owners(BaseTest.ROOM_ID), BaseTest.USER_ID, BaseTest.USER_NAME)
         environ.env.db.redis.hset(RedisKeys.room_roles(BaseTest.ROOM_ID), BaseTest.USER_ID, RoleKeys.OWNER)
 
     def remove_owner(self):

@@ -125,6 +125,7 @@ class DatabaseRdbms(object):
 
         session.add(room)
         session.commit()
+        return room.uuid
 
     def admin_room_for_channel(self, channel_id: str) -> str:
         @with_session
@@ -397,6 +398,7 @@ class DatabaseRdbms(object):
     @with_session
     def channel_name_exists(self, channel_name: str, session=None) -> bool:
         rows = session.query(Channels).filter(Channels.name == channel_name).all()
+        print(channel_name)
         return rows is not None and len(rows) > 0
 
     def room_name_exists(self, channel_id, room_name: str) -> bool:
@@ -513,13 +515,18 @@ class DatabaseRdbms(object):
             session.commit()
 
             self.env.cache.set_channel_exists(channel_id)
+            return channel.uuid
 
         if channel_name is None or len(channel_name.strip()) == 0:
             raise EmptyChannelNameException(channel_id)
 
         if self.channel_exists(channel_id):
             raise ChannelExistsException(channel_id)
+
         _create_channel()
+
+        # make sure this user has a private room and a Users() object in the db with the user name
+        self.get_private_room(user_id)
 
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str) -> None:
         @with_session
@@ -546,6 +553,7 @@ class DatabaseRdbms(object):
 
             channel.rooms.append(room)
             session.add(channel)
+
             session.commit()
 
         if room_name is None or len(room_name.strip()) == 0:
@@ -557,6 +565,9 @@ class DatabaseRdbms(object):
         if self.room_name_exists(channel_id, room_name):
             raise RoomNameExistsForChannelException(channel_id, room_name)
         _create_room()
+
+        # make sure this user has a private room and a Users() object in the db with the user name
+        self.get_private_room(user_id)
 
     @with_session
     def remove_room(self, channel_id: str, room_id: str, session=None) -> None:
@@ -800,7 +811,7 @@ class DatabaseRdbms(object):
         self._remove_global_role(user_id, RoleKeys.SUPER_USER)
 
     def is_super_user(self, user_id: str) -> bool:
-        self._has_global_role(user_id, RoleKeys.SUPER_USER)
+        return self._has_global_role(user_id, RoleKeys.SUPER_USER)
 
     def is_moderator(self, room_id: str, user_id: str) -> bool:
         return self._room_has_role_for_user(RoleKeys.MODERATOR, room_id, user_id)
@@ -845,6 +856,7 @@ class DatabaseRdbms(object):
         self._remove_role_on_channel_for_user(RoleKeys.OWNER, channel_id, user_id)
 
     def remove_moderator(self, room_id: str, user_id: str) -> None:
+        self.get_room_name(room_id)
         if self.channel_for_room(room_id) is None:
             raise NoSuchRoomException(room_id)
         self._remove_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
@@ -1193,6 +1205,10 @@ class DatabaseRdbms(object):
         user_name = _get_user_name()
         if user_name is not None and len(user_name.strip()) > 0:
             self.env.cache.set_user_name(user_id, user_name)
+
+        if user_name is None or len(user_name.strip()) == 0:
+            raise NoSuchUserException(user_id)
+
         return user_name
 
     def _get_users_with_role(self, roles, role_key):

@@ -161,7 +161,6 @@ class RedisKeys(object):
     RKEY_ROOM_NAME = 'room:names'
     RKEY_ROOM_ACL = 'room:acl:%s'  # room:acl:room_id
     RKEY_CHANNEL_ACL = 'channel:acl:%s'  # channel:acl:channel_id
-    RKEY_ROOM_OWNERS = 'room:owners:%s'  # room:owners:room_id
     RKEY_ROOM_HISTORY = 'room:history:%s'  # room:history:room_id
     RKEY_AUTH = 'user:auth:%s'  # user:auth:user_id
     RKEY_CHANNELS = 'channels'
@@ -294,10 +293,6 @@ class RedisKeys(object):
     @staticmethod
     def room_acl(room_id: str) -> dict:
         return RedisKeys.RKEY_ROOM_ACL % room_id
-
-    @staticmethod
-    def room_owners(room_id: str) -> str:
-        return RedisKeys.RKEY_ROOM_OWNERS % room_id
 
     @staticmethod
     def channel_for_rooms() -> str:
