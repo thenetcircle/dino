@@ -17,9 +17,11 @@ from test.base import BaseTest
 from activitystreams import parse
 from uuid import uuid4 as uuid
 from datetime import datetime
+from datetime import timedelta
 import time
 
 from dino.environ import ConfigDict
+from dino import environ
 
 from dino.config import ConfigKeys
 from dino.config import ApiActions
@@ -32,6 +34,8 @@ from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclSameRoomValidator
 from dino.validation.acl import AclDisallowValidator
 from dino.validation.acl import AclRangeValidator
+from dino.validation.acl import AclIsAdminValidator
+from dino.validation.acl import AclIsSuperUserValidator
 
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
@@ -39,7 +43,11 @@ from dino.exceptions import RoomExistsException
 from dino.exceptions import NoChannelFoundException
 from dino.exceptions import NoSuchRoomException
 from dino.exceptions import NoSuchUserException
+from dino.exceptions import UserExistsException
 from dino.exceptions import RoomNameExistsForChannelException
+from dino.exceptions import InvalidApiActionException
+from dino.exceptions import InvalidAclTypeException
+from dino.exceptions import InvalidAclValueException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -153,6 +161,14 @@ class BaseDatabaseTest(BaseTest):
                     'age': {
                         'type': 'range',
                         'value': AclRangeValidator()
+                    },
+                    'admin': {
+                        'type': 'is_admin',
+                        'value': AclIsAdminValidator()
+                    },
+                    'superuser': {
+                        'type': 'is_super_user',
+                        'value': AclIsSuperUserValidator()
                     }
                 }
             }
@@ -173,10 +189,12 @@ class BaseDatabaseTest(BaseTest):
             self.db = DatabaseRdbms(self.env)
         elif db == 'redis':
             from dino.db.redis import DatabaseRedis
-            self.db = DatabaseRedis(self.env, 'localhost:6379', db=99)
+            self.db = DatabaseRedis(self.env, 'mock', db=99)
             self.db.redis.flushall()
         else:
             raise ValueError('unknown type %s' % db)
+
+        environ.env.config = self.env.config
 
     def act_message(self):
         data = self.activity_for_message()
@@ -909,3 +927,100 @@ class BaseDatabaseTest(BaseTest):
         self.assertRaises(NoSuchChannelException, self.db.delete_acl_in_channel_for_action, BaseTest.CHANNEL_ID, 'gender', ApiActions.JOIN)
         self._create_channel()
         self.db.delete_acl_in_channel_for_action(BaseTest.CHANNEL_ID, 'gender', ApiActions.LIST)
+
+    def _test_remove_owner_channel_no_channel(self):
+        self.assertRaises(NoSuchChannelException, self.db.remove_owner_channel, BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+
+    def _test_remove_owner_channel_not_owner(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+        self.db.remove_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+        self.db.remove_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+    def _test_remove_owner_channel_is_owner(self):
+        self._create_channel()
+        self._create_room()
+        self._set_owner_channel()
+        self.assertTrue(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+        self.db.remove_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
+
+    def _test_create_user_exists(self):
+        self.db.create_user(BaseTest.USER_ID, BaseTest.USER_NAME)
+        self.assertRaises(UserExistsException, self.db.create_user, BaseTest.USER_ID, BaseTest.USER_NAME)
+
+    def _test_update_acl_in_room_for_action_no_channel(self):
+        self.assertRaises(NoSuchChannelException, self.db.update_acl_in_room_for_action,
+                          BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, ApiActions.JOIN, 'age', '25:40')
+
+    def _test_update_acl_in_room_for_action_no_room(self):
+        self._create_channel()
+        self.assertRaises(NoSuchRoomException, self.db.update_acl_in_room_for_action,
+                          BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, ApiActions.JOIN, 'age', '25:40')
+
+    def _test_update_acl_in_room_for_action_invalid_action(self):
+        self._create_channel()
+        self._create_room()
+        self.assertRaises(InvalidApiActionException, self.db.update_acl_in_room_for_action,
+                          BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, 'some-invalid-action', 'age', '25:40')
+
+    def _test_update_acl_in_room_for_action_invalid_type(self):
+        self._create_channel()
+        self._create_room()
+        self.assertRaises(InvalidAclTypeException, self.db.update_acl_in_room_for_action,
+                          BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, ApiActions.JOIN, 'something-invalid', '25:40')
+
+    def _test_update_acl_in_room_for_action_invalid_value(self):
+        self._create_channel()
+        self._create_room()
+        self.assertRaises(InvalidAclValueException, self.db.update_acl_in_room_for_action,
+                          BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, ApiActions.JOIN, 'age', 'something-invalid')
+
+    def _test_update_acl_in_room_for_action(self):
+        self._create_channel()
+        self._create_room()
+        self.assertEqual(0, len(self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN)))
+
+        self.db.update_acl_in_room_for_action(BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, ApiActions.JOIN, 'age', '25:40')
+        self.assertIn('age', self.db.get_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN))
+
+    def _test_update_acl_in_channel_for_action(self):
+        self._create_channel()
+        self.assertEqual(0, len(self.db.get_acls_in_channel_for_action(BaseTest.CHANNEL_ID, ApiActions.LIST)))
+
+        self.db.update_acl_in_channel_for_action(BaseTest.CHANNEL_ID, ApiActions.LIST, 'age', '25:40')
+        self.assertIn('age', self.db.get_acls_in_channel_for_action(BaseTest.CHANNEL_ID, ApiActions.LIST))
+
+    def _test_update_acl_in_channel_for_action_invalid_action(self):
+        self._create_channel()
+        self.assertRaises(InvalidApiActionException, self.db.update_acl_in_channel_for_action,
+                          BaseTest.CHANNEL_ID, 'some-invalid-action', 'age', '25:40')
+
+    def _test_update_acl_in_channel_for_action_invalid_type(self):
+        self._create_channel()
+        self.assertRaises(InvalidAclTypeException, self.db.update_acl_in_channel_for_action,
+                          BaseTest.CHANNEL_ID, ApiActions.LIST, 'something-invalid', '25:40')
+
+    def _test_update_acl_in_channel_for_action_invalid_value(self):
+        self._create_channel()
+        self.assertRaises(InvalidAclValueException, self.db.update_acl_in_channel_for_action,
+                          BaseTest.CHANNEL_ID, ApiActions.LIST, 'age', 'something-invalid')
+
+    def _test_update_acl_in_channel_for_action_no_channel(self):
+        self.assertRaises(NoSuchChannelException, self.db.update_acl_in_channel_for_action,
+                          BaseTest.CHANNEL_ID, ApiActions.LIST, 'age', '25:40')
+
+    def _test_is_banned_from_channel(self):
+        self._create_channel()
+        is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+        timestamp = str(int((datetime.now() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+
+        self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+        is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertTrue(is_banned)

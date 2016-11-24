@@ -398,7 +398,6 @@ class DatabaseRdbms(object):
     @with_session
     def channel_name_exists(self, channel_name: str, session=None) -> bool:
         rows = session.query(Channels).filter(Channels.name == channel_name).all()
-        print(channel_name)
         return rows is not None and len(rows) > 0
 
     def room_name_exists(self, channel_id, room_name: str) -> bool:
@@ -929,6 +928,8 @@ class DatabaseRdbms(object):
 
         if new_acls is None or len(new_acls) == 0:
             return
+
+        self.get_room_name(room_id)
         _add_acls_in_room_for_action()
 
     def add_acls_in_channel_for_action(self, channel_id: str, action: str, new_acls: dict) -> None:
@@ -954,6 +955,8 @@ class DatabaseRdbms(object):
 
         if new_acls is None or len(new_acls) == 0:
             return
+
+        self.get_channel_name(channel_id)
         _add_acls_in_channel_for_action()
 
     def _add_acls(self, existing_acls: list, new_acls: dict, action: str, target: str) -> (list, list):
@@ -1013,6 +1016,9 @@ class DatabaseRdbms(object):
         if acls_for_target is None:
             return list()
 
+        if action not in acls_for_target:
+            raise InvalidApiActionException(action)
+
         acls_for_action = acls_for_target.get(action)
         if acls_for_action is None:
             return list()
@@ -1023,6 +1029,7 @@ class DatabaseRdbms(object):
         return acls
 
     def update_acl_in_room_for_action(self, channel_id: str, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
+        self.get_channel_name(channel_id)
         self.add_acls_in_room_for_action(room_id, action, {acl_type: acl_value})
 
     def update_acl_in_channel_for_action(self, channel_id: str, action: str, acl_type: str, acl_value: str) -> None:
@@ -1306,7 +1313,7 @@ class DatabaseRdbms(object):
             if time == '':
                 return False, None
 
-            time = datetime.fromtimestamp(time)
+            time = datetime.fromtimestamp(float(time))
             if now > time:
                 self.remove_channel_ban(channel_id, user_id)
                 return False, None

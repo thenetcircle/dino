@@ -97,7 +97,7 @@ class RoleKeys(object):
     OWNER = 'owner'
     MODERATOR = 'moderator'
     ADMIN = 'admin'
-    SUPER_USER = 'super-user'
+    SUPER_USER = 'superuser'
 
 
 class UserKeys(object):

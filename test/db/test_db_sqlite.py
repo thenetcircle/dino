@@ -310,3 +310,51 @@ class DatabaseSqliteTest(BaseDatabaseTest):
 
     def test_delete_acl_in_room_for_action(self):
         self._test_delete_acl_in_room_for_action()
+
+    def test_remove_owner_channel_no_channel(self):
+        self._test_remove_owner_channel_no_channel()
+
+    def test_remove_owner_channel_not_owner(self):
+        self._test_remove_owner_channel_not_owner()
+
+    def test_remove_owner_channel_is_owner(self):
+        self._test_remove_owner_channel_is_owner()
+
+    def test_create_user_exists(self):
+        self._test_create_user_exists()
+
+    def test_update_acl_in_room_for_action(self):
+        self._test_update_acl_in_room_for_action()
+
+    def test_update_acl_in_room_for_action_no_channel(self):
+        self._test_update_acl_in_room_for_action_no_channel()
+
+    def test_update_acl_in_room_for_action_no_room(self):
+        self._test_update_acl_in_room_for_action_no_room()
+
+    def test_update_acl_in_room_for_action_invalid_action(self):
+        self._test_update_acl_in_room_for_action_invalid_action()
+
+    def test_update_acl_in_room_for_action_invalid_type(self):
+        self._test_update_acl_in_room_for_action_invalid_type()
+
+    def test_update_acl_in_room_for_action_invalid_value(self):
+        self._test_update_acl_in_room_for_action_invalid_value()
+
+    def test_update_acl_in_channel_for_action(self):
+        self._test_update_acl_in_channel_for_action()
+
+    def test_update_acl_in_channel_for_action_no_channel(self):
+        self._test_update_acl_in_channel_for_action_no_channel()
+
+    def test_update_acl_in_channel_for_action_invalid_action(self):
+        self._test_update_acl_in_channel_for_action_invalid_action()
+
+    def test_update_acl_in_channel_for_action_invalid_type(self):
+        self._test_update_acl_in_channel_for_action_invalid_type()
+
+    def test_update_acl_in_channel_for_action_invalid_value(self):
+        self._test_update_acl_in_channel_for_action_invalid_value()
+
+    def test_is_banned_from_channel(self):
+        self._test_is_banned_from_channel()

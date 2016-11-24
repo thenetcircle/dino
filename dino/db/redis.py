@@ -44,6 +44,7 @@ from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
 from dino.exceptions import AclValueNotFoundException
 from dino.exceptions import InvalidApiActionException
+from dino.exceptions import ValidationException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -280,7 +281,7 @@ class DatabaseRedis(object):
     def remove_moderator(self, room_id: str, user_id: str) -> None:
         self.get_room_name(room_id)
         if not self.channel_for_room(room_id):
-            raise NoSuchRoomException(room_id)
+            raise NoChannelFoundException(room_id)
         self._remove_room_role(RoleKeys.MODERATOR, room_id, user_id)
 
     def remove_owner(self, room_id: str, user_id: str) -> None:
@@ -351,8 +352,7 @@ class DatabaseRedis(object):
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
     def users_in_room(self, room_id: str) -> dict:
-        if self.channel_for_room(room_id) is None:
-            raise NoSuchRoomException(room_id)
+        self.channel_for_room(room_id)
 
         users = self.redis.hgetall(RedisKeys.users_in_room(room_id))
         cleaned_users = dict()
@@ -368,8 +368,7 @@ class DatabaseRedis(object):
 
     def delete_acl_in_room_for_action(self, room_id: str, acl_type: str, action: str) -> None:
         self.get_room_name(room_id)
-        if self.channel_for_room(room_id) is None:
-            raise NoSuchRoomException(room_id)
+        self.channel_for_room(room_id)
 
         key = '%s|%s' % (action, acl_type)
         self.redis.hdel(RedisKeys.room_acl(room_id), key)
@@ -387,34 +386,9 @@ class DatabaseRedis(object):
         if not self.room_exists(channel_id, room_id):
             raise NoSuchRoomException(room_id)
 
-        acl_configs = environ.env.config.get(ConfigKeys.ACL)
-
-        if action not in ApiActions.all_api_actions:
-            raise InvalidApiActionException(action)
-
-        if acl_type not in acl_configs['available']:
-            raise InvalidAclTypeException(acl_type)
-
-        if not acl_configs['validation'][acl_type](acl_value):
-            raise InvalidAclValueException(acl_type, acl_value)
-
         self.add_acls_in_room_for_action(room_id, action, {acl_type: acl_value})
 
     def update_acl_in_channel_for_action(self, channel_id: str, action: str, acl_type: str, acl_value: str) -> None:
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
-
-        acl_configs = environ.env.config.get(ConfigKeys.ACL)
-
-        if action not in ApiActions.all_api_actions:
-            raise InvalidApiActionException(action)
-
-        if acl_type not in acl_configs['available']:
-            raise InvalidAclTypeException(acl_type)
-
-        if not acl_configs['validation'][acl_type](acl_value):
-            raise InvalidAclValueException(acl_type, acl_value)
-
         self.add_acls_in_channel_for_action(channel_id, action, {acl_type: acl_value})
 
     def add_acls_in_channel_for_action(self, channel_id: str, action: str, acls: dict) -> None:
@@ -425,7 +399,16 @@ class DatabaseRedis(object):
             raise InvalidApiActionException(action)
 
         new_acls = dict()
+        acl_configs = environ.env.config.get(ConfigKeys.ACL)
+
         for acl_type, acl_value in acls.items():
+            if acl_type not in acl_configs['available']['acls']:
+                raise InvalidAclTypeException(acl_type)
+            try:
+                acl_configs['validation'][acl_type]['value'].validate_new_acl(acl_value)
+            except ValidationException:
+                raise InvalidAclValueException(acl_type, acl_value)
+
             key = '%s|%s' % (action, acl_type)
             new_acls[key] = acl_value
 
@@ -438,8 +421,20 @@ class DatabaseRedis(object):
         if action not in ApiActions.all_api_actions:
             raise InvalidApiActionException(action)
 
+        acl_configs = environ.env.config.get(ConfigKeys.ACL)
+
+        if action not in ApiActions.all_api_actions:
+            raise InvalidApiActionException(action)
+
         new_acls = dict()
         for acl_type, acl_value in acls.items():
+            if acl_type not in acl_configs['available']['acls']:
+                raise InvalidAclTypeException(acl_type)
+            try:
+                acl_configs['validation'][acl_type]['value'].validate_new_acl(acl_value)
+            except ValidationException:
+                raise InvalidAclValueException(acl_type, acl_value)
+
             key = '%s|%s' % (action, acl_type)
             new_acls[key] = acl_value
 
@@ -626,15 +621,15 @@ class DatabaseRedis(object):
         return ban.split('|', 2)
 
     def get_global_ban_timestamp(self, user_id: str) -> (str, str, str):
-        ban = environ.env.redis.hset(RedisKeys.banned_users(), user_id)
+        ban = self.redis.hset(RedisKeys.banned_users(), user_id)
         return self._get_ban_timestamp(ban)
 
     def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> (str, str, str):
-        ban = environ.env.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id)
+        ban = self.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id)
         return self._get_ban_timestamp(ban)
 
     def get_room_ban_timestamp(self, room_id: str, user_id: str) -> (str, str, str):
-        ban = environ.env.redis.hset(RedisKeys.banned_users(room_id), user_id)
+        ban = self.redis.hset(RedisKeys.banned_users(room_id), user_id)
         return self._get_ban_timestamp(ban)
 
     def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):
@@ -643,7 +638,7 @@ class DatabaseRedis(object):
             user_name = self.get_user_name(user_id)
         except NoSuchUserException:
             pass
-        environ.env.redis.hset(RedisKeys.banned_users(), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
+        self.redis.hset(RedisKeys.banned_users(), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
     def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
         user_name = ''
@@ -651,7 +646,7 @@ class DatabaseRedis(object):
             user_name = self.get_user_name(user_id)
         except NoSuchUserException:
             pass
-        environ.env.redis.hset(RedisKeys.banned_users(room_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
+        self.redis.hset(RedisKeys.banned_users(room_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
     def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str):
         user_name = ''
@@ -659,10 +654,10 @@ class DatabaseRedis(object):
             user_name = self.get_user_name(user_id)
         except NoSuchUserException:
             pass
-        environ.env.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
+        self.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
     def get_acl_validation_value(self, acl_type: str, validation_method) -> str:
-        value = environ.env.redis.hget(RedisKeys.acl_validations(acl_type), validation_method)
+        value = self.redis.hget(RedisKeys.acl_validations(acl_type), validation_method)
         if value is None:
             raise AclValueNotFoundException(acl_type, validation_method)
         value = str(value, 'utf-8')
