@@ -223,6 +223,12 @@ class CacheRedis(object):
             return True
         return None
 
+    def remove_room_exists(self, channel_id, room_id):
+        key = RedisKeys.rooms(channel_id)
+        cache_key = '%s-%s' % (channel_id, room_id)
+        self.cache.set(cache_key, None)
+        self.redis.hdel(key, room_id)
+
     def set_room_exists(self, channel_id, room_id, room_name):
         key = RedisKeys.rooms(channel_id)
         cache_key = '%s-%s' % (channel_id, room_id)

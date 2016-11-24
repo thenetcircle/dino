@@ -48,6 +48,8 @@ from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import InvalidApiActionException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
+from dino.exceptions import EmptyRoomNameException
+from dino.exceptions import EmptyChannelNameException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -281,6 +283,14 @@ class BaseDatabaseTest(BaseTest):
         self._create_channel()
         self._create_room()
         self.assertTrue(self._room_exists())
+        rooms = self.db.rooms_for_channel(BaseDatabaseTest.CHANNEL_ID)
+        self.assertEqual(1, len(rooms))
+
+    def _test_create_room_blank_name(self):
+        self._create_channel()
+        self.assertRaises(
+                EmptyRoomNameException, self.db.create_room,
+                '', BaseTest.ROOM_ID, BaseTest.CHANNEL_ID, BaseTest.USER_ID, BaseTest.USER_NAME)
 
     def _test_create_existing_room(self):
         self._create_channel()
@@ -1018,9 +1028,473 @@ class BaseDatabaseTest(BaseTest):
         is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
         self.assertFalse(is_banned)
 
-        timestamp = str(int((datetime.now() + timedelta(minutes=5)).timestamp()))
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
         duration = '5m'
-
         self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+
         is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
         self.assertTrue(is_banned)
+
+    def _test_is_banned_from_room(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_from_room(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_room(BaseTest.USER_ID, timestamp, duration, BaseTest.ROOM_ID)
+
+        is_banned, time_left = self.db.is_banned_from_room(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertTrue(is_banned)
+
+    def _test_is_banned_globally(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_globally(BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_global(BaseTest.USER_ID, timestamp, duration)
+
+        is_banned, time_left = self.db.is_banned_globally(BaseTest.USER_ID)
+        self.assertTrue(is_banned)
+
+    def _test_remove_global_ban(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_globally(BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_global(BaseTest.USER_ID, timestamp, duration)
+
+        is_banned, time_left = self.db.is_banned_globally(BaseTest.USER_ID)
+        self.assertTrue(is_banned)
+
+        self.db.remove_global_ban(BaseTest.USER_ID)
+        is_banned, time_left = self.db.is_banned_globally(BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+    def _test_remove_channel_ban(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+
+        is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertTrue(is_banned)
+
+        self.db.remove_channel_ban(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+    def _test_remove_room_ban(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_from_room(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_room(BaseTest.USER_ID, timestamp, duration, BaseTest.ROOM_ID)
+
+        is_banned, time_left = self.db.is_banned_from_room(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertTrue(is_banned)
+
+        self.db.remove_room_ban(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        is_banned, time_left = self.db.is_banned_from_room(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+    def _test_was_banned_from_channel(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=-5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+
+        is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+    def _test_was_banned_from_room(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_from_room(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=-5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_room(BaseTest.USER_ID, timestamp, duration, BaseTest.ROOM_ID)
+
+        is_banned, time_left = self.db.is_banned_from_room(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+    def _test_was_banned_globally(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_globally(BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=-5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_global(BaseTest.USER_ID, timestamp, duration)
+
+        is_banned, time_left = self.db.is_banned_globally(BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+
+    def _test_get_user_ban_status_channel(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_from_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+        ban_status = self.db.get_user_ban_status(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertEqual('', ban_status['channel'])
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+
+        ban_status = self.db.get_user_ban_status(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertNotEqual('', len(ban_status['channel']))
+
+    def _test_get_user_ban_status_room(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_from_room(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+        ban_status = self.db.get_user_ban_status(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertEqual('', ban_status['room'])
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_room(BaseTest.USER_ID, timestamp, duration, BaseTest.ROOM_ID)
+
+        ban_status = self.db.get_user_ban_status(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertNotEqual('', len(ban_status['room']))
+
+    def _test_get_user_ban_status_global(self):
+        self._create_channel()
+        self._create_room()
+        is_banned, time_left = self.db.is_banned_globally(BaseTest.USER_ID)
+        self.assertFalse(is_banned)
+        ban_status = self.db.get_user_ban_status(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertEqual('', ban_status['global'])
+
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_global(BaseTest.USER_ID, timestamp, duration)
+
+        ban_status = self.db.get_user_ban_status(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertNotEqual('', len(ban_status['global']))
+
+    def _test_get_banned_users_global_is_empty(self):
+        self._create_channel()
+        self._create_room()
+        self.assertEqual(0, len(self.db.get_banned_users_global()))
+
+    def _test_get_banned_users_global_is_empty_if_expired(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=-5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_global(BaseTest.USER_ID, timestamp, duration)
+        self.assertEqual(0, len(self.db.get_banned_users_global()))
+
+    def _test_get_banned_users_global_not_empty_after_ban(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_global(BaseTest.USER_ID, timestamp, duration)
+        self.assertIn(BaseTest.USER_ID, self.db.get_banned_users_global())
+
+    def _test_get_banned_users_channel_is_empty(self):
+        self._create_channel()
+        self._create_room()
+        self.assertEqual(0, len(self.db.get_banned_users_for_channel(BaseTest.CHANNEL_ID)))
+
+    def _test_get_banned_users_channel_is_empty_if_expired(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=-5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+        self.assertEqual(0, len(self.db.get_banned_users_for_channel(BaseTest.CHANNEL_ID)))
+
+    def _test_get_banned_users_channel_not_empty_after_ban(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+        self.assertIn(BaseTest.USER_ID, self.db.get_banned_users_for_channel(BaseTest.CHANNEL_ID))
+
+    def _test_get_banned_users_room_is_empty(self):
+        self._create_channel()
+        self._create_room()
+        self.assertEqual(0, len(self.db.get_banned_users_for_room(BaseTest.ROOM_ID)))
+
+    def _test_get_banned_users_room_is_empty_if_expired(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=-5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_room(BaseTest.USER_ID, timestamp, duration, BaseTest.ROOM_ID)
+        self.assertEqual(0, len(self.db.get_banned_users_for_room(BaseTest.ROOM_ID)))
+
+    def _test_get_banned_users_room_not_empty_after_ban(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_room(BaseTest.USER_ID, timestamp, duration, BaseTest.ROOM_ID)
+        self.assertIn(BaseTest.USER_ID, self.db.get_banned_users_for_room(BaseTest.ROOM_ID))
+
+    def _test_get_banned_users_is_empty(self):
+        self._create_channel()
+        self._create_room()
+        banned = self.db.get_banned_users()
+        self.assertEqual(0, len(banned['global']))
+        self.assertEqual(0, len(banned['channels']))
+        self.assertEqual(0, len(banned['rooms']))
+
+    def _test_get_banned_users_for_room(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_room(BaseTest.USER_ID, timestamp, duration, BaseTest.ROOM_ID)
+        banned = self.db.get_banned_users()
+        self.assertEqual(0, len(banned['global']))
+        self.assertEqual(0, len(banned['channels']))
+        self.assertIn(BaseTest.USER_ID, banned['rooms'][BaseTest.ROOM_ID]['users'])
+
+    def _test_get_banned_users_for_channel(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+        banned = self.db.get_banned_users()
+        self.assertEqual(0, len(banned['global']))
+        self.assertEqual(0, len(banned['rooms']))
+        self.assertIn(BaseTest.USER_ID, banned['channels'][BaseTest.CHANNEL_ID]['users'])
+
+    def _test_get_banned_users_globally(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_global(BaseTest.USER_ID, timestamp, duration)
+        banned = self.db.get_banned_users()
+        self.assertEqual(0, len(banned['channels']))
+        self.assertEqual(0, len(banned['rooms']))
+        self.assertIn(BaseTest.USER_ID, banned['global'])
+
+    def _test_get_global_ban_timestamp_is_none(self):
+        self._create_channel()
+        self._create_room()
+        ban, timestamp, name = self.db.get_global_ban_timestamp(BaseTest.USER_ID)
+        self.assertIsNone(ban)
+        self.assertIsNone(timestamp)
+        self.assertIsNone(name)
+
+    def _test_get_global_ban_timestamp_not_none(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_global(BaseTest.USER_ID, timestamp, duration)
+        ban_duration, timestamp, name = self.db.get_global_ban_timestamp(BaseTest.USER_ID)
+        self.assertEqual('5m', ban_duration)
+        self.assertIsNotNone(timestamp)
+
+    def _test_get_global_ban_timestamp_not_empty_if_expired(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=-5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_global(BaseTest.USER_ID, timestamp, duration)
+        ban_duration, timestamp, name = self.db.get_global_ban_timestamp(BaseTest.USER_ID)
+        self.assertEqual('5m', ban_duration)
+        self.assertIsNotNone(timestamp)
+
+    def _test_get_channel_ban_timestamp_is_none(self):
+        self._create_channel()
+        self._create_room()
+        ban, timestamp, name = self.db.get_channel_ban_timestamp(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertIsNone(ban)
+        self.assertIsNone(timestamp)
+        self.assertIsNone(name)
+
+    def _test_get_channel_ban_timestamp_not_none(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+        ban_duration, timestamp, name = self.db.get_channel_ban_timestamp(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertEqual('5m', ban_duration)
+        self.assertIsNotNone(timestamp)
+
+    def _test_get_channel_ban_timestamp_not_empty_if_expired(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=-5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_channel(BaseTest.USER_ID, timestamp, duration, BaseTest.CHANNEL_ID)
+        ban_duration, timestamp, name = self.db.get_channel_ban_timestamp(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.assertEqual('5m', ban_duration)
+        self.assertIsNotNone(timestamp)
+
+    def _test_get_room_ban_timestamp_is_none(self):
+        self._create_channel()
+        self._create_room()
+        ban_duration, timestamp, name = self.db.get_room_ban_timestamp(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertIsNone(ban_duration)
+        self.assertIsNone(timestamp)
+        self.assertIsNone(name)
+
+    def _test_get_room_ban_timestamp_not_none(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_room(BaseTest.USER_ID, timestamp, duration, BaseTest.ROOM_ID)
+        ban_duration, timestamp, name = self.db.get_room_ban_timestamp(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertEqual('5m', ban_duration)
+        self.assertIsNotNone(timestamp)
+
+    def _test_get_room_ban_timestamp_not_empty_if_expired(self):
+        self._create_channel()
+        self._create_room()
+        timestamp = str(int((datetime.utcnow() + timedelta(minutes=-5)).timestamp()))
+        duration = '5m'
+        self.db.ban_user_room(BaseTest.USER_ID, timestamp, duration, BaseTest.ROOM_ID)
+        ban_duration, timestamp, name = self.db.get_room_ban_timestamp(BaseTest.ROOM_ID, BaseTest.USER_ID)
+        self.assertEqual('5m', ban_duration)
+        self.assertIsNotNone(timestamp)
+
+    def _test_get_acls_in_channel_for_action_no_channel(self):
+        self.assertRaises(
+                NoSuchChannelException, self.db.get_acls_in_channel_for_action, BaseTest.CHANNEL_ID, ApiActions.LIST)
+
+    def _test_get_acls_in_channel_for_action_no_room(self):
+        self._create_channel()
+        self.assertRaises(
+                NoSuchRoomException, self.db.get_acls_in_room_for_action, BaseTest.ROOM_ID, ApiActions.JOIN)
+
+    def _test_get_all_acls_channel_is_empty(self):
+        self._create_channel()
+        self._create_room()
+        acls = self.db.get_all_acls_channel(BaseTest.CHANNEL_ID)
+        self.assertEqual(0, len(acls))
+
+    def _test_get_all_acls_channel_not_empty(self):
+        self._create_channel()
+        self._create_room()
+        self.db.add_acls_in_channel_for_action(BaseTest.CHANNEL_ID, ApiActions.LIST, {'age': '25:35'})
+        acls = self.db.get_all_acls_channel(BaseTest.CHANNEL_ID)
+        self.assertEqual(1, len(acls))
+
+    def _test_get_all_acls_room_is_empty(self):
+        self._create_channel()
+        self._create_room()
+        acls = self.db.get_all_acls_room(BaseTest.ROOM_ID)
+        self.assertEqual(0, len(acls))
+
+    def _test_get_all_acls_room_not_empty(self):
+        self._create_channel()
+        self._create_room()
+        self.db.add_acls_in_room_for_action(BaseTest.ROOM_ID, ApiActions.JOIN, {'age': '25:35'})
+        acls = self.db.get_all_acls_room(BaseTest.ROOM_ID)
+        self.assertEqual(1, len(acls))
+
+    def _test_channel_for_room_blank_room_id(self):
+        self.assertRaises(NoSuchRoomException, self.db.channel_for_room, '')
+
+    def _test_channel_for_room_before_create(self):
+        self.assertRaises(NoChannelFoundException, self.db.channel_for_room, BaseTest.ROOM_ID)
+
+    def _test_channel_for_room_after_create(self):
+        self._create_channel()
+        self._create_room()
+        channel_id = self.db.channel_for_room(BaseTest.ROOM_ID)
+        self.assertEqual(BaseTest.CHANNEL_ID, channel_id)
+
+    def _test_channel_for_room_cache(self):
+        self._create_channel()
+        self._create_room()
+        self.db.channel_for_room(BaseTest.ROOM_ID)
+        channel_id = self.db.channel_for_room(BaseTest.ROOM_ID)
+        self.assertEqual(BaseTest.CHANNEL_ID, channel_id)
+
+    def _test_get_username_before_set(self):
+        self.assertRaises(NoSuchUserException, self.db.get_user_name, BaseTest.USER_ID)
+
+    def _test_get_username_after_set(self):
+        self.db.set_user_name(BaseTest.USER_ID, BaseTest.USER_NAME)
+        username = self.db.get_user_name(BaseTest.USER_ID)
+        self.assertEqual(BaseTest.USER_NAME, username)
+
+    def _test_rename_channel(self):
+        self._create_channel()
+        self._create_room()
+        self.db.rename_channel(BaseTest.CHANNEL_ID, 'new-name')
+        self.assertEqual('new-name', self.db.get_channel_name(BaseTest.CHANNEL_ID))
+
+    def _test_rename_channel_before_create(self):
+        self.assertRaises(NoSuchChannelException, self.db.rename_channel, BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
+
+    def _test_rename_channel_empty_name(self):
+        self._create_channel()
+        self._create_room()
+        self.assertRaises(EmptyChannelNameException, self.db.rename_channel, BaseTest.CHANNEL_ID, '')
+
+    def _test_rename_room(self):
+        self._create_channel()
+        self._create_room()
+        self.db.rename_room(BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, 'new-name')
+        self.assertEqual('new-name', self.db.get_room_name(BaseTest.ROOM_ID))
+
+    def _test_rename_room_before_create_channel(self):
+        self.assertRaises(NoSuchChannelException, self.db.rename_room, BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, 'new-name')
+
+    def _test_rename_room_before_create_room(self):
+        self._create_channel()
+        self.assertRaises(NoSuchRoomException, self.db.rename_room, BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, 'new-name')
+
+    def _test_rename_room_empty_name(self):
+        self._create_channel()
+        self._create_room()
+        self.assertRaises(EmptyRoomNameException, self.db.rename_room, BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, '')
+
+    def _test_rename_room_already_exists(self):
+        self._create_channel()
+        self._create_room()
+        self.assertRaises(RoomNameExistsForChannelException, self.db.rename_room, BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
+
+    def _test_remove_room(self):
+        self._create_channel()
+        self._create_room()
+        self.assertTrue(self.db.room_exists(BaseTest.CHANNEL_ID, BaseTest.ROOM_ID))
+        self.db.remove_room(BaseTest.CHANNEL_ID, BaseTest.ROOM_ID)
+        self.assertFalse(self.db.room_exists(BaseTest.CHANNEL_ID, BaseTest.ROOM_ID))
+
+    def _test_remove_room_before_create_room(self):
+        self._create_channel()
+        self.assertFalse(self.db.room_exists(BaseTest.CHANNEL_ID, BaseTest.ROOM_ID))
+        self.assertRaises(NoSuchRoomException, self.db.remove_room, BaseTest.CHANNEL_ID, BaseTest.ROOM_ID)
+
+    def _test_remove_room_before_create_channel(self):
+        self.assertFalse(self.db.room_exists(BaseTest.CHANNEL_ID, BaseTest.ROOM_ID))
+        self.assertRaises(NoSuchChannelException, self.db.remove_room, BaseTest.CHANNEL_ID, BaseTest.ROOM_ID)

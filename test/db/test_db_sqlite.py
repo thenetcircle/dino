@@ -146,6 +146,9 @@ class DatabaseSqliteTest(BaseDatabaseTest):
         rooms = self.db._session().query(Rooms).filter(Rooms.uuid == BaseDatabaseTest.ROOM_ID).all()
         self.assertEqual(1, len(rooms))
 
+    def test_create_room_blank_name(self):
+        self._test_create_room_blank_name()
+
     def test_create_existing_room(self):
         self._test_create_existing_room()
 
@@ -358,3 +361,171 @@ class DatabaseSqliteTest(BaseDatabaseTest):
 
     def test_is_banned_from_channel(self):
         self._test_is_banned_from_channel()
+
+    def test_is_banned_from_room(self):
+        self._test_is_banned_from_room()
+
+    def test_is_banned_globally(self):
+        self._test_is_banned_globally()
+
+    def test_remove_global_ban(self):
+        self._test_remove_global_ban()
+
+    def test_remove_channel_ban(self):
+        self._test_remove_channel_ban()
+
+    def test_remove_room_ban(self):
+        self._test_remove_room_ban()
+
+    def test_was_banned_globally(self):
+        self._test_was_banned_globally()
+
+    def test_was_banned_from_room(self):
+        self._test_was_banned_from_room()
+
+    def test_was_banned_from_channel(self):
+        self._test_was_banned_from_channel()
+
+    def test_get_user_ban_status_channel(self):
+        self._test_get_user_ban_status_channel()
+
+    def test_get_user_ban_status_room(self):
+        self._test_get_user_ban_status_room()
+
+    def test_get_user_ban_status_global(self):
+        self._test_get_user_ban_status_global()
+
+    def test_get_banned_users_global_not_empty_after_ban(self):
+        self._test_get_banned_users_global_not_empty_after_ban()
+
+    def test_get_banned_users_global_is_empty(self):
+        self._test_get_banned_users_global_is_empty()
+
+    def test_get_banned_users_global_is_empty_if_expired(self):
+        self._test_get_banned_users_global_is_empty_if_expired()
+
+    def test_get_banned_users_channel_not_empty_after_ban(self):
+        self._test_get_banned_users_channel_not_empty_after_ban()
+
+    def test_get_banned_users_channel_is_empty(self):
+        self._test_get_banned_users_channel_is_empty()
+
+    def test_get_banned_users_channel_is_empty_if_expired(self):
+        self._test_get_banned_users_channel_is_empty_if_expired()
+
+    def test_get_banned_users_room_not_empty_after_ban(self):
+        self._test_get_banned_users_room_not_empty_after_ban()
+
+    def test_get_banned_users_room_is_empty(self):
+        self._test_get_banned_users_room_is_empty()
+
+    def test_get_banned_users_room_is_empty_if_expired(self):
+        self._test_get_banned_users_room_is_empty_if_expired()
+
+    def test_get_banned_users_is_empty(self):
+        self._test_get_banned_users_is_empty()
+
+    def test_get_banned_users_for_room(self):
+        self._test_get_banned_users_for_room()
+
+    def test_get_banned_users_for_channel(self):
+        self._test_get_banned_users_for_channel()
+
+    def test_get_banned_users_globally(self):
+        self._test_get_banned_users_globally()
+
+    def test_get_global_ban_timestamp_is_none(self):
+        self._test_get_global_ban_timestamp_is_none()
+
+    def test_get_global_ban_timestamp_not_none(self):
+        self._test_get_global_ban_timestamp_not_none()
+
+    def test_get_global_ban_timestamp_empty_if_expired(self):
+        self._test_get_global_ban_timestamp_not_empty_if_expired()
+
+    def test_get_channel_ban_timestamp_is_none(self):
+        self._test_get_channel_ban_timestamp_is_none()
+
+    def test_get_channel_ban_timestamp_not_none(self):
+        self._test_get_channel_ban_timestamp_not_none()
+
+    def test_get_channel_ban_timestamp_empty_if_expired(self):
+        self._test_get_channel_ban_timestamp_not_empty_if_expired()
+
+    def test_get_room_ban_timestamp_is_none(self):
+        self._test_get_room_ban_timestamp_is_none()
+
+    def test_get_room_ban_timestamp_not_none(self):
+        self._test_get_room_ban_timestamp_not_none()
+
+    def test_get_room_ban_timestamp_empty_if_expired(self):
+        self._test_get_room_ban_timestamp_not_empty_if_expired()
+
+    def test_get_acls_in_channel_for_action_no_channel(self):
+        self._test_get_acls_in_channel_for_action_no_channel()
+
+    def test_get_acls_in_channel_for_action_no_room(self):
+        self._test_get_acls_in_channel_for_action_no_room()
+
+    def test_get_all_acls_channel_is_empty(self):
+        self._test_get_all_acls_channel_is_empty()
+
+    def test_get_all_acls_channel_not_empty(self):
+        self._test_get_all_acls_channel_not_empty()
+
+    def test_get_all_acls_room_is_empty(self):
+        self._test_get_all_acls_room_is_empty()
+
+    def test_get_all_acls_room_not_empty(self):
+        self._test_get_all_acls_room_not_empty()
+
+    def test_channel_for_room_blank_room_id(self):
+        self._test_channel_for_room_blank_room_id()
+
+    def test_channel_for_room_before_create(self):
+        self._test_channel_for_room_before_create()
+
+    def test_channel_for_room_after_create(self):
+        self._test_channel_for_room_after_create()
+
+    def test_channel_for_room_cache(self):
+        self._test_channel_for_room_cache()
+
+    def test_get_username_before_set(self):
+        self._test_get_username_before_set()
+
+    def test_get_username_after_set(self):
+        self._test_get_username_after_set()
+
+    def test_rename_channel(self):
+        self._test_rename_channel()
+
+    def test_rename_channel_before_create(self):
+        self._test_rename_channel_before_create()
+
+    def test_rename_channel_empty_name(self):
+        self._test_rename_channel_empty_name()
+
+    def test_rename_room(self):
+        self._test_rename_room()
+
+    def test_rename_room_before_create_channel(self):
+        self._test_rename_room_before_create_channel()
+
+    def test_rename_room_before_create_room(self):
+        self._test_rename_room_before_create_room()
+
+    def test_rename_room_empty_name(self):
+        self._test_rename_room_empty_name()
+
+    def test_rename_room_already_exists(self):
+        self._test_rename_room_already_exists()
+
+    def test_remove_room(self):
+        self._test_remove_room()
+
+    def test_remove_room_before_create_channel(self):
+        self._test_remove_room_before_create_channel()
+
+    def test_remove_room_before_create_room(self):
+        self._test_remove_room_before_create_room()

@@ -145,6 +145,15 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def remove_room_exists(self, channel_id, room_id):
+        """
+        when removing a room we wan't to be able to remove it from the cache as well
+
+        :param channel_id: the uuid of the channel
+        :param room_id: the uuid of the room
+        :return: nothing
+        """
+
     def get_room_exists(self, channel_id, room_id):
         """
 

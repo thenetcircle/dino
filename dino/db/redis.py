@@ -312,8 +312,8 @@ class DatabaseRedis(object):
 
     def room_name_exists(self, channel_id, room_name: str) -> bool:
         cleaned = set()
-        for room_name in self.redis.hvals(RedisKeys.rooms(channel_id)):
-            cleaned.add(str(room_name, 'utf-8').lower())
+        for existing_room_name in self.redis.hvals(RedisKeys.rooms(channel_id)):
+            cleaned.add(str(existing_room_name, 'utf-8').lower())
 
         if type(room_name) == bytes:
             room_name = str(room_name, 'utf-8')
@@ -423,9 +423,6 @@ class DatabaseRedis(object):
 
         acl_configs = environ.env.config.get(ConfigKeys.ACL)
 
-        if action not in ApiActions.all_api_actions:
-            raise InvalidApiActionException(action)
-
         new_acls = dict()
         for acl_type, acl_value in acls.items():
             if acl_type not in acl_configs['available']['acls']:
@@ -454,7 +451,7 @@ class DatabaseRedis(object):
             return False, None
 
         now = datetime.utcnow()
-        end = datetime.strptime(time, ConfigKeys.DEFAULT_DATE_FORMAT)
+        end = datetime.fromtimestamp(float(time))
         if now > end:
             self.redis.hdel(RedisKeys.banned_users(), user_id)
             return False, None
@@ -462,11 +459,29 @@ class DatabaseRedis(object):
 
     def is_banned_from_channel(self, channel_id: str, user_id: str) -> (bool, Union[str, None]):
         ban = self.redis.hget(RedisKeys.banned_users_channel(channel_id), user_id)
-        return self._is_banned(ban)
+        is_banned, time = self._is_banned(ban)
+        if not is_banned:
+            return False, None
+
+        now = datetime.utcnow()
+        end = datetime.fromtimestamp(float(time))
+        if now > end:
+            self.redis.hdel(RedisKeys.banned_users(), user_id)
+            return False, None
+        return True, time
 
     def is_banned_from_room(self, room_id: str, user_id: str) -> (bool, Union[str, None]):
         ban = self.redis.hget(RedisKeys.banned_users(room_id), user_id)
-        return self._is_banned(ban)
+        is_banned, time = self._is_banned(ban)
+        if not is_banned:
+            return False, None
+
+        now = datetime.utcnow()
+        end = datetime.fromtimestamp(float(time))
+        if now > end:
+            self.redis.hdel(RedisKeys.banned_users(), user_id)
+            return False, None
+        return True, time
 
     def remove_global_ban(self, user_id: str) -> str:
         self.redis.hdel(RedisKeys.banned_users(), user_id)
@@ -503,19 +518,18 @@ class DatabaseRedis(object):
             'room': room_timestamp
         }
 
-    # TODO: use @lru_cache?
     def get_banned_users_global(self) -> dict:
         now = datetime.utcnow()
         output = dict()
 
-        def for_global_ban(user_id, ban_info):
-            ban_duration, ban_timestamp, username = ban_info.split('|', 2)
-            if datetime.fromtimestamp(int(ban_timestamp)) > now:
-                self.redis.hdel(RedisKeys.banned_users(), user_id)
+        def for_global_ban(_user_id, _ban_info):
+            ban_duration, ban_timestamp, username = _ban_info.split('|', 2)
+            if datetime.fromtimestamp(int(ban_timestamp)) < now:
+                self.redis.hdel(RedisKeys.banned_users(), _user_id)
                 return
 
-            output[user_id] = {
-                'name': self.get_user_name(user_id),
+            output[_user_id] = {
+                'name': self.get_user_name(_user_id),
                 'duration': ban_duration,
                 'timestamp': datetime.fromtimestamp(int(ban_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
@@ -533,13 +547,13 @@ class DatabaseRedis(object):
         now = datetime.utcnow()
         output = dict()
 
-        def for_local_ban_channel(user_id, channel_id, ban_info):
-            ban_duration, ban_timestamp, username = ban_info.split('|', 2)
-            if datetime.fromtimestamp(int(ban_timestamp)) > now:
-                self.redis.hdel(RedisKeys.banned_users_channel(channel_id), user_id)
+        def for_local_ban_channel(_user_id, _channel_id, _ban_info):
+            ban_duration, ban_timestamp, username = _ban_info.split('|', 2)
+            if datetime.fromtimestamp(int(ban_timestamp)) < now:
+                self.redis.hdel(RedisKeys.banned_users_channel(_channel_id), _user_id)
                 return
 
-            output[user_id] = {
+            output[_user_id] = {
                 'duration': ban_duration,
                 'timestamp': datetime.fromtimestamp(int(ban_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
@@ -557,16 +571,13 @@ class DatabaseRedis(object):
         now = datetime.utcnow()
         output = dict()
 
-        def for_local_ban(user_id, room_id, ban_info):
-            ban_duration, ban_timestamp, username = ban_info.split('|', 2)
-            if datetime.fromtimestamp(int(ban_timestamp)) > now:
-                self.redis.hdel(RedisKeys.banned_users(room_id), user_id)
+        def for_local_ban(_user_id, _room_id, _ban_info):
+            ban_duration, ban_timestamp, username = _ban_info.split('|', 2)
+            if datetime.fromtimestamp(int(ban_timestamp)) < now:
+                self.redis.hdel(RedisKeys.banned_users(_room_id), _user_id)
                 return
 
-            if user_id not in output:
-                output[user_id] = dict()
-
-            output[user_id] = {
+            output[_user_id] = {
                 'duration': ban_duration,
                 'timestamp': datetime.fromtimestamp(int(ban_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
@@ -586,29 +597,33 @@ class DatabaseRedis(object):
             output = dict()
             for channel_id, _ in all_channels.items():
                 channel_id = str(channel_id, 'utf-8')
-                output[channel_id] = {
+                bans = {
                     'name': self.get_channel_name(channel_id),
                     'users': self.get_banned_users_for_channel(channel_id)
                 }
+                if len(bans['users']) > 0:
+                    output[channel_id] = bans
             return output
 
-        def get_banned_users_all_rooms(self, all_channels) -> dict:
+        def get_banned_users_all_rooms() -> dict:
             output = dict()
             for channel_id, _ in all_channels.items():
                 channel_id = str(channel_id, 'utf-8')
                 rooms_for_channel = self.redis.hgetall(RedisKeys.rooms(channel_id))
                 for room_id, _ in rooms_for_channel.items():
                     room_id = str(room_id, 'utf-8')
-                    output[room_id] = {
+                    bans = {
                         'name': self.get_room_name(room_id),
                         'users': self.get_banned_users_for_room(room_id)
                     }
+                    if len(bans['users']) > 0:
+                        output[room_id] = bans
             return output
 
         return {
             'global': self.get_banned_users_global(),
-            'channels': self.get_banned_users_all_channels(all_channels),
-            'rooms': self.get_banned_users_all_rooms(all_channels)
+            'channels': get_banned_users_all_channels(),
+            'rooms': get_banned_users_all_rooms()
         }
 
     def kick_user(self, room_id: str, user_id: str) -> None:
@@ -621,15 +636,15 @@ class DatabaseRedis(object):
         return ban.split('|', 2)
 
     def get_global_ban_timestamp(self, user_id: str) -> (str, str, str):
-        ban = self.redis.hset(RedisKeys.banned_users(), user_id)
+        ban = self.redis.hget(RedisKeys.banned_users(), user_id)
         return self._get_ban_timestamp(ban)
 
     def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> (str, str, str):
-        ban = self.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id)
+        ban = self.redis.hget(RedisKeys.banned_users_channel(channel_id), user_id)
         return self._get_ban_timestamp(ban)
 
     def get_room_ban_timestamp(self, room_id: str, user_id: str) -> (str, str, str):
-        ban = self.redis.hset(RedisKeys.banned_users(room_id), user_id)
+        ban = self.redis.hget(RedisKeys.banned_users(room_id), user_id)
         return self._get_ban_timestamp(ban)
 
     def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):
@@ -656,21 +671,9 @@ class DatabaseRedis(object):
             pass
         self.redis.hset(RedisKeys.banned_users_channel(channel_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
-    def get_acl_validation_value(self, acl_type: str, validation_method) -> str:
-        value = self.redis.hget(RedisKeys.acl_validations(acl_type), validation_method)
-        if value is None:
-            raise AclValueNotFoundException(acl_type, validation_method)
-        value = str(value, 'utf-8')
-        if len(value.strip()) == 0:
-            raise AclValueNotFoundException(acl_type, validation_method)
-        return value
-
     def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
-        try:
-            if self.channel_for_room(room_id) is None:
-                raise NoSuchRoomException(room_id)
-        except NoChannelFoundException:
-            raise NoSuchRoomException(room_id)
+        self.get_room_name(room_id)
+        self.channel_for_room(room_id)
 
         acls = self.redis.hgetall(RedisKeys.room_acl(room_id))
         acls_cleaned = dict()
@@ -684,8 +687,7 @@ class DatabaseRedis(object):
         return acls_cleaned
 
     def get_acls_in_channel_for_action(self, channel_id: str, action: str) -> dict:
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
+        self.get_channel_name(channel_id)
 
         acls = self.redis.hgetall(RedisKeys.channel_acl(channel_id))
         acls_cleaned = dict()
@@ -699,8 +701,7 @@ class DatabaseRedis(object):
         return acls_cleaned
 
     def get_all_acls_channel(self, channel_id: str) -> dict:
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
+        self.get_channel_name(channel_id)
 
         acls = self.redis.hgetall(RedisKeys.channel_acl(channel_id))
         acls_cleaned = dict()
@@ -714,11 +715,8 @@ class DatabaseRedis(object):
         return acls_cleaned
 
     def get_all_acls_room(self, room_id: str) -> dict:
-        try:
-            if self.channel_for_room(room_id) is None:
-                raise NoSuchRoomException(room_id)
-        except NoChannelFoundException:
-            raise NoSuchRoomException(room_id)
+        self.get_room_name(room_id)
+        self.channel_for_room(room_id)
 
         acls = self.redis.hgetall(RedisKeys.room_acl(room_id))
         acls_cleaned = dict()
@@ -742,12 +740,13 @@ class DatabaseRedis(object):
         channel_id = self.redis.hget(RedisKeys.channel_for_rooms(), room_id)
         if channel_id is None:
             raise NoChannelFoundException(room_id)
+        channel_id = str(channel_id, 'utf-8')
         self.env.cache.set_channel_for_room(channel_id, room_id)
         return channel_id
 
     def set_user_name(self, user_id: str, user_name: str) -> None:
-        key = RedisKeys.auth_key(user_id)
-        self.redis.hset(key, SessionKeys.user_name.value, user_name)
+        self.redis.hset(RedisKeys.auth_key(user_id), SessionKeys.user_name.value, user_name)
+        self.redis.hset(RedisKeys.user_names(), user_id, user_name)
 
     def get_user_name(self, user_id: str) -> str:
         key = RedisKeys.user_names()
@@ -860,8 +859,7 @@ class DatabaseRedis(object):
         self.set_owner(room_id, user_id)
 
     def rename_channel(self, channel_id: str, channel_name: str) -> None:
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
+        self.get_channel_name(channel_id)
 
         if channel_name is None or len(channel_name.strip()) == 0:
             raise EmptyChannelNameException(channel_id)
@@ -882,7 +880,7 @@ class DatabaseRedis(object):
         if self.room_name_exists(channel_id, room_name):
             raise RoomNameExistsForChannelException(channel_id, room_name)
 
-        self.redis.hset(RedisKeys.room_name_for_id, room_id, room_name)
+        self.redis.hset(RedisKeys.room_name_for_id(), room_id, room_name)
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
 
     def remove_room(self, channel_id: str, room_id: str) -> None:
@@ -891,7 +889,7 @@ class DatabaseRedis(object):
                 raise NoSuchChannelException(channel_id)
 
         if not self.room_exists(channel_id, room_id):
-            raise RoomExistsException(room_id)
+            raise NoSuchRoomException(room_id)
 
         self.redis.hdel(RedisKeys.room_name_for_id(), room_id)
         self.redis.delete(RedisKeys.room_roles(room_id))

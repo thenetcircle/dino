@@ -438,7 +438,7 @@ def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
         return False, None
 
     now = datetime.utcnow()
-    end = datetime.strptime(timestamp, ConfigKeys.DEFAULT_DATE_FORMAT)
+    end = datetime.fromtimestamp(float(timestamp))
     return True, (end - now).seconds
 
 
