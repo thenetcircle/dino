@@ -110,6 +110,12 @@ class CacheRedis(object):
         self.cache.set(cache_key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
         return room_id
 
+    def set_admin_room_for_channel(self, channel_id: str, room_id: str) -> None:
+        key = RedisKeys.admin_room_for_channel()
+        cache_key = '%s-%s' % (key, channel_id)
+        self.redis.hset(key, channel_id, room_id)
+        self.cache.set(cache_key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
+
     def get_user_for_private_room(self, room_id: str) -> str:
         key = RedisKeys.user_for_private_room()
         cache_key = '%s-%s' % (key, room_id)
@@ -124,6 +130,13 @@ class CacheRedis(object):
         user_id = str(user_id, 'utf-8')
         self.cache.set(cache_key, user_id, ttl=EIGHT_HOURS_IN_SECONDS)
         return user_id
+
+    def set_private_room_and_channel(self, user_id: str, room_id: str, channel_id: str) -> None:
+        key = RedisKeys.private_rooms()
+        cache_key = '%s-%s' % (key, user_id)
+        self.cache.set(cache_key, '%s|%s' % (room_id, channel_id))
+        self.redis.hset(key, user_id, room_id)
+        self.redis.hset(RedisKeys.private_channel_for_prefix(), room_id[:2], channel_id)
 
     def get_private_room_and_channel(self, user_id: str) -> (str, str):
         key = RedisKeys.private_rooms()
@@ -309,12 +322,16 @@ class CacheRedis(object):
 
         status = self.redis.get(key)
         if status is None or status == '':
-            self.cache.set(key, UserKeys.STATUS_UNAVAILABLE)
-            return UserKeys.STATUS_UNAVAILABLE
+            return None
 
         user_status = str(status, 'utf-8')
         self.cache.set(key, user_status)
         return user_status
+
+    def set_user_status(self, user_id: str, status: str) -> None:
+        key = RedisKeys.user_status(user_id)
+        self.redis.set(key, status)
+        self.cache.set(key, status)
 
     def user_check_status(self, user_id, other_status):
         return self.get_user_status(user_id) == other_status

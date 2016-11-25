@@ -338,7 +338,16 @@ class BaseTest(unittest.TestCase):
 
     def create_and_join_room(self):
         self.create_channel_and_room()
+        self.create_private_room()
         self.join_room()
+
+    def create_private_room(self):
+        p_channel_id = str(uuid())
+        p_room_id = str(uuid())
+        environ.env.db.redis.hset(RedisKeys.private_rooms_in_channel(p_room_id[:2]), p_channel_id, p_room_id)
+        environ.env.db.redis.hset(RedisKeys.private_rooms(), BaseTest.USER_ID, p_room_id)
+        environ.env.db.redis.hset(RedisKeys.user_for_private_room(), p_room_id, BaseTest.USER_ID)
+        environ.env.db.redis.hset(RedisKeys.private_channel_for_prefix(), p_room_id[:2], p_channel_id)
 
     def create_room(self, room_id: str=None, room_name: str=None):
         if room_id is None:

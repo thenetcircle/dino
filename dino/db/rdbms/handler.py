@@ -143,7 +143,9 @@ class DatabaseRdbms(object):
 
         room_id = self.env.cache.get_admin_room_for_channel(channel_id)
         if room_id is None:
-            return _admin_room_for_channel()
+            room_id = _admin_room_for_channel()
+            self.env.cache.set_admin_room_for_channel(channel_id, room_id)
+            return room_id
         return room_id
 
     def get_user_for_private_room(self, room_id: str) -> str:
@@ -209,7 +211,8 @@ class DatabaseRdbms(object):
 
         private_room_id, private_channel_id = self.env.cache.get_private_room_and_channel(user_id)
         if private_room_id is None:
-            return _get_private_room()
+            private_room_id, private_channel_id = _get_private_room()
+            self.env.cache.set_private_room_and_channel(user_id, private_room_id, private_channel_id)
         return private_room_id, private_channel_id
 
     def get_private_channel_for_room(self, room_id: str) -> str:
@@ -274,7 +277,10 @@ class DatabaseRdbms(object):
         status = self.env.cache.get_user_status(user_id)
         if status is not None:
             return status
-        return _get_user_status()
+
+        status = _get_user_status()
+        self.env.cache.set_user_status(user_id, status)
+        return status
 
     def set_user_invisible(self, user_id: str) -> None:
         @with_session
@@ -292,6 +298,8 @@ class DatabaseRdbms(object):
         def _set_user_offline(session=None):
             self.env.cache.set_user_offline(user_id)
             status = session.query(UserStatus).filter_by(uuid=user_id).first()
+            if status is None:
+                return
             session.delete(status)
             session.commit()
 
@@ -346,8 +354,7 @@ class DatabaseRdbms(object):
                     users[user.uuid] = user.name
             return users
 
-        if self.channel_for_room(room_id) is None:
-            raise NoSuchRoomException(room_id)
+        self.get_room_name(room_id)
 
         users_ids = _users_in_room()
         private_room_ids = dict()
@@ -357,12 +364,8 @@ class DatabaseRdbms(object):
         return private_room_ids
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
-        try:
-            if self.channel_for_room(room_id) is None:
-                raise NoSuchRoomException(room_id)
-        except NoChannelFoundException:
-            raise NoSuchRoomException(room_id)
-
+        self.get_room_name(room_id)
+        self.channel_for_room(room_id)
         return room_id in self.rooms_for_user(user_id)
 
     @with_session
@@ -421,12 +424,8 @@ class DatabaseRdbms(object):
     def rename_channel(self, channel_id: str, channel_name: str) -> None:
         @with_session
         def _rename_channel(session=None):
+            # already checked that it exists with get_channel_name()
             channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
-            if channel is None:
-                raise NoSuchChannelException(channel_id)
-
-            if channel.name == channel_name.strip():
-                return
             channel.name = channel_name
             session.commit()
 
@@ -443,12 +442,8 @@ class DatabaseRdbms(object):
     def rename_room(self, channel_id: str, room_id: str, room_name: str) -> None:
         @with_session
         def _rename_room(session=None):
+            # already checked that it exists with get_room_name()
             room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
-            if room is None:
-                raise NoSuchRoomException(room_id)
-
-            if room.name == room_name.strip():
-                return
             room.name = room_name
             session.commit()
 
@@ -488,8 +483,8 @@ class DatabaseRdbms(object):
     def channel_exists(self, channel_id) -> bool:
         @with_session
         def _channel_exists(session=None):
-            rows = session.query(Channels).filter(Channels.uuid == channel_id).all()
-            exists = len(rows) > 0
+            channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
+            exists = channel is not None
 
             # only set in cache if actually exists, otherwise duplicates could be created
             if exists:
@@ -586,9 +581,6 @@ class DatabaseRdbms(object):
                 .filter(Channels.uuid == channel_id)\
                 .first()
 
-            if room is None:
-                raise NoSuchRoomException(room_id)
-
             roles = session.query(RoomRoles).join(RoomRoles.room).filter(Rooms.uuid == room_id).all()
             if roles is not None and len(roles) > 0:
                 for role in roles:
@@ -633,6 +625,7 @@ class DatabaseRdbms(object):
             user = Users()
             user.uuid = user_id
             user.name = user_name
+            user.private_room_id = room.uuid
             session.add(user)
 
         user.rooms.append(room)
@@ -644,13 +637,11 @@ class DatabaseRdbms(object):
 
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         private_room_id = self.get_private_room(user_id)[0]
+        self.get_room_name(room_id)
 
         @with_session
         def _join_room(session=None):
             room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
-            if room is None:
-                raise NoSuchRoomException(room_id)
-
             user = session.query(Users).filter(Users.uuid == user_id).first()
             if user is None:
                 user = Users()
@@ -748,7 +739,10 @@ class DatabaseRdbms(object):
             if role.user_id == user_id and the_role in role.roles:
                 roles = set(role.roles.split(','))
                 roles.remove(the_role)
-                role.roles = ','.join(roles)
+                if len(roles) > 0:
+                    role.roles = ','.join(roles)
+                else:
+                    session.delete(role)
                 session.commit()
                 return
 
@@ -762,7 +756,10 @@ class DatabaseRdbms(object):
             if role.user_id == user_id and the_role in role.roles:
                 roles = set(role.roles.split(','))
                 roles.remove(the_role)
-                role.roles = ','.join(roles)
+                if len(roles) > 0:
+                    role.roles = ','.join(roles)
+                else:
+                    session.delete(role)
                 session.commit()
                 return
 
@@ -840,85 +837,72 @@ class DatabaseRdbms(object):
         return self._channel_has_role_for_user(RoleKeys.OWNER, channel_id, user_id)
 
     def set_admin(self, channel_id: str, user_id: str) -> None:
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
         self._set_role_on_channel_for_user(RoleKeys.ADMIN, channel_id, user_id)
 
     def set_moderator(self, room_id: str, user_id: str) -> None:
-        if self.channel_for_room(room_id) is None:
-            raise NoSuchRoomException(room_id)
         self._set_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
 
     def set_owner(self, room_id: str, user_id: str) -> None:
-        if self.channel_for_room(room_id) is None:
-            raise NoSuchRoomException(room_id)
         self._set_role_on_room_for_user(RoleKeys.OWNER, room_id, user_id)
 
     def set_owner_channel(self, channel_id: str, user_id: str) -> None:
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
         self._set_role_on_channel_for_user(RoleKeys.OWNER, channel_id, user_id)
 
     def remove_admin(self, channel_id: str, user_id: str) -> None:
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
         self._remove_role_on_channel_for_user(RoleKeys.ADMIN, channel_id, user_id)
 
     def remove_owner_channel(self, channel_id: str, user_id: str) -> None:
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
         self._remove_role_on_channel_for_user(RoleKeys.OWNER, channel_id, user_id)
 
     def remove_moderator(self, room_id: str, user_id: str) -> None:
-        self.get_room_name(room_id)
-        if self.channel_for_room(room_id) is None:
-            raise NoSuchRoomException(room_id)
         self._remove_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
 
     def remove_owner(self, room_id: str, user_id: str) -> None:
-        if self.channel_for_room(room_id) is None:
-            raise NoSuchRoomException(room_id)
         self._remove_role_on_room_for_user(RoleKeys.OWNER, room_id, user_id)
 
-    @with_session
-    def delete_acl_in_room_for_action(self, room_id: str, acl_type: str, action: str, session=None) -> None:
-        room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
-        if room is None:
-            raise NoSuchRoomException(room_id)
+    def delete_acl_in_room_for_action(self, room_id: str, acl_type: str, action: str) -> None:
+        @with_session
+        def do_delete(session=None):
+            room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
+            if room is None:
+                raise NoSuchRoomException(room_id)
+
+            found_acl = session.query(Acls)\
+                .join(Acls.room)\
+                .filter(Acls.acl_type == acl_type)\
+                .filter(Rooms.uuid == room_id).first()
+
+            if found_acl is None:
+                return
+
+            session.delete(found_acl)
+            session.commit()
 
         if action not in ApiActions.all_api_actions:
             raise InvalidApiActionException(action)
+        do_delete()
 
-        found_acl = session.query(Acls)\
-            .join(Acls.room)\
-            .filter(Acls.acl_type == acl_type)\
-            .filter(Rooms.uuid == room_id).first()
-
-        if found_acl is None:
-            return
-
-        session.delete(found_acl)
-        session.commit()
-
-    @with_session
     def delete_acl_in_channel_for_action(self, channel_id: str, acl_type: str, action: str, session=None) -> None:
-        channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
-        if channel is None:
-            raise NoSuchChannelException(channel_id)
+        @with_session
+        def do_delete(session=None):
+            channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
+            if channel is None:
+                raise NoSuchChannelException(channel_id)
+
+            found_acl = session.query(Acls)\
+                .join(Acls.channel)\
+                .filter(Acls.acl_type == acl_type)\
+                .filter(Channels.uuid == channel_id).first()
+
+            if found_acl is None:
+                return
+
+            session.delete(found_acl)
+            session.commit()
 
         if action not in ApiActions.all_api_actions:
             raise InvalidApiActionException(action)
-
-        found_acl = session.query(Acls)\
-            .join(Acls.channel)\
-            .filter(Acls.acl_type == acl_type)\
-            .filter(Channels.uuid == channel_id).first()
-
-        if found_acl is None:
-            return
-
-        session.delete(found_acl)
-        session.commit()
+        do_delete()
 
     def add_acls_in_room_for_action(self, room_id: str, action: str, new_acls: dict) -> None:
         @with_session
@@ -928,13 +912,9 @@ class DatabaseRdbms(object):
                 .filter(Rooms.uuid == room_id)\
                 .first()
 
-            if room is None:
-                raise NoSuchRoomException(room_id)
             existing_acls = room.acls
-            to_delete, to_add = self._add_acls(existing_acls, new_acls, action, ApiTargets.ROOM)
+            to_add = self._add_acls(existing_acls, new_acls, action, ApiTargets.ROOM)
 
-            for acl in to_delete:
-                session.delete(acl)
             for acl in to_add:
                 acl.room = room
                 session.add(acl)
@@ -955,13 +935,9 @@ class DatabaseRdbms(object):
                 .filter(Channels.uuid == channel_id)\
                 .first()
 
-            if channel is None:
-                raise NoSuchChannelException(channel_id)
             existing_acls = channel.acls
-            to_delete, to_add = self._add_acls(existing_acls, new_acls, action, ApiTargets.CHANNEL)
+            to_add = self._add_acls(existing_acls, new_acls, action, ApiTargets.CHANNEL)
 
-            for acl in to_delete:
-                session.delete(acl)
             for acl in to_add:
                 acl.channel = channel
                 session.add(acl)
@@ -976,7 +952,6 @@ class DatabaseRdbms(object):
 
     def _add_acls(self, existing_acls: list, new_acls: dict, action: str, target: str) -> (list, list):
         updated_acls = set()
-        to_delete = list()
         if existing_acls is not None and len(existing_acls) > 0:
             for acl in existing_acls:
                 if acl.action != action:
@@ -985,10 +960,7 @@ class DatabaseRdbms(object):
                     continue
 
                 new_value = new_acls[acl.acl_type]
-                if new_value is None or len(new_value.strip()) == 0:
-                    to_delete.append(acl)
-                else:
-                    acl.acl_value = new_value
+                acl.acl_value = new_value
                 updated_acls.add(acl.acl_type)
 
         to_add = list()
@@ -1009,7 +981,7 @@ class DatabaseRdbms(object):
             acl.acl_value = acl_value
             to_add.append(acl)
 
-        return to_delete, to_add
+        return to_add
 
     def _validate_acl_for_target_and_action(self, target: str, action: str, acl_type: str, acl_value: str):
         validators = self._get_acls_for_target('validation')
@@ -1138,21 +1110,26 @@ class DatabaseRdbms(object):
             acls[found_acl.acl_type] = found_acl.acl_value
         return acls
 
-    @with_session
-    def update_last_read_for(self, users: str, room_id: str, time_stamp: int, session=None) -> None:
-        for user_id in users:
-            last_read = session.query(LastReads)\
-                .filter(LastReads.user_uuid == user_id)\
-                .filter(LastReads.room_uuid == room_id)
+    def update_last_read_for(self, users: set, room_id: str, time_stamp: int, session=None) -> None:
+        @with_session
+        def update(session=None):
+            for user_id in users:
+                last_read = session.query(LastReads)\
+                    .filter(LastReads.user_id == user_id)\
+                    .filter(LastReads.room_uuid == room_id)\
+                    .first()
 
-            if last_read is None:
-                last_read = LastReads()
-                last_read.room_uuid = room_id
-                last_read.user_uuid = user_id
+                if last_read is None:
+                    last_read = LastReads()
+                    last_read.room_uuid = room_id
+                    last_read.user_id = user_id
 
-            last_read.time_stamp = time_stamp
-            session.add(last_read)
-        session.commit()
+                last_read.time_stamp = time_stamp
+                session.add(last_read)
+            session.commit()
+
+        self.get_room_name(room_id)
+        update()
 
     @with_session
     def get_last_read_timestamp(self, room_id: str, user_id: str, session=None) -> int:
@@ -1293,10 +1270,7 @@ class DatabaseRdbms(object):
     def is_banned_globally(self, user_id: str) -> (bool, Union[str, None]):
         now = datetime.utcnow()
         duration, time, username = self.env.cache.get_global_ban_timestamp(user_id)
-        if time is not None:
-            if time == '':
-                return False, None
-
+        if time is not None and len(time.strip()) != 0:
             time = datetime.fromtimestamp(float(time))
             if now > time:
                 self.remove_global_ban(user_id)
@@ -1311,13 +1285,13 @@ class DatabaseRdbms(object):
             self.remove_global_ban(user_id)
             return False, None
 
-        self.env.cache.set_global_ban_timestamp(user_id, time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT))
+        self.env.cache.set_global_ban_timestamp(user_id, duration, time, username)
         return True, str((time-now).seconds)
 
     def is_banned_from_channel(self, channel_id: str, user_id: str) -> (bool, Union[str, None]):
         now = datetime.utcnow()
         duration, time, username = self.env.cache.get_channel_ban_timestamp(channel_id, user_id)
-        if time is not None:
+        if time is not None and len(time.strip()) != 0:
             if time == '':
                 return False, None
 
@@ -1335,13 +1309,13 @@ class DatabaseRdbms(object):
             self.remove_channel_ban(channel_id, user_id)
             return False, None
 
-        self.env.cache.set_channel_ban_timestamp(channel_id, user_id, time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT))
+        self.env.cache.set_channel_ban_timestamp(channel_id, user_id, duration, time, username)
         return True, str((time-now).seconds)
 
     def is_banned_from_room(self, room_id: str, user_id: str) -> (bool, Union[str, None]):
         now = datetime.utcnow()
         duration, time, username = self.env.cache.get_room_ban_timestamp(room_id, user_id)
-        if time is not None:
+        if time is not None and len(time.strip()) != 0:
             if time == '':
                 return False, None
 
@@ -1359,7 +1333,7 @@ class DatabaseRdbms(object):
             self.remove_room_ban(room_id, user_id)
             return False, None
 
-        self.env.cache.set_room_ban_timestamp(room_id, user_id, time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT))
+        self.env.cache.set_room_ban_timestamp(room_id, user_id, duration, time, username)
         return True, str((time-now).seconds)
 
     @with_session
@@ -1472,6 +1446,7 @@ class DatabaseRdbms(object):
         if ban is None:
             return
         session.delete(ban)
+        session.commit()
 
     @with_session
     def remove_channel_ban(self, channel_id: str, user_id: str, session=None) -> None:
@@ -1484,6 +1459,7 @@ class DatabaseRdbms(object):
         if ban is None:
             return
         session.delete(ban)
+        session.commit()
 
     @with_session
     def remove_room_ban(self, room_id: str, user_id: str, session=None) -> None:

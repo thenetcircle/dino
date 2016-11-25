@@ -154,6 +154,31 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def set_private_room_and_channel(self, user_id: str, room_id: str, channel_id: str) -> None:
+        """
+
+        :param user_id:
+        :param room_id:
+        :param channel_id:
+        :return:
+        """
+
+    def set_admin_room_for_channel(self, channel_id: str, room_id: str) -> None:
+        """
+
+        :param channel_id:
+        :param room_id:
+        :return:
+        """
+
+    def set_user_status(self, user_id: str, status: str) -> None:
+        """
+
+        :param user_id:
+        :param status:
+        :return:
+        """
+
     def get_room_exists(self, channel_id, room_id):
         """
 

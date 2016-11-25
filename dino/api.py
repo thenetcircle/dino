@@ -24,6 +24,7 @@ from dino.config import SessionKeys
 from dino.config import ApiTargets
 from dino.config import ErrorCodes as ECodes
 from dino.exceptions import NoSuchUserException
+from dino.exceptions import NoSuchRoomException
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
@@ -151,6 +152,8 @@ def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
 
     try:
         utils.ban_user(room_id, kicked_id, ban_duration)
+    except NoSuchRoomException as e:
+        return ECodes.NO_SUCH_USER, 'no private room found for user: %s' % str(e)
     except NoSuchUserException as e:
         return ECodes.NO_SUCH_USER, 'could not find the specified user: %s' % str(e)
 

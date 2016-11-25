@@ -42,7 +42,7 @@ from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
-from dino.exceptions import AclValueNotFoundException
+from dino.exceptions import ChannelNameExistsException
 from dino.exceptions import InvalidApiActionException
 from dino.exceptions import ValidationException
 
@@ -66,6 +66,9 @@ class DatabaseRedis(object):
         self.acl_validator = AclValidator()
 
     def create_admin_room_for(self, channel_id: str) -> str:
+        # make sure it exists, will throw NoSuchChannel otherwise
+        self.get_channel_name(channel_id)
+
         room_id = str(uuid())
         self.redis.hset(RedisKeys.admin_room_for_channel(), channel_id, room_id)
         self.redis.hset(RedisKeys.room_name_for_id, room_id, 'Admins')
@@ -149,6 +152,7 @@ class DatabaseRedis(object):
         return role in str(roles, 'utf-8').split(',')
 
     def _add_channel_role(self, role: str, channel_id: str, user_id: str):
+        self.get_channel_name(channel_id)
         roles = self.redis.hget(RedisKeys.channel_roles(channel_id), user_id)
         if roles is None:
             roles = role
@@ -159,6 +163,7 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.channel_roles(channel_id), user_id, roles)
 
     def _add_room_role(self, role: str, room_id: str, user_id: str):
+        self.get_room_name(room_id)
         roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
         if roles is None:
             roles = role
@@ -254,18 +259,12 @@ class DatabaseRedis(object):
         self._add_channel_role(RoleKeys.ADMIN, channel_id, user_id)
 
     def set_moderator(self, room_id: str, user_id: str):
-        if self.channel_for_room(room_id) is None:
-            raise NoSuchRoomException(room_id)
         self._add_room_role(RoleKeys.MODERATOR, room_id, user_id)
 
     def set_owner(self, room_id: str, user_id: str):
-        if self.channel_for_room(room_id) is None:
-            raise NoSuchRoomException(room_id)
         self._add_room_role(RoleKeys.OWNER, room_id, user_id)
 
     def set_owner_channel(self, channel_id: str, user_id: str):
-        if not self.channel_exists(channel_id):
-            raise NoSuchChannelException(channel_id)
         self._add_channel_role(RoleKeys.OWNER, channel_id, user_id)
 
     def remove_admin(self, channel_id: str, user_id: str) -> None:
@@ -349,9 +348,12 @@ class DatabaseRedis(object):
         self.get_private_room(user_id)
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
+        self.get_room_name(room_id)
+        self.channel_for_room(room_id)
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
     def users_in_room(self, room_id: str) -> dict:
+        self.get_room_name(room_id)
         self.channel_for_room(room_id)
 
         users = self.redis.hgetall(RedisKeys.users_in_room(room_id))
@@ -363,6 +365,7 @@ class DatabaseRedis(object):
         return cleaned_users
 
     def leave_room(self, user_id: str, room_id: str) -> None:
+        self.get_room_name(room_id)
         self.redis.hdel(RedisKeys.users_in_room(room_id), user_id)
         self.redis.hdel(RedisKeys.rooms_for_user(user_id), room_id)
 
@@ -370,12 +373,18 @@ class DatabaseRedis(object):
         self.get_room_name(room_id)
         self.channel_for_room(room_id)
 
+        if action not in ApiActions.all_api_actions:
+            raise InvalidApiActionException(action)
+
         key = '%s|%s' % (action, acl_type)
         self.redis.hdel(RedisKeys.room_acl(room_id), key)
 
     def delete_acl_in_channel_for_action(self, channel_id: str, acl_type: str, action: str) -> None:
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)
+
+        if action not in ApiActions.all_api_actions:
+            raise InvalidApiActionException(action)
 
         key = '%s|%s' % (action, acl_type)
         self.redis.hdel(RedisKeys.channel_acl(channel_id), key)
@@ -412,6 +421,8 @@ class DatabaseRedis(object):
             key = '%s|%s' % (action, acl_type)
             new_acls[key] = acl_value
 
+        if len(new_acls) == 0:
+            return
         self.redis.hmset(RedisKeys.channel_acl(channel_id), new_acls)
 
     def add_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
@@ -435,6 +446,8 @@ class DatabaseRedis(object):
             key = '%s|%s' % (action, acl_type)
             new_acls[key] = acl_value
 
+        if len(new_acls) == 0:
+            return
         self.redis.hmset(RedisKeys.room_acl(room_id), new_acls)
 
     def _is_banned(self, ban):
@@ -816,12 +829,27 @@ class DatabaseRedis(object):
         return clean_rooms
 
     def get_user_for_private_room(self, room_id: str) -> str:
-        room_id = self.redis.hget(RedisKeys.user_for_private_room(), room_id)
-        if room_id is None:
-            return None
-        return str(room_id, 'utf-8')
+        user_id = self.redis.hget(RedisKeys.user_for_private_room(), room_id)
+        if user_id is None:
+            raise NoSuchRoomException(room_id)
+
+        if not self.is_room_private(room_id):
+            raise NoSuchRoomException(room_id)
+
+        return str(user_id, 'utf-8')
 
     def join_private_room(self, user_id: str, user_name: str, room_id: str) -> None:
+        def private_room_exists() -> bool:
+            r_id = self.redis.hget(RedisKeys.private_rooms(), user_id)
+            if r_id is None or len(str(r_id, 'utf-8').strip()) == 0:
+                return False
+            return True
+
+        if not self.is_room_private(room_id):
+            raise NoSuchRoomException(room_id)
+        if not private_room_exists():
+            raise NoSuchRoomException(room_id)
+
         self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)
         channel_id = self.get_private_channel_for_room(room_id)
         self.redis.hset(RedisKeys.private_rooms_in_channel(room_id[:2]), channel_id, room_id)
@@ -833,6 +861,12 @@ class DatabaseRedis(object):
     def create_channel(self, channel_name, channel_id, user_id) -> None:
         if self.channel_exists(channel_id):
             raise ChannelExistsException(channel_id)
+
+        if channel_name is None or len(channel_name.strip()) == 0:
+            raise EmptyChannelNameException(channel_id)
+
+        if self.channel_name_exists(channel_name):
+            raise ChannelNameExistsException(channel_name)
 
         self.env.cache.set_channel_exists(channel_id)
         self.redis.hset(RedisKeys.channels(), channel_id, channel_name)
@@ -860,6 +894,8 @@ class DatabaseRedis(object):
 
     def rename_channel(self, channel_id: str, channel_name: str) -> None:
         self.get_channel_name(channel_id)
+        if self.channel_name_exists(channel_name):
+            raise ChannelNameExistsException(channel_name)
 
         if channel_name is None or len(channel_name.strip()) == 0:
             raise EmptyChannelNameException(channel_id)
@@ -915,10 +951,14 @@ class DatabaseRedis(object):
     def set_user_invisible(self, user_id: str) -> None:
         self.env.cache.set_user_invisible(user_id)
 
-    def update_last_read_for(self, users: str, room_id: str, time_stamp: int) -> None:
+    def update_last_read_for(self, users: set, room_id: str, time_stamp: int) -> None:
+        self.get_room_name(room_id)
         redis_key = RedisKeys.last_read(room_id)
         for user_id in users:
             self.redis.hset(redis_key, user_id, time_stamp)
 
     def get_last_read_timestamp(self, room_id: str, user_id: str) -> int:
-        return self.redis.hget(RedisKeys.last_read(room_id), user_id)
+        timestamp = self.redis.hget(RedisKeys.last_read(room_id), user_id)
+        if timestamp is None:
+            return None
+        return int(str(timestamp, 'utf-8'))

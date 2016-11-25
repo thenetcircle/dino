@@ -122,13 +122,17 @@ class DatabaseRedisTest(BaseDatabaseTest):
 
     def test_create_channel(self):
         self._test_create_channel()
-        channels = self.db.get_channels()
-        self.assertEqual(1, len(channels))
 
     def test_create_channel_again_to_make_sure_tables_cleared_after_each_test(self):
         self._test_create_channel()
         channels = self.db.get_channels()
         self.assertEqual(1, len(channels))
+
+    def test_create_channel_blank_name(self):
+        self._test_create_channel_blank_name()
+
+    def test_create_channel_exists(self):
+        self._test_create_channel_exists()
 
     def test_create_room(self):
         self._test_create_room()
@@ -518,3 +522,147 @@ class DatabaseRedisTest(BaseDatabaseTest):
 
     def test_remove_room_before_create_room(self):
         self._test_remove_room_before_create_room()
+
+    def test_create_admin_room_no_channel(self):
+        self._test_create_admin_room_no_channel()
+
+    def test_admin_room_for_channel_before_exists(self):
+        self._test_admin_room_for_channel_before_exists()
+
+    def test_admin_room_for_channel_get_from_cache(self):
+        self._test_admin_room_for_channel_get_from_cache()
+
+    def test_get_user_for_private_room(self):
+        self._test_get_user_for_private_room()
+
+    def test_get_user_for_private_room_from_cache(self):
+        self._test_get_user_for_private_room_from_cache()
+
+    def test_get_user_for_private_room_before_create(self):
+        self._test_get_user_for_private_room_before_create()
+
+    def test_get_private_room_from_cache(self):
+        self._test_get_private_room_from_cache()
+
+    def test_get_private_channel_for_prefix_before_create(self):
+        self._test_get_private_channel_for_prefix_before_create()
+
+    def test_room_exists_from_cache(self):
+        self._test_room_exists_from_cache()
+
+    def test_get_user_status_from_cache(self):
+        self._test_get_user_status_from_cache()
+
+    def test_get_user_status_after_set(self):
+        self._test_get_user_status_after_set()
+
+    def test_set_user_invisible_twice_ignores_second(self):
+        self._test_set_user_invisible_twice_ignores_second()
+
+    def test_set_user_offline_twice_ignores_second(self):
+        self._test_set_user_offline_twice_ignores_second()
+
+    def test_set_user_online_twice_ignores_second(self):
+        self._test_set_user_online_twice_ignores_second()
+
+    def test_users_in_room_after_join(self):
+        self._test_users_in_room_after_join()
+
+    def test_set_user_offline_after_online(self):
+        self._test_set_user_offline_after_online()
+
+    def test_room_contains_before_create_channel(self):
+        self._test_room_contains_before_create_channel()
+
+    def test_room_contains_before_create_room(self):
+        self._test_room_contains_before_create_room()
+
+    def test_room_contains_after_create(self):
+        self._test_room_contains_after_create()
+
+    def test_room_contains_after_join(self):
+        self._test_room_contains_after_join()
+
+    def test_room_name_exists_from_cache_after_create(self):
+        self._test_room_name_exists_from_cache_after_create()
+
+    def test_rename_channel_exists(self):
+        self._test_rename_channel_exists()
+
+    def test_channel_for_room_from_cache(self):
+        self._test_channel_for_room_from_cache()
+
+    def test_leave_room_before_create(self):
+        self._test_leave_room_before_create()
+
+    def test_join_private_room(self):
+        self._test_join_private_room()
+
+    def test_join_private_room_before_create(self):
+        self._test_join_private_room_before_create()
+
+    def test_remove_moderator_twice(self):
+        self._test_remove_moderator_twice()
+
+    def test_set_owner_channel_after_removing_owner(self):
+        self._test_set_owner_channel_after_removing_owner()
+
+    def test_delete_acl_in_channel_for_action_invalid_action(self):
+        self._test_delete_acl_in_channel_for_action_invalid_action()
+
+    def test_delete_acl_in_room_for_action_invalid_action(self):
+        self._test_delete_acl_in_room_for_action_invalid_action()
+
+    def test_delete_acl_in_channel_for_action_after_create(self):
+        self._test_delete_acl_in_channel_for_action_after_create()
+
+    def test_delete_acl_in_room_for_action_after_create(self):
+        self._test_delete_acl_in_room_for_action_after_create()
+
+    def test_update_acl(self):
+        self._test_update_acl()
+
+    def test_get_all_acls_channel(self):
+        self._test_get_all_acls_channel()
+
+    def test_get_all_acls_channel_before_create(self):
+        self._test_get_all_acls_channel_before_create()
+
+    def test_get_all_acls_room(self):
+        self._test_get_all_acls_room()
+
+    def test_get_all_acls_room_before_create(self):
+        self._test_get_all_acls_room_before_create()
+
+    def test_update_last_read_for_before_create_room(self):
+        self._test_update_last_read_for_before_create_room()
+
+    def test_update_last_read_for(self):
+        self._test_update_last_read_for()
+
+    def test_update_username(self):
+        self._test_update_username()
+
+    def test_get_room_name_from_cache(self):
+        self._test_get_room_name_from_cache()
+
+    def test_get_channel_name_from_cache(self):
+        self._test_get_channel_name_from_cache()
+
+    def test_is_banned_globally_after_clearing_cache(self):
+        self._test_is_banned_globally_after_clearing_cache()
+
+    def test_is_banned_globally_after_clearing_cache_if_expired(self):
+        self._test_is_banned_globally_after_clearing_cache_if_expired()
+
+    def test_is_banned_from_room_after_clearing_cache(self):
+        self._test_is_banned_from_room_after_clearing_cache()
+
+    def test_is_banned_from_room_after_clearing_cache_if_expired(self):
+        self._test_is_banned_from_room_after_clearing_cache_if_expired()
+
+    def test_is_banned_from_channel_after_clearing_cache(self):
+        self._test_is_banned_from_channel_after_clearing_cache()
+
+    def test_is_banned_from_channel_after_clearing_cache_if_expired(self):
+        self._test_is_banned_from_channel_after_clearing_cache_if_expired()
