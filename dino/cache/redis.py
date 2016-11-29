@@ -50,6 +50,10 @@ class MemoryCache(object):
         except:
             return None
 
+    def delete(self, key):
+        if key in self.vals:
+            del self.vals[key]
+
     def flushall(self):
         self.vals = dict()
 
@@ -70,6 +74,18 @@ class CacheRedis(object):
     def _flushall(self):
         self.redis.flushdb()
         self.cache.flushall()
+
+    def _set(self, key, val, ttl=None):
+        if ttl is None:
+            self.cache.set(key, val)
+        else:
+            self.cache.set(key, val, ttl=ttl)
+
+    def _get(self, key):
+        return self.cache.get(key)
+
+    def _del(self, key):
+        self.cache.delete(key)
 
     def _set_ban_timestamp(self, key: str, user_id: str, timestamp: str) -> None:
         cache_key = '%s-%s' % (key, user_id)
@@ -142,7 +158,7 @@ class CacheRedis(object):
         cache_key = '%s-%s' % (key, user_id)
         value = self.cache.get(cache_key)
         if value is not None:
-            return value.split('|')
+            return tuple(value.split('|'))
 
         room_id = self.redis.hget(key, user_id)
         if room_id is None:
@@ -224,7 +240,7 @@ class CacheRedis(object):
 
     def get_room_exists(self, channel_id, room_id):
         key = RedisKeys.rooms(channel_id)
-        cache_key = '%s-%s' % (channel_id, room_id)
+        cache_key = '%s-%s' % (key, room_id)
         value = self.cache.get(cache_key)
         if value is not None:
             return True
@@ -237,32 +253,34 @@ class CacheRedis(object):
 
     def remove_room_exists(self, channel_id, room_id):
         key = RedisKeys.rooms(channel_id)
-        cache_key = '%s-%s' % (channel_id, room_id)
+        cache_key = '%s-%s' % (key, room_id)
         self.cache.set(cache_key, None)
         self.redis.hdel(key, room_id)
 
     def set_room_exists(self, channel_id, room_id, room_name):
         key = RedisKeys.rooms(channel_id)
-        cache_key = '%s-%s' % (channel_id, room_id)
-        self.cache.set(cache_key, True)
+        cache_key = '%s-%s' % (key, room_id)
+        self.cache.set(cache_key, room_name)
         self.redis.hset(key, room_id, room_name)
 
     def set_channel_exists(self, channel_id: str) -> None:
-        key = RedisKeys.channels()
+        key = RedisKeys.channel_exists()
         cache_key = '%s-%s' % (key, channel_id)
+        self.redis.hset(key, channel_id, True)
         self.cache.set(cache_key, True)
 
     def set_channel_for_room(self, channel_id: str, room_id: str) -> None:
         key = RedisKeys.channel_for_rooms()
         cache_key = '%s-%s' % (key, room_id)
+        self.redis.hset(key, room_id, channel_id)
         self.cache.set(cache_key, channel_id)
 
     def get_channel_exists(self, channel_id):
-        key = RedisKeys.channels()
+        key = RedisKeys.channel_exists()
         cache_key = '%s-%s' % (key, channel_id)
         value = self.cache.get(cache_key)
         if value is not None:
-            return value
+            return True
 
         value = self.redis.hget(key, channel_id)
         if value is None:
@@ -270,6 +288,12 @@ class CacheRedis(object):
 
         self.cache.set(cache_key, True)
         return True
+
+    def set_channel_name(self, channel_id: str, channel_name: str) -> None:
+        key = RedisKeys.channels()
+        cache_key = '%s-name-%s' % (key, channel_id)
+        self.cache.set(cache_key, channel_name)
+        self.redis.hset(key, channel_id, channel_name)
 
     def get_channel_name(self, channel_id: str) -> str:
         key = RedisKeys.channels()
@@ -282,6 +306,7 @@ class CacheRedis(object):
         if value is None:
             return None
 
+        value = str(value, 'utf-8')
         self.cache.set(cache_key, value)
         return value
 
@@ -296,6 +321,7 @@ class CacheRedis(object):
         if value is None:
             return None
 
+        value = str(value, 'utf-8')
         self.cache.set(cache_key, value)
         return value
 
@@ -310,6 +336,7 @@ class CacheRedis(object):
         if channel_id is None:
             return None
 
+        channel_id = str(channel_id, 'utf-8')
         self.cache.set(cache_key, channel_id)
         return channel_id
 

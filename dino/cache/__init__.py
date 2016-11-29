@@ -179,6 +179,14 @@ class ICache(Interface):
         :return:
         """
 
+    def set_channel_name(self, channel_id: str, channel_name: str) -> None:
+        """
+
+        :param channel_id:
+        :param channel_name:
+        :return:
+        """
+
     def get_room_exists(self, channel_id, room_id):
         """
 

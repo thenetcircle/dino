@@ -829,10 +829,16 @@ class DatabaseRedis(object):
         return room_name.decode('utf-8')
 
     def get_channel_name(self, channel_id: str) -> str:
+        channel_name = self.env.cache.get_channel_name(channel_id)
+        if channel_name is not None:
+            return channel_name
+
         channel_name = self.redis.hget(RedisKeys.channels(), channel_id)
         if channel_name is None:
             raise NoSuchChannelException(channel_id)
-        return channel_name.decode('utf-8')
+        channel_name = str(channel_name, 'utf-8')
+        self.env.cache.set_channel_name(channel_id, channel_name)
+        return channel_name
 
     def rooms_for_user(self, user_id: str) -> dict:
         clean_rooms = dict()
@@ -916,6 +922,7 @@ class DatabaseRedis(object):
             raise EmptyChannelNameException(channel_id)
 
         self.redis.hset(RedisKeys.channels(), channel_id, channel_name)
+        self.env.cache.set_channel_name(channel_id, channel_name)
 
     def rename_room(self, channel_id: str, room_id: str, room_name: str) -> None:
         if self.env.cache.get_channel_exists(channel_id) is None:

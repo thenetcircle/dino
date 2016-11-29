@@ -164,6 +164,7 @@ class RedisKeys(object):
     RKEY_ROOM_HISTORY = 'room:history:%s'  # room:history:room_id
     RKEY_AUTH = 'user:auth:%s'  # user:auth:user_id
     RKEY_CHANNELS = 'channels'
+    RKEY_CHANNEL_EXISTS = 'channel:exists'
     RKEY_ROOM_ID_FOR_NAME = 'room:id:%s'  # room:id:channel_id
     RKEY_CHANNEL_ROLES = 'channel:roles:%s'  # channel:roles:channel_id
     RKEY_GLOBAL_ROLES = 'global:roles'
@@ -273,6 +274,10 @@ class RedisKeys(object):
     @staticmethod
     def channels() -> str:
         return RedisKeys.RKEY_CHANNELS
+
+    @staticmethod
+    def channel_exists() -> str:
+        return RedisKeys.RKEY_CHANNEL_EXISTS
 
     @staticmethod
     def users_multi_cast() -> str:

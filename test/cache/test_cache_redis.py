@@ -15,6 +15,10 @@
 from unittest import TestCase
 from dino.environ import GNEnvironment, ConfigDict, ConfigKeys
 from dino.cache.redis import CacheRedis
+from dino.config import RedisKeys
+from datetime import datetime, timedelta
+
+import time
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -29,11 +33,140 @@ class CacheRedisTest(TestCase):
             self.session = dict()
 
     USER_ID = '8888'
+    CHANNEL_ID = '1234'
+    ROOM_ID = '4321'
+    USER_NAME = 'Batman'
+    CHANNEL_NAME = 'Shanghai'
+    ROOM_NAME = 'cool kids'
 
     def setUp(self):
         self.env = CacheRedisTest.FakeEnv()
         self.cache = self.env.cache
+        self.cache._flushall()
 
     def test_set_user_status(self):
         self.cache.set_user_status(CacheRedisTest.USER_ID, '1')
         self.assertEqual('1', self.cache.get_user_status(CacheRedisTest.USER_ID))
+
+    def test_user_check_status(self):
+        self.assertFalse(self.cache.user_check_status(CacheRedisTest.USER_ID, '1'))
+        self.cache.set_user_status(CacheRedisTest.USER_ID, '1')
+        self.assertTrue(self.cache.user_check_status(CacheRedisTest.USER_ID, '1'))
+
+    def test_get_not_expired(self):
+        self.cache._set('foo', 'bar')
+        self.assertEqual('bar', self.cache._get('foo'))
+
+    def test_get_expired(self):
+        self.cache._set('foo', 'bar', ttl=0.1)
+        self.assertEqual('bar', self.cache._get('foo'))
+        time.sleep(0.15)
+        self.assertEqual(None, self.cache._get('foo'))
+
+    def test_get_admin_room_for_channel_after_expired(self):
+        self.cache.set_admin_room_for_channel(CacheRedisTest.CHANNEL_ID, CacheRedisTest.ROOM_ID)
+        self.assertEqual(CacheRedisTest.ROOM_ID, self.cache.get_admin_room_for_channel(CacheRedisTest.CHANNEL_ID))
+        key = RedisKeys.admin_room_for_channel()
+        cache_key = '%s-%s' % (key, CacheRedisTest.CHANNEL_ID)
+        self.cache._del(cache_key)
+        self.assertEqual(CacheRedisTest.ROOM_ID, self.cache.get_admin_room_for_channel(CacheRedisTest.CHANNEL_ID))
+
+    def test_get_user_for_private_room_after_expired(self):
+        self.cache.set_user_for_private_room(CacheRedisTest.ROOM_ID, CacheRedisTest.USER_ID)
+        self.assertEqual(CacheRedisTest.USER_ID, self.cache.get_user_for_private_room(CacheRedisTest.ROOM_ID))
+
+        key = RedisKeys.user_for_private_room()
+        cache_key = '%s-%s' % (key, CacheRedisTest.ROOM_ID)
+        self.cache._del(cache_key)
+
+        self.assertEqual(CacheRedisTest.USER_ID, self.cache.get_user_for_private_room(CacheRedisTest.ROOM_ID))
+
+    def test_get_private_room_and_channel_afte_expired(self):
+        self.cache.set_private_room_and_channel(
+                CacheRedisTest.USER_ID, CacheRedisTest.ROOM_ID, CacheRedisTest.CHANNEL_ID)
+        self.assertEqual(
+                (CacheRedisTest.ROOM_ID, CacheRedisTest.CHANNEL_ID),
+                self.cache.get_private_room_and_channel(CacheRedisTest.USER_ID))
+
+        key = RedisKeys.private_rooms()
+        cache_key = '%s-%s' % (key, CacheRedisTest.USER_ID)
+        self.cache._del(cache_key)
+
+        self.assertEqual(
+                (CacheRedisTest.ROOM_ID, CacheRedisTest.CHANNEL_ID),
+                self.cache.get_private_room_and_channel(CacheRedisTest.USER_ID))
+
+    def test_get_global_ban_timestamp_after_expired(self):
+        timestamp = str(int((datetime.utcnow() + timedelta(seconds=5*60)).timestamp()))
+        duration = '5m'
+        self.cache.set_global_ban_timestamp(CacheRedisTest.USER_ID, duration, timestamp, CacheRedisTest.USER_NAME)
+        _dur, _time, _name = self.cache.get_global_ban_timestamp(CacheRedisTest.USER_ID)
+        self.assertEqual(duration, _dur)
+        self.assertEqual(timestamp, _time)
+        self.assertEqual(CacheRedisTest.USER_NAME, _name)
+
+        key = RedisKeys.banned_users()
+        cache_key = '%s-%s' % (key, CacheRedisTest.USER_ID)
+        self.cache._del(cache_key)
+
+        _dur, _time, _name = self.cache.get_global_ban_timestamp(CacheRedisTest.USER_ID)
+        self.assertEqual(duration, _dur)
+        self.assertEqual(timestamp, _time)
+        self.assertEqual(CacheRedisTest.USER_NAME, _name)
+
+    def test_get_room_id_for_name_after_expired(self):
+        self.cache.set_room_id_for_name(CacheRedisTest.CHANNEL_ID, CacheRedisTest.ROOM_NAME, CacheRedisTest.ROOM_ID)
+        self.assertEqual(
+                CacheRedisTest.ROOM_ID,
+                self.cache.get_room_id_for_name(CacheRedisTest.CHANNEL_ID, CacheRedisTest.ROOM_NAME))
+
+        key = RedisKeys.room_id_for_name(CacheRedisTest.CHANNEL_ID)
+        cache_key = '%s-%s' % (key, CacheRedisTest.ROOM_NAME)
+        self.cache._del(cache_key)
+
+        self.assertEqual(
+                CacheRedisTest.ROOM_ID,
+                self.cache.get_room_id_for_name(CacheRedisTest.CHANNEL_ID, CacheRedisTest.ROOM_NAME))
+
+    def test_get_user_name_after_expired(self):
+        self.cache.set_user_name(CacheRedisTest.USER_ID, CacheRedisTest.USER_NAME)
+        self.assertEqual(CacheRedisTest.USER_NAME, self.cache.get_user_name(CacheRedisTest.USER_ID))
+
+        key = RedisKeys.user_names()
+        cache_key = '%s-%s' % (key, CacheRedisTest.USER_ID)
+        self.cache._del(cache_key)
+
+        self.assertEqual(CacheRedisTest.USER_NAME, self.cache.get_user_name(CacheRedisTest.USER_ID))
+
+    def test_get_room_exists_after_expired(self):
+        self.assertFalse(self.cache.get_room_exists(CacheRedisTest.CHANNEL_ID, CacheRedisTest.ROOM_ID))
+        self.cache.set_room_exists(CacheRedisTest.CHANNEL_ID, CacheRedisTest.ROOM_ID, CacheRedisTest.ROOM_NAME)
+        self.assertTrue(self.cache.get_room_exists(CacheRedisTest.CHANNEL_ID, CacheRedisTest.ROOM_ID))
+
+        key = RedisKeys.rooms(CacheRedisTest.CHANNEL_ID)
+        cache_key = '%s-%s' % (key, CacheRedisTest.ROOM_ID)
+        self.cache._del(cache_key)
+
+        self.assertTrue(self.cache.get_room_exists(CacheRedisTest.CHANNEL_ID, CacheRedisTest.ROOM_ID))
+
+    def test_get_channel_exists_after_expired(self):
+        self.assertFalse(self.cache.get_channel_exists(CacheRedisTest.CHANNEL_ID))
+        self.cache.set_channel_exists(CacheRedisTest.CHANNEL_ID)
+        self.assertTrue(self.cache.get_channel_exists(CacheRedisTest.CHANNEL_ID))
+
+        key = RedisKeys.channel_exists()
+        cache_key = '%s-%s' % (key, CacheRedisTest.CHANNEL_ID)
+        self.cache._del(cache_key)
+
+        self.assertTrue(self.cache.get_channel_exists(CacheRedisTest.CHANNEL_ID))
+
+    def test_get_channel_name_after_expired(self):
+        self.assertIsNone(self.cache.get_channel_name(CacheRedisTest.CHANNEL_ID))
+        self.cache.set_channel_name(CacheRedisTest.CHANNEL_ID, CacheRedisTest.CHANNEL_NAME)
+        self.assertEqual(CacheRedisTest.CHANNEL_NAME, self.cache.get_channel_name(CacheRedisTest.CHANNEL_ID))
+
+        key = RedisKeys.channels()
+        cache_key = '%s-name-%s' % (key, CacheRedisTest.CHANNEL_ID)
+        self.cache._del(cache_key)
+
+        self.assertEqual(CacheRedisTest.CHANNEL_NAME, self.cache.get_channel_name(CacheRedisTest.CHANNEL_ID))
