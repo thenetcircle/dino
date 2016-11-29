@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
 import logging
 import traceback
 
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 from dino.exceptions import RoomNameExistsForChannelException
+from dino.utils import b64e
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -29,34 +31,37 @@ class RoomManager(BaseManager):
         self.env = env
 
     def get_rooms(self, channel_id: str) -> list:
-        try:
-            rooms = self.env.db.rooms_for_channel(channel_id)
-            output = list()
+        rooms = self.env.db.rooms_for_channel(channel_id)
+        output = list()
 
-            for room_id, room_name in rooms.items():
-                output.append({
-                    'uuid': room_id,
-                    'name': room_name
-                })
-            return output
-        except Exception as e:
-            logger.error('could not list rooms: %s' % str(e))
-            print(traceback.format_exc())
-        return list()
+        for room_id, room_name in rooms.items():
+            output.append({
+                'uuid': room_id,
+                'name': b64e(room_name)
+            })
+        return output
 
-    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str) -> None:
-        try:
-            user_id = user_id.strip()
-            user_name = str(self.env.db.get_user_name(user_id)).strip()
-            room_name = str(room_name).strip()
-            room_id = str(room_id).strip()
-            channel_id = str(channel_id).strip()
-            user_id = str(user_id).strip()
+    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str) -> Union[str, None]:
+        if room_name is None or len(room_name.strip()) == 0:
+            return 'empty room name'
+        if user_id is None or len(user_id.strip()) == 0:
+            return 'empty user id'
+        if room_name is None or len(room_name.strip()) == 0:
+            return 'empty room name'
+        if channel_id is None or len(channel_id.strip()) == 0:
+            return 'empty channel id'
+        if room_id is None or len(room_id.strip()) == 0:
+            return 'empty room id'
 
-            self.env.db.create_room(room_name, room_id, channel_id, user_id, user_name)
-        except Exception as e:
-            logger.error('could not create room: %s' % str(e))
-            print(traceback.format_exc())
+        user_id = user_id.strip()
+        user_name = str(self.env.db.get_user_name(user_id)).strip()
+        room_name = str(room_name).strip()
+        room_id = str(room_id).strip()
+        channel_id = str(channel_id).strip()
+        user_id = str(user_id).strip()
+
+        self.env.db.create_room(room_name, room_id, channel_id, user_id, user_name)
+        return None
 
     def remove_room(self, channel_id: str, room_id: str) -> None:
         try:
