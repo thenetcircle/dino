@@ -629,10 +629,10 @@ def init_cache_service(gn_env: GNEnvironment):
             cache_host, cache_port = cache_host.split(':', 1)
 
         cache_db = cache_engine.get(ConfigKeys.DB, 0)
-        gn_env.cache = CacheRedis(host=cache_host, port=cache_port, db=cache_db)
+        gn_env.cache = CacheRedis(gn_env, host=cache_host, port=cache_port, db=cache_db)
     elif cache_type == 'memory':
         from dino.cache.redis import CacheRedis
-        gn_env.cache = CacheRedis(host='mock')
+        gn_env.cache = CacheRedis(gn_env, host='mock')
     elif cache_type == 'missall':
         from dino.cache.miss import CacheAllMiss
         gn_env.cache = CacheAllMiss()

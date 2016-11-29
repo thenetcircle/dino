@@ -14,8 +14,8 @@
 
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
+from dino.utils import b64e
 
-import traceback
 import logging
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -60,6 +60,6 @@ class AclManager(BaseManager):
                 output.append({
                     'action': action,
                     'type': acl_type,
-                    'value': acl_value
+                    'value': b64e(acl_value)
                 })
         return output

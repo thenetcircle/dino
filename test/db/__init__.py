@@ -61,7 +61,7 @@ class BaseDatabaseTest(BaseTest):
         def __init__(self):
             super(BaseDatabaseTest.FakeEnv, self).__init__(None, ConfigDict(), skip_init=True)
             self.config = ConfigDict()
-            self.cache = CacheRedis('mock')
+            self.cache = CacheRedis(self, 'mock')
             self.session = dict()
 
     MESSAGE_ID = str(uuid())

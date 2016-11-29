@@ -14,7 +14,6 @@
 
 from zope.interface import implementer
 
-from dino import environ
 from dino.config import RedisKeys
 from dino.config import ConfigKeys
 from dino.config import UserKeys
@@ -59,8 +58,8 @@ class MemoryCache(object):
 class CacheRedis(object):
     redis = None
 
-    def __init__(self, host: str, port: int = 6379, db: int = 0):
-        if environ.env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
+    def __init__(self, env, host: str, port: int = 6379, db: int = 0):
+        if env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
