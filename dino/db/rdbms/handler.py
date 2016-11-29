@@ -572,7 +572,7 @@ class DatabaseRdbms(object):
         # make sure this user has a private room and a Users() object in the db with the user name
         self.get_private_room(user_id)
 
-    def remove_room(self, channel_id: str, room_id: str, session=None) -> None:
+    def remove_room(self, channel_id: str, room_id: str) -> None:
         @with_session
         def do_remove(session=None):
             room = session\
@@ -596,24 +596,31 @@ class DatabaseRdbms(object):
         do_remove()
         self.env.cache.remove_room_exists(channel_id, room_id)
 
-    @with_session
-    def leave_room(self, user_id: str, room_id: str, session=None) -> None:
-        room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
-        if room is None:
-            raise NoSuchRoomException(room_id)
+    def leave_room(self, user_id: str, room_id: str) -> None:
+        @with_session
+        def _leave(session=None):
+            room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
+            if room is None:
+                raise NoSuchRoomException(room_id)
 
-        user = session.query(Users)\
-            .join(Users.rooms)\
-            .filter(Users.uuid == user_id)\
-            .filter(Rooms.uuid == room_id)\
-            .first()
+            user = session.query(Users)\
+                .join(Users.rooms)\
+                .filter(Users.uuid == user_id)\
+                .filter(Rooms.uuid == room_id)\
+                .first()
 
-        if user is None:
-            # user is not in the room, so nothing to do
-            return
+            if user is None:
+                # user is not in the room, so nothing to do
+                return
 
-        room.users.remove(user)
-        session.commit()
+            room.users.remove(user)
+            session.commit()
+
+        if user_id is None or len(user_id.strip()) == 0:
+            raise EmptyUserIdException()
+
+        self.get_room_name(room_id)
+        _leave()
 
     @with_session
     def join_private_room(self, user_id: str, user_name: str, room_id: str, session=None) -> None:

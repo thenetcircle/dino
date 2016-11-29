@@ -46,8 +46,6 @@ class RoomManager(BaseManager):
             return 'empty room name'
         if user_id is None or len(user_id.strip()) == 0:
             return 'empty user id'
-        if room_name is None or len(room_name.strip()) == 0:
-            return 'empty room name'
         if channel_id is None or len(channel_id.strip()) == 0:
             return 'empty channel id'
         if room_id is None or len(room_id.strip()) == 0:
@@ -64,28 +62,23 @@ class RoomManager(BaseManager):
         return None
 
     def remove_room(self, channel_id: str, room_id: str) -> None:
-        try:
-            self.env.db.remove_room(channel_id, room_id)
-        except Exception as e:
-            logger.error('could not remove room: %s' % str(e))
-            print(traceback.format_exc())
+        self.env.db.remove_room(channel_id, room_id)
 
-    def rename(self, channel_id: str, room_id: str, room_name: str) -> None:
+    def rename(self, channel_id: str, room_id: str, room_name: str) -> Union[str, None]:
         try:
-            self.env.db.rename_room(channel_id, room_id, room_name)
+            return self.env.db.rename_room(channel_id, room_id, room_name)
         except RoomNameExistsForChannelException:
-            pass  # ignore
+            return 'room name already exists'
         except Exception as e:
             logger.error('could not rename room with ID %s: %s' % (room_id, str(e)))
-            print(traceback.format_exc())
+            return 'could not rename room with ID %s: %s' % (room_id, str(e))
 
     def name_for_uuid(self, room_id: str) -> str:
         try:
             return self.env.db.get_room_name(room_id)
         except Exception as e:
             logger.error('could not get room name from id %s: %s' % (room_id, str(e)))
-            print(traceback.format_exc())
-        return ''
+        return None
 
     def get_owners(self, room_id: str) -> list:
         try:
@@ -100,8 +93,7 @@ class RoomManager(BaseManager):
             return output
         except Exception as e:
             logger.error('could not get room owners from id %s: %s' % (room_id, str(e)))
-            print(traceback.format_exc())
-        return list()
+            return 'could not get room owners from id %s: %s' % (room_id, str(e))
 
     def get_moderators(self, room_id: str) -> list:
         try:
@@ -116,5 +108,4 @@ class RoomManager(BaseManager):
             return output
         except Exception as e:
             logger.error('could not get room moderators from id %s: %s' % (room_id, str(e)))
-            print(traceback.format_exc())
-        return list()
+            return 'could not get room moderators from id %s: %s' % (room_id, str(e))

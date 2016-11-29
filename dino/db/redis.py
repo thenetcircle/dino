@@ -804,15 +804,19 @@ class DatabaseRedis(object):
         return self._get_users_with_role(roles, role_key)
 
     def get_admins_channel(self, channel_id: str) -> dict:
+        self.get_channel_name(channel_id)
         return self._get_users_with_role_in_channel(channel_id, RoleKeys.ADMIN)
 
     def get_owners_channel(self, channel_id: str) -> dict:
+        self.get_channel_name(channel_id)
         return self._get_users_with_role_in_channel(channel_id, RoleKeys.OWNER)
 
     def get_owners_room(self, room_id: str) -> dict:
+        self.get_room_name(room_id)
         return self._get_users_with_role_in_room(room_id, RoleKeys.OWNER)
 
     def get_moderators_room(self, room_id: str) -> dict:
+        self.get_room_name(room_id)
         return self._get_users_with_role_in_room(room_id, RoleKeys.MODERATOR)
 
     def remove_current_rooms_for_user(self, user_id: str) -> None:

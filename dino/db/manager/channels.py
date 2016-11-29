@@ -13,11 +13,10 @@
 # limitations under the License.
 
 import logging
-import traceback
+from typing import Union
 
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
-from dino.exceptions import ChannelNameExistsException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -29,47 +28,40 @@ class ChannelManager(BaseManager):
         self.env = env
 
     def get_channels(self) -> list:
-        try:
-            channels = self.env.db.get_channels()
-            output = list()
+        channels = self.env.db.get_channels()
+        output = list()
 
-            for channel_id, channel_name in channels.items():
-                output.append({
-                    'uuid': channel_id,
-                    'name': channel_name
-                })
-            return output
-        except Exception as e:
-            logger.error('could not list channels: %s' % str(e))
-            print(traceback.format_exc())
-        return list()
+        for channel_id, channel_name in channels.items():
+            output.append({
+                'uuid': channel_id,
+                'name': channel_name
+            })
+        return output
 
-    def create_channel(self, channel_name: str, channel_id: str, user_id: str) -> None:
+    def create_channel(self, channel_name: str, channel_id: str, user_id: str) -> Union[str, None]:
         try:
             self.env.db.create_channel(channel_name.strip(), channel_id.strip(), user_id.strip())
             self.env.db.create_admin_room_for(channel_id.strip())
         except Exception as e:
             logger.error('could not create channel: %s' % str(e))
-            print(traceback.format_exc())
-        return ''
+            return 'could not create channel: %s' % str(e)
+        return None
 
-    def name_for_uuid(self, channel_id: str) -> str:
+    def name_for_uuid(self, channel_id: str) -> Union[str, None]:
         try:
             return self.env.db.get_channel_name(channel_id)
         except Exception as e:
             logger.error('could not get channel name from id %s: %s' % (channel_id, str(e)))
-            print(traceback.format_exc())
-        return ''
+            return None
 
-    def rename(self, channel_id: str, channel_name: str) -> None:
+    def rename(self, channel_id: str, channel_name: str) -> Union[str, None]:
         try:
             self.env.db.rename_channel(channel_id, channel_name)
         except Exception as e:
             logger.error('could not rename channel with ID %s: %s' % (channel_id, str(e)))
-            print(traceback.format_exc())
-            raise e
+            return 'could not rename channel with ID %s: %s' % (channel_id, str(e))
 
-    def get_owners(self, channel_id: str) -> list:
+    def get_owners(self, channel_id: str) -> Union[str, list]:
         try:
             owners = self.env.db.get_owners_channel(channel_id)
             output = list()
@@ -81,10 +73,9 @@ class ChannelManager(BaseManager):
             return output
         except Exception as e:
             logger.error('could not get channel owners from id %s: %s' % (channel_id, str(e)))
-            print(traceback.format_exc())
-        return list()
+            return 'could not get channel owners from id %s: %s' % (channel_id, str(e))
 
-    def get_admins(self, channel_id: str) -> list:
+    def get_admins(self, channel_id: str) -> Union[str, list]:
         try:
             admins = self.env.db.get_admins_channel(channel_id)
             output = list()
@@ -97,5 +88,4 @@ class ChannelManager(BaseManager):
             return output
         except Exception as e:
             logger.error('could not get channel admins from id %s: %s' % (channel_id, str(e)))
-            print(traceback.format_exc())
-        return list()
+            return 'could not get channel admins from id %s: %s' % (channel_id, str(e))
