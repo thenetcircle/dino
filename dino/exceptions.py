@@ -30,6 +30,15 @@ class EmptyRoomNameException(Exception):
         self.uuid = uuid
 
 
+class EmptyUserNameException(Exception):
+    def __init__(self, uuid):
+        self.uuid = uuid
+
+
+class EmptyUserIdException(Exception):
+    pass
+
+
 class EmptyChannelNameException(Exception):
     def __init__(self, uuid):
         self.uuid = uuid

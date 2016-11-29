@@ -25,6 +25,7 @@ from dino.config import RedisKeys
 from dino.config import RoleKeys
 from dino.config import UserKeys
 from dino.config import ApiActions
+from dino.utils import b64e
 from dino import environ
 
 from dino.environ import GNEnvironment
@@ -40,6 +41,8 @@ from dino.exceptions import NoSuchUserException
 from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
+from dino.exceptions import EmptyUserNameException
+from dino.exceptions import EmptyUserIdException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
 from dino.exceptions import ChannelNameExistsException
@@ -335,6 +338,12 @@ class DatabaseRedis(object):
         return self.redis.hexists(RedisKeys.channels(), channel_id)
 
     def create_user(self, user_id: str, user_name: str) -> None:
+        if user_name is None or len(user_name.strip()) == 0:
+            raise EmptyUserNameException(user_id)
+
+        if user_id is None or len(user_id.strip()) == 0:
+            raise EmptyUserIdException()
+
         try:
             self.get_user_name(user_id)
             raise UserExistsException(user_id)
@@ -542,7 +551,7 @@ class DatabaseRedis(object):
                 return
 
             output[_user_id] = {
-                'name': self.get_user_name(_user_id),
+                'name': b64e(self.get_user_name(_user_id)),
                 'duration': ban_duration,
                 'timestamp': datetime.fromtimestamp(int(ban_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
@@ -567,6 +576,7 @@ class DatabaseRedis(object):
                 return
 
             output[_user_id] = {
+                'name': b64e(self.get_user_name(_user_id)),
                 'duration': ban_duration,
                 'timestamp': datetime.fromtimestamp(int(ban_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
@@ -591,6 +601,7 @@ class DatabaseRedis(object):
                 return
 
             output[_user_id] = {
+                'name': b64e(self.get_user_name(_user_id)),
                 'duration': ban_duration,
                 'timestamp': datetime.fromtimestamp(int(ban_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
@@ -611,7 +622,7 @@ class DatabaseRedis(object):
             for channel_id, _ in all_channels.items():
                 channel_id = str(channel_id, 'utf-8')
                 bans = {
-                    'name': self.get_channel_name(channel_id),
+                    'name': b64e(self.get_channel_name(channel_id)),
                     'users': self.get_banned_users_for_channel(channel_id)
                 }
                 if len(bans['users']) > 0:
@@ -626,7 +637,7 @@ class DatabaseRedis(object):
                 for room_id, _ in rooms_for_channel.items():
                     room_id = str(room_id, 'utf-8')
                     bans = {
-                        'name': self.get_room_name(room_id),
+                        'name': b64e(self.get_room_name(room_id)),
                         'users': self.get_banned_users_for_room(room_id)
                     }
                     if len(bans['users']) > 0:

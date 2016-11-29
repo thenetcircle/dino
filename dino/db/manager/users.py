@@ -13,6 +13,7 @@
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 from dino.utils import ban_duration_to_timestamp
+from dino.utils import b64e
 from dino.exceptions import UnknownBanTypeException
 from dino.exceptions import NoSuchUserException
 
@@ -50,11 +51,12 @@ class UserManager(BaseManager):
             'verb': 'kick',
             'object': {
                 'id': real_user_id,
-                'summary': self.env.db.get_user_name(real_user_id)
+                'summary': b64e(self.env.db.get_user_name(real_user_id))
             },
             'target': {
                 'id': room_id,
-                'displayName': self.env.db.get_room_name(room_id),
+                'displayName': b64e(self.env.db.get_room_name(room_id)),
+                'objectType': 'room',
                 'url': '/chat'
             }
         }
@@ -62,9 +64,6 @@ class UserManager(BaseManager):
 
     def ban_user(self, private_room_id: str, target_id: str, duration: str, target_type: str) -> None:
         user_id = self.env.db.get_user_for_private_room(private_room_id)
-        if user_id is None or len(user_id.strip()) == 0:
-            raise NoSuchUserException(private_room_id)
-
         target_name = None
         timestamp = ban_duration_to_timestamp(duration)
 
@@ -72,11 +71,11 @@ class UserManager(BaseManager):
             self.env.db.ban_user_global(user_id, timestamp, duration)
 
         elif target_type == 'channel':
-            target_name = self.env.db.get_room_name(target_id)
+            target_name = self.env.db.get_channel_name(target_id)
             self.env.db.ban_user_channel(user_id, timestamp, duration, target_id)
 
         elif target_type == 'room':
-            target_name = self.env.db.get_channel_name(target_id)
+            target_name = self.env.db.get_room_name(target_id)
             self.env.db.ban_user_room(user_id, timestamp, duration, target_id)
         else:
             raise UnknownBanTypeException(target_type)
@@ -89,10 +88,11 @@ class UserManager(BaseManager):
             'verb': 'kick',
             'object': {
                 'id': user_id,
-                'summary': self.env.db.get_user_name(user_id)
+                'summary': b64e(self.env.db.get_user_name(user_id))
             },
             'target': {
-                'url': '/chat'
+                'url': '/chat',
+                'objectType': target_type
             }
         }
 
@@ -102,7 +102,8 @@ class UserManager(BaseManager):
 
         self.env.publish(ban_activity)
 
-    def remove_ban(self, user_id: str, target_id: str, target_type: str) -> None:
+    def remove_ban(self, private_user_id: str, target_id: str, target_type: str) -> None:
+        user_id = self.env.db.get_user_for_private_room(private_user_id)
         if target_type == 'global':
             self.env.db.remove_global_ban(user_id)
         elif target_type == 'channel':
@@ -113,16 +114,7 @@ class UserManager(BaseManager):
             raise UnknownBanTypeException(target_type)
 
     def get_banned_users(self) -> dict:
-        try:
-            return self.env.db.get_banned_users()
-        except Exception as e:
-            logger.error('could not get banned users: %s' % str(e))
-            print(traceback.format_exc())
-            return {
-                'global': dict(),
-                'channels': dict(),
-                'rooms': dict()
-            }
+        return self.env.db.get_banned_users()
 
     def add_channel_admin(self, channel_id: str, user_id: str) -> None:
         self.env.db.set_admin(channel_id, user_id)
@@ -148,32 +140,22 @@ class UserManager(BaseManager):
     def remove_room_owner(self, room_id: str, user_id: str) -> None:
         self.env.db.remove_owner(room_id, user_id)
 
-    def create_admin_user(self, user_name: str, user_id: str) -> None:
+    def create_super_user(self, user_name: str, user_id: str) -> None:
         try:
             self.env.db.create_user(user_id, user_name)
             self.env.db.set_super_user(user_id)
         except Exception as e:
-            logger.error('could not create user: %s' % str(e))
-            print(traceback.format_exc())
+            logger.error('could not create super user: %s' % str(e))
 
-    def get_user(self, user_uuid: str) -> dict:
+    def get_user(self, user_id: str, user_name: str) -> dict:
         return {
-            'uuid': 'todo',
-            'name': 'todo'
+            'uuid': user_id,
+            'name': b64e(user_name)
         }
 
     def get_super_users(self) -> dict:
-        try:
-            users = self.env.db.get_super_users()
-        except Exception as e:
-            logger.error('could not get super users: %s' % str(e))
-            print(traceback.format_exc())
-            return dict()
-
+        users = self.env.db.get_super_users()
         output = list()
         for user_id, user_name in users.items():
-            output.append({
-                'uuid': user_id,
-                'name': user_name
-            })
+            output.append(self.get_user(user_id, user_name))
         return output

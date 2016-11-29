@@ -24,6 +24,7 @@ from dino.config import ApiTargets
 from dino.config import ApiActions
 from dino.config import SessionKeys
 from dino.environ import GNEnvironment
+from dino.utils import b64e
 
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
@@ -34,7 +35,6 @@ from dino.db.rdbms.models import Channels
 from dino.db.rdbms.models import RoomRoles
 from dino.db.rdbms.models import Rooms
 from dino.db.rdbms.models import Acls
-from dino.db.rdbms.models import AclConfigs
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
 from dino.db.rdbms.models import LastReads
@@ -50,9 +50,10 @@ from dino.exceptions import UserExistsException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
-from dino.exceptions import AclValueNotFoundException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
+from dino.exceptions import EmptyUserNameException
+from dino.exceptions import EmptyUserIdException
 from dino.exceptions import ChannelNameExistsException
 from dino.exceptions import ValidationException
 from dino.exceptions import InvalidApiActionException
@@ -1159,6 +1160,12 @@ class DatabaseRdbms(object):
         self.env.cache.set_user_name(user_id, user_name)
 
     def create_user(self, user_id: str, user_name: str) -> None:
+        if user_name is None or len(user_name.strip()) == 0:
+            raise EmptyUserNameException(user_id)
+
+        if user_id is None or len(user_id.strip()) == 0:
+            raise EmptyUserIdException()
+
         try:
             username = self.get_user_name(user_id)
             if username is not None:
@@ -1539,9 +1546,10 @@ class DatabaseRdbms(object):
                     if ban.room.uuid not in output['rooms']:
                         output['rooms'][ban.room.uuid] = dict()
                         output['rooms'][ban.room.uuid]['users'] = dict()
+                        output['rooms'][ban.room.uuid]['name'] = b64e(ban.room.name)
 
                     output['rooms'][ban.room.uuid]['users'][ban.user_id] = {
-                        'name': ban.user_name,
+                        'name': b64e(self.get_user_name(ban.user_id)),
                         'duration': ban.duration,
                         'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                     }
@@ -1549,15 +1557,16 @@ class DatabaseRdbms(object):
                     if ban.channel.uuid not in output['channels']:
                         output['channels'][ban.channel.uuid] = dict()
                         output['channels'][ban.channel.uuid]['users'] = dict()
+                        output['channels'][ban.channel.uuid]['name'] = b64e(ban.channel.name)
 
                     output['channels'][ban.channel.uuid]['users'][ban.user_id] = {
-                        'name': ban.user_name,
+                        'name': b64e(self.get_user_name(ban.user_id)),
                         'duration': ban.duration,
                         'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                     }
                 elif ban.is_global:
                     output['global'][ban.user_id] = {
-                        'name': ban.user_name,
+                        'name': b64e(self.get_user_name(ban.user_id)),
                         'duration': ban.duration,
                         'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                     }
