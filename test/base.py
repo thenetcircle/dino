@@ -34,6 +34,8 @@ from dino.validation.acl import AclRangeValidator
 from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclDisallowValidator
 from dino.validation.acl import AclSameRoomValidator
+from dino.validation.acl import AclIsSuperUserValidator
+from dino.validation.acl import AclIsAdminValidator
 
 environ.env.config.set(ConfigKeys.TESTING, True)
 environ.env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
@@ -232,6 +234,14 @@ class BaseTest(unittest.TestCase):
                     'acls': all_acls
                 },
                 'validation': {
+                    'superuser': {
+                        'type': 'superuser',
+                        'value': AclIsSuperUserValidator()
+                    },
+                    'admin': {
+                        'type': 'admin',
+                        'value': AclIsAdminValidator()
+                    },
                     'samechannel': {
                         'type': 'samechannel',
                         'value': AclSameChannelValidator()

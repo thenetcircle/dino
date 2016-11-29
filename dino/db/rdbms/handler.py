@@ -154,7 +154,7 @@ class DatabaseRdbms(object):
         def _get_user_for_private_room(session=None):
             user = session.query(Users).filter(Users.private_room_id == room_id).first()
             if user is None:
-                raise NoSuchRoomException(room_id)
+                raise NoSuchUserException(room_id)
 
             self.env.cache.set_user_for_private_room(room_id, user.uuid)
             return user.uuid

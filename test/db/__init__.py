@@ -761,7 +761,7 @@ class BaseDatabaseTest(BaseTest):
 
     def _test_get_user_for_private_room_before_create(self):
         self._create_channel()
-        self.assertRaises(NoSuchRoomException, self.db.get_user_for_private_room, BaseTest.ROOM_ID)
+        self.assertRaises(NoSuchUserException, self.db.get_user_for_private_room, BaseTest.ROOM_ID)
 
     def _test_get_user_status_after_set(self):
         self.db.get_private_room(BaseTest.USER_ID)

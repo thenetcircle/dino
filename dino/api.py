@@ -153,7 +153,7 @@ def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     try:
         utils.ban_user(room_id, kicked_id, ban_duration)
     except NoSuchRoomException as e:
-        return ECodes.NO_SUCH_USER, 'no private room found for user: %s' % str(e)
+        return ECodes.NO_SUCH_ROOM, 'no private room found for user: %s' % str(e)
     except NoSuchUserException as e:
         return ECodes.NO_SUCH_USER, 'could not find the specified user: %s' % str(e)
 
@@ -202,7 +202,7 @@ def on_whisper(data: dict, activity: Activity) -> (int, None):
     room_name = utils.get_room_name(room_id)
 
     activity_json = utils.activity_for_whisper(whisperer, whisperer_name, room_id, room_name, channel_id, channel_name)
-    environ.env.send('gn_whisper', activity_json, json=True, room=user_room)
+    environ.env.emit('gn_whisper', activity_json, json=True, room=user_room)
     return ECodes.OK, None
 
 
@@ -224,7 +224,7 @@ def on_invite(data: dict, activity: Activity) -> (int, None):
     room_name = utils.get_room_name(invite_room)
 
     activity_json = utils.activity_for_invite(invitee, invitee_name, invite_room, room_name, channel_id, channel_name)
-    environ.env.send('gn_invitation', activity_json, json=True, room=invitee)
+    environ.env.emit('gn_invitation', activity_json, json=True, room=invitee)
     return ECodes.OK, None
 
 

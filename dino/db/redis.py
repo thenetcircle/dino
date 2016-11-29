@@ -680,6 +680,11 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.banned_users(), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
     def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+        try:
+            self.channel_for_room(room_id)
+        except NoChannelFoundException:
+            raise NoSuchRoomException(room_id)
+
         user_name = ''
         try:
             user_name = self.get_user_name(user_id)
@@ -852,7 +857,7 @@ class DatabaseRedis(object):
     def get_user_for_private_room(self, room_id: str) -> str:
         user_id = self.redis.hget(RedisKeys.user_for_private_room(), room_id)
         if user_id is None:
-            raise NoSuchRoomException(room_id)
+            raise NoSuchUserException(room_id)
 
         if not self.is_room_private(room_id):
             raise NoSuchRoomException(room_id)
