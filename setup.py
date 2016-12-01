@@ -29,7 +29,7 @@ setup(
         'flask-socketio',
         'flask_wtf',
         'wtforms',
-        'gevent',
+        'python-socketio'
         'mysqlclient',
         'gunicorn',
         'activitystreams',
@@ -44,5 +44,4 @@ setup(
         'nose-parameterized',
         'python-dateutil',
         'psycogreen',
-        'sqlalchemy_gevent'
     ])

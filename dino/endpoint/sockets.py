@@ -103,7 +103,7 @@ def handle_server_activity(activity: Activity):
                 return
             environ.env.out_of_scope_emit(
                     'gn_user_kicked', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
-            
+
     def _ban_room(_room_id, _user_id, _user_sid):
         try:
             _users = socketio.server.manager.rooms[namespace][_room_id]
@@ -120,7 +120,7 @@ def handle_server_activity(activity: Activity):
                 return
             environ.env.out_of_scope_emit(
                     'gn_user_banned', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
-            
+
     def _ban_channel(_channel_id, _user_id, _user_sid):
         rooms_in_channel = environ.env.db.rooms_for_channel(_channel_id)
         for room in rooms_in_channel:
@@ -428,8 +428,7 @@ def on_leave(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_leave(data, activity)
 
 
-# do pre-processing for disconnect event
+# no pre-processing for disconnect event
 @socketio.on('disconnect', namespace='/chat')
-@respond_with('gn_disconnect')
 def on_disconnect() -> (int, None):
     return api.on_disconnect()

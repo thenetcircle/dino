@@ -30,6 +30,7 @@ def create_app():
             _app,
             logger=environ.env.logger,
             engineio_logger=False,
+            async_mode='eventlet',
             message_queue=environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default=''))
 
     return _app, _socketio

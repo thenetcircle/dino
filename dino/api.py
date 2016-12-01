@@ -482,6 +482,7 @@ def on_disconnect() -> (int, None):
     # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
     user_id = environ.env.session.get(SessionKeys.user_id.value)
     user_name = environ.env.session.get(SessionKeys.user_name.value)
+    logger.info('a user disconnected, name: %s' % user_name)
 
     if user_id is None or not isinstance(user_id, str) or user_name is None:
         return ECodes.NO_USER_IN_SESSION, 'no user in session, not connected'

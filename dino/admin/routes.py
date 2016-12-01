@@ -494,7 +494,7 @@ def create_channel():
 
 
 @app.route('/create/super-user', methods=['POST'])
-def create_admin_user():
+def create_super_user():
     form = CreateUserForm(request.form)
     user_name = str(form.name.data).strip()
     user_id = str(form.uuid.data).strip()
@@ -502,7 +502,7 @@ def create_admin_user():
     if is_blank(user_name) or is_blank(user_id):
         return redirect('/users')
 
-    user_manager.create_admin_user(user_name, user_id)
+    user_manager.create_super_user(user_name, user_id)
     return redirect('/user/%s' % user_id)
 
 

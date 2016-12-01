@@ -16,11 +16,11 @@
                 lib.commit();
             }
 
-            function b64e( str ) {
+            function b64e(str) {
                 return window.btoa(unescape(encodeURIComponent(str)));
             }
 
-            function b64d( str ) {
+            function b64d(str) {
                 return decodeURIComponent(escape(window.atob(str)));
             }
 
@@ -100,7 +100,7 @@
 
             var socket;
             $(document).ready(function(){
-                socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
+                socket = io.connect('http://' + document.domain + ':' + location.port + '/chat', {transports:['websocket']});
 
                 socket.on('connect', function() {
                     socket.emit('login', {

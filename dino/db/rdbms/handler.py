@@ -572,7 +572,7 @@ class DatabaseRdbms(object):
         _create_room()
 
         # make sure this user has a private room and a Users() object in the db with the user name
-        self.get_private_room(user_id)
+        self.get_private_room(user_id, user_name)
 
     def remove_room(self, channel_id: str, room_id: str) -> None:
         @with_session

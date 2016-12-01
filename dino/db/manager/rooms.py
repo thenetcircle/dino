@@ -19,7 +19,6 @@ import traceback
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 from dino.exceptions import RoomNameExistsForChannelException
-from dino.utils import b64e
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -37,7 +36,7 @@ class RoomManager(BaseManager):
         for room_id, room_name in rooms.items():
             output.append({
                 'uuid': room_id,
-                'name': b64e(room_name)
+                'name': room_name
             })
         return output
 

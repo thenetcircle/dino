@@ -147,7 +147,14 @@ class UserManager(BaseManager):
         except Exception as e:
             logger.error('could not create super user: %s' % str(e))
 
-    def get_user(self, user_id: str, user_name: str) -> dict:
+    def get_user(self, user_id: str) -> dict:
+        user_name = self.env.db.get_user_name(user_id)
+        return {
+            'uuid': user_id,
+            'name': b64e(user_name)
+        }
+
+    def _get_user(self, user_id: str, user_name: str) -> dict:
         return {
             'uuid': user_id,
             'name': b64e(user_name)
@@ -157,5 +164,5 @@ class UserManager(BaseManager):
         users = self.env.db.get_super_users()
         output = list()
         for user_id, user_name in users.items():
-            output.append(self.get_user(user_id, user_name))
+            output.append(self._get_user(user_id, user_name))
         return output
