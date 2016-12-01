@@ -39,6 +39,7 @@ from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
 from dino.db.rdbms.models import LastReads
 from dino.db.rdbms.models import Bans
+from dino.db.rdbms.models import AclConfigs
 
 from dino.exceptions import ChannelExistsException
 from dino.exceptions import NoSuchChannelException
@@ -57,6 +58,7 @@ from dino.exceptions import EmptyUserIdException
 from dino.exceptions import ChannelNameExistsException
 from dino.exceptions import ValidationException
 from dino.exceptions import InvalidApiActionException
+from dino.exceptions import AclValueNotFoundException
 
 from functools import wraps
 from zope.interface import implementer
@@ -1029,6 +1031,26 @@ class DatabaseRdbms(object):
 
     def update_acl_in_channel_for_action(self, channel_id: str, action: str, acl_type: str, acl_value: str) -> None:
         self.add_acls_in_channel_for_action(channel_id, action, {acl_type: acl_value})
+
+    def get_acl_validation_value(self, acl_type: str, validation_method: str) -> str:
+        @with_session
+        def get_value(session=None):
+            return session.query(AclConfigs)\
+                .filter(AclConfigs.acl_type == acl_type)\
+                .filter(AclConfigs.method == validation_method)\
+                .first()
+
+        if acl_type is None or len(acl_type.strip()) == 0:
+            raise InvalidAclTypeException(acl_type)
+
+        if validation_method is None or len(validation_method.strip()) == 0:
+            raise InvalidAclValueException(acl_type, validation_method)
+
+        acl_config = get_value()
+        if acl_config is None or acl_config.acl_value is None or len(acl_config.acl_value.strip()) == 0:
+            raise AclValueNotFoundException(acl_type, validation_method)
+
+        return acl_config.acl_value
 
     @with_session
     def get_all_acls_channel(self, channel_id: str, session=None) -> dict:

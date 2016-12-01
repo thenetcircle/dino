@@ -48,6 +48,7 @@ from dino.exceptions import InvalidAclValueException
 from dino.exceptions import ChannelNameExistsException
 from dino.exceptions import InvalidApiActionException
 from dino.exceptions import ValidationException
+from dino.exceptions import AclValueNotFoundException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -728,6 +729,23 @@ class DatabaseRedis(object):
             acls_cleaned[acl_type] = str(acl_value, 'utf-8')
 
         return acls_cleaned
+
+    def get_acl_validation_value(self, acl_type: str, validation_method: str) -> str:
+        if acl_type is None or len(acl_type.strip()) == 0:
+            raise InvalidAclTypeException(acl_type)
+
+        if validation_method is None or len(validation_method.strip()) == 0:
+            raise InvalidAclValueException(acl_type, validation_method)
+
+        value = environ.env.redis.hget(RedisKeys.acl_validations(acl_type), validation_method)
+        if value is None:
+            raise AclValueNotFoundException(acl_type, validation_method)
+
+        value = str(value, 'utf-8')
+        if len(value.strip()) == 0:
+            raise AclValueNotFoundException(acl_type, validation_method)
+
+        return value
 
     def get_all_acls_channel(self, channel_id: str) -> dict:
         self.get_channel_name(channel_id)

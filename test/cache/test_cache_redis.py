@@ -170,3 +170,13 @@ class CacheRedisTest(TestCase):
         self.cache._del(cache_key)
 
         self.assertEqual(CacheRedisTest.CHANNEL_NAME, self.cache.get_channel_name(CacheRedisTest.CHANNEL_ID))
+
+    def test_get_user_status_after_expired(self):
+        self.assertIsNone(self.cache.get_user_status(CacheRedisTest.USER_ID))
+        self.cache.set_user_status(CacheRedisTest.USER_ID, '1')
+        self.assertEqual('1', self.cache.get_user_status(CacheRedisTest.USER_ID))
+
+        key = RedisKeys.user_status(CacheRedisTest.USER_ID)
+        self.cache._del(key)
+
+        self.assertEqual('1', self.cache.get_user_status(CacheRedisTest.USER_ID))

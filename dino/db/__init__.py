@@ -726,6 +726,15 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_acl_validation_value(self, acl_type: str, validation_method: str) -> str:
+        """
+        get the validation value for this type from the database
+
+        :param acl_type: the type of the acl
+        :param validation_method: the method of validation (e.g. str_in_csv)
+        :return: the
+        """
+
     def get_all_acls_channel(self, channel_id: str) -> dict:
         """
         get all acls for a channel, seperated by actions
