@@ -15,7 +15,6 @@
 from dino.db.manager.rooms import RoomManager
 from dino.exceptions import NoSuchChannelException
 from dino.exceptions import NoSuchRoomException
-from dino.utils import b64d
 
 from uuid import uuid4 as uuid
 from test.db import BaseDatabaseTest
@@ -56,7 +55,7 @@ class RoomManagerTest(BaseDatabaseTest):
         rooms = self.manager.get_rooms(BaseDatabaseTest.CHANNEL_ID)
         self.assertEqual(1, len(rooms))
         self.assertEqual(BaseDatabaseTest.ROOM_ID, rooms[0]['uuid'])
-        self.assertEqual(BaseDatabaseTest.ROOM_NAME, b64d(rooms[0]['name']))
+        self.assertEqual(BaseDatabaseTest.ROOM_NAME, rooms[0]['name'])
 
     def test_create_room(self):
         self._create_channel()
