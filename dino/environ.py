@@ -322,7 +322,6 @@ def choose_queue_instance(config_dict: dict) -> object:
 
 
 def create_env(config_paths: list = None) -> GNEnvironment:
-    print('creating env')
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
     logger.info('using environment %s' % gn_environment)
 
