@@ -9,8 +9,9 @@ Distributed Notifications
 Distributed websocket routing for notifications and chat.
 
 * [Getting started](docs/md/getting_started.md)
-* [API Documentation](docs/md/api.md)
-* [Events Documentation](docs/md/events.md)
+* [API documentation](docs/md/api.md)
+* [Events documentation](docs/md/events.md)
+* [Rest documentation](docs/md/rest.md)
 * [Generated documentation](https://thenetcircle.github.io/dino/)
 
 Any number of nodes can be started on different machines or same machine on different port. Flask will handle connection

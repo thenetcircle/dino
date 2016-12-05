@@ -1604,15 +1604,7 @@ class DatabaseRdbms(object):
                 session.commit()
             return output
 
-        def _add_names_to_rooms_and_channels(output):
-            for room_id in output['rooms'].keys():
-                output['rooms'][room_id]['name'] = self.get_room_name(room_id)
-
-            for channel_id in output['channels'].keys():
-                output['channels'][channel_id]['name'] = self.get_channel_name(channel_id)
-            return output
-
-        return _add_names_to_rooms_and_channels(_get_the_bans())
+        return _get_the_bans()
 
     def kick_user(self, room_id: str, user_id: str) -> None:
         self.leave_room(user_id, room_id)
