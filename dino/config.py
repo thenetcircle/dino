@@ -114,6 +114,8 @@ class ConfigKeys(object):
     DATE_FORMAT = 'date_format'
     DEBUG = 'debug'
     QUEUE = 'queue'
+    EXTERNAL_QUEUE = 'ext_queue'
+    EXCHANGE = 'exchange'
     TESTING = 'testing'
     STORAGE = 'storage'
     AUTH_SERVICE = 'auth'

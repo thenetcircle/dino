@@ -646,10 +646,21 @@ def init_cache_service(gn_env: GNEnvironment):
 
 
 def init_pub_sub(gn_env: GNEnvironment) -> None:
-    def publish(message):
+    def publish(message, internal=False):
         try:
-            with producers[gn_env.queue_connection].acquire(block=True) as producer:
-                producer.publish(message, exchange=gn_env.exchange, declare=[gn_env.exchange, gn_env.queue])
+            if internal:
+                queue_connection = gn_env.queue_connection
+                exchange = gn_env.exchange
+                queue = gn_env.queue
+            else:
+                queue_connection = gn_env.external_queue_connection
+                if queue_connection is None:
+                    return
+                exchange = gn_env.external_exchange
+                queue = gn_env.external_queue
+
+            with producers[queue_connection].acquire(block=True) as producer:
+                producer.publish(message, exchange=exchange, declare=[exchange, queue])
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             print(traceback.format_exc())
@@ -661,10 +672,27 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
         gn_env.publish = mock_publish
         return
 
-    gn_env.queue_connection = Connection('redis://localhost:6379/')
-    gn_env.exchange = Exchange('node_exchange', type='direct')
-    gn_env.queue = Queue('node_queue', gn_env.exchange)
+    conf = gn_env.config
+    queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='redis://localhost:6379/')
+    gn_env.queue_connection = Connection(queue_host)
+
+    exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
+    gn_env.exchange = Exchange(exchange, type='direct')
+
+    queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default='node_queue')
+    gn_env.queue = Queue(queue, gn_env.exchange)
     gn_env.publish = publish
+
+    ext_queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='')
+    gn_env.external_queue_connection = None
+    if ext_queue_host is not None and len(ext_queue_host.strip()) > 0:
+        gn_env.external_queue_connection = Connection(ext_queue_host)
+
+        ext_exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_exchange')
+        gn_env.external_exchange = Exchange(ext_exchange, type='direct')
+
+        ext_queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_queue')
+        gn_env.external_queue = Queue(ext_queue, gn_env.external_exchange)
 
 
 def init_stats_service(gn_env: GNEnvironment) -> None:

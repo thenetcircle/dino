@@ -172,6 +172,16 @@ def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     }
 
 
+def activity_for_login(user_id: str, user_name: str) -> dict:
+    return {
+        'actor': {
+            'id': user_id,
+            'summary': b64e(user_name)
+        },
+        'verb': 'login'
+    }
+
+
 def activity_for_connect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {

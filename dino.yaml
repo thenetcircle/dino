@@ -22,6 +22,9 @@ oscar:
         type: 'redis'
         host: 'redis://localhost:6379'
         db: 2
+    ext_queue:
+        host: 'redis://localhost:6379'
+        db: 5
     auth:
         type: 'redis'
         host: 'localhost:6379'
