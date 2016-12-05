@@ -93,6 +93,7 @@ class RequestValidator(BaseValidator):
 
         is_banned, duration = utils.is_banned_globally(user_id)
         if is_banned:
+            environ.env.disconnect()
             return False, ECodes.USER_IS_BANNED, 'user is banned from chatting for: %ss' % duration
 
         if activity.actor.attachments is not None:
@@ -100,12 +101,15 @@ class RequestValidator(BaseValidator):
                 environ.env.session[attachment.object_type] = attachment.content
 
         if SessionKeys.token.value not in environ.env.session:
+            environ.env.disconnect()
             return False, ECodes.NO_USER_IN_SESSION, 'no token in session'
 
         token = environ.env.session.get(SessionKeys.token.value)
         is_valid, error_msg, session = self.validate_login(user_id, token)
 
         if not is_valid:
+            environ.env.stats.incr('on_login.failed')
+            environ.env.disconnect()
             return False, ECodes.NOT_ALLOWED, error_msg
 
         for session_key, session_value in session.items():

@@ -22,9 +22,9 @@ from dino.config import ConfigKeys
 from dino.config import ErrorCodes
 
 
-class RequestLogintest(BaseTest):
+class RequestLoginTest(BaseTest):
     def setUp(self):
-        super(RequestLogintest, self).setUp()
+        super(RequestLoginTest, self).setUp()
         self.clear_session()
         environ.env.db.redis.hdel(RedisKeys.banned_users(), BaseTest.USER_ID)
 
@@ -66,50 +66,50 @@ class RequestLogintest(BaseTest):
         self.assertTrue(is_valid)
 
     def test_login_session_contains_user_id(self):
-        self.assert_not_in_session('user_id', RequestLogintest.USER_ID)
+        self.assert_not_in_session('user_id', RequestLoginTest.USER_ID)
         self.assert_login_ok()
 
     def test_login_session_contains_user_name(self):
-        self.assert_not_in_session('user_name', RequestLogintest.USER_NAME)
+        self.assert_not_in_session('user_name', RequestLoginTest.USER_NAME)
         self.assert_login_ok()
 
     def test_login_session_contains_gender(self):
-        self.assert_not_in_session('gender', RequestLogintest.GENDER)
+        self.assert_not_in_session('gender', RequestLoginTest.GENDER)
         self.assert_login_ok()
 
     def test_login_session_contains_membership(self):
-        self.assert_not_in_session('membership', RequestLogintest.MEMBERSHIP)
+        self.assert_not_in_session('membership', RequestLoginTest.MEMBERSHIP)
         self.assert_login_ok()
 
     def test_login_session_contains_city(self):
-        self.assert_not_in_session('city', RequestLogintest.CITY)
+        self.assert_not_in_session('city', RequestLoginTest.CITY)
         self.assert_login_ok()
 
     def test_login_session_contains_country(self):
-        self.assert_not_in_session('country', RequestLogintest.COUNTRY)
+        self.assert_not_in_session('country', RequestLoginTest.COUNTRY)
         self.assert_login_ok()
 
     def test_login_session_contains_fake_checked(self):
-        self.assert_not_in_session('fake_checked', RequestLogintest.FAKE_CHECKED)
+        self.assert_not_in_session('fake_checked', RequestLoginTest.FAKE_CHECKED)
         self.assert_login_ok()
 
     def test_login_session_contains_has_webcam(self):
-        self.assert_not_in_session('has_webcam', RequestLogintest.HAS_WEBCAM)
+        self.assert_not_in_session('has_webcam', RequestLoginTest.HAS_WEBCAM)
         self.assert_login_ok()
 
     def test_login_session_contains_image(self):
-        self.assert_not_in_session('image', RequestLogintest.IMAGE)
+        self.assert_not_in_session('image', RequestLoginTest.IMAGE)
         self.assert_login_ok()
 
     def test_login_session_contains_age(self):
-        self.assert_not_in_session('age', RequestLogintest.AGE)
+        self.assert_not_in_session('age', RequestLoginTest.AGE)
         self.assert_login_ok()
 
     def test_login_no_attachments(self):
         act = {
             'actor': {
-                'id': RequestLogintest.USER_ID,
-                'summary': RequestLogintest.USER_NAME,
+                'id': RequestLoginTest.USER_ID,
+                'summary': RequestLoginTest.USER_NAME,
                 'image': {
                     'url': 'http://some-url.com/image.jpg',
                     'width': '120',
@@ -123,8 +123,8 @@ class RequestLogintest(BaseTest):
     def test_login_missing_all_attachments(self):
         act = {
             'actor': {
-                'id': RequestLogintest.USER_ID,
-                'summary': RequestLogintest.USER_NAME,
+                'id': RequestLoginTest.USER_ID,
+                'summary': RequestLoginTest.USER_NAME,
                 'image': {
                     'url': 'http://some-url.com/image.jpg',
                     'width': '120',

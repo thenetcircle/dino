@@ -118,6 +118,7 @@ class ConfigKeys(object):
     STORAGE = 'storage'
     AUTH_SERVICE = 'auth'
     CACHE_SERVICE = 'cache'
+    STATS_SERVICE = 'stats'
     HOST = 'host'
     TYPE = 'type'
     DRIVER = 'driver'
@@ -130,6 +131,8 @@ class ConfigKeys(object):
     PASSWORD = 'password'
     HISTORY = 'history'
     LIMIT = 'limit'
+    PREFIX = 'prefix'
+    INCLUDE_HOST_NAME = 'include_hostname'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'

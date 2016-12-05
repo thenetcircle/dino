@@ -12,6 +12,12 @@ oscar:
         type: 'cassandra'
         host:
             - '127.0.0.1'
+    stats:
+      type: 'statsd'
+      host: 'localhost'
+      port: 8125
+      prefix: 'dino'
+      include_hostname: 'true'
     queue:
         type: 'redis'
         host: 'redis://localhost:6379'
@@ -39,6 +45,9 @@ dev:
         host: 'mock'
         max_history: 200
         db: 6
+    stats:
+      type: 'statsd'
+      host: 'mock'
     queue:
         type: 'redis'
         host: 'mock'
@@ -62,6 +71,9 @@ test:
         type: 'redis'
         host: 'maggie-kafka-3:6379'
         db: 1
+    stats:
+      type: 'statsd'
+      host: 'mock'
     storage:
         type: 'mock'
         host: 'localhost:6379'

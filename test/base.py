@@ -18,8 +18,10 @@ import logging
 from activitystreams import parse as as_parser
 from uuid import uuid4 as uuid
 from datetime import datetime
+from zope.interface import implementer
 
 from dino import environ
+from dino.stats import IStats
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
@@ -45,6 +47,21 @@ from dino.utils import b64e
 
 logging.basicConfig(level='DEBUG')
 logger = logging.getLogger(__name__)
+
+
+@implementer(IStats)
+class MockStats(object):
+    def incr(self, key: str) -> None:
+        pass
+
+    def decr(self, key: str) -> None:
+        pass
+
+    def timing(self, key: str, ms: int):
+        pass
+
+    def gauge(self, key: str, value: int):
+        pass
 
 
 class Form(object):
@@ -119,6 +136,10 @@ class BaseTest(unittest.TestCase):
             BaseTest.emit_args.extend(kwargs)
 
     @staticmethod
+    def _disconnect():
+        pass
+
+    @staticmethod
     def _join_room(room):
         if room == BaseTest.USER_ID:
             room = environ.env.db.redis.hget(RedisKeys.private_rooms(), room)
@@ -178,7 +199,7 @@ class BaseTest(unittest.TestCase):
             'has_webcam': BaseTest.HAS_WEBCAM,
             'city': BaseTest.CITY,
             'country': BaseTest.COUNTRY,
-            'token': str(uuid())
+            'token': '66968fad-2336-40c9-bc6d-0ecbcd91f4da'
         }
 
         environ.env.config = environ.ConfigDict()
@@ -301,6 +322,8 @@ class BaseTest(unittest.TestCase):
         environ.env.db.redis = environ.env.auth.redis
         environ.env.redis = environ.env.auth.redis
         environ.env.publish = BaseTest._mock_publish
+        environ.env.disconnect = BaseTest._disconnect
+        environ.env.stats = MockStats()
         environ.env.cache = CacheAllMiss()
 
         environ.env.auth.redis.flushall()

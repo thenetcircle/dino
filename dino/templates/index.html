@@ -15,6 +15,7 @@
             {{ form.image.label }}: {{ form.image() }} {% for error in form.image.errors %}{{ error }}{% endfor %}<br>
             {{ form.country.label }}: {{ form.country() }} {% for error in form.country.errors %}{{ error }}{% endfor %}<br>
             {{ form.city.label }}: {{ form.city() }} {% for error in form.city.errors %}{{ error }}{% endfor %}<br>
+            {{ form.token() }}
             {{ form.submit() }}
         </form>
     </body>

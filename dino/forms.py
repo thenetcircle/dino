@@ -4,6 +4,7 @@ from dino.config import ConfigKeys
 _required = environ.env.DataRequired
 _select = environ.env.SelectField
 _string = environ.env.StringField
+_hidden = environ.env.HiddenField
 
 choice_gender = [('m', 'male'), ('f', 'female'), ('ts', 'TS')]
 choice_membership = [('0', '0'), ('1', '1'), ('2', '2')]
@@ -31,6 +32,7 @@ class _MockLoginForm(object):
         self.country = _select('Country', choices=choice_country, validators=[_required()])
         self.age = _string('Age', validators=[_required()])
         self.city = _string('City', validators=[_required()])
+        self.token = _hidden('token')
         self.submit = environ.env.SubmitField('Login')
 
     def validate_on_submit(self):
@@ -46,5 +48,6 @@ class _LoginForm(environ.env.Form):
     fake_checked = _select('Fake checked?', choices=choice_yes_no, validators=[_required()])
     country = _select('Country', choices=choice_country, validators=[_required()])
     age = _string('Age', validators=[_required()])
+    token = _hidden('token')
     city = _string('City', validators=[_required()])
     submit = environ.env.SubmitField('Login')

@@ -417,15 +417,15 @@ def set_name_for_user_id(user_id: str, user_name: str) -> None:
     environ.env.db.set_user_name(user_id, user_name)
 
 
-# TODO: use env.db instead of env.redis
 def set_sid_for_user_id(user_id: str, sid: str) -> None:
-    environ.env.redis.hset(RedisKeys.sid_for_user_id(), user_id, sid)
+    if sid is None or len(sid.strip()) == 0:
+        logger.error('empty sid when setting sid')
+        return
+    environ.env.db.set_sid_for_user(user_id, sid)
 
 
-# TODO: use env.db instead of env.redis
 def get_sid_for_user_id(user_id: str) -> str:
-    sid = environ.env.redis.hget(RedisKeys.sid_for_user_id(), user_id)
-    return str(sid, 'utf-8')
+    return environ.env.db.get_sid_for_user(user_id)
 
 
 def get_user_for_private_room(room_id: str) -> str:

@@ -14,18 +14,61 @@
 
 import traceback
 import logging
+import time
 import activitystreams as as_parser
+from flask import request
 
 from functools import wraps
 from datetime import datetime
 from uuid import uuid4 as uuid
 
 from dino import validation
+from dino import environ
 from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 logger = logging.getLogger(__name__)
+
+
+def respond_with(gn_event_name=None):
+    def factory(view_func):
+        @wraps(view_func)
+        def decorator(*args, **kwargs):
+            tb = None
+            try:
+                status_code, data = view_func(*args, **kwargs)
+            except Exception as e:
+                tb = traceback.format_exc()
+                logger.error('%s: %s' % (gn_event_name, str(e)))
+                return 500, str(e)
+            finally:
+                if tb is not None:
+                    print(tb)
+
+            if status_code != 200:
+                logger.warn('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
+            if data is not None:
+                environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
+            else:
+                environ.env.emit(gn_event_name, {'status_code': status_code})
+            return status_code
+        return decorator
+    return factory
+
+
+def count_connections(connect_type=None):
+    def factory(view_func):
+        @wraps(view_func)
+        def decorator(*args, **kwargs):
+            if connect_type == 'connect':
+                environ.env.stats.incr('connections')
+            elif connect_type == 'disconnect':
+                environ.env.stats.decr('connections')
+
+            return view_func(*args, **kwargs)
+        return decorator
+    return factory
 
 
 def pre_process(validation_name=None, should_validate_request=True):
@@ -35,6 +78,7 @@ def pre_process(validation_name=None, should_validate_request=True):
             if not hasattr(validation.request, validation_name):
                 raise RuntimeError('no such attribute on validation.request: %s' % validation_name)
 
+            before = time.time()
             try:
                 data = args[0]
 
@@ -58,9 +102,17 @@ def pre_process(validation_name=None, should_validate_request=True):
             except Exception as e:
                 logger.error('%s: %s' % (validation_name, str(e)))
                 print(traceback.format_exc())
+                environ.env.stats.incr(validation_name + '.exception')
                 return 500, str(e)
 
-            if status_code != 200:
+            finally:
+                exec_time_ms = (time.time()-before)*1000
+                environ.env.stats.timing(validation_name, exec_time_ms)
+
+            if status_code == 200:
+                environ.env.stats.incr(validation_name)
+            else:
+                environ.env.stats.incr(validation_name + '.error')
                 logger.warn('in decorator, status_code: %s, message: %s' % (status_code, str(message)))
             return status_code, message
         return decorator

@@ -498,6 +498,6 @@ def on_disconnect() -> (int, None):
     environ.env.db.remove_current_rooms_for_user(user_id)
     environ.env.db.set_user_offline(user_id)
 
-    activity_json = utils.activity_for_disconnect(user_id, user_name)
-    environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
+    # activity_json = utils.activity_for_disconnect(user_id, user_name)
+    # environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
     return ECodes.OK, None

@@ -22,7 +22,6 @@ import activitystreams as as_parser
 from activitystreams.exception import ActivityException
 from activitystreams.models.activity import Activity
 from flask_socketio import disconnect
-from functools import wraps
 from kombu import Connection
 from kombu.mixins import ConsumerMixin
 
@@ -33,37 +32,13 @@ from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
 from dino.utils.decorators import pre_process
+from dino.utils.decorators import respond_with
+from dino.utils.decorators import count_connections
 from dino.forms import LoginForm
 from dino.server import app, socketio
 from dino.utils.handlers import GracefulInterruptHandler
 
 logger = environ.env.logger
-
-
-def respond_with(gn_event_name=None):
-    def factory(view_func):
-        @wraps(view_func)
-        def decorator(*args, **kwargs):
-            tb = None
-            try:
-                status_code, data = view_func(*args, **kwargs)
-            except Exception as e:
-                tb = traceback.format_exc()
-                logger.error('%s: %s' % (gn_event_name, str(e)))
-                return 500, str(e)
-            finally:
-                if tb is not None:
-                    print(tb)
-
-            if status_code != 200:
-                logger.warn('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
-            if data is not None:
-                environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
-            else:
-                environ.env.emit(gn_event_name, {'status_code': status_code})
-            return status_code
-        return decorator
-    return factory
 
 
 class Worker(ConsumerMixin):
@@ -222,15 +197,15 @@ if not environ.env.config.get(ConfigKeys.TESTING, False):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = LoginForm.create()
+    form.token.data = str(uuid())
     if form.validate_on_submit():
         # only for the reference implementation, generate a user id and token
         user_id = int(float(''.join([str(ord(x)) for x in form.user_name.data])) % 1000000)
-        token = str(uuid())
 
         environ.env.session[SessionKeys.user_id.value] = user_id
-        environ.env.session[SessionKeys.token.value] = token
+        environ.env.session[SessionKeys.token.value] = form.token.data
         environ.env.auth.redis.hset(RedisKeys.auth_key(str(user_id)), SessionKeys.user_id.value, user_id)
-        environ.env.auth.redis.hset(RedisKeys.auth_key(str(user_id)), SessionKeys.token.value, token)
+        environ.env.auth.redis.hset(RedisKeys.auth_key(str(user_id)), SessionKeys.token.value, form.token.data)
 
         for session_key in SessionKeys:
             key = session_key.value
@@ -254,6 +229,7 @@ def index():
         form.image.data = environ.env.session.get('image', '')
         form.country.data = environ.env.session.get('country', '')
         form.city.data = environ.env.session.get('city', '')
+        form.token.data = environ.env.session.get('token', '')
     return environ.env.render_template('index.html', form=form)
 
 
@@ -274,6 +250,7 @@ def chat():
             image=environ.env.session.get('image', ''),
             country=environ.env.session.get('country', ''),
             city=environ.env.session.get('city', ''),
+            token=environ.env.session.get('token', ''),
             version=environ.env.config.get(ConfigKeys.VERSION))
 
 
@@ -290,6 +267,7 @@ def send_css(path):
 # no pre-processing for connect event
 @socketio.on('connect', namespace='/chat')
 @respond_with('gn_connect')
+@count_connections('connect')
 def connect() -> (int, None):
     return api.connect()
 
@@ -430,5 +408,6 @@ def on_leave(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
 
 # no pre-processing for disconnect event
 @socketio.on('disconnect', namespace='/chat')
+@count_connections('disconnect')
 def on_disconnect() -> (int, None):
     return api.on_disconnect()

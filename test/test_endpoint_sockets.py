@@ -14,6 +14,7 @@ import unittest
 from nose_parameterized import parameterized
 from activitystreams import parse as as_parser
 from fakeredis import FakeRedis
+from uuid import uuid4 as uuid
 
 from dino.config import ConfigKeys
 from dino.config import RedisKeys
@@ -73,6 +74,9 @@ class FakeDb(object):
 
     def rooms_for_user(self, *args):
         return {'8888': 'some name'}
+
+    def get_sid_for_user(self, user_id: str):
+        return str(uuid())
 
 
 class FakeLogger(object):

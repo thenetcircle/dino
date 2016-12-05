@@ -36,6 +36,7 @@ from flask_wtf import Form as _flask_Form
 from wtforms.fields import StringField as _wtf_StringField
 from wtforms.fields import SubmitField as _wtf_SubmitField
 from wtforms.fields import SelectField as _wtf_SelectField
+from wtforms.fields import HiddenField as _wtf_HiddenField
 from wtforms.validators import DataRequired as _wtf_DataRequired
 
 from flask import redirect as _flask_redirect
@@ -44,6 +45,7 @@ from flask import request as _flask_request
 from flask import send_from_directory as _flask_send_from_directory
 from flask import render_template as _flask_render_template
 from flask import session as _flask_session
+from flask_socketio import disconnect as _flask_disconnect
 
 from dino.config import ConfigKeys
 from dino.exceptions import AclValueNotFoundException
@@ -191,6 +193,7 @@ class GNEnvironment(object):
         self.config = config
         self.storage = None
         self.cache = None
+        self.stats = None
 
         self.out_of_scope_emit = None  # needs to be set later after socketio object has been created
         self.emit = _flask_emit
@@ -203,11 +206,13 @@ class GNEnvironment(object):
         self.DataRequired = _wtf_DataRequired
         self.StringField = _wtf_StringField
         self.SelectField = _wtf_SelectField
+        self.HiddenField = _wtf_HiddenField
 
         self.redirect = _flask_redirect
         self.url_for = _flask_url_for
         self.request = _flask_request
         self.send_from_directory = _flask_send_from_directory
+        self.disconnect = _flask_disconnect
 
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.session = config.get(ConfigKeys.SESSION, None)
@@ -640,7 +645,7 @@ def init_cache_service(gn_env: GNEnvironment):
         raise RuntimeError('unknown cache type %s, use one of [redis, mock, missall]' % cache_type)
 
 
-def init_pub_sub(gn_env: GNEnvironment):
+def init_pub_sub(gn_env: GNEnvironment) -> None:
     def publish(message):
         try:
             with producers[gn_env.queue_connection].acquire(block=True) as producer:
@@ -662,6 +667,25 @@ def init_pub_sub(gn_env: GNEnvironment):
     gn_env.publish = publish
 
 
+def init_stats_service(gn_env: GNEnvironment) -> None:
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    stats_engine = gn_env.config.get(ConfigKeys.STATS_SERVICE, None)
+
+    if stats_engine is None:
+        raise RuntimeError('no stats service specified')
+
+    stats_type = stats_engine.get(ConfigKeys.TYPE, None)
+    if stats_type is None:
+        raise RuntimeError('no stats type specified, use one of [redis, mock, missall]')
+
+    if stats_type == 'statsd':
+        from dino.stats.statsd import StatsdService
+        gn_env.stats = StatsdService(gn_env)
+
+
 def initialize_env(dino_env):
     init_storage_engine(dino_env)
     init_database(dino_env)
@@ -669,6 +693,7 @@ def initialize_env(dino_env):
     init_cache_service(dino_env)
     init_pub_sub(dino_env)
     init_acl_validators(dino_env)
+    init_stats_service(dino_env)
 
 
 _config_paths = None

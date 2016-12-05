@@ -44,4 +44,5 @@ setup(
         'nose-parameterized',
         'python-dateutil',
         'psycogreen',
+        'statsd'
     ])

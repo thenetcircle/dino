@@ -92,9 +92,15 @@ A rough roadmap for possible upcoming features.
 * rest interface
     - to get information about users in room, online users, etc.
 
-0.1X.0
+0.12.0
 ---
 * test coverage to 90%+
+* stats
+    - use statsd for metrics
+    - send successful login events and disconnect events to a message queue
+
+0.1X.0
+---
 * refactoring and cleanup
 * invisibility
     - invisible in chats
