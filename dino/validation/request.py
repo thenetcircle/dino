@@ -334,4 +334,3 @@ class RequestValidator(BaseValidator):
     def on_test(self, activity: Activity):
         """ only used for testing decorators """
         return True, None, None
-
