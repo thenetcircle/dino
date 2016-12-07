@@ -11,12 +11,11 @@
 # limitations under the License.
 
 from activitystreams.models.activity import Activity
-import traceback
-import base64
 import logging
 
 from dino import utils
 from dino import environ
+from dino.utils import is_base64
 from dino.config import SessionKeys
 from dino.config import ApiActions
 from dino.config import ApiTargets
@@ -41,7 +40,7 @@ class RequestValidator(BaseValidator):
         if message is None or len(message.strip()) == 0:
             return False, ECodes.EMPTY_MESSAGE, 'empty message body'
 
-        if not self._is_base64(message):
+        if not is_base64(message):
             return False, ECodes.NOT_BASE64, 'invalid message content, not base64 encoded'
 
         if room_id is None or room_id == '':
@@ -317,7 +316,7 @@ class RequestValidator(BaseValidator):
         if room_name is None or room_name.strip() == '':
             return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'got blank room name, can not create'
 
-        if not self._is_base64(room_name):
+        if not is_base64(room_name):
             return False, ECodes.NOT_BASE64, 'invalid room name, not base64 encoded'
         room_name = utils.b64d(room_name)
 
@@ -332,11 +331,7 @@ class RequestValidator(BaseValidator):
 
         return True, None, None
 
-    def _is_base64(self, s):
-        try:
-            str(base64.b64decode(bytes(s, 'utf-8')), 'utf-8')
-        except Exception as e:
-            logger.warning('invalid message content, could not decode base64: %s' % str(e))
-            logger.warning(traceback.format_exc())
-            return False
-        return True
+    def on_test(self, activity: Activity):
+        """ only used for testing decorators """
+        return True, None, None
+

@@ -37,9 +37,15 @@ class TestAuthRedis(TestCase):
     CITY = 'Shanghai'
     TOKEN = str(uuid())
 
+    class Logger(object):
+        def warning(self, *args):
+            pass
+
     def setUp(self):
         environ.env.session = dict()
         environ.env.session[ConfigKeys.TESTING] = True
+        environ.env.logger = TestAuthRedis.Logger()
+
         self.auth = AuthRedis(host='mock')
         self.session = {
             SessionKeys.user_id.value: TestAuthRedis.USER_ID,
@@ -59,6 +65,10 @@ class TestAuthRedis(TestCase):
 
     def test_auth_with_empty_session(self):
         authenticated, *rest = self.auth.authenticate_and_populate_session('', '')
+        self.assertFalse(authenticated)
+
+    def test_auth_with_wrong_token(self):
+        authenticated, *rest = self.auth.authenticate_and_populate_session(TestAuthRedis.USER_ID, str(uuid()))
         self.assertFalse(authenticated)
 
     def test_auth_with_required_args(self):

@@ -15,21 +15,24 @@
 from functools import lru_cache
 from datetime import datetime
 from flask import request
-from dino.utils import b64e
 
 import logging
 import traceback
 
+from dino.utils import b64e
 from dino.rest.resources.base import BaseResource
 from dino import environ
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 class RoomsForUsersResource(BaseResource):
     def __init__(self):
         super(RoomsForUsersResource, self).__init__()
         self.last_cleared = datetime.utcnow()
+        self.request = request
 
     def _do_get(self, user_id):
         output = list()
@@ -67,7 +70,7 @@ class RoomsForUsersResource(BaseResource):
     def do_get(self):
         is_valid, msg, json = self.validate_json()
         if not is_valid:
-            logging.error('invalid json: %s' % msg)
+            logger.error('invalid json: %s' % msg)
             return dict()
 
         if 'users' not in json:
@@ -89,8 +92,8 @@ class RoomsForUsersResource(BaseResource):
 
     def validate_json(self):
         try:
-            return True, None, request.get_json(silent=False)
+            return True, None, self.request.get_json(silent=False)
         except Exception as e:
-            print('error: %s' % str(e))
-            print(traceback.format_exc())
+            logger.error('error: %s' % str(e))
+            logger.exception(traceback.format_exc())
             return False, 'invalid json in request', None

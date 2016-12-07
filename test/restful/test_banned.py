@@ -17,38 +17,16 @@ from datetime import datetime
 from datetime import timedelta
 
 from dino import environ
-from dino.rest.resources.rooms_for_users import RoomsForUsersResource
+from dino.rest.resources.banned import BannedResource
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class FakeDb(object):
-    _rooms_for_user = dict()
+    _banned = dict()
 
-    def rooms_for_user(self, user_id):
-        if user_id not in FakeDb._rooms_for_user:
-            return dict()
-        return FakeDb._rooms_for_user[user_id]
-
-    def channel_for_room(self, *args):
-        return RoomsForUsersTest.CHANNEL_ID
-
-    def get_channel_name(self, *args):
-        return RoomsForUsersTest.CHANNEL_NAME
-
-
-class FakeRequest(object):
-    should_fail = False
-
-    def get_json(*args, **kwargs):
-        if FakeRequest.should_fail:
-            raise RuntimeError('testing')
-
-        return {
-            'users': [
-                RoomsForUsersTest.USER_ID
-            ]
-        }
+    def get_banned_users(self):
+        return FakeDb._banned
 
 
 class RoomsForUsersTest(TestCase):
@@ -62,28 +40,11 @@ class RoomsForUsersTest(TestCase):
 
     def setUp(self):
         environ.env.db = FakeDb()
-        FakeDb._rooms_for_user = {
-            RoomsForUsersTest.USER_ID: {
-                RoomsForUsersTest.ROOM_ID: RoomsForUsersTest.ROOM_NAME,
-                RoomsForUsersTest.ROOM_ID_2: RoomsForUsersTest.ROOM_NAME_2
-            }
-        }
-        self.resource = RoomsForUsersResource()
-        self.resource.request = FakeRequest()
-        FakeRequest.should_fail = False
+        FakeDb._banned = {RoomsForUsersTest.USER_ID}
+        self.resource = BannedResource()
 
     def test_get(self):
-        self.assertEqual(0, len(self.resource._do_get('1234')))
-
-    def test_get_existing_user(self):
-        self.assertEqual(2, len(self.resource._do_get(RoomsForUsersTest.USER_ID)))
-
-    def test_do_get(self):
         self.assertEqual(1, len(self.resource.do_get()))
-
-    def test_do_get_invalid_json(self):
-        FakeRequest.should_fail = True
-        self.assertEqual(0, len(self.resource.do_get()))
 
     def test_set_last_cleared(self):
         last_cleared = self.resource._get_last_cleared()

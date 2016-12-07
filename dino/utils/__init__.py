@@ -15,6 +15,7 @@
 from activitystreams import Activity
 from typing import Union
 import logging
+import traceback
 
 from dino.config import SessionKeys
 from dino.config import ConfigKeys
@@ -22,7 +23,6 @@ from dino import environ
 from dino.validation.duration import DurationValidator
 from dino.validation.generic import GenericValidator
 from dino import validation
-from dino.config import RedisKeys
 from dino.config import UserKeys
 from dino.config import ApiActions
 from dino.config import ApiTargets
@@ -35,7 +35,6 @@ from dino.exceptions import NoOriginRoomException
 from dino.exceptions import NoTargetRoomException
 from dino.exceptions import NoTargetChannelException
 from dino.exceptions import NoOriginChannelException
-from dino.exceptions import ValidationException
 from dino.exceptions import NoSuchUserException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -71,6 +70,18 @@ def b64e(s: str) -> str:
     except Exception as e:
         logger.error('could not b64encode because: %s, value was: \n%s' % (str(e), str(s)))
     return ''
+
+
+def is_base64(s):
+    if s is None or len(s.strip()) == 0:
+        return False
+    try:
+        str(b64decode(bytes(s, 'utf-8')), 'utf-8')
+    except Exception as e:
+        logger.warning('invalid message content, could not decode base64: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return False
+    return True
 
 
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
@@ -222,10 +233,11 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
     }
 
     response['object']['attachments'] = list()
-    for msg_id, timestamp, user_name, msg in messages:
+    for msg_id, timestamp, user_id, user_name, msg in messages:
         response['object']['attachments'].append({
             'id': msg_id,
             'content': b64e(msg),
+            'url': user_id,
             'summary': b64e(user_name),
             'published': timestamp
         })

@@ -20,7 +20,9 @@ from dino.storage import IStorage
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
+from dino.utils import is_base64
 from dino.utils import b64d
+from dino.utils import b64e
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -31,7 +33,7 @@ class StorageRedis(object):
 
     def __init__(self, host: str, port: int = 6379, db: int = 0):
         if environ.env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
-            from fakeredis import FakeStrictRedis as Redis
+            from fakeredis import FakeRedis as Redis
         else:
             from redis import Redis
 
@@ -39,12 +41,16 @@ class StorageRedis(object):
 
     def store_message(self, activity: Activity) -> None:
         target = activity.target.id
-        user_name = environ.env.session.get(SessionKeys.user_name.value)
-        msg = b64d(activity.object.content)
+        user_id = environ.env.session.get(SessionKeys.user_id.value)
+        user_name = b64e(environ.env.session.get(SessionKeys.user_name.value))
+        msg = activity.object.content
+
+        if not is_base64(msg):
+            raise RuntimeError('message is not base64')
 
         self.redis.lpush(
                 RedisKeys.room_history(target),
-                '%s,%s,%s,%s' % (activity.id, activity.published, user_name, msg))
+                '%s,%s,%s,%s,%s' % (activity.id, activity.published, user_id, user_name, msg))
 
         max_history = environ.env.config.get(ConfigKeys.LIMIT, domain=ConfigKeys.HISTORY, default=-1)
         if max_history > 0:
@@ -57,7 +63,8 @@ class StorageRedis(object):
         all_history = self.redis.lrange(RedisKeys.room_history(room_id), 0, -1)
         found_msg = None
         for history in all_history:
-            if str(history, 'utf-8').startswith(message_id):
+            history = str(history, 'utf-8')
+            if history.startswith(message_id):
                 found_msg = history
                 break
 
@@ -72,7 +79,8 @@ class StorageRedis(object):
         cleaned_messages = list()
         for message_entry in messages:
             message_entry = str(message_entry, 'utf-8')
-            cleaned_messages.append(message_entry.split(',', 3))
+            msg_id, published, user_id, user_name, msg = message_entry.split(',', 4)
+            cleaned_messages.append((msg_id, published, user_id, b64d(user_name), b64d(msg)))
 
         return cleaned_messages
 

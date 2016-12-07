@@ -16,7 +16,6 @@ import traceback
 import logging
 import time
 import activitystreams as as_parser
-from flask import request
 
 from functools import wraps
 from datetime import datetime
@@ -44,7 +43,7 @@ def respond_with(gn_event_name=None):
                 return 500, str(e)
             finally:
                 if tb is not None:
-                    print(tb)
+                    logger.exception(tb)
 
             if status_code != 200:
                 logger.warn('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
@@ -52,7 +51,7 @@ def respond_with(gn_event_name=None):
                 environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
             else:
                 environ.env.emit(gn_event_name, {'status_code': status_code})
-            return status_code
+            return status_code, None
         return decorator
     return factory
 
@@ -65,6 +64,8 @@ def count_connections(connect_type=None):
                 environ.env.stats.incr('connections')
             elif connect_type == 'disconnect':
                 environ.env.stats.decr('connections')
+            else:
+                logger.warn('unknown connect type "%s"' % connect_type)
 
             return view_func(*args, **kwargs)
         return decorator
@@ -101,7 +102,7 @@ def pre_process(validation_name=None, should_validate_request=True):
 
             except Exception as e:
                 logger.error('%s: %s' % (validation_name, str(e)))
-                print(traceback.format_exc())
+                logger.exception(traceback.format_exc())
                 environ.env.stats.incr(validation_name + '.exception')
                 return 500, str(e)
 
