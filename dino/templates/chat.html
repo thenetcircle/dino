@@ -271,8 +271,9 @@
                     $('#rooms').html('');
                     for (i = 0; i < rooms.length; i++) {
                         room_name = b64d(rooms[i].content)
+                        nr_users = rooms[i].summary
                         room_id = rooms[i].id
-                        $('#rooms').html('<a href="#" id="room-id-' + room_id + '" class="room">' + room_name + '</a>' + ' ' + $('#rooms').html());
+                        $('#rooms').html('<a href="#" id="room-id-' + room_id + '" class="room">' + room_name + ' (' + nr_users + ')</a>' + ' ' + $('#rooms').html());
                     }
                     on_room_click();
                 });

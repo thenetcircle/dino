@@ -349,7 +349,7 @@ class BaseDatabaseTest(BaseTest):
         rooms = self._rooms_for_channel()
         self.assertEqual(1, len(rooms))
         self.assertTrue(BaseTest.ROOM_ID in rooms.keys())
-        self.assertTrue(BaseTest.ROOM_NAME in rooms.values())
+        self.assertTrue(BaseTest.ROOM_NAME == list(rooms.values())[0]['name'])
 
     def _test_rooms_for_user_before_joining(self):
         self._create_channel()

@@ -33,7 +33,8 @@ class RoomManager(BaseManager):
         rooms = self.env.db.rooms_for_channel(channel_id)
         output = list()
 
-        for room_id, room_name in rooms.items():
+        for room_id, room_details in rooms.items():
+            room_name = room_details['name']
             output.append({
                 'uuid': room_id,
                 'name': room_name

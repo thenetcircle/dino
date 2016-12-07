@@ -363,10 +363,13 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     }
 
     response['object']['attachments'] = list()
-    for room_id, room_name in rooms.items():
+    for room_id, room_details in rooms.items():
+        room_name = room_details['name']
+        user_in_room = room_details['users']
         response['object']['attachments'].append({
             'id': room_id,
-            'content': b64e(room_name)
+            'content': b64e(room_name),
+            'summary': user_in_room
         })
 
     return response

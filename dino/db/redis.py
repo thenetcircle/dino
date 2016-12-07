@@ -307,7 +307,12 @@ class DatabaseRedis(object):
         for room_id, room_name in all_rooms.items():
             if room_name is None:
                 raise NoRoomNameException(room_id)
-            clean[str(room_id, 'utf-8')] = str(room_name, 'utf-8')
+
+            room_id = str(room_id, 'utf-8')
+            clean[room_id] = {
+                'name': str(room_name, 'utf-8'),
+                'users': len(self.users_in_room(room_id))
+            }
         return clean
 
     def room_exists(self, channel_id: str, room_id: str) -> bool:

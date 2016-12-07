@@ -335,15 +335,19 @@ class DatabaseRdbms(object):
 
     @with_session
     def rooms_for_channel(self, channel_id, session=None) -> dict:
-        rows = session.query(Rooms)\
+        all_rooms = session.query(Rooms)\
             .join(Rooms.channel)\
+            .outerjoin(Rooms.users)\
             .filter(Rooms.private.is_(False))\
             .filter(Channels.uuid == channel_id)\
             .all()
 
         rooms = dict()
-        for row in rows:
-            rooms[row.uuid] = row.name
+        for room in all_rooms:
+            rooms[room.uuid] = {
+                'name': room.name,
+                'users': len(room.users)
+            }
         return rooms
 
     def users_in_room(self, room_id: str) -> dict:
