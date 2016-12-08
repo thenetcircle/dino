@@ -157,7 +157,7 @@ class UserManager(BaseManager):
     def _get_user(self, user_id: str, user_name: str) -> dict:
         return {
             'uuid': user_id,
-            'name': b64e(user_name)
+            'name': user_name
         }
 
     def get_super_users(self) -> dict:

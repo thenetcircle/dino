@@ -310,6 +310,11 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_create(self, activity: Activity) -> (bool, int, str):
+        if not hasattr(activity.object, 'url'):
+            return False, ECodes.MISSING_OBJECT_URL, 'no channel id set'
+        if not hasattr(activity.target, 'display_name'):
+            return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'no room name set'
+
         room_name = activity.target.display_name
         channel_id = activity.object.url
 

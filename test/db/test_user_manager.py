@@ -232,7 +232,7 @@ class UserManagerTest(BaseDatabaseTest):
         super_users = self.manager.get_super_users()
         self.assertEqual(1, len(super_users))
         self.assertEqual(BaseDatabaseTest.USER_ID, super_users[0]['uuid'])
-        self.assertEqual(BaseDatabaseTest.USER_NAME, b64d(super_users[0]['name']))
+        self.assertEqual(BaseDatabaseTest.USER_NAME, super_users[0]['name'])
 
     def test_create_super_user_empty_id(self):
         self.manager.create_super_user(BaseDatabaseTest.USER_NAME, '')
