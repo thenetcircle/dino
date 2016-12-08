@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import gevent.monkey
+import eventlet
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 # need to monkey patch some standard functions in python since they don't natively support async mode
-gevent.monkey.patch_all()
+eventlet.monkey_patch()
 
 # keep this import; even though unused, gunicorn needs it, otherwise it will not start
 from dino.restful import app
