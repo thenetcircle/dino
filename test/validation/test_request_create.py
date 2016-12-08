@@ -28,7 +28,7 @@ class RequestCreateTest(BaseTest):
 
     def test_create_missing_target_display_name(self):
         activity = self.activity_for_create()
-        del activity['target']['displayName']
+        del activity['target']
         is_valid, code, msg = request.on_create(as_parser(activity))
         self.assertFalse(is_valid)
         self.assertEqual(code, ErrorCodes.MISSING_TARGET_DISPLAY_NAME)
@@ -39,6 +39,13 @@ class RequestCreateTest(BaseTest):
         is_valid, code, msg = request.on_create(as_parser(activity))
         self.assertFalse(is_valid)
         self.assertEqual(code, ErrorCodes.NOT_BASE64)
+
+    def test_create_no_object_url(self):
+        activity = self.activity_for_create()
+        del activity['object']
+        is_valid, code, msg = request.on_create(as_parser(activity))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.MISSING_OBJECT_URL)
 
     def test_create_no_such_channel(self):
         activity = self.activity_for_create()
@@ -53,6 +60,13 @@ class RequestCreateTest(BaseTest):
         is_valid, code, msg = request.on_create(as_parser(activity))
         self.assertFalse(is_valid)
         self.assertEqual(code, ErrorCodes.NOT_ALLOWED)
+
+    def test_create_blank_name(self):
+        activity = self.activity_for_create()
+        activity['target']['displayName'] = ''
+        is_valid, code, msg = request.on_create(as_parser(activity))
+        self.assertFalse(is_valid)
+        self.assertEqual(code, ErrorCodes.MISSING_TARGET_DISPLAY_NAME)
 
     def test_create_name_exists(self):
         self.create_channel_and_room()

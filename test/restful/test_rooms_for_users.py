@@ -72,7 +72,7 @@ class RoomsForUsersTest(TestCase):
         self.resource.request = FakeRequest()
         FakeRequest.should_fail = False
 
-    def test_get(self):
+    def test_do_get_no_cache(self):
         self.assertEqual(0, len(self.resource._do_get('1234')))
 
     def test_get_existing_user(self):
@@ -80,6 +80,14 @@ class RoomsForUsersTest(TestCase):
 
     def test_do_get(self):
         self.assertEqual(1, len(self.resource.do_get()))
+
+    def test_get(self):
+        self.assertEqual(1, len(self.resource.get()))
+
+    def test_get_clear_cache(self):
+        self.resource.CACHE_CLEAR_INTERVAL = -1
+        self.assertEqual(1, len(self.resource.get()))
+        self.assertEqual(1, len(self.resource.get()))
 
     def test_do_get_invalid_json(self):
         FakeRequest.should_fail = True

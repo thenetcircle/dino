@@ -139,13 +139,8 @@ class AclIsAdminValidator(BaseAclValidator):
         user_id = activity.actor.id
         channel_id = activity.object.url
 
-        try:
-            is_admin = env.db.is_admin(channel_id, user_id)
-            if is_admin:
-                return True, None
-        except Exception as e:
-            logger.error('could not check if user "%s" is admin for channel "%s": %s' % (user_id, channel_id, str(e)))
-            print(traceback.format_exc())
+        if env.db.is_admin(channel_id, user_id):
+            return True, None
         return False, 'not admin'
 
 
@@ -163,13 +158,8 @@ class AclIsSuperUserValidator(BaseAclValidator):
         # acl_values = args[3]
 
         user_id = activity.actor.id
-        try:
-            is_super_user = env.db.is_super_user(user_id)
-            if is_super_user:
-                return True, None
-        except Exception as e:
-            logger.error('could not check if user "%s" is super user: %s' % (user_id, str(e)))
-            print(traceback.format_exc())
+        if env.db.is_super_user(user_id):
+            return True, None
         return False, 'not super user'
 
 
@@ -354,7 +344,10 @@ class AclConfigValidator(object):
 
     @staticmethod
     def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
-        validation_methods = ['str_in_csv', 'range', 'samechannel', 'sameroom', 'disallow', 'is_admin', 'is_super_user']
+        validation_methods = [
+            'str_in_csv', 'range', 'samechannel', 'sameroom', 'disallow',
+            'is_admin', 'is_super_user', 'anything'
+        ]
         validations = acls.get('validation')
 
         for validation in validations:

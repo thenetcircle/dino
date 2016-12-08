@@ -236,6 +236,10 @@ class TestDisallowValidator(BaseAclTestValidator):
         is_valid, msg = validator(as_parser(self.json_act()), environ.env)
         self.assertFalse(is_valid)
 
+    def test_new_values(self):
+        validator = AclDisallowValidator()
+        validator.validate_new_acl('asf')
+
 
 class TestSameChannelValidator(BaseAclTestValidator):
     def setUp(self):
@@ -298,6 +302,10 @@ class TestSameRoomValidator(BaseAclTestValidator):
         is_valid, msg = validator(as_parser(act), environ.env)
         self.assertFalse(is_valid)
 
+    def test_new_vals(self):
+        validator = AclSameRoomValidator()
+        validator.validate_new_acl('asf')
+
 
 class TestAclStrInCsvValidator(BaseAclTestValidator):
     def setUp(self):
@@ -317,6 +325,9 @@ class TestAclStrInCsvValidator(BaseAclTestValidator):
         validator = AclStrInCsvValidator()
         is_valid, msg = validator(as_parser(self.json_act()), environ.env, 'other-stuff', 'a,b,c')
         self.assertFalse(is_valid)
+
+    def test_validate_new_acl_blank(self):
+        AclStrInCsvValidator('a,b,c').validate_new_acl('')
 
 
 class TestAclRangeValidator(BaseAclTestValidator):
@@ -470,6 +481,16 @@ class TestAclConfigValidationMethodsValidator(BaseAclTestValidator):
             'available': {'acls': ['gender']},
             'validation': {'gender': {
                 'type': 'str_in_csv',
+                'value': 'm,f'
+            }},
+        }
+        AclConfigValidator.check_acl_validation_methods(acls, acls['available']['acls'])
+
+    def test_anything_but_with_value(self):
+        acls = {
+            'available': {'acls': ['gender']},
+            'validation': {'gender': {
+                'type': 'anything',
                 'value': 'm,f'
             }},
         }

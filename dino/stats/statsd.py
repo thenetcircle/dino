@@ -22,17 +22,27 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 @implementer(IStats)
 class MockStatsd(object):
+    def __init__(self):
+        self.vals = dict()
+        self.timings = dict()
+
     def incr(self, key: str) -> None:
-        pass
+        if key not in self.vals:
+            self.vals[key] = 1
+        else:
+            self.vals[key] += 1
 
     def decr(self, key: str) -> None:
-        pass
+        if key not in self.vals:
+            self.vals[key] = -1
+        else:
+            self.vals[key] -= 1
 
     def timing(self, key: str, ms: int):
-        pass
+        self.timings[key] = ms
 
     def gauge(self, key: str, value: int):
-        pass
+        self.vals[key] = value
 
 
 @implementer(IStats)
