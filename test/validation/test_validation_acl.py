@@ -33,6 +33,7 @@ from dino.validation.acl import AclDisallowValidator
 from dino.validation.acl import AclSameRoomValidator
 from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclConfigValidator
+from dino.validation.acl import BaseAclValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -62,7 +63,7 @@ class FakeDb(object):
         return True
 
 
-class BaseAclValidator(TestCase):
+class BaseAclTestValidator(TestCase):
     CHANNEL_ID = '8765'
     ROOM_ID = '4567'
     USER_ID = '1234'
@@ -98,46 +99,46 @@ class BaseAclValidator(TestCase):
     def json_act(self):
         return {
             'actor': {
-                'id': BaseAclValidator.USER_ID,
-                'url': BaseAclValidator.ROOM_ID
+                'id': BaseAclTestValidator.USER_ID,
+                'url': BaseAclTestValidator.ROOM_ID
             },
             'provider': {
-                'url': BaseAclValidator.CHANNEL_ID
+                'url': BaseAclTestValidator.CHANNEL_ID
             },
             'verb': 'join',
             'object': {
-                'url': BaseAclValidator.CHANNEL_ID,
+                'url': BaseAclTestValidator.CHANNEL_ID,
             },
             'target': {
-                'id': BaseAclValidator.ROOM_ID,
+                'id': BaseAclTestValidator.ROOM_ID,
                 'objectType': 'room'
             }
         }
 
     def set_owner(self):
-        FakeDb._owners[BaseAclValidator.ROOM_ID] = {BaseAclValidator.USER_ID}
+        FakeDb._owners[BaseAclTestValidator.ROOM_ID] = {BaseAclTestValidator.USER_ID}
 
     def set_admin(self):
-        FakeDb._admins[BaseAclValidator.CHANNEL_ID] = {BaseAclValidator.USER_ID}
+        FakeDb._admins[BaseAclTestValidator.CHANNEL_ID] = {BaseAclTestValidator.USER_ID}
 
     def set_super_user(self):
-        FakeDb._super_users.add(BaseAclValidator.USER_ID)
+        FakeDb._super_users.add(BaseAclTestValidator.USER_ID)
 
     def setUp(self):
         environ.env.db = FakeDb()
         self.auth = AuthRedis(host='mock')
         environ.env.session = {
-            SessionKeys.user_id.value: BaseAclValidator.USER_ID,
-            SessionKeys.user_name.value: BaseAclValidator.USER_NAME,
-            SessionKeys.age.value: BaseAclValidator.AGE,
-            SessionKeys.gender.value: BaseAclValidator.GENDER,
-            SessionKeys.membership.value: BaseAclValidator.MEMBERSHIP,
-            SessionKeys.image.value: BaseAclValidator.IMAGE,
-            SessionKeys.has_webcam.value: BaseAclValidator.HAS_WEBCAM,
-            SessionKeys.fake_checked.value: BaseAclValidator.FAKE_CHECKED,
-            SessionKeys.country.value: BaseAclValidator.COUNTRY,
-            SessionKeys.city.value: BaseAclValidator.CITY,
-            SessionKeys.token.value: BaseAclValidator.TOKEN
+            SessionKeys.user_id.value: BaseAclTestValidator.USER_ID,
+            SessionKeys.user_name.value: BaseAclTestValidator.USER_NAME,
+            SessionKeys.age.value: BaseAclTestValidator.AGE,
+            SessionKeys.gender.value: BaseAclTestValidator.GENDER,
+            SessionKeys.membership.value: BaseAclTestValidator.MEMBERSHIP,
+            SessionKeys.image.value: BaseAclTestValidator.IMAGE,
+            SessionKeys.has_webcam.value: BaseAclTestValidator.HAS_WEBCAM,
+            SessionKeys.fake_checked.value: BaseAclTestValidator.FAKE_CHECKED,
+            SessionKeys.country.value: BaseAclTestValidator.COUNTRY,
+            SessionKeys.city.value: BaseAclTestValidator.CITY,
+            SessionKeys.token.value: BaseAclTestValidator.TOKEN
         }
 
         FakeDb._admins = dict()
@@ -184,11 +185,11 @@ class BaseAclValidator(TestCase):
                 }
             }
         }
-        self.auth.redis.hmset(RedisKeys.auth_key(BaseAclValidator.USER_ID), environ.env.session)
+        self.auth.redis.hmset(RedisKeys.auth_key(BaseAclTestValidator.USER_ID), environ.env.session)
         self.validator = AclValidator()
 
 
-class TestIsAdminValidator(BaseAclValidator):
+class TestIsAdminValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestIsAdminValidator, self).setUp()
 
@@ -204,7 +205,7 @@ class TestIsAdminValidator(BaseAclValidator):
         self.assertTrue(is_valid)
 
 
-class TestIsSuperUserValidator(BaseAclValidator):
+class TestIsSuperUserValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestIsSuperUserValidator, self).setUp()
 
@@ -220,7 +221,7 @@ class TestIsSuperUserValidator(BaseAclValidator):
         self.assertTrue(is_valid)
 
 
-class TestDisallowValidator(BaseAclValidator):
+class TestDisallowValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestDisallowValidator, self).setUp()
 
@@ -236,7 +237,7 @@ class TestDisallowValidator(BaseAclValidator):
         self.assertFalse(is_valid)
 
 
-class TestSameChannelValidator(BaseAclValidator):
+class TestSameChannelValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestSameChannelValidator, self).setUp()
 
@@ -267,7 +268,7 @@ class TestSameChannelValidator(BaseAclValidator):
         self.assertFalse(is_valid)
 
 
-class TestSameRoomValidator(BaseAclValidator):
+class TestSameRoomValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestSameRoomValidator, self).setUp()
 
@@ -298,7 +299,7 @@ class TestSameRoomValidator(BaseAclValidator):
         self.assertFalse(is_valid)
 
 
-class TestAclStrInCsvValidator(BaseAclValidator):
+class TestAclStrInCsvValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestAclStrInCsvValidator, self).setUp()
 
@@ -318,7 +319,7 @@ class TestAclStrInCsvValidator(BaseAclValidator):
         self.assertFalse(is_valid)
 
 
-class TestAclRangeValidator(BaseAclValidator):
+class TestAclRangeValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestAclRangeValidator, self).setUp()
 
@@ -388,7 +389,7 @@ class TestAclRangeValidator(BaseAclValidator):
         AclRangeValidator().validate_new_acl(':')
 
 
-class TestAclConfigRootsValidator(BaseAclValidator):
+class TestAclConfigRootsValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestAclConfigRootsValidator, self).setUp()
 
@@ -453,7 +454,7 @@ class TestAclConfigRootsValidator(BaseAclValidator):
         self.assertRaises(RuntimeError, AclConfigValidator.check_acl_roots, acls)
 
 
-class TestAclConfigValidationMethodsValidator(BaseAclValidator):
+class TestAclConfigValidationMethodsValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestAclConfigValidationMethodsValidator, self).setUp()
 
@@ -514,7 +515,7 @@ class TestAclConfigValidationMethodsValidator(BaseAclValidator):
         self.assertRaises(RuntimeError, AclConfigValidator.check_acl_validation_methods, acls, acls['available']['acls'])
 
 
-class TestKeysInAvailableValidator(BaseAclValidator):
+class TestKeysInAvailableValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestKeysInAvailableValidator, self).setUp()
         self.available = ['gender', 'membership', 'age']
@@ -528,7 +529,7 @@ class TestKeysInAvailableValidator(BaseAclValidator):
         self.assertRaises(RuntimeError, AclConfigValidator.check_acl_keys_in_available, self.available, ApiTargets.ROOM, keys)
 
 
-class TestAclConfigExcludeValidator(BaseAclValidator):
+class TestAclConfigExcludeValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestAclConfigExcludeValidator, self).setUp()
 
@@ -545,7 +546,7 @@ class TestAclConfigExcludeValidator(BaseAclValidator):
         self.assertRaises(RuntimeError, AclConfigValidator.check_acl_excludes, ['foo', 'bar'], ['baz'])
 
 
-class TestAclRulesValidator(BaseAclValidator):
+class TestAclRulesValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestAclRulesValidator, self).setUp()
         self.rules = ['acls', 'exclude']
@@ -596,7 +597,7 @@ class TestAclRulesValidator(BaseAclValidator):
         AclConfigValidator.check_acl_rules(acls, self.actions, self.rules)
 
 
-class TestCheckAclActionsValidator(BaseAclValidator):
+class TestCheckAclActionsValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestCheckAclActionsValidator, self).setUp()
         self.rules = ['acls', 'exclude']
@@ -687,7 +688,7 @@ class TestCheckAclActionsValidator(BaseAclValidator):
         self.assertRaises(RuntimeError, AclConfigValidator.check_acl_actions, check_acls, self.actions, self.available)
 
 
-class TestIsAclValid(BaseAclValidator):
+class TestIsAclValid(BaseAclTestValidator):
     def setUp(self):
         super(TestIsAclValid, self).setUp()
 
@@ -718,7 +719,7 @@ class TestIsAclValid(BaseAclValidator):
         self.assertFalse(is_valid)
 
 
-class TestAclValidator(BaseAclValidator):
+class TestAclValidator(BaseAclTestValidator):
     def setUp(self):
         super(TestAclValidator, self).setUp()
 
@@ -848,3 +849,9 @@ class TestAclValidator(BaseAclValidator):
         is_valid, msg = self.validator.validate_acl_for_action(
                 self.act(), 'room', 'message', self.acls_for_room_message())
         self.assertFalse(is_valid)
+
+
+class BaseAclTestValidatorTest(TestCase):
+    def test_is_not_implemented(self):
+        validator = BaseAclValidator()
+        self.assertRaises(NotImplementedError, validator.validate_new_acl, 'asdf')

@@ -35,7 +35,7 @@ class GenericValidator(object):
         if not GenericValidator.is_string(val):
             return False
 
-        if len(val) == 0:
+        if len(val.strip()) == 0:
             return False
 
         return len([x for x in val.split(',') if x in char_list]) == len(val.split(','))
