@@ -29,7 +29,7 @@ setup(
         'flask-socketio',
         'flask_wtf',
         'wtforms',
-        'python-socketio'
+        'python-socketio',
         'mysqlclient',
         'gunicorn',
         'activitystreams',
