@@ -58,13 +58,9 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
         environ.env.session['image_url'] = activity.actor.image.url
         environ.env.session[SessionKeys.image.value] = 'y'
 
-    utils.set_sid_for_user_id(user_id, environ.env.request.sid)
     user_name = environ.env.session.get(SessionKeys.user_name.value)
-    private_room_id, _ = environ.env.db.get_private_room(user_id)
-
-    if user_name is not None and len(user_name.strip()) > 0:
-        utils.set_name_for_user_id(user_id, user_name)
-
+    private_room_id, _ = environ.env.db.get_private_room(user_id, user_name)
+    utils.set_sid_for_user_id(user_id, environ.env.request.sid)
     utils.join_private_room(user_id, activity.actor.summary, private_room_id)
 
     activity_json = utils.activity_for_login(user_id, user_name)
@@ -485,7 +481,7 @@ def on_disconnect() -> (int, None):
     # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
     user_id = environ.env.session.get(SessionKeys.user_id.value)
     user_name = environ.env.session.get(SessionKeys.user_name.value)
-    logger.info('a user disconnected, name: %s' % user_name)
+    logger.debug('a user disconnected, name: %s' % user_name)
 
     if user_id is None or not isinstance(user_id, str) or user_name is None:
         return ECodes.NO_USER_IN_SESSION, 'no user in session, not connected'

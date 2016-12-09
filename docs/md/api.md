@@ -203,13 +203,15 @@ Response data if successful:
                         "id": "<message ID>",
                         "content": "<the message content>",
                         "summary": "<user name of the sender>",
-                        "published": "<the time it was sent, RFC3339>"
+                        "published": "<the time it was sent, RFC3339>",
+                        "url": "<the user uuid>"
                     },
                     {
                         "id": "<message ID>",
                         "content": "<the message content>",
                         "summary": "<user name of the sender>",
-                        "published": "<the time it was sent, RFC3339>"
+                        "published": "<the time it was sent, RFC3339>",
+                        "url": "<the user uuid>"
                     }
                 ]
             },
@@ -514,7 +516,8 @@ Response data if successful:
                                 "id": "<message ID>",
                                 "content": "<the message content>",
                                 "summary": "<user name of the sender>",
-                                "published": "<the time it was sent, RFC3339>"
+                                "published": "<the time it was sent, RFC3339>",
+                                "url": "<the user uuid>"
                             }
                         ]
                     },

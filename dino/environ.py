@@ -16,6 +16,7 @@ import os
 import pkg_resources
 import logging
 import traceback
+import time
 
 from logging import RootLogger
 from redis import Redis
@@ -648,22 +649,28 @@ def init_cache_service(gn_env: GNEnvironment):
 def init_pub_sub(gn_env: GNEnvironment) -> None:
     def publish(message, external=False):
         try:
+            start = time.time()
             if external:
                 queue_connection = gn_env.external_queue_connection
                 if queue_connection is None:
                     return
                 exchange = gn_env.external_exchange
                 queue = gn_env.external_queue
+                gn_env.stats.incr('publish.external.count')
+                gn_env.stats.timing('publish.external.time', (time.time()-start)*1000)
             else:
                 queue_connection = gn_env.queue_connection
                 exchange = gn_env.exchange
                 queue = gn_env.queue
+                gn_env.stats.incr('publish.internal.count')
+                gn_env.stats.timing('publish.internal.time', (time.time()-start)*1000)
 
             with producers[queue_connection].acquire(block=True) as producer:
                 producer.publish(message, exchange=exchange, declare=[exchange, queue])
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())
+            gn_env.stats.incr('publish.error')
 
     def mock_publish(message, external=False):
         pass
@@ -716,6 +723,7 @@ def init_stats_service(gn_env: GNEnvironment) -> None:
     if stats_type == 'statsd':
         from dino.stats.statsd import StatsdService
         gn_env.stats = StatsdService(gn_env)
+        gn_env.stats.gauge('connections', 0)
 
 
 def initialize_env(dino_env):
