@@ -274,7 +274,7 @@ def connect() -> (int, None):
 
 @socketio.on('login', namespace='/chat')
 @respond_with('gn_login')
-@pre_process('on_login')
+@pre_process('on_login', should_validate_request=False)
 def on_login(data: dict, activity: Activity) -> (int, str):
     try:
         status_code, msg = api.on_login(data, activity)

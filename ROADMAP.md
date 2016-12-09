@@ -111,8 +111,6 @@ A rough roadmap for possible upcoming features.
     - use target id as topic partition key, to get sequence id per room/user
     - messages first sent to kafka to get timestamped and sequence id
     - online/offline/join/leave/connect/disconnect/kick/etc all sent to kafka for possible analysis
-* admins
-    - clarify requirements, how to call online admins? they get a private message with a special kind of verb?
 * blacklist
     - blacklist for room names, since when creating probably have to ask backend if the room exists or not anyway
     - chat messages (future, maybe spam classifier)

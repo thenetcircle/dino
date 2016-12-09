@@ -45,7 +45,7 @@ class AuthRedis(object):
         stored_session = dict()
 
         for key, val in binary_stored_session.items():
-            if type(val) == bytes:
+            if type(key) == bytes:
                 key = str(key, 'utf-8')
             if type(val) == bytes:
                 val = str(val, 'utf-8')
