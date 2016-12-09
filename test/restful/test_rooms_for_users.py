@@ -82,12 +82,12 @@ class RoomsForUsersTest(TestCase):
         self.assertEqual(1, len(self.resource.do_get()))
 
     def test_get(self):
-        self.assertEqual(1, len(self.resource.get()))
+        self.assertEqual(1, len(self.resource.get()['data']))
 
     def test_get_clear_cache(self):
         self.resource.CACHE_CLEAR_INTERVAL = -1
-        self.assertEqual(1, len(self.resource.get()))
-        self.assertEqual(1, len(self.resource.get()))
+        self.assertEqual(1, len(self.resource.get()['data']))
+        self.assertEqual(1, len(self.resource.get()['data']))
 
     def test_do_get_invalid_json(self):
         FakeRequest.should_fail = True
