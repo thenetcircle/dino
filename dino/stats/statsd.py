@@ -44,6 +44,9 @@ class MockStatsd(object):
     def gauge(self, key: str, value: int):
         self.vals[key] = value
 
+    def set(self, key: str, value: int):
+        self.vals[key] = value
+
 
 @implementer(IStats)
 class StatsdService(object):
@@ -81,3 +84,6 @@ class StatsdService(object):
 
     def gauge(self, key: str, value: int):
         self.statsd.gauge(key, value)
+
+    def set(self, key: str, value: int):
+        self.statsd.set(key, value)

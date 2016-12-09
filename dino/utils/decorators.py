@@ -24,7 +24,6 @@ from uuid import uuid4 as uuid
 from dino import validation
 from dino import environ
 from dino.config import ConfigKeys
-from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -39,6 +38,7 @@ def respond_with(gn_event_name=None):
             try:
                 status_code, data = view_func(*args, **kwargs)
             except Exception as e:
+                environ.env.stats.incr(gn_event_name + '.exception')
                 tb = traceback.format_exc()
                 logger.error('%s: %s' % (gn_event_name, str(e)))
                 return 500, str(e)
@@ -76,49 +76,58 @@ def count_connections(connect_type=None):
     return factory
 
 
-def pre_process(validation_name=None, should_validate_request=True):
+def pre_process(validation_name, should_validate_request=True):
     def factory(view_func):
         @wraps(view_func)
-        def decorator(*args, **kwargs):
-            if not hasattr(validation.request, validation_name):
-                raise RuntimeError('no such attribute on validation.request: %s' % validation_name)
+        def decorator(*a, **k):
+            def _pre_process(*args, **kwargs):
+                if not hasattr(validation.request, validation_name):
+                    raise RuntimeError('no such attribute on validation.request: %s' % validation_name)
 
-            before = time.time()
+                try:
+                    data = args[0]
+
+                    # let the server determine the publishing time of the event, not the client
+                    # use default time format, since activity streams only accept RFC3339 format
+                    data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                    data['id'] = str(uuid())
+                    activity = as_parser.parse(data)
+
+                    # the login request will not have user id in session yet, which this would check
+                    if should_validate_request:
+                        is_valid, error_msg = validation.request.validate_request(activity)
+                        if not is_valid:
+                            return 400, error_msg
+
+                    is_valid, status_code, message = getattr(validation.request, validation_name)(activity)
+                    if is_valid:
+                        args = (data, activity)
+                        status_code, message = view_func(*args, **kwargs)
+
+                except Exception as e:
+                    logger.error('%s: %s' % (validation_name, str(e)))
+                    logger.exception(traceback.format_exc())
+                    environ.env.stats.incr('event.' + validation_name + '.exception')
+                    return 500, str(e)
+
+                if status_code == 200:
+                    environ.env.stats.incr('event.' + validation_name + '.count')
+                else:
+                    environ.env.stats.incr('event.' + validation_name + '.error')
+                    logger.warn('in decorator, status_code: %s, message: %s' % (status_code, str(message)))
+                return status_code, message
+
+            start = time.time()
+            exception_occurred = False
             try:
-                data = args[0]
-
-                # let the server determine the publishing time of the event, not the client
-                # use default time format, since activity streams only accept RFC3339 format
-                data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-                data['id'] = str(uuid())
-                activity = as_parser.parse(data)
-
-                # the login request will not have user id in session yet, which this would check
-                if should_validate_request:
-                    is_valid, error_msg = validation.request.validate_request(activity)
-                    if not is_valid:
-                        return 400, error_msg
-
-                is_valid, status_code, message = getattr(validation.request, validation_name)(activity)
-                if is_valid:
-                    args = (data, activity)
-                    status_code, message = view_func(*args, **kwargs)
-
-            except Exception as e:
-                logger.error('%s: %s' % (validation_name, str(e)))
-                logger.exception(traceback.format_exc())
-                environ.env.stats.incr(validation_name + '.exception')
-                return 500, str(e)
-
+                environ.env.stats.incr('event.' + validation_name + '.count')
+                return _pre_process(*a, **k)
+            except:
+                exception_occurred = True
+                environ.env.stats.incr('event.' + validation_name + '.exception')
+                raise
             finally:
-                exec_time_ms = (time.time()-before)*1000
-                environ.env.stats.timing(validation_name, exec_time_ms)
-
-            if status_code == 200:
-                environ.env.stats.incr(validation_name)
-            else:
-                environ.env.stats.incr(validation_name + '.error')
-                logger.warn('in decorator, status_code: %s, message: %s' % (status_code, str(message)))
-            return status_code, message
+                if not exception_occurred:
+                    environ.env.stats.timing('event.' + validation_name, (time.time()-start)*1000)
         return decorator
     return factory

@@ -225,9 +225,9 @@
                             msg = msgs[i];
                             lib.insertOrUpdate('messages', {uuid: msg.id}, {
                                 uuid: msg.id,
-                                user: msg.summary,
+                                user: b64d(msg.summary),
                                 room: data.target.id,
-                                msg: msg.content,
+                                msg: b64d(msg.content),
                                 timestamp: msg.published
                             });
                         }

@@ -165,7 +165,7 @@ class DatabaseRdbms(object):
             return _get_user_for_private_room()
         return user_id
 
-    def get_private_room(self, user_id: str, user_name=None) -> (str, str):
+    def get_private_room(self, user_id: str, user_name: str=None) -> (str, str):
         @with_session
         def _get_private_room(session=None):
             user = session.query(Users).filter(Users.uuid == user_id).first()

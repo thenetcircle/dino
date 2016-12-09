@@ -723,7 +723,7 @@ def init_stats_service(gn_env: GNEnvironment) -> None:
     if stats_type == 'statsd':
         from dino.stats.statsd import StatsdService
         gn_env.stats = StatsdService(gn_env)
-        gn_env.stats.gauge('connections', 0)
+        gn_env.stats.set('connections', 0)
 
 
 def initialize_env(dino_env):
