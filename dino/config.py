@@ -129,6 +129,7 @@ class ConfigKeys(object):
     DATABASE = 'database'
     DB = 'db'
     PORT = 'port'
+    VHOST = 'vhost'
     USER = 'user'
     PASSWORD = 'password'
     HISTORY = 'history'

@@ -646,24 +646,24 @@ def init_cache_service(gn_env: GNEnvironment):
 
 
 def init_pub_sub(gn_env: GNEnvironment) -> None:
-    def publish(message, internal=False):
+    def publish(message, external=False):
         try:
-            if internal:
-                queue_connection = gn_env.queue_connection
-                exchange = gn_env.exchange
-                queue = gn_env.queue
-            else:
+            if external:
                 queue_connection = gn_env.external_queue_connection
                 if queue_connection is None:
                     return
                 exchange = gn_env.external_exchange
                 queue = gn_env.external_queue
+            else:
+                queue_connection = gn_env.queue_connection
+                exchange = gn_env.exchange
+                queue = gn_env.queue
 
             with producers[queue_connection].acquire(block=True) as producer:
                 producer.publish(message, exchange=exchange, declare=[exchange, queue])
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
-            print(traceback.format_exc())
+            logger.exception(traceback.format_exc())
 
     def mock_publish(message):
         pass
@@ -686,12 +686,16 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
     ext_queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='')
     gn_env.external_queue_connection = None
     if ext_queue_host is not None and len(ext_queue_host.strip()) > 0:
-        gn_env.external_queue_connection = Connection(ext_queue_host)
-
+        ext_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.EXTERNAL_QUEUE, default=15672)
+        ext_vhost = conf.get(ConfigKeys.VHOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='/dino')
+        ext_user = conf.get(ConfigKeys.USER, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_user')
+        ext_pass = conf.get(ConfigKeys.PASSWORD, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_pass')
         ext_exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_exchange')
-        gn_env.external_exchange = Exchange(ext_exchange, type='direct')
-
         ext_queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_queue')
+
+        gn_env.external_queue_connection = Connection(
+                hostname=ext_queue_host, port=ext_port, virtual_host=ext_vhost, userid=ext_user, password=ext_pass)
+        gn_env.external_exchange = Exchange(ext_exchange, type='direct')
         gn_env.external_queue = Queue(ext_queue, gn_env.external_exchange)
 
 

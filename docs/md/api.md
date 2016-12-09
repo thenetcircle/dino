@@ -45,7 +45,10 @@ Responds with event name "gn_list_channels".
 Request contains:
 
     {
-        "verb": "list"
+        "verb": "list",
+        "target": {
+            "objectType": "channel"
+        }
     }
 
 Response data if successful:
@@ -82,7 +85,10 @@ Request contains:
         "object": {
             "url": "<channel UUID>"
         },
-        verb: "list"
+        verb: "list",
+        "target": {
+            "objectType": "room"
+        }
     }
 
 Response data if successful:

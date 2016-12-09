@@ -68,7 +68,7 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     utils.join_private_room(user_id, activity.actor.summary, private_room_id)
 
     activity_json = utils.activity_for_login(user_id, user_name)
-    environ.env.publish(activity_json)
+    environ.env.publish(activity_json, external=True)
     return ECodes.OK, None
 
 
@@ -502,5 +502,5 @@ def on_disconnect() -> (int, None):
     environ.env.db.set_user_offline(user_id)
 
     activity_json = utils.activity_for_disconnect(user_id, user_name)
-    environ.env.publish(activity_json)
+    environ.env.publish(activity_json, external=True)
     return ECodes.OK, None

@@ -24,6 +24,7 @@ from uuid import uuid4 as uuid
 from dino import validation
 from dino import environ
 from dino.config import ConfigKeys
+from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -60,12 +61,15 @@ def count_connections(connect_type=None):
     def factory(view_func):
         @wraps(view_func)
         def decorator(*args, **kwargs):
-            if connect_type == 'connect':
-                environ.env.stats.incr('connections')
-            elif connect_type == 'disconnect':
-                environ.env.stats.decr('connections')
-            else:
-                logger.warn('unknown connect type "%s"' % connect_type)
+            try:
+                if connect_type == 'connect':
+                    environ.env.stats.incr('connections')
+                elif connect_type == 'disconnect':
+                    environ.env.stats.decr('connections')
+                else:
+                    logger.warn('unknown connect type "%s"' % connect_type)
+            except Exception as e:
+                logger.error('could not record statistics: %s' % str(e))
 
             return view_func(*args, **kwargs)
         return decorator
