@@ -30,10 +30,11 @@ class BaseResource(Resource):
             self._set_last_cleared(datetime.utcnow())
 
         try:
-            return self.do_get()
+            return {'status_code': 200, 'data': self.do_get()}
         except Exception as e:
             logging.error('could not do get: %s' % str(e))
-            print(traceback.format_exc())
+            logging.exception(traceback.format_exc())
+            return {'status_code': 500, 'data': str(e)}
 
     def do_get(self):
         raise NotImplementedError()
