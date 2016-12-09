@@ -665,7 +665,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())
 
-    def mock_publish(message):
+    def mock_publish(message, external=False):
         pass
 
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
@@ -686,12 +686,12 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
     ext_queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='')
     gn_env.external_queue_connection = None
     if ext_queue_host is not None and len(ext_queue_host.strip()) > 0:
-        ext_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.EXTERNAL_QUEUE, default=15672)
-        ext_vhost = conf.get(ConfigKeys.VHOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='/dino')
-        ext_user = conf.get(ConfigKeys.USER, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_user')
-        ext_pass = conf.get(ConfigKeys.PASSWORD, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_pass')
-        ext_exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_exchange')
-        ext_queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.EXTERNAL_QUEUE, default='dino_queue')
+        ext_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
+        ext_vhost = conf.get(ConfigKeys.VHOST, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
+        ext_user = conf.get(ConfigKeys.USER, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
+        ext_pass = conf.get(ConfigKeys.PASSWORD, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
+        ext_exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
+        ext_queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
 
         gn_env.external_queue_connection = Connection(
                 hostname=ext_queue_host, port=ext_port, virtual_host=ext_vhost, userid=ext_user, password=ext_pass)

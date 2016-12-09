@@ -24,7 +24,7 @@ oscar:
         db: 2
     ext_queue:
         type: 'redis'
-        host: 'mock'
+        host: 'redis://localhost:6379'
         db: 8
     auth:
         type: 'redis'
@@ -41,12 +41,16 @@ oscar:
 dev:
     log_level: 'DEBUG'
     database:
-        type: 'redis'
-        host: 'mock'
-        db: 12
+        type: 'rdbms'
+        driver: 'mysql+mysqldb'
+        host: '10.60.1.125'
+        port: 3306
+        db: 'dino'
+        user: 'dino'
+        password: 'dino'
     storage:
         type: 'redis'
-        host: 'mock'
+        host: '10.60.1.126:6379'
         max_history: 200
         db: 6
     stats:
@@ -54,7 +58,7 @@ dev:
       host: 'mock'
     queue:
         type: 'redis'
-        host: 'mock'
+        host: 'redis://10.60.1.126:6379'
         db: 7
     ext_queue:
         type: 'rabbitmq'
@@ -67,15 +71,15 @@ dev:
         exchange: 'chat_exchange'
     auth:
         type: 'redis'
-        host: 'mock'
+        host: '10.60.1.237:6379'
         db: 8
     cache:
         type: 'redis'
-        host: 'mock'
+        host: '10.60.1.126:6379'
         db: 9
     history:
-        type: 'unread'  # unread or top
-        limit: 1000
+        type: 'top'  # unread or top
+        limit: 50
 
 test:
     testing: True
