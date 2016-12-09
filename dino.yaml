@@ -81,6 +81,45 @@ dev:
         type: 'top'  # unread or top
         limit: 50
 
+integration:
+    log_level: 'DEBUG'
+    database:
+        type: 'redis'
+        host: 'mock'
+        db: '12'
+    storage:
+        type: 'redis'
+        host: '10.60.1.126:6379'
+        max_history: 200
+        db: 6
+    stats:
+      type: 'statsd'
+      host: 'mock'
+    queue:
+        type: 'redis'
+        host: 'redis://10.60.1.126:6379'
+        db: 7
+    ext_queue:
+        type: 'rabbitmq'
+        host: 'snowball'
+        port: 5672
+        user: 'poppen'
+        password: 'poppen'
+        queue: 'chat'
+        vhost: '/'
+        exchange: 'chat_exchange'
+    auth:
+        type: 'redis'
+        host: '10.60.1.237:6379'
+        db: 8
+    cache:
+        type: 'redis'
+        host: '10.60.1.126:6379'
+        db: 9
+    history:
+        type: 'top'  # unread or top
+        limit: 50
+
 test:
     testing: True
     log_level: 'DEBUG'

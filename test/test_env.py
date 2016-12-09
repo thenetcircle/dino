@@ -33,7 +33,7 @@ class TestEnvironment(unittest.TestCase):
         self.assertEqual(0, len(env.config))
 
     def test_create_with_environment(self):
-        os.environ['ENVIRONMENT'] = 'dev'
+        os.environ['ENVIRONMENT'] = 'integration'
         env = create_env()
         self.assertTrue(ConfigKeys.LOG_FORMAT in env.config.keys())
         self.assertTrue(ConfigKeys.LOG_LEVEL in env.config.keys())
@@ -42,31 +42,31 @@ class TestEnvironment(unittest.TestCase):
         self.assertTrue(ConfigKeys.SESSION in env.config.keys())
 
     def test_init_cache_service(self):
-        os.environ['ENVIRONMENT'] = 'dev'
+        os.environ['ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_cache_service(env)
 
     def test_init_auth_service(self):
-        os.environ['ENVIRONMENT'] = 'dev'
+        os.environ['ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_auth_service(env)
 
     def test_init_storage_engine(self):
-        os.environ['ENVIRONMENT'] = 'dev'
+        os.environ['ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_storage_engine(env)
 
     def test_init_database(self):
-        os.environ['ENVIRONMENT'] = 'dev'
+        os.environ['ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_database(env)
 
     def test_init_acl_validators(self):
-        os.environ['ENVIRONMENT'] = 'dev'
+        os.environ['ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_acl_validators(env)
