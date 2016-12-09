@@ -125,7 +125,7 @@ class BaseTest(unittest.TestCase):
     redirected_to = None
 
     @staticmethod
-    def _mock_publish(message):
+    def _mock_publish(message, external=False):
         pass
 
     @staticmethod
