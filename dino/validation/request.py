@@ -22,7 +22,10 @@ from dino.config import ApiTargets
 from dino.config import ConfigKeys
 from dino.config import ErrorCodes as ECodes
 from dino.validation.base import BaseValidator
+from dino.exceptions import NoSuchRoomException
+from dino.exceptions import NoSuchUserException
 from dino import validation
+from dino.validation.duration import DurationValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -116,11 +119,34 @@ class RequestValidator(BaseValidator):
 
         return True, None, None
 
+    def on_disconnect(self, activity: Activity) -> (bool, int, str):
+        user_id = environ.env.session.get(SessionKeys.user_id.value)
+        user_name = environ.env.session.get(SessionKeys.user_name.value)
+        if user_id is None or not isinstance(user_id, str) or user_name is None:
+            return False, ECodes.NO_USER_IN_SESSION, 'no user in session, not connected'
+        return True, None, None
+
     def on_ban(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
         channel_id = activity.object.url
         user_id = activity.actor.id
         kicked_id = activity.object.id
+        ban_duration = activity.object.summary
+
+        try:
+            DurationValidator(ban_duration)
+        except ValueError as e:
+            return False, ECodes.INVALID_BAN_DURATION, 'invalid ban duration: %s' % str(e)
+
+        try:
+            utils.get_room_name(room_id)
+        except NoSuchRoomException as e:
+            return False, ECodes.NO_SUCH_ROOM, 'no private room found for user: %s' % str(e)
+
+        try:
+            utils.get_user_name_for(user_id)
+        except NoSuchUserException as e:
+            return False, ECodes.NO_SUCH_USER, 'could not find the specified user: %s' % str(e)
 
         is_global_ban = room_id is None or room_id == ''
 
@@ -136,6 +162,16 @@ class RequestValidator(BaseValidator):
         elif not utils.is_admin(channel_id, user_id) and not utils.is_super_user(user_id):
             return False, ECodes.NOT_ALLOWED, 'only admins and super users can do global bans'
 
+        return True, None, None
+
+    def on_request_admin(self, activity: Activity) -> (bool, int, str):
+        room_id = activity.actor.url
+        channel_id = utils.get_channel_for_room(room_id)
+        admin_room_id = utils.get_admin_room_for_channel(channel_id)
+
+        if admin_room_id is None or len(admin_room_id.strip()) == 0:
+            logger.error('no admin room found for channel "%s"' % channel_id)
+            return False, ECodes.NO_ADMIN_ROOM_FOUND, 'no admin room for this channel'
         return True, None, None
 
     def on_set_acl(self, activity: Activity) -> (bool, int, str):

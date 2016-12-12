@@ -195,6 +195,7 @@ class GNEnvironment(object):
         self.storage = None
         self.cache = None
         self.stats = None
+        self.observer = None
 
         self.out_of_scope_emit = None  # needs to be set later after socketio object has been created
         self.emit = _flask_emit
@@ -726,6 +727,11 @@ def init_stats_service(gn_env: GNEnvironment) -> None:
         gn_env.stats.set('connections', 0)
 
 
+def init_observer(gn_env: GNEnvironment) -> None:
+    from pymitter import EventEmitter
+    gn_env.observer = EventEmitter()
+
+
 def initialize_env(dino_env):
     init_storage_engine(dino_env)
     init_database(dino_env)
@@ -734,6 +740,7 @@ def initialize_env(dino_env):
     init_pub_sub(dino_env)
     init_acl_validators(dino_env)
     init_stats_service(dino_env)
+    init_observer(dino_env)
 
 
 _config_paths = None

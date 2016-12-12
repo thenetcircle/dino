@@ -70,6 +70,7 @@ class ErrorCodes(object):
     INVALID_ACL_VALUE = 603
     INVALID_STATUS = 604
     INVALID_OBJECT_TYPE = 605
+    INVALID_BAN_DURATION = 606
 
 
 class ApiTargets(object):
