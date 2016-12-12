@@ -26,29 +26,6 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ApiBanTest(BaseTest):
-    def test_ban_no_such_user(self):
-        self.create_and_join_room()
-        self.set_owner()
-
-        json = self.activity_for_ban()
-        json['object']['id'] = str(uuid())
-        response_code, _ = api.on_ban(json, as_parser(json))
-
-        self.assertEqual(ErrorCodes.NO_SUCH_USER, response_code)
-
-    def test_ban_no_such_room(self):
-        self.create_and_join_room()
-        self.set_owner()
-        self.create_user(BaseTest.OTHER_USER_ID, BaseTest.OTHER_USER_NAME)
-
-        json = self.activity_for_ban()
-        json['object']['id'] = str(self.env.db.redis.hget(
-                RedisKeys.private_rooms(), ApiBanTest.OTHER_USER_ID), 'utf-8')
-        json['target']['id'] = str(uuid())
-        response_code, _ = api.on_ban(json, as_parser(json))
-
-        self.assertEqual(ErrorCodes.NO_SUCH_ROOM, response_code)
-
     def test_ban_user_exists(self):
         self.create_and_join_room()
         self.set_owner()

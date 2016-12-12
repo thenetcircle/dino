@@ -124,17 +124,14 @@ class ApiJoinTest(BaseTest):
         response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         users = self.get_attachment_for_key(attachments, 'user')
-        self.assertEqual(1, len(users))
+        self.assertEqual(0, len(users))
 
-    def test_join_returns_activity_with_this_user_as_attachment(self):
         act = self.activity_for_join()
+        act['actor']['id'] = '9876'
         response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
-        user = self.get_attachment_for_key(attachments, 'user')[0]
-        room_id = self.env.db.redis.hget(RedisKeys.private_rooms(), ApiJoinTest.USER_ID)
-        room_id = str(room_id, 'utf-8')
-        self.assertEqual(room_id, user['id'])
-        self.assertEqual(ApiJoinTest.USER_NAME, b64d(user['content']))
+        users = self.get_attachment_for_key(attachments, 'user')
+        self.assertEqual(1, len(users))
 
     def test_join_returns_activity_with_one_owner(self):
         self.set_owner()

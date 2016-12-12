@@ -22,19 +22,9 @@ class ApiDisconnectTest(BaseTest):
         response_data = api.on_disconnect()
         self.assertEqual(ErrorCodes.OK, response_data[0])
 
-    def test_not_connected(self):
-        self.clear_session()
-        response_data = api.on_disconnect()
-        self.assertEqual(ErrorCodes.NO_USER_IN_SESSION, response_data[0])
-
     def test_disconnect_leaves_joined_room(self):
         self.join_room()
         self.assert_in_room(True)
 
         api.on_disconnect()
         self.assert_in_room(False)
-
-    def test_disconnect_needs_user_id_in_session(self):
-        self.set_session(SessionKeys.user_id.value, None)
-        response_data = api.on_disconnect()
-        self.assertEqual(ErrorCodes.NO_USER_IN_SESSION, response_data[0])

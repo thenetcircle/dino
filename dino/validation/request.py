@@ -138,10 +138,11 @@ class RequestValidator(BaseValidator):
         except ValueError as e:
             return False, ECodes.INVALID_BAN_DURATION, 'invalid ban duration: %s' % str(e)
 
-        try:
-            utils.get_room_name(room_id)
-        except NoSuchRoomException as e:
-            return False, ECodes.NO_SUCH_ROOM, 'no private room found for user: %s' % str(e)
+        if room_id is not None and len(room_id.strip()) > 0:
+            try:
+                utils.get_room_name(room_id)
+            except NoSuchRoomException as e:
+                return False, ECodes.NO_SUCH_ROOM, 'no private room found for user: %s' % str(e)
 
         try:
             utils.get_user_name_for(user_id)

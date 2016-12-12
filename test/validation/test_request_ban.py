@@ -25,6 +25,7 @@ from dino.validation import RequestValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclRangeValidator
+from dino.exceptions import NoSuchRoomException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -39,6 +40,7 @@ class FakeDb(object):
     _owners = dict()
     _admins = dict()
     _super_users = set()
+    _room_name = dict()
 
     _ban_status = {
         'global': '',
@@ -104,11 +106,17 @@ class FakeDb(object):
     def room_contains(self, room_id, user_id):
         return user_id in FakeDb._room_contains[room_id]
 
+    def get_room_name(self, room_id):
+        if room_id in FakeDb._room_name:
+            return FakeDb._room_name[room_id]
+        raise NoSuchRoomException(room_id)
+
 
 class RequestBanTest(TestCase):
     OTHER_USER_ID = '9876'
     CHANNEL_ID = '8765'
     ROOM_ID = '4567'
+    ROOM_NAME = 'cool guys'
     OTHER_ROOM_ID = '9999'
     OTHER_CHANNEL_ID = '8888'
     USER_ID = '1234'
@@ -190,7 +198,8 @@ class RequestBanTest(TestCase):
             },
             'object': {
                 'url': RequestBanTest.CHANNEL_ID,
-                'id': RequestBanTest.OTHER_USER_ID
+                'id': RequestBanTest.OTHER_USER_ID,
+                'summary': '1h'
             },
             'verb': 'ban',
             'target': {
@@ -233,6 +242,10 @@ class RequestBanTest(TestCase):
 
         FakeDb._owners = {
             RequestBanTest.ROOM_ID: ''
+        }
+
+        FakeDb._room_name = {
+            RequestBanTest.ROOM_ID: RequestBanTest.ROOM_NAME
         }
 
         FakeDb._moderators = {
