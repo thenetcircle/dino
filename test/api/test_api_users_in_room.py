@@ -63,7 +63,7 @@ class ApiUsersInRoomTest(BaseTest):
         response_data = api.on_users_in_room(act, as_parser(act))
         self.assertEqual(
                 ApiUsersInRoomTest.USER_NAME,
-                b64d(response_data[1]['object']['attachments'][0]['content']))
+                b64d(response_data[1]['object']['attachments'][0]['displayName']))
 
     def test_users_in_room_status_code_200_when_empty(self):
         self.assert_in_room(False)

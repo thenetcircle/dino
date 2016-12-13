@@ -147,7 +147,7 @@ class ApiJoinTest(BaseTest):
         response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         owners = self.get_attachment_for_key(attachments, 'owner')
-        user_id, user_name = owners[0]['id'], owners[0]['content']
+        user_id, user_name = owners[0]['id'], owners[0]['displayName']
         self.assertEqual(ApiJoinTest.USER_ID, user_id)
         self.assertEqual(ApiJoinTest.USER_NAME, b64d(user_name))
 
@@ -205,7 +205,7 @@ class ApiJoinTest(BaseTest):
         self.assertEqual(msg_response['id'], history_obj['id'])
         self.assertEqual(msg, b64d(history_obj['content']))
         self.assertEqual(msg_response['published'], history_obj['published'])
-        self.assertEqual(ApiJoinTest.USER_NAME, b64d(history_obj['summary']))
+        self.assertEqual(ApiJoinTest.USER_NAME, b64d(history_obj['author']['displayName']))
 
     def assert_attachment_equals(self, attachments, key, value):
         found = self.get_attachment_for_key(attachments, key)

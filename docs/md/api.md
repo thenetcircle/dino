@@ -61,11 +61,11 @@ Response data if successful:
                 "attachments": [
                     {
                         "id": "<channel UUID>",
-                        "content": "<channel name>"
+                        "displayName": "<channel name>"
                     },
                     {
                         "id": "<channel UUID>",
-                        "content": "<channel name>"
+                        "displayName": "<channel name>"
                     }
                 ]
             },
@@ -101,11 +101,11 @@ Response data if successful:
                 "attachments": [
                     {
                         "id": "<room UUID>",
-                        "content": "<room name>"
+                        "displayName": "<room name>"
                     },
                     {
                         "id": "<room UUID>",
-                        "content": "<room name>"
+                        "displayName": "<room name>"
                     }
                 ]
             },
@@ -159,11 +159,11 @@ Response data if successful:
                 "attachments": [
                     {
                         "id": "<user UUID>",
-                        "content": "<user name>"
+                        "displayName": "<user name>"
                     },
                     {
                         "id": "<user UUID>",
-                        "content": "<user name>"
+                        "displayName": "<user name>"
                     }
                 ]
             },
@@ -200,18 +200,22 @@ Response data if successful:
                 "objectType": "messages",
                 "attachments": [
                     {
+                        "author": {
+                            "id": "<the user id of the sender>",
+                            "displayName": "<the user name of the sender>"
+                        },
                         "id": "<message ID>",
                         "content": "<the message content>",
-                        "summary": "<user name of the sender>",
-                        "published": "<the time it was sent, RFC3339>",
-                        "url": "<the user uuid>"
+                        "published": "<the time it was sent, RFC3339>"
                     },
                     {
+                        "author": {
+                            "id": "<the user id of the sender>",
+                            "displayName": "<the user name of the sender>"
+                        },
                         "id": "<message ID>",
                         "content": "<the message content>",
-                        "summary": "<user name of the sender>",
-                        "published": "<the time it was sent, RFC3339>",
-                        "url": "<the user uuid>"
+                        "published": "<the time it was sent, RFC3339>"
                     }
                 ]
             },
@@ -463,14 +467,18 @@ Response data if successful:
             "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
             "published": "2016-10-07T10:45:34Z",
             "actor": {
-                "id": "<user ID>"
+                "id": "<user ID>",
+                "displayName": "<user name>"
             },
             "verb": "send",
             "target": {
-                "id": "<room ID>"
+                "id": "<room ID>",
+                "displayName": "<room name>"
             },
             "object": {
                 "content": "<the message>",
+                "displayName": "<the channel name>",
+                "url": "<the channel id>",
                 "objectType": "<room/private>"
             }
         }
@@ -507,17 +515,22 @@ Response data if successful:
                         "objectType": "history",
                         "attachments": [
                             {
+                                "author": {
+                                    "id": "<the user id of the sender>",
+                                    "displayName": "<the user name of the sender>"
+                                },
                                 "id": "<message ID>",
                                 "content": "<the message content>",
-                                "summary": "<user name of the sender>",
                                 "published": "<the time it was sent, RFC3339>"
                             },
                             {
+                                "author": {
+                                    "id": "<the user id of the sender>",
+                                    "displayName": "<the user name of the sender>"
+                                },
                                 "id": "<message ID>",
                                 "content": "<the message content>",
-                                "summary": "<user name of the sender>",
-                                "published": "<the time it was sent, RFC3339>",
-                                "url": "<the user uuid>"
+                                "published": "<the time it was sent, RFC3339>"
                             }
                         ]
                     },
@@ -526,11 +539,11 @@ Response data if successful:
                         "attachments": [
                             {
                                 "id": "<owner"s user ID>",
-                                "content": "<owner"s user name>",
+                                "displayName": "<owner"s user name>",
                             },
                             {
                                 "id": "<owner"s user ID>",
-                                "content": "<owner"s user name>",
+                                "displayName": "<owner"s user name>",
                             }
                         ]
                     },
@@ -552,11 +565,11 @@ Response data if successful:
                         "attachments": [
                             {
                                 "id": "<user ID of a user in the room>",
-                                "content": "<user name of a user in the room>",
+                                "displayName": "<user name of a user in the room>",
                             },
                             {
                                 "id": "<user ID of a user in the room>",
-                                "content": "<user name of a user in the room>",
+                                "displayName": "<user name of a user in the room>",
                             }
                         ]
                     },

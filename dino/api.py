@@ -75,16 +75,16 @@ def on_message(data, activity: Activity):
 
     if activity.target.object_type == 'room':
         activity.target.display_name = utils.get_room_name(activity.target.id)
-        activity.object.summary = utils.get_channel_name(activity.object.url)
+        activity.object.display_name = utils.get_channel_name(activity.object.url)
     else:
         activity.target.display_name = utils.get_user_name_for(activity.target.id)
-        activity.object.summary = ''
+        activity.object.display_name = ''
         activity.object.url = ''
 
     activity.actor.summary = environ.env.session.get(SessionKeys.user_name.value)
-    data['actor']['summary'] = utils.b64e(activity.actor.summary)
+    data['actor']['displayName'] = utils.b64e(activity.actor.display_name)
     data['target']['displayName'] = utils.b64e(activity.target.display_name)
-    data['object']['summary'] = utils.b64e(activity.object.summary)
+    data['object']['displayName'] = utils.b64e(activity.object.display_name)
 
     environ.env.observer.emit('on_message', (data, activity))
     return ECodes.OK, data

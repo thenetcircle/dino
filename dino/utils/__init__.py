@@ -87,7 +87,7 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
     return {
         'actor': {
             'id': user_id,
-            'summary': b64e(user_name)
+            'displayName': b64e(user_name)
         },
         'target': {
             'id': room_id,
@@ -101,7 +101,7 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
     return {
         'actor': {
             'id': environ.env.db.get_private_room(user_id)[0],
-            'summary': b64e(user_name),
+            'displayName': b64e(user_name),
             'image': {
                 'url': image_url
             }
@@ -120,11 +120,11 @@ def activity_for_user_banned(
     return {
         'actor': {
             'id': banner_id,
-            'summary': b64e(banner_name)
+            'displayName': b64e(banner_name)
         },
         'object': {
             'id': banned_id,
-            'summary': b64e(banned_name)
+            'displayName': b64e(banned_name)
         },
         'target': {
             'id': room_id,
@@ -140,11 +140,11 @@ def activity_for_user_kicked(
     return {
         'actor': {
             'id': kicker_id,
-            'summary': b64e(kicker_name)
+            'displayName': b64e(kicker_name)
         },
         'object': {
             'id': kicked_id,
-            'summary': b64e(kicked_name)
+            'displayName': b64e(kicked_name)
         },
         'target': {
             'id': room_id,
@@ -159,7 +159,7 @@ def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_
     return {
         'actor': {
             'id': user_id,
-            'summary': b64e(user_name)
+            'displayName': b64e(user_name)
         },
         'verb': 'request',
         'object': {
@@ -176,7 +176,7 @@ def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'summary': b64e(user_name)
+            'displayName': b64e(user_name)
         },
         'verb': 'disconnect'
     }
@@ -186,7 +186,7 @@ def activity_for_login(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'summary': b64e(user_name)
+            'displayName': b64e(user_name)
         },
         'verb': 'login'
     }
@@ -196,7 +196,7 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'summary': b64e(user_name)
+            'displayName': b64e(user_name)
         },
         'verb': 'connect'
     }
@@ -206,7 +206,7 @@ def activity_for_create_room(activity: Activity) -> dict:
     return {
         'actor': {
             'id': activity.actor.id,
-            'summary': b64e(activity.actor.summary)
+            'displayName': b64e(activity.actor.summary)
         },
         'object': {
             'url': activity.object.url
@@ -240,10 +240,12 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
     response['object']['attachments'] = list()
     for message in messages:
         response['object']['attachments'].append({
+            'author': {
+                'id': message['from_user_id'],
+                'displayName': b64e(message['from_user_name'])
+            },
             'id': message['message_id'],
             'content': b64e(message['body']),
-            'url': message['from_user_id'],
-            'summary': b64e(message['from_user_name']),
             'published': message['timestamp']
         })
     return response
@@ -305,7 +307,7 @@ def activity_for_owners(activity: Activity, owners: dict) -> dict:
     for user_id, user_name in owners.items():
         response['object']['attachments'].append({
             'id': user_id,
-            'content': b64e(user_name)
+            'displayName': b64e(user_name)
         })
 
     return response
@@ -323,7 +325,7 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
     for channel_id, channel_name in channels.items():
         response['object']['attachments'].append({
             'id': channel_id,
-            'content': b64e(channel_name)
+            'displayName': b64e(channel_name)
         })
 
     return response
@@ -335,12 +337,12 @@ def activity_for_invite(
     return {
         'actor': {
             'id': inviter_id,
-            'summary': b64e(inviter_name)
+            'displayName': b64e(inviter_name)
         },
         'verb': 'invite',
         'object': {
             'url': channel_id,
-            'summary': b64e(channel_name)
+            'displayName': b64e(channel_name)
         },
         'target': {
             'id': room_id,
@@ -355,12 +357,12 @@ def activity_for_whisper(
     return {
         'actor': {
             'id': whisperer_id,
-            'summary': b64e(whisperer_name)
+            'displayName': b64e(whisperer_name)
         },
         'verb': 'whisper',
         'object': {
             'url': channel_id,
-            'summary': b64e(channel_name)
+            'displayName': b64e(channel_name)
         },
         'target': {
             'id': room_id,
@@ -384,7 +386,7 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
         user_in_room = room_details['users']
         response['object']['attachments'].append({
             'id': room_id,
-            'content': b64e(room_name),
+            'displayName': b64e(room_name),
             'summary': user_in_room
         })
 
@@ -407,7 +409,7 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     for user_id, user_name in users.items():
         response['object']['attachments'].append({
             'id': user_id,
-            'content': b64e(user_name)
+            'displayName': b64e(user_name)
         })
 
     return response

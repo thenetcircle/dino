@@ -139,7 +139,7 @@ class ApiHistoryTest(BaseTest):
         act = self.activity_for_history()
         response_data = api.on_history(act, as_parser(act))
         activity = as_parser(response_data[1])
-        self.assertEqual(BaseTest.USER_NAME, b64d(activity.object.attachments[0].summary))
+        self.assertEqual(BaseTest.USER_NAME, b64d(activity.object.attachments[0].author.display_name))
 
     def test_history_contains_valid_timestamp(self):
         self.join_room()

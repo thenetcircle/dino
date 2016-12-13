@@ -56,7 +56,7 @@ class ApiListRoomsTest(BaseTest):
         response_data = api.on_list_rooms(act, as_parser(act))
         self.assertEqual(
                 ApiListRoomsTest.ROOM_NAME,
-                b64d(response_data[1]['object']['attachments'][0]['content']))
+                b64d(response_data[1]['object']['attachments'][0]['displayName']))
 
     def test_list_rooms_status_code_200_if_no_rooms(self):
         self.assert_in_room(False)

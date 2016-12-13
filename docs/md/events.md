@@ -37,12 +37,12 @@ When user B invites user A to join room X, the event `gn_invitation` will be sen
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<UUID of user B>",
-            "summary": "<name of user B>"
+            "displayName": "<name of user B>"
         },
         "verb": "invite",
         "object": {
             "url": "<UUID of the channel for room X>",
-            "summary": "<name of the channel for room X>"
+            "displayName": "<name of the channel for room X>"
         },
         "target": {
             "id": "<UUID of the room>",
