@@ -35,6 +35,14 @@ class IDatabase(Interface):
         :return: the uuid of the admin room, or None of not found
         """
 
+    def has_private_room(self, user_id: str) -> bool:
+        """
+        check if a private room exists or not for a given user id
+
+        :param user_id: the user id
+        :return: true if a private room exists, false otherwise
+        """
+
     def is_room_private(self, room_id: str) -> bool:
         """
         check if a room is private or not
