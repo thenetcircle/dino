@@ -49,13 +49,6 @@ class Database(object):
             'drivername': self.driver,
         }
 
-        # make psycopg2 asynchronous
-        if self.driver.startswith('postgres'):
-            from psycogreen.gevent import patch_psycopg
-            patch_psycopg()
-        elif self.driver.startswith('mysql'):
-            import MySQLdb
-
         host = self.env.config.get(ConfigKeys.HOST, default=None, domain=domain)
         port = self.env.config.get(ConfigKeys.PORT, default=None, domain=domain)
         username = self.env.config.get(ConfigKeys.USER, default=None, domain=domain)

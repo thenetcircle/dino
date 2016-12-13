@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2013-2016 DataStax, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
-
 import logging
 from activitystreams import parse
 from uuid import uuid4 as uuid
@@ -29,6 +25,8 @@ from dino.config import ConfigKeys
 from dino.storage.cassandra import CassandraStorage
 from dino.db.redis import DatabaseRedis
 from test.storage.fake_cassandra import FakeCassandraDriver
+
+__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class StorageMockCassandraTest(BaseTest):

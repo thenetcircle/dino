@@ -71,6 +71,7 @@ class Driver(object):
                         sent_time varchar,
                         time_stamp int,
                         channel_id varchar,
+                        channel_name text,
                         deleted boolean,
                         PRIMARY KEY (target_id, from_user_id, sent_time, time_stamp)
                     )
@@ -85,7 +86,7 @@ class Driver(object):
                             WHERE
                                 message_id IS NOT NULL AND
                                 target_id IS NOT NULL AND
-                                from_user IS NOT NULL AND
+                                from_user_id IS NOT NULL AND
                                 sent_time IS NOT NULL AND
                                 time_stamp IS NOT NULL
                         PRIMARY KEY (message_id, target_id, from_user_id, sent_time, time_stamp)
@@ -100,7 +101,7 @@ class Driver(object):
                                 message_id IS NOT NULL AND
                                 body IS NOT NULL AND
                                 target_id IS NOT NULL AND
-                                from_user IS NOT NULL AND
+                                from_user_id IS NOT NULL AND
                                 sent_time IS NOT NULL AND
                                 time_stamp IS NOT NULL
                         PRIMARY KEY (target_id, time_stamp, from_user_id, sent_time)
