@@ -72,6 +72,19 @@ def on_message(data, activity: Activity):
     if from_room_id is not None and from_room_id == room_id:
         del data['actor']['url']
 
+    if activity.target.object_type == 'room':
+        activity.target.display_name = utils.get_room_name(activity.target.id)
+        activity.object.summary = utils.get_channel_name(activity.object.url)
+    else:
+        activity.target.display_name = utils.get_user_name_for(activity.target.id)
+        activity.object.summary = ''
+        activity.object.url = ''
+
+    activity.actor.summary = environ.env.session.get(SessionKeys.user_name.value)
+    data['actor']['summary'] = activity.actor.summary
+    data['target']['displayName'] = activity.target.display_name
+    data['object']['summary'] = activity.object.summary
+
     environ.env.observer.emit('on_message', (data, activity))
     return ECodes.OK, data
 

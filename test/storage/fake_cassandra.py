@@ -59,25 +59,32 @@ class FakeCassandraDriver(object):
     def init(self):
         pass
 
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, sent_time, channel_id, deleted=False) -> None:
-        if to_user not in self.msgs_to_user:
-            self.msgs_to_user[to_user] = list()
+    def msg_insert(self, msg_id, from_user_id, from_user_name, target_id, target_name, body, domain, sent_time, channel_id, channel_name, deleted=False) -> None:
+        if target_id not in self.msgs_to_user:
+            self.msgs_to_user[target_id] = list()
+
         time_stamp = int(datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT).strftime('%s'))
-        self.msgs_to_user[to_user].append((msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted))
+
+        self.msgs_to_user[target_id].append((
+            msg_id, from_user_id, from_user_name, target_id, target_name, body, domain,
+            sent_time, time_stamp, channel_id, channel_name, deleted))
 
     def msgs_select(self, to_user_id: str, limit: int=100) -> FakeResultSet:
         msgs = self.msgs_to_user.get(to_user_id, list())[:limit]
         rows = list()
-        for msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted in msgs:
+        for msg_id, f_id, f_name, t_id, t_name, body, domain, sent_time, time_stamp, c_id, c_name, deleted in msgs:
             row = FakeResultSet.FakeRow()
             row.message_id = msg_id
-            row.from_user = from_user
-            row.to_user = to_user
+            row.from_user_id = f_id
+            row.from_user_name = f_name
+            row.target_id = t_id
+            row.target_name = t_name
             row.body = body
             row.domain = domain
             row.time_stamp = time_stamp
             row.sent_time = sent_time
-            row.channel_id = channel_id
+            row.channel_id = c_id
+            row.channel_name = c_name
             row.deleted = deleted
             rows.append(row)
         return FakeResultSet(rows)
@@ -95,11 +102,11 @@ class FakeCassandraDriver(object):
         found = False
         for room_id, msgs in self.msgs_to_user.items():
             new_msgs = list()
-            for msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted in msgs:
+            for msg_id, f_id, f_name, t_id, t_name, body, domain, sent_time, time_stamp, c_id, c_name, deleted in msgs:
                 if msg_id == message_id:
                     found = True
                     continue
-                new_msgs.append((msg_id, from_user, to_user, body, domain, sent_time, time_stamp, channel_id, deleted))
+                new_msgs.append((msg_id, f_id, f_name, t_id, t_name, body, domain, sent_time, time_stamp, c_id, c_name, deleted))
 
             if found:
                 self.msgs_to_user[room_id] = new_msgs

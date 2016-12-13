@@ -237,8 +237,8 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
         response['object']['attachments'].append({
             'id': message['message_id'],
             'content': b64e(message['body']),
-            'url': message['from_user'],
-            'summary': b64e(get_user_name_for(message['from_user'])),
+            'url': message['from_user_id'],
+            'summary': b64e(message['from_user_name']),
             'published': message['timestamp']
         })
     return response

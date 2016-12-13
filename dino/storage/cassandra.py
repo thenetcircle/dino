@@ -54,12 +54,15 @@ class CassandraStorage(object):
         message = b64d(activity.object.content)
         self.driver.msg_insert(
                 msg_id=activity.id,
-                from_user=activity.actor.id,
-                to_user=activity.target.id,
+                from_user_id=activity.actor.id,
+                from_user_name=activity.actor.summary,
+                target_id=activity.target.id,
+                target_name=activity.target.display_name,
                 body=message,
                 domain=activity.target.object_type,
                 sent_time=activity.published,
                 channel_id=activity.object.url,
+                channel_name=activity.object.summary,
                 deleted=False
         )
 
@@ -75,17 +78,7 @@ class CassandraStorage(object):
         for row in rows:
             if row.deleted:
                 continue
-
-            msgs.append({
-                'message_id': row.message_id,
-                'from_user': row.from_user,
-                'to_user': row.to_user,
-                'body': row.body,
-                'domain': row.domain,
-                'channel_id': row.channel_id,
-                'timestamp': row.sent_time,
-                'deleted': row.deleted
-            })
+            msgs.append(self._row_to_json(row))
         return msgs
 
     def get_history(self, room_id: str, limit: int=100) -> list:
@@ -97,18 +90,23 @@ class CassandraStorage(object):
         for row in rows:
             if row.deleted:
                 continue
-
-            msgs.append({
-                'message_id': row.message_id,
-                'from_user': row.from_user,
-                'to_user': row.to_user,
-                'body': row.body,
-                'domain': row.domain,
-                'channel_id': row.channel_id,
-                'timestamp': row.sent_time,
-                'deleted': row.deleted
-            })
+            msgs.append(self._row_to_json(row))
         return msgs
+
+    def _row_to_json(self, row):
+        return {
+            'message_id': row.message_id,
+            'from_user_id': row.from_user_id,
+            'from_user_name': row.from_user_id,
+            'target_id': row.target_id,
+            'target_name': row.taret_name,
+            'body': row.body,
+            'domain': row.domain,
+            'channel_id': row.channel_id,
+            'channel_name': row.channel_name,
+            'timestamp': row.sent_time,
+            'deleted': row.deleted
+        }
 
     def validate(self, hosts, replications, strategy):
         if environ.env.config.get(ConfigKeys.TESTING, False):

@@ -86,8 +86,8 @@ class StorageMockCassandraTest(BaseTest):
 
         res = self.storage.get_history(BaseTest.ROOM_ID)
         self.assertEqual(1, len(res))
-        self.assertEqual(BaseTest.USER_ID, res[0]['from_user'])
-        self.assertEqual(BaseTest.ROOM_ID, res[0]['to_user'])
+        self.assertEqual(BaseTest.USER_ID, res[0]['from_user_id'])
+        self.assertEqual(BaseTest.ROOM_ID, res[0]['target_id'])
 
     def join(self):
         environ.env.db.join_room(BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME)

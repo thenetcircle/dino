@@ -40,21 +40,25 @@ class StorageRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
 
     def store_message(self, activity: Activity) -> None:
-        target = activity.target.id
+        target_id = activity.target.id
+        target_name = b64e(activity.target.display_name)
         user_id = environ.env.session.get(SessionKeys.user_id.value)
         user_name = b64e(environ.env.session.get(SessionKeys.user_name.value))
+        channel_id = activity.object.url
+        channel_name = b64e(activity.object.summary)
         msg = activity.object.content
 
         if not is_base64(msg):
             raise RuntimeError('message is not base64')
 
         self.redis.lpush(
-                RedisKeys.room_history(target),
-                '%s,%s,%s,%s,%s' % (activity.id, activity.published, user_id, user_name, msg))
+                RedisKeys.room_history(target_id),
+                '%s,%s,%s,%s,%s,%s,%s,%s' % (
+                    activity.id, activity.published, user_id, user_name, target_name, channel_id, channel_name, msg))
 
         max_history = environ.env.config.get(ConfigKeys.LIMIT, domain=ConfigKeys.HISTORY, default=-1)
         if max_history > 0:
-            self.redis.ltrim(RedisKeys.room_history(target), 0, max_history)
+            self.redis.ltrim(RedisKeys.room_history(target_id), 0, max_history)
 
     def delete_message(self, room_id: str, message_id: str):
         if message_id is None or message_id == '':
@@ -64,7 +68,7 @@ class StorageRedis(object):
         found_msg = None
         for history in all_history:
             history = str(history, 'utf-8')
-            if history.startswith(message_id):
+            if history.startswith(message_id + ','):
                 found_msg = history
                 break
 
@@ -79,14 +83,19 @@ class StorageRedis(object):
         cleaned_messages = list()
         for message_entry in messages:
             message_entry = str(message_entry, 'utf-8')
-            msg_id, published, user_id, user_name, msg = message_entry.split(',', 4)
+            msg_id, published, user_id, user_name, target_name, channel_id, channel_name, msg = \
+                message_entry.split(',', 7)
+
             cleaned_messages.append({
                 'message_id': msg_id,
-                'from_user': user_id,
-                'to_user': room_id,
+                'from_user_id': user_id,
+                'from_user_name': b64d(user_name),
+                'target_id': room_id,
+                'target_name': b64d(target_name),
                 'body': b64d(msg),
                 'domain': 'room',
-                'channel_id': '',
+                'channel_id': channel_id,
+                'channel_name': b64d(channel_name),
                 'timestamp': published,
                 'deleted': False
             })

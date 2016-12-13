@@ -62,15 +62,17 @@ class Driver(object):
                     """
                     CREATE TABLE IF NOT EXISTS messages (
                         message_id varchar,
-                        from_user text,
-                        to_user text,
+                        from_user_id text,
+                        from_user_name text,
+                        target_id text,
+                        target_name text,
                         body text,
                         domain text,
                         sent_time varchar,
                         time_stamp int,
                         channel_id varchar,
                         deleted boolean,
-                        PRIMARY KEY (to_user, from_user, sent_time, time_stamp)
+                        PRIMARY KEY (target_id, from_user_id, sent_time, time_stamp)
                     )
                     """
             )
@@ -79,14 +81,14 @@ class Driver(object):
             self.session.execute(
                     """
                     CREATE MATERIALIZED VIEW IF NOT EXISTS messages_by_id AS
-                        SELECT message_id, to_user, from_user, sent_time, time_stamp from messages
+                        SELECT * from messages
                             WHERE
                                 message_id IS NOT NULL AND
-                                to_user IS NOT NULL AND
+                                target_id IS NOT NULL AND
                                 from_user IS NOT NULL AND
                                 sent_time IS NOT NULL AND
                                 time_stamp IS NOT NULL
-                        PRIMARY KEY (message_id, to_user, from_user, sent_time, time_stamp)
+                        PRIMARY KEY (message_id, target_id, from_user_id, sent_time, time_stamp)
                         WITH CLUSTERING ORDER BY (time_stamp DESC)
                     """
             )
@@ -97,11 +99,11 @@ class Driver(object):
                             WHERE
                                 message_id IS NOT NULL AND
                                 body IS NOT NULL AND
-                                to_user IS NOT NULL AND
+                                target_id IS NOT NULL AND
                                 from_user IS NOT NULL AND
                                 sent_time IS NOT NULL AND
                                 time_stamp IS NOT NULL
-                        PRIMARY KEY (to_user, time_stamp, from_user, sent_time)
+                        PRIMARY KEY (target_id, time_stamp, from_user_id, sent_time)
                         WITH CLUSTERING ORDER BY (time_stamp DESC)
                     """
             )
@@ -111,38 +113,41 @@ class Driver(object):
                     """
                     INSERT INTO messages (
                         message_id,
-                        from_user,
-                        to_user,
+                        from_user_id,
+                        from_user_name,
+                        target_id,
+                        target_name,
                         body,
                         domain,
                         sent_time,
                         time_stamp,
                         channel_id,
+                        channel_name,
                         deleted
                     )
                     VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                     )
                     """
             )
             self.statements[StatementKeys.msgs_select] = self.session.prepare(
                     """
-                    SELECT * FROM messages WHERE to_user = ? LIMIT ?
+                    SELECT * FROM messages WHERE target_id = ? LIMIT ?
                     """
             )
             self.statements[StatementKeys.msgs_select_by_time_stamp] = self.session.prepare(
                     """
-                    SELECT * FROM messages_by_time_stamp WHERE to_user = ? AND time_stamp > ?
+                    SELECT * FROM messages_by_time_stamp WHERE target_id = ? AND time_stamp > ?
                     """
             )
             self.statements[StatementKeys.msg_select] = self.session.prepare(
                     """
-                    SELECT to_user, from_user, sent_time FROM messages_by_id WHERE message_id = ?
+                    SELECT target_id, from_user_id, sent_time FROM messages_by_id WHERE message_id = ?
                     """
             )
             self.statements[StatementKeys.msg_select_one] = self.session.prepare(
                     """
-                    SELECT * FROM messages WHERE to_user = ? AND from_user = ? AND sent_time = ?
+                    SELECT * FROM messages WHERE target_id = ? AND from_user_id = ? AND sent_time = ?
                     """
             )
 
@@ -151,17 +156,17 @@ class Driver(object):
         create_views()
         prepare_statements()
 
-    def msg_insert(self, msg_id, from_user, to_user, body, domain, sent_time, channel_id, deleted=False) -> None:
+    def msg_insert(self, msg_id, from_user_id, from_user_name, target_id, target_name, body, domain, sent_time, channel_id, channel_name, deleted=False) -> None:
         time_stamp = int(datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT).strftime('%s'))
         self._execute(
-                StatementKeys.msg_insert, msg_id, from_user, to_user,
-                body, domain, sent_time, time_stamp, channel_id, deleted)
+                StatementKeys.msg_insert, msg_id, from_user_id, from_user_name, target_id, target_name,
+                body, domain, sent_time, time_stamp, channel_id, channel_name, deleted)
 
-    def msgs_select(self, to_user_id: str, limit: int=100) -> ResultSet:
-        return self._execute(StatementKeys.msgs_select, to_user_id, limit)
+    def msgs_select(self, target_id: str, limit: int=100) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select, target_id, limit)
 
-    def msgs_select_since_time(self, to_user_id: str, time_stamp: int) -> ResultSet:
-        return self._execute(StatementKeys.msgs_select_by_time_stamp, to_user_id, time_stamp)
+    def msgs_select_since_time(self, target_id: str, time_stamp: int) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_by_time_stamp, target_id, time_stamp)
 
     def msg_delete(self, message_id: str) -> ResultSet:
         """
@@ -179,16 +184,22 @@ class Driver(object):
 
         assert len(keys.current_rows) == 1
         key = keys.current_rows[0]
-        to_user, from_user, timestamp = key.to_user, key.from_user, key.sent_time
+        target_id, from_user_id, timestamp = key.target_id, key.from_user_id, key.sent_time
 
-        message_rows = self._execute(StatementKeys.msg_select_one, to_user, from_user, timestamp)
+        message_rows = self._execute(StatementKeys.msg_select_one, target_id, from_user_id, timestamp)
         assert len(message_rows.current_rows) == 1
 
         message_row = message_rows.current_rows[0]
         body = message_row.body
         domain = message_row.domain
         channel_id = message_row.channel_id
-        self.msg_insert(message_id, from_user, to_user, body, domain, timestamp, channel_id, deleted=True)
+        channel_name = message_row.channel_name
+        target_name = message_row.target_name
+        from_user_name = message_row.from_user_name
+
+        self.msg_insert(
+                message_id, from_user_id, from_user_name, target_id, target_name, body,
+                domain, timestamp, channel_id, channel_name, deleted=True)
 
     def _execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:
