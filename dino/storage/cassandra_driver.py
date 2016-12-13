@@ -40,11 +40,22 @@ class Driver(object):
         self.session = session
         self.statements = dict()
         self.key_space = key_space
+        self.key_space_test = key_space + 'test'
         self.strategy = strategy
         self.replications = replications
         self.logger = logging.getLogger(__name__)
 
     def init(self):
+        def create_test_key_space():
+            self.logger.debug('creating test keyspace...')
+            create_key_space_stmt = self.session.prepare(
+                    """
+                    CREATE KEYSPACE IF NOT EXISTS %s
+                    WITH replication = {'class': '%s', 'replication_factor': '%s'}
+                    """ % (self.key_space + 'test', self.strategy, str(self.replications))
+            )
+            self.session.execute(create_key_space_stmt)
+
         def create_key_space():
             self.logger.debug('creating keyspace...')
             create_key_space_stmt = self.session.prepare(
@@ -54,7 +65,14 @@ class Driver(object):
                     """ % (self.key_space, self.strategy, str(self.replications))
             )
             self.session.execute(create_key_space_stmt)
+
+        def set_key_space():
+            self.logger.debug('switching to key space: %s' % self.key_space)
             self.session.set_keyspace(self.key_space)
+
+        def set_test_key_space():
+            self.logger.debug('switching to key space: %s' % self.key_space_test)
+            self.session.set_keyspace(self.key_space_test)
 
         def create_tables():
             self.logger.debug('creating tables...')
@@ -152,7 +170,15 @@ class Driver(object):
                     """
             )
 
+        # create keyspace and tables for tests
+        create_test_key_space()
+        set_test_key_space()
+        create_tables()
+        create_views()
+
+        # create keyspace and tables for other
         create_key_space()
+        set_key_space()
         create_tables()
         create_views()
         prepare_statements()

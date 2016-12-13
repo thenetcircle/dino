@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -36,6 +34,7 @@ from dino.exceptions import NoTargetRoomException
 from dino.exceptions import NoTargetChannelException
 from dino.exceptions import NoOriginChannelException
 from dino.exceptions import NoSuchUserException
+from dino.exceptions import NoSuchRoomException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -221,6 +220,12 @@ def activity_for_create_room(activity: Activity) -> dict:
 
 
 def activity_for_history(activity: Activity, messages: list) -> dict:
+    try:
+        room_name = b64e(get_room_name(activity.target.id))
+    except NoSuchRoomException as e:
+        logger.exception('could not find room name for room id %s: %s' % (activity.target.id, str(e)))
+        room_name = ''
+
     response = {
         'object': {
             'objectType': 'messages'
@@ -228,7 +233,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
         'verb': 'history',
         'target': {
             'id': activity.target.id,
-            'displayName': b64e(get_room_name(activity.target.id))
+            'displayName': room_name
         }
     }
 
