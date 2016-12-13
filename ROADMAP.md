@@ -98,6 +98,8 @@ A rough roadmap for possible upcoming features.
 * stats
     - use statsd for metrics
     - send successful login events and disconnect events to a message queue
+* decouple api actions
+    - using hooks to respond to api events
 
 0.1X.0
 ---
