@@ -233,15 +233,14 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
     }
 
     response['object']['attachments'] = list()
-    for msg_id, timestamp, user_id, user_name, msg in messages:
+    for message in messages:
         response['object']['attachments'].append({
-            'id': msg_id,
-            'content': b64e(msg),
-            'url': user_id,
-            'summary': b64e(user_name),
-            'published': timestamp
+            'id': message['message_id'],
+            'content': b64e(message['body']),
+            'url': message['from_user'],
+            'summary': b64e(get_user_name_for(message['from_user'])),
+            'published': message['timestamp']
         })
-
     return response
 
 
@@ -576,7 +575,7 @@ def channel_exists(channel_id: str) -> bool:
 
 
 def get_user_name_for(user_id: str) -> str:
-    return environ.env.session.get(SessionKeys.user_name.value)
+    return environ.env.db.get_user_name(user_id)
 
 
 def get_channel_name(channel_id: str) -> str:

@@ -46,11 +46,9 @@ class RedisStorageTest(TestCase):
         self.db.store_message(as_parser(self.act()))
         history = self.db.get_history(RedisStorageTest.ROOM_ID)
         self.assertEqual(1, len(history))
-        msg_id, published, user_id, user_name, msg = history[0]
-        self.assertIsNotNone(msg_id)
-        self.assertEqual(RedisStorageTest.USER_ID, user_id)
-        self.assertEqual(RedisStorageTest.USER_NAME, user_name)
-        self.assertEqual(RedisStorageTest.MESSAGE, msg)
+        self.assertIsNotNone(history[0]['message_id'])
+        self.assertEqual(RedisStorageTest.USER_ID, history[0]['from_user'])
+        self.assertEqual(RedisStorageTest.MESSAGE, history[0]['body'])
 
     def test_delete_message(self):
         self.db.store_message(as_parser(self.act()))

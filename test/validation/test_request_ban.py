@@ -26,6 +26,7 @@ from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclRangeValidator
 from dino.exceptions import NoSuchRoomException
+from dino.exceptions import NoSuchUserException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -41,6 +42,7 @@ class FakeDb(object):
     _admins = dict()
     _super_users = set()
     _room_name = dict()
+    _user_names = dict()
 
     _ban_status = {
         'global': '',
@@ -110,6 +112,11 @@ class FakeDb(object):
         if room_id in FakeDb._room_name:
             return FakeDb._room_name[room_id]
         raise NoSuchRoomException(room_id)
+
+    def get_user_name(self, user_id):
+        if user_id not in FakeDb._user_names:
+            raise NoSuchUserException(user_id)
+        return FakeDb._user_names[user_id]
 
 
 class RequestBanTest(TestCase):
@@ -246,6 +253,10 @@ class RequestBanTest(TestCase):
 
         FakeDb._room_name = {
             RequestBanTest.ROOM_ID: RequestBanTest.ROOM_NAME
+        }
+
+        FakeDb._user_names = {
+            RequestBanTest.USER_ID: RequestBanTest.USER_NAME
         }
 
         FakeDb._moderators = {

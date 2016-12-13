@@ -80,7 +80,16 @@ class StorageRedis(object):
         for message_entry in messages:
             message_entry = str(message_entry, 'utf-8')
             msg_id, published, user_id, user_name, msg = message_entry.split(',', 4)
-            cleaned_messages.append((msg_id, published, user_id, b64d(user_name), b64d(msg)))
+            cleaned_messages.append({
+                'message_id': msg_id,
+                'from_user': user_id,
+                'to_user': room_id,
+                'body': b64d(msg),
+                'domain': 'room',
+                'channel_id': '',
+                'timestamp': published,
+                'deleted': False
+            })
 
         return cleaned_messages
 

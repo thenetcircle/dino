@@ -337,6 +337,7 @@ class BaseTest(unittest.TestCase):
         environ.env.db.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.db.redis.hset(RedisKeys.auth_key(BaseTest.USER_ID), SessionKeys.user_name.value, BaseTest.USER_NAME)
         environ.env.db.redis.hset(RedisKeys.channel_for_rooms(), BaseTest.ROOM_ID, BaseTest.CHANNEL_ID)
+        environ.env.db.redis.hset(RedisKeys.user_names(), BaseTest.USER_ID, BaseTest.USER_NAME)
         environ.env.db.redis.delete(RedisKeys.room_acl(BaseTest.ROOM_ID))
 
         environ.env.render_template = BaseTest._render_template
