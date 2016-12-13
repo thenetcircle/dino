@@ -102,6 +102,13 @@ class DatabaseRedis(object):
         channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), room_id[:2])
         return channel_id is not None and len(str(channel_id, 'utf-8').strip()) > 0
 
+    def has_private_room(self, user_id: str) -> bool:
+        if user_id is None or len(user_id.strip()) == 0:
+            return False
+
+        room_id = self.redis.hget(RedisKeys.private_rooms(), user_id)
+        return room_id is not None and len(str(room_id, 'utf-8').strip()) > 0
+
     def get_private_room(self, user_id: str, user_name: str=None) -> (str, str):
         room_id = self.redis.hget(RedisKeys.private_rooms(), user_id)
         if room_id is None:

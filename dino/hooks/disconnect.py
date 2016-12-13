@@ -29,6 +29,11 @@ class OnDisconnectHooks(object):
         user_name = environ.env.session.get(SessionKeys.user_name.value)
         logger.debug('a user disconnected, name: %s' % user_name)
 
+        if user_id is None or len(user_id.strip()) == 0:
+            return
+        if not environ.env.db.has_private_room(user_id):
+            return
+
         private_room_id = environ.env.db.get_private_room(user_id)[0]
         environ.env.leave_room(private_room_id)
 
