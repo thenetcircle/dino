@@ -49,10 +49,10 @@ dev:
         user: 'dino'
         password: 'dino'
     storage:
-        type: 'redis'
-        host: '10.60.1.126:6379'
-        max_history: 200
-        db: 6
+        type: 'cassandra'
+        host:
+            - '10.60.1.130'
+            - '10.60.1.131'
     stats:
       type: 'statsd'
       host: 'mock'
