@@ -18,6 +18,7 @@ from uuid import uuid4 as uuid
 from activitystreams.models.activity import Activity
 from dino.config import ApiTargets
 from dino.config import ErrorCodes as ECodes
+from dino.utils import b64e
 from dino.hooks import *
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
@@ -81,9 +82,9 @@ def on_message(data, activity: Activity):
         activity.object.url = ''
 
     activity.actor.summary = environ.env.session.get(SessionKeys.user_name.value)
-    data['actor']['summary'] = activity.actor.summary
-    data['target']['displayName'] = activity.target.display_name
-    data['object']['summary'] = activity.object.summary
+    data['actor']['summary'] = b64e(activity.actor.summary)
+    data['target']['displayName'] = b64e(activity.target.display_name)
+    data['object']['summary'] = b64e(activity.object.summary)
 
     environ.env.observer.emit('on_message', (data, activity))
     return ECodes.OK, data
