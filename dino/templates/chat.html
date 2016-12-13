@@ -50,7 +50,7 @@
                     socket.emit('join', {
                         actor: {
                             id: '{{ user_id }}',
-                            summary: b64e('{{ user_name }}')
+                            displayName: b64e('{{ user_name }}')
                         },
                         object: {
                             url: channel_id
@@ -72,7 +72,7 @@
                     socket.emit('list_rooms', {
                         actor: {
                             id: '{{ user_id }}',
-                            summary: b64e('{{ user_name }}')
+                            displayName: b64e('{{ user_name }}')
                         },
                         object: {
                             url: channel_id
@@ -107,7 +107,7 @@
                         verb: 'login',
                         actor: {
                             id: '{{ user_id }}',
-                            summary: '{{ user_name }}',
+                            displayName: '{{ user_name }}',
                             attachments: [
                                 {
                                     objectType: 'gender',
@@ -155,7 +155,7 @@
                     socket.emit('list_channels', {
                         actor: {
                             id: '{{ user_id }}',
-                            summary: b64e('{{ user_name }}')
+                            displayName: b64e('{{ user_name }}')
                         },
                         verb: 'list'
                     });
@@ -169,7 +169,7 @@
 
                     $('#channels').html('');
                     for (i = 0; i < channels.length; i++) {
-                        channel_name = b64d(channels[i].content)
+                        channel_name = b64d(channels[i].displayName)
                         channel_id = channels[i].id
                         $('#channels').html('<a href="#" id="channel-id-' + channel_id + '" class="channel">' + channel_name + '</a>' + ' ' + $('#channels').html());
                     }
@@ -215,7 +215,7 @@
                     $('#current-owners').html('');
                     if (owners !== undefined && owners.length > 0) {
                         for (i = 0; i < owners.length; i++) {
-                            $('#current-owners').html(b64d(owners[i].content) + ' ' + $('#current-owners').html());
+                            $('#current-owners').html(b64d(owners[i].displayName) + ' ' + $('#current-owners').html());
                         }
                     }
 
@@ -225,7 +225,7 @@
                             msg = msgs[i];
                             lib.insertOrUpdate('messages', {uuid: msg.id}, {
                                 uuid: msg.id,
-                                user: b64d(msg.summary),
+                                user: b64d(msg.author.displayName),
                                 room: data.target.id,
                                 msg: b64d(msg.content),
                                 timestamp: msg.published
@@ -240,7 +240,7 @@
                     if (users !== undefined && users.length > 0) {
                         for (i = 0; i < users.length; i++) {
                             user_id = users[i].id;
-                            user_name = b64d(users[i].content)
+                            user_name = b64d(users[i].displayName)
 
                             if ($('#user-' + user_id).length > 0) {
                                 continue;
@@ -270,7 +270,7 @@
 
                     $('#rooms').html('');
                     for (i = 0; i < rooms.length; i++) {
-                        room_name = b64d(rooms[i].content)
+                        room_name = b64d(rooms[i].displayName)
                         nr_users = rooms[i].summary
                         room_id = rooms[i].id
                         $('#rooms').html('<a href="#" id="room-id-' + room_id + '" class="room">' + room_name + ' (' + nr_users + ')</a>' + ' ' + $('#rooms').html());
@@ -284,13 +284,13 @@
                         return;
                     }
 
-                    $('#online').html($('#online').html() + '<a href="#" id="online-user-' + data.actor.id + '">' + b64d(data.actor.summary) + '</a> ');
+                    $('#online').html($('#online').html() + '<a href="#" id="online-user-' + data.actor.id + '">' + b64d(data.actor.displayName) + '</a> ');
                     $('a#online-user-' + data.actor.id).click(function() {
                         $('#target').val($(this).text());
                         $('#private').attr('checked', true);
                         $('#room-id').val($(this).attr('id').split('-', 2)[1])
                         $('#current-room').html($('#target').val());
-                        add_to_chat('<< chatting with ' + b64d(data.actor.summary) + ' >>\n')
+                        add_to_chat('<< chatting with ' + b64d(data.actor.displayName) + ' >>\n')
                         show_history_for(data.actor.id);
                     });
                 });
@@ -299,7 +299,7 @@
                     console.log(data);
                     $('a#online-user-' + data.actor.id).remove();
                     $('a#user-' + data.actor.id).remove();
-                    add_to_chat('<< ' + b64d(data.actor.summary) + ' has disconnected >>\n');
+                    add_to_chat('<< ' + b64d(data.actor.displayName) + ' has disconnected >>\n');
                 });
 
                 socket.on('gn_room_created', function(data) {
@@ -311,13 +311,13 @@
                 socket.on('gn_user_left', function(data) {
                     console.log(data);
                     $('a#user-' + data.actor.id).remove();
-                    add_to_chat('<< ' + b64d(data.actor.summary) + ' has left room ' + b64d(data.target.displayName) + ' >>\n');
+                    add_to_chat('<< ' + b64d(data.actor.displayName) + ' has left room ' + b64d(data.target.displayName) + ' >>\n');
                 });
 
                 socket.on('gn_user_kicked', function(data) {
                     console.log(data);
                     $('a#user-' + data.actor.id).remove();
-                    add_to_chat('<< ' + b64d(data.object.summary) + ' has been kicked from room ' + b64d(data.target.displayName) + ' >>\n');
+                    add_to_chat('<< ' + b64d(data.object.displayName) + ' has been kicked from room ' + b64d(data.target.displayName) + ' >>\n');
                 });
 
                 socket.on('gn_user_joined', function(data) {
@@ -327,15 +327,15 @@
                         return;
                     }
 
-                    add_to_chat('<< ' + b64d(data.actor.summary) + ' has joined room ' + b64d(data.target.displayName) + ' >>\n');
-                    $('#users_in_room').html($('#users_in_room').html() + ' <a href="#" id="user-' + data.actor.id + '" class="user">' + b64d(data.actor.summary) + '</a>');
+                    add_to_chat('<< ' + b64d(data.actor.displayName) + ' has joined room ' + b64d(data.target.displayName) + ' >>\n');
+                    $('#users_in_room').html($('#users_in_room').html() + ' <a href="#" id="user-' + data.actor.id + '" class="user">' + b64d(data.actor.displayName) + '</a>');
 
                     $('a#user-' + data.actor.id).click(function() {
-                        $('#target').val(data.actor.summary);
+                        $('#target').val(data.actor.displayName);
                         $('#private').attr('checked', true);
                         $('#room-id').val($(this).attr('id').split('-', 2)[1])
                         $('#current-room').html($('#target').val());
-                        add_to_chat('<< chatting with ' + b64d(data.actor.summary) + ' >>\n')
+                        add_to_chat('<< chatting with ' + b64d(data.actor.displayName) + ' >>\n')
                         show_history_for(data.actor.id);
                     });
                 });
@@ -343,10 +343,10 @@
                 handle_message = function(data) {
                     console.log(data);
                     if ($('#room-id').val() == data.target.id || $('#room-id').val() == data.actor.id) {
-                        add_to_chat(data.published + ' <' + b64d(data.actor.summary) + '> ' + b64d(data.object.content) + '\n');
+                        add_to_chat(data.published + ' <' + b64d(data.actor.displayName) + '> ' + b64d(data.object.content) + '\n');
                     }
                     else if (data.target.objectType == 'private') {
-                        add_to_chat(data.published + ' [private msg] <' + b64d(data.actor.summary) + '> ' + b64d(data.object.content) + '\n');
+                        add_to_chat(data.published + ' [private msg] <' + b64d(data.actor.displayName) + '> ' + b64d(data.object.content) + '\n');
                     }
                     room_id = data.target.id
                     if ('{{ user_id }}' === data.target.id) {
@@ -355,7 +355,7 @@
 
                     lib.insertOrUpdate('messages', {uuid: data.id}, {
                         uuid: data.id,
-                        user: b64d(data.actor.summary),
+                        user: b64d(data.actor.displayName),
                         room: room_id,
                         msg: b64d(data.object.content),
                         timestamp: data.published
@@ -407,7 +407,7 @@
                         socket.emit('message', {
                             actor: {
                                 id: '{{ user_id }}',
-                                summary: b64e('{{ user_name }}')
+                                displayName: b64e('{{ user_name }}')
                             },
                             verb: 'send',
                             target: {
@@ -427,7 +427,7 @@
                     socket.emit('create', {
                         actor: {
                             id: '{{ user_id }}',
-                            summary: b64e('{{ user_name }}')
+                            displayName: b64e('{{ user_name }}')
                         },
                         verb: 'create',
                         target: {
@@ -440,7 +440,7 @@
                     socket.emit('leave', {
                         actor: {
                             id: '{{ user_id }}',
-                            summary: b64e('{{ user_name }}')
+                            displayName: b64e('{{ user_name }}')
                         },
                         verb: 'leave',
                         target: {

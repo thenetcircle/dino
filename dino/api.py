@@ -82,7 +82,6 @@ def on_message(data, activity: Activity):
         activity.object.url = ''
 
     activity.actor.summary = environ.env.session.get(SessionKeys.user_name.value)
-    data['actor']['displayName'] = utils.b64e(activity.actor.display_name)
     data['target']['displayName'] = utils.b64e(activity.target.display_name)
     data['object']['displayName'] = utils.b64e(activity.object.display_name)
 
