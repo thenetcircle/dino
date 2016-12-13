@@ -165,6 +165,21 @@ class DatabaseRdbms(object):
             return _get_user_for_private_room()
         return user_id
 
+    def has_private_room(self, user_id: str) -> bool:
+        @with_session
+        def _has_private_room(session=None):
+            user = session.query(Users).filter(Users.uuid == user_id).first()
+            if user is None:
+                return False
+            room = session.query(Rooms).join(Rooms.channel).filter(Rooms.uuid == user.private_room_id).first()
+            if room is None:
+                return False
+            return True
+
+        if user_id is None or len(user_id.strip()) == 0:
+            return False
+        return _has_private_room()
+
     def get_private_room(self, user_id: str, user_name: str=None) -> (str, str):
         @with_session
         def _get_private_room(session=None):
