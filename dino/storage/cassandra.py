@@ -99,7 +99,7 @@ class CassandraStorage(object):
             'from_user_id': row.from_user_id,
             'from_user_name': row.from_user_id,
             'target_id': row.target_id,
-            'target_name': row.taret_name,
+            'target_name': row.target_name,
             'body': row.body,
             'domain': row.domain,
             'channel_id': row.channel_id,
