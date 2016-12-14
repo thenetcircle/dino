@@ -94,7 +94,7 @@ A rough roadmap for possible upcoming features.
 
 0.12.0
 ---
-* test coverage to 90%+
+* test coverage to 80%+
 * stats
     - use statsd for metrics
     - send successful login events and disconnect events to a message queue

@@ -32,8 +32,26 @@ class StatsdTest(TestCase):
     def setUp(self):
         self.statsd = StatsdService(FakeEnv())
 
+    def test_integration(self):
+        # statsd is fire-and-forget UDP so doesn't matter if nothing is listening here
+        env = FakeEnv()
+        env.config = ConfigDict({
+            ConfigKeys.STATS_SERVICE: {
+                ConfigKeys.HOST: '0.0.0.0',
+                ConfigKeys.INCLUDE_HOST_NAME: 'true',
+                ConfigKeys.PORT: 20500,
+                ConfigKeys.PREFIX: 'dino'
+            }
+        })
+        self.statsd = StatsdService(env)
+        self.statsd.incr('foo')
+
     def test_gauge(self):
         self.statsd.gauge('foo', 12)
+        self.assertEqual(12, self.statsd.statsd.vals['foo'])
+
+    def test_set(self):
+        self.statsd.set('foo', 12)
         self.assertEqual(12, self.statsd.statsd.vals['foo'])
 
     def test_incr(self):
