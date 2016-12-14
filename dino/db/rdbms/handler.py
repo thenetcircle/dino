@@ -368,7 +368,7 @@ class DatabaseRdbms(object):
     def users_in_room(self, room_id: str) -> dict:
         @with_session
         def _users_in_room(session=None) -> dict:
-            rows = session.query(Rooms).join(Rooms.users).filter(Rooms.uuid == room_id).all()
+            rows = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).all()
             users = dict()
             for row in rows:
                 for user in row.users:

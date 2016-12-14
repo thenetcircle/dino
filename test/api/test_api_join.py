@@ -16,7 +16,6 @@ from test.base import BaseTest
 from activitystreams import parse as as_parser
 
 from dino import api
-from dino.config import RedisKeys
 from dino.config import ApiActions
 from dino.utils import b64d
 

@@ -77,7 +77,7 @@ def on_message(data, activity: Activity):
         activity.target.display_name = utils.get_room_name(activity.target.id)
         activity.object.display_name = utils.get_channel_name(activity.object.url)
     else:
-        activity.target.display_name = utils.get_user_name_for(activity.target.id)
+        activity.target.display_name = utils.get_user_name_for(utils.get_user_for_private_room(activity.target.id))
         activity.object.display_name = ''
         activity.object.url = ''
 

@@ -375,6 +375,13 @@ class DatabaseRedis(object):
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
     def users_in_room(self, room_id: str) -> dict:
+        if self.is_room_private(room_id):
+            user_id = self.get_user_for_private_room(room_id)
+            if user_id is None:
+                raise NoSuchUserException(room_id)
+            user_name = self.get_user_name(user_id)
+            return {room_id: user_name}
+
         self.get_room_name(room_id)
         self.channel_for_room(room_id)
 
@@ -1022,7 +1029,9 @@ class DatabaseRedis(object):
         self.env.cache.set_user_invisible(user_id)
 
     def update_last_read_for(self, users: set, room_id: str, time_stamp: int) -> None:
-        self.get_room_name(room_id)
+        if not self.is_room_private(room_id):
+            self.get_room_name(room_id)
+
         redis_key = RedisKeys.last_read(room_id)
         for user_id in users:
             self.redis.hset(redis_key, user_id, time_stamp)

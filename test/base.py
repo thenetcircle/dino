@@ -119,6 +119,7 @@ class BaseTest(unittest.TestCase):
 
     emit_args = list()
     emit_kwargs = dict()
+    msgs_sent = dict()
     rendered_template = None
     send_dir = None
     send_file = None
@@ -170,7 +171,11 @@ class BaseTest(unittest.TestCase):
 
     @staticmethod
     def _send(message, **kwargs):
-        pass
+        if 'room' not in kwargs:
+            return
+        if kwargs['room'] not in BaseTest.msgs_sent:
+            BaseTest.msgs_sent[kwargs['room']] = list()
+        BaseTest.msgs_sent[kwargs['room']].append(message)
 
     @staticmethod
     def _send_from_directory(directory, filename, **options):
@@ -186,6 +191,7 @@ class BaseTest(unittest.TestCase):
         BaseTest.users_in_room.clear()
         BaseTest.emit_args.clear()
         BaseTest.emit_kwargs.clear()
+        BaseTest.msgs_sent.clear()
         BaseTest.rendered_template = None
 
         self.session = {
@@ -634,7 +640,7 @@ class BaseTest(unittest.TestCase):
             'verb': 'list'
         }
 
-    def activity_for_message(self, msg: str='test message'):
+    def activity_for_message(self, msg: str='test message', object_type: str='room'):
         return {
             'actor': {
                 'id': BaseTest.USER_ID,
@@ -646,7 +652,7 @@ class BaseTest(unittest.TestCase):
             'verb': 'send',
             'target': {
                 'id': BaseTest.ROOM_ID,
-                'objectType': 'room'
+                'objectType': object_type
             },
             'id': str(uuid()),
             'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
@@ -711,17 +717,17 @@ class BaseTest(unittest.TestCase):
             }
         }
 
-    def activity_for_join(self):
+    def activity_for_join(self, user_id=USER_ID, room_id=ROOM_ID):
         return {
             'actor': {
-                'id': BaseTest.USER_ID
+                'id': user_id
             },
             'verb': 'join',
             'object': {
                 'url': BaseTest.CHANNEL_ID
             },
             'target': {
-                'id': BaseTest.ROOM_ID,
+                'id': room_id,
                 'objectType': 'room'
             }
         }
