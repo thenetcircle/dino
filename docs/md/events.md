@@ -14,16 +14,17 @@ to user A with the following content:
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<UUID of the sender>",
-            "summary": "<name of the sender>"
+            "displayName": "<name of the sender>"
         },
         "verb": "send",
         "target": {
             "id": "<UUID of the room, or this user's UUID if private msg>",
-            "displayName": "<name of the room, or empty if private msg>",
+            "displayName": "<name of the room, or target user name if private msg>",
             "objectType": "<room/private>"
         },
         "object": {
             "content": "<the message body>",
+            "displayName": "<the name of the channel, or empty if private msg>",
             "url": "<UUID of the channel for this room, or empty if private msg>"
         }
     }
@@ -60,7 +61,7 @@ with the following content:
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<user B's UUID>",
-            "summary": "<name of user B>",
+            "displayName": "<name of user B>",
             "image": {
                 "url": "<user B's image url>"
             }
@@ -82,7 +83,7 @@ with the following content:
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<user B's UUID>",
-            "summary": "<name of user B>",
+            "displayName": "<name of user B>",
         },
         "target": {
             "id": "<uuid of the room>",
@@ -101,7 +102,7 @@ If user A is in any room that user B is in, and user B disconnects from the chat
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<user B's UUID>",
-            "summary": "<name of user B>",
+            "displayName": "<name of user B>",
         },
         "verb": 'disconnect'
     }
@@ -116,7 +117,7 @@ the following content:
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<UUID of user who created the room>",
-            "summary": "<name of the user who created the room>",
+            "displayName": "<name of the user who created the room>",
         },
         "object": {
             "url": "<UUID of the channel for this room>"
@@ -138,11 +139,11 @@ When a user is kicked from a room, an event will be sent to all users in that ro
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<UUID of the kicker>",
-            "summary": "<name of the kicker>"
+            "displayName": "<name of the kicker>"
         },
         "object": {
             "id": "<UUID of the kicked user>",
-            "summary": "<name of the kicked user>"
+            "displayName": "<name of the kicked user>"
         },
         "target": {
             "id": "<UUID of the room the user was kicked from>",

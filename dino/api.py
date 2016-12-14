@@ -68,11 +68,13 @@ def on_message(data, activity: Activity):
     """
     room_id = activity.target.id
     from_room_id = activity.actor.url
+    user_name = environ.env.session.get(SessionKeys.user_name.value)
 
     # only if cross-room should we broadcast the origin room id with the activity; less confusion for clients
     if from_room_id is not None and from_room_id == room_id:
         del data['actor']['url']
 
+    activity.actor.display_name = user_name
     if activity.target.object_type == 'room':
         activity.target.display_name = utils.get_room_name(activity.target.id)
         activity.object.display_name = utils.get_channel_name(activity.object.url)
@@ -82,6 +84,7 @@ def on_message(data, activity: Activity):
         activity.object.url = ''
 
     activity.actor.summary = environ.env.session.get(SessionKeys.user_name.value)
+    data['actor']['displayName'] = utils.b64e(activity.actor.display_name)
     data['target']['displayName'] = utils.b64e(activity.target.display_name)
     data['object']['displayName'] = utils.b64e(activity.object.display_name)
 
