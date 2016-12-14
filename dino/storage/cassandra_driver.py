@@ -137,7 +137,7 @@ class Driver(object):
                                 from_user_id IS NOT NULL AND
                                 sent_time IS NOT NULL AND
                                 time_stamp IS NOT NULL
-                        PRIMARY KEY (from_user_id, target_id, time_stamp)
+                        PRIMARY KEY (from_user_id, target_id, time_stamp, sent_time)
                         WITH CLUSTERING ORDER BY (time_stamp DESC)
                     """
             )
