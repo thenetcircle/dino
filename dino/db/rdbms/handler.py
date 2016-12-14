@@ -1427,10 +1427,41 @@ class DatabaseRdbms(object):
             return room_ban.duration, room_ban.timestamp, room_ban.user_name
         return None, None, None
 
+    @with_session
+    def get_bans_for_user(self, user_id: str, session=None) -> dict:
+        bans = session.query(Bans)\
+            .outerjoin(Bans.channel)\
+            .outerjoin(Bans.room)\
+            .filter(Bans.user_id == user_id).all()
+
+        output = {
+            'global': dict(),
+            'channel': dict(),
+            'room': dict()
+        }
+
+        for ban in bans:
+            if ban.room is not None:
+                output['room'][ban.room.uuid] = {
+                    'name': b64e(ban.room.name),
+                    'duration': ban.duration,
+                    'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                }
+            elif ban.channel is not None:
+                output['channel'][ban.channel.uuid] = {
+                    'name': b64e(ban.channel.name),
+                    'duration': ban.duration,
+                    'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                }
+            elif ban.is_global:
+                output['global'] = {
+                    'duration': ban.duration,
+                    'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                }
+        return output
+
     def get_user_ban_status(self, room_id: str, user_id: str) -> dict:
-        """
-        TODO: fix this method, it's a horribly ugly friday night hack
-        """
+        # TODO: fix this method, it's a horribly ugly friday night hack
         def _has_passed(the_time):
             now = datetime.utcnow()
             return now > datetime.fromtimestamp(int(the_time))

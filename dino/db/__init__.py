@@ -260,6 +260,37 @@ class IDatabase(Interface):
         :return: (duration, timestamp, username) or (None, None, None) if no such ban
         """
 
+    def get_bans_for_user(self, user_id: str) -> dict:
+        """
+        get all channel and room bans for this user, mostly used for the rest api
+
+        return format is:
+
+            {
+                "global": {
+                    "timestamp": "2016-11-29T11:30:21Z",
+                    "duration": "5m"
+                }
+                "channel": {
+                    "<channel uuid>": {
+                        "timestamp": "2016-11-29T12:51:09Z",
+                        "duration": "2d",
+                        "name": "<channel name>"
+                    }
+                },
+                "room" {
+                    "<room uuid>": {
+                        "timestamp": "2016-11-29T12:51:09Z",
+                        "duration": "12h",
+                        "name": "<room name>"
+                    }
+                }
+            }
+
+        :param user_id: the uuid of the user
+        :return: a dict of bans
+        """
+
     def get_user_ban_status(self, room_id: str, user_id: str) -> dict:
         """
         get the ban status of a user for a room

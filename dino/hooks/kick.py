@@ -27,6 +27,11 @@ class OnKickHooks(object):
     @staticmethod
     def publish_activity(arg: tuple) -> None:
         data, activity = arg
+
+        namespace = activity.target.url
+        if namespace is None or len(namespace.strip()) == 0:
+            namespace = environ.env.request.namespace
+
         kick_activity = {
             'actor': {
                 'id': activity.actor.id,
@@ -38,7 +43,7 @@ class OnKickHooks(object):
                 'summary': activity.object.summary
             },
             'target': {
-                'url': environ.env.request.namespace
+                'url': namespace
             }
         }
 
@@ -46,6 +51,9 @@ class OnKickHooks(object):
         if activity.target is not None:
             kick_activity['target']['id'] = activity.target.id
             kick_activity['target']['displayName'] = activity.target.display_name
+
+        print('ok, publishing')
+        print(environ.env.publish)
         environ.env.publish(kick_activity)
 
 

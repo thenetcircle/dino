@@ -18,8 +18,9 @@ from uuid import uuid4 as uuid
 from activitystreams.models.activity import Activity
 from dino.config import ApiTargets
 from dino.config import ErrorCodes as ECodes
-from dino import utils
 from dino.hooks import *
+
+import logging
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 

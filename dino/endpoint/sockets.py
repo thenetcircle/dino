@@ -62,55 +62,54 @@ class Worker(ConsumerMixin):
 
 
 def handle_server_activity(activity: Activity):
-    def _kick(_room_id, _user_id, _user_sid):
+    def _kick(_room_id, _user_id, _user_sid, namespace, activity_json):
         try:
-            _users = socketio.server.manager.rooms[namespace][_room_id]
+            _users = list()
+            if _room_id in socketio.server.manager.rooms[namespace]:
+                _users = socketio.server.manager.rooms[namespace][_room_id]
+            else:
+                logger.warning('no room %s for namespace [%s] (or room is empty)' % (_room_id, namespace))
         except Exception as e:
             logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, _room_id, str(e)))
             print(traceback.format_exc())
             return
 
+        environ.env.out_of_scope_emit(
+                'gn_user_kicked', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
         if _user_sid in _users:
             try:
                 socketio.server.leave_room(_user_sid, _room_id, '/chat')
+                environ.env.db.leave_room(_user_id, _room_id)
             except Exception as e:
                 logger.error('could not kick user %s from room %s: %s' % (_user_id, _room_id, str(e)))
                 return
-            environ.env.out_of_scope_emit(
-                    'gn_user_kicked', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
 
-    def _ban_room(_room_id, _user_id, _user_sid):
+    def _ban_room(_room_id, _user_id, _user_sid, namespace, activity_json):
+        environ.env.out_of_scope_emit(
+                'gn_user_banned', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
         try:
-            _users = socketio.server.manager.rooms[namespace][_room_id]
+            socketio.server.leave_room(_user_sid, _room_id, '/chat')
+            # TODO: ban here with duration and timestamp
+            # environ.env.db.ban_user_room(_user_id, _room_id)
         except Exception as e:
-            logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, _room_id, str(e)))
-            print(traceback.format_exc())
+            logger.error('could not ban user %s from room %s: %s' % (_user_id, _room_id, str(e)))
             return
 
-        if _user_sid in _users:
-            try:
-                socketio.server.leave_room(_user_sid, _room_id, '/chat')
-            except Exception as e:
-                logger.error('could not ban user %s from room %s: %s' % (_user_id, _room_id, str(e)))
-                return
-            environ.env.out_of_scope_emit(
-                    'gn_user_banned', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
-
-    def _ban_channel(_channel_id, _user_id, _user_sid):
+    def _ban_channel(_channel_id, _user_id, _user_sid, namespace, activity_json):
         rooms_in_channel = environ.env.db.rooms_for_channel(_channel_id)
         for room in rooms_in_channel:
-            _ban_room(room, _user_id, _user_sid)
+            _ban_room(room, _user_id, _user_sid, namespace, activity_json)
 
-    def _ban_globally(_channel_id, _user_id, _user_sid):
+    def _ban_globally(_channel_id, _user_id, _user_sid, namespace, activity_json):
         rooms_for_user = environ.env.db.rooms_for_user(_channel_id)
         for room in rooms_for_user:
-            _ban_room(room, _user_id, _user_sid)
+            _ban_room(room, _user_id, _user_sid, namespace, activity_json)
 
-    if activity.verb == 'kick':
+    def handle_kick():
         kicker_id = activity.actor.id
-        kicker_name = activity.actor.summary
+        kicker_name = activity.actor.display_name
         kicked_id = activity.object.id
-        kicked_name = activity.object.summary
+        kicked_name = activity.object.display_name
 
         kicked_id = utils.get_user_for_private_room(kicked_id)
         kicked_sid = utils.get_sid_for_user_id(kicked_id)
@@ -129,17 +128,17 @@ def handle_server_activity(activity: Activity):
             # user just got banned globally, kick from all rooms
             if room_id is None or room_id == '':
                 for room_key in socketio.server.manager.rooms[namespace].keys():
-                    _kick(room_key, kicked_id, kicked_sid)
+                    _kick(room_key, kicked_id, kicked_sid, namespace, activity_json)
             else:
-                _kick(room_id, kicked_id, kicked_sid)
+                _kick(room_id, kicked_id, kicked_sid, namespace, activity_json)
         except KeyError:
             pass
 
-    if activity.verb == 'ban':
+    def handle_ban():
         banner_id = activity.actor.id
-        banner_name = activity.actor.summary
+        banner_name = activity.actor.display_name
         banned_id = activity.object.id
-        banned_name = activity.object.summary
+        banned_name = activity.object.display_name
 
         banned_id = utils.get_user_for_private_room(banned_id)
         banned_sid = utils.get_sid_for_user_id(banned_id)
@@ -147,6 +146,7 @@ def handle_server_activity(activity: Activity):
         target_name = activity.target.display_name
         namespace = activity.target.url
         target_type = activity.target.object_type
+        # TODO: duration and timestamp, also invoke environ.env.db.ban_user_room/channel/global()
 
         if banned_sid is None or banned_sid == [None] or banned_sid == '':
             logger.warn('no sid found for user id %s' % banned_id)
@@ -159,14 +159,27 @@ def handle_server_activity(activity: Activity):
             # user just got banned globally, ban from all rooms
             if target_id is None or target_id == '':
                 for room_key in socketio.server.manager.rooms[namespace].keys():
-                    _ban_globally(room_key, banned_id, banned_sid)
+                    _ban_globally(room_key, banned_id, banned_sid, namespace, activity_json)
             elif target_type == 'channel':
-                _ban_channel(target_id, banned_id, banned_sid)
+                _ban_channel(target_id, banned_id, banned_sid, namespace, activity_json)
             else:
-                _ban_room(target_id, banned_id, banned_sid)
+                _ban_room(target_id, banned_id, banned_sid, namespace, activity_json)
         except KeyError:
             pass
 
+    if activity.verb == 'kick':
+        try:
+            handle_kick()
+        except Exception as e:
+            logger.error('could not handle kick: %s' % str(e))
+            logger.error(traceback.format_exc())
+
+    elif activity.verb == 'ban':
+        try:
+            handle_ban()
+        except Exception as e:
+            logger.error('could not handle ban: %s' % str(e))
+            logger.error(traceback.format_exc())
     else:
         environ.env.logger.error('unknown server activity verb "%s"' % activity.verb)
 

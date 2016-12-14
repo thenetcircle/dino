@@ -13,7 +13,6 @@ Request contains a list of user IDs, e.g.:
 
 Response would be all rooms each user is currently in (room names and channel names are base64 encoded):
 
-
     {
         "1234": [{
             "room_id": "efeca2fe-ba93-11e6-bc9a-4f6f56293063",
@@ -39,8 +38,8 @@ Response is all banned users, separated by channel, room and globally. Example r
         "channels": {},
         "global": {
             "185626": {
-                "duration": "1h",
                 "name": "bHVlbA==",
+                "duration": "1h",
                 "timestamp": "2016-12-05T03:50:24Z"
             }
         },
@@ -49,8 +48,8 @@ Response is all banned users, separated by channel, room and globally. Example r
                 "name": "Y29vbCBndXlz",
                 "users": {
                     "101108": {
-                        "duration": "30m",
                         "name": "bHVlbA==",
+                        "duration": "30m",
                         "timestamp": "2016-12-05T03:20:24Z"
                     }
                 }
@@ -62,3 +61,33 @@ The "timestamp" in the response is the UTC timestamp for when the ban will expir
 are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the rooms, same for channels, while for users
 it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
 keys.
+
+#### User ID parameter
+
+The `/banned` endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:
+
+    curl localhost:5400/banned -d '{"users":["110464"]}' -X GET -H "Content-Type: application/json"
+
+Response would be (slightly different from above example without request body):
+
+    {
+        "data": {
+            "110464": {
+                "channel": {},
+                "room": {
+                    "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
+                        "name": "Y29vbCBndXlz",
+                        "duration": "15m",
+                        "timestamp": "2016-12-14T09:23:00Z"
+                    },
+                    "675eb2a5-17c6-45e4-bc0f-674241573f22": {
+                        "name": "YmFkIGtpZHo=",
+                        "duration": "2m",
+                        "timestamp": "2016-12-14T09:15:51Z"
+                    }
+                },
+                "global": {}
+            }
+        },
+        "status_code": 200
+    }

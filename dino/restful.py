@@ -16,7 +16,10 @@ from flask import Flask
 from flask_restful import Api
 
 from dino.rest.resources import BannedResource
+from dino.rest.resources.kick import KickResource
 from dino.rest.resources import RoomsForUsersResource
+from dino import environ
+from dino.hooks import *
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -32,4 +35,5 @@ def create_app():
 app, api = create_app()
 
 api.add_resource(BannedResource, '/banned')
+api.add_resource(KickResource, '/kick')
 api.add_resource(RoomsForUsersResource, '/rooms-for-users')

@@ -534,6 +534,77 @@ class DatabaseRedis(object):
     def remove_room_ban(self, room_id: str, user_id: str) -> str:
         self.redis.hdel(RedisKeys.banned_users(room_id), user_id)
 
+    def get_bans_for_user(self, user_id: str, session=None) -> dict:
+        def _to_date(_timestamp):
+            return datetime.fromtimestamp(int(_timestamp)).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+
+        now = datetime.utcnow()
+        all_channels = self.redis.hgetall(RedisKeys.channels())
+        channel_ids = list()
+        room_ids = list()
+
+        output = {
+            'global': dict(),
+            'room': dict(),
+            'channel': dict()
+        }
+
+        for channel_id, _ in all_channels.items():
+            channel_ids.append(str(channel_id, 'utf-8'))
+
+        for channel_id in channel_ids:
+            all_rooms = self.redis.hgetall(RedisKeys.rooms(channel_id))
+
+            for room_id, _ in all_rooms.items():
+                room_ids.append(str(room_id, 'utf-8'))
+
+        for channel_id in channel_ids:
+            r_key = RedisKeys.banned_users_channel(channel_id)
+            if not self.redis.hexists(r_key, user_id):
+                continue
+
+            ban_info = self.redis.hget(RedisKeys, r_key)
+            ban_duration, ban_timestamp, _ = ban_info.split('|', 2)
+            if datetime.fromtimestamp(int(ban_timestamp)) < now:
+                self.redis.hdel(r_key, user_id)
+                continue
+
+            output['channel'][channel_id] = {
+                'name': b64e(self.get_channel_name(channel_id)),
+                'duration': ban_duration,
+                'timestamp': _to_date(ban_timestamp)
+            }
+
+        for room_id in room_ids:
+            r_key = RedisKeys.banned_users(room_id)
+            if not self.redis.hexists(r_key, user_id):
+                continue
+
+            ban_info = self.redis.hget(RedisKeys, r_key)
+            ban_duration, ban_timestamp, _ = ban_info.split('|', 2)
+            if datetime.fromtimestamp(int(ban_timestamp)) < now:
+                self.redis.hdel(r_key, user_id)
+                continue
+
+            output['room'][room_id] = {
+                'name': b64e(self.get_room_name(room_id)),
+                'duration': ban_duration,
+                'timestamp': _to_date(ban_timestamp)
+            }
+
+        r_key = RedisKeys.banned_users()
+        if self.redis.hexists(r_key, user_id):
+            ban_info = self.redis.hget(RedisKeys.banned_users(), user_id)
+            ban_duration, ban_timestamp, _ = ban_info.split('|', 2)
+            if datetime.fromtimestamp(int(ban_timestamp)) < now:
+                self.redis.hdel(r_key, user_id)
+            else:
+                output['global'] = {
+                    'duration': ban_duration,
+                    'timestamp': _to_date(ban_timestamp)
+                }
+        return output
+
     def get_user_ban_status(self, room_id: str, user_id: str) -> dict:
         channel_id = self.channel_for_room(room_id)
         global_ban = self.redis.hget(RedisKeys.banned_users(), user_id)

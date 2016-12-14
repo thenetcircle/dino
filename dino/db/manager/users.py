@@ -41,8 +41,7 @@ class UserManager(BaseManager):
         return output
 
     def kick_user(self, room_id: str, user_id: str) -> None:
-        real_user_id = self.env.db.get_user_for_private_room(user_id)
-        self.env.db.kick_user(room_id, real_user_id)
+        self.env.db.kick_user(room_id, user_id)
         kick_activity = {
             'actor': {
                 'id': '',
@@ -50,8 +49,8 @@ class UserManager(BaseManager):
             },
             'verb': 'kick',
             'object': {
-                'id': real_user_id,
-                'summary': b64e(self.env.db.get_user_name(real_user_id))
+                'id': self.env.db.get_private_room(user_id)[0],
+                'summary': b64e(self.env.db.get_user_name(user_id))
             },
             'target': {
                 'id': room_id,

@@ -36,6 +36,17 @@ class BaseResource(Resource):
             logging.exception(traceback.format_exc())
             return {'status_code': 500, 'data': str(e)}
 
+    def post(self):
+        try:
+            return {'status_code': 200, 'data': self.do_post()}
+        except Exception as e:
+            logging.error('could not do get: %s' % str(e))
+            logging.exception(traceback.format_exc())
+            return {'status_code': 500, 'data': str(e)}
+
+    def do_post(self):
+        raise NotImplementedError()
+
     def do_get(self):
         raise NotImplementedError()
 

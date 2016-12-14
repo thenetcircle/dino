@@ -14,9 +14,15 @@
 
 from functools import lru_cache
 from datetime import datetime
+from flask import request
+
+import logging
+import traceback
 
 from dino.rest.resources.base import BaseResource
 from dino import environ
+
+logger = logging.getLogger(__name__)
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -25,6 +31,7 @@ class BannedResource(BaseResource):
     def __init__(self):
         super(BannedResource, self).__init__()
         self.last_cleared = datetime.utcnow()
+        self.request = request
 
     def _get_lru_method(self):
         return self.do_get
@@ -36,5 +43,30 @@ class BannedResource(BaseResource):
         self.last_cleared = last_cleared
 
     @lru_cache()
+    def do_get_with_params(self, user_id):
+        return environ.env.db.get_bans_for_user(user_id)
+
     def do_get(self):
-        return environ.env.db.get_banned_users()
+        is_valid, msg, json = self.validate_json()
+        if not is_valid:
+            logger.error('invalid json: %s' % msg)
+            return dict()
+
+        if json is None:
+            return environ.env.db.get_banned_users()
+
+        if 'users' not in json:
+            return dict()
+
+        output = dict()
+        for user_id in json['users']:
+            output[user_id] = self.do_get_with_params(user_id)
+        return output
+
+    def validate_json(self):
+        try:
+            return True, None, self.request.get_json(silent=True)
+        except Exception as e:
+            logger.error('error: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            return False, 'invalid json in request', None
