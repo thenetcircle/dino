@@ -126,6 +126,21 @@ class Driver(object):
                         WITH CLUSTERING ORDER BY (time_stamp DESC)
                     """
             )
+            self.session.execute(
+                    """
+                    CREATE MATERIALIZED VIEW IF NOT EXISTS messages_by_from_user_id AS
+                        SELECT * from messages
+                            WHERE
+                                message_id IS NOT NULL AND
+                                body IS NOT NULL AND
+                                target_id IS NOT NULL AND
+                                from_user_id IS NOT NULL AND
+                                sent_time IS NOT NULL AND
+                                time_stamp IS NOT NULL
+                        PRIMARY KEY (from_user_id, time_stamp)
+                        WITH CLUSTERING ORDER BY (time_stamp DESC)
+                    """
+            )
 
         def prepare_statements():
             self.statements[StatementKeys.msg_insert] = self.session.prepare(

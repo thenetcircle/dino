@@ -451,11 +451,11 @@ Request contains:
         },
         verb: "send",
         target: {
-            id: "<room ID>"
+            id: "<room/user ID>",
+            objectType: "<room/private>"
         },
         object: {
             content: "<the message>",
-            objectType: "<room/private>"
         }
     }
 
