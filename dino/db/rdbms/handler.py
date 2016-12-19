@@ -1269,7 +1269,7 @@ class DatabaseRdbms(object):
             try:
                 found[role.user_id] = self.get_user_name(role.user_id)
             except NoSuchUserException as e:
-                print(traceback.format_exc())
+                logger.exception(traceback.format_exc())
                 logger.error('no username found for user_id %s: %s' % (role.user_id, str(e)))
         return found
 

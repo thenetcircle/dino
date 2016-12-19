@@ -17,6 +17,7 @@ from datetime import datetime
 from datetime import timedelta
 
 from dino import environ
+from dino.config import ConfigKeys
 from dino.rest.resources.banned import BannedResource
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -27,6 +28,24 @@ class FakeDb(object):
 
     def get_banned_users(self):
         return FakeDb._banned
+
+    def get_bans_for_user(self, user_id):
+        return  {
+            'global': dict(),
+            'room': {
+                'name': RoomsForUsersTest.ROOM_NAME,
+                'duration': '5m',
+                'timestamp': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+            },
+            'channel': dict()
+        }
+
+
+class FakeRequest(object):
+    _json = dict()
+
+    def get_json(self, silent=False):
+        return FakeRequest._json
 
 
 class RoomsForUsersTest(TestCase):
@@ -42,6 +61,10 @@ class RoomsForUsersTest(TestCase):
         environ.env.db = FakeDb()
         FakeDb._banned = {RoomsForUsersTest.USER_ID}
         self.resource = BannedResource()
+        self.resource.request = FakeRequest()
+        FakeRequest._json = {
+            'users': [RoomsForUsersTest.USER_ID]
+        }
 
     def test_get(self):
         self.assertEqual(1, len(self.resource.do_get()))

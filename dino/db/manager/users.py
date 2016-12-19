@@ -144,6 +144,7 @@ class UserManager(BaseManager):
             self.env.db.create_user(user_id, user_name)
             self.env.db.set_super_user(user_id)
         except Exception as e:
+            logger.exception(traceback.format_exc())
             logger.error('could not create super user: %s' % str(e))
 
     def get_user(self, user_id: str) -> dict:

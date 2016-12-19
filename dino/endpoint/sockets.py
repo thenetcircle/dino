@@ -15,6 +15,8 @@
 import threading
 import time
 import traceback
+import logging
+
 from typing import Union
 from uuid import uuid4 as uuid
 
@@ -38,7 +40,7 @@ from dino.forms import LoginForm
 from dino.server import app, socketio
 from dino.utils.handlers import GracefulInterruptHandler
 
-logger = environ.env.logger
+logger = logging.getLogger(__name__)
 
 
 class Worker(ConsumerMixin):

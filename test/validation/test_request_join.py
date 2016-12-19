@@ -35,7 +35,7 @@ class RequestJoinTest(BaseTest):
         else:
             bantime = datetime.datetime.utcnow() + datetime.timedelta(0, 240)  # 4 minutes left
 
-        bantime = bantime.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        bantime = str(bantime.timestamp()).split('.')[0]
         self.env.db.redis.hset(RedisKeys.banned_users(), BaseTest.USER_ID, 'asdf|%s' % bantime)
 
     def test_join_non_owner_no_acl(self):

@@ -64,16 +64,18 @@ class UserManagerTest(BaseDatabaseTest):
     def test_kick_user(self):
         self._create_channel()
         self._create_room()
-        self.manager.kick_user(BaseDatabaseTest.ROOM_ID, self.db.get_private_room(BaseDatabaseTest.USER_ID)[0])
+        private_room_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
+        self.manager.kick_user(BaseDatabaseTest.ROOM_ID, BaseDatabaseTest.USER_ID)
         self.assertIsNotNone(UserManagerTest._act)
         self.assertEqual(UserManagerTest._act['target']['objectType'], 'room')
-        self.assertEqual(UserManagerTest._act['object']['id'], BaseDatabaseTest.USER_ID)
+        self.assertEqual(UserManagerTest._act['object']['id'], private_room_id)
         self.assertEqual(UserManagerTest._act['target']['id'], BaseDatabaseTest.ROOM_ID)
 
     def test_kick_user_is_base64(self):
+        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self._create_channel()
         self._create_room()
-        self.manager.kick_user(BaseDatabaseTest.ROOM_ID, self.db.get_private_room(BaseDatabaseTest.USER_ID)[0])
+        self.manager.kick_user(BaseDatabaseTest.ROOM_ID, BaseDatabaseTest.USER_ID)
         self.assertIsNotNone(UserManagerTest._act)
         self.assertEqual(UserManagerTest._act['target']['objectType'], 'room')
         self.assertEqual(b64d(UserManagerTest._act['object']['summary']), BaseDatabaseTest.USER_NAME)

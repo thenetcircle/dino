@@ -255,7 +255,7 @@ class BaseWithDb(TestCase):
         else:
             bantime = datetime.utcnow() + timedelta(0, 240)  # 4 minutes left
 
-        bantime = bantime.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        bantime = str(bantime.timestamp()).split('.')[0]
         FakeDb._bans[target] = bantime
 
 
