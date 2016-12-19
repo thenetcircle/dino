@@ -22,7 +22,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class BaseResource(Resource):
-    CACHE_CLEAR_INTERVAL = 20  # 20 seconds
+    CACHE_CLEAR_INTERVAL = 2  # 2 seconds
 
     def get(self):
         if (datetime.utcnow() - self._get_last_cleared()).total_seconds() > BaseResource.CACHE_CLEAR_INTERVAL:
