@@ -34,7 +34,7 @@ class BannedResource(BaseResource):
         self.request = request
 
     def _get_lru_method(self):
-        return self.do_get
+        return self.do_get_with_params
 
     def _get_last_cleared(self):
         return self.last_cleared
