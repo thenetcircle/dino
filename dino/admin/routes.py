@@ -25,6 +25,7 @@ import traceback
 from dino import environ
 from dino.config import ConfigKeys
 from dino.config import ApiTargets
+from dino import utils
 
 from dino.web import app
 from dino.admin.orm import channel_manager
@@ -178,12 +179,31 @@ def banned():
             ban_form.target_type.errors.append('Unkonwn ban type "%s"' % e.ban_type)
 
     bans = user_manager.get_banned_users()
+    channel_bans = bans['channels']
+    for channel_id in channel_bans:
+        channel_bans[channel_id]['name'] = utils.b64d(channel_bans[channel_id]['name'])
+        for user_id in channel_bans[channel_id]['users']:
+            channel_bans[channel_id]['users'][user_id]['name'] = \
+                utils.b64d(channel_bans[channel_id]['users'][user_id]['name'])
+            
+    room_bans = bans['rooms']
+    for room_id in room_bans:
+        room_bans[room_id]['name'] = utils.b64d(room_bans[room_id]['name'])
+        for user_id in room_bans[room_id]['users']:
+            room_bans[room_id]['users'][user_id]['name'] = \
+                utils.b64d(room_bans[room_id]['users'][user_id]['name'])
+            
+    global_bans = bans['global']
+    for user_id in global_bans:
+        global_bans[user_id]['name'] = \
+            utils.b64d(global_bans[user_id]['name'])
+
     return render_template(
             'banned.html',
             form=ban_form,
-            globally=bans['global'],
-            channels=bans['channels'],
-            rooms=bans['rooms'])
+            globally=global_bans,
+            channels=channel_bans,
+            rooms=room_bans)
 
 
 @app.route('/users', methods=['GET'])
