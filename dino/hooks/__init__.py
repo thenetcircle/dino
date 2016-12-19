@@ -11,7 +11,7 @@
 # limitations under the License.
 
 from dino.hooks.ban import *
-from dino.hooks.create import *
+from dino.hooks.connect import *
 from dino.hooks.create import *
 from dino.hooks.delete import *
 from dino.hooks.disconnect import *

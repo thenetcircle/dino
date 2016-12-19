@@ -16,6 +16,7 @@ from typing import Union
 from uuid import uuid4 as uuid
 
 from activitystreams.models.activity import Activity
+from activitystreams import parse as as_parser
 from dino.config import ApiTargets
 from dino.config import ErrorCodes as ECodes
 from dino.hooks import *
@@ -334,5 +335,12 @@ def on_disconnect() -> (int, None):
 
     :return json if ok, {'status_code': 200}
     """
-    environ.env.observer.emit('on_disconnect', (None, None))
+    data = {
+        'verb': 'disconnect',
+        'actor': {
+            'id': environ.env.session.get(SessionKeys.user_id.value)
+        }
+    }
+    activity = as_parser(data)
+    environ.env.observer.emit('on_disconnect', (data, activity))
     return ECodes.OK, None

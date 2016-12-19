@@ -50,6 +50,17 @@ class OnLoginHooks(object):
         activity_json = utils.activity_for_login(user_id, user_name)
         environ.env.publish(activity_json, external=True)
 
+    @staticmethod
+    def set_user_online(arg: tuple) -> None:
+        data, activity = arg
+        user_id = activity.actor.id
+        environ.env.db.set_user_online(user_id)
+
+
+@environ.env.observer.on('on_login')
+def _on_login_set_user_online(arg: tuple) -> None:
+    OnLoginHooks.set_user_online(arg)
+
 
 @environ.env.observer.on('on_login')
 def _on_login_update_session_and_join_private_room(arg: tuple) -> None:
