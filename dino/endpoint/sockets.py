@@ -87,8 +87,12 @@ def handle_server_activity(activity: Activity):
     def _ban_room(_room_id, _user_id, _user_sid, namespace, activity_json):
         environ.env.out_of_scope_emit(
                 'gn_user_banned', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
+        ban_duration = activity.object.summary
+        ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+
         try:
             socketio.server.leave_room(_user_sid, _room_id, '/chat')
+            environ.env.db.ban_user_room(_user_id, ban_timestamp, ban_duration, _room_id)
             # TODO: ban here with duration and timestamp
             # environ.env.db.ban_user_room(_user_id, _room_id)
         except Exception as e:
@@ -97,11 +101,17 @@ def handle_server_activity(activity: Activity):
 
     def _ban_channel(_channel_id, _user_id, _user_sid, namespace, activity_json):
         rooms_in_channel = environ.env.db.rooms_for_channel(_channel_id)
+        ban_duration = activity.object.summary
+        ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+        environ.env.db.ban_user_channel(_user_id, ban_timestamp, ban_duration, _channel_id)
         for room in rooms_in_channel:
             _ban_room(room, _user_id, _user_sid, namespace, activity_json)
 
     def _ban_globally(_channel_id, _user_id, _user_sid, namespace, activity_json):
         rooms_for_user = environ.env.db.rooms_for_user(_channel_id)
+        ban_duration = activity.object.summary
+        ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+        environ.env.db.ban_user_global(_user_id, ban_timestamp, ban_duration)
         for room in rooms_for_user:
             _ban_room(room, _user_id, _user_sid, namespace, activity_json)
 

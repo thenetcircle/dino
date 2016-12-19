@@ -27,6 +27,7 @@ class OnBanHooks(object):
         room_id = activity.target.id
         kicked_id = activity.object.id
         ban_duration = activity.object.summary
+        # TODO: this ban could be for room, channel or globally
 
         try:
             utils.ban_user(room_id, kicked_id, ban_duration)

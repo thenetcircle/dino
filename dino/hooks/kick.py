@@ -52,8 +52,6 @@ class OnKickHooks(object):
             kick_activity['target']['id'] = activity.target.id
             kick_activity['target']['displayName'] = activity.target.display_name
 
-        print('ok, publishing')
-        print(environ.env.publish)
         environ.env.publish(kick_activity)
 
 
