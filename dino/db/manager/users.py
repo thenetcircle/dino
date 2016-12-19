@@ -61,8 +61,8 @@ class UserManager(BaseManager):
         }
         self.env.publish(kick_activity)
 
-    def ban_user(self, private_room_id: str, target_id: str, duration: str, target_type: str) -> None:
-        user_id = self.env.db.get_user_for_private_room(private_room_id)
+    def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str) -> None:
+        private_room_id = self.env.db.get_private_room(user_id)[0]
         target_name = None
         timestamp = ban_duration_to_timestamp(duration)
 
@@ -86,7 +86,7 @@ class UserManager(BaseManager):
             },
             'verb': 'kick',
             'object': {
-                'id': user_id,
+                'id': private_room_id,
                 'summary': b64e(self.env.db.get_user_name(user_id))
             },
             'target': {
