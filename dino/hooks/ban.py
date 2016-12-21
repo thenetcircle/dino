@@ -35,7 +35,42 @@ class OnBanHooks(object):
             logger.exception('could not ban user, should have been caught in validator: %s' % str(e))
             logger.error('request activity for failed ban was: %s' % str(data))
 
+    @staticmethod
+    def emit_ban_event(arg: tuple) -> None:
+        data, activity = arg
+
+        ban_activity = {
+            'actor': {
+                'id': activity.actor.id,
+                'displayName': activity.actor.display_name
+            },
+            'verb': 'ban',
+            'object': {
+                'id': activity.object.id,
+                'displayName': activity.object.display_name
+            }
+        }
+
+        reason = None
+        if activity.object is not None:
+            reason = activity.object.content
+        if reason is not None and len(reason.strip()) > 0:
+            ban_activity['object']['content'] = reason
+
+        # when banning globally, not target room is specified
+        if activity.target is not None:
+            ban_activity['target'] = dict()
+            ban_activity['target']['id'] = activity.target.id
+            ban_activity['target']['displayName'] = activity.target.display_name
+
+        environ.env.publish(ban_activity, external=True)
+
 
 @environ.env.observer.on('on_ban')
 def _on_ban_ban_user(arg: tuple) -> None:
     OnBanHooks.ban_user(arg)
+
+
+@environ.env.observer.on('on_ban')
+def _on_ban_emit_external_event(arg: tuple) -> None:
+    OnBanHooks.emit_ban_event(arg)
