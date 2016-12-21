@@ -232,6 +232,12 @@ def rooms_for_channel(channel_uuid):
     owner_form = AddOwnerForm(request.form)
     admin_form = AddAdminForm(request.form)
 
+    acls = acl_manager.get_acls_channel(channel_uuid)
+    acls_decoded = list()
+    for acl in acls:
+        acl['value'] = utils.b64d(acl['value'])
+        acls_decoded.append(acl)
+
     return render_template(
             'rooms_in_channel.html',
             form=form,
@@ -240,7 +246,7 @@ def rooms_for_channel(channel_uuid):
             acl_form=acl_form,
             owners=channel_manager.get_owners(channel_uuid),
             admins=channel_manager.get_admins(channel_uuid),
-            acls=acl_manager.get_acls_channel(channel_uuid),
+            acls=acls_decoded,
             channel_uuid=channel_uuid,
             channel_name=channel_manager.name_for_uuid(channel_uuid),
             rooms=room_manager.get_rooms(channel_uuid))
@@ -252,6 +258,12 @@ def users_for_room(channel_uuid, room_uuid):
     mod_form = AddModeratorForm(request.form)
     acl_form = CreateRoomAclForm(request.form)
 
+    acls = acl_manager.get_acls_room(room_uuid)
+    acls_decoded = list()
+    for acl in acls:
+        acl['value'] = utils.b64d(acl['value'])
+        acls_decoded.append(acl)
+
     return render_template(
             'users_in_room.html',
             channel_uuid=channel_uuid,
@@ -259,7 +271,7 @@ def users_for_room(channel_uuid, room_uuid):
             owner_form=owner_form,
             mod_form=mod_form,
             acl_form=acl_form,
-            acls=acl_manager.get_acls_room(room_uuid),
+            acls=acls_decoded,
             channel_name=channel_manager.name_for_uuid(channel_uuid),
             room_name=room_manager.name_for_uuid(room_uuid),
             owners=room_manager.get_owners(room_uuid),
