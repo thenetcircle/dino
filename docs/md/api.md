@@ -101,11 +101,13 @@ Response data if successful:
                 "attachments": [
                     {
                         "id": "<room UUID>",
-                        "displayName": "<room name>"
+                        "displayName": "<room name>",
+                        "summary": <number of users in this room (integer)>
                     },
                     {
                         "id": "<room UUID>",
-                        "displayName": "<room name>"
+                        "displayName": "<room name>",
+                        "summary": <number of users in this room (integer)>
                     }
                 ]
             },
