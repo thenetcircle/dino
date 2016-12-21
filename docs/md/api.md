@@ -161,11 +161,31 @@ Response data if successful:
                 "attachments": [
                     {
                         "id": "<user UUID>",
-                        "displayName": "<user name>"
+                        "displayName": "<user name>",
+                        "attachments": [
+                            {
+                                "content": "NDA=",
+                                "objectType": "age"
+                            },
+                            {
+                                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                                "objectType": "avatar"
+                            }
+                        ]
                     },
                     {
                         "id": "<user UUID>",
-                        "displayName": "<user name>"
+                        "displayName": "<user name>",
+                        "attachments": [
+                            {
+                                "content": "NDA=",
+                                "objectType": "age"
+                            },
+                            {
+                                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                                "objectType": "avatar"
+                            }
+                        ]
                     }
                 ]
             },

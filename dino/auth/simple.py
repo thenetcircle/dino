@@ -25,6 +25,9 @@ class AllowAllAuth(object):
     def __init__(self):
         pass
 
+    def get_user_info(self, user_id: str) -> dict:
+        return dict()
+
     def authenticate_and_populate_session(self, user_id: str, token: str) -> (bool, Union[None, str], Union[None, dict]):
         return True, None, {'user_id': user_id, 'token': token}
 
@@ -33,6 +36,9 @@ class AllowAllAuth(object):
 class DenyAllAuth(object):
     def __init__(self):
         pass
+
+    def get_user_info(self, user_id: str) -> dict:
+        return dict()
 
     def authenticate_and_populate_session(self, user_id: str, token: str) -> (bool, Union[None, str], Union[None, dict]):
         return False, 'not allowed', None

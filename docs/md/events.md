@@ -66,6 +66,18 @@ with the following content:
                 "url": "<user B's image url>"
             }
         },
+        "object": {
+            "attachments": [
+                {
+                    "content": "NDA=",
+                    "objectType": "age"
+                },
+                {
+                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                    "objectType": "avatar"
+                }
+            ]
+        },
         "target": {
             "id": "<uuid of the room>",
             "displayName": "<name of the room>"

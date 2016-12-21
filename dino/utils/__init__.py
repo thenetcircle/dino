@@ -106,6 +106,9 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
                 'url': image_url
             }
         },
+        'object': {
+            'attachments': get_user_info_attachments_for(user_id)
+        },
         'target': {
             'id': room_id,
             'displayName': b64e(room_name),
@@ -409,10 +412,22 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     for user_id, user_name in users.items():
         response['object']['attachments'].append({
             'id': user_id,
-            'displayName': b64e(user_name)
+            'displayName': b64e(user_name),
+            'attachments': get_user_info_attachments_for(user_id)
         })
 
     return response
+
+
+def get_user_info_attachments_for(private_user_id: str) -> list:
+    user_id = get_user_for_private_room(private_user_id)
+    attachments = list()
+    for info_key, info_val in environ.env.auth.get_user_info(user_id).items():
+        attachments.append({
+            'objectType': info_key,
+            'content': b64e(info_val)
+        })
+    return attachments
 
 
 def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
@@ -461,6 +476,10 @@ def get_sid_for_user_id(user_id: str) -> str:
 
 def get_user_for_private_room(room_id: str) -> str:
     return environ.env.db.get_user_for_private_room(room_id)
+
+
+def get_private_room_for_user_id(user_id: str) -> str:
+    return environ.env.db.get_private_room(user_id)[0]
 
 
 def is_banned_globally(user_id: str) -> (bool, Union[str, None]):

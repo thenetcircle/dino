@@ -34,6 +34,22 @@ class AuthRedis(object):
 
         self.redis = Redis(host=host, port=port, db=db)
 
+    def get_user_info(self, user_id: str) -> dict:
+        key = RedisKeys.auth_key(user_id)
+        binary_stored_session = self.redis.hgetall(key)
+        stored_session = dict()
+
+        for key, val in binary_stored_session.items():
+            if type(key) == bytes:
+                key = str(key, 'utf-8')
+            if type(val) == bytes:
+                val = str(val, 'utf-8')
+
+            if key in [SessionKeys.token.value, SessionKeys.user_name.value, SessionKeys.user_id.value]:
+                continue
+            stored_session[key] = val
+        return stored_session
+
     def authenticate_and_populate_session(self, user_id: str, supplied_token: str) -> (bool, Union[None, str], Union[None, dict]):
         if user_id is None or len(user_id) == 0:
             return False, 'no user_id supplied', None
