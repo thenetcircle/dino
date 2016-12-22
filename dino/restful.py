@@ -15,9 +15,10 @@
 from flask import Flask
 from flask_restful import Api
 
-from dino.rest.resources import BannedResource
+from dino.rest.resources.banned import BannedResource
+from dino.rest.resources.ban import BanResource
 from dino.rest.resources.kick import KickResource
-from dino.rest.resources import RoomsForUsersResource
+from dino.rest.resources.rooms_for_users import RoomsForUsersResource
 from dino import environ
 from dino.hooks import *
 
@@ -35,5 +36,6 @@ def create_app():
 app, api = create_app()
 
 api.add_resource(BannedResource, '/banned')
+api.add_resource(BanResource, '/ban')
 api.add_resource(KickResource, '/kick')
 api.add_resource(RoomsForUsersResource, '/rooms-for-users')

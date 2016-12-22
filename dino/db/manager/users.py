@@ -13,6 +13,7 @@
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 from dino import utils
+from dino.config import ConfigKeys
 from dino.exceptions import UnknownBanTypeException
 
 import traceback
@@ -78,13 +79,15 @@ class UserManager(BaseManager):
 
         ban_activity = {
             'actor': {
-                'id': '',
-                'summary': 'admin'
+                'id': '0',
+                'displayName': 'admin'
             },
-            'verb': 'kick',
+            'verb': 'ban',
             'object': {
                 'id': private_room_id,
-                'summary': utils.b64e(self.env.db.get_user_name(user_id))
+                'displayName': utils.b64e(self.env.db.get_user_name(user_id)),
+                'summary': duration,
+                'updated': utils.ban_duration_to_datetime(duration).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             },
             'target': {
                 'url': '/chat',
@@ -94,7 +97,7 @@ class UserManager(BaseManager):
 
         if target_name is not None:
             ban_activity['target']['id'] = target_id
-            ban_activity['target']['displayName'] = target_name
+            ban_activity['target']['displayName'] = utils.b64e(target_name)
 
         self.env.publish(ban_activity)
 

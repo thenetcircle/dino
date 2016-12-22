@@ -39,7 +39,7 @@ class BanResource(BaseResource):
         output = dict()
         if not is_valid:
             logger.error('invalid json: %s' % msg)
-            return output
+            raise RuntimeError('invalid json')
 
         if json is None:
             raise RuntimeError('no json in request')

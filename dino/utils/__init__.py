@@ -528,6 +528,10 @@ def ban_user(room_id: str, private_room_id: str, ban_duration: str) -> None:
 
 
 def ban_duration_to_timestamp(ban_duration: str) -> str:
+    return datetime_to_timestamp(ban_duration_to_datetime(ban_duration))
+
+
+def ban_duration_to_datetime(ban_duration: str) -> datetime:
     DurationValidator(ban_duration)
 
     days = 0
@@ -549,7 +553,11 @@ def ban_duration_to_timestamp(ban_duration: str) -> str:
     ban_time = timedelta(days=days, hours=hours, seconds=seconds)
     end_date = now + ban_time
 
-    return str(int(end_date.timestamp()))
+    return end_date
+
+
+def datetime_to_timestamp(some_date: datetime) -> str:
+    return str(int(some_date.timestamp()))
 
 
 def is_super_user(user_id: str) -> bool:

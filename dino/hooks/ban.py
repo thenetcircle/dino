@@ -22,55 +22,14 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 class OnBanHooks(object):
     @staticmethod
-    def ban_user(arg: tuple) -> None:
+    def publish_activity(arg: tuple) -> None:
         data, activity = arg
-        room_id = activity.target.id
-        kicked_id = activity.object.id
-        ban_duration = activity.object.summary
-        # TODO: this ban could be for room, channel or globally
-
-        try:
-            utils.ban_user(room_id, kicked_id, ban_duration)
-        except Exception as e:
-            logger.exception('could not ban user, should have been caught in validator: %s' % str(e))
-            logger.error('request activity for failed ban was: %s' % str(data))
-
-    @staticmethod
-    def emit_ban_event(arg: tuple) -> None:
-        data, activity = arg
-
-        ban_activity = {
-            'actor': {
-                'id': activity.actor.id,
-                'displayName': activity.actor.display_name
-            },
-            'verb': 'ban',
-            'object': {
-                'id': activity.object.id,
-                'displayName': activity.object.display_name
-            }
-        }
-
-        reason = None
-        if activity.object is not None:
-            reason = activity.object.content
-        if reason is not None and len(reason.strip()) > 0:
-            ban_activity['object']['content'] = reason
-
-        # when banning globally, not target room is specified
-        if activity.target is not None:
-            ban_activity['target'] = dict()
-            ban_activity['target']['id'] = activity.target.id
-            ban_activity['target']['displayName'] = activity.target.display_name
-
-        environ.env.publish(ban_activity, external=True)
+        print('hook publish to nodes')
+        from pprint import pprint
+        pprint(data)
+        environ.env.publish(data)
 
 
 @environ.env.observer.on('on_ban')
 def _on_ban_ban_user(arg: tuple) -> None:
-    OnBanHooks.ban_user(arg)
-
-
-@environ.env.observer.on('on_ban')
-def _on_ban_emit_external_event(arg: tuple) -> None:
-    OnBanHooks.emit_ban_event(arg)
+    OnBanHooks.publish_activity(arg)

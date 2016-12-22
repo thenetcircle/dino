@@ -93,6 +93,7 @@ def handle_server_activity(data: dict, activity: Activity):
                 'gn_user_banned', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
         ban_duration = activity.object.summary
         ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+        send_ban_event_to_external_queue('room')
 
         try:
             socketio.server.leave_room(_user_sid, _room_id, '/chat')
@@ -107,6 +108,7 @@ def handle_server_activity(data: dict, activity: Activity):
         rooms_in_channel = environ.env.db.rooms_for_channel(_channel_id)
         ban_duration = activity.object.summary
         ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+        send_ban_event_to_external_queue('channel')
         environ.env.db.ban_user_channel(_user_id, ban_timestamp, ban_duration, _channel_id)
         for room in rooms_in_channel:
             _ban_room(room, _user_id, _user_sid, namespace, activity_json)
@@ -115,9 +117,44 @@ def handle_server_activity(data: dict, activity: Activity):
         rooms_for_user = environ.env.db.rooms_for_user(_channel_id)
         ban_duration = activity.object.summary
         ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+        send_ban_event_to_external_queue('global')
         environ.env.db.ban_user_global(_user_id, ban_timestamp, ban_duration)
         for room in rooms_for_user:
             _ban_room(room, _user_id, _user_sid, namespace, activity_json)
+
+    def send_ban_event_to_external_queue(target_type) -> None:
+        ban_activity = {
+            'actor': {
+                'id': activity.actor.id,
+                'displayName': activity.actor.display_name
+            },
+            'verb': 'ban',
+            'object': {
+                'id': utils.get_user_for_private_room(activity.object.id),
+                'displayName': activity.object.display_name,
+                'summary': activity.object.summary,
+                'updated': activity.object.updated
+            }
+        }
+
+        reason = None
+        if activity.object is not None:
+            reason = activity.object.content
+        if reason is not None and len(reason.strip()) > 0:
+            ban_activity['object']['content'] = reason
+
+        ban_activity['target'] = {
+            'objectType': target_type
+        }
+
+        if activity.target is not None:
+            ban_activity['target']['id'] = activity.target.id
+            ban_activity['target']['displayName'] = activity.target.display_name
+
+        print('sending activity to external queue')
+        from pprint import pprint
+        pprint(ban_activity)
+        environ.env.publish(ban_activity, external=True)
 
     def send_kick_event_to_external_queue() -> None:
         kick_activity = {
