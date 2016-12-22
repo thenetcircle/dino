@@ -18,6 +18,8 @@ import traceback
 from dino import environ
 from dino.db.manager import UserManager
 from dino.rest.resources.base import BaseResource
+from dino.exceptions import UnknownBanTypeException
+from dino.exceptions import NoSuchUserException
 
 from flask import request
 
@@ -26,9 +28,9 @@ logger = logging.getLogger(__name__)
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-class KickResource(BaseResource):
+class BanResource(BaseResource):
     def __init__(self):
-        super(KickResource, self).__init__()
+        super(BanResource, self).__init__()
         self.user_manager = UserManager(environ.env)
         self.request = request
 
@@ -44,15 +46,41 @@ class KickResource(BaseResource):
         if not isinstance(json, dict):
             raise RuntimeError('need a dict of user-room keys')
 
-        for user_id, room_id in json.items():
+        for user_id, ban_info in json.items():
+            target_id = ban_info['target']
+            target_type = ban_info['type']
+            duration = ban_info['duration']
+
             try:
-                self.user_manager.kick_user(room_id, user_id)
-                output[user_id] = 'OK'
+                self.user_manager.ban_user(user_id, target_id, duration, target_type)
+                output[user_id] = {
+                    'status': 'OK'
+                }
+            except ValueError as e:
+                logger.error('invalid ban duration "%s" for user %s: %s' % (duration, user_id, str(e)))
+                output[user_id] = {
+                    'status': 'FAIL',
+                    'message': 'invalid ban duration [%s]' % duration
+                }
+            except NoSuchUserException as e:
+                logger.error('no such user %s: %s' % (user_id, str(e)))
+                output[user_id] = {
+                    'status': 'FAIL',
+                    'message': 'no such user'
+                }
+            except UnknownBanTypeException as e:
+                logger.error('unknown ban type "%s" for user %s: %s' % (target_type, user_id, str(e)))
+                output[user_id] = {
+                    'status': 'FAIL',
+                    'message': 'unknown ban type [%s]' % target_type
+                }
             except Exception as e:
-                logger.error('no such room when trying to kick user %s for room %s: %s' % (user_id, room_id, str(e)))
+                logger.error('could not ban user %s: %s' % (user_id, str(e)))
                 logger.error(traceback.format_exc())
-                output[user_id] = 'FAIL'
-                continue
+                output[user_id] = {
+                    'status': 'FAIL',
+                    'message': str(e)
+                }
         return output
 
     def validate_json(self):

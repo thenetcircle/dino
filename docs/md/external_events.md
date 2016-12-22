@@ -28,6 +28,10 @@ Example of activity posted to the external queue:
 * target.id: UUID of the room the user was kicked from,
 * target.displayName: base64 encoded name of the room.
 
+### User was banned
+
+TODO
+
 ### User successfully logged in
 
 TODO

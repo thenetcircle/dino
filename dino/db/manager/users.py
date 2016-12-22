@@ -14,7 +14,6 @@ from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 from dino import utils
 from dino.exceptions import UnknownBanTypeException
-from activitystreams import parse as as_parser
 
 import traceback
 import logging

@@ -1,5 +1,59 @@
 ## RESTful API
 
+### POST /ban
+
+Request contains info on who to ban where. For banning globally:
+
+    {
+        "1234": {
+            "duration": "24h",
+            "type": "global"
+        }
+    }
+
+Ban for a channel:
+
+    {
+        "<user id>": {
+            "duration": "24h",
+            "type": "global"
+        },
+        "<user id>": {
+            "duration": "10m",
+            "target": "<channel uuid>",
+            "type": "channel"
+        },
+        "<user id>": {
+            "duration": "7d",
+            "target": "<room uuid>",
+            "type": "room"
+        }
+    }
+
+Duration is an integer followed by a char for the unit, which can be one of "d", "h", "m", "s" (days, hours, minutes, 
+seconds). Negative or 0 durations are not allowed.
+
+When type is set to "global", no target is specified (meaning user is banned from the whole chat server).
+
+Response will be something like the following:
+
+    {
+        "<user id>": {
+            "status": "OK"
+        },
+        "<user id>": {
+            "status": "FAIL",
+            "message": "invalid duration 5k"
+        },
+        "<user id>": {
+            "status": "FAIL",
+            "message": "no such user"
+        },
+        "<user id>" {
+            "status": "OK"
+        }
+    }
+
 ### GET /rooms-for-users
 
 Request contains a list of user IDs, e.g.:
