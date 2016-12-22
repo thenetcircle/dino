@@ -93,6 +93,7 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
             'id': room_id,
             'displayName': b64e(room_name)
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'leave'
     }
 
@@ -115,6 +116,7 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
             'displayName': b64e(room_name),
             'objectType': 'group'
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'join'
     }
 
@@ -135,6 +137,7 @@ def activity_for_user_banned(
             'displayName': b64e(room_name),
             'objectType': 'group'
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'ban'
     }
 
@@ -155,6 +158,7 @@ def activity_for_user_kicked(
             'displayName': b64e(room_name),
             'objectType': 'group'
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'kick'
     }
 
@@ -172,7 +176,8 @@ def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_
         'target': {
             'id': room_id,
             'displayName': b64e(room_name)
-        }
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
     }
 
 
@@ -192,6 +197,7 @@ def activity_for_login(user_id: str, user_name: str) -> dict:
             'id': user_id,
             'displayName': b64e(user_name)
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'login'
     }
 
@@ -202,6 +208,7 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
             'id': user_id,
             'displayName': b64e(user_name)
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'connect'
     }
 
@@ -219,6 +226,7 @@ def activity_for_create_room(activity: Activity) -> dict:
             'id': activity.target.id,
             'displayName': b64e(activity.target.display_name)
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'create'
     }
 
@@ -234,6 +242,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
         'object': {
             'objectType': 'messages'
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'history',
         'target': {
             'id': activity.target.id,
@@ -261,6 +270,7 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
             'objectType': 'room',
             'attachments': list()
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'join',
         'target': {
             'id': activity.target.id,
@@ -300,6 +310,7 @@ def activity_for_owners(activity: Activity, owners: dict) -> dict:
         'object': {
             'objectType': 'owner'
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'target': {
             'id': activity.target.id,
             'displayName': b64e(activity.target.display_name)
@@ -322,6 +333,7 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
         'object': {
             'objectType': 'channels'
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'list'
     }
 
@@ -343,6 +355,7 @@ def activity_for_invite(
             'id': inviter_id,
             'displayName': b64e(inviter_name)
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'invite',
         'object': {
             'url': channel_id,
@@ -363,6 +376,7 @@ def activity_for_whisper(
             'id': whisperer_id,
             'displayName': b64e(whisperer_name)
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'whisper',
         'object': {
             'url': channel_id,
@@ -381,6 +395,7 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
             'id': activity.object.id,
             'objectType': 'rooms'
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'list'
     }
 
@@ -406,6 +421,7 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
         'object': {
             'objectType': 'users'
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'list'
     }
 
@@ -438,6 +454,7 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
         'object': {
             'objectType': 'acl'
         },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'get'
     }
 
