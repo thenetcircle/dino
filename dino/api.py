@@ -270,6 +270,7 @@ def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     acls = utils.get_acls_for_room(room_id)
     users = utils.get_users_in_room(room_id)
 
+    print('emitting event now, for %s' % str(environ.env.observer))
     environ.env.observer.emit('on_join', (data, activity))
     return ECodes.OK, utils.activity_for_join(activity, acls, messages, owners, users)
 

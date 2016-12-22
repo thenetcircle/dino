@@ -412,7 +412,6 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     gn_env = GNEnvironment(root_path, ConfigDict(config_dict))
 
     logger.info('read config and created environment')
-    logger.debug(str(config_dict))
     return gn_env
 
 

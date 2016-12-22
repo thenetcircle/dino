@@ -24,9 +24,6 @@ class OnBanHooks(object):
     @staticmethod
     def publish_activity(arg: tuple) -> None:
         data, activity = arg
-        print('hook publish to nodes')
-        from pprint import pprint
-        pprint(data)
         environ.env.publish(data)
 
 

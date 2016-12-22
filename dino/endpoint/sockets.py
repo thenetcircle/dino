@@ -151,9 +151,6 @@ def handle_server_activity(data: dict, activity: Activity):
             ban_activity['target']['id'] = activity.target.id
             ban_activity['target']['displayName'] = activity.target.display_name
 
-        print('sending activity to external queue')
-        from pprint import pprint
-        pprint(ban_activity)
         environ.env.publish(ban_activity, external=True)
 
     def send_kick_event_to_external_queue() -> None:

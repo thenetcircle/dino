@@ -43,7 +43,7 @@ class UserManager(BaseManager):
         kick_activity = {
             'actor': {
                 'id': '0',
-                'displayName': 'admin'
+                'displayName': utils.b64e('admin')
             },
             'verb': 'kick',
             'object': {
@@ -80,7 +80,7 @@ class UserManager(BaseManager):
         ban_activity = {
             'actor': {
                 'id': '0',
-                'displayName': 'admin'
+                'displayName': utils.b64e('admin')
             },
             'verb': 'ban',
             'object': {
