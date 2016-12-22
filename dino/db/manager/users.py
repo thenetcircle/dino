@@ -12,10 +12,9 @@
 
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
-from dino.utils import ban_duration_to_timestamp
-from dino.utils import b64e
+from dino import utils
 from dino.exceptions import UnknownBanTypeException
-from dino.exceptions import NoSuchUserException
+from activitystreams import parse as as_parser
 
 import traceback
 import logging
@@ -35,26 +34,25 @@ class UserManager(BaseManager):
 
         for user_id, user_name in users.items():
             output.append({
-                'uuid': user_id,
+                'uuid': utils.get_user_for_private_room(user_id),
                 'name': user_name
             })
         return output
 
     def kick_user(self, room_id: str, user_id: str) -> None:
-        self.env.db.kick_user(room_id, user_id)
         kick_activity = {
             'actor': {
-                'id': '',
-                'summary': 'admin'
+                'id': '0',
+                'displayName': 'admin'
             },
             'verb': 'kick',
             'object': {
                 'id': self.env.db.get_private_room(user_id)[0],
-                'summary': b64e(self.env.db.get_user_name(user_id))
+                'displayName': utils.b64e(self.env.db.get_user_name(user_id))
             },
             'target': {
                 'id': room_id,
-                'displayName': b64e(self.env.db.get_room_name(room_id)),
+                'displayName': utils.b64e(self.env.db.get_room_name(room_id)),
                 'objectType': 'room',
                 'url': '/chat'
             }
@@ -64,7 +62,7 @@ class UserManager(BaseManager):
     def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str) -> None:
         private_room_id = self.env.db.get_private_room(user_id)[0]
         target_name = None
-        timestamp = ban_duration_to_timestamp(duration)
+        timestamp = utils.ban_duration_to_timestamp(duration)
 
         if target_type == 'global':
             self.env.db.ban_user_global(user_id, timestamp, duration)
@@ -87,7 +85,7 @@ class UserManager(BaseManager):
             'verb': 'kick',
             'object': {
                 'id': private_room_id,
-                'summary': b64e(self.env.db.get_user_name(user_id))
+                'summary': utils.b64e(self.env.db.get_user_name(user_id))
             },
             'target': {
                 'url': '/chat',
@@ -151,7 +149,7 @@ class UserManager(BaseManager):
         user_name = self.env.db.get_user_name(user_id)
         return {
             'uuid': user_id,
-            'name': b64e(user_name)
+            'name': utils.b64e(user_name)
         }
 
     def _get_user(self, user_id: str, user_name: str) -> dict:

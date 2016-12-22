@@ -128,7 +128,7 @@ def ban_user_room(channel_uuid: str, room_uuid: str, user_uuid: str):
     except UnknownBanTypeException as e:
         return jsonify({'status_code': 500, 'data': 'could not ban user: %s' % str(e)})
     except Exception as e:
-        print(traceback.format_exc())
+        logger.exception(traceback.format_exc())
         return jsonify({'status_code': 500, 'data': str(e)})
     return jsonify({'status_code': 200})
 
@@ -150,7 +150,7 @@ def ban_user_channel(channel_uuid: str, user_uuid: str):
     except UnknownBanTypeException as e:
         return jsonify({'status_code': 500, 'data': 'could not ban user: %s' % str(e)})
     except Exception as e:
-        print(traceback.format_exc())
+        logger.exception(traceback.format_exc())
         return jsonify({'status_code': 500, 'data': str(e)})
     return jsonify({'status_code': 200})
 
@@ -340,7 +340,7 @@ def update_acl_room(channel_uuid, room_uuid, action, acl_type):
         return jsonify({'status_code': 400, 'message': 'Invalid ACL type'})
     except Exception as e:
         logger.error('could not update acl for room %s: %s' % (room_uuid, str(e)))
-        print(traceback.format_exc())
+        logger.exception(traceback.format_exc())
         return jsonify({'status_code': 500, 'message': 'Could not update'})
 
     return jsonify({'status_code': 200})
@@ -363,7 +363,7 @@ def update_acl_channel(channel_uuid, action, acl_type):
         return jsonify({'status_code': 400, 'message': 'Invalid ACL type'})
     except Exception as e:
         logger.error('could not update acl for channel %s: %s' % (channel_uuid, str(e)))
-        print(traceback.format_exc())
+        logger.exception(traceback.format_exc())
         return jsonify({'status_code': 500, 'message': 'Could not update'})
 
     return jsonify({'status_code': 200})

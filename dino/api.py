@@ -46,6 +46,8 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
+    #user_roles = utils.get_user_roles()
+
     environ.env.observer.emit('on_login', (data, activity))
     return ECodes.OK, None
 
@@ -338,7 +340,7 @@ def on_disconnect() -> (int, None):
     data = {
         'verb': 'disconnect',
         'actor': {
-            'id': environ.env.session.get(SessionKeys.user_id.value)
+            'id': str(environ.env.session.get(SessionKeys.user_id.value))
         }
     }
     activity = as_parser(data)

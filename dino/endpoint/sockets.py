@@ -57,13 +57,13 @@ class Worker(ConsumerMixin):
 
     def process_task(self, body, message):
         try:
-            handle_server_activity(as_parser.parse(body))
+            handle_server_activity(body, as_parser.parse(body))
         except (ActivityException, AttributeError) as e:
             logger.error('could not parse server message: "%s", message was: %s' % (str(e), body))
         message.ack()
 
 
-def handle_server_activity(activity: Activity):
+def handle_server_activity(data: dict, activity: Activity):
     def _kick(_room_id, _user_id, _user_sid, namespace, activity_json):
         try:
             _users = list()
@@ -73,18 +73,20 @@ def handle_server_activity(activity: Activity):
                 logger.warning('no room %s for namespace [%s] (or room is empty)' % (_room_id, namespace))
         except Exception as e:
             logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, _room_id, str(e)))
-            print(traceback.format_exc())
+            logger.exception(traceback.format_exc())
             return
 
         environ.env.out_of_scope_emit(
                 'gn_user_kicked', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
+        send_kick_event_to_external_queue()
+
         if _user_sid in _users:
             try:
                 socketio.server.leave_room(_user_sid, _room_id, '/chat')
                 environ.env.db.leave_room(_user_id, _room_id)
             except Exception as e:
                 logger.error('could not kick user %s from room %s: %s' % (_user_id, _room_id, str(e)))
-                return
+                logger.exception(traceback.format_exc())
 
     def _ban_room(_room_id, _user_id, _user_sid, namespace, activity_json):
         environ.env.out_of_scope_emit(
@@ -116,6 +118,34 @@ def handle_server_activity(activity: Activity):
         environ.env.db.ban_user_global(_user_id, ban_timestamp, ban_duration)
         for room in rooms_for_user:
             _ban_room(room, _user_id, _user_sid, namespace, activity_json)
+
+    def send_kick_event_to_external_queue() -> None:
+        kick_activity = {
+            'actor': {
+                'id': activity.actor.id,
+                'displayName': activity.actor.display_name
+            },
+            'verb': 'kick',
+            'object': {
+                'id': utils.get_user_for_private_room(activity.object.id),
+                'displayName': activity.object.display_name
+            }
+        }
+
+        reason = None
+        if activity.object is not None:
+            reason = activity.object.content
+        if reason is not None and len(reason.strip()) > 0:
+            kick_activity['object']['content'] = reason
+
+        # when banning globally, not target room is specified
+        if activity.target is not None:
+            kick_activity['target'] = dict()
+            kick_activity['target']['id'] = activity.target.id
+            kick_activity['target']['displayName'] = activity.target.display_name
+            kick_activity['target']['objectType'] = activity.target.object_type
+
+        environ.env.publish(kick_activity, external=True)
 
     def handle_kick():
         kicker_id = activity.actor.id
@@ -308,7 +338,7 @@ def on_login(data: dict, activity: Activity) -> (int, str):
         return status_code, msg
     except Exception as e:
         logger.error('could not login, will disconnect client: %s' % str(e))
-        print(traceback.format_exc())
+        logger.exception(traceback.format_exc())
         return 500, str(e)
 
 

@@ -98,9 +98,10 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
 
 
 def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
+    private_user_id = environ.env.db.get_private_room(user_id)[0]
     return {
         'actor': {
-            'id': environ.env.db.get_private_room(user_id)[0],
+            'id': private_user_id,
             'displayName': b64e(user_name),
             'image': {
                 'url': image_url
@@ -419,8 +420,7 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     return response
 
 
-def get_user_info_attachments_for(private_user_id: str) -> list:
-    user_id = get_user_for_private_room(private_user_id)
+def get_user_info_attachments_for(user_id: str) -> list:
     attachments = list()
     for info_key, info_val in environ.env.auth.get_user_info(user_id).items():
         attachments.append({
