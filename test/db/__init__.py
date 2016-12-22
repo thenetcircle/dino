@@ -199,6 +199,7 @@ class BaseDatabaseTest(BaseTest):
             raise ValueError('unknown type %s' % db)
 
         environ.env.config = self.env.config
+        environ.env.db = self.db
 
     def act_message(self):
         data = self.activity_for_message()

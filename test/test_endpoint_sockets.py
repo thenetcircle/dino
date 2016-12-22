@@ -115,7 +115,7 @@ class SocketsTest(unittest.TestCase):
             }
         }
         sockets.socketio.server = MockServer()
-        sockets.handle_server_activity(as_parser(activity))
+        sockets.handle_server_activity(activity, as_parser(activity))
 
     def test_handle_activity_ban(self):
         activity = {
@@ -133,4 +133,4 @@ class SocketsTest(unittest.TestCase):
             }
         }
         sockets.socketio.server = MockServer()
-        sockets.handle_server_activity(as_parser(activity))
+        sockets.handle_server_activity(activity, as_parser(activity))
