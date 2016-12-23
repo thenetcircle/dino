@@ -214,7 +214,11 @@ def handle_server_activity(data: dict, activity: Activity):
 
     def handle_ban():
         banner_id = activity.actor.id
-        banner_name = utils.get_user_name_for(banner_id)
+        if banner_id == '0':
+            banner_name = 'admin'
+        else:
+            banner_name = utils.get_user_name_for(banner_id)
+
         banned_id = activity.object.id
         banned_name = utils.get_user_name_for(banned_id)
 
