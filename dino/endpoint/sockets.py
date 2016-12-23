@@ -64,6 +64,8 @@ class Worker(ConsumerMixin):
 
 
 def handle_server_activity(data: dict, activity: Activity):
+    # TODO: move this to another file so it's easier to read it, separate class
+
     def _kick(_room_id, _user_id, _user_sid, namespace, activity_json):
         try:
             _users = list()
