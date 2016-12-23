@@ -38,6 +38,9 @@ class OnLeaveHooks(object):
         room_id = activity.target.id
         room_name = utils.get_room_name(room_id)
 
+        if not utils.is_real_user_id(user_id):
+            user_id = utils.get_user_for_private_room(user_id)
+
         activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
         environ.env.emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
 

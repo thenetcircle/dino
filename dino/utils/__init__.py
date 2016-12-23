@@ -491,6 +491,10 @@ def get_sid_for_user_id(user_id: str) -> str:
     return environ.env.db.get_sid_for_user(user_id)
 
 
+def is_real_user_id(user_or_room_id: str) -> bool:
+    return not is_room_private(user_or_room_id)
+
+
 def get_user_for_private_room(room_id: str) -> str:
     return environ.env.db.get_user_for_private_room(room_id)
 
