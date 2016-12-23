@@ -23,9 +23,10 @@ __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 def create_app():
     _app = Flask(__name__)
+
+    # used for encrypting cookies for handling sessions
     _app.config['SECRET_KEY'] = 'secret!fdsa'
 
-    # TODO: let the queue config contain the complete value for message_queue, so no queue can be used
     _socketio = SocketIO(
             _app,
             logger=environ.env.logger,
