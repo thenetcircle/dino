@@ -181,14 +181,18 @@ def handle_server_activity(data: dict, activity: Activity):
 
     def handle_kick():
         kicker_id = activity.actor.id
-        kicker_name = activity.actor.display_name
+        if kicker_id == '0':
+            kicker_name = 'admin'
+        else:
+            kicker_name = utils.get_user_name_for(kicker_id)
+
         kicked_id = activity.object.id
-        kicked_name = activity.object.display_name
+        kicked_name = utils.get_user_name_for(kicked_id)
 
         kicked_id = utils.get_user_for_private_room(kicked_id)
         kicked_sid = utils.get_sid_for_user_id(kicked_id)
         room_id = activity.target.id
-        room_name = activity.target.display_name
+        room_name = utils.get_room_name(room_id)
         namespace = activity.target.url
 
         if kicked_sid is None or kicked_sid == [None] or kicked_sid == '':
@@ -216,11 +220,18 @@ def handle_server_activity(data: dict, activity: Activity):
 
         banned_id = utils.get_user_for_private_room(banned_id)
         banned_sid = utils.get_sid_for_user_id(banned_id)
-        target_id = activity.target.id
-        target_name = activity.target.display_name
         namespace = activity.target.url
         target_type = activity.target.object_type
-        # TODO: duration and timestamp, also invoke environ.env.db.ban_user_room/channel/global()
+
+        if target_type == 'room':
+            target_id = activity.target.id
+            target_name = utils.get_room_name(target_id)
+        elif target_type == 'channel':
+            target_id = activity.target.id
+            target_name = utils.get_channel_name(target_id)
+        else:
+            target_id = ''
+            target_name = ''
 
         if banned_sid is None or banned_sid == [None] or banned_sid == '':
             logger.warn('no sid found for user id %s' % banned_id)
