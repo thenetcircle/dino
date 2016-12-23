@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -100,8 +98,6 @@ def handle_server_activity(data: dict, activity: Activity):
         try:
             socketio.server.leave_room(_user_sid, _room_id, '/chat')
             environ.env.db.ban_user_room(_user_id, ban_timestamp, ban_duration, _room_id)
-            # TODO: ban here with duration and timestamp
-            # environ.env.db.ban_user_room(_user_id, _room_id)
         except Exception as e:
             logger.error('could not ban user %s from room %s: %s' % (_user_id, _room_id, str(e)))
             return
