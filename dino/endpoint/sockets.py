@@ -184,7 +184,10 @@ def handle_server_activity(data: dict, activity: Activity):
         if kicker_id == '0':
             kicker_name = 'admin'
         else:
-            kicker_name = utils.get_user_name_for(kicker_id)
+            if utils.is_real_user_id(kicker_id):
+                kicker_name = utils.get_user_name_for(kicker_id)
+            else:
+                kicker_name = utils.get_user_name_for(utils.get_user_for_private_room(kicker_id))
 
         kicked_id = activity.object.id
         kicked_name = utils.get_user_name_for(kicked_id)
@@ -217,7 +220,10 @@ def handle_server_activity(data: dict, activity: Activity):
         if banner_id == '0':
             banner_name = 'admin'
         else:
-            banner_name = utils.get_user_name_for(banner_id)
+            if utils.is_real_user_id(banner_id):
+                banner_name = utils.get_user_name_for(banner_id)
+            else:
+                banner_name = utils.get_user_name_for(utils.get_user_for_private_room(banner_id))
 
         banned_id = activity.object.id
         banned_name = utils.get_user_name_for(banned_id)
