@@ -33,7 +33,7 @@ from flask_socketio import send as _flask_send
 from flask_socketio import join_room as _flask_join_room
 from flask_socketio import leave_room as _flask_leave_room
 
-from flask_wtf import Form as _flask_Form
+from flask_wtf import FlaskForm as _flask_Form
 from wtforms.fields import StringField as _wtf_StringField
 from wtforms.fields import SubmitField as _wtf_SubmitField
 from wtforms.fields import SelectField as _wtf_SelectField
