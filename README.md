@@ -95,8 +95,8 @@ TODO: check if docker could be useful: https://www.digitalocean.com/community/tu
     (env) $ ENVIRONMENT=prod gunicorn \
                 --error-logfile ~/dino-gunicorn-error.log \
                 --log-file ~/dino-gunicorn.log \
-                --worker-class gevent \
-                --threads 16 \
+                --worker-class eventlet \
+                --threads 1 \
                 --worker-connections 5000 \
                 --workers 1 \
                 --bind 0.0.0.0:5210 \
