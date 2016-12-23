@@ -731,15 +731,25 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
             domain=ConfigKeys.HISTORY,
             default=ConfigKeys.DEFAULT_HISTORY_LIMIT)
 
-    if history == 'top':
-        return environ.env.storage.get_history(room_id, limit)
+    def _history(_last_read: str = None):
+        if history == 'top':
+            return environ.env.storage.get_history(room_id, limit)
 
-    if last_read is None:
-        last_read = get_last_read_for(room_id, user_id)
-        if last_read is None:
-            return list()
+        if _last_read is None:
+            _last_read = get_last_read_for(room_id, user_id)
+            if _last_read is None:
+                return list()
 
-    return environ.env.storage.get_unread_history(room_id, last_read)
+        return environ.env.storage.get_unread_history(room_id, _last_read)
+
+    the_history = _history(last_read)
+    messages = list()
+
+    for message in the_history:
+        if message['from_user_id'] != user_id:
+            message['from_user_id'] = get_private_room_for_user_id(user_id)
+        messages.append(message)
+    return messages
 
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:

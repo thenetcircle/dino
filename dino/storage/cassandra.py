@@ -97,7 +97,7 @@ class CassandraStorage(object):
         return {
             'message_id': row.message_id,
             'from_user_id': row.from_user_id,
-            'from_user_name': row.from_user_id,
+            'from_user_name': row.from_user_name,
             'target_id': row.target_id,
             'target_name': row.target_name,
             'body': row.body,
