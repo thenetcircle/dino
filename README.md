@@ -14,6 +14,8 @@ Distributed websocket routing for notifications and chat.
 * [Rest documentation](docs/md/rest.md)
 * [Generated documentation](https://thenetcircle.github.io/dino/)
 
+[![Dino Architecture](https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-arch.png)](https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-arch.svg)
+
 Any number of nodes can be started on different machines or same machine on different port. Flask will handle connection
  routing using either Redis or RabbitMQ as a message queue internally. An nginx reverse proxy needs to sit in-front of
  all these nodes with sticky sessions (ip_hash). Fail-over can be configured in nginx for high availability.
