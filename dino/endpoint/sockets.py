@@ -210,9 +210,9 @@ def handle_server_activity(data: dict, activity: Activity):
 
     def handle_ban():
         banner_id = activity.actor.id
-        banner_name = activity.actor.display_name
+        banner_name = utils.get_user_name_for(banner_id)
         banned_id = activity.object.id
-        banned_name = activity.object.display_name
+        banned_name = utils.get_user_name_for(banned_id)
 
         banned_id = utils.get_user_for_private_room(banned_id)
         banned_sid = utils.get_sid_for_user_id(banned_id)
