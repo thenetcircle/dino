@@ -473,7 +473,8 @@ Request contains:
             "id": "<ID of user banning>"
         },
         "target": {
-            "id": "<UUID of the room to ban from>"
+            "id": "<UUID of the room/channel to ban from>",
+            "objectType": "<room/channel/global>"
         },
         "object": {
             "id": "<UUID of the user to ban>",
@@ -481,6 +482,10 @@ Request contains:
         },
         "verb": "kick"
     }
+
+If banning a used in a room, set objectType to "room" and target.id to the uuid of the room. If banning from a channel,
+set objectType to "channel" and target.id to the uuid of the channel. If banning globally, set objectType to "global"
+and skip target.id.
     
 Summary is the duration of the ban. It's a number with a suffix d, h, m or s, meaning days, hours, minutes and seconds.
 Only one suffix can be used. E.g.:
@@ -488,6 +493,9 @@ Only one suffix can be used. E.g.:
 * 5m (ban for five minutes),
 * 3600s (ban for 3600 seconds, same as 1h),
 * 365d (ban for one year).
+
+It's not possible to permanently ban a user, but you can set a very large duration for the same effect. The only
+restriction is that the date when the ban ends (utcnow()+duration) must be before the year 10000 (date lib restriction).
 
 Response data if successful:
 
