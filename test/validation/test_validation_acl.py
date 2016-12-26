@@ -59,6 +59,9 @@ class FakeDb(object):
     def is_super_user(self, user_id):
         return user_id in FakeDb._super_users
 
+    def channel_for_room(self, room_id):
+        return BaseAclTestValidator.CHANNEL_ID
+
     def room_contains(self, room_id, user_id):
         return True
 
@@ -761,27 +764,6 @@ class TestAclValidator(BaseAclTestValidator):
     def test_validate_acl_for_action_blank_target_object_type(self):
         act = self.json_act()
         act['target']['objectType'] = ''
-        is_valid, msg = self.validator.validate_acl_for_action(
-                as_parser(act), 'room', 'join', self.acls_for_room_join())
-        self.assertFalse(is_valid)
-
-    def test_validate_acl_for_action_no_object_url(self):
-        act = self.json_act()
-        del act['object']['url']
-        is_valid, msg = self.validator.validate_acl_for_action(
-                as_parser(act), 'room', 'join', self.acls_for_room_join())
-        self.assertFalse(is_valid)
-
-    def test_validate_acl_for_action_no_object(self):
-        act = self.json_act()
-        del act['object']
-        is_valid, msg = self.validator.validate_acl_for_action(
-                as_parser(act), 'room', 'join', self.acls_for_room_join())
-        self.assertFalse(is_valid)
-
-    def test_validate_acl_for_action_blank_object_url(self):
-        act = self.json_act()
-        act['object']['url'] = ''
         is_valid, msg = self.validator.validate_acl_for_action(
                 as_parser(act), 'room', 'join', self.acls_for_room_join())
         self.assertFalse(is_valid)

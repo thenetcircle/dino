@@ -64,21 +64,19 @@ class AclValidator(object):
         if activity.target.object_type is None or len(activity.target.object_type.strip()) == 0:
             return False, 'target.objectType must not be none'
 
-        if not hasattr(activity, 'object') or not hasattr(activity.object, 'url'):
-            return False, 'object.url must not be none'
-        if activity.object.url is None or len(activity.object.url.strip()) == 0:
-            return False, 'object.url must not be none'
-
         # one-to-one is sending message that users private room, so target is room, but object_type would not be
         if target == ApiTargets.ROOM and activity.target.object_type != 'room':
             return True, None
 
-        user_id = activity.actor.id
-        channel_id = activity.object.url
-
         # no acls for this target (room/channel) and action (join/kick/etc)
         if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
             return False, 'no acl set that allows action "%s" for target type "%s"' % (action, target)
+
+        user_id = activity.actor.id
+        if target == 'room':
+            channel_id = utils.get_channel_for_room(activity.target.id)
+        else:
+            channel_id = activity.object.url
 
         if utils.is_admin(channel_id, user_id):
             return True, None

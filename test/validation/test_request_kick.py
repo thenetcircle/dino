@@ -22,6 +22,7 @@ from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
 from dino.config import ErrorCodes
+from dino.exceptions import NoSuchRoomException
 from dino.validation import RequestValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameRoomValidator
@@ -39,6 +40,7 @@ class FakeDb(object):
     _admins = dict()
     _super_users = set()
     _channel_owners = dict()
+    _room_names = dict()
 
     _ban_status = {
         'global': '',
@@ -55,6 +57,11 @@ class FakeDb(object):
         'message': dict(),
         'crossroom': {'samechannel': ''},
     }
+
+    def get_room_name(self, room_id):
+        if room_id not in FakeDb._room_names:
+            raise NoSuchRoomException(room_id)
+        return FakeDb._room_names[room_id]
 
     def is_admin(self, channel_id, user_id):
         if channel_id not in FakeDb._admins:
@@ -161,14 +168,6 @@ class RequestKickTest(TestCase):
         is_valid, code, msg = request.on_kick(as_parser(act))
         self.assertTrue(is_valid)
 
-    def test_kick_no_channel_id(self):
-        self.remove_owner()
-        act = self.json_act()
-        del act['object']['url']
-        is_valid, code, msg = request.on_kick(as_parser(act))
-        self.assertFalse(is_valid)
-        self.assertEqual(code, ErrorCodes.MISSING_OBJECT_URL)
-
     def test_kick_no_target_id(self):
         self.remove_owner()
         act = self.json_act()
@@ -180,7 +179,7 @@ class RequestKickTest(TestCase):
     def test_kick_missing_who_to_kick(self):
         self.remove_owner()
         act = self.json_act()
-        del act['target']['displayName']
+        del act['object']['id']
         is_valid, code, msg = request.on_kick(as_parser(act))
         self.assertFalse(is_valid)
         self.assertEqual(code, ErrorCodes.MISSING_TARGET_DISPLAY_NAME)
@@ -215,11 +214,11 @@ class RequestKickTest(TestCase):
                 'url': RequestKickTest.ROOM_ID
             },
             'object': {
+                'id': RequestKickTest.OTHER_USER_ID,
                 'url': RequestKickTest.CHANNEL_ID
             },
             'target': {
                 'id': RequestKickTest.ROOM_ID,
-                'displayName': RequestKickTest.OTHER_USER_ID,
                 'objectType': 'room'
             },
             'verb': 'kick'
@@ -252,6 +251,10 @@ class RequestKickTest(TestCase):
         FakeDb._channel_for_room = {
             RequestKickTest.ROOM_ID: RequestKickTest.CHANNEL_ID,
             RequestKickTest.OTHER_ROOM_ID: RequestKickTest.OTHER_CHANNEL_ID
+        }
+
+        FakeDb._room_names = {
+            RequestKickTest.ROOM_ID: RequestKickTest.ROOM_NAME
         }
 
         FakeDb._admins = dict()

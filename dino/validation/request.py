@@ -314,21 +314,20 @@ class RequestValidator(BaseValidator):
 
     def on_kick(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
-        channel_id = activity.object.url
-        user_id = activity.target.display_name
-
-        if channel_id is None or channel_id.strip() == '':
-            return False, ECodes.MISSING_OBJECT_URL, 'got blank channel id, can not kick'
+        user_id = activity.object.id
 
         if room_id is None or room_id.strip() == '':
             return False, ECodes.MISSING_TARGET_ID, 'got blank room id, can not kick'
 
+        try:
+            utils.get_room_name(room_id)
+        except NoSuchRoomException:
+            return False, ECodes.NO_SUCH_ROOM, 'no room with id "%s" exists' % room_id
+
         if user_id is None or user_id.strip() == '':
             return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'got blank user id, can not kick'
 
-        if not environ.env.db.room_exists(channel_id, room_id):
-            return False, ECodes.NO_SUCH_ROOM, 'no room with id "%s" exists' % room_id
-
+        channel_id = utils.get_channel_for_room(room_id)
         channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.KICK)
         is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.KICK, channel_acls)
         if not is_valid:

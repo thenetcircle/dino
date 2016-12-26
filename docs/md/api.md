@@ -411,6 +411,28 @@ Response data if successful:
         "status_code": 200
     }
 
+### delete
+
+Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator for room or owner 
+of room).
+
+Responds with "gn_delete".
+
+Request contains:
+
+    {
+        "actor": {
+            "id": "<ID of user deleting the message>"
+        },
+        "target": {
+            "id": "<UUID of the room to delete from>"
+        },
+        "object": {
+            "id": "<UUID of the message to delete>"
+        },
+        "verb": "delete"
+    }
+
 ### kick
 
 Kick a user from a room.
@@ -420,6 +442,9 @@ Responds with "gn_kick".
 Request contains:
 
     {
+        "actor": {
+            "id": "<ID of user kicking>"
+        },
         "target": {
             "id": "<UUID of the room to kick from>"
         },
@@ -442,7 +467,11 @@ Ban a user from a room for a given amount of time.
 Responds with "gn_ban".
 
 Request contains:
+
     {
+        "actor": {
+            "id": "<ID of user banning>"
+        },
         "target": {
             "id": "<UUID of the room to ban from>"
         },
@@ -452,6 +481,13 @@ Request contains:
         },
         "verb": "kick"
     }
+    
+Summary is the duration of the ban. It's a number with a suffix d, h, m or s, meaning days, hours, minutes and seconds.
+Only one suffix can be used. E.g.:
+
+* 5m (ban for five minutes),
+* 3600s (ban for 3600 seconds, same as 1h),
+* 365d (ban for one year).
 
 Response data if successful:
 
