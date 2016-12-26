@@ -78,6 +78,9 @@ class Bans(DeclarativeBase):
     duration = Column('duration', String(128), nullable=False)
     timestamp = Column('time_stamp', DateTime, nullable=False)
 
+    reason = Column('reason', String(256), nullable=True)
+    banner_id = Column('banner_id', String(128), nullable=True)
+
     room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=True)
     room = relationship('Rooms', back_populates='bans')
 

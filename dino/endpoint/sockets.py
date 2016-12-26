@@ -31,6 +31,7 @@ from dino import utils
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
+from dino.exceptions import NoSuchUserException
 from dino.utils.decorators import pre_process
 from dino.utils.decorators import respond_with
 from dino.utils.decorators import count_connections
@@ -106,6 +107,7 @@ def handle_server_activity(data: dict, activity: Activity):
         rooms_in_channel = environ.env.db.rooms_for_channel(_channel_id)
         ban_duration = activity.object.summary
         ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+
         send_ban_event_to_external_queue('channel')
         environ.env.db.ban_user_channel(_user_id, ban_timestamp, ban_duration, _channel_id)
         for room in rooms_in_channel:
@@ -115,6 +117,7 @@ def handle_server_activity(data: dict, activity: Activity):
         rooms_for_user = environ.env.db.rooms_for_user(_channel_id)
         ban_duration = activity.object.summary
         ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+
         send_ban_event_to_external_queue('global')
         environ.env.db.ban_user_global(_user_id, ban_timestamp, ban_duration)
         for room in rooms_for_user:
@@ -184,10 +187,15 @@ def handle_server_activity(data: dict, activity: Activity):
         if kicker_id == '0':
             kicker_name = 'admin'
         else:
-            if utils.is_real_user_id(kicker_id):
-                kicker_name = utils.get_user_name_for(kicker_id)
-            else:
-                kicker_name = utils.get_user_name_for(utils.get_user_for_private_room(kicker_id))
+            try:
+                if utils.is_real_user_id(kicker_id):
+                    kicker_name = utils.get_user_name_for(kicker_id)
+                else:
+                    kicker_name = utils.get_user_name_for(utils.get_user_for_private_room(kicker_id))
+            except NoSuchUserException:
+                # if kicking from rest api the user might not exist
+                logger.error('no such user when kicking: %s' % kicker_id)
+                return
 
         kicked_id = activity.object.id
         kicked_name = utils.get_user_name_for(kicked_id)
@@ -220,10 +228,15 @@ def handle_server_activity(data: dict, activity: Activity):
         if banner_id == '0':
             banner_name = 'admin'
         else:
-            if utils.is_real_user_id(banner_id):
-                banner_name = utils.get_user_name_for(banner_id)
-            else:
-                banner_name = utils.get_user_name_for(utils.get_user_for_private_room(banner_id))
+            try:
+                if utils.is_real_user_id(banner_id):
+                    banner_name = utils.get_user_name_for(banner_id)
+                else:
+                    banner_name = utils.get_user_name_for(utils.get_user_for_private_room(banner_id))
+            except NoSuchUserException:
+                # if banning from rest api the user might not exist
+                logger.error('no such user when banning: %s' % banner_id)
+                return
 
         banned_id = activity.object.id
         banned_name = utils.get_user_name_for(banned_id)

@@ -762,7 +762,7 @@ class DatabaseRedis(object):
         ban = self.redis.hget(RedisKeys.banned_users(room_id), user_id)
         return self._get_ban_timestamp(ban)
 
-    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str):
+    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str, reason: str=None, banner_id: str=None):
         user_name = ''
         try:
             user_name = self.get_user_name(user_id)
@@ -770,7 +770,7 @@ class DatabaseRedis(object):
             pass
         self.redis.hset(RedisKeys.banned_users(), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
-    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str, reason: str=None, banner_id: str=None):
         try:
             self.channel_for_room(room_id)
         except NoChannelFoundException:
@@ -783,7 +783,7 @@ class DatabaseRedis(object):
             pass
         self.redis.hset(RedisKeys.banned_users(room_id), user_id, '%s|%s|%s' % (ban_duration, ban_timestamp, user_name))
 
-    def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str):
+    def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str, reason: str=None, banner_id: str=None):
         user_name = ''
         try:
             user_name = self.get_user_name(user_id)

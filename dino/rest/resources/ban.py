@@ -35,6 +35,12 @@ class BanResource(BaseResource):
         self.request = request
 
     def do_post(self):
+        def fail(error_message):
+            return {
+                'status': 'FAIL',
+                'message': error_message
+            }
+
         is_valid, msg, json = self.validate_json()
         output = dict()
         if not is_valid:
@@ -47,40 +53,53 @@ class BanResource(BaseResource):
             raise RuntimeError('need a dict of user-room keys')
 
         for user_id, ban_info in json.items():
-            target_id = ban_info['target']
-            target_type = ban_info['type']
-            duration = ban_info['duration']
+            try:
+                target_type = ban_info['type']
+            except KeyError:
+                logger.error('missing target type for user id %s and request %s' % (user_id, ban_info))
+                output[user_id] = fail('missing target type, should be one of [room, channel, global]')
+                continue
+
+            target_id = None
+            try:
+                target_id = ban_info['target']
+            except KeyError:
+                if target_type != 'global':
+                    logger.error('missing target id for user id %s and request %s' % (user_id, ban_info))
+                    output[user_id] = fail('missing target id (room/channel uuid)')
+                    continue
 
             try:
-                self.user_manager.ban_user(user_id, target_id, duration, target_type)
+                duration = ban_info['duration']
+            except KeyError:
+                logger.error('missing ban duration for user id %s and request %s' % (user_id, ban_info))
+                output[user_id] = fail('missing ban duration')
+                continue
+
+            reason = ban_info.get('reason')
+            banner_id = ban_info.get('admin_id')
+
+            try:
+                self.user_manager.ban_user(user_id, target_id, duration, target_type, reason, banner_id)
                 output[user_id] = {
                     'status': 'OK'
                 }
             except ValueError as e:
                 logger.error('invalid ban duration "%s" for user %s: %s' % (duration, user_id, str(e)))
-                output[user_id] = {
-                    'status': 'FAIL',
-                    'message': 'invalid ban duration [%s]' % duration
-                }
+                output[user_id] = fail('invalid ban duration [%s]' % duration)
+
             except NoSuchUserException as e:
                 logger.error('no such user %s: %s' % (user_id, str(e)))
-                output[user_id] = {
-                    'status': 'FAIL',
-                    'message': 'no such user'
-                }
+                output[user_id] = fail('no such user')
+
             except UnknownBanTypeException as e:
                 logger.error('unknown ban type "%s" for user %s: %s' % (target_type, user_id, str(e)))
-                output[user_id] = {
-                    'status': 'FAIL',
-                    'message': 'unknown ban type [%s]' % target_type
-                }
+                output[user_id] = fail('unknown ban type [%s]' % target_type)
+
             except Exception as e:
                 logger.error('could not ban user %s: %s' % (user_id, str(e)))
                 logger.error(traceback.format_exc())
-                output[user_id] = {
-                    'status': 'FAIL',
-                    'message': str(e)
-                }
+                output[user_id] = fail(str(e))
         return output
 
     def validate_json(self):

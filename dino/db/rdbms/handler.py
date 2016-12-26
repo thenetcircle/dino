@@ -1576,6 +1576,7 @@ class DatabaseRdbms(object):
             output[ban.user_id] = {
                 'name': ban.user_name,
                 'duration': ban.duration,
+                'reason': ban.reason,
                 'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
 
@@ -1691,7 +1692,7 @@ class DatabaseRdbms(object):
         return get_sid()
 
     @with_session
-    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str, session=None):
+    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str, reason: str=None, banner_id: str=None, session=None):
         ban = session.query(Bans)\
             .filter(Bans.user_id == user_id)\
             .filter(Bans.is_global.is_(True)).first()
@@ -1709,6 +1710,8 @@ class DatabaseRdbms(object):
         if ban is None:
             ban = Bans()
             ban.uuid = str(uuid())
+            ban.reason = reason
+            ban.banner_id = banner_id
             ban.user_id = user_id
             ban.user_name = username
             ban.is_global = True
@@ -1719,7 +1722,7 @@ class DatabaseRdbms(object):
         session.add(ban)
         session.commit()
 
-    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str):
+    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str, reason: str=None, banner_id: str=None):
         @with_session
         def _ban_user_room(session=None):
             ban = session.query(Bans)\
@@ -1732,6 +1735,8 @@ class DatabaseRdbms(object):
                 ban = Bans()
                 ban.uuid = str(uuid())
                 ban.user_id = user_id
+                ban.reason = reason
+                ban.banner_id = banner_id
                 ban.room = room
                 ban.user_name = username
 
@@ -1770,7 +1775,7 @@ class DatabaseRdbms(object):
 
         _ban_user_room()
 
-    def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str):
+    def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str, reason: str=None, banner_id: str=None):
         @with_session
         def _ban_user_channel(session=None):
             ban = session.query(Bans)\
@@ -1782,6 +1787,8 @@ class DatabaseRdbms(object):
                 channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
                 ban = Bans()
                 ban.uuid = str(uuid())
+                ban.reason = reason
+                ban.banner_id = banner_id
                 ban.user_id = user_id
                 ban.channel = channel
                 ban.user_name = username

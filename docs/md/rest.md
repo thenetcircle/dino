@@ -7,6 +7,8 @@ Request contains info on who to ban where. For banning globally:
     {
         "1234": {
             "duration": "24h",
+            "reason": "<optional base64 encoded free-text>",
+            "admin_id": "<id of user banning (must already exist), or leave empty for default>",
             "type": "global"
         }
     }

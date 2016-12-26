@@ -381,7 +381,7 @@ class IDatabase(Interface):
         :return: a dict with banned users
         """
 
-    def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str):
+    def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str, reason: str=None, banner_id: str=None) -> None:
         """
         ban a user from either a channel
 
@@ -389,10 +389,12 @@ class IDatabase(Interface):
         :param ban_timestamp: end time of the ban
         :param ban_duration: how long this ban is for
         :param channel_id: the uuid of the channel to ban for
+        :param reason: optional free-text reason for the ban
+        :param banner_id: optional user if of the one who banned
         :return: nothing
         """
 
-    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str) -> None:
+    def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str, reason: str=None, banner_id: str=None) -> None:
         """
         ban a user from either a room
 
@@ -400,6 +402,21 @@ class IDatabase(Interface):
         :param ban_timestamp: end time of the ban
         :param ban_duration: how long this ban is for
         :param room_id: the uuid of the room to ban for
+        :param reason: optional free-text reason for the ban
+        :param banner_id: optional user if of the one who banned
+        :return: nothing
+        """
+
+    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str, reason: str=None, banner_id: str=None) -> None:
+        """
+        ban a user globally
+
+        :param user_id: the id of the user to ban
+        :param ban_timestamp: end time of the ban
+        :param ban_duration: how long this ban is for
+        :param room_id: the uuid of the room to ban for, or blank if global ban
+        :param reason: optional free-text reason for the ban
+        :param banner_id: optional user if of the one who banned
         :return: nothing
         """
 
@@ -409,17 +426,6 @@ class IDatabase(Interface):
 
         :param room_id: the uuid of the room to kick the user from
         :param user_id: the id of the user to kick
-        :return: nothing
-        """
-
-    def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str) -> None:
-        """
-        ban a user globally
-
-        :param user_id: the id of the user to ban
-        :param ban_timestamp: end time of the ban
-        :param ban_duration: how long this ban is for
-        :param room_id: the uuid of the room to ban for, or blank if global ban
         :return: nothing
         """
 

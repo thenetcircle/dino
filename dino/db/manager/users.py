@@ -59,21 +59,21 @@ class UserManager(BaseManager):
         }
         self.env.publish(kick_activity)
 
-    def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str) -> None:
+    def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str, reason: str=None, banner_id: str=None) -> None:
         private_room_id = self.env.db.get_private_room(user_id)[0]
         target_name = None
         timestamp = utils.ban_duration_to_timestamp(duration)
 
         if target_type == 'global':
-            self.env.db.ban_user_global(user_id, timestamp, duration)
+            self.env.db.ban_user_global(user_id, timestamp, duration, reason, banner_id)
 
         elif target_type == 'channel':
             target_name = self.env.db.get_channel_name(target_id)
-            self.env.db.ban_user_channel(user_id, timestamp, duration, target_id)
+            self.env.db.ban_user_channel(user_id, timestamp, duration, target_id, reason, banner_id)
 
         elif target_type == 'room':
             target_name = self.env.db.get_room_name(target_id)
-            self.env.db.ban_user_room(user_id, timestamp, duration, target_id)
+            self.env.db.ban_user_room(user_id, timestamp, duration, target_id, reason, banner_id)
         else:
             raise UnknownBanTypeException(target_type)
 
@@ -95,6 +95,10 @@ class UserManager(BaseManager):
             }
         }
 
+        if reason is not None:
+            ban_activity['object']['content'] = reason
+        if banner_id is not None:
+            ban_activity['actor']['id'] = banner_id
         if target_name is not None:
             ban_activity['target']['id'] = target_id
             ban_activity['target']['displayName'] = utils.b64e(target_name)
