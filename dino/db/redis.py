@@ -100,7 +100,10 @@ class DatabaseRedis(object):
 
     def is_room_private(self, room_id: str) -> bool:
         channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), room_id[:2])
-        return channel_id is not None and len(str(channel_id, 'utf-8').strip()) > 0
+        if channel_id is None or len(str(channel_id, 'utf-8').strip()) == 0:
+            return False
+        if self.redis.hexists(RedisKeys.private_rooms_in_channel(room_id[:2]), room_id):
+            return True
 
     def has_private_room(self, user_id: str) -> bool:
         if user_id is None or len(user_id.strip()) == 0:
@@ -119,7 +122,7 @@ class DatabaseRedis(object):
             if channel_id is None:
                 channel_id = self.create_private_channel_for_room(room_id)
 
-            self.redis.hset(RedisKeys.private_rooms_in_channel(channel_prefix), channel_id, room_id)
+            self.redis.hset(RedisKeys.private_rooms_in_channel(channel_prefix), room_id, channel_id)
             self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)
             self.redis.hset(RedisKeys.user_for_private_room(), room_id, user_id)
         else:
@@ -999,7 +1002,7 @@ class DatabaseRedis(object):
 
         self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)
         channel_id = self.get_private_channel_for_room(room_id)
-        self.redis.hset(RedisKeys.private_rooms_in_channel(room_id[:2]), channel_id, room_id)
+        self.redis.hset(RedisKeys.private_rooms_in_channel(room_id[:2]), room_id, channel_id)
 
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.redis.hset(RedisKeys.rooms_for_user(user_id), room_id, room_name)

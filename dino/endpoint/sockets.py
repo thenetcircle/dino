@@ -94,11 +94,16 @@ def handle_server_activity(data: dict, activity: Activity):
                 'gn_user_banned', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
         ban_duration = activity.object.summary
         ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
-        send_ban_event_to_external_queue('room')
+        banner_id = activity_json['actor']['id']
+
+        reason = None
+        if 'object' in activity_json and 'content' in activity_json['content']:
+            reason = activity_json['object']['content']
 
         try:
+            send_ban_event_to_external_queue('room')
             socketio.server.leave_room(_user_sid, _room_id, '/chat')
-            environ.env.db.ban_user_room(_user_id, ban_timestamp, ban_duration, _room_id)
+            environ.env.db.ban_user_room(_user_id, ban_timestamp, ban_duration, _room_id, reason, banner_id)
         except Exception as e:
             logger.error('could not ban user %s from room %s: %s' % (_user_id, _room_id, str(e)))
             return
@@ -107,21 +112,41 @@ def handle_server_activity(data: dict, activity: Activity):
         rooms_in_channel = environ.env.db.rooms_for_channel(_channel_id)
         ban_duration = activity.object.summary
         ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+        banner_id = activity_json['actor']['id']
 
-        send_ban_event_to_external_queue('channel')
-        environ.env.db.ban_user_channel(_user_id, ban_timestamp, ban_duration, _channel_id)
-        for room in rooms_in_channel:
-            _ban_room(room, _user_id, _user_sid, namespace, activity_json)
+        reason = None
+        if 'object' in activity_json and 'content' in activity_json['content']:
+            reason = activity_json['object']['content']
+
+        try:
+            send_ban_event_to_external_queue('channel')
+            environ.env.db.ban_user_channel(_user_id, ban_timestamp, ban_duration, _channel_id, reason, banner_id)
+            for room in rooms_in_channel:
+                _ban_room(room, _user_id, _user_sid, namespace, activity_json)
+        except Exception as e:
+            logger.error('could not ban user %s from channel %s: %s' % (_user_id, _channel_id, str(e)))
+            logger.exception(traceback.format_exc(e))
+            return
 
     def _ban_globally(_channel_id, _user_id, _user_sid, namespace, activity_json):
         rooms_for_user = environ.env.db.rooms_for_user(_channel_id)
         ban_duration = activity.object.summary
         ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+        banner_id = activity_json['actor']['id']
 
-        send_ban_event_to_external_queue('global')
-        environ.env.db.ban_user_global(_user_id, ban_timestamp, ban_duration)
-        for room in rooms_for_user:
-            _ban_room(room, _user_id, _user_sid, namespace, activity_json)
+        reason = None
+        if 'object' in activity_json and 'content' in activity_json['content']:
+            reason = activity_json['object']['content']
+
+        try:
+            send_ban_event_to_external_queue('global')
+            environ.env.db.ban_user_global(_user_id, ban_timestamp, ban_duration, reason, banner_id)
+            for room in rooms_for_user:
+                _ban_room(room, _user_id, _user_sid, namespace, activity_json)
+        except Exception as e:
+            logger.error('could not ban user %s globally: %s' % (_user_id, str(e)))
+            logger.exception(traceback.format_exc(e))
+            return
 
     def send_ban_event_to_external_queue(target_type) -> None:
         ban_activity = {

@@ -384,7 +384,7 @@ class BaseTest(unittest.TestCase):
     def create_private_room(self):
         p_channel_id = str(uuid())
         p_room_id = str(uuid())
-        environ.env.db.redis.hset(RedisKeys.private_rooms_in_channel(p_room_id[:2]), p_channel_id, p_room_id)
+        environ.env.db.redis.hset(RedisKeys.private_rooms_in_channel(p_room_id[:2]), p_room_id, p_channel_id)
         environ.env.db.redis.hset(RedisKeys.private_rooms(), BaseTest.USER_ID, p_room_id)
         environ.env.db.redis.hset(RedisKeys.user_for_private_room(), p_room_id, BaseTest.USER_ID)
         environ.env.db.redis.hset(RedisKeys.private_channel_for_prefix(), p_room_id[:2], p_channel_id)
