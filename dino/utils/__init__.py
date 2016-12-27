@@ -727,14 +727,10 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
 
         if _last_read is None:
             _last_read = get_last_read_for(room_id, user_id)
-            print('now last read is "%s"' % _last_read)
             if _last_read is None:
                 return list()
 
         return environ.env.storage.get_unread_history(room_id, _last_read)
-
-    print('getting history for room %s, history is "%s", last_read "%s"' % (room_id, history, last_read))
-
     return _history(last_read)
 
 
