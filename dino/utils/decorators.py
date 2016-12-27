@@ -96,16 +96,16 @@ def pre_process(validation_name, should_validate_request=True):
                     # use default time format, since activity streams only accept RFC3339 format
                     data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                     data['id'] = str(uuid())
-                    data['actor']['id'] = str(environ.env.session.get(SessionKeys.user_id.value))
 
-                    user_name = environ.env.session.get(SessionKeys.user_name.value)
-                    if user_name is None or len(user_name.strip()) == 0:
-                        try:
-                            user_name = utils.get_user_name_for(data['actor']['id'])
-                        except NoSuchUserException as e:
-                            return 400, str(e)
-
-                    data['actor']['displayName'] = utils.b64e(user_name)
+                    if should_validate_request:
+                        data['actor']['id'] = str(environ.env.session.get(SessionKeys.user_id.value))
+                        user_name = environ.env.session.get(SessionKeys.user_name.value)
+                        if user_name is None or len(user_name.strip()) == 0:
+                            try:
+                                user_name = utils.get_user_name_for(data['actor']['id'])
+                            except NoSuchUserException as e:
+                                return 400, str(e)
+                        data['actor']['displayName'] = utils.b64e(user_name)
 
                     activity = as_parser.parse(data)
 
