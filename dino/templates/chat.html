@@ -92,7 +92,7 @@
                         verb: 'login',
                         actor: {
                             id: '{{ user_id }}',
-                            displayName: '{{ user_name }}',
+                            displayName: b64e('{{ user_name }}'),
                             attachments: [
                                 {
                                     objectType: 'token',
