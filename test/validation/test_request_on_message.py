@@ -22,6 +22,8 @@ from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
 from dino.config import ErrorCodes
+from dino.exceptions import NoSuchRoomException
+from dino.exceptions import NoChannelFoundException
 from dino.validation import RequestValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
@@ -35,6 +37,7 @@ class FakeDb(object):
     _room_exists = dict()
     _room_contains = dict()
     _private_rooms = dict()
+    _channel_for_room = dict()
 
     _ban_status = {
         'global': '',
@@ -51,6 +54,13 @@ class FakeDb(object):
         'message': dict(),
         'crossroom': {'samechannel': ''},
     }
+
+    def channel_for_room(self, room_id: str) -> str:
+        if room_id is None or room_id.strip() == '':
+            raise NoSuchRoomException(room_id)
+        if room_id not in FakeDb._channel_for_room:
+            raise NoChannelFoundException(room_id)
+        return FakeDb._channel_for_room[room_id]
 
     def is_admin(self, *args):
         return False
@@ -258,6 +268,11 @@ class RequestMessageTest(TestCase):
                 RequestMessageTest.USER_ID
             },
             RequestMessageTest.OTHER_ROOM_ID: set()
+        }
+
+        FakeDb._channel_for_room = {
+            RequestMessageTest.ROOM_ID: RequestMessageTest.CHANNEL_ID,
+            RequestMessageTest.OTHER_ROOM_ID: RequestMessageTest.OTHER_CHANNEL_ID,
         }
 
         FakeDb._private_rooms = {

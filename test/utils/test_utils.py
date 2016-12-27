@@ -418,30 +418,6 @@ class UtilsCanSendCrossRoomTest(BaseWithDb):
         FakeDb._channel_acls[ApiActions.CROSSROOM] = {'samechannel': ''}
         self.assertRaises(NoTargetRoomException, utils.can_send_cross_room, as_parser(act), BaseWithDb.ROOM_ID, None)
 
-    def test_no_object(self):
-        act = self.json()
-        del act['object']
-        FakeDb._channel_acls[ApiActions.CROSSROOM] = {'samechannel': ''}
-        self.assertRaises(NoTargetChannelException, utils.can_send_cross_room, as_parser(act), BaseWithDb.ROOM_ID, BaseWithDb.OTHER_ROOM_ID)
-
-    def test_blank_object_url(self):
-        act = self.json()
-        act['object']['url'] = ''
-        FakeDb._channel_acls[ApiActions.CROSSROOM] = {'samechannel': ''}
-        self.assertRaises(NoTargetChannelException, utils.can_send_cross_room, as_parser(act), BaseWithDb.ROOM_ID, BaseWithDb.OTHER_ROOM_ID)
-
-    def test_no_provider(self):
-        act = self.json()
-        del act['provider']
-        FakeDb._channel_acls[ApiActions.CROSSROOM] = {'samechannel': ''}
-        self.assertRaises(NoOriginChannelException, utils.can_send_cross_room, as_parser(act), BaseWithDb.ROOM_ID, BaseWithDb.OTHER_ROOM_ID)
-
-    def test_blank_provider(self):
-        act = self.json()
-        act['provider']['url'] = ''
-        FakeDb._channel_acls[ApiActions.CROSSROOM] = {'samechannel': ''}
-        self.assertRaises(NoOriginChannelException, utils.can_send_cross_room, as_parser(act), BaseWithDb.ROOM_ID, BaseWithDb.OTHER_ROOM_ID)
-
     def test_not_allowed(self):
         act = self.json()
         FakeDb._channel_acls[ApiActions.CROSSROOM] = {'disallow': ''}
