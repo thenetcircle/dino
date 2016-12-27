@@ -55,14 +55,14 @@ class CassandraStorage(object):
         self.driver.msg_insert(
                 msg_id=activity.id,
                 from_user_id=activity.actor.id,
-                from_user_name=activity.actor.summary,
+                from_user_name=activity.actor.display_name,
                 target_id=activity.target.id,
                 target_name=activity.target.display_name,
                 body=message,
                 domain=activity.target.object_type,
                 sent_time=activity.published,
                 channel_id=activity.object.url,
-                channel_name=activity.object.summary,
+                channel_name=activity.object.display_name,
                 deleted=False
         )
 

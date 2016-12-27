@@ -78,6 +78,30 @@ def on_message(data, activity: Activity):
     if from_room_id is not None and from_room_id == room_id:
         del data['actor']['url']
 
+    if activity.object.url is None or len(activity.object.url.strip()) == 0:
+        activity.object.url = utils.get_channel_for_room(room_id)
+        activity.object.display_name = utils.get_channel_name(activity.object.url)
+        if 'object' not in data or len(data['object']) == 0:
+            data['object'] = {
+                'url': activity.object.url,
+                'displayName': activity.object.display_name
+            }
+        else:
+            data['object']['url'] = activity.object.url
+            data['object']['displayName'] = activity.object.display_name
+
+    if from_room_id is not None and len(from_room_id.strip()) > 0:
+        activity.provider.url = utils.get_channel_for_room(from_room_id)
+        activity.provider.display_name = utils.get_channel_name(activity.provider.url)
+        if 'provider' not in data or len(data['provider']) == 0:
+            data['provider'] = {
+                'url': activity.provider.url,
+                'displayName': activity.provider.display_name
+            }
+        else:
+            data['provider']['url'] = activity.provider.url
+            data['provider']['displayName'] = activity.provider.display_name
+
     activity.actor.display_name = user_name
     if activity.target.object_type == 'room':
         activity.target.display_name = utils.get_room_name(activity.target.id)
