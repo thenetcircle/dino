@@ -48,8 +48,8 @@ class KickResource(BaseResource):
             try:
                 self.user_manager.kick_user(room_id, user_id)
                 output[user_id] = 'OK'
-            except Exception as e:
-                logger.error('no such room when trying to kick user %s for room %s: %s' % (user_id, room_id, str(e)))
+            except Exception:
+                logger.error('no such room when trying to kick user %s for room %s' % (user_id, room_id))
                 logger.error(traceback.format_exc())
                 output[user_id] = 'FAIL'
                 continue
