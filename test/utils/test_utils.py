@@ -304,7 +304,7 @@ class UtilsActivityForTest(TestCase):
         self.assertIsNotNone(utils.activity_for_invite('1', '2', '3', '4', '5', '6'))
 
     def test_activity_for_whisper(self):
-        self.assertIsNotNone(utils.activity_for_whisper('1', '2', '3', '4', '5', '6'))
+        self.assertIsNotNone(utils.activity_for_whisper('1', '2', '3', '4', '5', '6', '7'))
 
 
 class UtilsSmallFunctionsTest(BaseWithDb):

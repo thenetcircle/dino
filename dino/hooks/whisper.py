@@ -22,14 +22,15 @@ class OnWhisperHooks(object):
         data, activity = arg
         user_room = activity.target.id
         whisperer = activity.actor.id
+        whisperer_name = activity.actor.display_name
         room_id = activity.actor.url
         channel_id = activity.object.url
+        channel_name = activity.object.display_name
+        message = activity.object.content
 
-        whisperer_name = utils.get_user_name_for(whisperer)
-        channel_name = utils.get_channel_name(channel_id)
         room_name = utils.get_room_name(room_id)
 
-        activity_json = utils.activity_for_whisper(whisperer, whisperer_name, room_id, room_name, channel_id, channel_name)
+        activity_json = utils.activity_for_whisper(message, whisperer, whisperer_name, room_id, room_name, channel_id, channel_name)
         environ.env.emit('gn_whisper', activity_json, json=True, room=user_room)
 
 

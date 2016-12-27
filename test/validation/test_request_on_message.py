@@ -165,12 +165,6 @@ class RequestMessageTest(TestCase):
         is_valid, code, msg = self.validator.on_message(as_parser(json_act))
         self.assertFalse(is_valid)
 
-    def test_no_channel_id(self):
-        json_act = self.json_act()
-        json_act['object']['url'] = ''
-        is_valid, code, msg = self.validator.on_message(as_parser(json_act))
-        self.assertFalse(is_valid)
-
     def test_channel_does_not_exist(self):
         FakeDb._channel_exists[RequestMessageTest.CHANNEL_ID] = False
         json_act = self.json_act()

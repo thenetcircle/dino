@@ -24,8 +24,7 @@ class OnCreateHooks(object):
         room_id = activity.target.id
         channel_id = activity.object.url
         user_id = activity.actor.id
-
-        user_name = utils.get_user_name_for(user_id)
+        user_name = activity.actor.display_name
         environ.env.db.create_room(room_name, room_id, channel_id, user_id, user_name)
 
     @staticmethod

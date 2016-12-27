@@ -11,6 +11,7 @@
 # limitations under the License.
 
 from activitystreams.models.activity import Activity
+from activitystreams.models.defobject import DefObject
 import logging
 
 from dino import environ
@@ -23,6 +24,8 @@ from dino.config import ErrorCodes as ECodes
 from dino.validation.base import BaseValidator
 from dino.exceptions import NoSuchRoomException
 from dino.exceptions import NoSuchUserException
+from dino.exceptions import NoSuchChannelException
+from dino.exceptions import NoChannelFoundException
 from dino import validation
 from dino.validation.duration import DurationValidator
 
@@ -52,7 +55,11 @@ class RequestValidator(BaseValidator):
             return False, ECodes.INVALID_TARGET_TYPE, 'invalid object_type "%s", must be one of [room, private]' % object_type
 
         if object_type == 'room':
-            channel_id = activity.object.url
+            channel_id = None
+            if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
+                channel_id = activity.object.url
+            if channel_id is None or len(channel_id.strip()) == 0:
+                channel_id = utils.get_channel_for_room(room_id)
 
             if channel_id is None or channel_id == '':
                 return False, ECodes.MISSING_OBJECT_URL, 'no channel id specified when sending message'
@@ -127,10 +134,15 @@ class RequestValidator(BaseValidator):
 
     def on_ban(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
-        channel_id = activity.object.url
         user_id = activity.actor.id
         kicked_id = activity.object.id
         ban_duration = activity.object.summary
+
+        channel_id = None
+        if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
+            channel_id = activity.object.url
+        if channel_id is None or len(channel_id.strip()) == 0:
+            channel_id = utils.get_channel_for_room(room_id)
 
         try:
             DurationValidator(ban_duration)
@@ -187,10 +199,13 @@ class RequestValidator(BaseValidator):
             else:
                 if utils.is_owner(_target_id, _user_id):
                     return True
-                if activity.object is not None and activity.object.url is not None:
+                channel_id = None
+                if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
                     channel_id = activity.object.url
-                    if channel_id is not None and utils.is_owner_channel(channel_id, _user_id):
-                        return True
+                if channel_id is None or len(channel_id.strip()) == 0:
+                    channel_id = utils.get_channel_for_room(_target_id)
+                if channel_id is not None and utils.is_owner_channel(channel_id, _user_id):
+                    return True
 
             if utils.is_super_user(_user_id):
                 return True
@@ -248,8 +263,10 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_list_rooms(self, activity: Activity) -> (bool, int, str):
-        channel_id = activity.object.url
+        if not hasattr(activity, 'object') or not hasattr(activity.object, 'url'):
+            return False, ECodes.MISSING_OBJECT_URL, 'need channel ID to list rooms'
 
+        channel_id = activity.object.url
         if channel_id is None or channel_id == '':
             return False, ECodes.MISSING_OBJECT_URL, 'need channel ID to list rooms'
 
@@ -341,17 +358,85 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_invite(self, activity: Activity) -> (bool, int, str):
-        # TODO: implement
+        if not hasattr(activity.actor, 'url'):
+            return False, ECodes.MISSING_ACTOR_URL, 'need invite room uuid in actor.url'
+        invite_room = activity.actor.url
+
+        if not hasattr(activity, 'target') or not hasattr(activity.target, 'id'):
+            return False, ECodes.MISSING_TARGET_ID, 'no target.id (uuid of user to invite)'
+
+        try:
+            activity.target.display_name = utils.get_user_name_for(activity.target.id)
+        except NoSuchUserException:
+            return False, ECodes.NO_SUCH_USER, 'no such user for target.id (uuid of user to invite)'
+
+        try:
+            channel_id = utils.get_channel_for_room(invite_room)
+        except (NoSuchRoomException, NoChannelFoundException):
+            return False, ECodes.NO_SUCH_ROOM, 'no room/channel found for actor.url room uuid'
+
+        if not utils.room_exists(channel_id, invite_room):
+            return False, ECodes.NO_SUCH_ROOM, 'room actor.url does not exist'
+
+        if not hasattr(activity, 'object'):
+            activity.object = DefObject(dict())
+
+        activity.object.url = channel_id
+        activity.object.display_name = utils.get_channel_name(channel_id)
+
+        return True, None, None
+
+    def on_whisper(self, activity: Activity) -> (bool, int, str):
+        if not hasattr(activity, 'target') or not hasattr(activity.target, 'id'):
+            return False, ECodes.MISSING_TARGET_ID, 'no target.id (user uuid to whisper to)'
+        if not hasattr(activity, 'actor') or not hasattr(activity.actor, 'id'):
+            return False, ECodes.MISSING_ACTOR_ID, 'no actor.id (id of user who is whispering)'
+        if not hasattr(activity, 'actor') or not hasattr(activity.actor, 'url'):
+            return False, ECodes.MISSING_ACTOR_URL, 'no actor.url (room uuid to whisper in)'
+        if not hasattr(activity, 'object') or not hasattr(activity.object, 'content'):
+            return False, ECodes.MISSING_OBJECT_CONTENT, 'no object.content (message to whisper)'
+
+        if not utils.is_base64(activity.object.content):
+            return False, ECodes.NOT_BASE64, 'object.content needs to be base64 encoded'
+
+        try:
+            activity.actor.display_name = utils.get_user_name_for(activity.actor.id)
+        except NoSuchUserException:
+            return False, ECodes.NO_SUCH_USER, 'no such user for actor.id'
+
+        try:
+            activity.object.url = utils.get_channel_for_room(activity.actor.url)
+        except (NoSuchChannelException, NoChannelFoundException):
+            return False, ECodes.NO_SUCH_ROOM, 'no room found for actor.url (room uuid to whisper in)'
+
+        try:
+            activity.object.display_name = utils.get_channel_name(activity.object.url)
+        except (NoSuchChannelException, NoChannelFoundException):
+            return False, ECodes.NO_SUCH_CHANNEL, 'no channel found for actor.url (room uuid to whisper in)'
+
         return True, None, None
 
     def on_create(self, activity: Activity) -> (bool, int, str):
-        if not hasattr(activity.object, 'url'):
+        if not hasattr(activity, 'object') or not hasattr(activity.object, 'url'):
             return False, ECodes.MISSING_OBJECT_URL, 'no channel id set'
         if not hasattr(activity.target, 'display_name'):
             return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'no room name set'
 
         room_name = activity.target.display_name
         channel_id = activity.object.url
+
+        if not hasattr(activity, 'actor') or not hasattr(activity.actor, 'id'):
+            return False, ECodes.MISSING_ACTOR_ID, 'need actor.id (user uuid)'
+
+        try:
+            activity.actor.display_name = utils.get_user_name_for(activity.actor.id)
+        except NoSuchUserException:
+            return False, ECodes.NO_SUCH_USER, 'no such user for actor.id'
+
+        try:
+            activity.object.display_name = utils.get_channel_name(channel_id)
+        except NoSuchChannelException:
+            return False, ECodes.NO_SUCH_CHANNEL, 'channel does not exist'
 
         if room_name is None or room_name.strip() == '':
             return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'got blank room name, can not create'

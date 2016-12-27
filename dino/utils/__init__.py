@@ -368,7 +368,7 @@ def activity_for_invite(
 
 
 def activity_for_whisper(
-        whisperer_id: str, whisperer_name: str, room_id: str, room_name: str,
+        message: str, whisperer_id: str, whisperer_name: str, room_id: str, room_name: str,
         channel_id: str, channel_name: str) -> dict:
     return {
         'actor': {
@@ -378,6 +378,7 @@ def activity_for_whisper(
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'whisper',
         'object': {
+            'content': message,
             'url': channel_id,
             'displayName': b64e(channel_name)
         },

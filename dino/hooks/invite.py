@@ -20,13 +20,12 @@ class OnInviteHooks(object):
     @staticmethod
     def send_invite(arg: tuple) -> None:
         data, activity = arg
-        user_id = activity.actor.id
         invitee = activity.target.id
         invite_room = activity.actor.url
         channel_id = activity.object.url
+        channel_name = activity.object.display_name
+        invitee_name = activity.target.display_name
 
-        channel_name = utils.get_channel_name(channel_id)
-        invitee_name = utils.get_user_name_for(user_id)
         room_name = utils.get_room_name(invite_room)
 
         activity_json = utils.activity_for_invite(invitee, invitee_name, invite_room, room_name, channel_id, channel_name)

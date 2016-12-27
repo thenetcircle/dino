@@ -16,6 +16,7 @@ from typing import Union
 from uuid import uuid4 as uuid
 
 from activitystreams.models.activity import Activity
+from activitystreams.models.defobject import DefObject
 from activitystreams import parse as as_parser
 from dino.config import ApiTargets
 from dino.config import ErrorCodes as ECodes
@@ -78,17 +79,28 @@ def on_message(data, activity: Activity):
     if from_room_id is not None and from_room_id == room_id:
         del data['actor']['url']
 
-    if activity.object.url is None or len(activity.object.url.strip()) == 0:
-        activity.object.url = utils.get_channel_for_room(room_id)
-        activity.object.display_name = utils.get_channel_name(activity.object.url)
-        if 'object' not in data or len(data['object']) == 0:
-            data['object'] = {
-                'url': activity.object.url,
-                'displayName': activity.object.display_name
-            }
-        else:
-            data['object']['url'] = activity.object.url
-            data['object']['displayName'] = activity.object.display_name
+    channel_id = None
+    if activity.target.object_type != 'room':
+        if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
+            channel_id = activity.object.url
+        if channel_id is None or len(channel_id.strip()) == 0:
+            channel_id = utils.get_channel_for_room(room_id)
+
+        channel_name = utils.get_channel_name(channel_id)
+        if not hasattr(activity, 'object'):
+            activity.object = DefObject(dict())
+
+        activity.object.url = channel_id
+        activity.object.display_name = channel_name
+
+    if 'object' not in data or len(data['object']) == 0:
+        data['object'] = {
+            'url': activity.object.url,
+            'displayName': activity.object.display_name
+        }
+    else:
+        data['object']['url'] = activity.object.url
+        data['object']['displayName'] = activity.object.display_name
 
     if from_room_id is not None and len(from_room_id.strip()) > 0:
         activity.provider.url = utils.get_channel_for_room(from_room_id)
@@ -105,7 +117,6 @@ def on_message(data, activity: Activity):
     activity.actor.display_name = user_name
     if activity.target.object_type == 'room':
         activity.target.display_name = utils.get_room_name(activity.target.id)
-        activity.object.display_name = utils.get_channel_name(activity.object.url)
     else:
         activity.target.display_name = utils.get_user_name_for(utils.get_user_for_private_room(activity.target.id))
         activity.object.display_name = ''
