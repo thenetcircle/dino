@@ -142,9 +142,6 @@ class BaseTest(unittest.TestCase):
 
     @staticmethod
     def _join_room(room):
-        if room == BaseTest.USER_ID:
-            room = environ.env.db.redis.hget(RedisKeys.private_rooms(), room)
-            room = str(room, 'utf-8')
         if room not in BaseTest.users_in_room:
             BaseTest.users_in_room[room] = list()
         BaseTest.users_in_room[room].append(BaseTest.USER_ID)
@@ -378,16 +375,7 @@ class BaseTest(unittest.TestCase):
 
     def create_and_join_room(self):
         self.create_channel_and_room()
-        self.create_private_room()
         self.join_room()
-
-    def create_private_room(self):
-        p_channel_id = str(uuid())
-        p_room_id = str(uuid())
-        environ.env.db.redis.hset(RedisKeys.private_rooms_in_channel(p_room_id[:2]), p_room_id, p_channel_id)
-        environ.env.db.redis.hset(RedisKeys.private_rooms(), BaseTest.USER_ID, p_room_id)
-        environ.env.db.redis.hset(RedisKeys.user_for_private_room(), p_room_id, BaseTest.USER_ID)
-        environ.env.db.redis.hset(RedisKeys.private_channel_for_prefix(), p_room_id[:2], p_channel_id)
 
     def create_room(self, room_id: str=None, room_name: str=None):
         if room_id is None:
@@ -412,7 +400,6 @@ class BaseTest(unittest.TestCase):
         environ.env.cache.set_channel_exists(BaseTest.CHANNEL_ID)
 
     def create_user(self, user_id, user_name):
-        environ.env.db.get_private_room(user_id)
         environ.env.db.redis.hset(RedisKeys.user_names(), BaseTest.OTHER_USER_ID, BaseTest.OTHER_USER_NAME)
 
     def set_owner(self):
@@ -523,16 +510,6 @@ class BaseTest(unittest.TestCase):
     def assert_in_room(self, is_in_room):
         self.assertEqual(is_in_room, BaseTest.ROOM_ID in BaseTest.users_in_room and
                          BaseTest.USER_ID in BaseTest.users_in_room[BaseTest.ROOM_ID])
-
-    def assert_in_own_room(self, is_in_room):
-        private_room = environ.env.db.redis.hget(RedisKeys.private_rooms(), BaseTest.USER_ID)
-        if private_room is None:
-            self.assertEqual(is_in_room, False)
-            return
-
-        private_room = str(private_room, 'utf-8')
-        self.assertEqual(is_in_room, private_room in BaseTest.users_in_room and
-                         BaseTest.USER_ID in BaseTest.users_in_room[private_room])
 
     def activity_for_history(self, skip: set=None):
         data = {

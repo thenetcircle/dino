@@ -52,10 +52,11 @@ class CassandraStorage(object):
 
     def store_message(self, activity: Activity) -> None:
         message = b64d(activity.object.content)
+        actor_name = b64d(activity.actor.display_name)
         self.driver.msg_insert(
                 msg_id=activity.id,
                 from_user_id=activity.actor.id,
-                from_user_name=activity.actor.display_name,
+                from_user_name=actor_name,
                 target_id=activity.target.id,
                 target_name=activity.target.display_name,
                 body=message,

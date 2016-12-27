@@ -69,9 +69,6 @@ class MockServer(object):
 
 
 class FakeDb(object):
-    def get_user_for_private_room(self, *args):
-        return '1234'
-
     def rooms_for_user(self, *args):
         return {'8888': 'some name'}
 

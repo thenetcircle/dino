@@ -104,9 +104,6 @@ class FakeDb(object):
             return dict()
         return FakeDb._room_acls[action]
 
-    def get_user_for_private_room(self, *args):
-        return BaseWithDb.USER_ID
-
     def admin_room_for_channel(self, *args):
         return BaseWithDb.ROOM_ID
 
@@ -341,9 +338,6 @@ class UtilsSmallFunctionsTest(BaseWithDb):
 
     def test_get_channel_name(self):
         self.assertEqual(BaseWithDb.CHANNEL_NAME, utils.get_channel_name(BaseWithDb.CHANNEL_ID))
-
-    def test_get_user_for_private_room(self):
-        self.assertEqual(BaseWithDb.USER_ID, utils.get_user_for_private_room(BaseWithDb.ROOM_ID))
 
     def test_get_admin_room_for_channel(self):
         self.assertEqual(BaseWithDb.ROOM_ID, utils.get_admin_room_for_channel(BaseWithDb.CHANNEL_ID))

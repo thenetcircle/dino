@@ -65,6 +65,9 @@ class RequestValidator(BaseValidator):
             if channel_id is None or channel_id == '':
                 return False, ECodes.MISSING_OBJECT_URL, 'no channel id specified when sending message'
 
+            activity.object.url = channel_id
+            activity.object.display_name = utils.get_channel_name(channel_id)
+
             if not utils.channel_exists(channel_id):
                 return False, ECodes.NO_SUCH_CHANNEL, 'channel %s does not exists' % channel_id
 
@@ -84,8 +87,10 @@ class RequestValidator(BaseValidator):
                     return False, ECodes.NOT_ALLOWED, 'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
 
         elif object_type == 'private':
-            if not utils.is_room_private(room_id):
-                return False, ECodes.INVALID_TARGET_TYPE, 'target is not a private chat, use object_type "group" instead'
+            try:
+                utils.get_user_name_for(room_id)
+            except NoSuchUserException:
+                return False, ECodes.INVALID_TARGET_TYPE, 'target.id is not a known user id'
 
         return True, None, None
 
@@ -154,7 +159,7 @@ class RequestValidator(BaseValidator):
             try:
                 utils.get_room_name(room_id)
             except NoSuchRoomException as e:
-                return False, ECodes.NO_SUCH_ROOM, 'no private room found for user: %s' % str(e)
+                return False, ECodes.NO_SUCH_ROOM, 'no room found for uuid: %s' % str(e)
 
         is_global_ban = room_id is None or room_id == ''
 

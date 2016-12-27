@@ -48,9 +48,6 @@
                     $('#room-id').val(room_id);
                     $('#private').attr('checked', false);
                     socket.emit('join', {
-                        actor: {
-                            id: '{{ user_id }}'
-                        },
                         verb: 'join',
                         target: {
                             id: room_id
@@ -65,9 +62,6 @@
                     $('#channel-id').val(channel_id);
 
                     socket.emit('list_rooms', {
-                        actor: {
-                            id: '{{ user_id }}'
-                        },
                         object: {
                             url: channel_id
                         },
@@ -107,18 +101,13 @@
                             ]
                         }
                     }, function(data) {
-                        console.log('did login');
                         console.log(data);
                     });
                 });
 
                 socket.on('gn_login', function(data) {
-                    console.log('logged in');
                     console.log(data);
                     socket.emit('list_channels', {
-                        actor: {
-                            id: '{{ user_id }}'
-                        },
                         verb: 'list'
                     });
                 });
@@ -367,9 +356,6 @@
                         }
 
                         socket.emit('message', {
-                            actor: {
-                                id: '{{ user_id }}'
-                            },
                             verb: 'send',
                             target: {
                                 id: room_id,
@@ -384,9 +370,6 @@
 
                 $('input#create-the-room').click(function() {
                     socket.emit('create', {
-                        actor: {
-                            id: '{{ user_id }}'
-                        },
                         object: {
                             url: $('#channel-id').val()
                         },
@@ -399,10 +382,6 @@
 
                 $('a#leave').click(function() {
                     socket.emit('leave', {
-                        actor: {
-                            id: '{{ user_id }}',
-                            displayName: b64e('{{ user_name }}')
-                        },
                         verb: 'leave',
                         target: {
                             id: $('#room-id').val()
@@ -441,9 +420,6 @@
                     }
 
                     socket.emit('set_acl', {
-                        actor: {
-                            id: '{{ user_id }}'
-                        },
                         verb: 'set',
                         object: {
                             objectType: 'acl',

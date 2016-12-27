@@ -24,18 +24,14 @@ class SendMessageTest(BaseTest):
 
         act = self.activity_for_join(BaseTest.USER_ID, BaseTest.ROOM_ID)
         api.on_join(act, as_parser(act))
-        self.user_private_room_id = self.env.db.get_private_room(BaseTest.USER_ID, BaseTest.USER_NAME)[0]
-        self.env.db.join_private_room(BaseTest.USER_ID, BaseTest.USER_NAME, self.user_private_room_id)
 
     def test_send_private_message(self):
-        self.assertTrue(self.env.db.is_room_private(self.user_private_room_id))
-
         act = self.activity_for_join(BaseTest.OTHER_USER_ID, BaseTest.ROOM_ID)
         api.on_join(act, as_parser(act))
 
         act = self.activity_for_message('this is a message')
         act['actor']['id'] = BaseTest.OTHER_USER_ID
-        act['target']['id'] = self.user_private_room_id
+        act['target']['id'] = BaseTest.USER_ID
         act['target']['objectType'] = 'private'
 
         api.on_message(act, as_parser(act))
@@ -43,7 +39,7 @@ class SendMessageTest(BaseTest):
         # make sure hooks have fired, async
         time.sleep(0.05)
 
-        self.assertIsNotNone(self.msgs_sent.get(self.user_private_room_id))
+        self.assertIsNotNone(self.msgs_sent.get(BaseTest.USER_ID))
 
     def test_send_room_message(self):
         act = self.activity_for_join(BaseTest.OTHER_USER_ID, BaseTest.ROOM_ID)

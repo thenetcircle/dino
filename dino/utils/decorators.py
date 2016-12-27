@@ -96,7 +96,7 @@ def pre_process(validation_name, should_validate_request=True):
                     # use default time format, since activity streams only accept RFC3339 format
                     data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                     data['id'] = str(uuid())
-                    data['actor']['id'] = environ.env.session.get(SessionKeys.user_id.value)
+                    data['actor']['id'] = str(environ.env.session.get(SessionKeys.user_id.value))
 
                     user_name = environ.env.session.get(SessionKeys.user_name.value)
                     if user_name is None or len(user_name.strip()) == 0:

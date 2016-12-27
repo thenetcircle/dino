@@ -20,14 +20,11 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class OnLoginHooks(object):
     @staticmethod
     def update_session_and_join_private_room(arg: tuple) -> None:
-        """
-        do both update session and join private room here, since we need to update session before joining private room
-        we have to synchronize it here, otherwise the method for joining the private room might get called before the
-        session has been updated
-        """
         data, activity = arg
         user_id = activity.actor.id
+        user_name = utils.b64d(activity.actor.display_name)
         environ.env.session[SessionKeys.user_id.value] = user_id
+        environ.env.session[SessionKeys.user_name.value] = user_name
 
         if activity.actor.image is None:
             environ.env.session['image_url'] = ''
@@ -36,10 +33,9 @@ class OnLoginHooks(object):
             environ.env.session['image_url'] = activity.actor.image.url
             environ.env.session[SessionKeys.image.value] = 'y'
 
-        user_name = environ.env.session.get(SessionKeys.user_name.value)
-        private_room_id, _ = environ.env.db.get_private_room(user_id, user_name)
+        utils.create_or_update_user(user_id, user_name)
         utils.set_sid_for_user_id(user_id, environ.env.request.sid)
-        utils.join_private_room(user_id, activity.actor.summary, private_room_id)
+        environ.env.join_room(user_id)
 
     @staticmethod
     def publish_activity(arg: tuple) -> None:
@@ -63,7 +59,7 @@ def _on_login_set_user_online(arg: tuple) -> None:
 
 
 @environ.env.observer.on('on_login')
-def _on_login_update_session_and_join_private_room(arg: tuple) -> None:
+def _on_login_update_session(arg: tuple) -> None:
     OnLoginHooks.update_session_and_join_private_room(arg)
 
 

@@ -31,11 +31,7 @@ class OnDisconnectHooks(object):
 
         if user_id is None or len(user_id.strip()) == 0:
             return
-        if not environ.env.db.has_private_room(user_id):
-            return
-
-        private_room_id = environ.env.db.get_private_room(user_id)[0]
-        environ.env.leave_room(private_room_id)
+        environ.env.leave_room(user_id)
 
     @staticmethod
     def leave_all_public_rooms_and_emit_leave_events(arg: tuple):

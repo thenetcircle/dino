@@ -34,7 +34,7 @@ class UserManager(BaseManager):
 
         for user_id, user_name in users.items():
             output.append({
-                'uuid': utils.get_user_for_private_room(user_id),
+                'uuid': user_id,
                 'name': user_name
             })
         return output
@@ -47,7 +47,7 @@ class UserManager(BaseManager):
             },
             'verb': 'kick',
             'object': {
-                'id': self.env.db.get_private_room(user_id)[0],
+                'id': user_id,
                 'displayName': utils.b64e(self.env.db.get_user_name(user_id))
             },
             'target': {
@@ -60,7 +60,6 @@ class UserManager(BaseManager):
         self.env.publish(kick_activity)
 
     def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str, reason: str=None, banner_id: str=None) -> None:
-        private_room_id = self.env.db.get_private_room(user_id)[0]
         target_name = None
         timestamp = utils.ban_duration_to_timestamp(duration)
 
@@ -84,7 +83,7 @@ class UserManager(BaseManager):
             },
             'verb': 'ban',
             'object': {
-                'id': private_room_id,
+                'id': user_id,
                 'displayName': utils.b64e(self.env.db.get_user_name(user_id)),
                 'summary': duration,
                 'updated': utils.ban_duration_to_datetime(duration).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
@@ -105,8 +104,7 @@ class UserManager(BaseManager):
 
         self.env.publish(ban_activity)
 
-    def remove_ban(self, private_user_id: str, target_id: str, target_type: str) -> None:
-        user_id = self.env.db.get_user_for_private_room(private_user_id)
+    def remove_ban(self, user_id: str, target_id: str, target_type: str) -> None:
         if target_type == 'global':
             self.env.db.remove_global_ban(user_id)
         elif target_type == 'channel':

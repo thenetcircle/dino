@@ -36,7 +36,6 @@ class FakeDb(object):
     _channel_exists = dict()
     _room_exists = dict()
     _room_contains = dict()
-    _private_rooms = dict()
     _channel_for_room = dict()
 
     _ban_status = {
@@ -73,11 +72,6 @@ class FakeDb(object):
 
     def is_super_user(self, *args):
         return False
-
-    def is_room_private(self, room_id):
-        if room_id not in FakeDb._private_rooms:
-            return False
-        return FakeDb._private_rooms[room_id]
 
     def get_acls_in_channel_for_action(self, channel_id, action):
         return FakeDb._channel_acls[action]
@@ -135,21 +129,6 @@ class RequestMessageTest(TestCase):
         act = self.json_act()
         act['object']['content'] = 'this is not base64'
         is_valid, code, msg = self.validator.on_message(as_parser(act))
-        self.assertFalse(is_valid)
-
-    def test_private_object_type_private_room(self):
-        json_act = self.json_act()
-        json_act['target']['id'] = RequestMessageTest.OTHER_ROOM_ID
-        json_act['target']['objectType'] = 'private'
-        is_valid, code, msg = self.validator.on_message(as_parser(json_act))
-        self.assertTrue(is_valid)
-
-    def test_private_object_type_non_private_room(self):
-        json_act = self.json_act()
-        json_act['target']['id'] = RequestMessageTest.ROOM_ID
-        json_act['target']['objectType'] = 'private'
-        is_valid, code, msg = self.validator.on_message(as_parser(json_act))
-        self.assertEqual(code, ErrorCodes.INVALID_TARGET_TYPE)
         self.assertFalse(is_valid)
 
     def test_wrong_object_type(self):
@@ -267,11 +246,6 @@ class RequestMessageTest(TestCase):
         FakeDb._channel_for_room = {
             RequestMessageTest.ROOM_ID: RequestMessageTest.CHANNEL_ID,
             RequestMessageTest.OTHER_ROOM_ID: RequestMessageTest.OTHER_CHANNEL_ID,
-        }
-
-        FakeDb._private_rooms = {
-            RequestMessageTest.ROOM_ID: False,
-            RequestMessageTest.OTHER_ROOM_ID: True
         }
 
         self.auth = AuthRedis(host='mock')

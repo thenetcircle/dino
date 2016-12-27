@@ -32,8 +32,7 @@ class ApiBanTest(BaseTest):
         self.create_user(BaseTest.OTHER_USER_ID, BaseTest.OTHER_USER_NAME)
 
         json = self.activity_for_ban()
-        json['object']['id'] = str(self.env.db.redis.hget(
-                RedisKeys.private_rooms(), ApiBanTest.OTHER_USER_ID), 'utf-8')
+        json['object']['id'] = ApiBanTest.OTHER_USER_ID
 
         response_code, _ = api.on_ban(json, as_parser(json))
         self.assertEqual(ErrorCodes.OK, response_code)

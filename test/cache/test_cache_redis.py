@@ -71,31 +71,6 @@ class CacheRedisTest(TestCase):
         self.cache._del(cache_key)
         self.assertEqual(CacheRedisTest.ROOM_ID, self.cache.get_admin_room_for_channel(CacheRedisTest.CHANNEL_ID))
 
-    def test_get_user_for_private_room_after_expired(self):
-        self.cache.set_user_for_private_room(CacheRedisTest.ROOM_ID, CacheRedisTest.USER_ID)
-        self.assertEqual(CacheRedisTest.USER_ID, self.cache.get_user_for_private_room(CacheRedisTest.ROOM_ID))
-
-        key = RedisKeys.user_for_private_room()
-        cache_key = '%s-%s' % (key, CacheRedisTest.ROOM_ID)
-        self.cache._del(cache_key)
-
-        self.assertEqual(CacheRedisTest.USER_ID, self.cache.get_user_for_private_room(CacheRedisTest.ROOM_ID))
-
-    def test_get_private_room_and_channel_afte_expired(self):
-        self.cache.set_private_room_and_channel(
-                CacheRedisTest.USER_ID, CacheRedisTest.ROOM_ID, CacheRedisTest.CHANNEL_ID)
-        self.assertEqual(
-                (CacheRedisTest.ROOM_ID, CacheRedisTest.CHANNEL_ID),
-                self.cache.get_private_room_and_channel(CacheRedisTest.USER_ID))
-
-        key = RedisKeys.private_rooms()
-        cache_key = '%s-%s' % (key, CacheRedisTest.USER_ID)
-        self.cache._del(cache_key)
-
-        self.assertEqual(
-                (CacheRedisTest.ROOM_ID, CacheRedisTest.CHANNEL_ID),
-                self.cache.get_private_room_and_channel(CacheRedisTest.USER_ID))
-
     def test_get_global_ban_timestamp_after_expired(self):
         timestamp = str(int((datetime.utcnow() + timedelta(seconds=5*60)).timestamp()))
         duration = '5m'

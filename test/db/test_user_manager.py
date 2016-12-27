@@ -61,15 +61,13 @@ class UserManagerTest(BaseDatabaseTest):
     def test_kick_user(self):
         self._create_channel()
         self._create_room()
-        private_room_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
         self.manager.kick_user(BaseDatabaseTest.ROOM_ID, BaseDatabaseTest.USER_ID)
         self.assertIsNotNone(UserManagerTest._act)
         self.assertEqual(UserManagerTest._act['target']['objectType'], 'room')
-        self.assertEqual(UserManagerTest._act['object']['id'], private_room_id)
+        self.assertEqual(UserManagerTest._act['object']['id'], BaseDatabaseTest.USER_ID)
         self.assertEqual(UserManagerTest._act['target']['id'], BaseDatabaseTest.ROOM_ID)
 
     def test_kick_user_is_base64(self):
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self._create_channel()
         self._create_room()
         self.manager.kick_user(BaseDatabaseTest.ROOM_ID, BaseDatabaseTest.USER_ID)
@@ -81,10 +79,9 @@ class UserManagerTest(BaseDatabaseTest):
     def test_ban_user_globally(self):
         self._create_channel()
         self._create_room()
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
         self.manager.ban_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.ROOM_ID, '5m', 'global')
         self.assertIsNotNone(UserManagerTest._act)
-        self.assertEqual(UserManagerTest._act['object']['id'], private_id)
+        self.assertEqual(UserManagerTest._act['object']['id'], BaseDatabaseTest.USER_ID)
         self.assertEqual(UserManagerTest._act['target']['objectType'], 'global')
         self.assertNotIn('id', UserManagerTest._act['target'])
         self.assertEqual(b64d(UserManagerTest._act['object']['displayName']), BaseDatabaseTest.USER_NAME)
@@ -92,10 +89,9 @@ class UserManagerTest(BaseDatabaseTest):
     def test_ban_user_channel(self):
         self._create_channel()
         self._create_room()
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
         self.manager.ban_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.CHANNEL_ID, '5m', 'channel')
         self.assertIsNotNone(UserManagerTest._act)
-        self.assertEqual(UserManagerTest._act['object']['id'], private_id)
+        self.assertEqual(UserManagerTest._act['object']['id'], BaseDatabaseTest.USER_ID)
         self.assertEqual(UserManagerTest._act['target']['id'], BaseDatabaseTest.CHANNEL_ID)
         self.assertEqual(UserManagerTest._act['target']['objectType'], 'channel')
         self.assertEqual(b64d(UserManagerTest._act['object']['displayName']), BaseDatabaseTest.USER_NAME)
@@ -103,32 +99,27 @@ class UserManagerTest(BaseDatabaseTest):
     def test_ban_user_room(self):
         self._create_channel()
         self._create_room()
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
         self.manager.ban_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.ROOM_ID, '5m', 'room')
         self.assertIsNotNone(UserManagerTest._act)
-        self.assertEqual(UserManagerTest._act['object']['id'], private_id)
+        self.assertEqual(UserManagerTest._act['object']['id'], BaseDatabaseTest.USER_ID)
         self.assertEqual(UserManagerTest._act['target']['id'], BaseDatabaseTest.ROOM_ID)
         self.assertEqual(UserManagerTest._act['target']['objectType'], 'room')
         self.assertEqual(b64d(UserManagerTest._act['object']['displayName']), BaseDatabaseTest.USER_NAME)
 
     def test_ban_user_no_room(self):
         self._create_channel()
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
-        self.assertRaises(NoSuchRoomException, self.manager.ban_user, private_id, BaseDatabaseTest.ROOM_ID, '5m', 'room')
+        self.assertRaises(NoSuchRoomException, self.manager.ban_user, BaseDatabaseTest.USER_ID, BaseDatabaseTest.ROOM_ID, '5m', 'room')
 
     def test_ban_user_no_channel(self):
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
-        self.assertRaises(NoSuchChannelException, self.manager.ban_user, private_id, BaseDatabaseTest.CHANNEL_ID, '5m', 'channel')
+        self.assertRaises(NoSuchChannelException, self.manager.ban_user, BaseDatabaseTest.USER_ID, BaseDatabaseTest.CHANNEL_ID, '5m', 'channel')
 
     def test_ban_use_unknown_type(self):
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
-        self.assertRaises(UnknownBanTypeException, self.manager.ban_user, private_id, BaseDatabaseTest.CHANNEL_ID, '5m', 'something-unknown')
+        self.assertRaises(UnknownBanTypeException, self.manager.ban_user, BaseDatabaseTest.USER_ID, BaseDatabaseTest.CHANNEL_ID, '5m', 'something-unknown')
 
     def test_remove_ban_unknown_type(self):
         self._create_channel()
         self._create_room()
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
-        self.assertRaises(UnknownBanTypeException, self.manager.remove_ban, private_id, BaseDatabaseTest.CHANNEL_ID, 'something-unknown')
+        self.assertRaises(UnknownBanTypeException, self.manager.remove_ban, BaseDatabaseTest.USER_ID, BaseDatabaseTest.CHANNEL_ID, 'something-unknown')
 
     def test_remove_ban_channel(self):
         self._create_channel()
@@ -139,8 +130,7 @@ class UserManagerTest(BaseDatabaseTest):
         self.db.ban_user_channel(BaseDatabaseTest.USER_ID, timestamp, '5m',  BaseDatabaseTest.CHANNEL_ID)
         self.assertTrue(self.db.is_banned_from_channel(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.USER_ID)[0])
 
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
-        self.manager.remove_ban(private_id, BaseDatabaseTest.CHANNEL_ID, 'channel')
+        self.manager.remove_ban(BaseDatabaseTest.USER_ID, BaseDatabaseTest.CHANNEL_ID, 'channel')
         self.assertFalse(self.db.is_banned_from_channel(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.USER_ID)[0])
 
     def test_remove_ban_room(self):
@@ -152,8 +142,7 @@ class UserManagerTest(BaseDatabaseTest):
         self.db.ban_user_room(BaseDatabaseTest.USER_ID, timestamp, '5m',  BaseDatabaseTest.ROOM_ID)
         self.assertTrue(self.db.is_banned_from_room(BaseDatabaseTest.ROOM_ID, BaseDatabaseTest.USER_ID)[0])
 
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
-        self.manager.remove_ban(private_id, BaseDatabaseTest.ROOM_ID, 'room')
+        self.manager.remove_ban(BaseDatabaseTest.USER_ID, BaseDatabaseTest.ROOM_ID, 'room')
         self.assertFalse(self.db.is_banned_from_room(BaseDatabaseTest.ROOM_ID, BaseDatabaseTest.USER_ID)[0])
 
     def test_remove_ban_globally(self):
@@ -165,8 +154,7 @@ class UserManagerTest(BaseDatabaseTest):
         self.db.ban_user_global(BaseDatabaseTest.USER_ID, timestamp, '5m')
         self.assertTrue(self.db.is_banned_globally(BaseDatabaseTest.USER_ID)[0])
 
-        private_id = self.db.get_private_room(BaseDatabaseTest.USER_ID)[0]
-        self.manager.remove_ban(private_id, BaseDatabaseTest.CHANNEL_ID, 'global')
+        self.manager.remove_ban(BaseDatabaseTest.USER_ID, BaseDatabaseTest.CHANNEL_ID, 'global')
         self.assertFalse(self.db.is_banned_globally(BaseDatabaseTest.USER_ID)[0])
 
     def test_get_banned_users_is_empty(self):
@@ -227,11 +215,11 @@ class UserManagerTest(BaseDatabaseTest):
         self.assertEqual(0, len(self.manager.get_super_users()))
 
     def test_get_super_users_after_create(self):
-        self.manager.create_super_user(BaseDatabaseTest.USER_NAME, BaseDatabaseTest.USER_ID)
+        self.manager.create_super_user(BaseDatabaseTest.OTHER_USER_NAME, BaseDatabaseTest.OTHER_USER_ID)
         super_users = self.manager.get_super_users()
         self.assertEqual(1, len(super_users))
-        self.assertEqual(BaseDatabaseTest.USER_ID, super_users[0]['uuid'])
-        self.assertEqual(BaseDatabaseTest.USER_NAME, super_users[0]['name'])
+        self.assertEqual(BaseDatabaseTest.OTHER_USER_ID, super_users[0]['uuid'])
+        self.assertEqual(BaseDatabaseTest.OTHER_USER_NAME, super_users[0]['name'])
 
     def test_create_super_user_empty_id(self):
         self.manager.create_super_user(BaseDatabaseTest.USER_NAME, '')

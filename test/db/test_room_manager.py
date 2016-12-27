@@ -59,7 +59,6 @@ class RoomManagerTest(BaseDatabaseTest):
 
     def test_create_room(self):
         self._create_channel()
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
         value = self.manager.create_room(
                 BaseDatabaseTest.ROOM_NAME, BaseDatabaseTest.ROOM_ID,
@@ -69,7 +68,6 @@ class RoomManagerTest(BaseDatabaseTest):
 
     def test_create_room_empty_room_name(self):
         self._create_channel()
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
         value = self.manager.create_room(
                 '', BaseDatabaseTest.ROOM_ID,
@@ -79,7 +77,6 @@ class RoomManagerTest(BaseDatabaseTest):
 
     def test_create_room_empty_room_id(self):
         self._create_channel()
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
         value = self.manager.create_room(
                 BaseDatabaseTest.ROOM_NAME, '',
@@ -89,7 +86,6 @@ class RoomManagerTest(BaseDatabaseTest):
 
     def test_create_room_empty_channel_id(self):
         self._create_channel()
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
         value = self.manager.create_room(
                 BaseDatabaseTest.ROOM_NAME, BaseDatabaseTest.ROOM_ID,
@@ -99,7 +95,6 @@ class RoomManagerTest(BaseDatabaseTest):
 
     def test_create_room_empty_user_id(self):
         self._create_channel()
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
         value = self.manager.create_room(
                 BaseDatabaseTest.ROOM_NAME, BaseDatabaseTest.ROOM_ID,
@@ -109,7 +104,6 @@ class RoomManagerTest(BaseDatabaseTest):
 
     def test_remove_room(self):
         self._create_channel()
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
         self.manager.create_room(
                 BaseDatabaseTest.ROOM_NAME, BaseDatabaseTest.ROOM_ID,
@@ -120,7 +114,6 @@ class RoomManagerTest(BaseDatabaseTest):
 
     def test_remove_room_twice(self):
         self._create_channel()
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
         self.manager.create_room(
                 BaseDatabaseTest.ROOM_NAME, BaseDatabaseTest.ROOM_ID,
@@ -134,7 +127,6 @@ class RoomManagerTest(BaseDatabaseTest):
 
     def test_remove_room_before_create_room(self):
         self._create_channel()
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
 
         self.assertRaises(
@@ -142,7 +134,6 @@ class RoomManagerTest(BaseDatabaseTest):
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
 
     def test_remove_room_before_create_channel(self):
-        self.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
         self.assertRaises(
                 NoSuchChannelException, self.manager.remove_room, BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID)

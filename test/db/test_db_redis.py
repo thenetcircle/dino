@@ -196,21 +196,6 @@ class DatabaseRedisTest(BaseDatabaseTest):
     def test_create_admin_room(self):
         self._test_create_admin_room()
 
-    def test_get_private_room(self):
-        self._test_get_private_room()
-
-    def test_is_room_private(self):
-        self._test_is_room_private()
-
-    def test_get_private_channel_for_room(self):
-        self._test_get_private_channel_for_room()
-
-    def test_get_private_channel_for_prefix(self):
-        self._test_get_private_channel_for_prefix()
-
-    def test_create_private_channel_for_room(self):
-        self._test_create_private_channel_for_room()
-
     def test_is_super_user(self):
         self._test_is_super_user()
 
@@ -532,21 +517,6 @@ class DatabaseRedisTest(BaseDatabaseTest):
     def test_admin_room_for_channel_get_from_cache(self):
         self._test_admin_room_for_channel_get_from_cache()
 
-    def test_get_user_for_private_room(self):
-        self._test_get_user_for_private_room()
-
-    def test_get_user_for_private_room_from_cache(self):
-        self._test_get_user_for_private_room_from_cache()
-
-    def test_get_user_for_private_room_before_create(self):
-        self._test_get_user_for_private_room_before_create()
-
-    def test_get_private_room_from_cache(self):
-        self._test_get_private_room_from_cache()
-
-    def test_get_private_channel_for_prefix_before_create(self):
-        self._test_get_private_channel_for_prefix_before_create()
-
     def test_room_exists_from_cache(self):
         self._test_room_exists_from_cache()
 
@@ -595,12 +565,6 @@ class DatabaseRedisTest(BaseDatabaseTest):
     def test_leave_room_before_create(self):
         self._test_leave_room_before_create()
 
-    def test_join_private_room(self):
-        self._test_join_private_room()
-
-    def test_join_private_room_before_create(self):
-        self._test_join_private_room_before_create()
-
     def test_remove_moderator_twice(self):
         self._test_remove_moderator_twice()
 
@@ -633,9 +597,6 @@ class DatabaseRedisTest(BaseDatabaseTest):
 
     def test_get_all_acls_room_before_create(self):
         self._test_get_all_acls_room_before_create()
-
-    def test_update_last_read_for_before_create_room(self):
-        self._test_update_last_read_for_before_create_room()
 
     def test_update_last_read_for(self):
         self._test_update_last_read_for()

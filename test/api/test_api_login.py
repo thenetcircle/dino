@@ -70,11 +70,9 @@ class ApiLoginTest(BaseTest):
 
     def assert_login_fails(self, data=None):
         self.assertEqual(400, self.response_code_for_login(data))
-        self.assert_in_own_room(False)
 
     def assert_login_succeeds(self, data=None):
         self.assertEqual(200, self.response_code_for_login(data))
-        self.assert_in_own_room(True)
 
     def remove_from_auth(self, key: str):
         auth_key = RedisKeys.auth_key(BaseTest.USER_ID)

@@ -26,7 +26,10 @@ class OnMessageHooks(object):
     def update_last_read(arg: tuple) -> None:
         data, activity = arg
         room_id = activity.target.id
-        utils.update_last_reads(room_id)
+        if activity.target.object_type == 'private':
+            utils.update_last_reads_private(room_id)
+        else:
+            utils.update_last_reads(room_id)
 
     @staticmethod
     def broadcast(arg: tuple) -> None:

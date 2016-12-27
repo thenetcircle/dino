@@ -98,55 +98,6 @@ class DatabaseRedis(object):
             return None
         return str(room_id, 'utf-8')
 
-    def is_room_private(self, room_id: str) -> bool:
-        channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), room_id[:2])
-        if channel_id is None or len(str(channel_id, 'utf-8').strip()) == 0:
-            return False
-        if self.redis.hexists(RedisKeys.private_rooms_in_channel(room_id[:2]), room_id):
-            return True
-
-    def has_private_room(self, user_id: str) -> bool:
-        if user_id is None or len(user_id.strip()) == 0:
-            return False
-
-        room_id = self.redis.hget(RedisKeys.private_rooms(), user_id)
-        return room_id is not None and len(str(room_id, 'utf-8').strip()) > 0
-
-    def get_private_room(self, user_id: str, user_name: str=None) -> (str, str):
-        room_id = self.redis.hget(RedisKeys.private_rooms(), user_id)
-        if room_id is None:
-            room_id = str(uuid())
-            channel_prefix = room_id[:2]
-
-            channel_id = self.get_private_channel_for_room(room_id)
-            if channel_id is None:
-                channel_id = self.create_private_channel_for_room(room_id)
-
-            self.redis.hset(RedisKeys.private_rooms_in_channel(channel_prefix), room_id, channel_id)
-            self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)
-            self.redis.hset(RedisKeys.user_for_private_room(), room_id, user_id)
-        else:
-            room_id = str(room_id, 'utf-8')
-            channel_id = self.get_private_channel_for_room(room_id)
-        return room_id, channel_id
-
-    def get_private_channel_for_room(self, room_id: str) -> str:
-        return self.get_private_channel_for_prefix(room_id[:2])
-
-    def get_private_channel_for_prefix(self, channel_prefix):
-        channel_id = self.redis.hget(RedisKeys.private_channel_for_prefix(), channel_prefix)
-        if channel_id is None:
-            return self.create_private_channel_for_prefix(channel_prefix)
-        return str(channel_id, 'utf-8')
-
-    def create_private_channel_for_room(self, room_id):
-        return self.create_private_channel_for_prefix(room_id[:2])
-
-    def create_private_channel_for_prefix(self, channel_prefix):
-        channel_id = str(uuid())
-        self.redis.hset(RedisKeys.private_channel_for_prefix(), channel_prefix, channel_id)
-        return channel_id
-
     def _has_role_in_room(self, role: str, room_id: str, user_id: str) -> bool:
         roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
         if roles is None:
@@ -370,7 +321,6 @@ class DatabaseRedis(object):
         self.redis.hset(key, SessionKeys.user_id.value, user_id)
         self.redis.hset(key, SessionKeys.user_name.value, user_name)
         self.redis.hset(RedisKeys.user_names(), user_id, user_name)
-        self.get_private_room(user_id)
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
         self.get_room_name(room_id)
@@ -378,13 +328,6 @@ class DatabaseRedis(object):
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
     def users_in_room(self, room_id: str) -> dict:
-        if self.is_room_private(room_id):
-            user_id = self.get_user_for_private_room(room_id)
-            if user_id is None:
-                raise NoSuchUserException(room_id)
-            user_name = self.get_user_name(user_id)
-            return {room_id: user_name}
-
         self.get_room_name(room_id)
         self.channel_for_room(room_id)
 
@@ -392,8 +335,7 @@ class DatabaseRedis(object):
         cleaned_users = dict()
         for user_id, user_name in users.items():
             user_id = str(user_id, 'utf-8')
-            private_room_id = self.get_private_room(user_id)[0]
-            cleaned_users[private_room_id] = str(user_name, 'utf-8')
+            cleaned_users[user_id] = str(user_name, 'utf-8')
         return cleaned_users
 
     def leave_room(self, user_id: str, room_id: str) -> None:
@@ -978,32 +920,6 @@ class DatabaseRedis(object):
             clean_rooms[room_id] = room_name
         return clean_rooms
 
-    def get_user_for_private_room(self, room_id: str) -> str:
-        user_id = self.redis.hget(RedisKeys.user_for_private_room(), room_id)
-        if user_id is None:
-            raise NoSuchUserException(room_id)
-
-        if not self.is_room_private(room_id):
-            raise NoSuchRoomException(room_id)
-
-        return str(user_id, 'utf-8')
-
-    def join_private_room(self, user_id: str, user_name: str, room_id: str) -> None:
-        def private_room_exists() -> bool:
-            r_id = self.redis.hget(RedisKeys.private_rooms(), user_id)
-            if r_id is None or len(str(r_id, 'utf-8').strip()) == 0:
-                return False
-            return True
-
-        if not self.is_room_private(room_id):
-            raise NoSuchRoomException(room_id)
-        if not private_room_exists():
-            raise NoSuchRoomException(room_id)
-
-        self.redis.hset(RedisKeys.private_rooms(), user_id, room_id)
-        channel_id = self.get_private_channel_for_room(room_id)
-        self.redis.hset(RedisKeys.private_rooms_in_channel(room_id[:2]), room_id, channel_id)
-
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.redis.hset(RedisKeys.rooms_for_user(user_id), room_id, room_name)
         self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)
@@ -1103,9 +1019,7 @@ class DatabaseRedis(object):
         self.env.cache.set_user_invisible(user_id)
 
     def update_last_read_for(self, users: set, room_id: str, time_stamp: int) -> None:
-        if not self.is_room_private(room_id):
-            self.get_room_name(room_id)
-
+        self.get_room_name(room_id)
         redis_key = RedisKeys.last_read(room_id)
         for user_id in users:
             self.redis.hset(redis_key, user_id, time_stamp)

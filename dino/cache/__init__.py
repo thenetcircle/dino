@@ -18,36 +18,12 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ICache(Interface):
-    def set_user_for_private_room(self, room_id: str, user_id: str) -> None:
-        """
-        set the user id for a private room uuid
-
-        :param room_id: the uuid of the private room
-        :param user_id: the id of the user
-        :return: nothing
-        """
-
     def get_admin_room_for_channel(self, channel_id: str) -> str:
         """
         get the room uuid of the admin room in this channel, or None if no such room exists
 
         :param channel_id: the uuid of the channel
         :return: the uuid of the admin room, or None of not found
-        """
-
-    def get_user_for_private_room(self, room_id: str) -> str:
-        """
-        get the user id for the private room
-
-        :param room_id: the private room uui
-        :return: the user id, or None if not found
-        """
-    def get_private_room_and_channel(self, user_id: str) -> (str, str):
-        """
-        get the private room uuid and private channel uuid of a user
-
-        :param user_id: the id of the user
-        :return: (private_room_uuid, private_channel_uuid)
         """
 
     def set_global_ban_timestamp(self, user_id: str, duration: str, timestamp: str, username: str) -> None:
@@ -152,15 +128,6 @@ class ICache(Interface):
         :param channel_id: the uuid of the channel
         :param room_id: the uuid of the room
         :return: nothing
-        """
-
-    def set_private_room_and_channel(self, user_id: str, room_id: str, channel_id: str) -> None:
-        """
-
-        :param user_id:
-        :param room_id:
-        :param channel_id:
-        :return:
         """
 
     def set_admin_room_for_channel(self, channel_id: str, room_id: str) -> None:

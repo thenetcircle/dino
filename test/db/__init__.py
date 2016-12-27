@@ -57,12 +57,17 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class BaseDatabaseTest(BaseTest):
+    class FakeRequest(object):
+        def __init__(self):
+            self.sid = str(uuid())
+
     class FakeEnv(GNEnvironment):
         def __init__(self):
             super(BaseDatabaseTest.FakeEnv, self).__init__(None, ConfigDict(), skip_init=True)
             self.config = ConfigDict()
             self.cache = CacheRedis(self, 'mock')
             self.session = dict()
+            self.request = BaseDatabaseTest.FakeRequest()
 
     MESSAGE_ID = str(uuid())
 
@@ -200,6 +205,7 @@ class BaseDatabaseTest(BaseTest):
 
         environ.env.config = self.env.config
         environ.env.db = self.db
+        environ.env.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
 
     def act_message(self):
         data = self.activity_for_message()
@@ -748,61 +754,25 @@ class BaseDatabaseTest(BaseTest):
         self.assertIsNotNone(room_uuid_2)
         self.assertEqual(room_uuid_1, room_uuid_2)
 
-    def _test_get_user_for_private_room(self):
-        self._create_channel()
-        private_room_uuid, private_channel_id = self.db.get_private_room(BaseTest.USER_ID)
-        self.assertEqual(BaseTest.USER_ID, self.db.get_user_for_private_room(private_room_uuid))
-
-    def _test_get_user_for_private_room_from_cache(self):
-        self._create_channel()
-        private_uuid, _ = self.db.get_private_room(BaseTest.USER_ID)
-        user_1 = self.db.get_user_for_private_room(private_uuid)
-        user_2 = self.db.get_user_for_private_room(private_uuid)
-        self.assertEqual(user_1, user_2)
-
-    def _test_get_user_for_private_room_before_create(self):
-        self._create_channel()
-        self.assertRaises(NoSuchUserException, self.db.get_user_for_private_room, BaseTest.ROOM_ID)
-
     def _test_get_user_status_after_set(self):
-        self.db.get_private_room(BaseTest.USER_ID)
         self.assertEqual(UserKeys.STATUS_UNAVAILABLE, self.db.get_user_status(BaseTest.USER_ID))
         self.db.set_user_online(BaseTest.USER_ID)
         self.assertEqual(UserKeys.STATUS_AVAILABLE, self.db.get_user_status(BaseTest.USER_ID))
 
     def _test_set_user_invisible_twice_ignores_second(self):
-        self.db.get_private_room(BaseTest.USER_ID)
         self.db.set_user_invisible(BaseTest.USER_ID)
         self.db.set_user_invisible(BaseTest.USER_ID)
         self.assertEqual(UserKeys.STATUS_INVISIBLE, self.db.get_user_status(BaseTest.USER_ID))
 
     def _test_set_user_offline_twice_ignores_second(self):
-        self.db.get_private_room(BaseTest.USER_ID)
         self.db.set_user_offline(BaseTest.USER_ID)
         self.db.set_user_offline(BaseTest.USER_ID)
         self.assertEqual(UserKeys.STATUS_UNAVAILABLE, self.db.get_user_status(BaseTest.USER_ID))
 
     def _test_set_user_online_twice_ignores_second(self):
-        self.db.get_private_room(BaseTest.USER_ID)
         self.db.set_user_online(BaseTest.USER_ID)
         self.db.set_user_online(BaseTest.USER_ID)
         self.assertEqual(UserKeys.STATUS_AVAILABLE, self.db.get_user_status(BaseTest.USER_ID))
-
-    def _test_get_private_room(self):
-        room_id, channel_id = self.db.get_private_room(BaseTest.USER_ID)
-        self.assertIsNotNone(room_id)
-
-    def _test_get_private_room_from_cache(self):
-        room_id_1, channel_id_1 = self.db.get_private_room(BaseTest.USER_ID)
-        room_id_2, channel_id_2 = self.db.get_private_room(BaseTest.USER_ID)
-        self.assertIsNotNone(room_id_1)
-        self.assertIsNotNone(channel_id_1)
-        self.assertEqual(room_id_1, room_id_2)
-        self.assertEqual(channel_id_1, channel_id_2)
-
-    def _test_get_private_channel_for_prefix_before_create(self):
-        channel_id = self.db.get_private_channel_for_prefix('fe')
-        self.assertIsNotNone(channel_id)
 
     def _test_room_exists_from_cache(self):
         self._create_channel()
@@ -814,40 +784,10 @@ class BaseDatabaseTest(BaseTest):
         self.assertFalse(self.db.room_exists(str(uuid()), str(uuid())))
 
     def _test_get_user_status_from_cache(self):
-        self.db.get_private_room(BaseTest.USER_ID)
         status_1 = self.db.get_user_status(BaseTest.USER_ID)
         status_2 = self.db.get_user_status(BaseTest.USER_ID)
         self.assertEqual(UserKeys.STATUS_UNAVAILABLE, status_1)
         self.assertEqual(status_1, status_2)
-
-    def _test_join_private_room(self):
-        room_id, channel_id = self.db.get_private_room(BaseTest.USER_ID)
-        self.assertTrue(self.db.is_room_private(room_id))
-        self.db.join_private_room(BaseTest.USER_ID, BaseTest.USER_NAME, room_id)
-        user_id = self.db.get_user_for_private_room(room_id)
-        self.assertEqual(user_id, BaseTest.USER_ID)
-
-    def _test_join_private_room_before_create(self):
-        self.assertRaises(NoSuchRoomException, self.db.join_private_room, BaseTest.USER_ID, BaseTest.USER_NAME, str(uuid()))
-
-    def _test_is_room_private(self):
-        room_id, _ = self.db.get_private_room(BaseTest.USER_ID)
-        self.assertTrue(self.db.is_room_private(room_id))
-
-    def _test_get_private_channel_for_room(self):
-        room_id, channel_id = self.db.get_private_room(BaseTest.USER_ID)
-        self.assertEqual(self.db.get_private_channel_for_room(room_id), channel_id)
-
-    def _test_get_private_channel_for_prefix(self):
-        room_id, channel_id = self.db.get_private_room(BaseTest.USER_ID)
-        private_channel_id = self.db.get_private_channel_for_prefix(room_id[:2])
-        self.assertEqual(private_channel_id, channel_id)
-
-    def _test_create_private_channel_for_room(self):
-        room_id = str(uuid())
-        channel_id = self.db.create_private_channel_for_room(room_id)
-        private_channel_id = self.db.get_private_channel_for_room(room_id)
-        self.assertEqual(private_channel_id, channel_id)
 
     def _test_is_super_user(self):
         self.assertFalse(self.db.is_super_user(BaseTest.USER_ID))
@@ -1143,9 +1083,9 @@ class BaseDatabaseTest(BaseTest):
         self.assertTrue(self.db.channel_exists(BaseTest.CHANNEL_ID))
 
     def _test_create_user(self):
-        self.assertRaises(NoSuchUserException, self.db.get_user_name, BaseTest.USER_ID)
-        self.db.create_user(BaseTest.USER_ID, BaseTest.USER_NAME)
-        self.assertEqual(BaseTest.USER_NAME, self.db.get_user_name(BaseTest.USER_ID))
+        self.assertRaises(NoSuchUserException, self.db.get_user_name, BaseTest.OTHER_USER_ID)
+        self.db.create_user(BaseTest.OTHER_USER_ID, BaseTest.OTHER_USER_NAME)
+        self.assertEqual(BaseTest.OTHER_USER_NAME, self.db.get_user_name(BaseTest.OTHER_USER_ID))
 
     def _test_users_in_room(self):
         self.assertRaises(NoSuchRoomException, self.db.users_in_room, BaseTest.ROOM_ID)
@@ -1230,8 +1170,9 @@ class BaseDatabaseTest(BaseTest):
         self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
 
     def _test_create_user_exists(self):
-        self.db.create_user(BaseTest.USER_ID, BaseTest.USER_NAME)
-        self.assertRaises(UserExistsException, self.db.create_user, BaseTest.USER_ID, BaseTest.USER_NAME)
+        user_id = str(uuid())
+        self.db.create_user(user_id, BaseTest.USER_NAME)
+        self.assertRaises(UserExistsException, self.db.create_user, user_id, BaseTest.USER_NAME)
 
     def _test_update_acl_in_room_for_action_no_channel(self):
         self.assertRaises(NoSuchChannelException, self.db.update_acl_in_room_for_action,
@@ -1710,7 +1651,7 @@ class BaseDatabaseTest(BaseTest):
         self.assertEqual(BaseTest.CHANNEL_ID, channel_id)
 
     def _test_get_username_before_set(self):
-        self.assertRaises(NoSuchUserException, self.db.get_user_name, BaseTest.USER_ID)
+        self.assertRaises(NoSuchUserException, self.db.get_user_name, str(uuid()))
 
     def _test_get_username_after_set(self):
         self.db.set_user_name(BaseTest.USER_ID, BaseTest.USER_NAME)
@@ -1775,11 +1716,6 @@ class BaseDatabaseTest(BaseTest):
         self.assertFalse(self.db.room_exists(BaseTest.CHANNEL_ID, BaseTest.ROOM_ID))
         self.assertRaises(NoSuchChannelException, self.db.remove_room, BaseTest.CHANNEL_ID, BaseTest.ROOM_ID)
 
-    def _test_update_last_read_for_before_create_room(self):
-        self.assertRaises(
-                NoSuchRoomException, self.db.update_last_read_for, {BaseTest.USER_ID},
-                BaseTest.ROOM_ID, int(datetime.utcnow().timestamp()))
-
     def _test_update_last_read_for(self):
         self._create_channel()
         self._create_room()
@@ -1797,7 +1733,6 @@ class BaseDatabaseTest(BaseTest):
     def _test_update_username(self):
         self._create_channel()
         self._create_room()
-        self.db.get_private_room(BaseTest.USER_ID)
         self.db.set_user_name(BaseTest.USER_ID, BaseTest.USER_NAME)
         self.assertEqual(BaseTest.USER_NAME, self.db.get_user_name(BaseTest.USER_ID))
         self.db.set_user_name(BaseTest.USER_ID, 'Batman')

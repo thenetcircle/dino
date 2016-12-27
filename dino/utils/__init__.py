@@ -30,8 +30,7 @@ from base64 import b64decode
 
 from dino.exceptions import NoOriginRoomException
 from dino.exceptions import NoTargetRoomException
-from dino.exceptions import NoTargetChannelException
-from dino.exceptions import NoOriginChannelException
+from dino.exceptions import UserExistsException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import NoSuchRoomException
 
@@ -98,10 +97,9 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
 
 
 def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
-    private_user_id = environ.env.db.get_private_room(user_id)[0]
     return {
         'actor': {
-            'id': private_user_id,
+            'id': user_id,
             'displayName': b64e(user_name),
             'image': {
                 'url': image_url
@@ -491,16 +489,13 @@ def get_sid_for_user_id(user_id: str) -> str:
     return environ.env.db.get_sid_for_user(user_id)
 
 
-def is_real_user_id(user_or_room_id: str) -> bool:
-    return not is_room_private(user_or_room_id)
-
-
-def get_user_for_private_room(room_id: str) -> str:
-    return environ.env.db.get_user_for_private_room(room_id)
-
-
-def get_private_room_for_user_id(user_id: str) -> str:
-    return environ.env.db.get_private_room(user_id)[0]
+def create_or_update_user(user_id: str, user_name: str) -> bool:
+    try:
+        environ.env.db.create_user(user_id, user_name)
+        return
+    except UserExistsException:
+        pass
+    environ.env.db.set_user_name(user_id, user_name)
 
 
 def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
@@ -540,10 +535,9 @@ def kick_user(room_id: str, user_id: str) -> None:
     environ.env.db.kick_user(room_id, user_id)
 
 
-def ban_user(room_id: str, private_room_id: str, ban_duration: str) -> None:
-    user_id = environ.env.db.get_user_for_private_room(private_room_id)
-    if user_id is None:
-        raise NoSuchUserException(private_room_id)
+def ban_user(room_id: str, user_id: str, ban_duration: str) -> None:
+    if user_id is None or len(user_id.strip()) == 0:
+        raise NoSuchUserException(user_id)
     ban_timestamp = ban_duration_to_timestamp(ban_duration)
     environ.env.db.ban_user_room(user_id, ban_timestamp, ban_duration, room_id)
 
@@ -700,10 +694,6 @@ def get_channel_for_room(room_id: str) -> str:
     return environ.env.db.channel_for_room(room_id)
 
 
-def is_room_private(room_id: str) -> bool:
-    return environ.env.db.is_room_private(room_id)
-
-
 def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
     channel_id = get_channel_for_room(room_id)
     if is_owner(room_id, user_id):
@@ -737,29 +727,20 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
 
         if _last_read is None:
             _last_read = get_last_read_for(room_id, user_id)
+            print('now last read is "%s"' % _last_read)
             if _last_read is None:
                 return list()
 
         return environ.env.storage.get_unread_history(room_id, _last_read)
 
-    the_history = _history(last_read)
-    messages = list()
+    print('getting history for room %s, history is "%s", last_read "%s"' % (room_id, history, last_read))
 
-    for message in the_history:
-        if message['from_user_id'] != user_id:
-            message['from_user_id'] = get_private_room_for_user_id(user_id)
-        messages.append(message)
-    return messages
+    return _history(last_read)
 
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
     environ.env.leave_room(room_id)
     environ.env.db.leave_room(user_id, room_id)
-
-
-def join_private_room(user_id: str, user_name: str, room_id: str) -> None:
-    environ.env.db.join_private_room(user_id, user_name, room_id)
-    environ.env.join_room(room_id)
 
 
 def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) -> None:
@@ -774,6 +755,14 @@ def get_user_status(user_id: str) -> str:
 
 def get_last_read_for(room_id: str, user_id: str) -> str:
     return environ.env.db.get_last_read_timestamp(room_id, user_id)
+
+
+def update_last_reads_private(user_id: str) -> None:
+    status = get_user_status(user_id)
+    if status in [None, UserKeys.STATUS_UNAVAILABLE, UserKeys.STATUS_UNKNOWN]:
+        return
+    time_stamp = int(datetime.utcnow().strftime('%s'))
+    environ.env.db.update_last_read_for({user_id}, user_id, time_stamp)
 
 
 def update_last_reads(room_id: str) -> None:

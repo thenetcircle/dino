@@ -156,7 +156,6 @@ def ban_user_channel(channel_uuid: str, user_uuid: str):
 
 @app.route('/banned/room/<room_uuid>/user/<user_uuid>', methods=['DELETE'])
 def remove_ban(room_uuid: str, user_uuid: str):
-    user_uuid = utils.get_private_room_for_user_id(user_uuid)
     user_manager.remove_ban(user_uuid, room_uuid, 'room')
     return jsonify({'status_code': 200})
 

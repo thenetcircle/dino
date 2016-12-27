@@ -156,7 +156,7 @@ def handle_server_activity(data: dict, activity: Activity):
             },
             'verb': 'ban',
             'object': {
-                'id': utils.get_user_for_private_room(activity.object.id),
+                'id': activity.object.id,
                 'displayName': activity.object.display_name,
                 'summary': activity.object.summary,
                 'updated': activity.object.updated
@@ -187,7 +187,7 @@ def handle_server_activity(data: dict, activity: Activity):
             },
             'verb': 'kick',
             'object': {
-                'id': utils.get_user_for_private_room(activity.object.id),
+                'id': activity.object.id,
                 'displayName': activity.object.display_name
             }
         }
@@ -213,10 +213,7 @@ def handle_server_activity(data: dict, activity: Activity):
             kicker_name = 'admin'
         else:
             try:
-                if utils.is_real_user_id(kicker_id):
-                    kicker_name = utils.get_user_name_for(kicker_id)
-                else:
-                    kicker_name = utils.get_user_name_for(utils.get_user_for_private_room(kicker_id))
+                kicker_name = utils.get_user_name_for(kicker_id)
             except NoSuchUserException:
                 # if kicking from rest api the user might not exist
                 logger.error('no such user when kicking: %s' % kicker_id)
@@ -224,8 +221,6 @@ def handle_server_activity(data: dict, activity: Activity):
 
         kicked_id = activity.object.id
         kicked_name = utils.get_user_name_for(kicked_id)
-
-        kicked_id = utils.get_user_for_private_room(kicked_id)
         kicked_sid = utils.get_sid_for_user_id(kicked_id)
         room_id = activity.target.id
         room_name = utils.get_room_name(room_id)
@@ -254,10 +249,7 @@ def handle_server_activity(data: dict, activity: Activity):
             banner_name = 'admin'
         else:
             try:
-                if utils.is_real_user_id(banner_id):
-                    banner_name = utils.get_user_name_for(banner_id)
-                else:
-                    banner_name = utils.get_user_name_for(utils.get_user_for_private_room(banner_id))
+                banner_name = utils.get_user_name_for(banner_id)
             except NoSuchUserException:
                 # if banning from rest api the user might not exist
                 logger.error('no such user when banning: %s' % banner_id)
@@ -265,8 +257,6 @@ def handle_server_activity(data: dict, activity: Activity):
 
         banned_id = activity.object.id
         banned_name = utils.get_user_name_for(banned_id)
-
-        banned_id = utils.get_user_for_private_room(banned_id)
         banned_sid = utils.get_sid_for_user_id(banned_id)
         namespace = activity.target.url
         target_type = activity.target.object_type

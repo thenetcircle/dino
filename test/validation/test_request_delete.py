@@ -34,7 +34,6 @@ class FakeDb(object):
     _channel_exists = dict()
     _room_exists = dict()
     _room_contains = dict()
-    _private_rooms = dict()
     _channel_for_room = dict()
     _moderators = dict()
 
@@ -73,11 +72,6 @@ class FakeDb(object):
         if room_id not in FakeDb._channel_for_room:
             return None
         return FakeDb._channel_for_room[room_id]
-
-    def is_room_private(self, room_id):
-        if room_id not in FakeDb._private_rooms:
-            return False
-        return FakeDb._private_rooms[room_id]
 
     def get_acls_in_channel_for_action(self, channel_id, action):
         return FakeDb._channel_acls[action]
@@ -160,11 +154,6 @@ class RequestDeleteTest(TestCase):
                 RequestDeleteTest.USER_ID
             },
             RequestDeleteTest.OTHER_ROOM_ID: set()
-        }
-
-        FakeDb._private_rooms = {
-            RequestDeleteTest.ROOM_ID: False,
-            RequestDeleteTest.OTHER_ROOM_ID: True
         }
 
         FakeDb._channel_for_room = {
