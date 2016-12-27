@@ -531,7 +531,7 @@ class BaseTest(unittest.TestCase):
             if 'user_id' in skip:
                 del data['actor']['id']
             if 'user_name' in skip:
-                del data['actor']['summary']
+                del data['actor']['displayName']
             if 'target_id' in skip:
                 del data['target']['id']
 
@@ -567,7 +567,7 @@ class BaseTest(unittest.TestCase):
         data = {
             'actor': {
                 'id': BaseTest.USER_ID,
-                'summary': BaseTest.USER_NAME,
+                'displayName': b64e(BaseTest.USER_NAME),
                 'image': {
                     'url': 'http://some-url.com/image.jpg',
                     'width': '120',
@@ -582,7 +582,7 @@ class BaseTest(unittest.TestCase):
             if 'user_id' in skip:
                 del data['actor']['id']
             if 'user_name' in skip:
-                del data['actor']['summary']
+                del data['actor']['displayName']
             if 'image' in skip:
                 del data['actor']['image']
 

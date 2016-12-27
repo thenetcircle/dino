@@ -24,6 +24,7 @@ from dino.config import RedisKeys
 from dino.config import ErrorCodes
 from dino.exceptions import NoSuchRoomException
 from dino.exceptions import NoChannelFoundException
+from dino.exceptions import NoSuchChannelException
 from dino.validation import RequestValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
@@ -37,6 +38,7 @@ class FakeDb(object):
     _room_exists = dict()
     _room_contains = dict()
     _channel_for_room = dict()
+    _channel_names = dict()
 
     _ban_status = {
         'global': '',
@@ -91,9 +93,15 @@ class FakeDb(object):
     def room_contains(self, room_id, user_id):
         return user_id in FakeDb._room_contains[room_id]
 
+    def get_channel_name(self, channel_id):
+        if channel_id not in FakeDb._channel_names:
+            raise NoSuchChannelException(channel_id)
+        return FakeDb._channel_names[channel_id]
+
 
 class RequestMessageTest(TestCase):
     CHANNEL_ID = '8765'
+    CHANNEL_NAME = 'Shanghai'
     ROOM_ID = '4567'
     OTHER_ROOM_ID = '9999'
     OTHER_CHANNEL_ID = '8888'
@@ -241,6 +249,10 @@ class RequestMessageTest(TestCase):
                 RequestMessageTest.USER_ID
             },
             RequestMessageTest.OTHER_ROOM_ID: set()
+        }
+
+        FakeDb._channel_names = {
+            RequestMessageTest.CHANNEL_ID: RequestMessageTest.CHANNEL_NAME
         }
 
         FakeDb._channel_for_room = {
