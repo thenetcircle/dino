@@ -79,4 +79,4 @@ class RequestCreateTest(BaseTest):
         activity = self.activity_for_create()
         del activity['actor']['id']
         is_valid, code, msg = request.on_create(as_parser(activity))
-        self.assertFalse(is_valid)
+        self.assertTrue(is_valid)

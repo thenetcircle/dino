@@ -55,7 +55,8 @@ class DecoratorTest(TestCase):
         environ.env.stats = FakeStats()
         environ.env.emit = DecoratorTest._emit
         environ.env.session = {
-            SessionKeys.user_id.value: '1234'
+            SessionKeys.user_id.value: '1234',
+            SessionKeys.user_name.value: 'batman'
         }
         DecoratorTest.emit_args = None
         self.env = environ.env

@@ -23,6 +23,8 @@ from uuid import uuid4 as uuid
 
 from dino import validation
 from dino import environ
+from dino import utils
+from dino.exceptions import NoSuchUserException
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 
@@ -87,16 +89,25 @@ def pre_process(validation_name, should_validate_request=True):
 
                 try:
                     data = args[0]
+                    if 'actor' not in data:
+                        data['actor'] = dict()
 
                     # let the server determine the publishing time of the event, not the client
                     # use default time format, since activity streams only accept RFC3339 format
                     data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                     data['id'] = str(uuid())
-                    activity = as_parser.parse(data)
-
-                    if 'actor' not in data:
-                        data['actor'] = dict()
                     data['actor']['id'] = environ.env.session.get(SessionKeys.user_id.value)
+
+                    user_name = environ.env.session.get(SessionKeys.user_name.value)
+                    if user_name is None or len(user_name.strip()) == 0:
+                        try:
+                            user_name = utils.get_user_name_for(data['actor']['id'])
+                        except NoSuchUserException as e:
+                            return 400, str(e)
+
+                    data['actor']['displayName'] = utils.b64e(user_name)
+
+                    activity = as_parser.parse(data)
 
                     # the login request will not have user id in session yet, which this would check
                     if should_validate_request:

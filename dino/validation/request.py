@@ -156,11 +156,6 @@ class RequestValidator(BaseValidator):
             except NoSuchRoomException as e:
                 return False, ECodes.NO_SUCH_ROOM, 'no private room found for user: %s' % str(e)
 
-        try:
-            utils.get_user_name_for(user_id)
-        except NoSuchUserException as e:
-            return False, ECodes.NO_SUCH_USER, 'could not find the specified user: %s' % str(e)
-
         is_global_ban = room_id is None or room_id == ''
 
         if kicked_id is None or kicked_id.strip() == '':
@@ -403,11 +398,6 @@ class RequestValidator(BaseValidator):
             return False, ECodes.NOT_BASE64, 'object.content needs to be base64 encoded'
 
         try:
-            activity.actor.display_name = utils.get_user_name_for(activity.actor.id)
-        except NoSuchUserException:
-            return False, ECodes.NO_SUCH_USER, 'no such user for actor.id'
-
-        try:
             activity.object.url = utils.get_channel_for_room(activity.actor.url)
         except (NoSuchChannelException, NoChannelFoundException):
             return False, ECodes.NO_SUCH_ROOM, 'no room found for actor.url (room uuid to whisper in)'
@@ -430,11 +420,6 @@ class RequestValidator(BaseValidator):
 
         if not hasattr(activity, 'actor') or not hasattr(activity.actor, 'id'):
             return False, ECodes.MISSING_ACTOR_ID, 'need actor.id (user uuid)'
-
-        try:
-            activity.actor.display_name = utils.get_user_name_for(activity.actor.id)
-        except NoSuchUserException:
-            return False, ECodes.NO_SUCH_USER, 'no such user for actor.id'
 
         try:
             activity.object.display_name = utils.get_channel_name(channel_id)
