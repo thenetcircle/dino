@@ -24,6 +24,7 @@ from uuid import uuid4 as uuid
 from dino import validation
 from dino import environ
 from dino.config import ConfigKeys
+from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -92,6 +93,10 @@ def pre_process(validation_name, should_validate_request=True):
                     data['published'] = datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                     data['id'] = str(uuid())
                     activity = as_parser.parse(data)
+
+                    if 'actor' not in data:
+                        data['actor'] = dict()
+                    data['actor']['id'] = environ.env.session.get(SessionKeys.user_id.value)
 
                     # the login request will not have user id in session yet, which this would check
                     if should_validate_request:

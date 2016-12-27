@@ -21,12 +21,12 @@ Request contains:
     {
         verb: "login",
         actor: {
-            id: "<user ID>",
-            summary: "<user name>",
-            attachments: [
+            "id": "<user ID>",
+            "displayName": "<user name>",
+            "attachments": [
                 {
-                    objectType: "token",
-                    content: "<user token>"
+                    "objectType": "token",
+                    "content": "<user token>"
                 }
             ]
         }
@@ -45,10 +45,7 @@ Responds with event name "gn_list_channels".
 Request contains:
 
     {
-        "verb": "list",
-        "target": {
-            "objectType": "channel"
-        }
+        "verb": "list"
     }
 
 Response data if successful:
@@ -85,10 +82,7 @@ Request contains:
         "object": {
             "url": "<channel UUID>"
         },
-        verb: "list",
-        "target": {
-            "objectType": "room"
-        }
+        verb: "list"
     }
 
 Response data if successful:
@@ -396,11 +390,7 @@ Request contains:
             "id": "<UUID of the user to invite>"
         },
         "actor": {
-            "id": "<the user making the invitation>",
             "url": "<the room UUID the invitation is for>"
-        },
-        "object": {
-            "url": "<channel UUID>"
         },
         "verb": "invite"
     }
@@ -421,9 +411,6 @@ Responds with "gn_delete".
 Request contains:
 
     {
-        "actor": {
-            "id": "<ID of user deleting the message>"
-        },
         "target": {
             "id": "<UUID of the room to delete from>"
         },
@@ -442,9 +429,6 @@ Responds with "gn_kick".
 Request contains:
 
     {
-        "actor": {
-            "id": "<ID of user kicking>"
-        },
         "target": {
             "id": "<UUID of the room to kick from>"
         },
@@ -469,9 +453,6 @@ Responds with "gn_ban".
 Request contains:
 
     {
-        "actor": {
-            "id": "<ID of user banning>"
-        },
         "target": {
             "id": "<UUID of the room/channel to ban from>",
             "objectType": "<room/channel/global>"
@@ -512,9 +493,6 @@ Responds with event name "gn_message".
 Request contains:
 
     {
-        actor: {
-            id: "<user ID>"
-        },
         verb: "send",
         target: {
             id: "<room/user ID>",
@@ -533,8 +511,8 @@ Response data if successful:
             "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
             "published": "2016-10-07T10:45:34Z",
             "actor": {
-                "id": "<user ID>",
-                "displayName": "<user name>"
+                "id": "<your user ID>",
+                "displayName": "<your user name>"
             },
             "verb": "send",
             "target": {
@@ -560,12 +538,9 @@ Responds with the event name "gn_join".
 Request contains:
 
     {
-        actor: {
-            id: "<user ID>"
-        },
-        verb: "join",
-        target: {
-            id: "<room ID>"
+        "verb": "join",
+        "target": {
+            "id": "<room ID>"
         }
     }
     
@@ -642,7 +617,7 @@ Response data if successful:
                 ]
             },
             "verb": "join",
-            "actor": {
+            "target": {
                 "id": "<the room ID that the user joined>"
             }
         }

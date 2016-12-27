@@ -12,6 +12,7 @@
 
 from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
+from activitystreams.models.target import Target
 import logging
 
 from dino import environ
@@ -104,7 +105,7 @@ class RequestValidator(BaseValidator):
             environ.env.disconnect()
             return False, ECodes.USER_IS_BANNED, 'user is banned from chatting for: %ss' % duration
 
-        if activity.actor.attachments is not None:
+        if hasattr(activity.actor, 'attachments') and activity.actor.attachments is not None:
             for attachment in activity.actor.attachments:
                 environ.env.session[attachment.object_type] = attachment.content
 
@@ -243,6 +244,7 @@ class RequestValidator(BaseValidator):
         room_id = activity.target.id
         user_id = activity.actor.id
 
+        activity.target.object_type = 'room'
         acls = utils.get_acls_in_room_for_action(room_id, ApiActions.JOIN)
         is_valid, error_msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.JOIN, acls)
         if not is_valid:
@@ -270,6 +272,7 @@ class RequestValidator(BaseValidator):
         if channel_id is None or channel_id == '':
             return False, ECodes.MISSING_OBJECT_URL, 'need channel ID to list rooms'
 
+        activity.target = Target({'objectType': 'channel'})
         acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
         is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.LIST, acls)
         if not is_valid:

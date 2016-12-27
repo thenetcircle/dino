@@ -49,16 +49,11 @@
                     $('#private').attr('checked', false);
                     socket.emit('join', {
                         actor: {
-                            id: '{{ user_id }}',
-                            displayName: b64e('{{ user_name }}')
-                        },
-                        object: {
-                            url: channel_id
+                            id: '{{ user_id }}'
                         },
                         verb: 'join',
                         target: {
-                            id: room_id,
-                            objectType: 'room'
+                            id: room_id
                         }
                     });
                 });
@@ -71,14 +66,10 @@
 
                     socket.emit('list_rooms', {
                         actor: {
-                            id: '{{ user_id }}',
-                            displayName: b64e('{{ user_name }}')
+                            id: '{{ user_id }}'
                         },
                         object: {
                             url: channel_id
-                        },
-                        target: {
-                            objectType: 'room'
                         },
                         verb: 'list'
                     });
@@ -110,34 +101,6 @@
                             displayName: '{{ user_name }}',
                             attachments: [
                                 {
-                                    objectType: 'gender',
-                                    content: '{{ gender }}'
-                                },
-                                {
-                                    objectType: 'age',
-                                    content: '{{ age }}'
-                                },
-                                {
-                                    objectType: 'membership',
-                                    content: '{{ membership }}'
-                                },
-                                {
-                                    objectType: 'fake_checked',
-                                    content: '{{ fake_checked }}'
-                                },
-                                {
-                                    objectType: 'has_webcam',
-                                    content: '{{ has_webcam }}'
-                                },
-                                {
-                                    objectType: 'country',
-                                    content: '{{ country }}'
-                                },
-                                {
-                                    objectType: 'city',
-                                    content: '{{ city }}'
-                                },
-                                {
                                     objectType: 'token',
                                     content: '{{ token }}'
                                 }
@@ -154,8 +117,7 @@
                     console.log(data);
                     socket.emit('list_channels', {
                         actor: {
-                            id: '{{ user_id }}',
-                            displayName: b64e('{{ user_name }}')
+                            id: '{{ user_id }}'
                         },
                         verb: 'list'
                     });
@@ -406,18 +368,15 @@
 
                         socket.emit('message', {
                             actor: {
-                                id: '{{ user_id }}',
-                                displayName: b64e('{{ user_name }}')
+                                id: '{{ user_id }}'
                             },
                             verb: 'send',
                             target: {
                                 id: room_id,
-                                displayName: b64e(room_name),
                                 objectType: target_type
                             },
                             object: {
-                                content: b64e(text),
-                                url: channel_id
+                                content: b64e(text)
                             }
                         });
                     }
@@ -426,8 +385,10 @@
                 $('input#create-the-room').click(function() {
                     socket.emit('create', {
                         actor: {
-                            id: '{{ user_id }}',
-                            displayName: b64e('{{ user_name }}')
+                            id: '{{ user_id }}'
+                        },
+                        object: {
+                            url: $('#channel-id').val()
                         },
                         verb: 'create',
                         target: {
