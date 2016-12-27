@@ -521,7 +521,7 @@ Request contains:
             objectType: "<room/private>"
         },
         object: {
-            content: "<the message>",
+            content: "<the message, base64 encoded>",
         }
     }
 

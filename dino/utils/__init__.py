@@ -658,8 +658,18 @@ def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: s
     if from_room_uuid == to_room_uuid:
         return True
 
-    from_channel_id = get_channel_for_room(from_room_uuid)
-    to_channel_id = get_channel_for_room(to_room_uuid)
+    from_channel_id = None
+    to_channel_id = None
+
+    if hasattr(activity, 'provider') and hasattr(activity.provider, 'url'):
+        from_channel_id = activity.object.url
+    if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
+        to_channel_id = activity.object.url
+
+    if from_channel_id is None or len(from_channel_id.strip()) == 0:
+        from_channel_id = get_channel_for_room(from_room_uuid)
+    if to_channel_id is None or len(to_channel_id.strip()) == 0:
+        to_channel_id = get_channel_for_room(to_room_uuid)
 
     # can not sent between channels
     if from_channel_id != to_channel_id:
