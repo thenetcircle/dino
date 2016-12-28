@@ -162,7 +162,7 @@ class GlobalRoles(DeclarativeBase):
     __tablename__ = 'global_roles'
 
     id = Column(Integer, primary_key=True)
-    user_id = Column('user_id', String(128), nullable=ForeignKey, index=True)
+    user_id = Column('user_id', String(128), nullable=False, index=True)
     roles = Column('roles', String(256), nullable=False)
 
 
