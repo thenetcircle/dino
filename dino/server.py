@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from flask import Flask
 from flask_socketio import SocketIO
 
@@ -30,7 +31,7 @@ def create_app():
     _socketio = SocketIO(
             _app,
             logger=environ.env.logger,
-            engineio_logger=False,
+            engineio_logger=os.environ.get('DINO_DEBUG', '0') == '1',
             async_mode='eventlet',
             message_queue=environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default=''))
 
