@@ -47,8 +47,7 @@ class OnDisconnectHooks(object):
 
     @staticmethod
     def set_user_offline(arg: tuple):
-        data, activity = arg
-        user_id = activity.actor.id
+        user_id = environ.env.session.get(SessionKeys.user_id.value)
         environ.env.db.set_user_offline(user_id)
 
     @staticmethod
