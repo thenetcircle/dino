@@ -97,7 +97,7 @@ def handle_server_activity(data: dict, activity: Activity):
         banner_id = activity_json['actor']['id']
 
         reason = None
-        if 'object' in activity_json and 'content' in activity_json['content']:
+        if 'object' in activity_json and 'content' in activity_json['object']:
             reason = activity_json['object']['content']
 
         try:
@@ -115,7 +115,7 @@ def handle_server_activity(data: dict, activity: Activity):
         banner_id = activity_json['actor']['id']
 
         reason = None
-        if 'object' in activity_json and 'content' in activity_json['content']:
+        if 'object' in activity_json and 'content' in activity_json['object']:
             reason = activity_json['object']['content']
 
         try:
@@ -135,7 +135,7 @@ def handle_server_activity(data: dict, activity: Activity):
         banner_id = activity_json['actor']['id']
 
         reason = None
-        if 'object' in activity_json and 'content' in activity_json['content']:
+        if 'object' in activity_json and 'content' in activity_json['object']:
             reason = activity_json['object']['content']
 
         try:
@@ -177,7 +177,7 @@ def handle_server_activity(data: dict, activity: Activity):
             ban_activity['target']['id'] = activity.target.id
             ban_activity['target']['displayName'] = activity.target.display_name
 
-        print('publishing to external queue: %s' % ban_activity)
+        logger.debug('publishing ban event to external queue: %s' % ban_activity)
         environ.env.publish(ban_activity, external=True)
 
     def send_kick_event_to_external_queue() -> None:
@@ -194,7 +194,7 @@ def handle_server_activity(data: dict, activity: Activity):
         }
 
         reason = None
-        if activity.object is not None:
+        if hasattr(activity, 'object') and hasattr(activity.object, 'content'):
             reason = activity.object.content
         if reason is not None and len(reason.strip()) > 0:
             kick_activity['object']['content'] = reason
@@ -206,6 +206,7 @@ def handle_server_activity(data: dict, activity: Activity):
             kick_activity['target']['displayName'] = activity.target.display_name
             kick_activity['target']['objectType'] = activity.target.object_type
 
+        logger.debug('publishing kick event to external queue: %s' % kick_activity)
         environ.env.publish(kick_activity, external=True)
 
     def handle_kick():
@@ -288,8 +289,9 @@ def handle_server_activity(data: dict, activity: Activity):
                 _ban_channel(target_id, banned_id, banned_sid, namespace, activity_json)
             else:
                 _ban_room(target_id, banned_id, banned_sid, namespace, activity_json)
-        except KeyError:
-            pass
+        except KeyError as ke:
+            logger.error('could not ban: %s' % str(ke))
+            logger.exception(traceback.format_exc())
 
     if activity.verb == 'kick':
         try:
