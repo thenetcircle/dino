@@ -61,18 +61,13 @@ class UserManager(BaseManager):
 
     def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str, reason: str=None, banner_id: str=None) -> None:
         target_name = None
-        timestamp = utils.ban_duration_to_timestamp(duration)
 
         if target_type == 'global':
-            self.env.db.ban_user_global(user_id, timestamp, duration, reason, banner_id)
-
+            pass
         elif target_type == 'channel':
             target_name = self.env.db.get_channel_name(target_id)
-            self.env.db.ban_user_channel(user_id, timestamp, duration, target_id, reason, banner_id)
-
         elif target_type == 'room':
             target_name = self.env.db.get_room_name(target_id)
-            self.env.db.ban_user_room(user_id, timestamp, duration, target_id, reason, banner_id)
         else:
             raise UnknownBanTypeException(target_type)
 

@@ -92,122 +92,34 @@ def handle_server_activity(data: dict, activity: Activity):
     def _ban_room(_room_id, _user_id, _user_sid, namespace, activity_json):
         environ.env.out_of_scope_emit(
                 'gn_user_banned', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
-        ban_duration = activity.object.summary
-        ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
-        banner_id = activity_json['actor']['id']
-
-        reason = None
-        if 'object' in activity_json and 'content' in activity_json['object']:
-            reason = activity_json['object']['content']
 
         try:
-            send_ban_event_to_external_queue('room')
-            socketio.server.leave_room(_user_sid, _room_id, '/chat')
-            environ.env.db.ban_user_room(_user_id, ban_timestamp, ban_duration, _room_id, reason, banner_id)
+            _kick(_room_id, _user_id, _user_sid, namespace, activity_json)
         except Exception as e:
             logger.error('could not ban user %s from room %s: %s' % (_user_id, _room_id, str(e)))
             return
 
-    def _ban_channel(_channel_id, _user_id, _user_sid, namespace, activity_json):
-        rooms_in_channel = environ.env.db.rooms_for_channel(_channel_id)
-        ban_duration = activity.object.summary
-        ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
-        banner_id = activity_json['actor']['id']
-
-        reason = None
-        if 'object' in activity_json and 'content' in activity_json['object']:
-            reason = activity_json['object']['content']
-
+    def _ban_channel(rooms_in_channel, _channel_id, _user_id, _user_sid, namespace, activity_json):
         try:
-            send_ban_event_to_external_queue('channel')
-            environ.env.db.ban_user_channel(_user_id, ban_timestamp, ban_duration, _channel_id, reason, banner_id)
             for room in rooms_in_channel:
+                environ.env.out_of_scope_emit(
+                        'gn_user_banned', activity_json, json=True, namespace=namespace, room=room, broadcast=True)
                 _kick(room, _user_id, _user_sid, namespace, activity_json)
         except Exception as e:
             logger.error('could not ban user %s from channel %s: %s' % (_user_id, _channel_id, str(e)))
             logger.exception(traceback.format_exc(e))
             return
 
-    def _ban_globally(_channel_id, _user_id, _user_sid, namespace, activity_json):
-        rooms_for_user = environ.env.db.rooms_for_user(_user_id)
-        ban_duration = activity.object.summary
-        ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
-        banner_id = activity_json['actor']['id']
-
-        reason = None
-        if 'object' in activity_json and 'content' in activity_json['object']:
-            reason = activity_json['object']['content']
-
+    def _ban_globally(rooms_for_user, _user_id, _user_sid, namespace, activity_json):
         try:
-            send_ban_event_to_external_queue('global')
-            environ.env.db.ban_user_global(_user_id, ban_timestamp, ban_duration, reason, banner_id)
             for room in rooms_for_user:
+                environ.env.out_of_scope_emit(
+                        'gn_user_banned', activity_json, json=True, namespace=namespace, room=room, broadcast=True)
                 _kick(room, _user_id, _user_sid, namespace, activity_json)
         except Exception as e:
             logger.error('could not ban user %s globally: %s' % (_user_id, str(e)))
             logger.exception(traceback.format_exc(e))
             return
-
-    def send_ban_event_to_external_queue(target_type) -> None:
-        ban_activity = {
-            'actor': {
-                'id': activity.actor.id,
-                'displayName': activity.actor.display_name
-            },
-            'verb': 'ban',
-            'object': {
-                'id': activity.object.id,
-                'displayName': activity.object.display_name,
-                'summary': activity.object.summary,
-                'updated': activity.object.updated
-            }
-        }
-
-        reason = None
-        if activity.object is not None:
-            reason = activity.object.content
-        if reason is not None and len(reason.strip()) > 0:
-            ban_activity['object']['content'] = reason
-
-        ban_activity['target'] = {
-            'objectType': target_type
-        }
-
-        if activity.target is not None:
-            ban_activity['target']['id'] = activity.target.id
-            ban_activity['target']['displayName'] = activity.target.display_name
-
-        logger.debug('publishing ban event to external queue: %s' % ban_activity)
-        environ.env.publish(ban_activity, external=True)
-
-    def send_kick_event_to_external_queue() -> None:
-        kick_activity = {
-            'actor': {
-                'id': activity.actor.id,
-                'displayName': activity.actor.display_name
-            },
-            'verb': 'kick',
-            'object': {
-                'id': activity.object.id,
-                'displayName': activity.object.display_name
-            }
-        }
-
-        reason = None
-        if hasattr(activity, 'object') and hasattr(activity.object, 'content'):
-            reason = activity.object.content
-        if reason is not None and len(reason.strip()) > 0:
-            kick_activity['object']['content'] = reason
-
-        # when banning globally, not target room is specified
-        if activity.target is not None:
-            kick_activity['target'] = dict()
-            kick_activity['target']['id'] = activity.target.id
-            kick_activity['target']['displayName'] = activity.target.display_name
-            kick_activity['target']['objectType'] = activity.target.object_type
-
-        logger.debug('publishing kick event to external queue: %s' % kick_activity)
-        environ.env.publish(kick_activity, external=True)
 
     def handle_kick():
         kicker_id = activity.actor.id
@@ -281,22 +193,94 @@ def handle_server_activity(data: dict, activity: Activity):
                 banner_id, banner_name, banned_id, banned_name, target_id, target_name)
 
         try:
-            # user just got banned globally, ban from all rooms
+            ban_duration = activity.object.summary
+            ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+            banner_id = activity_json['actor']['id']
+            reason = None
+            if 'object' in activity_json and 'content' in activity_json['object']:
+                reason = activity_json['object']['content']
+
             if target_id is None or target_id == '':
-                for room_key in socketio.server.manager.rooms[namespace].keys():
-                    _ban_globally(room_key, banned_id, banned_sid, namespace, activity_json)
+                rooms_for_user = environ.env.db.rooms_for_user(banned_id)
+                send_ban_event_to_external_queue('global')
+                environ.env.db.ban_user_global(banned_id, ban_timestamp, ban_duration, reason, banner_id)
+                _ban_globally(rooms_for_user, banned_id, banned_sid, namespace, activity_json)
+
             elif target_type == 'channel':
-                _ban_channel(target_id, banned_id, banned_sid, namespace, activity_json)
+                rooms_in_channel = environ.env.db.rooms_for_channel(target_id)
+                send_ban_event_to_external_queue('channel')
+                environ.env.db.ban_user_channel(banned_id, ban_timestamp, ban_duration, target_id, reason, banner_id)
+                _ban_channel(rooms_in_channel, target_id, banned_id, banned_sid, namespace, activity_json)
+
             else:
+                send_ban_event_to_external_queue('room')
+                environ.env.db.ban_user_room(banned_id, ban_timestamp, ban_duration, target_id, reason, banner_id)
                 _ban_room(target_id, banned_id, banned_sid, namespace, activity_json)
+
         except KeyError as ke:
-            try:
-                from pprint import pprint
-                pprint(socketio.server.manager.rooms)
-            except Exception as pe:
-                logger.error('could not pprint socketio rooms: %s' % str(pe))
             logger.error('could not ban: %s' % str(ke))
             logger.exception(traceback.format_exc())
+
+    def send_ban_event_to_external_queue(target_type) -> None:
+        ban_activity = {
+            'actor': {
+                'id': activity.actor.id,
+                'displayName': activity.actor.display_name
+            },
+            'verb': 'ban',
+            'object': {
+                'id': activity.object.id,
+                'displayName': activity.object.display_name,
+                'summary': activity.object.summary,
+                'updated': activity.object.updated
+            }
+        }
+
+        reason = None
+        if activity.object is not None:
+            reason = activity.object.content
+        if reason is not None and len(reason.strip()) > 0:
+            ban_activity['object']['content'] = reason
+
+        ban_activity['target'] = {
+            'objectType': target_type
+        }
+
+        if activity.target is not None:
+            ban_activity['target']['id'] = activity.target.id
+            ban_activity['target']['displayName'] = activity.target.display_name
+
+        logger.debug('publishing ban event to external queue: %s' % ban_activity)
+        environ.env.publish(ban_activity, external=True)
+
+    def send_kick_event_to_external_queue() -> None:
+        kick_activity = {
+            'actor': {
+                'id': activity.actor.id,
+                'displayName': activity.actor.display_name
+            },
+            'verb': 'kick',
+            'object': {
+                'id': activity.object.id,
+                'displayName': activity.object.display_name
+            }
+        }
+
+        reason = None
+        if hasattr(activity, 'object') and hasattr(activity.object, 'content'):
+            reason = activity.object.content
+        if reason is not None and len(reason.strip()) > 0:
+            kick_activity['object']['content'] = reason
+
+        # when banning globally, not target room is specified
+        if activity.target is not None:
+            kick_activity['target'] = dict()
+            kick_activity['target']['id'] = activity.target.id
+            kick_activity['target']['displayName'] = activity.target.display_name
+            kick_activity['target']['objectType'] = activity.target.object_type
+
+        logger.debug('publishing kick event to external queue: %s' % kick_activity)
+        environ.env.publish(kick_activity, external=True)
 
     if activity.verb == 'kick':
         try:
