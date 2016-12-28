@@ -290,6 +290,11 @@ def handle_server_activity(data: dict, activity: Activity):
             else:
                 _ban_room(target_id, banned_id, banned_sid, namespace, activity_json)
         except KeyError as ke:
+            try:
+                from pprint import pprint
+                pprint(socketio.server.manager.rooms)
+            except Exception as pe:
+                logger.error('could not pprint socketio rooms: %s' % str(pe))
             logger.error('could not ban: %s' % str(ke))
             logger.exception(traceback.format_exc())
 
