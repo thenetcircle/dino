@@ -206,6 +206,10 @@ def handle_server_activity(data: dict, activity: Activity):
                 environ.env.db.ban_user_global(banned_id, ban_timestamp, ban_duration, reason, banner_id)
                 _ban_globally(rooms_for_user, banned_id, banned_sid, namespace, activity_json)
 
+                environ.env.db.set_user_offline(banned_id)
+                activity_json = utils.activity_for_disconnect(banned_id, banned_name)
+                environ.env.publish(activity_json, external=True)
+
             elif target_type == 'channel':
                 rooms_in_channel = environ.env.db.rooms_for_channel(target_id)
                 send_ban_event_to_external_queue('channel')

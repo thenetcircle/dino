@@ -647,8 +647,14 @@ def init_cache_service(gn_env: GNEnvironment):
 
 
 def init_pub_sub(gn_env: GNEnvironment) -> None:
-    def publish(message, external=False):
+    def publish(message, external=None):
+        if not external:
+            external = False
+
         try:
+            if external:
+                logger.debug('publishing external message: %s' % str(message))
+
             start = time.time()
             if external:
                 queue_connection = gn_env.external_queue_connection
