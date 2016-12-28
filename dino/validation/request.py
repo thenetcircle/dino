@@ -12,6 +12,7 @@
 
 from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
+from activitystreams.models.actor import Actor
 from activitystreams.models.target import Target
 import logging
 
@@ -178,7 +179,12 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_request_admin(self, activity: Activity) -> (bool, int, str):
-        room_id = activity.actor.url
+        activity.actor = Actor({
+            'id': str(environ.env.session.get(SessionKeys.user_id.value)),
+            'displayName': environ.env.session.get(SessionKeys.user_name.value)
+        })
+
+        room_id = activity.target.id
         channel_id = utils.get_channel_for_room(room_id)
         admin_room_id = utils.get_admin_room_for_channel(channel_id)
 

@@ -12,6 +12,8 @@
 
 from activitystreams import Activity
 from typing import Union
+from uuid import uuid4 as uuid
+
 import logging
 import traceback
 
@@ -92,7 +94,8 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
             'displayName': b64e(room_name)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'leave'
+        'verb': 'leave',
+        'id': str(uuid())
     }
 
 
@@ -114,7 +117,8 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
             'objectType': 'group'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'join'
+        'verb': 'join',
+        'id': str(uuid())
     }
 
 
@@ -135,7 +139,8 @@ def activity_for_user_banned(
             'objectType': 'group'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'ban'
+        'verb': 'ban',
+        'id': str(uuid())
     }
 
 
@@ -156,7 +161,8 @@ def activity_for_user_kicked(
             'objectType': 'group'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'kick'
+        'verb': 'kick',
+        'id': str(uuid())
     }
 
 
@@ -174,6 +180,7 @@ def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_
             'id': room_id,
             'displayName': b64e(room_name)
         },
+        'id': str(uuid()),
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
     }
 
@@ -184,7 +191,9 @@ def activity_for_disconnect(user_id: str, user_name: str) -> dict:
             'id': user_id,
             'displayName': b64e(user_name)
         },
-        'verb': 'disconnect'
+        'verb': 'disconnect',
+        'id': str(uuid()),
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
     }
 
 
@@ -195,7 +204,8 @@ def activity_for_login(user_id: str, user_name: str) -> dict:
             'displayName': b64e(user_name)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'login'
+        'verb': 'login',
+        'id': str(uuid())
     }
 
 
@@ -206,7 +216,8 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
             'displayName': b64e(user_name)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'connect'
+        'verb': 'connect',
+        'id': str(uuid())
     }
 
 
@@ -224,7 +235,8 @@ def activity_for_create_room(activity: Activity) -> dict:
             'displayName': b64e(activity.target.display_name)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'create'
+        'verb': 'create',
+        'id': str(uuid())
     }
 
 
@@ -240,6 +252,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
             'objectType': 'messages'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'id': str(uuid()),
         'verb': 'history',
         'target': {
             'id': activity.target.id,
@@ -272,7 +285,8 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
         'target': {
             'id': activity.target.id,
             'displayName': b64e(get_room_name(activity.target.id))
-        }
+        },
+        'id': str(uuid())
     }
 
     acl_activity = activity_for_get_acl(activity, acls)
@@ -312,7 +326,8 @@ def activity_for_owners(activity: Activity, owners: dict) -> dict:
             'id': activity.target.id,
             'displayName': b64e(activity.target.display_name)
         },
-        'verb': 'list'
+        'verb': 'list',
+        'id': str(uuid())
     }
 
     response['object']['attachments'] = list()
@@ -361,7 +376,8 @@ def activity_for_invite(
         'target': {
             'id': room_id,
             'displayName': b64e(room_name)
-        }
+        },
+        'id': str(uuid())
     }
 
 
@@ -383,7 +399,8 @@ def activity_for_whisper(
         'target': {
             'id': room_id,
             'displayName': b64e(room_name)
-        }
+        },
+        'id': str(uuid())
     }
 
 
@@ -394,7 +411,8 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
             'objectType': 'rooms'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'list'
+        'verb': 'list',
+        'id': str(uuid())
     }
 
     response['object']['attachments'] = list()
@@ -420,7 +438,8 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
             'objectType': 'users'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'list'
+        'verb': 'list',
+        'id': str(uuid())
     }
 
     response['object']['attachments'] = list()
@@ -453,7 +472,8 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
             'objectType': 'acl'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'get'
+        'verb': 'get',
+        'id': str(uuid())
     }
 
     response['object']['attachments'] = list()

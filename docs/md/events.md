@@ -29,6 +29,28 @@ to user A with the following content:
         }
     }
 
+### Admin presence requested
+
+When someone requests the presence of an admin in a room all users in the Admin room for that channel will receive an
+event called `gn_admin_requested` containing the following:
+
+    {
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>",
+        "actor": {
+            "id": "<UUID of user requesting>",
+            "displayName": "<name of the user requesting>"
+        },
+        "verb": "help",
+        "object": {
+            "content": "<base64 encoded message>"
+        },
+        "target": {
+            "id": "<UUID of the room the help was requested for>",
+            "displayName": "<name of the room>"
+        }
+    }
+
 ### Invitation received
 
 When user B invites user A to join room X, the event `gn_invitation` will be sent to user A with the following content:

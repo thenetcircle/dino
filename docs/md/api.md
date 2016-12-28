@@ -109,6 +109,38 @@ Response data if successful:
         }
     }
 
+### request_admin
+
+When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
+which only admins can see when listing rooms and only admins can join. When a request_admin event is sent to the server
+it will be delivered to the admin room for that channel and the admins in that room can decide what to do.
+
+Responds with event name "gn_request_admin".
+
+Request contains:
+
+    {
+        "target": {
+            "id": "<room UUID to request help for>"
+        },
+        "object": {
+            "content": "<base64 encoded message that will be delivered to the admin room>"
+        },
+        "verb": "help"
+    }
+
+Response data if successful:
+
+    {
+        "status_code": 200
+    }
+
+The "object.content" could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
+reason text etc. 
+
+The event generated to be sent to the admin room is called "gn_admin_requested" (see 
+[Events](docs/md/events.md#gn_admin_requested) for more information).
+
 ### leave
 
 Leave a room.

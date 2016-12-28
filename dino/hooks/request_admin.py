@@ -21,16 +21,17 @@ class OnRequestAdminHooks(object):
     def send_request(arg: tuple) -> None:
         data, activity = arg
 
+        room_id = activity.target.id
         user_id = activity.actor.id
-        username = utils.get_user_name_for(user_id)
         message = activity.object.content
-        room_id = activity.actor.url
+
+        username = utils.get_user_name_for(user_id)
         room_name = utils.get_room_name(room_id)
         channel_id = utils.get_channel_for_room(room_id)
         admin_room_id = utils.get_admin_room_for_channel(channel_id)
 
         activity_json = utils.activity_for_request_admin(user_id, username, room_id, room_name, message)
-        environ.env.emit('gn_request_admin', activity_json, json=True, broadcast=True, room=admin_room_id)
+        environ.env.emit('gn_admin_requested', activity_json, json=True, broadcast=True, room=admin_room_id)
 
 
 @environ.env.observer.on('on_request_admin')
