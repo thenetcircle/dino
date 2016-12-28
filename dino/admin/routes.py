@@ -155,8 +155,20 @@ def ban_user_channel(channel_uuid: str, user_uuid: str):
 
 
 @app.route('/banned/room/<room_uuid>/user/<user_uuid>', methods=['DELETE'])
-def remove_ban(room_uuid: str, user_uuid: str):
+def remove_ban_room(room_uuid: str, user_uuid: str):
     user_manager.remove_ban(user_uuid, room_uuid, 'room')
+    return jsonify({'status_code': 200})
+
+
+@app.route('/banned/channel/<channel_uuid>/user/<user_uuid>', methods=['DELETE'])
+def remove_ban_channel(channel_uuid: str, user_uuid: str):
+    user_manager.remove_ban(user_uuid, channel_uuid, 'channel')
+    return jsonify({'status_code': 200})
+
+
+@app.route('/banned/user/<user_uuid>', methods=['DELETE'])
+def remove_ban_global(user_uuid: str):
+    user_manager.remove_ban(user_uuid, None, 'global')
     return jsonify({'status_code': 200})
 
 
