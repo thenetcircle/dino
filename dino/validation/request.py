@@ -244,6 +244,13 @@ class RequestValidator(BaseValidator):
         room_id = activity.target.id
         user_id = activity.actor.id
 
+        if not hasattr(activity, 'object'):
+            activity.object = DefObject(dict())
+
+        channel_id = utils.get_channel_for_room(room_id)
+        activity.object.url = channel_id
+        activity.object.display_name = utils.get_channel_name(channel_id)
+
         activity.target.object_type = 'room'
         acls = utils.get_acls_in_room_for_action(room_id, ApiActions.JOIN)
         is_valid, error_msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.JOIN, acls)
