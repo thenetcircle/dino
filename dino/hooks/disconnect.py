@@ -11,6 +11,7 @@
 # limitations under the License.
 
 import logging
+import traceback
 
 from dino import environ
 from dino import utils
@@ -25,9 +26,9 @@ class OnDisconnectHooks(object):
     @staticmethod
     def leave_private_room(arg: tuple):
         # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
-        user_id = environ.env.session.get(SessionKeys.user_id.value)
+        user_id = str(environ.env.session.get(SessionKeys.user_id.value))
         user_name = environ.env.session.get(SessionKeys.user_name.value)
-        logger.debug('a user disconnected, name: %s' % user_name)
+        logger.debug('a user disconnected, id "%s" name "%s"' % (user_id, user_name))
 
         if user_id is None or len(user_id.strip()) == 0:
             return
@@ -35,7 +36,7 @@ class OnDisconnectHooks(object):
 
     @staticmethod
     def leave_all_public_rooms_and_emit_leave_events(arg: tuple):
-        user_id = environ.env.session.get(SessionKeys.user_id.value)
+        user_id = str(environ.env.session.get(SessionKeys.user_id.value))
         user_name = environ.env.session.get(SessionKeys.user_name.value)
         rooms = environ.env.db.rooms_for_user(user_id)
 
@@ -47,12 +48,18 @@ class OnDisconnectHooks(object):
 
     @staticmethod
     def set_user_offline(arg: tuple):
-        user_id = environ.env.session.get(SessionKeys.user_id.value)
-        environ.env.db.set_user_offline(user_id)
+        data, activity = arg
+        try:
+            user_id = str(environ.env.session.get(SessionKeys.user_id.value))
+            environ.env.db.set_user_offline(user_id)
+        except Exception as e:
+            logger.error('could not set user offline: %s' % str(e))
+            logger.debug('request for failed set_user_offline(): %s' % str(data))
+            logger.exception(traceback.format_exc())
 
     @staticmethod
     def emit_disconnect_event(arg: tuple) -> None:
-        user_id = environ.env.session.get(SessionKeys.user_id.value)
+        user_id = str(environ.env.session.get(SessionKeys.user_id.value))
         user_name = environ.env.session.get(SessionKeys.user_name.value)
         activity_json = utils.activity_for_disconnect(user_id, user_name)
         environ.env.publish(activity_json, external=True)
