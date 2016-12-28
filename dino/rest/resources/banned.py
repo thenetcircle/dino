@@ -57,6 +57,7 @@ class BannedResource(BaseResource):
 
         if 'users' not in json:
             return dict()
+        logger.debug('GET request: %s' % str(json))
 
         output = dict()
         for user_id in json['users']:

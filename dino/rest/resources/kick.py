@@ -43,6 +43,7 @@ class KickResource(BaseResource):
             raise RuntimeError('no json in request')
         if not isinstance(json, dict):
             raise RuntimeError('need a dict of user-room keys')
+        logger.debug('POST request: %s' % str(json))
 
         for user_id, room_id in json.items():
             try:

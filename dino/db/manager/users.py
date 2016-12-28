@@ -40,6 +40,13 @@ class UserManager(BaseManager):
         return output
 
     def kick_user(self, room_id: str, user_id: str) -> None:
+        try:
+            room_name = self.env.db.get_room_name(room_id)
+            room_name = utils.b64e(room_name)
+        except Exception as e:
+            logger.error('could not get room name for room uuid %s: %s' % (room_id, str(e)))
+            raise e
+
         kick_activity = {
             'actor': {
                 'id': '0',
@@ -52,7 +59,7 @@ class UserManager(BaseManager):
             },
             'target': {
                 'id': room_id,
-                'displayName': utils.b64e(self.env.db.get_room_name(room_id)),
+                'displayName': room_name,
                 'objectType': 'room',
                 'url': '/chat'
             }
