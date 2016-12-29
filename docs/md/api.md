@@ -35,8 +35,54 @@ Request contains:
 Response data if successful:
 
     {
-        "status_code": 200
+        "status_code": 200,
+        "data": {
+            "id": "<server-generated UUID>",
+            "published": "<server-generated timestamp, RFC3339 format>",
+            "actor": {
+                "id": user_id,
+                "displayName": b64e(user_name),
+                "attachments": [
+                    {
+                        "objectType": "room_role",
+                        "id": "<room UUID>",
+                        "content": "moderator"
+                    },
+                    {
+                        "objectType": "room_role",
+                        "id": "<room UUID>",
+                        "content": "owner"
+                    },
+                    {
+                        "objectType": "channel_role",
+                        "id": "<channel UUID>",
+                        "content": "admin"
+                    },
+                    {
+                        "objectType": "channel_role",
+                        "id": "<channel UUID>",
+                        "content": "owner"
+                    },
+                    {
+                        "objectType": "global_roles",
+                        "content": "superuser"
+                    }
+                ]
+            },
+            "verb": "login"
+        }
     }
+    
+For the user roles, there will be an ID on the attached object if the role is for a channel or for a room. If it's a
+global role there will be no ID on the object.
+
+Possible roles are:
+
+* global superuser
+* channel owner
+* channel admin
+* room owner
+* room moderator
 
 ### list_channels
 
