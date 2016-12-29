@@ -105,6 +105,57 @@ Response will be something like the following:
         }
     }
 
+### GET /roles
+
+Request contains a list of user IDs, e.g.:
+
+    {
+        "users": [
+            "124352",
+            "5678"
+        ]
+    }
+
+Response would be something similar to the following:
+
+    {
+        "data": {
+            "124352": {
+                "room": {
+                    "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": [
+                        "moderator"
+                    ],
+                    "bb0ea500-cd94-11e6-b178-8323deb605bf": [
+                        "owner"
+                    ]
+                },
+                "channel": {
+                    "dedf878e-b25d-4713-8058-20c6f0547c59": [
+                        "admin", 
+                        "owner"
+                    ]
+                },
+                "global": [
+                    "superuser"
+                ]
+            },
+            "5678": {
+                "room": {},
+                "channel": {},
+                "global": []
+            }
+        },
+        "status_code": 200
+    }
+
+Possible roles are:
+
+* global superuser
+* channel owner
+* channel admin
+* room owner
+* room moderator
+
 ### GET /rooms-for-users
 
 Request contains a list of user IDs, e.g.:

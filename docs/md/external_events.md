@@ -17,8 +17,7 @@ Example of activity posted to the external queue:
         },
         "target": {
             "displayName": "Y29vbCBndXlz",
-            "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7",
-            "objectType": "room"
+            "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
         },
         "verb": "kick"
     }

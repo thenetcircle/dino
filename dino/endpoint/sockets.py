@@ -254,9 +254,11 @@ def handle_server_activity(data: dict, activity: Activity):
             'objectType': target_type
         }
 
+        # when banning globally, not target room is specified
         if activity.target is not None:
             ban_activity['target']['id'] = activity.target.id
             ban_activity['target']['displayName'] = activity.target.display_name
+            ban_activity['target']['objectType'] = activity.target.object_type
 
         logger.debug('publishing ban event to external queue: %s' % ban_activity)
         environ.env.publish(ban_activity, external=True)
@@ -280,12 +282,10 @@ def handle_server_activity(data: dict, activity: Activity):
         if reason is not None and len(reason.strip()) > 0:
             kick_activity['object']['content'] = reason
 
-        # when banning globally, not target room is specified
         if activity.target is not None:
             kick_activity['target'] = dict()
             kick_activity['target']['id'] = activity.target.id
             kick_activity['target']['displayName'] = activity.target.display_name
-            kick_activity['target']['objectType'] = activity.target.object_type
 
         logger.debug('publishing kick event to external queue: %s' % kick_activity)
         environ.env.publish(kick_activity, external=True)

@@ -113,8 +113,7 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
         },
         'target': {
             'id': room_id,
-            'displayName': b64e(room_name),
-            'objectType': 'group'
+            'displayName': b64e(room_name)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'join',
@@ -135,8 +134,7 @@ def activity_for_user_banned(
         },
         'target': {
             'id': room_id,
-            'displayName': b64e(room_name),
-            'objectType': 'group'
+            'displayName': b64e(room_name)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'ban',
@@ -157,8 +155,7 @@ def activity_for_user_kicked(
         },
         'target': {
             'id': room_id,
-            'displayName': b64e(room_name),
-            'objectType': 'group'
+            'displayName': b64e(room_name)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'kick',
