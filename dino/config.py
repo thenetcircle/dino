@@ -165,7 +165,7 @@ class RedisKeys(object):
     RKEY_ROOMS = 'rooms:%s'  # room:channel_id
     RKEY_ONLINE_BITMAP = 'users:online:bitmap'
     RKEY_ONLINE_SET = 'users:online:set'
-    RKEY_MULTI_CAST = 'users:multicat'
+    RKEY_MULTI_CAST = 'users:multicast'
     RKEY_USER_STATUS = 'user:status:%s'  # user:status:user_id
     RKEY_ROOM_NAME = 'room:names'
     RKEY_ROOM_ACL = 'room:acl:%s'  # room:acl:room_id

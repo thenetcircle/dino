@@ -10,6 +10,7 @@ Distributed websocket routing for notifications and chat.
 
 * [Getting started](docs/md/getting_started.md)
 * [API documentation](docs/md/api.md)
+* [Who Is Online documentation](docs/md/wio.md)
 * [Events documentation](docs/md/events.md)
 * [Rest documentation](docs/md/rest.md)
 * [Generated documentation](https://thenetcircle.github.io/dino/)
