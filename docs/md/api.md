@@ -138,18 +138,28 @@ Response data if successful:
                     {
                         "id": "<room UUID>",
                         "displayName": "<room name>",
-                        "summary": <number of users in this room (integer)>
+                        "summary": <number of users in this room (integer)>,
+                        "content": "moderator,owner"
                     },
                     {
                         "id": "<room UUID>",
                         "displayName": "<room name>",
-                        "summary": <number of users in this room (integer)>
+                        "summary": <number of users in this room (integer)>,
+                        "content": ""
                     }
                 ]
             },
             "verb": "list"
         }
     }
+
+The "content" field on the attachments describe what kind of role you have for that room. If no roles are set then
+content will be empty, otherwise it will be a comma separated list of roles. Possible roles for rooms are:
+
+* moderator
+* owner
+
+Global roles and roles for channels are returned in the `gn_login` event.
 
 ### request_admin
 
