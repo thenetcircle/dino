@@ -32,11 +32,13 @@ class ApiRequestAdminTest(BaseTest):
     def activity(self):
         return {
             'actor': {
-                'id': BaseTest.USER_ID,
-                'url': BaseTest.ROOM_ID
+                'id': BaseTest.USER_ID
             },
             'verb': 'invite',
             'object': {
                 'content': 'some message'
+            },
+            'target': {
+                'id': BaseTest.ROOM_ID
             }
         }

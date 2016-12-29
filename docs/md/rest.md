@@ -67,7 +67,6 @@ Response will be something like the following:
 
 ### POST /kick
 
-
 Request contains:
 
     {
@@ -105,7 +104,6 @@ Response will be something like the following:
             "status": "OK"
         }
     }
-
 
 ### GET /rooms-for-users
 
