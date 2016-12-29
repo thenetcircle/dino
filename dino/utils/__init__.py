@@ -672,6 +672,10 @@ def room_name_restricted(room_name: str):
     return room_name.strip().lower() in ['admins', 'admin']
 
 
+def get_user_roles(user_id: str):
+    return environ.env.db.get_user_roles(user_id)
+
+
 def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: str) -> bool:
     if from_room_uuid is None:
         raise NoOriginRoomException()

@@ -47,10 +47,35 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
-    #user_roles = utils.get_user_roles()
+    user_id = environ.env.session.get(SessionKeys.user_id.value)
+    user_name = environ.env.session.get(SessionKeys.user_name.value)
+    user_roles = utils.get_user_roles(user_id)
+
+    response = utils.activity_for_login(user_id, user_name)
+    response['actor']['attachments'] = list()
+
+    for role in user_roles['global']:
+        response['actor']['attachments'].append({
+            'objectType': 'global_role',
+            'content': role
+        })
+    for room_uuid, roles in user_roles['room'].items():
+        for role in roles:
+            response['actor']['attachments'].append({
+                'objectType': 'room_role',
+                'id': room_uuid,
+                'content': role
+            })
+    for channel_uuid, roles in user_roles['channel'].items():
+        for role in roles:
+            response['actor']['attachments'].append({
+                'objectType': 'channel_role',
+                'id': channel_uuid,
+                'content': role
+            })
 
     environ.env.observer.emit('on_login', (data, activity))
-    return ECodes.OK, None
+    return ECodes.OK, response
 
 
 def on_delete(data: dict, activity: Activity):

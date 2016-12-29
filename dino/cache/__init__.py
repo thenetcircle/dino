@@ -26,6 +26,30 @@ class ICache(Interface):
         :return: the uuid of the admin room, or None of not found
         """
 
+    def reset_user_roles(self, user_id: str) -> None:
+        """
+        invalidate roles in cache; used when roles change in db
+        :param user_id: the id of the user to invalidate the cache for
+        :return: nothing
+        """
+
+    def get_user_roles(self, user_id: str) -> dict:
+        """
+        get all the user roles for a user
+
+        :param user_id: the id of the user
+        :return: a dict of global, channel and room roles
+        """
+
+    def set_user_roles(self, user_id: str, roles: dict) -> None:
+        """
+        set all the roles for a user
+
+        :param user_id: the id of the user
+        :param roles: all the roles for this user
+        :return: nothing
+        """
+
     def set_global_ban_timestamp(self, user_id: str, duration: str, timestamp: str, username: str) -> None:
         """
         set the global ban timestamp for a user to a given timestamp

@@ -22,7 +22,6 @@ from dino.config import RoleKeys
 from dino.config import UserKeys
 from dino.config import ApiTargets
 from dino.config import ApiActions
-from dino.config import SessionKeys
 from dino.environ import GNEnvironment
 from dino.utils import b64e
 
@@ -96,6 +95,43 @@ class DatabaseRdbms(object):
     @with_session
     def _session(self, session):
         return session
+
+    def _update_user_roles_in_cache(self, user_id: str) -> None:
+        self.env.cache.reset_user_roles(user_id)
+        self.get_user_roles(user_id)
+
+    def get_user_roles(self, user_id: str) -> dict:
+        @with_session
+        def _roles(session=None) -> dict:
+            g_roles, c_roles, r_roles = (
+                session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first(),
+                session.query(ChannelRoles).join(ChannelRoles.channel).filter(ChannelRoles.user_id == user_id).all(),
+                session.query(RoomRoles).join(RoomRoles.room).filter(RoomRoles.user_id == user_id).all()
+            )
+            output = {
+                'global': list(),
+                'channel': dict(),
+                'room': dict()
+            }
+
+            if g_roles is not None:
+                output['global'] = [a for a in g_roles.roles.split(',')]
+
+            if c_roles is not None and len(c_roles) > 0:
+                for c_role in c_roles:
+                    output['channel'][c_role.channel.uuid] = [a for a in c_role.roles.split(',')]
+            if r_roles is not None and len(r_roles) > 0:
+                for r_role in r_roles:
+                    output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',')]
+            return output
+
+        output = self.env.cache.get_user_roles(user_id)
+        if output is not None:
+            return output
+
+        roles = _roles()
+        self.env.cache.set_user_roles(user_id, roles)
+        return roles
 
     @with_session
     def create_admin_room_for(self, channel_id: str, session) -> str:
@@ -550,37 +586,46 @@ class DatabaseRdbms(object):
 
         return the_role in set(found_role.roles.split(','))
 
-    @with_session
-    def _add_global_role(self, user_id: str, role: str, session=None):
-        global_role = session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
-        if global_role is None:
-            global_role = GlobalRoles()
-            global_role.user_id = user_id
-            global_role.roles = role
-            session.add(global_role)
+    def _add_global_role(self, user_id: str, role: str):
+        @with_session
+        def _add(session=None):
+            global_role = session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
+            if global_role is None:
+                global_role = GlobalRoles()
+                global_role.user_id = user_id
+                global_role.roles = role
+                session.add(global_role)
+                session.commit()
+                return
+
+            roles = set(global_role.roles.split(','))
+            if role in roles:
+                return
+
+            roles.add(role)
+            global_role.roles = ','.join(roles)
             session.commit()
-            return
 
-        roles = set(global_role.roles.split(','))
-        if role in roles:
-            return
+        _add()
+        self._update_user_roles_in_cache(user_id)
 
-        roles.add(role)
-        global_role.roles = ','.join(roles)
+    def _remove_global_role(self, user_id: str, role: str):
+        @with_session
+        def _remove(session=None):
+            global_role = session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
+            if global_role is None:
+                return
 
-    @with_session
-    def _remove_global_role(self, user_id: str, role: str, session=None):
-        global_role = session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
-        if global_role is None:
-            return
+            roles = set(global_role.roles.split(','))
+            if role not in roles:
+                return
 
-        roles = set(global_role.roles.split(','))
-        if role not in roles:
-            return
+            roles.remove(role)
+            global_role.roles = ','.join(roles)
+            session.commit()
 
-        roles.remove(role)
-        global_role.roles = ','.join(roles)
-        session.commit()
+        _remove()
+        self._update_user_roles_in_cache(user_id)
 
     @with_session
     def _has_global_role(self, user_id: str, role: str, session=None):
@@ -603,14 +648,16 @@ class DatabaseRdbms(object):
         channel = session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
         return self._object_has_role_for_user(channel, the_role, user_id)
 
-    @with_session
-    def _remove_role_on_room_for_user(self, the_role: str, room_id: str, user_id: str, session=None) -> None:
-        room = session.query(Rooms).outerjoin(Rooms.roles).filter(Rooms.uuid == room_id).first()
-        if room is None:
-            raise NoSuchRoomException(room_id)
+    def _remove_role_on_room_for_user(self, the_role: str, room_id: str, user_id: str) -> None:
+        @with_session
+        def _remove(session=None):
+            room = session.query(Rooms).outerjoin(Rooms.roles).filter(Rooms.uuid == room_id).first()
+            if room is None:
+                raise NoSuchRoomException(room_id)
 
-        for role in room.roles:
-            if role.user_id == user_id and the_role in role.roles:
+            for role in room.roles:
+                if role.user_id != user_id or the_role not in role.roles:
+                    continue
                 roles = set(role.roles.split(','))
                 roles.remove(the_role)
                 if len(roles) > 0:
@@ -620,14 +667,19 @@ class DatabaseRdbms(object):
                 session.commit()
                 return
 
-    @with_session
-    def _remove_role_on_channel_for_user(self, the_role: str, channel_id: str, user_id: str, session=None) -> None:
-        channel = session.query(Channels).outerjoin(Channels.roles).filter(Channels.uuid == channel_id).first()
-        if channel is None:
-            raise NoSuchChannelException(channel_id)
+        _remove()
+        self._update_user_roles_in_cache(user_id)
 
-        for role in channel.roles:
-            if role.user_id == user_id and the_role in role.roles:
+    def _remove_role_on_channel_for_user(self, the_role: str, channel_id: str, user_id: str) -> None:
+        @with_session
+        def _remove(session=None):
+            channel = session.query(Channels).outerjoin(Channels.roles).filter(Channels.uuid == channel_id).first()
+            if channel is None:
+                raise NoSuchChannelException(channel_id)
+
+            for role in channel.roles:
+                if role.user_id != user_id or the_role not in role.roles:
+                    continue
                 roles = set(role.roles.split(','))
                 roles.remove(the_role)
                 if len(roles) > 0:
@@ -637,57 +689,69 @@ class DatabaseRdbms(object):
                 session.commit()
                 return
 
-    @with_session
-    def _set_role_on_room_for_user(self, the_role: Rooms, room_id: str, user_id: str, session=None):
-        room = session.query(Rooms).outerjoin(Rooms.roles).filter(Rooms.uuid == room_id).first()
-        if room is None:
-            raise NoSuchRoomException(room_id)
+        _remove()
+        self._update_user_roles_in_cache(user_id)
 
-        found_role = None
-        for role in room.roles:
-            if role.user_id == user_id:
+    def _set_role_on_room_for_user(self, the_role: Rooms, room_id: str, user_id: str) -> None:
+        @with_session
+        def _set(session=None):
+            room = session.query(Rooms).outerjoin(Rooms.roles).filter(Rooms.uuid == room_id).first()
+            if room is None:
+                raise NoSuchRoomException(room_id)
+
+            found_role = None
+            for role in room.roles:
+                if role.user_id == user_id:
+                    found_role = role
+                    if the_role in role.roles:
+                        return
+
+            if found_role is None:
+                found_role = RoomRoles()
+                found_role.user_id = user_id
+                found_role.room = room
+                found_role.roles = the_role
+            else:
+                roles = set(found_role.roles.split(','))
+                roles.add(the_role)
+                found_role.roles = ','.join(roles)
+
+            session.add(found_role)
+            session.commit()
+
+        _set()
+        self._update_user_roles_in_cache(user_id)
+
+    def _set_role_on_channel_for_user(self, the_role: str, channel_id: str, user_id: str) -> None:
+        @with_session
+        def _set(session=None):
+            channel = session.query(Channels).outerjoin(Channels.roles).filter(Channels.uuid == channel_id).first()
+            if channel is None:
+                raise NoSuchChannelException(channel_id)
+
+            found_role = None
+            for role in channel.roles:
+                if role.user_id != user_id:
+                    continue
                 found_role = role
                 if the_role in role.roles:
                     return
 
-        if found_role is None:
-            found_role = RoomRoles()
-            found_role.user_id = user_id
-            found_role.room = room
-            found_role.roles = the_role
-        else:
-            roles = set(found_role.roles.split(','))
-            roles.add(the_role)
-            found_role.roles = ','.join(roles)
+            if found_role is None:
+                found_role = ChannelRoles()
+                found_role.user_id = user_id
+                found_role.channel = channel
+                found_role.roles = the_role
+            else:
+                roles = set(found_role.roles.split(','))
+                roles.add(the_role)
+                found_role.roles = ','.join(roles)
 
-        session.add(found_role)
-        session.commit()
+            session.add(found_role)
+            session.commit()
 
-    @with_session
-    def _set_role_on_channel_for_user(self, the_role: str, channel_id: str, user_id: str, session=None) -> None:
-        channel = session.query(Channels).outerjoin(Channels.roles).filter(Channels.uuid == channel_id).first()
-        if channel is None:
-            raise NoSuchChannelException(channel_id)
-
-        found_role = None
-        for role in channel.roles:
-            if role.user_id == user_id:
-                found_role = role
-                if the_role in role.roles:
-                    return
-
-        if found_role is None:
-            found_role = ChannelRoles()
-            found_role.user_id = user_id
-            found_role.channel = channel
-            found_role.roles = the_role
-        else:
-            roles = set(found_role.roles.split(','))
-            roles.add(the_role)
-            found_role.roles = ','.join(roles)
-
-        session.add(found_role)
-        session.commit()
+        _set()
+        self._update_user_roles_in_cache(user_id)
 
     def set_super_user(self, user_id: str) -> None:
         self._add_global_role(user_id, RoleKeys.SUPER_USER)

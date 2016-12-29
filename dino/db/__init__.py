@@ -35,6 +35,40 @@ class IDatabase(Interface):
         :return: the uuid of the admin room, or None of not found
         """
 
+    def get_user_roles(self, user_id: str) -> dict:
+        """
+        get a all roles for a user (admin, mod, etc.)
+
+        example response:
+
+            {
+                "global": [
+                    "superuser"
+                ],
+                "channel": {
+                    "<uuid of channel>": [
+                        "owner",
+                        "admin"
+                    ],
+                    "<uuid of channel>": [
+                        "owner"
+                    ]
+                },
+                "room": {
+                    "<uuid of room>": [
+                        "owner",
+                        "moderator"
+                    ],
+                    "<uuid of room>": [
+                        "moderator"
+                    ]
+                }
+            }
+
+        :param user_id:
+        :return:
+        """
+
     def get_channels(self) -> dict:
         """
         get all channels on the server

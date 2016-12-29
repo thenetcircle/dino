@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 from zope.interface import implementer
 
 from dino.config import RedisKeys
@@ -32,7 +34,7 @@ class MemoryCache(object):
 
     def set(self, key, value, ttl=30):
         try:
-            expires_at = (datetime.utcnow() + timedelta(0, ttl)).timestamp()
+            expires_at = (datetime.utcnow() + timedelta(seconds=ttl)).timestamp()
             self.vals[key] = (expires_at, value)
         except:
             pass
@@ -103,6 +105,31 @@ class CacheRedis(object):
     def set_room_ban_timestamp(self, room_id: str, user_id: str, duration: str, timestamp: str, username: str) -> None:
         key = RedisKeys.banned_users(room_id)
         self._set_ban_timestamp(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
+
+    def get_user_roles(self, user_id: str) -> None:
+        key = RedisKeys.user_roles()
+        cache_key = '%s-%s' % (key, user_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        value = self.redis.hget(key, user_id)
+        if value is not None:
+            value = json.loads(str(value, 'utf-8'))
+            self.cache.set(cache_key, value, ttl=10)
+        return value
+
+    def set_user_roles(self, user_id: str, roles: dict) -> None:
+        key = RedisKeys.user_roles()
+        cache_key = '%s-%s' % (key, user_id)
+        self.redis.hset(key, user_id, json.dumps(roles))
+        self.cache.set(cache_key, roles, ttl=10)
+
+    def reset_user_roles(self, user_id: str) -> None:
+        key = RedisKeys.user_roles()
+        cache_key = '%s-%s' % (key, user_id)
+        self.redis.hdel(key, user_id)
+        self.cache.delete(cache_key)
 
     def get_admin_room_for_channel(self, channel_id: str) -> str:
         key = RedisKeys.admin_room_for_channel()

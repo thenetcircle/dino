@@ -69,6 +69,38 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def get_user_roles(self, user_id: str) -> dict:
+        output = {
+            'global': list(),
+            'channel': dict(),
+            'room': dict()
+        }
+
+        checked_channels = set()
+        rooms = self.redis.hgetall(RedisKeys.rooms_for_user(user_id))
+
+        global_roles = self.redis.hget(RedisKeys.global_roles(), user_id)
+        if global_roles is not None:
+            global_roles = str(global_roles, 'utf-8')
+            output['global'] = [a for a in global_roles.split(',')]
+
+        for room_id, _ in rooms.items():
+            room_id = str(room_id, 'utf-8')
+            channel_id = self.channel_for_room(room_id)
+            room_roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
+
+            if channel_id not in checked_channels:
+                checked_channels.add(channel_id)
+                channel_roles = self.redis.hget(RedisKeys.channel_roles(channel_id), user_id)
+                if channel_roles is not None:
+                    channel_roles = str(channel_roles, 'utf-8')
+                    output['channel'][channel_id] = [a for a in channel_roles.split(',')]
+
+            if room_roles is not None:
+                room_roles = str(room_roles, 'utf-8')
+                output['room'][room_id] = [a for a in room_roles.split(',')]
+        return output
+
     def create_admin_room_for(self, channel_id: str) -> str:
         # make sure it exists, will throw NoSuchChannel otherwise
         self.get_channel_name(channel_id)
