@@ -72,22 +72,17 @@ Request contains:
 
     {
         "<user id>": {
-            "duration": "24h",
-            "type": "global",
-            "reason": "<option reason field, base64 encoded>",
-            "admin_id": "<optional id of admin user who is kicking>"
-        },
-        "<user id>": {
-            "duration": "10m",
-            "target": "<channel uuid>",
-            "type": "channel",
-            "reason": "<option reason field, base64 encoded>",
-            "admin_id": "<optional id of admin user who is kicking>"
-        },
-        "<user id>": {
-            "duration": "7d",
             "target": "<room uuid>",
-            "type": "room",
+            "reason": "<option reason field, base64 encoded>",
+            "admin_id": "<optional id of admin user who is kicking>"
+        },
+        "<user id>": {
+            "target": "<room uuid>",
+            "reason": "<option reason field, base64 encoded>",
+            "admin_id": "<optional id of admin user who is kicking>"
+        },
+        "<user id>": {
+            "target": "<room uuid>",
             "reason": "<option reason field, base64 encoded>",
             "admin_id": "<optional id of admin user who is kicking>"
         }
