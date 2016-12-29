@@ -54,25 +54,25 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     response = utils.activity_for_login(user_id, user_name)
     response['actor']['attachments'] = list()
 
-    for role in user_roles['global']:
+    if len(user_roles['global']) > 0:
         response['actor']['attachments'].append({
             'objectType': 'global_role',
-            'content': role
+            'content': ','.join(user_roles['global'])
         })
+
     for room_uuid, roles in user_roles['room'].items():
-        for role in roles:
-            response['actor']['attachments'].append({
-                'objectType': 'room_role',
-                'id': room_uuid,
-                'content': role
-            })
+        response['actor']['attachments'].append({
+            'objectType': 'room_role',
+            'id': room_uuid,
+            'content': ','.join(roles)
+        })
+
     for channel_uuid, roles in user_roles['channel'].items():
-        for role in roles:
-            response['actor']['attachments'].append({
-                'objectType': 'channel_role',
-                'id': channel_uuid,
-                'content': role
-            })
+        response['actor']['attachments'].append({
+            'objectType': 'channel_role',
+            'id': channel_uuid,
+            'content': ','.join(roles)
+        })
 
     environ.env.observer.emit('on_login', (data, activity))
     return ECodes.OK, response
@@ -357,6 +357,13 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     """
     channel_id = activity.object.url
     rooms = environ.env.db.rooms_for_channel(channel_id)
+
+    roles = utils.get_user_roles(environ.env.session.get(SessionKeys.user_id.value))
+    room_roles = roles['room']
+    for room_id, room_details in rooms.items():
+        room_details['roles'] = ''
+        if room_id in room_roles.keys():
+            room_details['roles'] = ','.join(room_roles[room_id])
 
     environ.env.observer.emit('on_list_rooms', (data, activity))
     return ECodes.OK, utils.activity_for_list_rooms(activity, rooms)

@@ -46,7 +46,7 @@ Response data if successful:
                     {
                         "objectType": "room_role",
                         "id": "<room UUID>",
-                        "content": "moderator"
+                        "content": "moderator,owner"
                     },
                     {
                         "objectType": "room_role",
@@ -56,12 +56,7 @@ Response data if successful:
                     {
                         "objectType": "channel_role",
                         "id": "<channel UUID>",
-                        "content": "admin"
-                    },
-                    {
-                        "objectType": "channel_role",
-                        "id": "<channel UUID>",
-                        "content": "owner"
+                        "content": "admin,owner"
                     },
                     {
                         "objectType": "global_roles",
@@ -74,7 +69,8 @@ Response data if successful:
     }
     
 For the user roles, there will be an ID on the attached object if the role is for a channel or for a room. If it's a
-global role there will be no ID on the object.
+global role there will be no ID on the object. Roles are comma separated if more than one role for a 
+room/channel/global.
 
 Possible roles are:
 

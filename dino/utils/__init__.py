@@ -431,7 +431,8 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
         response['object']['attachments'].append({
             'id': room_id,
             'displayName': b64e(room_name),
-            'summary': nr_users_in_room
+            'summary': nr_users_in_room,
+            'content': room_details['roles']
         })
 
     return response
