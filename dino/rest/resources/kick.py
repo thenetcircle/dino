@@ -45,12 +45,16 @@ class KickResource(BaseResource):
             raise RuntimeError('need a dict of user-room keys')
         logger.debug('POST request: %s' % str(json))
 
-        for user_id, room_id in json.items():
+        for user_id, kick_info in json.items():
             try:
-                self.user_manager.kick_user(room_id, user_id)
+                reason = kick_info.get('reason')
+                admin_id = kick_info.get('admin_id')
+                room_id = kick_info.get('target')
+
+                self.user_manager.kick_user(room_id, user_id, reason, admin_id)
                 output[user_id] = 'OK'
             except Exception:
-                logger.error('no such room when trying to kick user %s for room %s' % (user_id, room_id))
+                logger.error('no such room when trying to kick user %s for %s' % (user_id, kick_info))
                 logger.error(traceback.format_exc())
                 output[user_id] = 'FAIL'
                 continue

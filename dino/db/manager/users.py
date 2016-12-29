@@ -39,13 +39,21 @@ class UserManager(BaseManager):
             })
         return output
 
-    def kick_user(self, room_id: str, user_id: str) -> None:
+    def kick_user(self, room_id: str, user_id: str, reason: str=None, admin_id: str=None) -> None:
         try:
             room_name = self.env.db.get_room_name(room_id)
             room_name = utils.b64e(room_name)
         except Exception as e:
             logger.error('could not get room name for room uuid %s: %s' % (room_id, str(e)))
             raise e
+
+        try:
+            user_name = self.env.db.get_user_name(user_id)
+            user_name = utils.b64e(user_name)
+        except Exception as e:
+            logger.error('could not get user name for user id %s: %s' % (user_id, str(e)))
+            raise e
+
 
         kick_activity = {
             'actor': {
@@ -55,7 +63,7 @@ class UserManager(BaseManager):
             'verb': 'kick',
             'object': {
                 'id': user_id,
-                'displayName': utils.b64e(self.env.db.get_user_name(user_id))
+                'displayName': user_name
             },
             'target': {
                 'id': room_id,
@@ -64,6 +72,16 @@ class UserManager(BaseManager):
                 'url': '/chat'
             }
         }
+
+        if admin_id is not None:
+            kick_activity['actor']['id'] = admin_id
+
+        if reason is not None:
+            if utils.is_base64(reason):
+                kick_activity['object']['content'] = reason
+            else:
+                logger.warn('reason is not base64, ignoring')
+
         self.env.publish(kick_activity)
 
     def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str, reason: str=None, banner_id: str=None) -> None:

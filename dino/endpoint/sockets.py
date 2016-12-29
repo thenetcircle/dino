@@ -144,8 +144,12 @@ def handle_server_activity(data: dict, activity: Activity):
             logger.warn('no sid found for user id %s' % kicked_id)
             return
 
+        reason = None
+        if hasattr(activity.object, 'content'):
+            reason = activity.object.content
+
         activity_json = utils.activity_for_user_kicked(
-                kicker_id, kicker_name, kicked_id, kicked_name, room_id, room_name)
+                kicker_id, kicker_name, kicked_id, kicked_name, room_id, room_name, reason)
 
         try:
             # user just got banned globally, kick from all rooms

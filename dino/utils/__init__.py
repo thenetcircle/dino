@@ -145,8 +145,8 @@ def activity_for_user_banned(
 
 
 def activity_for_user_kicked(
-        kicker_id: str, kicker_name: str, kicked_id: str, kicked_name: str, room_id: str, room_name: str) -> dict:
-    return {
+        kicker_id: str, kicker_name: str, kicked_id: str, kicked_name: str, room_id: str, room_name: str, reason=None) -> dict:
+    activity = {
         'actor': {
             'id': kicker_id,
             'displayName': b64e(kicker_name)
@@ -164,6 +164,15 @@ def activity_for_user_kicked(
         'verb': 'kick',
         'id': str(uuid())
     }
+
+    if reason is not None:
+        if is_base64(reason):
+            activity['object']['content'] = reason
+        else:
+            logger.warn('ignoring reason for kick activity, not base64')
+            logger.debug('request with non-base64 reason: %s' % activity)
+
+    return activity
 
 
 def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_name: str, message: str):

@@ -13,24 +13,33 @@ Request contains info on who to ban where. For banning globally:
         }
     }
 
-Ban for a channel:
+Can also ban multiple users at the same time:
 
     {
         "<user id>": {
             "duration": "24h",
-            "type": "global"
+            "type": "global",
+            "reason": "<option reason field, base64 encoded>",
+            "admin_id": "<optional id of admin user who is banning>"
         },
         "<user id>": {
             "duration": "10m",
             "target": "<channel uuid>",
-            "type": "channel"
+            "type": "channel",
+            "reason": "<option reason field, base64 encoded>",
+            "admin_id": "<optional id of admin user who is banning>"
         },
         "<user id>": {
             "duration": "7d",
             "target": "<room uuid>",
-            "type": "room"
+            "type": "room",
+            "reason": "<option reason field, base64 encoded>",
+            "admin_id": "<optional id of admin user who is banning>"
         }
     }
+
+The "reason" field must be base64 encoded. If the "admin_id" field is specified it will be used, if not the default ID
+"0" will be used.
 
 Duration is an integer followed by a char for the unit, which can be one of "d", "h", "m", "s" (days, hours, minutes, 
 seconds). Negative or 0 durations are not allowed.
@@ -55,6 +64,53 @@ Response will be something like the following:
             "status": "OK"
         }
     }
+
+### POST /kick
+
+
+Request contains:
+
+    {
+        "<user id>": {
+            "duration": "24h",
+            "type": "global",
+            "reason": "<option reason field, base64 encoded>",
+            "admin_id": "<optional id of admin user who is kicking>"
+        },
+        "<user id>": {
+            "duration": "10m",
+            "target": "<channel uuid>",
+            "type": "channel",
+            "reason": "<option reason field, base64 encoded>",
+            "admin_id": "<optional id of admin user who is kicking>"
+        },
+        "<user id>": {
+            "duration": "7d",
+            "target": "<room uuid>",
+            "type": "room",
+            "reason": "<option reason field, base64 encoded>",
+            "admin_id": "<optional id of admin user who is kicking>"
+        }
+    }
+
+The "reason" field must be base64 encoded. If the "admin_id" field is specified it will be used, if not the default ID
+"0" will be used.
+
+Response will be something like the following:
+
+    {
+        "<user id>": {
+            "status": "OK"
+        },
+        "<user id>": {
+            "status": "FAIL",
+            "message": "no such user"
+        },
+        "<user id>" {
+            "status": "OK"
+        }
+    }
+
 
 ### GET /rooms-for-users
 
