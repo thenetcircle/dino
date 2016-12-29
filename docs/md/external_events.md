@@ -13,6 +13,7 @@ Example of activity posted to the external queue:
         },
         "object": {
             "displayName": "YXNkZg==",
+            "content": "dGhpcyBpcyBhIHJlYXNvbg==",
             "id": "197114"
         },
         "target": {
@@ -25,6 +26,7 @@ Example of activity posted to the external queue:
 * actor.id: ID of the user who kicked, or 0 if from admin interface,
 * actor.displayName: name of the user who kicked, or admin if from admin interface,
 * object.id: ID of the user who got kicked,
+* object.content: base64 encoded "reason" for the kick (optional),
 * object.displayName: base64 encoded username of the user was kicked,
 * target.id: UUID of the room the user was kicked from,
 * target.displayName: base64 encoded name of the room.
@@ -42,6 +44,7 @@ Example of activity posted to the external queue:
             "displayName": "YXNkZg==",
             "id": "1234",
             "summary": "5m",
+            "content": "dGhpcyBpcyBhIHJlYXNvbg==",
             "updated": "2016-12-22T07:13:09Z"
         },
         "target": {
@@ -56,6 +59,7 @@ Example of activity posted to the external queue:
 * actor.displayName: name of the user who banned, or admin if from admin interface,
 * object.id: ID of the user who got banned,
 * object.displayName: base64 encoded username of the user was banned,
+* object.content: base64 encoded "reason" for the ban (optional),
 * object.summary: the ban duration,
 * object.updated: the datetime when the ban will expire (in UTC),
 * target.id: UUID of the room the user was kicked from,
