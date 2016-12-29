@@ -203,6 +203,24 @@ def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     }
 
 
+def activity_for_message(user_id: str, user_name: str) -> dict:
+    """
+    user for sending event to other system to do statistics for how active a user is
+    :param user_id: the id of the user
+    :param user_name: the name of the user
+    :return: an activity streams dict
+    """
+    return {
+        'actor': {
+            'id': user_id,
+            'displayName': b64e(user_name)
+        },
+        'verb': 'send',
+        'id': str(uuid()),
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+    }
+
+
 def activity_for_login(user_id: str, user_name: str) -> dict:
     return {
         'actor': {

@@ -39,10 +39,13 @@ logger = logging.getLogger(__name__)
 class RequestValidator(BaseValidator):
     def on_message(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
-        from_room_id = activity.actor.url
         user_id = activity.actor.id
         object_type = activity.target.object_type
         message = activity.object.content
+
+        from_room_id = None
+        if hasattr(activity.actor, 'url'):
+            from_room_id = activity.actor.url
 
         if message is None or len(message.strip()) == 0:
             return False, ECodes.EMPTY_MESSAGE, 'empty message body'

@@ -12,6 +12,7 @@
 
 from dino import environ
 from dino import utils
+from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -32,10 +33,24 @@ class OnMessageHooks(object):
             utils.update_last_reads(room_id)
 
     @staticmethod
+    def publish_activity(arg: tuple) -> None:
+        data, activity = arg
+        user_id = activity.actor.id
+        user_name = activity.actor.display_name
+
+        activity_json = utils.activity_for_message(user_id, user_name)
+        environ.env.publish(activity_json, external=True)
+
+    @staticmethod
     def broadcast(arg: tuple) -> None:
         data, activity = arg
         room_id = activity.target.id
         environ.env.send(data, json=True, room=room_id, broadcast=True)
+
+
+@environ.env.observer.on('on_message')
+def _on_message_publish_activity(arg: tuple) -> None:
+    OnMessageHooks.publish_activity(arg)
 
 
 @environ.env.observer.on('on_message')

@@ -20,7 +20,9 @@ Example of activity posted to the external queue:
             "displayName": "Y29vbCBndXlz",
             "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
         },
-        "verb": "kick"
+        "verb": "kick",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
     }
 
 * actor.id: ID of the user who kicked, or 0 if from admin interface,
@@ -52,7 +54,9 @@ Example of activity posted to the external queue:
             "objectType": "room",
             "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
         },
-        "verb": "ban"
+        "verb": "ban",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
     }
 
 * actor.id: ID of the user who banned, or 0 if from admin interface,
@@ -66,10 +70,45 @@ Example of activity posted to the external queue:
 * target.displayName: base64 encoded name of the room,
 * target.objectType: one of "room", "channel", "global" (if "global", no displayName or id will be on target)
 
+### User sends a message to a room/user
+
+Whenever a user sends a message an event will be published to the configured MQ, so another system can analyze activity
+level of users. Example activity: 
+
+    {
+        "actor": {
+            "id": "<user ID">,
+            "displayName": "<base64 encoded username>"
+        },
+        "verb": "send",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
+
 ### User successfully logged in
 
-TODO
+Example of activity when a user successfully logs in:
+
+    {
+        "actor": {
+            "id": "<user ID>",
+            "displayName": "<base64 encoded username>"
+        },
+        "verb": "login",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
 
 ### User disconnected
 
-TODO
+Example of activity when a user disconnects:
+
+    {
+        "actor": {
+            "id": "<user ID>",
+            "displayName": "<base64 encoded username>"
+        },
+        "verb": "disconnect",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }

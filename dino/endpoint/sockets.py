@@ -15,6 +15,7 @@ import time
 import traceback
 import logging
 
+from datetime import datetime
 from typing import Union
 from uuid import uuid4 as uuid
 
@@ -241,7 +242,9 @@ def handle_server_activity(data: dict, activity: Activity):
                 'displayName': activity.object.display_name,
                 'summary': activity.object.summary,
                 'updated': activity.object.updated
-            }
+            },
+            'id': str(uuid()),
+            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
         }
 
         reason = None
@@ -273,7 +276,9 @@ def handle_server_activity(data: dict, activity: Activity):
             'object': {
                 'id': activity.object.id,
                 'displayName': activity.object.display_name
-            }
+            },
+            'id': str(uuid()),
+            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
         }
 
         reason = None
