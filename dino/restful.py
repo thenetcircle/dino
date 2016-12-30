@@ -20,6 +20,7 @@ from dino.rest.resources.ban import BanResource
 from dino.rest.resources.kick import KickResource
 from dino.rest.resources.roles import RolesResource
 from dino.rest.resources.rooms_for_users import RoomsForUsersResource
+from dino.rest.resources.clear_history import ClearHistoryResource
 from dino import environ
 from dino.hooks import *
 
@@ -36,6 +37,7 @@ def create_app():
 
 app, api = create_app()
 
+api.add_resource(ClearHistoryResource, '/delete-messages')
 api.add_resource(RolesResource, '/roles')
 api.add_resource(BannedResource, '/banned')
 api.add_resource(BanResource, '/ban')

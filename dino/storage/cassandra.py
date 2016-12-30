@@ -67,7 +67,13 @@ class CassandraStorage(object):
                 deleted=False
         )
 
-    def delete_message(self, room_id: str, message_id: str):
+    def get_undeleted_message_ids_for_user(self, user_id: str):
+        rows = self.driver.msgs_select_non_deleted_for_user(user_id)
+        if rows is None or len(rows.current_rows) == 0:
+            return list()
+        return [row.message_id for row in rows]
+
+    def delete_message(self, message_id: str, room_id: str=None):
         self.driver.msg_delete(message_id)
 
     def get_unread_history(self, room_id: str, last_read: int) -> list:

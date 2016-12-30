@@ -42,7 +42,7 @@ class IStorage(Interface):
         :return: a list of messages
         """
 
-    def delete_message(self, message_id: str) -> None:
+    def delete_message(self, message_id: str, room_id: str=None) -> None:
         """
         delete a message
 

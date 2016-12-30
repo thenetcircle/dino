@@ -32,6 +32,7 @@ class StatementKeys(Enum):
     msgs_select = 'msgs_select'
     msgs_select_by_time_stamp = 'msgs_select_by_time_stamp'
     msg_select_one = 'msg_select_one'
+    msg_select_msg_id_from_user_not_deleted = 'msg_select_msg_id_from_user_not_deleted'
 
 
 @implementer(IDriver)
@@ -184,6 +185,17 @@ class Driver(object):
                     SELECT * FROM messages WHERE target_id = ? AND from_user_id = ? AND sent_time = ?
                     """
             )
+            self.statements[StatementKeys.msg_select_msg_id_from_user_not_deleted] = self.session.prepare(
+                    """
+                    SELECT
+                        message_id FROM messages_by_from_user_id
+                    WHERE
+                        from_user_id = ? AND
+                        deleted = False AND
+                        domain = 'room'
+                    ALLOW FILTERING
+                    """
+            )
 
         # create keyspace and tables for tests
         create_test_key_space()
@@ -209,6 +221,9 @@ class Driver(object):
 
     def msgs_select_since_time(self, target_id: str, time_stamp: int) -> ResultSet:
         return self._execute(StatementKeys.msgs_select_by_time_stamp, target_id, time_stamp)
+
+    def msgs_select_non_deleted_for_user(self, from_user_id: str) -> ResultSet:
+        return self._execute(StatementKeys.msg_select_msg_id_from_user_not_deleted, from_user_id)
 
     def msg_delete(self, message_id: str) -> ResultSet:
         """

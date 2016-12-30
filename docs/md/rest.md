@@ -184,6 +184,34 @@ Response would be all rooms each user is currently in (room names and channel na
         }]
     }
 
+### POST /delete-messages
+
+Used to delete ALL messages for a specific user ID.
+
+Request body looks like this:
+
+    {
+        "id": "<user ID>"
+    }
+
+Example response:
+
+    {
+        "status_code": 200, 
+        "data": {
+            "success": 4, 
+            "failed": 0,
+            "total": 4
+        }
+    }
+
+Or if other kinds of failures:
+
+    {
+        "status_code": 500, 
+        "data": "<error message, e.g. 'no id parameter in request'>"
+    }
+
 ### GET /banned
 
 No data required in request.

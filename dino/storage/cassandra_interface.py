@@ -48,6 +48,15 @@ class IDriver(Interface):
         :return: nothing
         """
 
+    def msgs_select_non_deleted_for_user(self, from_user_id: str):
+        """
+        Get all un-deleted message ids send from a certain user. User by rest api to delete everything from a certain
+        user, which does not happen often so we can allow this filtering, slow query.
+
+        :param from_user_id: the id of the user to find messages for
+        :return: a list of message ids
+        """
+
     def msgs_select(self, to_user_id: str):
         """
         find all messages sent to a user id/room id

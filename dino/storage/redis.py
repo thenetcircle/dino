@@ -60,7 +60,13 @@ class StorageRedis(object):
         if max_history > 0:
             self.redis.ltrim(RedisKeys.room_history(target_id), 0, max_history)
 
-    def delete_message(self, room_id: str, message_id: str):
+    def get_undeleted_message_ids_for_user(self, user_id: str):
+        raise NotImplementedError('inefficient query for redis storage, not implemented')
+
+    def delete_message(self, message_id: str, room_id: str=None):
+        if room_id is None:
+            raise RuntimeError('redis storage needs room_id parameter to delete message')
+
         if message_id is None or message_id == '':
             return
 
