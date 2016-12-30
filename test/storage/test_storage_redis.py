@@ -54,7 +54,7 @@ class RedisStorageTest(TestCase):
         self.db.store_message(as_parser(self.act()))
         history = self.db.get_history(RedisStorageTest.ROOM_ID)
         self.assertEqual(1, len(history))
-        self.db.delete_message(RedisStorageTest.ROOM_ID, RedisStorageTest.MESSAGE_ID)
+        self.db.delete_message(RedisStorageTest.MESSAGE_ID, RedisStorageTest.ROOM_ID)
         history = self.db.get_history(RedisStorageTest.ROOM_ID)
         self.assertEqual(0, len(history))
 
