@@ -2,7 +2,24 @@
 
 ### Message deleted
 
-TODO
+When an admin/mod/etc. deletes a message from a room, everyone on that room will receive an event with the name 
+`gn_message_deleted` so they can remove it locally as well.
+
+    {
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>",
+        "object": {
+            "id": "<UUID of the message that was deleted>"
+        },
+        "target": {
+            "id": "<UUID of the room the message was deleted in>"
+        },
+        "verb": "delete",
+        "actor": {
+            "id": "<ID fo the user who deleted the message>",
+            "displayName": "<name of the user, base64>"
+        }
+    }
 
 ### Message received
 
