@@ -68,10 +68,6 @@ class AclValidator(object):
         if target == ApiTargets.ROOM and activity.target.object_type != 'room':
             return True, None
 
-        # no acls for this target (room/channel) and action (join/kick/etc)
-        if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
-            return False, 'no acl set that allows action "%s" for target type "%s"' % (action, target)
-
         user_id = activity.actor.id
         if target == 'room':
             channel_id = utils.get_channel_for_room(activity.target.id)
@@ -80,9 +76,14 @@ class AclValidator(object):
 
         if utils.is_admin(channel_id, user_id):
             return True, None
-        if utils.is_owner_channel(channel_id, user_id):
-            return True, None
         if utils.is_super_user(user_id):
+            return True, None
+
+        # no acls for this target (room/channel) and action (join/kick/etc)
+        if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
+            return False, 'no acl set that allows action "%s" for target type "%s"' % (action, target)
+
+        if utils.is_owner_channel(channel_id, user_id):
             return True, None
 
         if target == 'channel':
