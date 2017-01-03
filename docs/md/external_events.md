@@ -98,6 +98,8 @@ Example of activity when a user's ban was manually removed in the admin interfac
 * object.id: ID of the user
 * object.displayName: name fo the user
 
+If `target.objectType` is `global` then no `target.id` or `target.displayName` will be included.
+
 ### User sends a message to a room/user
 
 Whenever a user sends a message an event will be published to the configured MQ, so another system can analyze activity
