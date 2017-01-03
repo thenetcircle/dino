@@ -19,6 +19,9 @@ from dino.exceptions import UnknownBanTypeException
 import traceback
 import logging
 
+from datetime import datetime
+from uuid import uuid4 as uuid
+
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 logger = logging.getLogger(__name__)
@@ -125,14 +128,40 @@ class UserManager(BaseManager):
         self.env.publish(ban_activity)
 
     def remove_ban(self, user_id: str, target_id: str, target_type: str) -> None:
+        ban_activity = {
+            'actor': {
+                'id': '0',
+                'displayName': utils.b64e('admin')
+            },
+            'verb': 'unban',
+            'object': {
+                'id': user_id,
+                'displayName': utils.b64e(utils.get_user_name_for(user_id))
+            },
+            'target': {
+                'objectType': target_type
+            },
+            'id': str(uuid()),
+            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        }
+
         if target_type == 'global':
             self.env.db.remove_global_ban(user_id)
+
         elif target_type == 'channel':
             self.env.db.remove_channel_ban(target_id, user_id)
+            ban_activity['target']['id'] = target_id
+            ban_activity['target']['displayName'] = utils.b64e(utils.get_channel_name(target_id))
+
         elif target_type == 'room':
             self.env.db.remove_room_ban(target_id, user_id)
+            ban_activity['target']['id'] = target_id
+            ban_activity['target']['displayName'] = utils.b64e(utils.get_room_name(target_id))
+
         else:
             raise UnknownBanTypeException(target_type)
+
+        self.env.publish(ban_activity, external=True)
 
     def get_banned_users(self) -> dict:
         return self.env.db.get_banned_users()

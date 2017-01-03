@@ -70,6 +70,34 @@ Example of activity posted to the external queue:
 * target.displayName: base64 encoded name of the room,
 * target.objectType: one of "room", "channel", "global" (if "global", no displayName or id will be on target)
 
+### User ban was removed
+
+Example of activity when a user's ban was manually removed in the admin interface:
+
+    {
+        "actor": {
+            "id": "0",
+            "displayName": "YWRtaW4="
+        },
+        "target": {
+            "id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
+            "displayName": "YmFkIGtpZHo=",
+            "objectType": "room"
+        },
+        "published": "2017-01-03T05:50:11Z",
+        "verb": "unban",
+        "id": "49b067bb-79fe-48bd-9c03-dc4fd8f60192",
+        "object": {
+            "id": "124352",
+            "displayName": "Zm9vYmFyenoyMw=="
+        }
+    }
+
+* target.id: room ID or channel ID
+* target.objectType: "room", "channel" or "global"
+* object.id: ID of the user
+* object.displayName: name fo the user
+
 ### User sends a message to a room/user
 
 Whenever a user sends a message an event will be published to the configured MQ, so another system can analyze activity
