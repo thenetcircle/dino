@@ -42,6 +42,22 @@ class UserManager(BaseManager):
             })
         return output
 
+    def del_super_user(self, user_uuid: str) -> None:
+        self.env.db.remove_super_user(user_uuid)
+
+    def set_super_user(self, user_uuid: str) -> None:
+        self.env.db.set_super_user(user_uuid)
+
+    def search_for(self, query: str) -> list:
+        users = self.env.db.search_for_users(query)
+        output = list()
+        for user in users:
+            output.append({
+                'id': user['uuid'],
+                'name': user['name']
+            })
+        return output
+
     def kick_user(self, room_id: str, user_id: str, reason: str=None, admin_id: str=None) -> None:
         try:
             room_name = self.env.db.get_room_name(room_id)
@@ -56,7 +72,6 @@ class UserManager(BaseManager):
         except Exception as e:
             logger.error('could not get user name for user id %s: %s' % (user_id, str(e)))
             raise e
-
 
         kick_activity = {
             'actor': {

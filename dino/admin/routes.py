@@ -226,6 +226,25 @@ def users():
             superusers=user_manager.get_super_users())
 
 
+@app.route('/user/<user_uuid>/set/superuser', methods=['GET'])
+def set_as_superuser(user_uuid):
+    user_manager.set_super_user(user_uuid)
+    return redirect('/users')
+
+
+@app.route('/user/<user_uuid>/del/superuser', methods=['GET'])
+def del_as_superuser(user_uuid):
+    user_manager.del_super_user(user_uuid)
+    return redirect('/users')
+
+
+@app.route('/users/search', methods=['POST'])
+def search_users():
+    data = request.get_json()
+    query = data['query']
+    return jsonify(user_manager.search_for(query))
+
+
 @app.route('/user/<user_uuid>', methods=['GET'])
 def user(user_uuid: str):
     return render_template('user.html', user=user_manager.get_user(user_uuid))

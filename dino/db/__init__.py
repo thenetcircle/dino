@@ -27,6 +27,14 @@ class IDatabase(Interface):
         :return: the newly created room's uuid
         """
 
+    def search_for_users(self, query: str) -> list:
+        """
+        search for a user by id or name (query can match any of them, insensitive)
+
+        :param query: a string to match
+        :return: a list of user dicts, e.g. {'uuid':'<uuid>','name':'foo'}
+        """
+
     def admin_room_for_channel(self, channel_id: str) -> str:
         """
         get the uuid of the admin room for this channel, or None of not found

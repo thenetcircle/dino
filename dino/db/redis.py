@@ -69,6 +69,9 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def search_for_users(self, query: str) -> list:
+        raise NotImplementedError('not implemented in redis db backend')
+
     def get_user_roles(self, user_id: str) -> dict:
         output = {
             'global': list(),

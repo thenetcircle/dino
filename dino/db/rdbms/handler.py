@@ -16,6 +16,7 @@ from datetime import datetime
 from typing import Union
 from uuid import uuid4 as uuid
 import traceback
+from sqlalchemy import or_
 
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
@@ -282,6 +283,23 @@ class DatabaseRdbms(object):
                 'users': len(room.users)
             }
         return rooms
+
+    @with_session
+    def search_for_users(self, query: str, session=None) -> list:
+        users = session.query(Users) \
+            .filter(or_(
+                Users.uuid.ilike('%{}%'.format(query)),
+                Users.name.ilike('%{}%'.format(query))
+            ))\
+            .limit(101)\
+            .all()
+        output = list()
+        for user in users:
+            output.append({
+                'uuid': user.uuid,
+                'name': user.name
+            })
+        return output
 
     def users_in_room(self, room_id: str) -> dict:
         @with_session

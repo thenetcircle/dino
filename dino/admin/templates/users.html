@@ -40,6 +40,31 @@
     </tbody>
 </table>
 
+<div>
+    <form>
+        <fieldset>
+            <label for="search-user">
+                Search by name or ID
+                <input type="text" id="search-user"/>
+            </label>
+        </fieldset>
+    </form>
+</div>
+
+<div id="user-results">
+    <table id="user-results-table" class="display responsive" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <td>ID</td>
+                <td>Username</td>
+                <td>&nbsp;</td>
+            </tr>
+        </thead>
+        <tbody id="user-results-body">
+        </tbody>
+    </table>
+</div>
+
 <script type="text/javascript" src="/static/custom/js/users.js"></script>
 
 {% endblock %}
