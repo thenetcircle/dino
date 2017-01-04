@@ -70,6 +70,54 @@ Example of activity posted to the external queue:
 * target.displayName: base64 encoded name of the room,
 * target.objectType: one of "room", "channel", "global" (if "global", no displayName or id will be on target)
 
+### User joins room
+
+When a user joins a room the following activity is published to rabbitmq:
+
+    {
+        "object": {
+            "attachments": [{
+                "content": "MA==",
+                "objectType": "membership"
+            }, {
+                "content": "eQ==",
+                "objectType": "image"
+            }, {
+                "content": "bQ==",
+                "objectType": "gender"
+            }, {
+                "content": "NzA=",
+                "objectType": "age"
+            }, {
+                "content": "c2hhbmdoYWk=",
+                "objectType": "city"
+            }, {
+                "content": "Y24=",
+                "objectType": "country"
+            }, {
+                "content": "eQ==",
+                "objectType": "fake_checked"
+            }, {
+                "content": "eQ==",
+                "objectType": "has_webcam"
+            }]
+        },
+        "target": {
+            "displayName": "YmFkIGtpZHo=",
+            "id": "675eb2a5-17c6-45e4-bc0f-674241573f22"
+        },
+        "id": "bfa26b43-492f-4ec9-a83e-32e64ba2bc51",
+        "actor": {
+            "displayName": "YXNvZGZpaGFzZG9maWg=",
+            "id": "385280",
+            "image": {
+                "url": "n"
+            }
+        },
+        "published": "2017-01-04T09:58:37Z",
+        "verb": "join"
+    }
+
 ### User ban was removed
 
 Example of activity when a user's ban was manually removed in the admin interface:

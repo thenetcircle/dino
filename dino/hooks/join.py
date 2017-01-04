@@ -41,6 +41,7 @@ class OnJoinHooks(object):
 
         activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
         environ.env.emit('gn_user_joined', activity_json, room=room_id, broadcast=True, include_self=False)
+        environ.env.publish(activity_json, external=True)
 
     @staticmethod
     def set_sid_for_user(arg: tuple) -> None:
