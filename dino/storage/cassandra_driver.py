@@ -30,7 +30,11 @@ class StatementKeys(Enum):
     msg_insert = 'msg_insert'
     msg_select = 'msg_select'
     msgs_select = 'msgs_select'
+    msgs_select_time_slice = 'msgs_select_time_slice'
     msgs_select_by_time_stamp = 'msgs_select_by_time_stamp'
+    msgs_select_from_user = 'msg_select_from_user'
+    msgs_select_from_user_to_target = 'msg_select_from_user_to_target'
+    msgs_select_from_user_to_target_time_slice = 'msg_select_from_user_to_target_time_slice'
     msg_select_one = 'msg_select_one'
     msg_select_msg_id_from_user_not_deleted = 'msg_select_msg_id_from_user_not_deleted'
 
@@ -175,6 +179,26 @@ class Driver(object):
                     SELECT * FROM messages_by_time_stamp WHERE target_id = ? AND time_stamp > ?
                     """
             )
+            self.statements[StatementKeys.msgs_select_time_slice] = self.session.prepare(
+                    """
+                    SELECT * FROM messages_by_time_stamp WHERE target_id = ? AND time_stamp > ? AND time_stamp < ?
+                    """
+            )
+            self.statements[StatementKeys.msgs_select_from_user] = self.session.prepare(
+                    """
+                    SELECT * FROM messages_by_from_user_id WHERE from_user_id = ?
+                    """
+            )
+            self.statements[StatementKeys.msgs_select_from_user_to_target] = self.session.prepare(
+                    """
+                    SELECT * FROM messages_by_from_user_id WHERE from_user_id = ? AND target_id = ?
+                    """
+            )
+            self.statements[StatementKeys.msgs_select_from_user_to_target_time_slice] = self.session.prepare(
+                    """
+                    SELECT * FROM messages_by_from_user_id WHERE from_user_id = ? AND target_id = ? AND time_stamp > ? AND time_stamp < ?
+                    """
+            )
             self.statements[StatementKeys.msg_select] = self.session.prepare(
                     """
                     SELECT target_id, from_user_id, sent_time FROM messages_by_id WHERE message_id = ?
@@ -215,6 +239,18 @@ class Driver(object):
         self._execute(
                 StatementKeys.msg_insert, msg_id, from_user_id, from_user_name, target_id, target_name,
                 body, domain, sent_time, time_stamp, channel_id, channel_name, deleted)
+
+    def msgs_select_time_slice(self, target_id: str, from_time: int, to_time: int) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_time_slice, target_id, from_time, to_time)
+
+    def msgs_select_from_user(self, from_user_id: str) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_from_user, from_user_id)
+
+    def msgs_select_from_user_to_target(self, from_user_id: str, target_id: str) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_from_user_to_target, from_user_id, target_id)
+
+    def msgs_select_from_user_to_target_time_slice(self, from_user_id: str, target_id: str, from_time: int, to_time: int) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_from_user_to_target_time_slice, from_user_id, target_id, from_time, to_time)
 
     def msgs_select(self, target_id: str, limit: int=100) -> ResultSet:
         return self._execute(StatementKeys.msgs_select, target_id, limit)

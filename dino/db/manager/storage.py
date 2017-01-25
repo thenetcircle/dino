@@ -30,3 +30,11 @@ class StorageManager(BaseManager):
 
     def delete_message(self, message_id: str) -> None:
         self.env.storage.delete_message(message_id)
+
+    def find_history(self, room_id, user_id, from_time, to_time):
+        if from_time is None or to_time is None:
+            return
+
+        from_time = int(from_time.strftime('%s'))
+        to_time = int(to_time.strftime('%s'))
+        return self.env.storage.get_history_for_time_slice(room_id, user_id, from_time, to_time)

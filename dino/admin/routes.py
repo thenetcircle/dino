@@ -19,6 +19,7 @@ from flask import send_from_directory
 from flask import render_template
 from uuid import uuid4 as uuid
 
+import datetime
 import logging
 import traceback
 
@@ -32,6 +33,7 @@ from dino.admin.orm import channel_manager
 from dino.admin.orm import room_manager
 from dino.admin.orm import acl_manager
 from dino.admin.orm import user_manager
+from dino.admin.orm import storage_manager
 
 from dino.exceptions import InvalidAclValueException
 from dino.exceptions import InvalidAclTypeException
@@ -47,6 +49,7 @@ from dino.admin.forms import CreateRoomForm
 from dino.admin.forms import CreateUserForm
 from dino.admin.forms import CreateChannelAclForm
 from dino.admin.forms import CreateRoomAclForm
+from dino.admin.forms import SearchHistoryForm
 from dino.admin.forms import AddModeratorForm
 from dino.admin.forms import AddOwnerForm
 from dino.admin.forms import AddAdminForm
@@ -250,9 +253,62 @@ def user(user_uuid: str):
     return render_template('user.html', user=user_manager.get_user(user_uuid))
 
 
-@app.route('/history', methods=['GET'])
+@app.route('/history', methods=['GET', 'POST'])
 def history():
-    return render_template('history.html')
+    form = SearchHistoryForm(request.form)
+    return render_template('history.html', form=form, messages=list())
+
+
+@app.route('/history/<message_id>/delete', methods=['GET'])
+def delete_message(message_id: str):
+    storage_manager.delete_message(message_id)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/history/search', methods=['POST'])
+def search_history():
+    form = SearchHistoryForm(request.form)
+    user_id = form.user_id.data
+    room_id = form.room_id.data
+    from_time = None
+    to_time = None
+
+    if is_blank(user_id) and is_blank(room_id):
+        return redirect('/history')
+
+    from dateutil import parser
+    from dateutil.tz import tzutc
+
+    if not is_blank(form.from_time.data):
+        try:
+            from_time = parser.parse(form.from_time.data).astimezone(tzutc())
+        except Exception as e:
+            logger.error('invalid from time "%s": %s' % (str(form.from_time.data), str(e)))
+            return
+
+    if not is_blank(form.to_time.data):
+        try:
+            to_time = parser.parse(form.to_time.data).astimezone(tzutc())
+        except Exception as e:
+            logger.error('invalid to time "%s": %s' % (str(form.to_time.data), str(e)))
+            return
+
+    if from_time is not None and to_time is not None:
+        if from_time > to_time:
+            logger.error('from time %s must be before to time %s' % (str(from_time), str(to_time)))
+            return
+
+    if to_time is not None and from_time is None:
+        from_time = to_time - datetime.timedelta(seconds=60*60)
+    if from_time is not None and to_time is None:
+        to_time = from_time + datetime.timedelta(seconds=60*60)
+
+    if from_time is not None and to_time is not None:
+        if to_time - from_time > datetime.timedelta(days=7):
+            to_time = from_time + datetime.timedelta(days=7)
+
+    msgs = storage_manager.find_history(room_id, user_id, from_time, to_time)
+    return render_template('history.html', form=form, messages=msgs)
 
 
 @app.route('/channel/<channel_uuid>/rooms', methods=['GET'])

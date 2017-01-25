@@ -139,6 +139,13 @@ class CreateChannelAclForm(Form):
     )
 
 
+class SearchHistoryForm(Form):
+    room_id = StringField('Room ID', description='Room ID')
+    user_id = StringField('User ID', description='User ID')
+    from_time = StringField('From timestamp', description='From timestamp')
+    to_time = StringField('To timestamp', description='To timestamp')
+
+
 class CreateRoomAclForm(Form):
     api_action = SelectField(
         'Action',

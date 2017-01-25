@@ -108,5 +108,8 @@ class StorageRedis(object):
 
         return cleaned_messages
 
+    def get_history_for_time_slice(self, room_id: str, from_time: int, to_time: int) -> list:
+        raise NotImplementedError()
+
     def get_unread_history(self, room_id: str, time_stamp: int, limit: int = 100) -> list:
         raise NotImplementedError()

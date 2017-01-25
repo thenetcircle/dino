@@ -6,6 +6,75 @@
     History
 </p>
 
-TODO: search message history, delete messages, etc.
+<div>
+    <form id="search-history" method="post" action="/history/search" class="pure-form">
+        <fieldset>
+             <legend>Show history for</legend>
+            {{ render_field(form.room_id) }}
+            {{ render_field(form.user_id) }}
+            {{ render_field(form.from_time) }}
+            {{ render_field(form.to_time) }}
+            <br /><br />
+            <p><input type="submit" value="Search" class="pure-button pure-button-primary" /></p>
+        </fieldset>
+    </form>
+</div>
+
+<hr />
+
+<table id="list-history" class="display responsive" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <td>
+                From User (ID)
+            </td>
+            <td>
+                Target
+            </td>
+            <td>
+                Sent Time
+            </td>
+            <td>
+                Content
+            </td>
+            <td>
+                Deleted
+            </td>
+            <td>
+                Type
+            </td>
+            <td>
+                Actions
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+        <tr>
+            <td>
+                {{ message.from_user_name }} <small>({{ message.from_user_id }})</small>
+            </td>
+            <td>
+                {% if message.domain == 'room' %}
+                    <a href="/channel/{{ message.channel_id }}/room/{{ message.target_id }}">{{ message.target_name }}</a>
+                {% else %}
+                    {{ message.target_name }}
+                {% endif %}
+            </td>
+            <td>{{ message.timestamp }}</td>
+            <td>{{ message.body }}</td>
+            <td>{{ message.deleted }}</td>
+            <td>{{ message.domain }}</td>
+            <td><a href="/history/{{ message.message_id }}/delete">Delete</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<link rel="stylesheet" type="text/css" media="all" href="/static/buttons.dataTables.min.css"/>
+<script type="text/javascript" src="/static/jszip.min.js"></script>
+<script type="text/javascript" src="/static/buttons.html5.min.js"></script>
+<script type="text/javascript" src="/static/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="/static/custom/js/history.js"></script>
 
 {% endblock %}
