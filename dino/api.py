@@ -366,7 +366,8 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     filtered_rooms = dict()
     for room_id, room_details in rooms.items():
         acls = utils.get_acls_in_room_for_action(room_id, ApiActions.LIST)
-        is_valid, _ = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.LIST, acls, target_id=room_id, object_type='room')
+        is_valid, err_msg = validation.acl.validate_acl_for_action(
+                activity, ApiTargets.ROOM, ApiActions.LIST, acls, target_id=room_id, object_type='room')
 
         # if not allowed to join, don't show in list
         if not is_valid:

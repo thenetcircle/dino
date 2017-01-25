@@ -29,7 +29,7 @@ class UserManagerTest(BaseDatabaseTest):
     _act = None
 
     @staticmethod
-    def _publish(activity: dict) -> None:
+    def _publish(activity: dict, external=False) -> None:
         UserManagerTest._act = activity
 
     def setUp(self):

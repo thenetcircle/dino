@@ -772,7 +772,7 @@ class TestAclValidator(BaseAclTestValidator):
         act = self.json_act()
         is_valid, msg = self.validator.validate_acl_for_action(
                 as_parser(act), 'other-target', 'join', self.acls_for_room_join())
-        self.assertFalse(is_valid)
+        self.assertTrue(is_valid)
 
     def test_validate_acl_for_action_private_chat_ignores_wrong_gender(self):
         environ.env.session[SessionKeys.gender.value] = 'k'

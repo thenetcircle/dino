@@ -36,6 +36,8 @@ class ApiListRoomsTest(BaseTest):
 
         act = self.activity_for_list_rooms()
         response_data = api.on_list_rooms(act, as_parser(act))
+        from pprint import pprint
+        pprint(response_data)
         self.assertEqual(1, len(response_data[1]['object']['attachments']))
 
     def test_list_rooms_correct_id(self):

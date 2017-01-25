@@ -59,16 +59,15 @@ class AclValidator(object):
     def validate_acl_for_action(self, activity: Activity, target: str, action: str, target_acls: dict, target_id: str=None, object_type: str=None) -> (bool, str):
         all_acls = environ.env.config.get(ConfigKeys.ACL)
 
-        if target_id is None:
-            target_id = activity.target.id
-
-        if object_type is None:
-            object_type = activity.target.object_type
-
         if not hasattr(activity, 'target') or not hasattr(activity.target, 'object_type'):
             return False, 'target.objectType must not be none'
         if activity.target.object_type is None or len(activity.target.object_type.strip()) == 0:
             return False, 'target.objectType must not be none'
+
+        if target_id is None:
+            target_id = activity.target.id
+        if object_type is None:
+            object_type = activity.target.object_type
 
         # one-to-one is sending message that users private room, so target is room, but object_type would not be
         if target == ApiTargets.ROOM and object_type != 'room':
@@ -87,7 +86,7 @@ class AclValidator(object):
 
         # no acls for this target (room/channel) and action (join/kick/etc)
         if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
-            return False, 'no acl set that allows action "%s" for target type "%s"' % (action, target)
+            return True, None  # 'no acl set that allows action "%s" for target type "%s"' % (action, target)
 
         if utils.is_owner_channel(channel_id, user_id):
             return True, None
