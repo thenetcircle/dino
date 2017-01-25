@@ -21,6 +21,8 @@ from activitystreams import parse as as_parser
 from dino.config import ApiTargets
 from dino.config import ErrorCodes as ECodes
 from dino.hooks import *
+from dino.config import ApiActions
+from dino import validation
 
 import logging
 
@@ -360,13 +362,23 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
 
     roles = utils.get_user_roles(environ.env.session.get(SessionKeys.user_id.value))
     room_roles = roles['room']
+
+    filtered_rooms = dict()
     for room_id, room_details in rooms.items():
+        acls = utils.get_acls_in_room_for_action(room_id, ApiActions.LIST)
+        is_valid, _ = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.LIST, acls, target_id=room_id, object_type='room')
+
+        # if not allowed to join, don't show in list
+        if not is_valid:
+            continue
+
         room_details['roles'] = ''
         if room_id in room_roles.keys():
             room_details['roles'] = ','.join(room_roles[room_id])
+        filtered_rooms[room_id] = room_details
 
     environ.env.observer.emit('on_list_rooms', (data, activity))
-    return ECodes.OK, utils.activity_for_list_rooms(activity, rooms)
+    return ECodes.OK, utils.activity_for_list_rooms(activity, filtered_rooms)
 
 
 def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
