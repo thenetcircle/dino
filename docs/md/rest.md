@@ -16,41 +16,41 @@ Response would be something similar to the following:
     {
         "status_code": 200,
         "data": [{
-            "domain": "room",
+            "deleted": false,
+            "target_name": "YmFkIGtpZHo=",
+            "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
             "timestamp": "2017-01-26T04:58:33Z",
-            "from_user_name": "batman",
-            "body": "how are you?",
-            "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
-            "target_name": "bad kidz",
+            "from_user_name": "YmF0bWFu",
+            "message_id": "37db81f2-4e16-4076-b759-8ce1c23a364e",
             "from_user_id": "997110",
-            "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59",
-            "channel_name": "Shanghai",
-            "deleted": false,
-            "message_id": "37db81f2-4e16-4076-b759-8ce1c23a364e"
-        }, {
+            "channel_name": "U2hhbmdoYWk=",
+            "body": "aG93IGFyZSB5b3U/",
             "domain": "room",
+            "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+        }, {
+            "deleted": false,
+            "target_name": "YmFkIGtpZHo=",
+            "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
             "timestamp": "2017-01-26T04:58:31Z",
-            "from_user_name": "batman",
-            "body": "hello there",
-            "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
-            "target_name": "bad kidz",
+            "from_user_name": "YmF0bWFu",
+            "message_id": "416d3c60-7197-471c-a706-7dbeca090d11",
             "from_user_id": "997110",
-            "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59",
-            "channel_name": "Shanghai",
-            "deleted": false,
-            "message_id": "416d3c60-7197-471c-a706-7dbeca090d11"
-        }, {
+            "channel_name": "U2hhbmdoYWk=",
+            "body": "aGVsbG8gdGhlcmU=",
             "domain": "room",
-            "timestamp": "2017-01-26T04:58:16Z",
-            "from_user_name": "batman",
-            "body": "fdsa",
-            "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
-            "target_name": "bad kidz",
-            "from_user_id": "997110",
-            "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59",
-            "channel_name": "Shanghai",
+            "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+        }, {
             "deleted": false,
-            "message_id": "91655457-3712-4c2f-b6f2-c3b0f8be29e5"
+            "target_name": "YmFkIGtpZHo=",
+            "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
+            "timestamp": "2017-01-26T04:58:16Z",
+            "from_user_name": "YmF0bWFu",
+            "message_id": "91655457-3712-4c2f-b6f2-c3b0f8be29e5",
+            "from_user_id": "997110",
+            "channel_name": "U2hhbmdoYWk=",
+            "body": "ZmRzYQ==",
+            "domain": "room",
+            "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
         }]
     }
 

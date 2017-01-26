@@ -19,7 +19,7 @@ from functools import lru_cache
 
 from dino.rest.resources.base import BaseResource
 from dino.admin.orm import storage_manager
-
+from dino.utils import b64e
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,13 @@ class HistoryResource(BaseResource):
         to_time = the_json.get('to_time')
 
         try:
-            return self.do_get_with_params(room_id, user_id, from_time, to_time)
+            messages = self.do_get_with_params(room_id, user_id, from_time, to_time)
+            for message in messages:
+                message['from_user_name'] = b64e(message['from_user_name'])
+                message['body'] = b64e(message['body'])
+                message['target_name'] = b64e(message['target_name'])
+                message['channel_name'] = b64e(message['channel_name'])
+            return messages
         except Exception as e:
             logger.error('could not get messages: %s' % str(e))
             raise e
