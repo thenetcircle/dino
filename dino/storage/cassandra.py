@@ -73,8 +73,11 @@ class CassandraStorage(object):
             return list()
         return [row.message_id for row in rows]
 
-    def delete_message(self, message_id: str, room_id: str=None):
+    def delete_message(self, message_id: str, room_id: str=None) -> None:
         self.driver.msg_delete(message_id)
+
+    def undelete_message(self, message_id: str) -> None:
+        self.driver.msg_undelete(message_id)
 
     def get_unread_history(self, room_id: str, last_read: int) -> list:
         rows = self.driver.msgs_select_since_time(room_id, last_read)

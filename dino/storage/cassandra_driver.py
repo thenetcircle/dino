@@ -261,7 +261,13 @@ class Driver(object):
     def msgs_select_non_deleted_for_user(self, from_user_id: str) -> ResultSet:
         return self._execute(StatementKeys.msg_select_msg_id_from_user_not_deleted, from_user_id)
 
-    def msg_delete(self, message_id: str) -> ResultSet:
+    def msg_undelete(self, message_id: str) -> None:
+        self._msg_delete(message_id, deleted=False)
+
+    def msg_delete(self, message_id: str) -> None:
+        self._msg_delete(message_id, deleted=True)
+
+    def _msg_delete(self, message_id: str, deleted: bool) -> None:
         """
         We're doing three queries here, one to get primary index of messages table from message_id, then getting the
         complete row from messages table, and finally updating that row. This could be lowered to two queries by
@@ -292,7 +298,7 @@ class Driver(object):
 
         self.msg_insert(
                 message_id, from_user_id, from_user_name, target_id, target_name, body,
-                domain, timestamp, channel_id, channel_name, deleted=True)
+                domain, timestamp, channel_id, channel_name, deleted=deleted)
 
     def _execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:

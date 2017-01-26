@@ -28,6 +28,9 @@ class StorageManager(BaseManager):
     def get_undeleted_messages_for_user(self, user_id: str) -> list:
         return self.env.storage.get_undeleted_message_ids_for_user(user_id)
 
+    def undelete_message(self, message_id: str) -> None:
+        self.env.storage.undelete_message(message_id)
+
     def delete_message(self, message_id: str) -> None:
         self.env.storage.delete_message(message_id)
 

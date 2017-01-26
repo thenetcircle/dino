@@ -38,13 +38,10 @@
                 Content
             </td>
             <td>
-                Deleted
-            </td>
-            <td>
                 Type
             </td>
             <td>
-                Actions
+                Deleted?
             </td>
         </tr>
     </thead>
@@ -61,17 +58,27 @@
                     {{ message.target_name }}
                 {% endif %}
             </td>
-            <td>{{ message.timestamp }}</td>
+            <td>
+                <small>{{ message.timestamp }}</small>
+            </td>
             <td>{{ message.body }}</td>
-            <td>{{ message.deleted }}</td>
             <td>{{ message.domain }}</td>
-            <td><a href="/history/{{ message.message_id }}/delete">Delete</a></td>
+            <td>
+                <input class="message-id" type="hidden" value="{{ message.message_id }}" />
+                {% if message.deleted == True %}
+                    <input type="checkbox" name="message-deleted" checked>
+                {% else %}
+                    <input type="checkbox" name="message-deleted">
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
 <link rel="stylesheet" type="text/css" media="all" href="/static/buttons.dataTables.min.css"/>
+<link rel="stylesheet" type="text/css" href="/static/jquery.switchButton.css" />
+<script type="text/javascript" src="/static/jquery.switchButton.js"></script>
 <script type="text/javascript" src="/static/jszip.min.js"></script>
 <script type="text/javascript" src="/static/buttons.html5.min.js"></script>
 <script type="text/javascript" src="/static/dataTables.buttons.min.js"></script>

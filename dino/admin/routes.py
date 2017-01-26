@@ -259,9 +259,15 @@ def history():
     return render_template('history.html', form=form, messages=list())
 
 
-@app.route('/history/<message_id>/delete', methods=['GET'])
+@app.route('/history/<message_id>/delete', methods=['PUT'])
 def delete_message(message_id: str):
     storage_manager.delete_message(message_id)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/history/<message_id>/undelete', methods=['PUT'])
+def undelete_message(message_id: str):
+    storage_manager.undelete_message(message_id)
     return jsonify({'status_code': 200})
 
 
