@@ -72,8 +72,4 @@ class HistoryResource(BaseResource):
             logger.error('empty request body')
             raise ValueError('empty request body')
 
-        if 'from' not in the_json and 'to' not in the_json:
-            logger.error('need either from or to timestamp')
-            raise ValueError('need either from or to timestamp')
-
         return the_json

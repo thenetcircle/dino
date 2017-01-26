@@ -1,5 +1,65 @@
 ## RESTful API
 
+### GET /history
+
+Request contains info on what time slice, target, origin to get history for:
+
+    {
+        "from_time": "2016-12-26T08:39:54Z",
+        "to_time": "2016-12-28T08:39:54Z",
+        "user_id": "124352",
+        "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+    }
+
+Response would be something similar to the following:
+
+    {
+        "status_code": 200,
+        "data": [{
+            "domain": "room",
+            "timestamp": "2017-01-26T04:58:33Z",
+            "from_user_name": "batman",
+            "body": "how are you?",
+            "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
+            "target_name": "bad kidz",
+            "from_user_id": "997110",
+            "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59",
+            "channel_name": "Shanghai",
+            "deleted": false,
+            "message_id": "37db81f2-4e16-4076-b759-8ce1c23a364e"
+        }, {
+            "domain": "room",
+            "timestamp": "2017-01-26T04:58:31Z",
+            "from_user_name": "batman",
+            "body": "hello there",
+            "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
+            "target_name": "bad kidz",
+            "from_user_id": "997110",
+            "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59",
+            "channel_name": "Shanghai",
+            "deleted": false,
+            "message_id": "416d3c60-7197-471c-a706-7dbeca090d11"
+        }, {
+            "domain": "room",
+            "timestamp": "2017-01-26T04:58:16Z",
+            "from_user_name": "batman",
+            "body": "fdsa",
+            "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
+            "target_name": "bad kidz",
+            "from_user_id": "997110",
+            "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59",
+            "channel_name": "Shanghai",
+            "deleted": false,
+            "message_id": "91655457-3712-4c2f-b6f2-c3b0f8be29e5"
+        }]
+    }
+
+* If neither `from_time` nor `to_time` is specified, the last 7 days will be used as limit,
+* If `from_time` is specified but no `to_time`, `to_time` will be `from_time + 7 days`,
+* If `to_time` is specified but no `from_time`, `from_time` will be `to_time - 7 days`,
+* Either `user_id` or `room_id` is required (both can be specified at the same time),
+* `to_time` needs to be after `from_time`.
+
 ### POST /ban
 
 Request contains info on who to ban where. For banning globally:
