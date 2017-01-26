@@ -19,7 +19,6 @@ from flask import send_from_directory
 from flask import render_template
 from uuid import uuid4 as uuid
 
-import datetime
 import logging
 import traceback
 
@@ -64,7 +63,7 @@ acl_config = environ.env.config.get(ConfigKeys.ACL)
 
 
 def is_blank(s: str):
-    return s is None or len(s.strip()) == ''
+    return s is None or len(s.strip()) == 0
 
 
 @app.route('/', methods=['GET'])
@@ -276,44 +275,16 @@ def search_history():
     form = SearchHistoryForm(request.form)
     user_id = form.user_id.data
     room_id = form.room_id.data
-    from_time = None
-    to_time = None
+    from_time = form.from_time.data
+    to_time = form.to_time.data
 
-    if is_blank(user_id) and is_blank(room_id):
-        return redirect('/history')
+    try:
+        msgs = storage_manager.find_history(room_id, user_id, from_time, to_time)
+    except Exception as e:
+        logger.error('could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        msgs = list()
 
-    from dateutil import parser
-    from dateutil.tz import tzutc
-
-    if not is_blank(form.from_time.data):
-        try:
-            from_time = parser.parse(form.from_time.data).astimezone(tzutc())
-        except Exception as e:
-            logger.error('invalid from time "%s": %s' % (str(form.from_time.data), str(e)))
-            return
-
-    if not is_blank(form.to_time.data):
-        try:
-            to_time = parser.parse(form.to_time.data).astimezone(tzutc())
-        except Exception as e:
-            logger.error('invalid to time "%s": %s' % (str(form.to_time.data), str(e)))
-            return
-
-    if from_time is not None and to_time is not None:
-        if from_time > to_time:
-            logger.error('from time %s must be before to time %s' % (str(from_time), str(to_time)))
-            return
-
-    if to_time is not None and from_time is None:
-        from_time = to_time - datetime.timedelta(seconds=60*60)
-    if from_time is not None and to_time is None:
-        to_time = from_time + datetime.timedelta(seconds=60*60)
-
-    if from_time is not None and to_time is not None:
-        if to_time - from_time > datetime.timedelta(days=7):
-            to_time = from_time + datetime.timedelta(days=7)
-
-    msgs = storage_manager.find_history(room_id, user_id, from_time, to_time)
     return render_template('history.html', form=form, messages=msgs)
 
 

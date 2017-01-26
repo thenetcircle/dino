@@ -12,13 +12,20 @@
 
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
-from dino.utils import b64e
 
+from dateutil import parser
+from dateutil.tz import tzutc
+
+import datetime
 import logging
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 logger = logging.getLogger(__name__)
+
+
+def is_blank(s: str):
+    return s is None or len(s.strip()) == 0
 
 
 class StorageManager(BaseManager):
@@ -35,8 +42,44 @@ class StorageManager(BaseManager):
         self.env.storage.delete_message(message_id)
 
     def find_history(self, room_id, user_id, from_time, to_time):
+        if is_blank(user_id) and is_blank(room_id):
+            raise RuntimeError('need user ID and/or room ID')
+
+        if not is_blank(from_time):
+            try:
+                from_time = parser.parse(from_time).astimezone(tzutc())
+            except Exception as e:
+                logger.error('invalid from time "%s": %s' % (str(from_time), str(e)))
+                raise RuntimeError('invalid from time "%s"' % str(from_time))
+        else:
+            from_time = None
+
+        if not is_blank(to_time):
+            try:
+                to_time = parser.parse(to_time).astimezone(tzutc())
+            except Exception as e:
+                logger.error('invalid to time "%s": %s' % (str(to_time), str(e)))
+                raise RuntimeError('invalid to time "%s": %s' % str(to_time))
+        else:
+            to_time = None
+
+        if from_time is not None and to_time is not None:
+            if from_time > to_time:
+                logger.error('from time %s must be before to time %s' % (str(from_time), str(to_time)))
+                raise RuntimeError('from time %s must be before to time %s' % (str(from_time), str(to_time)))
+
+        if to_time is not None and from_time is None:
+            from_time = to_time - datetime.timedelta(seconds=60*60)
+        if from_time is not None and to_time is None:
+            to_time = from_time + datetime.timedelta(seconds=60*60)
+
+        if from_time is not None and to_time is not None:
+            if to_time - from_time > datetime.timedelta(days=7):
+                to_time = from_time + datetime.timedelta(days=7)
+
         if from_time is None or to_time is None:
-            return
+            to_time = datetime.datetime.utcnow()
+            from_time = to_time - datetime.timedelta(days=7)
 
         from_time = int(from_time.strftime('%s'))
         to_time = int(to_time.strftime('%s'))

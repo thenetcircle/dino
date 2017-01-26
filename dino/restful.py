@@ -20,6 +20,7 @@ from dino.rest.resources.ban import BanResource
 from dino.rest.resources.kick import KickResource
 from dino.rest.resources.roles import RolesResource
 from dino.rest.resources.rooms_for_users import RoomsForUsersResource
+from dino.rest.resources.history import HistoryResource
 from dino.rest.resources.clear_history import ClearHistoryResource
 from dino import environ
 from dino.hooks import *
@@ -41,5 +42,6 @@ api.add_resource(ClearHistoryResource, '/delete-messages')
 api.add_resource(RolesResource, '/roles')
 api.add_resource(BannedResource, '/banned')
 api.add_resource(BanResource, '/ban')
+api.add_resource(HistoryResource, '/history')
 api.add_resource(KickResource, '/kick')
 api.add_resource(RoomsForUsersResource, '/rooms-for-users')
