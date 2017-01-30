@@ -506,9 +506,6 @@ def get_user_info_attachments_for(user_id: str) -> list:
 
 def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     response = {
-        'target': {
-            'id': activity.target.id
-        },
         'object': {
             'objectType': 'acl'
         },
@@ -516,6 +513,9 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
         'verb': 'get',
         'id': str(uuid())
     }
+
+    if hasattr(activity, 'target') and hasattr(activity.target, 'id'):
+        response['target'] = {'id': activity.target.id}
 
     response['object']['attachments'] = list()
     for api_action, acls in acl_values.items():

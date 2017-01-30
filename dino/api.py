@@ -379,7 +379,17 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
         filtered_rooms[room_id] = room_details
 
     environ.env.observer.emit('on_list_rooms', (data, activity))
-    return ECodes.OK, utils.activity_for_list_rooms(activity, filtered_rooms)
+    activity_json = utils.activity_for_list_rooms(activity, filtered_rooms)
+
+    rooms_with_acls = activity_json['object']['attachments']
+    for room_info in rooms_with_acls:
+        acls = utils.get_acls_for_room(room_info['id'])
+        print(acls)
+        acl_activity = utils.activity_for_get_acl(activity, acls)
+        room_info['attachments'] = acl_activity['object']['attachments']
+
+    activity_json['object']['attachments'] = rooms_with_acls
+    return ECodes.OK, activity_json
 
 
 def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
@@ -393,7 +403,16 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     channels = environ.env.db.get_channels()
 
     environ.env.observer.emit('on_list_channels', (data, activity))
-    return ECodes.OK, utils.activity_for_list_channels(activity, channels)
+    activity_json = utils.activity_for_list_channels(activity, channels)
+    channels_with_acls = activity_json['object']['attachments']
+
+    for channel_info in channels_with_acls:
+        acls = utils.get_acls_for_channel(channel_info['id'])
+        acl_activity = utils.activity_for_get_acl(activity, acls)
+        channel_info['attachments'] = acl_activity['object']['attachments']
+
+    activity_json['object']['attachments'] = channels_with_acls
+    return ECodes.OK, activity_json
 
 
 def on_leave(data: dict, activity: Activity) -> (int, Union[str, None]):
