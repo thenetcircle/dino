@@ -194,16 +194,17 @@ def handle_server_activity(data: dict, activity: Activity):
             logger.warn('no sid found for user id %s' % banned_id)
             return
 
+        reason = None
+        if hasattr(activity.object, 'content'):
+            reason = activity.object.content
+
         activity_json = utils.activity_for_user_banned(
-                banner_id, banner_name, banned_id, banned_name, target_id, target_name)
+                banner_id, banner_name, banned_id, banned_name, target_id, target_name, reason)
 
         try:
             ban_duration = activity.object.summary
             ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
             banner_id = activity_json['actor']['id']
-            reason = None
-            if 'object' in activity_json and 'content' in activity_json['object']:
-                reason = activity_json['object']['content']
 
             if target_id is None or target_id == '':
                 rooms_for_user = environ.env.db.rooms_for_user(banned_id)

@@ -106,9 +106,7 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
             'displayName': b64e(user_name),
             'image': {
                 'url': image_url
-            }
-        },
-        'object': {
+            },
             'attachments': get_user_info_attachments_for(user_id)
         },
         'target': {
@@ -122,15 +120,17 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
 
 
 def activity_for_user_banned(
-        banner_id: str, banner_name: str, banned_id: str, banned_name: str, room_id: str, room_name: str) -> dict:
-    return {
+        banner_id: str, banner_name: str, banned_id: str, banned_name: str, room_id: str, room_name: str, reason=None) -> dict:
+    activity_json = {
         'actor': {
             'id': banner_id,
-            'displayName': b64e(banner_name)
+            'displayName': b64e(banner_name),
+            'attachments': get_user_info_attachments_for(banner_id)
         },
         'object': {
             'id': banned_id,
-            'displayName': b64e(banned_name)
+            'displayName': b64e(banned_name),
+            'attachments': get_user_info_attachments_for(banned_id)
         },
         'target': {
             'id': room_id,
@@ -141,17 +141,28 @@ def activity_for_user_banned(
         'id': str(uuid())
     }
 
+    if reason is not None:
+        if is_base64(reason):
+            activity_json['object']['content'] = reason
+        else:
+            logger.warn('ignoring reason for kick activity, not base64')
+            logger.debug('request with non-base64 reason: %s' % activity_json)
+
+    return activity_json
+
 
 def activity_for_user_kicked(
         kicker_id: str, kicker_name: str, kicked_id: str, kicked_name: str, room_id: str, room_name: str, reason=None) -> dict:
     activity = {
         'actor': {
             'id': kicker_id,
-            'displayName': b64e(kicker_name)
+            'displayName': b64e(kicker_name),
+            'attachments': get_user_info_attachments_for(kicker_id)
         },
         'object': {
             'id': kicked_id,
-            'displayName': b64e(kicked_name)
+            'displayName': b64e(kicked_name),
+            'attachments': get_user_info_attachments_for(kicked_id)
         },
         'target': {
             'id': room_id,
@@ -176,7 +187,8 @@ def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_
     return {
         'actor': {
             'id': user_id,
-            'displayName': b64e(user_name)
+            'displayName': b64e(user_name),
+            'attachments': get_user_info_attachments_for(user_id)
         },
         'verb': 'request',
         'object': {
@@ -195,7 +207,8 @@ def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'displayName': b64e(user_name)
+            'displayName': b64e(user_name),
+            'attachments': get_user_info_attachments_for(user_id)
         },
         'verb': 'disconnect',
         'id': str(uuid()),
@@ -225,7 +238,8 @@ def activity_for_login(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'displayName': b64e(user_name)
+            'displayName': b64e(user_name),
+            'attachments': get_user_info_attachments_for(user_id)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'login',
@@ -249,7 +263,8 @@ def activity_for_create_room(activity: Activity) -> dict:
     return {
         'actor': {
             'id': activity.actor.id,
-            'displayName': b64e(activity.actor.summary)
+            'displayName': b64e(activity.actor.summary),
+            'attachments': get_user_info_attachments_for(activity.actor.id)
         },
         'object': {
             'url': activity.object.url
@@ -389,7 +404,8 @@ def activity_for_invite(
     return {
         'actor': {
             'id': inviter_id,
-            'displayName': b64e(inviter_name)
+            'displayName': b64e(inviter_name),
+            'attachments': get_user_info_attachments_for(inviter_id)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'invite',
