@@ -69,6 +69,10 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def get_black_list(self) -> set:
+        values = self.redis.smembers(RedisKeys.black_list())
+        return {str(value, 'utf-8') for value in values}
+
     def search_for_users(self, query: str) -> list:
         raise NotImplementedError('not implemented in redis db backend')
 

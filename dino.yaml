@@ -37,6 +37,9 @@ oscar:
     history:
         type: 'unread'  # unread or top
         limit: 1000
+    validation:
+        on_message:
+            - check_blacklist
 
 dev:
     log_level: 'DEBUG'

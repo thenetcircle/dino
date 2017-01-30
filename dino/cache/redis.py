@@ -89,6 +89,39 @@ class CacheRedis(object):
     def _del(self, key):
         self.cache.delete(key)
 
+    def get_black_list(self) -> set:
+        cache_key = RedisKeys.black_list()
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        values = self.redis.smembers(cache_key)
+        if value is not None:
+            decoded = {str(v, 'utf-8') for v in values}
+            self.cache.set(cache_key, decoded, ttl=60*10)
+            return decoded
+        return None
+
+    def set_black_list(self, the_list: set) -> None:
+        cache_key = RedisKeys.black_list()
+        self.cache.set(cache_key, the_list, ttl=60*10)
+        self.redis.delete(cache_key)
+        self.redis.sadd(cache_key, *the_list)
+
+    def remove_from_black_list(self, word: str) -> None:
+        cache_key = RedisKeys.black_list()
+        the_cached_list = self.cache.get(cache_key)
+        the_cached_list.remove(word)
+        self.cache.set(cache_key, the_cached_list, ttl=60*10)
+        self.redis.srem(cache_key, word)
+
+    def add_to_black_list(self, word: str) -> None:
+        cache_key = RedisKeys.black_list()
+        the_cached_list = self.cache.get(cache_key)
+        the_cached_list.add(word)
+        self.cache.set(cache_key, the_cached_list, ttl=60*10)
+        self.redis.sadd(cache_key, word)
+
     def _set_ban_timestamp(self, key: str, user_id: str, timestamp: str) -> None:
         cache_key = '%s-%s' % (key, user_id)
         self.cache.set(cache_key, timestamp)

@@ -26,6 +26,37 @@ class ICache(Interface):
         :return: the uuid of the admin room, or None of not found
         """
 
+    def remove_from_black_list(self, word: str) -> None:
+        """
+        remove a word from the black list
+
+        :param word: a word to remove if it exists
+        :return: nothing
+        """
+
+    def add_to_black_list(self, word: str) -> None:
+        """
+        add a word to the black list
+
+        :param word: a word to add
+        :return: nothing
+        """
+
+    def get_black_list(self) -> set:
+        """
+        return the cached black list; a set of forbidden words
+
+        :return: a set of forbidden words, or None of not in the cache
+        """
+
+    def set_black_list(self, the_list: set) -> None:
+        """
+        set the black list in the cache
+
+        :param the_list: a set of forbidden words
+        :return: nothing
+        """
+
     def reset_user_roles(self, user_id: str) -> None:
         """
         invalidate roles in cache; used when roles change in db

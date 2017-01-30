@@ -227,6 +227,9 @@ class GNEnvironment(object):
         self.consume_worker = None
         self.start_consumer = None
 
+        self.event_validator_map = dict()
+        self.event_validators = dict()
+
         # TODO: remove this, go through storage interface
         self.redis = config.get(ConfigKeys.REDIS, None)
 
@@ -737,6 +740,30 @@ def init_observer(gn_env: GNEnvironment) -> None:
     gn_env.observer = EventEmitter()
 
 
+def init_request_validators(gn_env: GNEnvironment) -> None:
+    from yapsy.PluginManager import PluginManager
+    logging.getLogger('yapsy').setLevel(gn_env.config.get(ConfigKeys.LOG_LEVEL, logging.INFO))
+
+    plugin_manager = PluginManager()
+    plugin_manager.setPluginPlaces(['dino/validation/events'])
+    plugin_manager.collectPlugins()
+
+    for pluginInfo in plugin_manager.getAllPlugins():
+        plugin_manager.activatePluginByName(pluginInfo.name)
+        pluginInfo.plugin_object.setup(gn_env)
+        gn_env.event_validators[pluginInfo.name] = pluginInfo.plugin_object
+
+    validation = gn_env.config.get(ConfigKeys.VALIDATION, None)
+    if validation is None:
+        return
+
+    for key in validation.keys():
+        if key not in gn_env.event_validator_map:
+            gn_env.event_validator_map[key] = list()
+        for plugin_name in validation[key]:
+            gn_env.event_validator_map[key].append(gn_env.event_validators[plugin_name])
+
+
 def initialize_env(dino_env):
     init_storage_engine(dino_env)
     init_database(dino_env)
@@ -746,6 +773,7 @@ def initialize_env(dino_env):
     init_acl_validators(dino_env)
     init_stats_service(dino_env)
     init_observer(dino_env)
+    init_request_validators(dino_env)
 
 
 _config_paths = None

@@ -117,8 +117,20 @@ def pre_process(validation_name, should_validate_request=True):
 
                     is_valid, status_code, message = getattr(validation.request, validation_name)(activity)
                     if is_valid:
-                        args = (data, activity)
-                        status_code, message = view_func(*args, **kwargs)
+                        all_ok = True
+                        if validation_name in environ.env.event_validator_map:
+                            for validator in environ.env.event_validator_map[validation_name]:
+                                all_ok, msg = validator(data, activity)
+                                if not all_ok:
+                                    logger.warn(
+                                            'validator "%s" failed for event "%s": %s' %
+                                            (str(validator), validation_name, msg))
+                                    status_code, message = 400, msg
+                                    break
+
+                        if all_ok:
+                            args = (data, activity)
+                            status_code, message = view_func(*args, **kwargs)
 
                 except Exception as e:
                     logger.error('%s: %s' % (validation_name, str(e)))

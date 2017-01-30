@@ -146,6 +146,13 @@ class AclConfigs(DeclarativeBase):
     acl_value = Column('acl_value', String(128), nullable=False)
 
 
+class BlackList(DeclarativeBase):
+    __tablename__ = 'blacklist'
+
+    id = Column(Integer, primary_key=True)
+    word = Column('word', String(128), nullable=False)
+
+
 class RoomRoles(DeclarativeBase):
     __tablename__ = 'room_roles'
 

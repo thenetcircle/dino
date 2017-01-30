@@ -139,6 +139,7 @@ class ConfigKeys(object):
     LIMIT = 'limit'
     PREFIX = 'prefix'
     INCLUDE_HOST_NAME = 'include_hostname'
+    VALIDATION = 'validation'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'
@@ -184,11 +185,16 @@ class RedisKeys(object):
     RKEY_ROOMS_ADMINS = 'room:admins'
     RKEY_ACL_VALIDATION = 'acl:validation:%s'  # acl:validation:acl_type (e.g. acl:validation:gender)
     RKEY_USER_ROLES = 'users:roles'
+    RKEY_BLACK_LIST = 'words:blacklist'
 
     RKEY_SID_TO_USER_ID = 'user:sid:map'
     RKEY_BANNED_USERS_GLOBAL = 'users:banned:global'
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
+
+    @staticmethod
+    def black_list() -> str:
+        return RedisKeys.RKEY_BLACK_LIST
 
     @staticmethod
     def user_roles() -> str:

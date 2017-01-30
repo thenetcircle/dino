@@ -33,6 +33,7 @@ from dino.db.rdbms.models import ChannelRoles
 from dino.db.rdbms.models import GlobalRoles
 from dino.db.rdbms.models import Channels
 from dino.db.rdbms.models import RoomRoles
+from dino.db.rdbms.models import BlackList
 from dino.db.rdbms.models import Rooms
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import UserStatus
@@ -96,6 +97,21 @@ class DatabaseRdbms(object):
     @with_session
     def _session(self, session):
         return session
+
+    def get_black_list(self) -> set:
+        @with_session
+        def _get_black_list(session=None):
+            rows = session.query(BlackList).all()
+            return {row.word for row in rows}
+
+        blacklist = self.env.cache.get_black_list()
+        if blacklist is not None:
+            return blacklist
+
+        blacklist = _get_black_list()
+        if len(blacklist) > 0:
+            self.env.cache.set_black_list(blacklist)
+        return blacklist
 
     def _update_user_roles_in_cache(self, user_id: str) -> None:
         self.env.cache.reset_user_roles(user_id)
