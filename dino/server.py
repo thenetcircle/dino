@@ -25,7 +25,6 @@ __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 def create_app():
     _app = Flask(__name__)
-    _app.wsgi_app = ProxyFix(_app.wsgi_app)
 
     # used for encrypting cookies for handling sessions
     _app.config['SECRET_KEY'] = 'secret!fdsa'
@@ -37,6 +36,7 @@ def create_app():
             async_mode='eventlet',
             message_queue=environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default=''))
 
+    _app.wsgi_app = ProxyFix(_app.wsgi_app)
     return _app, _socketio
 
 
