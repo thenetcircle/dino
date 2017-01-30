@@ -15,6 +15,7 @@
 import os
 from flask import Flask
 from flask_socketio import SocketIO
+from werkzeug.contrib.fixers import ProxyFix
 
 from dino import environ
 from dino.config import ConfigKeys
@@ -24,6 +25,7 @@ __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 def create_app():
     _app = Flask(__name__)
+    _app.wsgi_app = ProxyFix(app.wsgi_app)
 
     # used for encrypting cookies for handling sessions
     _app.config['SECRET_KEY'] = 'secret!fdsa'
@@ -39,6 +41,5 @@ def create_app():
 
 
 app, socketio = create_app()
-#from werkzeug.contrib.fixers import ProxyFix
 
 import dino.endpoint.sockets
