@@ -1,0 +1,8 @@
+[Core]
+Name = no_empty
+Module = no_empty
+
+[Documentation]
+Description = Checks that a message content is not empty
+Author = Oscar Eriksson
+Version = 1.0.0

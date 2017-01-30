@@ -39,6 +39,7 @@ oscar:
         limit: 1000
     validation:
         on_message:
+            - no_empty
             - check_blacklist
 
 dev:
