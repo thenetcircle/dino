@@ -113,6 +113,37 @@ class DatabaseRdbms(object):
             self.env.cache.set_black_list(blacklist)
         return blacklist
 
+    def remove_word_from_blacklist(self, word_id):
+        @with_session
+        def _delete(_id: int, session=None) -> None:
+            session.query(BlackList).filter(BlackList.id == _id).delete()
+            session.commit()
+
+        if word_id is None or len(word_id.strip()) == 0:
+            raise ValueError('empty id when deleting from word list')
+        try:
+            word_id = int(word_id)
+        except ValueError:
+            logger.error('invalid id for word: "%s"' % word_id)
+            raise
+        _delete(word_id)
+
+    @with_session
+    def add_words_to_blacklist(self, words: list, session=None):
+        all_words = {row.word for row in session.query(BlackList).all()}
+        for word in words:
+            if word is None or len(word.strip()) == 0 or word.strip() in all_words:
+                continue
+            blacklisted = BlackList()
+            blacklisted.word = word
+            session.add(blacklisted)
+        session.commit()
+
+    @with_session
+    def get_black_list_with_ids(self, session=None) -> list:
+        rows = session.query(BlackList).all()
+        return [{'id': row.id, 'word': row.word} for row in rows]
+
     def _update_user_roles_in_cache(self, user_id: str) -> None:
         self.env.cache.reset_user_roles(user_id)
         self.get_user_roles(user_id)

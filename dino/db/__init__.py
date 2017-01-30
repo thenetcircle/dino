@@ -27,11 +27,18 @@ class IDatabase(Interface):
         :return: the newly created room's uuid
         """
 
+    def get_black_list_with_ids(self) -> list:
+        """
+        same as get_black_list() but a list instead including the IDs of the words
+
+        :return: a list of forbidden words, e.g. [{'id':1,'word':'foo'},{'id':2,'word':'bar'}]
+        """
+
     def get_black_list(self) -> set:
         """
         get the list of blacklisted words for sending messages
 
-        :return: a set of forbidden words
+        :return: a set of forbidden words, e.g. {'foo','bar'}
         """
 
     def search_for_users(self, query: str) -> list:

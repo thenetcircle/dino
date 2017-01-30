@@ -17,5 +17,6 @@ from dino.db.manager.rooms import RoomManager
 from dino.db.manager.users import UserManager
 from dino.db.manager.acls import AclManager
 from dino.db.manager.storage import StorageManager
+from dino.db.manager.blacklist import BlackListManager
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'

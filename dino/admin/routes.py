@@ -33,6 +33,7 @@ from dino.admin.orm import room_manager
 from dino.admin.orm import acl_manager
 from dino.admin.orm import user_manager
 from dino.admin.orm import storage_manager
+from dino.admin.orm import blacklist_manager
 
 from dino.exceptions import InvalidAclValueException
 from dino.exceptions import InvalidAclTypeException
@@ -48,6 +49,7 @@ from dino.admin.forms import CreateRoomForm
 from dino.admin.forms import CreateUserForm
 from dino.admin.forms import CreateChannelAclForm
 from dino.admin.forms import CreateRoomAclForm
+from dino.admin.forms import AddBlackListForm
 from dino.admin.forms import SearchHistoryForm
 from dino.admin.forms import AddModeratorForm
 from dino.admin.forms import AddOwnerForm
@@ -286,6 +288,34 @@ def search_history():
         msgs = list()
 
     return render_template('history.html', form=form, messages=msgs)
+
+
+@app.route('/blacklist', methods=['GET', 'POST'])
+def blacklist():
+    form = AddBlackListForm()
+    words = blacklist_manager.get_black_list()
+    return render_template('blacklist.html', form=form, words=words)
+
+
+@app.route('/blacklist/add', methods=['POST'])
+def add_to_blacklist():
+    form = AddBlackListForm(request.form)
+    try:
+        blacklist_manager.add_words(form.words.data)
+    except Exception as e:
+        logger.error('could not add word to blacklist: %s' % str(e))
+        return redirect('/blacklist')
+    return redirect('/blacklist')
+
+
+@app.route('/blacklist/<word_id>/delete', methods=['DELETE'])
+def remove_from_blacklist(word_id: str):
+    try:
+        blacklist_manager.remove_word(word_id)
+    except Exception as e:
+        logger.error('could not remove word from blacklist: %s' % str(e))
+        return jsonify({'status_code': 400, 'message': str(e)})
+    return jsonify({'status_code': 200})
 
 
 @app.route('/channel/<channel_uuid>/rooms', methods=['GET'])

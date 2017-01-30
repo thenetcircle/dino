@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from wtforms import Form, StringField, SelectField, validators
+from wtforms import Form, StringField, SelectField, TextAreaField, validators
 from wtforms.validators import ValidationError
 
 from dino.config import ApiTargets
@@ -144,6 +144,10 @@ class SearchHistoryForm(Form):
     user_id = StringField('User ID', description='User ID')
     from_time = StringField('From timestamp', description='From timestamp')
     to_time = StringField('To timestamp', description='To timestamp')
+
+
+class AddBlackListForm(Form):
+    words = TextAreaField('Words', description='Words separated by new line')
 
 
 class CreateRoomAclForm(Form):
