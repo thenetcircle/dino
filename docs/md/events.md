@@ -56,7 +56,17 @@ event called `gn_admin_requested` containing the following:
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<UUID of user requesting>",
-            "displayName": "<name of the user requesting>"
+            "displayName": "<name of the user requesting>",,
+            "attachments": [
+                {
+                    "content": "NDA=",
+                    "objectType": "age"
+                },
+                {
+                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                    "objectType": "avatar"
+                }
+            ]
         },
         "verb": "help",
         "object": {
@@ -77,7 +87,17 @@ When user B invites user A to join room X, the event `gn_invitation` will be sen
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<UUID of user B>",
-            "displayName": "<name of user B>"
+            "displayName": "<name of user B>",,
+            "attachments": [
+                {
+                    "content": "NDA=",
+                    "objectType": "age"
+                },
+                {
+                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                    "objectType": "avatar"
+                }
+            ]
         },
         "verb": "invite",
         "object": {
@@ -103,9 +123,7 @@ with the following content:
             "displayName": "<name of user B>",
             "image": {
                 "url": "<user B's image url>"
-            }
-        },
-        "object": {
+            },
             "attachments": [
                 {
                     "content": "NDA=",
@@ -168,7 +186,17 @@ the following content:
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<UUID of user who created the room>",
-            "displayName": "<name of the user who created the room>",
+            "displayName": "<name of the user who created the room>",,
+            "attachments": [
+                {
+                    "content": "NDA=",
+                    "objectType": "age"
+                },
+                {
+                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                    "objectType": "avatar"
+                }
+            ]
         },
         "object": {
             "url": "<UUID of the channel for this room>"
@@ -190,11 +218,31 @@ When a user is kicked from a room, an event will be sent to all users in that ro
         "published": "<server-generated timestamp, RFC3339 format>",
         "actor": {
             "id": "<UUID of the kicker>",
-            "displayName": "<name of the kicker>"
+            "displayName": "<name of the kicker>",,
+            "attachments": [
+                {
+                    "content": "NDA=",
+                    "objectType": "age"
+                },
+                {
+                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                    "objectType": "avatar"
+                }
+            ]
         },
         "object": {
             "id": "<UUID of the kicked user>",
-            "displayName": "<name of the kicked user>"
+            "displayName": "<name of the kicked user>",,
+            "attachments": [
+                {
+                    "content": "NDA=",
+                    "objectType": "age"
+                },
+                {
+                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                    "objectType": "avatar"
+                }
+            ]
         },
         "target": {
             "id": "<UUID of the room the user was kicked from>",

@@ -100,17 +100,33 @@ Response data if successful:
                 "attachments": [
                     {
                         "id": "<channel UUID>",
-                        "displayName": "<channel name>"
+                        "displayName": "<channel name>",
+                        "attachments": [
+                            {
+                                "summary": "message",
+                                "objectType": "membership",
+                                "content": "1"
+                            }
+                        ]
                     },
                     {
                         "id": "<channel UUID>",
-                        "displayName": "<channel name>"
+                        "displayName": "<channel name>",
+                        "attachments": [
+                            {
+                                "summary": "join",
+                                "objectType": "gender",
+                                "content": "f"
+                            }
+                        ]
                     }
                 ]
             },
             "verb": "list"
         }
     }
+
+Attachments for each channel describes the ACLs for that channel.
 
 ### list_rooms
 
@@ -139,13 +155,27 @@ Response data if successful:
                         "id": "<room UUID>",
                         "displayName": "<room name>",
                         "summary": <number of users in this room (integer)>,
-                        "content": "moderator,owner"
+                        "content": "moderator,owner",
+                        "attachments": [
+                            {
+                                "summary": "join",
+                                "objectType": "gender",
+                                "content": "f"
+                            }
+                        ]
                     },
                     {
                         "id": "<room UUID>",
                         "displayName": "<room name>",
                         "summary": <number of users in this room (integer)>,
-                        "content": ""
+                        "content": "",
+                        "attachments": [
+                            {
+                                "summary": "join",
+                                "objectType": "gender",
+                                "content": "f"
+                            }
+                        ]
                     }
                 ]
             },
@@ -160,6 +190,8 @@ content will be empty, otherwise it will be a comma separated list of roles. Pos
 * owner
 
 Global roles and roles for channels are returned in the `gn_login` event.
+
+Attachments for each room describes the ACLs for that room.
 
 ### request_admin
 
