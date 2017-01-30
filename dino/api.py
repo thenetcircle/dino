@@ -39,6 +39,7 @@ def connect() -> (int, None):
 
     :return: {'status_code': 200}
     """
+    print('address is: %s' % request.remote_addr)
     if request.remote_addr in environ.env.connected_ips:
         logger.error('a connection from IP %s already exists' % request.remote_addr)
         environ.env.disconnect()

@@ -39,5 +39,6 @@ def create_app():
 
 
 app, socketio = create_app()
+#from werkzeug.contrib.fixers import ProxyFix
 
 import dino.endpoint.sockets
