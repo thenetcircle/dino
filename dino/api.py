@@ -18,6 +18,8 @@ from uuid import uuid4 as uuid
 from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
 from activitystreams import parse as as_parser
+from flask import request
+
 from dino.config import ApiTargets
 from dino.config import ErrorCodes as ECodes
 from dino.hooks import *
@@ -37,8 +39,14 @@ def connect() -> (int, None):
 
     :return: {'status_code': 200}
     """
-    environ.env.observer.emit('on_connect', (None, None))
-    return ECodes.OK, None
+    if request.remote_addr in environ.env.connected_ips:
+        logger.error('a connection from IP %s already exists' % request.remote_addr)
+        environ.env.disconnect()
+        return ECodes.NOT_ALLOWED, 'a connection from this client already exists'
+    else:
+        environ.env.connected_ips[request.remote_addr] = request.sid
+        environ.env.observer.emit('on_connect', (None, None))
+        return ECodes.OK, None
 
 
 def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
@@ -439,6 +447,8 @@ def on_disconnect() -> (int, None):
             'id': str(environ.env.session.get(SessionKeys.user_id.value))
         }
     }
+    if environ.env.connected_ips.get(request.remote_addr) == request.sid:
+        del environ.env.connected_ips[request.remote_addr]
     activity = as_parser(data)
     environ.env.observer.emit('on_disconnect', (data, activity))
     return ECodes.OK, None

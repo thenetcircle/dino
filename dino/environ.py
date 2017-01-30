@@ -229,6 +229,7 @@ class GNEnvironment(object):
 
         self.event_validator_map = dict()
         self.event_validators = dict()
+        self.connected_ips = dict()
 
         # TODO: remove this, go through storage interface
         self.redis = config.get(ConfigKeys.REDIS, None)
