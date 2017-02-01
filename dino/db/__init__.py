@@ -27,6 +27,22 @@ class IDatabase(Interface):
         :return: the newly created room's uuid
         """
 
+    def add_words_to_blacklist(self, words: list) -> None:
+        """
+        add new words to the blacklist
+
+        :param words: a list of words to add
+        :return: nothing
+        """
+
+    def remove_word_from_blacklist(self, word_id) -> None:
+        """
+        remove a word from the blacklist
+
+        :param word_id: the id (primary key) of the word to remove
+        :return: nothing
+        """
+
     def get_black_list_with_ids(self) -> list:
         """
         same as get_black_list() but a list instead including the IDs of the words

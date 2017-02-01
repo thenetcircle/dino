@@ -69,6 +69,12 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def add_words_to_blacklist(self, words: list) -> None:
+        self.redis.sadd(RedisKeys.black_list(), words)
+
+    def remove_word_from_blacklist(self, word_id) -> None:
+        raise NotImplementedError('not available in redis implementation of db interface')
+
     def get_black_list_with_ids(self, session=None) -> list:
         raise NotImplementedError('not available in redis implementation of db interface')
 

@@ -113,7 +113,7 @@ class DatabaseRdbms(object):
             self.env.cache.set_black_list(blacklist)
         return blacklist
 
-    def remove_word_from_blacklist(self, word_id):
+    def remove_word_from_blacklist(self, word_id) -> None:
         @with_session
         def _delete(_id: int, session=None) -> None:
             session.query(BlackList).filter(BlackList.id == _id).delete()
@@ -129,7 +129,7 @@ class DatabaseRdbms(object):
         _delete(word_id)
 
     @with_session
-    def add_words_to_blacklist(self, words: list, session=None):
+    def add_words_to_blacklist(self, words: list, session=None) -> None:
         all_words = {row.word for row in session.query(BlackList).all()}
         for word in words:
             if word is None or len(word.strip()) == 0 or word.strip() in all_words:
