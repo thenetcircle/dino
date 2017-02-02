@@ -493,8 +493,8 @@ Response data if successful:
         }
     }
 
-It is also possible to specify ACLs for a room while creating it, but adding object.attachments as in `set_acl` event:
-
+It is also possible to specify ACLs for a room while creating it, but adding `object.attachments` as in the `set_acl` 
+event:
 
     {
         "target": {
