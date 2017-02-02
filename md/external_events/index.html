@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>External Events - Dino</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "External Events";
+    var mkdocs_page_input_path = "md/external_events.md";
+    var mkdocs_page_url = "/md/external_events/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Dino</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../..">Home</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../getting_started/">Getting Started</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../api/">API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../events/">Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">External Events</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#external-events">External Events</a></li>
+                
+                    <li><a class="toctree-l4" href="#user-was-kicked-from-a-room">User was kicked from a room</a></li>
+                
+                    <li><a class="toctree-l4" href="#user-was-banned">User was banned</a></li>
+                
+                    <li><a class="toctree-l4" href="#user-joins-room">User joins room</a></li>
+                
+                    <li><a class="toctree-l4" href="#user-ban-was-removed">User ban was removed</a></li>
+                
+                    <li><a class="toctree-l4" href="#user-sends-a-message-to-a-roomuser">User sends a message to a room/user</a></li>
+                
+                    <li><a class="toctree-l4" href="#user-successfully-logged-in">User successfully logged in</a></li>
+                
+                    <li><a class="toctree-l4" href="#user-disconnected">User disconnected</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../rest/">REST API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../wio/">Who Is Online</a>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Dino</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>External Events</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="external-events">External Events</h2>
+<p>External events are activity streams send to the configured external queue (e.g. RabbitMQ).</p>
+<h3 id="user-was-kicked-from-a-room">User was kicked from a room</h3>
+<p>Example of activity posted to the external queue:</p>
+<pre><code>{
+    "actor": {
+        "displayName": "admin",
+        "id": "0"
+    },
+    "object": {
+        "displayName": "YXNkZg==",
+        "content": "dGhpcyBpcyBhIHJlYXNvbg==",
+        "id": "197114"
+    },
+    "target": {
+        "displayName": "Y29vbCBndXlz",
+        "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+    },
+    "verb": "kick",
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<ul>
+<li>actor.id: ID of the user who kicked, or 0 if from admin interface,</li>
+<li>actor.displayName: name of the user who kicked, or admin if from admin interface,</li>
+<li>object.id: ID of the user who got kicked,</li>
+<li>object.content: base64 encoded "reason" for the kick (optional),</li>
+<li>object.displayName: base64 encoded username of the user was kicked,</li>
+<li>target.id: UUID of the room the user was kicked from,</li>
+<li>target.displayName: base64 encoded name of the room.</li>
+</ul>
+<h3 id="user-was-banned">User was banned</h3>
+<p>Example of activity posted to the external queue:</p>
+<pre><code>{
+    "actor": {
+        "displayName": "admin",
+        "id": "0"
+    },
+    "object": {
+        "displayName": "YXNkZg==",
+        "id": "1234",
+        "summary": "5m",
+        "content": "dGhpcyBpcyBhIHJlYXNvbg==",
+        "updated": "2016-12-22T07:13:09Z"
+    },
+    "target": {
+        "displayName": "Y29vbCBndXlz",
+        "objectType": "room",
+        "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+    },
+    "verb": "ban",
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<ul>
+<li>actor.id: ID of the user who banned, or 0 if from admin interface,</li>
+<li>actor.displayName: name of the user who banned, or admin if from admin interface,</li>
+<li>object.id: ID of the user who got banned,</li>
+<li>object.displayName: base64 encoded username of the user was banned,</li>
+<li>object.content: base64 encoded "reason" for the ban (optional),</li>
+<li>object.summary: the ban duration,</li>
+<li>object.updated: the datetime when the ban will expire (in UTC),</li>
+<li>target.id: UUID of the room the user was kicked from,</li>
+<li>target.displayName: base64 encoded name of the room,</li>
+<li>target.objectType: one of "room", "channel", "global" (if "global", no displayName or id will be on target)</li>
+</ul>
+<h3 id="user-joins-room">User joins room</h3>
+<p>When a user joins a room the following activity is published to rabbitmq:</p>
+<pre><code>{
+    "object": {
+        "attachments": [{
+            "content": "MA==",
+            "objectType": "membership"
+        }, {
+            "content": "eQ==",
+            "objectType": "image"
+        }, {
+            "content": "bQ==",
+            "objectType": "gender"
+        }, {
+            "content": "NzA=",
+            "objectType": "age"
+        }, {
+            "content": "c2hhbmdoYWk=",
+            "objectType": "city"
+        }, {
+            "content": "Y24=",
+            "objectType": "country"
+        }, {
+            "content": "eQ==",
+            "objectType": "fake_checked"
+        }, {
+            "content": "eQ==",
+            "objectType": "has_webcam"
+        }]
+    },
+    "target": {
+        "displayName": "YmFkIGtpZHo=",
+        "id": "675eb2a5-17c6-45e4-bc0f-674241573f22"
+    },
+    "id": "bfa26b43-492f-4ec9-a83e-32e64ba2bc51",
+    "actor": {
+        "displayName": "YXNvZGZpaGFzZG9maWg=",
+        "id": "385280",
+        "image": {
+            "url": "n"
+        }
+    },
+    "published": "2017-01-04T09:58:37Z",
+    "verb": "join"
+}
+</code></pre>
+<h3 id="user-ban-was-removed">User ban was removed</h3>
+<p>Example of activity when a user's ban was manually removed in the admin interface:</p>
+<pre><code>{
+    "actor": {
+        "id": "0",
+        "displayName": "YWRtaW4="
+    },
+    "target": {
+        "id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
+        "displayName": "YmFkIGtpZHo=",
+        "objectType": "room"
+    },
+    "published": "2017-01-03T05:50:11Z",
+    "verb": "unban",
+    "id": "49b067bb-79fe-48bd-9c03-dc4fd8f60192",
+    "object": {
+        "id": "124352",
+        "displayName": "Zm9vYmFyenoyMw=="
+    }
+}
+</code></pre>
+<ul>
+<li>target.id: room ID or channel ID</li>
+<li>target.objectType: "room", "channel" or "global"</li>
+<li>object.id: ID of the user</li>
+<li>object.displayName: name fo the user</li>
+</ul>
+<p>If <code>target.objectType</code> is <code>global</code> then no <code>target.id</code> or <code>target.displayName</code> will be included.</p>
+<h3 id="user-sends-a-message-to-a-roomuser">User sends a message to a room/user</h3>
+<p>Whenever a user sends a message an event will be published to the configured MQ, so another system can analyze activity
+level of users. Example activity: </p>
+<pre><code>{
+    "actor": {
+        "id": "&lt;user ID"&gt;,
+        "displayName": "&lt;base64 encoded username&gt;"
+    },
+    "verb": "send",
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<h3 id="user-successfully-logged-in">User successfully logged in</h3>
+<p>Example of activity when a user successfully logs in:</p>
+<pre><code>{
+    "actor": {
+        "id": "&lt;user ID&gt;",
+        "displayName": "&lt;base64 encoded username&gt;"
+    },
+    "verb": "login",
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<h3 id="user-disconnected">User disconnected</h3>
+<p>Example of activity when a user disconnects:</p>
+<pre><code>{
+    "actor": {
+        "id": "&lt;user ID&gt;",
+        "displayName": "&lt;base64 encoded username&gt;"
+    },
+    "verb": "disconnect",
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../rest/" class="btn btn-neutral float-right" title="REST API">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../events/" class="btn btn-neutral" title="Events"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../events/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../rest/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="../../js/theme.js"></script>
+
+</body>
+</html>

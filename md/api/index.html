@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>API - Dino</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "API";
+    var mkdocs_page_input_path = "md/api.md";
+    var mkdocs_page_url = "/md/api/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Dino</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../..">Home</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../getting_started/">Getting Started</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">API</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#api">API</a></li>
+                
+                    <li><a class="toctree-l4" href="#connect">connect</a></li>
+                
+                    <li><a class="toctree-l4" href="#login">login</a></li>
+                
+                    <li><a class="toctree-l4" href="#list_channels">list_channels</a></li>
+                
+                    <li><a class="toctree-l4" href="#list_rooms">list_rooms</a></li>
+                
+                    <li><a class="toctree-l4" href="#request_admin">request_admin</a></li>
+                
+                    <li><a class="toctree-l4" href="#leave">leave</a></li>
+                
+                    <li><a class="toctree-l4" href="#users_in_room">users_in_room</a></li>
+                
+                    <li><a class="toctree-l4" href="#history">history</a></li>
+                
+                    <li><a class="toctree-l4" href="#status">status</a></li>
+                
+                    <li><a class="toctree-l4" href="#get_acl">get_acl</a></li>
+                
+                    <li><a class="toctree-l4" href="#set_acl">set_acl</a></li>
+                
+                    <li><a class="toctree-l4" href="#create">create</a></li>
+                
+                    <li><a class="toctree-l4" href="#invite">invite</a></li>
+                
+                    <li><a class="toctree-l4" href="#delete">delete</a></li>
+                
+                    <li><a class="toctree-l4" href="#kick">kick</a></li>
+                
+                    <li><a class="toctree-l4" href="#ban">ban</a></li>
+                
+                    <li><a class="toctree-l4" href="#message">message</a></li>
+                
+                    <li><a class="toctree-l4" href="#join">join</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../events/">Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../external_events/">External Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../rest/">REST API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../wio/">Who Is Online</a>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Dino</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>API</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="api">API</h2>
+<h3 id="connect">connect</h3>
+<p>Responds with event name "gn_connect".</p>
+<p>Request contains no data.</p>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<h3 id="login">login</h3>
+<p>Responds with event name "gn_login".</p>
+<p>Request contains:</p>
+<pre><code>{
+    verb: "login",
+    actor: {
+        "id": "&lt;user ID&gt;",
+        "displayName": "&lt;user name&gt;",
+        "attachments": [
+            {
+                "objectType": "token",
+                "content": "&lt;user token&gt;"
+            }
+        ]
+    }
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": {
+        "id": "&lt;server-generated UUID&gt;",
+        "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+        "actor": {
+            "id": user_id,
+            "displayName": b64e(user_name),
+            "attachments": [
+                {
+                    "objectType": "room_role",
+                    "id": "&lt;room UUID&gt;",
+                    "content": "moderator,owner"
+                },
+                {
+                    "objectType": "room_role",
+                    "id": "&lt;room UUID&gt;",
+                    "content": "owner"
+                },
+                {
+                    "objectType": "channel_role",
+                    "id": "&lt;channel UUID&gt;",
+                    "content": "admin,owner"
+                },
+                {
+                    "objectType": "global_roles",
+                    "content": "superuser"
+                }
+            ]
+        },
+        "verb": "login"
+    }
+}
+</code></pre>
+<p>For the user roles, there will be an ID on the attached object if the role is for a channel or for a room. If it's a
+global role there will be no ID on the object. Roles are comma separated if more than one role for a 
+room/channel/global.</p>
+<p>Possible roles are:</p>
+<ul>
+<li>global superuser</li>
+<li>channel owner</li>
+<li>channel admin</li>
+<li>room owner</li>
+<li>room moderator</li>
+</ul>
+<h3 id="list_channels">list_channels</h3>
+<p>Responds with event name "gn_list_channels".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "verb": "list"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "channels",
+            "attachments": [
+                {
+                    "id": "&lt;channel UUID&gt;",
+                    "displayName": "&lt;channel name&gt;",
+                    "attachments": [
+                        {
+                            "summary": "message",
+                            "objectType": "membership",
+                            "content": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "&lt;channel UUID&gt;",
+                    "displayName": "&lt;channel name&gt;",
+                    "attachments": [
+                        {
+                            "summary": "join",
+                            "objectType": "gender",
+                            "content": "f"
+                        }
+                    ]
+                }
+            ]
+        },
+        "verb": "list"
+    }
+}
+</code></pre>
+<p>Attachments for each channel describes the ACLs for that channel.</p>
+<h3 id="list_rooms">list_rooms</h3>
+<p>Get a list of all rooms for a channel.</p>
+<p>Responds with event name "gn_list_rooms".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "object": {
+        "url": "&lt;channel UUID&gt;"
+    },
+    verb: "list"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "rooms",
+            "attachments": [
+                {
+                    "id": "&lt;room UUID&gt;",
+                    "displayName": "&lt;room name&gt;",
+                    "summary": &lt;number of users in this room (integer)&gt;,
+                    "content": "moderator,owner",
+                    "attachments": [
+                        {
+                            "summary": "join",
+                            "objectType": "gender",
+                            "content": "f"
+                        }
+                    ]
+                },
+                {
+                    "id": "&lt;room UUID&gt;",
+                    "displayName": "&lt;room name&gt;",
+                    "summary": &lt;number of users in this room (integer)&gt;,
+                    "content": "",
+                    "attachments": [
+                        {
+                            "summary": "join",
+                            "objectType": "gender",
+                            "content": "f"
+                        }
+                    ]
+                }
+            ]
+        },
+        "verb": "list"
+    }
+}
+</code></pre>
+<p>The "content" field on the attachments describe what kind of role you have for that room. If no roles are set then
+content will be empty, otherwise it will be a comma separated list of roles. Possible roles for rooms are:</p>
+<ul>
+<li>moderator</li>
+<li>owner</li>
+</ul>
+<p>Global roles and roles for channels are returned in the <code>gn_login</code> event.</p>
+<p>Attachments for each room describes the ACLs for that room.</p>
+<h3 id="request_admin">request_admin</h3>
+<p>When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
+which only admins can see when listing rooms and only admins can join. When a request_admin event is sent to the server
+it will be delivered to the admin room for that channel and the admins in that room can decide what to do.</p>
+<p>Responds with event name "gn_request_admin".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;room UUID to request help for&gt;"
+    },
+    "object": {
+        "content": "&lt;base64 encoded message that will be delivered to the admin room&gt;"
+    },
+    "verb": "help"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<p>The "object.content" could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
+reason text etc. </p>
+<p>The event generated to be sent to the admin room is called "gn_admin_requested" (see 
+<a href="../events/#gn_admin_requested">Events</a> for more information).</p>
+<h3 id="leave">leave</h3>
+<p>Leave a room.</p>
+<p>Responds with event name "gn_leave".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;room UUID&gt;"
+    },
+    verb: "leave"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<h3 id="users_in_room">users_in_room</h3>
+<p>List all users in a room.</p>
+<p>Responds with event name "gn_users_in_room".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;room UUID&gt;"
+    },
+    verb: "list"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "users",
+            "attachments": [
+                {
+                    "id": "&lt;user UUID&gt;",
+                    "displayName": "&lt;user name&gt;",
+                    "attachments": [
+                        {
+                            "content": "NDA=",
+                            "objectType": "age"
+                        },
+                        {
+                            "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                            "objectType": "avatar"
+                        }
+                    ]
+                },
+                {
+                    "id": "&lt;user UUID&gt;",
+                    "displayName": "&lt;user name&gt;",
+                    "attachments": [
+                        {
+                            "content": "NDA=",
+                            "objectType": "age"
+                        },
+                        {
+                            "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                            "objectType": "avatar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "verb": "list"
+    }
+}
+</code></pre>
+<h3 id="history">history</h3>
+<p>TODO: include user UUID as well as user name.</p>
+<p>When joining a room the history will be included in the "gn_join" response event. If history is needed for a separate
+reason than the "history" event can be used. Can also be used to get history for a private chat with another user, if
+"target.id" is set to the user UUID instead of the room UUID.</p>
+<p>Responds with event name "gn_history".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;room UUID&gt;"
+    },
+    "updated": "&lt;last read timestamp, if configured in server will return messages since this time&gt;",
+    "verb": "list"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "messages",
+            "attachments": [
+                {
+                    "author": {
+                        "id": "&lt;the user id of the sender&gt;",
+                        "displayName": "&lt;the user name of the sender&gt;"
+                    },
+                    "id": "&lt;message ID&gt;",
+                    "content": "&lt;the message content&gt;",
+                    "published": "&lt;the time it was sent, RFC3339&gt;"
+                },
+                {
+                    "author": {
+                        "id": "&lt;the user id of the sender&gt;",
+                        "displayName": "&lt;the user name of the sender&gt;"
+                    },
+                    "id": "&lt;message ID&gt;",
+                    "content": "&lt;the message content&gt;",
+                    "published": "&lt;the time it was sent, RFC3339&gt;"
+                }
+            ]
+        },
+        "target": {
+            "id": "&lt;room UUID&gt;"
+        },
+        "verb": "history"
+    }
+}
+</code></pre>
+<h3 id="status">status</h3>
+<p>Change the online status for this user.</p>
+<p>Responds with "gn_status".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "verb": "&lt;one of online/offline/invisible&gt;"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<h3 id="get_acl">get_acl</h3>
+<p>Get the permissions (ACL) for a channel or room.</p>
+<p>Responds with "gn_get_acl".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;room UUID&gt;",
+        "objectType": "&lt;room/channel&gt;"
+    },
+    "verb": "get"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": {
+        "target": {
+            "id": "&lt;room/channel UUID&gt;",
+            "objectType": "&lt;room/channel&gt;"
+        },
+        "object": {
+            "objectType": "acl",
+            "attachments": [
+                {
+                    "objectType": "&lt;ACL type name&gt;",
+                    "content": "&lt;ACL value&gt;",
+                    "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+                },
+                {
+                    "objectType": "&lt;ACL type name&gt;",
+                    "content": "&lt;ACL value&gt;",
+                    "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+                }
+            ]
+        },
+        "verb": "get"
+    }
+}
+</code></pre>
+<h3 id="set_acl">set_acl</h3>
+<p>Update the permissions of a room/channel. If the "content" is blank, the ACL with that type for the specified action
+will be removed. Example "API actions" are "join", "create", "message", "kick". Example "permission types" are "age",
+"gender", "membership".</p>
+<p>Responds with "gn_set_acl".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;room/channel UUID&gt;",
+        "objectType": "&lt;room/channel&gt;"
+    },
+    "object": {
+        "objectType": "acl",
+        "attachments": [
+            {
+                "objectType": "&lt;ACL type name&gt;",
+                "content": "&lt;ACL value&gt;",
+                "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+            },
+            {
+                "objectType": "&lt;ACL type name&gt;",
+                "content": "&lt;ACL value&gt;",
+                "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+            }
+        ]
+    },
+    "verb": "set"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<h3 id="create">create</h3>
+<p>Create a new room under a channel. The sender of the event will be set as the first owner of the new room.</p>
+<p>Responds with "gn_create".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "displayName": "&lt;name of the new room&gt;"
+    },
+    "object": {
+        "url": "&lt;channel UUID&gt;"
+    },
+    "verb": "create"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": {
+        "target": {
+            "id": "&lt;the generated UUID for this room&gt;",
+            "displayName": "&lt;name of the new room&gt;"
+        },
+        "object": {
+            "url": "&lt;channel UUID&gt;"
+        },
+        "verb": "create"
+    }
+}
+</code></pre>
+<p>It is also possible to specify ACLs for a room while creating it, but adding <code>object.attachments</code> as in the <code>set_acl</code> 
+event:</p>
+<pre><code>{
+    "target": {
+        "displayName": "&lt;name of the new room&gt;"
+    },
+    "object": {
+        "url": "&lt;channel UUID&gt;",
+        "objectType": "acl",
+        "attachments": [
+            {
+                "objectType": "&lt;ACL type name&gt;",
+                "content": "&lt;ACL value&gt;",
+                "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+            },
+            {
+                "objectType": "&lt;ACL type name&gt;",
+                "content": "&lt;ACL value&gt;",
+                "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+            }
+        ]
+    },
+    "verb": "create"
+}
+</code></pre>
+<h3 id="invite">invite</h3>
+<p>Invite another user to a room the current user is already in.</p>
+<p>Responds with "gn_invite".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;UUID of the user to invite&gt;"
+    },
+    "actor": {
+        "url": "&lt;the room UUID the invitation is for&gt;"
+    },
+    "verb": "invite"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<h3 id="delete">delete</h3>
+<p>Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator for room or owner 
+of room).</p>
+<p>Responds with "gn_delete".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;UUID of the room to delete from&gt;"
+    },
+    "object": {
+        "id": "&lt;UUID of the message to delete&gt;"
+    },
+    "verb": "delete"
+}
+</code></pre>
+<h3 id="kick">kick</h3>
+<p>Kick a user from a room.</p>
+<p>Responds with "gn_kick".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;UUID of the room to kick from&gt;"
+    },
+    "object": {
+        "id": "&lt;UUID of the user to kick&gt;"
+    },
+    "verb": "kick"
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<h3 id="ban">ban</h3>
+<p>Ban a user from a room for a given amount of time.</p>
+<p>Responds with "gn_ban".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "target": {
+        "id": "&lt;UUID of the room/channel to ban from&gt;",
+        "objectType": "&lt;room/channel/global&gt;"
+    },
+    "object": {
+        "id": "&lt;UUID of the user to ban&gt;",
+        "summary": "&lt;ban duration, an integer suffixed with one of [d, h, m, s]&gt;"
+    },
+    "verb": "kick"
+}
+</code></pre>
+<p>If banning a used in a room, set objectType to "room" and target.id to the uuid of the room. If banning from a channel,
+set objectType to "channel" and target.id to the uuid of the channel. If banning globally, set objectType to "global"
+and skip target.id.</p>
+<p>Summary is the duration of the ban. It's a number with a suffix d, h, m or s, meaning days, hours, minutes and seconds.
+Only one suffix can be used. E.g.:</p>
+<ul>
+<li>5m (ban for five minutes),</li>
+<li>3600s (ban for 3600 seconds, same as 1h),</li>
+<li>365d (ban for one year).</li>
+</ul>
+<p>It's not possible to permanently ban a user, but you can set a very large duration for the same effect. The only
+restriction is that the date when the ban ends (utcnow()+duration) must be before the year 10000 (date lib restriction).</p>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<h3 id="message">message</h3>
+<p>Send a message to a "room" UUID (can be the user UUID or an actual room UUID).</p>
+<p>Responds with event name "gn_message".</p>
+<p>Request contains:</p>
+<pre><code>{
+    verb: "send",
+    target: {
+        id: "&lt;room/user ID&gt;",
+        objectType: "&lt;room/private&gt;"
+    },
+    object: {
+        content: "&lt;the message, base64 encoded&gt;",
+    }
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": {
+        "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+        "published": "2016-10-07T10:45:34Z",
+        "actor": {
+            "id": "&lt;your user ID&gt;",
+            "displayName": "&lt;your user name&gt;"
+        },
+        "verb": "send",
+        "target": {
+            "id": "&lt;room ID&gt;",
+            "displayName": "&lt;room name&gt;"
+        },
+        "object": {
+            "content": "&lt;the message&gt;",
+            "displayName": "&lt;the channel name&gt;",
+            "url": "&lt;the channel id&gt;",
+            "objectType": "&lt;room/private&gt;"
+        }
+    }
+}
+</code></pre>
+<p>The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
+and the "published" field set to the time the server received the request (in RFC3339 format).</p>
+<h3 id="join">join</h3>
+<p>Responds with the event name "gn_join".</p>
+<p>Request contains:</p>
+<pre><code>{
+    "verb": "join",
+    "target": {
+        "id": "&lt;room ID&gt;"
+    }
+}
+</code></pre>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "room",
+            "attachments": [
+                {
+                    "objectType": "history",
+                    "attachments": [
+                        {
+                            "author": {
+                                "id": "&lt;the user id of the sender&gt;",
+                                "displayName": "&lt;the user name of the sender&gt;"
+                            },
+                            "id": "&lt;message ID&gt;",
+                            "content": "&lt;the message content&gt;",
+                            "published": "&lt;the time it was sent, RFC3339&gt;"
+                        },
+                        {
+                            "author": {
+                                "id": "&lt;the user id of the sender&gt;",
+                                "displayName": "&lt;the user name of the sender&gt;"
+                            },
+                            "id": "&lt;message ID&gt;",
+                            "content": "&lt;the message content&gt;",
+                            "published": "&lt;the time it was sent, RFC3339&gt;"
+                        }
+                    ]
+                },
+                {
+                    "objectType": "owner",
+                    "attachments": [
+                        {
+                            "id": "&lt;owner"s user ID&gt;",
+                            "displayName": "&lt;owner"s user name&gt;",
+                        },
+                        {
+                            "id": "&lt;owner"s user ID&gt;",
+                            "displayName": "&lt;owner"s user name&gt;",
+                        }
+                    ]
+                },
+                {
+                    "objectType": "acl",
+                    "attachments": [
+                        {
+                            "objectType": "&lt;ACL type name&gt;",
+                            "content": "&lt;ACL value&gt;",
+                        },
+                        {
+                            "objectType": "&lt;ACL type name&gt;",
+                            "content": "&lt;ACL value&gt;",
+                        }
+                    ]
+                },
+                {
+                    "objectType": "user",
+                    "attachments": [
+                        {
+                            "id": "&lt;user ID of a user in the room&gt;",
+                            "displayName": "&lt;user name of a user in the room&gt;",
+                        },
+                        {
+                            "id": "&lt;user ID of a user in the room&gt;",
+                            "displayName": "&lt;user name of a user in the room&gt;",
+                        }
+                    ]
+                },
+            ]
+        },
+        "verb": "join",
+        "target": {
+            "id": "&lt;the room ID that the user joined&gt;"
+        }
+    }
+}
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../events/" class="btn btn-neutral float-right" title="Events">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../getting_started/" class="btn btn-neutral" title="Getting Started"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../getting_started/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../events/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="../../js/theme.js"></script>
+
+</body>
+</html>

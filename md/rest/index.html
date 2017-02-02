@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>REST API - Dino</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "REST API";
+    var mkdocs_page_input_path = "md/rest.md";
+    var mkdocs_page_url = "/md/rest/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Dino</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../..">Home</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../getting_started/">Getting Started</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../api/">API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../events/">Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../external_events/">External Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">REST API</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#restful-api">RESTful API</a></li>
+                
+                    <li><a class="toctree-l4" href="#get-history">GET /history</a></li>
+                
+                    <li><a class="toctree-l4" href="#post-ban">POST /ban</a></li>
+                
+                    <li><a class="toctree-l4" href="#post-kick">POST /kick</a></li>
+                
+                    <li><a class="toctree-l4" href="#get-roles">GET /roles</a></li>
+                
+                    <li><a class="toctree-l4" href="#get-rooms-for-users">GET /rooms-for-users</a></li>
+                
+                    <li><a class="toctree-l4" href="#post-delete-messages">POST /delete-messages</a></li>
+                
+                    <li><a class="toctree-l4" href="#get-banned">GET /banned</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../wio/">Who Is Online</a>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Dino</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>REST API</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="restful-api">RESTful API</h2>
+<h3 id="get-history">GET /history</h3>
+<p>Request contains info on what time slice, target, origin to get history for:</p>
+<pre><code>{
+    "from_time": "2016-12-26T08:39:54Z",
+    "to_time": "2016-12-28T08:39:54Z",
+    "user_id": "124352",
+    "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+}
+</code></pre>
+<p>Response would be something similar to the following:</p>
+<pre><code>{
+    "status_code": 200,
+    "data": [{
+        "deleted": false,
+        "target_name": "YmFkIGtpZHo=",
+        "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
+        "timestamp": "2017-01-26T04:58:33Z",
+        "from_user_name": "YmF0bWFu",
+        "message_id": "37db81f2-4e16-4076-b759-8ce1c23a364e",
+        "from_user_id": "997110",
+        "channel_name": "U2hhbmdoYWk=",
+        "body": "aG93IGFyZSB5b3U/",
+        "domain": "room",
+        "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+    }, {
+        "deleted": false,
+        "target_name": "YmFkIGtpZHo=",
+        "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
+        "timestamp": "2017-01-26T04:58:31Z",
+        "from_user_name": "YmF0bWFu",
+        "message_id": "416d3c60-7197-471c-a706-7dbeca090d11",
+        "from_user_id": "997110",
+        "channel_name": "U2hhbmdoYWk=",
+        "body": "aGVsbG8gdGhlcmU=",
+        "domain": "room",
+        "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+    }, {
+        "deleted": false,
+        "target_name": "YmFkIGtpZHo=",
+        "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
+        "timestamp": "2017-01-26T04:58:16Z",
+        "from_user_name": "YmF0bWFu",
+        "message_id": "91655457-3712-4c2f-b6f2-c3b0f8be29e5",
+        "from_user_id": "997110",
+        "channel_name": "U2hhbmdoYWk=",
+        "body": "ZmRzYQ==",
+        "domain": "room",
+        "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+    }]
+}
+</code></pre>
+<ul>
+<li>If neither <code>from_time</code> nor <code>to_time</code> is specified, the last 7 days will be used as limit,</li>
+<li>If <code>from_time</code> is specified but no <code>to_time</code>, <code>to_time</code> will be <code>from_time + 7 days</code>,</li>
+<li>If <code>to_time</code> is specified but no <code>from_time</code>, <code>from_time</code> will be <code>to_time - 7 days</code>,</li>
+<li>Either <code>user_id</code> or <code>room_id</code> is required (both can be specified at the same time),</li>
+<li><code>to_time</code> needs to be after <code>from_time</code>.</li>
+</ul>
+<h3 id="post-ban">POST /ban</h3>
+<p>Request contains info on who to ban where. For banning globally:</p>
+<pre><code>{
+    "1234": {
+        "duration": "24h",
+        "reason": "&lt;optional base64 encoded free-text&gt;",
+        "admin_id": "&lt;id of user banning (must already exist), or leave empty for default&gt;",
+        "type": "global"
+    }
+}
+</code></pre>
+<p>Can also ban multiple users at the same time:</p>
+<pre><code>{
+    "&lt;user id&gt;": {
+        "duration": "24h",
+        "type": "global",
+        "reason": "&lt;option reason field, base64 encoded&gt;",
+        "admin_id": "&lt;optional id of admin user who is banning&gt;"
+    },
+    "&lt;user id&gt;": {
+        "duration": "10m",
+        "target": "&lt;channel uuid&gt;",
+        "type": "channel",
+        "reason": "&lt;option reason field, base64 encoded&gt;",
+        "admin_id": "&lt;optional id of admin user who is banning&gt;"
+    },
+    "&lt;user id&gt;": {
+        "duration": "7d",
+        "target": "&lt;room uuid&gt;",
+        "type": "room",
+        "reason": "&lt;option reason field, base64 encoded&gt;",
+        "admin_id": "&lt;optional id of admin user who is banning&gt;"
+    }
+}
+</code></pre>
+<p>The "reason" field must be base64 encoded. If the "admin_id" field is specified it will be used, if not the default ID
+"0" will be used.</p>
+<p>Duration is an integer followed by a char for the unit, which can be one of "d", "h", "m", "s" (days, hours, minutes, 
+seconds). Negative or 0 durations are not allowed.</p>
+<p>When type is set to "global", no target is specified (meaning user is banned from the whole chat server).</p>
+<p>Response will be something like the following:</p>
+<pre><code>{
+    "&lt;user id&gt;": {
+        "status": "OK"
+    },
+    "&lt;user id&gt;": {
+        "status": "FAIL",
+        "message": "invalid duration 5k"
+    },
+    "&lt;user id&gt;": {
+        "status": "FAIL",
+        "message": "no such user"
+    },
+    "&lt;user id&gt;" {
+        "status": "OK"
+    }
+}
+</code></pre>
+<h3 id="post-kick">POST /kick</h3>
+<p>Request contains:</p>
+<pre><code>{
+    "&lt;user id&gt;": {
+        "target": "&lt;room uuid&gt;",
+        "reason": "&lt;option reason field, base64 encoded&gt;",
+        "admin_id": "&lt;optional id of admin user who is kicking&gt;"
+    },
+    "&lt;user id&gt;": {
+        "target": "&lt;room uuid&gt;",
+        "reason": "&lt;option reason field, base64 encoded&gt;",
+        "admin_id": "&lt;optional id of admin user who is kicking&gt;"
+    },
+    "&lt;user id&gt;": {
+        "target": "&lt;room uuid&gt;",
+        "reason": "&lt;option reason field, base64 encoded&gt;",
+        "admin_id": "&lt;optional id of admin user who is kicking&gt;"
+    }
+}
+</code></pre>
+<p>The "reason" field must be base64 encoded. If the "admin_id" field is specified it will be used, if not the default ID
+"0" will be used.</p>
+<p>Response will be something like the following:</p>
+<pre><code>{
+    "&lt;user id&gt;": {
+        "status": "OK"
+    },
+    "&lt;user id&gt;": {
+        "status": "FAIL",
+        "message": "no such user"
+    },
+    "&lt;user id&gt;" {
+        "status": "OK"
+    }
+}
+</code></pre>
+<h3 id="get-roles">GET /roles</h3>
+<p>Request contains a list of user IDs, e.g.:</p>
+<pre><code>{
+    "users": [
+        "124352",
+        "5678"
+    ]
+}
+</code></pre>
+<p>Response would be something similar to the following:</p>
+<pre><code>{
+    "data": {
+        "124352": {
+            "room": {
+                "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": [
+                    "moderator"
+                ],
+                "bb0ea500-cd94-11e6-b178-8323deb605bf": [
+                    "owner"
+                ]
+            },
+            "channel": {
+                "dedf878e-b25d-4713-8058-20c6f0547c59": [
+                    "admin", 
+                    "owner"
+                ]
+            },
+            "global": [
+                "superuser"
+            ]
+        },
+        "5678": {
+            "room": {},
+            "channel": {},
+            "global": []
+        }
+    },
+    "status_code": 200
+}
+</code></pre>
+<p>Possible roles are:</p>
+<ul>
+<li>global superuser</li>
+<li>channel owner</li>
+<li>channel admin</li>
+<li>room owner</li>
+<li>room moderator</li>
+</ul>
+<h3 id="get-rooms-for-users">GET /rooms-for-users</h3>
+<p>Request contains a list of user IDs, e.g.:</p>
+<pre><code>{
+    "users": [
+        "1234",
+        "5678"
+    ]
+}
+</code></pre>
+<p>Response would be all rooms each user is currently in (room names and channel names are base64 encoded):</p>
+<pre><code>{
+    "1234": [{
+        "room_id": "efeca2fe-ba93-11e6-bc9a-4f6f56293063",
+        "room_name": "b2gsIHNvIHlvdSBhY3R1YWxseSBjaGVja2VkIHdoYXQgaXMgd2FzPw==",
+        "channel_id": "fb843140-ba93-11e6-b178-97f0297a6d4d",
+        "channel_name": "dG9tIGlzIGEgZnJlbmNoIG1hZG1hbg=="
+    }],
+    "5678": [{
+        "room_id": "ca1dc3b4-ba93-11e6-b835-7f1d961023a1",
+        "room_name": "cmVhZCB1cCBvbiBoeXBlcmxvZ2xvZysr",
+        "channel_id": "f621fcaa-ba93-11e6-8590-bfe35ff80c03",
+        "channel_name": "YSByZWRidWxsIGEgZGF5IGtlZXBzIHRoZSBzYW5kbWFuIGF3YXk="
+    }]
+}
+</code></pre>
+<h3 id="post-delete-messages">POST /delete-messages</h3>
+<p>Used to delete ALL messages for a specific user ID.</p>
+<p>Request body looks like this:</p>
+<pre><code>{
+    "id": "&lt;user ID&gt;"
+}
+</code></pre>
+<p>Example response:</p>
+<pre><code>{
+    "status_code": 200, 
+    "data": {
+        "success": 4, 
+        "failed": 0,
+        "total": 4
+    }
+}
+</code></pre>
+<p>Or if other kinds of failures:</p>
+<pre><code>{
+    "status_code": 500, 
+    "data": "&lt;error message, e.g. 'no id parameter in request'&gt;"
+}
+</code></pre>
+<h3 id="get-banned">GET /banned</h3>
+<p>No data required in request.</p>
+<p>Response is all banned users, separated by channel, room and globally. Example response:</p>
+<pre><code>{
+    "channels": {},
+    "global": {
+        "185626": {
+            "name": "bHVlbA==",
+            "duration": "1h",
+            "timestamp": "2016-12-05T03:50:24Z"
+        }
+    },
+    "rooms": {
+        "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
+            "name": "Y29vbCBndXlz",
+            "users": {
+                "101108": {
+                    "name": "bHVlbA==",
+                    "duration": "30m",
+                    "timestamp": "2016-12-05T03:20:24Z"
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>The "timestamp" in the response is the UTC timestamp for when the ban will expire. Names or channels, rooms and users
+are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the rooms, same for channels, while for users
+it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
+keys.</p>
+<h4 id="user-id-parameter">User ID parameter</h4>
+<p>The <code>/banned</code> endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:</p>
+<pre><code>curl localhost:5400/banned -d '{"users":["110464"]}' -X GET -H "Content-Type: application/json"
+</code></pre>
+<p>Response would be (slightly different from above example without request body):</p>
+<pre><code>{
+    "data": {
+        "110464": {
+            "channel": {},
+            "room": {
+                "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
+                    "name": "Y29vbCBndXlz",
+                    "duration": "15m",
+                    "timestamp": "2016-12-14T09:23:00Z"
+                },
+                "675eb2a5-17c6-45e4-bc0f-674241573f22": {
+                    "name": "YmFkIGtpZHo=",
+                    "duration": "2m",
+                    "timestamp": "2016-12-14T09:15:51Z"
+                }
+            },
+            "global": {}
+        }
+    },
+    "status_code": 200
+}
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../wio/" class="btn btn-neutral float-right" title="Who Is Online">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../external_events/" class="btn btn-neutral" title="External Events"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../external_events/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../wio/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="../../js/theme.js"></script>
+
+</body>
+</html>

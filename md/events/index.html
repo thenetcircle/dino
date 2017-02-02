@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Events - Dino</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Events";
+    var mkdocs_page_input_path = "md/events.md";
+    var mkdocs_page_url = "/md/events/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Dino</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../..">Home</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../getting_started/">Getting Started</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../api/">API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Events</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#events">Events</a></li>
+                
+                    <li><a class="toctree-l4" href="#message-deleted">Message deleted</a></li>
+                
+                    <li><a class="toctree-l4" href="#message-received">Message received</a></li>
+                
+                    <li><a class="toctree-l4" href="#admin-presence-requested">Admin presence requested</a></li>
+                
+                    <li><a class="toctree-l4" href="#invitation-received">Invitation received</a></li>
+                
+                    <li><a class="toctree-l4" href="#another-user-joins-the-room">Another user joins the room</a></li>
+                
+                    <li><a class="toctree-l4" href="#another-user-leaves-room">Another user leaves room</a></li>
+                
+                    <li><a class="toctree-l4" href="#another-user-disconnects">Another user disconnects</a></li>
+                
+                    <li><a class="toctree-l4" href="#a-new-room-is-created">A new room is created</a></li>
+                
+                    <li><a class="toctree-l4" href="#a-user-is-kicked-from-a-room">A user is kicked from a room</a></li>
+                
+                    <li><a class="toctree-l4" href="#a-user-is-banned">A user is banned</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../external_events/">External Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../rest/">REST API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../wio/">Who Is Online</a>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Dino</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Events</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="events">Events</h2>
+<h3 id="message-deleted">Message deleted</h3>
+<p>When an admin/mod/etc. deletes a message from a room, everyone on that room will receive an event with the name 
+<code>gn_message_deleted</code> so they can remove it locally as well.</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "object": {
+        "id": "&lt;UUID of the message that was deleted&gt;"
+    },
+    "target": {
+        "id": "&lt;UUID of the room the message was deleted in&gt;"
+    },
+    "verb": "delete",
+    "actor": {
+        "id": "&lt;ID fo the user who deleted the message&gt;",
+        "displayName": "&lt;name of the user, base64&gt;"
+    }
+}
+</code></pre>
+<h3 id="message-received">Message received</h3>
+<p>When user A receives a private message, or a message from a room that user A is in, the event <code>gn_message</code> will be sent
+to user A with the following content:</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "actor": {
+        "id": "&lt;UUID of the sender&gt;",
+        "displayName": "&lt;name of the sender&gt;"
+    },
+    "verb": "send",
+    "target": {
+        "id": "&lt;UUID of the room, or this user's UUID if private msg&gt;",
+        "displayName": "&lt;name of the room, or target user name if private msg&gt;",
+        "objectType": "&lt;room/private&gt;"
+    },
+    "object": {
+        "content": "&lt;the message body&gt;",
+        "displayName": "&lt;the name of the channel, or empty if private msg&gt;",
+        "url": "&lt;UUID of the channel for this room, or empty if private msg&gt;"
+    }
+}
+</code></pre>
+<h3 id="admin-presence-requested">Admin presence requested</h3>
+<p>When someone requests the presence of an admin in a room all users in the Admin room for that channel will receive an
+event called <code>gn_admin_requested</code> containing the following:</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "actor": {
+        "id": "&lt;UUID of user requesting&gt;",
+        "displayName": "&lt;name of the user requesting&gt;",,
+        "attachments": [
+            {
+                "content": "NDA=",
+                "objectType": "age"
+            },
+            {
+                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                "objectType": "avatar"
+            }
+        ]
+    },
+    "verb": "help",
+    "object": {
+        "content": "&lt;base64 encoded message&gt;"
+    },
+    "target": {
+        "id": "&lt;UUID of the room the help was requested for&gt;",
+        "displayName": "&lt;name of the room&gt;"
+    }
+}
+</code></pre>
+<h3 id="invitation-received">Invitation received</h3>
+<p>When user B invites user A to join room X, the event <code>gn_invitation</code> will be sent to user A with the following content:</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "actor": {
+        "id": "&lt;UUID of user B&gt;",
+        "displayName": "&lt;name of user B&gt;",,
+        "attachments": [
+            {
+                "content": "NDA=",
+                "objectType": "age"
+            },
+            {
+                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                "objectType": "avatar"
+            }
+        ]
+    },
+    "verb": "invite",
+    "object": {
+        "url": "&lt;UUID of the channel for room X&gt;",
+        "displayName": "&lt;name of the channel for room X&gt;"
+    },
+    "target": {
+        "id": "&lt;UUID of the room&gt;",
+        "displayName": "&lt;name of the room&gt;"
+    }
+}
+</code></pre>
+<h3 id="another-user-joins-the-room">Another user joins the room</h3>
+<p>If user A is in room X, and another user B joins room X, the server will send an event called <code>gn_user_joined</code> to user A
+with the following content:</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "actor": {
+        "id": "&lt;user B's UUID&gt;",
+        "displayName": "&lt;name of user B&gt;",
+        "image": {
+            "url": "&lt;user B's image url&gt;"
+        },
+        "attachments": [
+            {
+                "content": "NDA=",
+                "objectType": "age"
+            },
+            {
+                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                "objectType": "avatar"
+            }
+        ]
+    },
+    "target": {
+        "id": "&lt;uuid of the room&gt;",
+        "displayName": "&lt;name of the room&gt;"
+    },
+    "verb": "join"
+}
+</code></pre>
+<h3 id="another-user-leaves-room">Another user leaves room</h3>
+<p>When user A is in room X, and another user B leaves room X, the sever will send an event called <code>gn_user_left</code> to user A
+with the following content:</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "actor": {
+        "id": "&lt;user B's UUID&gt;",
+        "displayName": "&lt;name of user B&gt;",
+    },
+    "target": {
+        "id": "&lt;uuid of the room&gt;",
+        "displayName": "&lt;name of the room&gt;"
+    },
+    "verb": "leave"
+}
+</code></pre>
+<h3 id="another-user-disconnects">Another user disconnects</h3>
+<p>If user A is in any room that user B is in, and user B disconnects from the chat server, an event called
+<code>gn_user_disconnected</code> will be sent to user A with the following content:</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "actor": {
+        "id": "&lt;user B's UUID&gt;",
+        "displayName": "&lt;name of user B&gt;",
+    },
+    "verb": 'disconnect'
+}
+</code></pre>
+<h3 id="a-new-room-is-created">A new room is created</h3>
+<p>When a new room is created in a channel that user A is in, an event called <code>gn_room_created</code> will be sent to user A with
+the following content:</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "actor": {
+        "id": "&lt;UUID of user who created the room&gt;",
+        "displayName": "&lt;name of the user who created the room&gt;",,
+        "attachments": [
+            {
+                "content": "NDA=",
+                "objectType": "age"
+            },
+            {
+                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                "objectType": "avatar"
+            }
+        ]
+    },
+    "object": {
+        "url": "&lt;UUID of the channel for this room&gt;"
+    },
+    "target": {
+        "id": "&lt;UUID of the new room&gt;",
+        "displayName": "&lt;name of the new room&gt;"
+    },
+    "verb": "create"
+}
+</code></pre>
+<h3 id="a-user-is-kicked-from-a-room">A user is kicked from a room</h3>
+<p>When a user is kicked from a room, an event will be sent to all users in that room (except the kicked user), called 
+<code>gn_user_kicked</code>, with the following content:</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "actor": {
+        "id": "&lt;UUID of the kicker&gt;",
+        "displayName": "&lt;name of the kicker&gt;",,
+        "attachments": [
+            {
+                "content": "NDA=",
+                "objectType": "age"
+            },
+            {
+                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                "objectType": "avatar"
+            }
+        ]
+    },
+    "object": {
+        "id": "&lt;UUID of the kicked user&gt;",
+        "displayName": "&lt;name of the kicked user&gt;",,
+        "attachments": [
+            {
+                "content": "NDA=",
+                "objectType": "age"
+            },
+            {
+                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                "objectType": "avatar"
+            }
+        ]
+    },
+    "target": {
+        "id": "&lt;UUID of the room the user was kicked from&gt;",
+        "displayName": "&lt;name of the room the user was kicked from&gt;"
+    },
+    "verb": "kick"
+}
+</code></pre>
+<h3 id="a-user-is-banned">A user is banned</h3>
+<p>TODO: currently the user will be banned, but the "kicked" event will be broadcasted to relevant users. There's currently
+no "banned" event for this.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../external_events/" class="btn btn-neutral float-right" title="External Events">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../api/" class="btn btn-neutral" title="API"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../api/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../external_events/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="../../js/theme.js"></script>
+
+</body>
+</html>

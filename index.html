@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="None">
+  
+  <link rel="shortcut icon" href="./img/favicon.ico">
+  <title>Home - Dino</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="./css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="./css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Home";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = "/";
+  </script>
+  
+  <script src="./js/jquery-2.1.1.min.js"></script>
+  <script src="./js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="./js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> Dino</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href=".">Home</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#dino">Dino</a></li>
+                
+                    <li><a class="toctree-l4" href="#requirements">Requirements</a></li>
+                
+                    <li><a class="toctree-l4" href="#running-the-application">Running the application</a></li>
+                
+                    <li><a class="toctree-l4" href="#load-balancing-and-scaling">Load Balancing and Scaling</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="md/getting_started/">Getting Started</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="md/api/">API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="md/events/">Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="md/external_events/">External Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="md/rest/">REST API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="md/wio/">Who Is Online</a>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">Dino</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Home</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="dino">Dino</h1>
+<p>Dino is a distributed notification service intended to push events to groups of clients. Example use cases are chat 
+server, real-time notifications for websites, push notifications for mobile apps, multi-player browser games, and more. 
+Dino is unopinionated and any kind of events can be sent, meaning Dino only acts as the router of events between 
+clients.</p>
+<p>Any number of nodes can be started on different machines or same machine on different port. Flask will handle connection
+ routing using either Redis or RabbitMQ as a message queue internally. An nginx reverse proxy needs to sit in-front of
+ all these nodes with sticky sessions (<code>ip_hash</code>). Fail-over can be configured in nginx for high availability.</p>
+<p><a href="https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-arch.svg"><img alt="Dino Architecture" src="https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-arch.png" /></a></p>
+<h2 id="requirements">Requirements</h2>
+<p>Some package requirements (debian/ubuntu):</p>
+<pre><code>$ sudo apt-get install libssl-dev libmysqlclient-dev libpg-dev
+TODO: more requirements...
+</code></pre>
+<p>Requires Python &gt;=3.5. Download and install from source:</p>
+<pre><code>$ wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz
+$ tar -xvf Python-3.5.2.tar.xz
+$ cd Python-3.5.2/
+$ ./configure --prefix=/usr/local --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+$ make
+$ sudo make altinstall
+$ sudo apt-get install virtualenv
+</code></pre>
+<p>TODO: check if docker could be useful: https://www.digitalocean.com/community/tutorials/docker-explained-how-to-containerize-python-web-applications</p>
+<h2 id="running-the-application">Running the application</h2>
+<pre><code>$ cd dino/
+$ virtualenv --python=python3.5 env
+$ source env/bin/activate
+(env) $ pip install --upgrade .
+(env) $ ENVIRONMENT=prod gunicorn \
+            --error-logfile ~/dino-gunicorn-error.log \
+            --log-file ~/dino-gunicorn.log \
+            --worker-class eventlet \
+            --threads 1 \
+            --worker-connections 5000 \
+            --workers 1 \
+            --bind 0.0.0.0:5210 \
+            app:app
+</code></pre>
+<p>Add "--reload" during development.</p>
+<h2 id="load-balancing-and-scaling">Load Balancing and Scaling</h2>
+<p>Example nginx configuration:</p>
+<pre><code>upstream gridnodes {
+    ip_hash;
+
+    server some-ip-or-host-1:5210;
+    server some-ip-or-host-2:5210;
+    server some-ip-or-host-3:5210;
+    server some-ip-or-host-4:5210;
+    server some-ip-or-host-5:5210;
+    server some-ip-or-host-6:5210;
+    server some-ip-or-host-7:5210;
+    server some-ip-or-host-8:5210;
+}
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+server {
+    listen 5200;
+
+    location / {
+        access_log on;
+
+        proxy_pass http://gridnodes;
+        proxy_next_upstream error timeout invalid_header http_500;
+        proxy_connect_timeout 2;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # WebSocket support (nginx 1.4)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="md/getting_started/" class="btn btn-neutral float-right" title="Getting Started">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+        <span style="margin-left: 15px"><a href="md/getting_started/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="./js/theme.js"></script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 0.16.1
+Build Date UTC : 2017-02-02 05:04:08
+-->
