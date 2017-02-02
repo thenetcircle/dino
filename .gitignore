@@ -10,3 +10,7 @@ setup.cfg
 .eggs
 .coverage
 /site
+/secrets/dev.yaml
+/secrets/prod.yaml
+/secrets/oscar.yaml
+/secrets/integration.yaml

@@ -74,7 +74,7 @@ Example nginx configuration:
 
 Some package requirements (debian/ubuntu):
 
-    $ sudo apt-get install libssl-dev libmysqlclient-dev libpg-dev
+    $ sudo apt-get install libssl-dev libmysqlclient-dev libpq-dev
     TODO: more requirements...
 
 Requires Python >=3.5. Download and install from source:
@@ -106,6 +106,10 @@ TODO: check if docker could be useful: https://www.digitalocean.com/community/tu
                 app:app
                 
 Add "--reload" during development.
+
+#### Running in Docker
+
+    docker run --env-file secrets/dev.env
 
 ### Building the documentation
 

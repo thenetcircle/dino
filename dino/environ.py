@@ -265,6 +265,8 @@ def find_config(config_paths: list) -> str:
                 config_dict = json.load(open(path))
             else:
                 raise RuntimeError("Unsupported file extension: {0}".format(conf))
+
+            os.environ
         except Exception as e:
             raise RuntimeError("Failed to open configuration {0}: {1}".format(conf, str(e)))
 
@@ -332,6 +334,22 @@ def choose_queue_instance(config_dict: dict) -> object:
     raise RuntimeError('unknown queue type "%s"' % queue_type)
 
 
+def load_secrets_file(config_dict: dict) -> dict:
+    gn_env = os.getenv(ENV_KEY_ENVIRONMENT)
+    secrets_path = 'secrets/%s.yaml' % gn_env
+    try:
+        secrets = yaml.load(open(secrets_path))
+    except Exception as e:
+        raise RuntimeError("Failed to open secrets configuration {0}: {1}".format(secrets_path, str(e)))
+
+    from string import Template
+    import ast
+
+    template = Template(str(config_dict))
+    template = template.safe_substitute(secrets)
+    return ast.literal_eval(template)
+
+
 def create_env(config_paths: list = None) -> GNEnvironment:
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
     logger.info('using environment %s' % gn_environment)
@@ -346,6 +364,7 @@ def create_env(config_paths: list = None) -> GNEnvironment:
         raise RuntimeError('no configuration found for environment "%s"' % gn_environment)
 
     config_dict = config_dict[gn_environment]
+    config_dict = load_secrets_file(config_dict)
 
     if ConfigKeys.STORAGE not in config_dict:
         raise RuntimeError('no storage configured for environment %s' % gn_environment)
