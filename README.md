@@ -106,3 +106,17 @@ TODO: check if docker could be useful: https://www.digitalocean.com/community/tu
                 app:app
                 
 Add "--reload" during development.
+
+### Building the documentation
+
+Viewing locally:
+
+    $ mkdocs serve
+
+Building the site (not necessary):
+
+    $ mkdocs build
+    
+Deploy to gihub pages:
+
+    $ mkdocs gh-deploy
