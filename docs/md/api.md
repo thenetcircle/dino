@@ -493,6 +493,32 @@ Response data if successful:
         }
     }
 
+It is also possible to specify ACLs for a room while creating it, but adding object.attachments as in `set_acl` event:
+
+
+    {
+        "target": {
+            "displayName": "<name of the new room>"
+        },
+        "object": {
+            "url": "<channel UUID>",
+            "objectType": "acl",
+            "attachments": [
+                {
+                    "objectType": "<ACL type name>",
+                    "content": "<ACL value>",
+                    "summary": "<API action, e.g. join/kick/etc>"
+                },
+                {
+                    "objectType": "<ACL type name>",
+                    "content": "<ACL value>",
+                    "summary": "<API action, e.g. join/kick/etc>"
+                }
+            ]
+        },
+        "verb": "create"
+    }
+
 ### invite
 
 Invite another user to a room the current user is already in.
