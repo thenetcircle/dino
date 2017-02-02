@@ -1,0 +1,10 @@
+site_name: Dino
+pages:
+    - Home: index.md
+    - Getting Started: md/getting_started.md
+    - API: md/api.md
+    - Events: md/events.md
+    - External Events: md/external_events.md
+    - REST API: md/rest.md
+    - Who Is Online: md/wio.md
+theme: readthedocs

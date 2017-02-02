@@ -223,7 +223,7 @@ The "object.content" could be anything, e.g. a base64 encoded json message with 
 reason text etc. 
 
 The event generated to be sent to the admin room is called "gn_admin_requested" (see 
-[Events](docs/md/events.md#gn_admin_requested) for more information).
+[Events](events.md#gn_admin_requested) for more information).
 
 ### leave
 
