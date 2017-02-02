@@ -252,9 +252,16 @@ def on_create(data: dict, activity: Activity) -> (int, dict):
     """
     # generate a uuid for this room
     activity.target.id = str(uuid())
+    activity.target.object_type = 'room'
     data['target']['id'] = activity.target.id
+    data['target']['objectType'] = activity.target.object_type
 
     environ.env.observer.emit('on_create', (data, activity))
+
+    if hasattr(activity, 'object') and hasattr(activity.object, 'attachments'):
+        if activity.object.attachments is not None and len(activity.object.attachments) > 0:
+            environ.env.observer.emit('on_set_acl', (data, activity))
+
     return ECodes.OK, data
 
 
