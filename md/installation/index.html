@@ -231,6 +231,8 @@ $ source env/bin/activate
             --bind 0.0.0.0:5210 \
             app:app
 </code></pre>
+<p>To run the rest API and admin interface use the same command but change <code>app:app</code> to <code>rest:app</code> and <code>web:app</code> 
+respectively.</p>
 <h3 id="running-in-docker">Running in Docker</h3>
 <p>First create the image:</p>
 <pre><code>sudo docker build -t dino .
