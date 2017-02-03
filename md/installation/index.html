@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Installation - Dino</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Installation";
+    var mkdocs_page_input_path = "md/installation.md";
+    var mkdocs_page_url = "/md/installation/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Dino</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../..">Home</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Installation</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#installation-and-running">Installation and Running</a></li>
+                
+                    <li><a class="toctree-l4" href="#requirements">Requirements</a></li>
+                
+                    <li><a class="toctree-l4" href="#clustering">Clustering</a></li>
+                
+                    <li><a class="toctree-l4" href="#running-the-application">Running the application</a></li>
+                
+                    <li><a class="toctree-l4" href="#building-the-documentation">Building the documentation</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../getting_started/">Getting Started</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../api/">API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../events/">Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../external_events/">External Events</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../rest/">REST API</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../wio/">Who Is Online</a>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Dino</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Installation</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="installation-and-running">Installation and Running</h1>
+<h2 id="requirements">Requirements</h2>
+<p>Some package requirements (debian/ubuntu):</p>
+<pre><code>$ sudo apt-get update
+$ sudo apt-get install tar git curl nano wget dialog net-tools build-essential
+$ sudo apt-get install libssl-dev libmysqlclient-dev libpq-dev virtualenv
+</code></pre>
+<p>Requires Python &gt;=3.5. Download and install from source:</p>
+<pre><code>$ wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz
+$ tar -xvf Python-3.5.2.tar.xz
+$ cd Python-3.5.2/
+$ ./configure --prefix=/usr/local --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+$ make
+$ sudo make altinstall
+</code></pre>
+<p>If using redis, postgresql/mysql and cassandra, please see relevant documentation for how to install:</p>
+<ul>
+<li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-redis-on-ubuntu-16-04">Redis</a></li>
+<li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-16-04">PostgreSQL</a></li>
+<li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-14-04">MySQL</a></li>
+<li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-cassandra-and-run-a-single-node-cluster-on-ubuntu-14-04">Apache Cassandra</a></li>
+</ul>
+<h2 id="clustering">Clustering</h2>
+<p>If clustering dino, install a reverse proxy that supports websockets, e.g. nginx. Here's an example configuration:</p>
+<pre><code>upstream gridnodes {
+    ip_hash;
+
+    server some-ip-or-host-1:5210;
+    server some-ip-or-host-2:5210;
+    server some-ip-or-host-3:5210;
+    server some-ip-or-host-4:5210;
+    server some-ip-or-host-5:5210;
+    server some-ip-or-host-6:5210;
+    server some-ip-or-host-7:5210;
+    server some-ip-or-host-8:5210;
+}
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+server {
+    listen 5200;
+
+    location / {
+        access_log on;
+
+        proxy_pass http://gridnodes;
+        proxy_next_upstream error timeout invalid_header http_500;
+        proxy_connect_timeout 2;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # WebSocket support (nginx 1.4)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+</code></pre>
+<h2 id="running-the-application">Running the application</h2>
+<pre><code>$ cd dino/
+$ virtualenv --python=python3.5 env
+$ source env/bin/activate
+(env) $ pip install --upgrade -r requirements.txt
+(env) $ pip install --upgrade --no-deps .
+(env) $ ENVIRONMENT=dev gunicorn \
+            --error-logfile ~/dino-gunicorn-error.log \
+            --log-file ~/dino-gunicorn.log \
+            --worker-class eventlet \
+            --threads 1 \
+            --worker-connections 5000 \
+            --workers 1 \
+            --bind 0.0.0.0:5210 \
+            app:app
+</code></pre>
+<h3 id="running-in-docker">Running in Docker</h3>
+<p>First create the image:</p>
+<pre><code>sudo docker build -t dino .
+</code></pre>
+<p>Then we can run it (create an environments file in secrets/ for your chosen environment (dev/prod/etc), e.g. 
+<code>secrets/dev.env</code>. Check the <code>secrets/default.env</code> for an example. Then we can run the image:</p>
+<pre><code>sudo docker run --env-file=secrets/dev.env --env DINO_PORT=5120 -t dino
+</code></pre>
+<p>Note that we didn't put the port in the <code>dev.env</code> file (though we could), because if starting multiple dino nodes they
+need to use different ports.</p>
+<h3 id="running-in-kubernetes">Running in Kubernetes</h3>
+<p>For running in Kubernetes we need to use Kubernetes <code>Secrets</code> instead of the <code>.env</code> files. Example configuration for 
+some secret values for your pod:</p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-env-pod
+spec:
+  containers:
+    - name: mycontainer
+      image: redis
+      env:
+        - name: DINO_DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: dev-secrets
+              key: db-host
+        - name: DINO_DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: dev-secrets
+              key: db-user
+  restartPolicy: Never
+</code></pre>
+<p>Read more on Kubernetes website on <a href="https://kubernetes.io/docs/user-guide/secrets/#creating-your-own-secrets">how to create the secrets object</a> 
+and then how to <a href="https://kubernetes.io/docs/user-guide/secrets/#using-secrets-as-environment-variables">configure your pod to use it</a>.</p>
+<h2 id="building-the-documentation">Building the documentation</h2>
+<p>Viewing locally:</p>
+<pre><code>$ mkdocs serve
+</code></pre>
+<p>Building the site (not necessary):</p>
+<pre><code>$ mkdocs build
+</code></pre>
+<p>Deploy to gihub pages:</p>
+<pre><code>$ mkdocs gh-deploy
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../getting_started/" class="btn btn-neutral float-right" title="Getting Started">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../.." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../.." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../getting_started/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="../../js/theme.js"></script>
+
+</body>
+</html>
