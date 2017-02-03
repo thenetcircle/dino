@@ -60,7 +60,7 @@ from dino.validation.acl import AclDisallowValidator
 from dino.validation.acl import AclIsAdminValidator
 from dino.validation.acl import AclIsSuperUserValidator
 
-ENV_KEY_ENVIRONMENT = 'ENVIRONMENT'
+ENV_KEY_ENVIRONMENT = 'DINO_ENVIRONMENT'
 
 logger = logging.getLogger(__name__)
 

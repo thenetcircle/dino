@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ENVIRONMENT=$DINO_ENVIRONMENT gunicorn \
+gunicorn \
         --error-logfile ~/dino-gunicorn-error.log \
         --log-file ~/dino-gunicorn.log \
         --worker-class eventlet \

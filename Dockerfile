@@ -22,7 +22,7 @@ RUN apt-get install -y libssl-dev libmysqlclient-dev libpq-dev virtualenv
 # Install Python
 RUN wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz
 RUN tar -xvf Python-3.5.2.tar.xz
-WORKDIR Python-3.5.2
+WORKDIR /Python-3.5.2
 RUN ./configure --prefix=/usr/local --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
 RUN make
 RUN make altinstall
@@ -31,9 +31,9 @@ RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3.5 get-pip.py
 
 # Time for Dino
-WORKDIR ~
-RUN a=b git clone https://github.com/thenetcircle/dino.git
-WORKDIR dino
+WORKDIR /
+RUN a=c git clone https://github.com/thenetcircle/dino.git
+WORKDIR /dino
 RUN virtualenv --python=python3.5 env
 RUN source env/bin/activate
 RUN pip install --upgrade pip setuptools
