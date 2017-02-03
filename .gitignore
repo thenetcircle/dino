@@ -11,3 +11,4 @@ setup.cfg
 .coverage
 /site
 /secrets/*.env
+/secrets/oscar.yaml

@@ -349,6 +349,7 @@ def load_secrets_file(config_dict: dict) -> dict:
             secrets = yaml.load(open(secrets_path))
         except Exception as e:
             raise RuntimeError("Failed to open secrets configuration {0}: {1}".format(secrets_path, str(e)))
+        template = Template(template)
         template = template.safe_substitute(secrets)
 
     return ast.literal_eval(template)
@@ -803,5 +804,6 @@ def initialize_env(dino_env):
 _config_paths = None
 if 'DINO_CONFIG' in os.environ:
     _config_paths = [os.environ['DINO_CONFIG']]
+
 env = create_env(_config_paths)
 initialize_env(env)

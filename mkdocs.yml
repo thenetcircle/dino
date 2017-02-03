@@ -1,6 +1,7 @@
 site_name: Dino
 pages:
     - Home: index.md
+    - Installation: md/installation.md
     - Getting Started: md/getting_started.md
     - API: md/api.md
     - Events: md/events.md

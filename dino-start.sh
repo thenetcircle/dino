@@ -1,8 +1,8 @@
 #!/bin/bash
 
 gunicorn \
-        --error-logfile ~/dino-gunicorn-error.log \
-        --log-file ~/dino-gunicorn.log \
+        --error-logfile dino-gunicorn-error.log \
+        --log-file dino-gunicorn.log \
         --worker-class eventlet \
         --threads 1 \
         --worker-connections 5000 \
