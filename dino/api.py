@@ -401,7 +401,6 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     rooms_with_acls = activity_json['object']['attachments']
     for room_info in rooms_with_acls:
         acls = utils.get_acls_for_room(room_info['id'])
-        print(acls)
         acl_activity = utils.activity_for_get_acl(activity, acls)
         room_info['attachments'] = acl_activity['object']['attachments']
 

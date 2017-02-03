@@ -27,13 +27,13 @@ class FakeDb(object):
 
 class TestEnvironment(unittest.TestCase):
     def test_env(self):
-        if 'ENVIRONMENT' in os.environ:
-            del os.environ['ENVIRONMENT']
+        if 'DINO_ENVIRONMENT' in os.environ:
+            del os.environ['DINO_ENVIRONMENT']
         env = create_env()
         self.assertEqual(0, len(env.config))
 
     def test_create_with_environment(self):
-        os.environ['ENVIRONMENT'] = 'integration'
+        os.environ['DINO_ENVIRONMENT'] = 'integration'
         env = create_env()
         self.assertTrue(ConfigKeys.LOG_FORMAT in env.config.keys())
         self.assertTrue(ConfigKeys.LOG_LEVEL in env.config.keys())
@@ -42,37 +42,37 @@ class TestEnvironment(unittest.TestCase):
         self.assertTrue(ConfigKeys.SESSION in env.config.keys())
 
     def test_init_cache_service(self):
-        os.environ['ENVIRONMENT'] = 'integration'
+        os.environ['DINO_ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_cache_service(env)
 
     def test_init_auth_service(self):
-        os.environ['ENVIRONMENT'] = 'integration'
+        os.environ['DINO_ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_auth_service(env)
 
     def test_init_storage_engine(self):
-        os.environ['ENVIRONMENT'] = 'integration'
+        os.environ['DINO_ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_storage_engine(env)
 
     def test_init_database(self):
-        os.environ['ENVIRONMENT'] = 'integration'
+        os.environ['DINO_ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_database(env)
 
     def test_init_acl_validators(self):
-        os.environ['ENVIRONMENT'] = 'integration'
+        os.environ['DINO_ENVIRONMENT'] = 'integration'
         env = create_env()
         env.db = FakeDb()
         environ.init_acl_validators(env)
 
     def test_create_non_existing_config_file(self):
-        os.environ['ENVIRONMENT'] = 'test'
+        os.environ['DINO_ENVIRONMENT'] = 'test'
         self.assertRaises(RuntimeError, create_env, ['foo.yaml', 'bar.json'])
 
     def test_create_existing_yaml_file(self):
@@ -82,7 +82,7 @@ class TestEnvironment(unittest.TestCase):
         f.close()
 
         try:
-            os.environ['ENVIRONMENT'] = 'test'
+            os.environ['DINO_ENVIRONMENT'] = 'test'
             create_env([f.name])
         finally:
             os.remove(f.name)
@@ -93,7 +93,7 @@ class TestEnvironment(unittest.TestCase):
         f.close()
 
         try:
-            os.environ['ENVIRONMENT'] = 'test'
+            os.environ['DINO_ENVIRONMENT'] = 'test'
             env = create_env([f.name])
             self.assertIsNotNone(env.config.get(ConfigKeys.LOG_LEVEL))
         finally:
@@ -105,7 +105,7 @@ class TestEnvironment(unittest.TestCase):
         f.close()
 
         try:
-            os.environ['ENVIRONMENT'] = 'should_not_find'
+            os.environ['DINO_ENVIRONMENT'] = 'should_not_find'
             self.assertRaises(RuntimeError, create_env, [f.name])
         finally:
             os.remove(f.name)
@@ -116,7 +116,7 @@ class TestEnvironment(unittest.TestCase):
         f.close()
 
         try:
-            os.environ['ENVIRONMENT'] = 'test'
+            os.environ['DINO_ENVIRONMENT'] = 'test'
             self.assertRaises(RuntimeError, create_env, [f.name])
         finally:
             os.remove(f.name)
@@ -127,7 +127,7 @@ class TestEnvironment(unittest.TestCase):
         f.close()
 
         try:
-            os.environ['ENVIRONMENT'] = 'test'
+            os.environ['DINO_ENVIRONMENT'] = 'test'
             create_env([f.name])
         finally:
             os.remove(f.name)
