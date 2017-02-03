@@ -266,7 +266,6 @@ def find_config(config_paths: list) -> str:
             else:
                 raise RuntimeError("Unsupported file extension: {0}".format(conf))
 
-            os.environ
         except Exception as e:
             raise RuntimeError("Failed to open configuration {0}: {1}".format(conf, str(e)))
 
@@ -335,18 +334,23 @@ def choose_queue_instance(config_dict: dict) -> object:
 
 
 def load_secrets_file(config_dict: dict) -> dict:
-    gn_env = os.getenv(ENV_KEY_ENVIRONMENT)
-    secrets_path = 'secrets/%s.yaml' % gn_env
-    try:
-        secrets = yaml.load(open(secrets_path))
-    except Exception as e:
-        raise RuntimeError("Failed to open secrets configuration {0}: {1}".format(secrets_path, str(e)))
-
     from string import Template
     import ast
 
+    gn_env = os.getenv(ENV_KEY_ENVIRONMENT)
+    secrets_path = 'secrets/%s.yaml' % gn_env
+
+    # first substitute environment variables, which holds precedence over the yaml config (if it exists)
     template = Template(str(config_dict))
-    template = template.safe_substitute(secrets)
+    template = template.safe_substitute(os.environ)
+
+    if os.path.isfile(secrets_path):
+        try:
+            secrets = yaml.load(open(secrets_path))
+        except Exception as e:
+            raise RuntimeError("Failed to open secrets configuration {0}: {1}".format(secrets_path, str(e)))
+        template = template.safe_substitute(secrets)
+
     return ast.literal_eval(template)
 
 
