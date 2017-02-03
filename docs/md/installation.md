@@ -81,6 +81,9 @@ If clustering dino, install a reverse proxy that supports websockets, e.g. nginx
                 --bind 0.0.0.0:5210 \
                 app:app
 
+To run the rest API and admin interface use the same command but change `app:app` to `rest:app` and `web:app` 
+respectively.
+
 ### Running in Docker
 
 First create the image:
