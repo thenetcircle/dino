@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 gunicorn \
         --error-logfile ~/dino-gunicorn-error.log \

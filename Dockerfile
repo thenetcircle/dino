@@ -32,7 +32,7 @@ RUN python3.5 get-pip.py
 
 # Time for Dino
 WORKDIR /
-RUN a=c git clone https://github.com/thenetcircle/dino.git
+RUN a=d git clone https://github.com/thenetcircle/dino.git
 WORKDIR /dino
 RUN virtualenv --python=python3.5 env
 RUN source env/bin/activate
