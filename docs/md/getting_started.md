@@ -1,5 +1,3 @@
-## Getting Started
-
 This example is using JavaScript.
 
 First we connect to the server:
@@ -86,13 +84,13 @@ of channels in the response. For these events the data part is always a JSON in 
         }
     }
 
-### Encoding
+## Encoding
 
 All user names, room names, channel names and chat messages are expected to be base64 encoded unicode strings. All
 responses and events originating from the server will also follow this practice, so when listing rooms/channels/users
 all names will always be in base64.
 
-### Authentication
+## Authentication
 
 If the `redis` authentication method is configured, then when clients send the `login` event to the server, the
 supplied `token` and `actor.id` parameter must already exist in Redis. When the server gets the login event it will

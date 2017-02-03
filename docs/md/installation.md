@@ -1,6 +1,3 @@
-
-# Installation and Running
-
 ## Requirements
 
 Some package requirements (debian/ubuntu):

@@ -1,6 +1,4 @@
-## Events
-
-### Message deleted
+## Message deleted
 
 When an admin/mod/etc. deletes a message from a room, everyone on that room will receive an event with the name 
 `gn_message_deleted` so they can remove it locally as well.
@@ -21,7 +19,7 @@ When an admin/mod/etc. deletes a message from a room, everyone on that room will
         }
     }
 
-### Message received
+## Message received
 
 When user A receives a private message, or a message from a room that user A is in, the event `gn_message` will be sent
 to user A with the following content:
@@ -46,7 +44,7 @@ to user A with the following content:
         }
     }
 
-### Admin presence requested
+## Admin presence requested
 
 When someone requests the presence of an admin in a room all users in the Admin room for that channel will receive an
 event called `gn_admin_requested` containing the following:
@@ -78,7 +76,7 @@ event called `gn_admin_requested` containing the following:
         }
     }
 
-### Invitation received
+## Invitation received
 
 When user B invites user A to join room X, the event `gn_invitation` will be sent to user A with the following content:
 
@@ -110,7 +108,7 @@ When user B invites user A to join room X, the event `gn_invitation` will be sen
         }
     }
 
-### Another user joins the room 
+## Another user joins the room 
 
 If user A is in room X, and another user B joins room X, the server will send an event called `gn_user_joined` to user A
 with the following content:
@@ -142,7 +140,7 @@ with the following content:
         "verb": "join"
     }
 
-### Another user leaves room
+## Another user leaves room
 
 When user A is in room X, and another user B leaves room X, the sever will send an event called `gn_user_left` to user A
 with the following content:
@@ -161,7 +159,7 @@ with the following content:
         "verb": "leave"
     }
 
-### Another user disconnects
+## Another user disconnects
 
 If user A is in any room that user B is in, and user B disconnects from the chat server, an event called
 `gn_user_disconnected` will be sent to user A with the following content:
@@ -176,7 +174,7 @@ If user A is in any room that user B is in, and user B disconnects from the chat
         "verb": 'disconnect'
     }
 
-### A new room is created
+## A new room is created
 
 When a new room is created in a channel that user A is in, an event called `gn_room_created` will be sent to user A with
 the following content:
@@ -208,7 +206,7 @@ the following content:
         "verb": "create"
     }
 
-### A user is kicked from a room
+## A user is kicked from a room
 
 When a user is kicked from a room, an event will be sent to all users in that room (except the kicked user), called 
 `gn_user_kicked`, with the following content:
@@ -251,7 +249,7 @@ When a user is kicked from a room, an event will be sent to all users in that ro
         "verb": "kick"
     }
 
-### A user is banned
+## A user is banned
 
 TODO: currently the user will be banned, but the "kicked" event will be broadcasted to relevant users. There's currently
 no "banned" event for this.

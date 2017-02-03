@@ -1,8 +1,6 @@
-## External Events
-
 External events are activity streams send to the configured external queue (e.g. RabbitMQ).
 
-### User was kicked from a room
+## User was kicked from a room
 
 Example of activity posted to the external queue:
 
@@ -33,7 +31,7 @@ Example of activity posted to the external queue:
 * target.id: UUID of the room the user was kicked from,
 * target.displayName: base64 encoded name of the room.
 
-### User was banned
+## User was banned
 
 Example of activity posted to the external queue:
 
@@ -70,7 +68,7 @@ Example of activity posted to the external queue:
 * target.displayName: base64 encoded name of the room,
 * target.objectType: one of "room", "channel", "global" (if "global", no displayName or id will be on target)
 
-### User joins room
+## User joins room
 
 When a user joins a room the following activity is published to rabbitmq:
 
@@ -118,7 +116,7 @@ When a user joins a room the following activity is published to rabbitmq:
         "verb": "join"
     }
 
-### User ban was removed
+## User ban was removed
 
 Example of activity when a user's ban was manually removed in the admin interface:
 
@@ -148,7 +146,7 @@ Example of activity when a user's ban was manually removed in the admin interfac
 
 If `target.objectType` is `global` then no `target.id` or `target.displayName` will be included.
 
-### User sends a message to a room/user
+## User sends a message to a room/user
 
 Whenever a user sends a message an event will be published to the configured MQ, so another system can analyze activity
 level of users. Example activity: 
@@ -163,7 +161,7 @@ level of users. Example activity:
         "published": "<server-generated timestamp, RFC3339 format>"
     }
 
-### User successfully logged in
+## User successfully logged in
 
 Example of activity when a user successfully logs in:
 
@@ -177,7 +175,7 @@ Example of activity when a user successfully logs in:
         "published": "<server-generated timestamp, RFC3339 format>"
     }
 
-### User disconnected
+## User disconnected
 
 Example of activity when a user disconnects:
 

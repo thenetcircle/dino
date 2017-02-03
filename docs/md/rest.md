@@ -1,6 +1,4 @@
-## RESTful API
-
-### GET /history
+## GET /history
 
 Request contains info on what time slice, target, origin to get history for:
 
@@ -60,7 +58,7 @@ Response would be something similar to the following:
 * Either `user_id` or `room_id` is required (both can be specified at the same time),
 * `to_time` needs to be after `from_time`.
 
-### POST /ban
+## POST /ban
 
 Request contains info on who to ban where. For banning globally:
 
@@ -125,7 +123,7 @@ Response will be something like the following:
         }
     }
 
-### POST /kick
+## POST /kick
 
 Request contains:
 
@@ -165,7 +163,7 @@ Response will be something like the following:
         }
     }
 
-### GET /roles
+## GET /roles
 
 Request contains a list of user IDs, e.g.:
 
@@ -216,7 +214,7 @@ Possible roles are:
 * room owner
 * room moderator
 
-### GET /rooms-for-users
+## GET /rooms-for-users
 
 Request contains a list of user IDs, e.g.:
 
@@ -244,7 +242,7 @@ Response would be all rooms each user is currently in (room names and channel na
         }]
     }
 
-### POST /delete-messages
+## POST /delete-messages
 
 Used to delete ALL messages for a specific user ID.
 
@@ -272,7 +270,7 @@ Or if other kinds of failures:
         "data": "<error message, e.g. 'no id parameter in request'>"
     }
 
-### GET /banned
+## GET /banned
 
 No data required in request.
 
@@ -306,7 +304,7 @@ are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the roo
 it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
 keys.
 
-#### User ID parameter
+## User ID parameter
 
 The `/banned` endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:
 

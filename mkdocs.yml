@@ -7,5 +7,5 @@ pages:
     - Events: md/events.md
     - External Events: md/external_events.md
     - REST API: md/rest.md
-    - Who Is Online: md/wio.md
+    - Who Is Online?: md/wio.md
 theme: readthedocs

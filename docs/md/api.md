@@ -1,6 +1,4 @@
-## API
-
-### connect
+## connect
 
 Responds with event name "gn_connect".
 
@@ -12,7 +10,7 @@ Response data if successful:
         "status_code": 200
     }
     
-### login
+## login
 
 Responds with event name "gn_login".
 
@@ -80,7 +78,7 @@ Possible roles are:
 * room owner
 * room moderator
 
-### list_channels
+## list_channels
 
 Responds with event name "gn_list_channels".
 
@@ -128,7 +126,7 @@ Response data if successful:
 
 Attachments for each channel describes the ACLs for that channel.
 
-### list_rooms
+## list_rooms
 
 Get a list of all rooms for a channel.
 
@@ -193,7 +191,7 @@ Global roles and roles for channels are returned in the `gn_login` event.
 
 Attachments for each room describes the ACLs for that room.
 
-### request_admin
+## request_admin
 
 When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
 which only admins can see when listing rooms and only admins can join. When a request_admin event is sent to the server
@@ -225,7 +223,7 @@ reason text etc.
 The event generated to be sent to the admin room is called "gn_admin_requested" (see 
 [Events](events.md#gn_admin_requested) for more information).
 
-### leave
+## leave
 
 Leave a room.
 
@@ -246,7 +244,7 @@ Response data if successful:
         "status_code": 200
     }
 
-### users_in_room
+## users_in_room
 
 List all users in a room.
 
@@ -303,7 +301,7 @@ Response data if successful:
         }
     }
 
-### history
+## history
 
 TODO: include user UUID as well as user name.
 
@@ -358,7 +356,7 @@ Response data if successful:
         }
     }
 
-### status
+## status
 
 Change the online status for this user.
 
@@ -376,7 +374,7 @@ Response data if successful:
         "status_code": 200
     }
 
-### get_acl
+## get_acl
 
 Get the permissions (ACL) for a channel or room.
 
@@ -420,7 +418,7 @@ Response data if successful:
         }
     }
 
-### set_acl
+## set_acl
 
 Update the permissions of a room/channel. If the "content" is blank, the ACL with that type for the specified action
 will be removed. Example "API actions" are "join", "create", "message", "kick". Example "permission types" are "age",
@@ -459,7 +457,7 @@ Response data if successful:
         "status_code": 200
     }
 
-### create
+## create
 
 Create a new room under a channel. The sender of the event will be set as the first owner of the new room.
 
@@ -519,7 +517,7 @@ event:
         "verb": "create"
     }
 
-### invite
+## invite
 
 Invite another user to a room the current user is already in.
 
@@ -543,7 +541,7 @@ Response data if successful:
         "status_code": 200
     }
 
-### delete
+## delete
 
 Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator for room or owner 
 of room).
@@ -562,7 +560,7 @@ Request contains:
         "verb": "delete"
     }
 
-### kick
+## kick
 
 Kick a user from a room.
 
@@ -586,7 +584,7 @@ Response data if successful:
         "status_code": 200
     }
 
-### ban
+## ban
 
 Ban a user from a room for a given amount of time.
 
@@ -626,7 +624,7 @@ Response data if successful:
         "status_code": 200
     }
 
-### message
+## message
 
 Send a message to a "room" UUID (can be the user UUID or an actual room UUID).
 
@@ -673,7 +671,7 @@ Response data if successful:
 The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the "published" field set to the time the server received the request (in RFC3339 format).
 
-### join
+## join
 
 Responds with the event name "gn_join".
 
