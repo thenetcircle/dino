@@ -100,11 +100,14 @@ A rough roadmap for possible upcoming features.
     - send successful login events and disconnect events to a message queue
 * decouple api actions
     - using hooks to respond to api events
-* delivery guarantee
-    - client can set ID on message, will be put on provider.id in response and server-generated id as root id
+    - using plugins for validation
+* docker
+    - include Dockerfile and documentation about how to run
 
 0.1X.0
 ---
+* delivery guarantee
+    - client can set ID on message, will be put on provider.id in response and server-generated id as root id
 * refactoring and cleanup
 * invisibility
     - invisible in chats
