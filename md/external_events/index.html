@@ -87,21 +87,25 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#external-events">External Events</a></li>
+                <li class="toctree-l3"><a href="#user-was-kicked-from-a-room">User was kicked from a room</a></li>
                 
-                    <li><a class="toctree-l4" href="#user-was-kicked-from-a-room">User was kicked from a room</a></li>
+            
+                <li class="toctree-l3"><a href="#user-was-banned">User was banned</a></li>
                 
-                    <li><a class="toctree-l4" href="#user-was-banned">User was banned</a></li>
+            
+                <li class="toctree-l3"><a href="#user-joins-room">User joins room</a></li>
                 
-                    <li><a class="toctree-l4" href="#user-joins-room">User joins room</a></li>
+            
+                <li class="toctree-l3"><a href="#user-ban-was-removed">User ban was removed</a></li>
                 
-                    <li><a class="toctree-l4" href="#user-ban-was-removed">User ban was removed</a></li>
+            
+                <li class="toctree-l3"><a href="#user-sends-a-message-to-a-roomuser">User sends a message to a room/user</a></li>
                 
-                    <li><a class="toctree-l4" href="#user-sends-a-message-to-a-roomuser">User sends a message to a room/user</a></li>
+            
+                <li class="toctree-l3"><a href="#user-successfully-logged-in">User successfully logged in</a></li>
                 
-                    <li><a class="toctree-l4" href="#user-successfully-logged-in">User successfully logged in</a></li>
-                
-                    <li><a class="toctree-l4" href="#user-disconnected">User disconnected</a></li>
+            
+                <li class="toctree-l3"><a href="#user-disconnected">User disconnected</a></li>
                 
             
             </ul>
@@ -118,7 +122,7 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../wio/">Who Is Online</a>
+        <a class="" href="../wio/">Who Is Online?</a>
         
     </li>
 <li>
@@ -155,9 +159,8 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="external-events">External Events</h2>
-<p>External events are activity streams send to the configured external queue (e.g. RabbitMQ).</p>
-<h3 id="user-was-kicked-from-a-room">User was kicked from a room</h3>
+                <p>External events are activity streams send to the configured external queue (e.g. RabbitMQ).</p>
+<h2 id="user-was-kicked-from-a-room">User was kicked from a room</h2>
 <p>Example of activity posted to the external queue:</p>
 <pre><code>{
     "actor": {
@@ -187,7 +190,7 @@
 <li>target.id: UUID of the room the user was kicked from,</li>
 <li>target.displayName: base64 encoded name of the room.</li>
 </ul>
-<h3 id="user-was-banned">User was banned</h3>
+<h2 id="user-was-banned">User was banned</h2>
 <p>Example of activity posted to the external queue:</p>
 <pre><code>{
     "actor": {
@@ -223,7 +226,7 @@
 <li>target.displayName: base64 encoded name of the room,</li>
 <li>target.objectType: one of "room", "channel", "global" (if "global", no displayName or id will be on target)</li>
 </ul>
-<h3 id="user-joins-room">User joins room</h3>
+<h2 id="user-joins-room">User joins room</h2>
 <p>When a user joins a room the following activity is published to rabbitmq:</p>
 <pre><code>{
     "object": {
@@ -269,7 +272,7 @@
     "verb": "join"
 }
 </code></pre>
-<h3 id="user-ban-was-removed">User ban was removed</h3>
+<h2 id="user-ban-was-removed">User ban was removed</h2>
 <p>Example of activity when a user's ban was manually removed in the admin interface:</p>
 <pre><code>{
     "actor": {
@@ -297,7 +300,7 @@
 <li>object.displayName: name fo the user</li>
 </ul>
 <p>If <code>target.objectType</code> is <code>global</code> then no <code>target.id</code> or <code>target.displayName</code> will be included.</p>
-<h3 id="user-sends-a-message-to-a-roomuser">User sends a message to a room/user</h3>
+<h2 id="user-sends-a-message-to-a-roomuser">User sends a message to a room/user</h2>
 <p>Whenever a user sends a message an event will be published to the configured MQ, so another system can analyze activity
 level of users. Example activity: </p>
 <pre><code>{
@@ -310,7 +313,7 @@ level of users. Example activity: </p>
     "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
 }
 </code></pre>
-<h3 id="user-successfully-logged-in">User successfully logged in</h3>
+<h2 id="user-successfully-logged-in">User successfully logged in</h2>
 <p>Example of activity when a user successfully logs in:</p>
 <pre><code>{
     "actor": {
@@ -322,7 +325,7 @@ level of users. Example activity: </p>
     "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
 }
 </code></pre>
-<h3 id="user-disconnected">User disconnected</h3>
+<h2 id="user-disconnected">User disconnected</h2>
 <p>Example of activity when a user disconnects:</p>
 <pre><code>{
     "actor": {

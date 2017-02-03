@@ -94,21 +94,28 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#restful-api">RESTful API</a></li>
+                <li class="toctree-l3"><a href="#get-history">GET /history</a></li>
                 
-                    <li><a class="toctree-l4" href="#get-history">GET /history</a></li>
+            
+                <li class="toctree-l3"><a href="#post-ban">POST /ban</a></li>
                 
-                    <li><a class="toctree-l4" href="#post-ban">POST /ban</a></li>
+            
+                <li class="toctree-l3"><a href="#post-kick">POST /kick</a></li>
                 
-                    <li><a class="toctree-l4" href="#post-kick">POST /kick</a></li>
+            
+                <li class="toctree-l3"><a href="#get-roles">GET /roles</a></li>
                 
-                    <li><a class="toctree-l4" href="#get-roles">GET /roles</a></li>
+            
+                <li class="toctree-l3"><a href="#get-rooms-for-users">GET /rooms-for-users</a></li>
                 
-                    <li><a class="toctree-l4" href="#get-rooms-for-users">GET /rooms-for-users</a></li>
+            
+                <li class="toctree-l3"><a href="#post-delete-messages">POST /delete-messages</a></li>
                 
-                    <li><a class="toctree-l4" href="#post-delete-messages">POST /delete-messages</a></li>
+            
+                <li class="toctree-l3"><a href="#get-banned">GET /banned</a></li>
                 
-                    <li><a class="toctree-l4" href="#get-banned">GET /banned</a></li>
+            
+                <li class="toctree-l3"><a href="#user-id-parameter">User ID parameter</a></li>
                 
             
             </ul>
@@ -118,7 +125,7 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../wio/">Who Is Online</a>
+        <a class="" href="../wio/">Who Is Online?</a>
         
     </li>
 <li>
@@ -155,8 +162,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="restful-api">RESTful API</h2>
-<h3 id="get-history">GET /history</h3>
+                <h2 id="get-history">GET /history</h2>
 <p>Request contains info on what time slice, target, origin to get history for:</p>
 <pre><code>{
     "from_time": "2016-12-26T08:39:54Z",
@@ -214,7 +220,7 @@
 <li>Either <code>user_id</code> or <code>room_id</code> is required (both can be specified at the same time),</li>
 <li><code>to_time</code> needs to be after <code>from_time</code>.</li>
 </ul>
-<h3 id="post-ban">POST /ban</h3>
+<h2 id="post-ban">POST /ban</h2>
 <p>Request contains info on who to ban where. For banning globally:</p>
 <pre><code>{
     "1234": {
@@ -272,7 +278,7 @@ seconds). Negative or 0 durations are not allowed.</p>
     }
 }
 </code></pre>
-<h3 id="post-kick">POST /kick</h3>
+<h2 id="post-kick">POST /kick</h2>
 <p>Request contains:</p>
 <pre><code>{
     "&lt;user id&gt;": {
@@ -308,7 +314,7 @@ seconds). Negative or 0 durations are not allowed.</p>
     }
 }
 </code></pre>
-<h3 id="get-roles">GET /roles</h3>
+<h2 id="get-roles">GET /roles</h2>
 <p>Request contains a list of user IDs, e.g.:</p>
 <pre><code>{
     "users": [
@@ -356,7 +362,7 @@ seconds). Negative or 0 durations are not allowed.</p>
 <li>room owner</li>
 <li>room moderator</li>
 </ul>
-<h3 id="get-rooms-for-users">GET /rooms-for-users</h3>
+<h2 id="get-rooms-for-users">GET /rooms-for-users</h2>
 <p>Request contains a list of user IDs, e.g.:</p>
 <pre><code>{
     "users": [
@@ -381,7 +387,7 @@ seconds). Negative or 0 durations are not allowed.</p>
     }]
 }
 </code></pre>
-<h3 id="post-delete-messages">POST /delete-messages</h3>
+<h2 id="post-delete-messages">POST /delete-messages</h2>
 <p>Used to delete ALL messages for a specific user ID.</p>
 <p>Request body looks like this:</p>
 <pre><code>{
@@ -404,7 +410,7 @@ seconds). Negative or 0 durations are not allowed.</p>
     "data": "&lt;error message, e.g. 'no id parameter in request'&gt;"
 }
 </code></pre>
-<h3 id="get-banned">GET /banned</h3>
+<h2 id="get-banned">GET /banned</h2>
 <p>No data required in request.</p>
 <p>Response is all banned users, separated by channel, room and globally. Example response:</p>
 <pre><code>{
@@ -434,7 +440,7 @@ seconds). Negative or 0 durations are not allowed.</p>
 are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the rooms, same for channels, while for users
 it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
 keys.</p>
-<h4 id="user-id-parameter">User ID parameter</h4>
+<h2 id="user-id-parameter">User ID parameter</h2>
 <p>The <code>/banned</code> endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:</p>
 <pre><code>curl localhost:5400/banned -d '{"users":["110464"]}' -X GET -H "Content-Type: application/json"
 </code></pre>
@@ -468,7 +474,7 @@ keys.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../wio/" class="btn btn-neutral float-right" title="Who Is Online">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../wio/" class="btn btn-neutral float-right" title="Who Is Online?">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../external_events/" class="btn btn-neutral" title="External Events"><span class="icon icon-circle-arrow-left"></span> Previous</a>

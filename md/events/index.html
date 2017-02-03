@@ -80,27 +80,34 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#events">Events</a></li>
+                <li class="toctree-l3"><a href="#message-deleted">Message deleted</a></li>
                 
-                    <li><a class="toctree-l4" href="#message-deleted">Message deleted</a></li>
+            
+                <li class="toctree-l3"><a href="#message-received">Message received</a></li>
                 
-                    <li><a class="toctree-l4" href="#message-received">Message received</a></li>
+            
+                <li class="toctree-l3"><a href="#admin-presence-requested">Admin presence requested</a></li>
                 
-                    <li><a class="toctree-l4" href="#admin-presence-requested">Admin presence requested</a></li>
+            
+                <li class="toctree-l3"><a href="#invitation-received">Invitation received</a></li>
                 
-                    <li><a class="toctree-l4" href="#invitation-received">Invitation received</a></li>
+            
+                <li class="toctree-l3"><a href="#another-user-joins-the-room">Another user joins the room</a></li>
                 
-                    <li><a class="toctree-l4" href="#another-user-joins-the-room">Another user joins the room</a></li>
+            
+                <li class="toctree-l3"><a href="#another-user-leaves-room">Another user leaves room</a></li>
                 
-                    <li><a class="toctree-l4" href="#another-user-leaves-room">Another user leaves room</a></li>
+            
+                <li class="toctree-l3"><a href="#another-user-disconnects">Another user disconnects</a></li>
                 
-                    <li><a class="toctree-l4" href="#another-user-disconnects">Another user disconnects</a></li>
+            
+                <li class="toctree-l3"><a href="#a-new-room-is-created">A new room is created</a></li>
                 
-                    <li><a class="toctree-l4" href="#a-new-room-is-created">A new room is created</a></li>
+            
+                <li class="toctree-l3"><a href="#a-user-is-kicked-from-a-room">A user is kicked from a room</a></li>
                 
-                    <li><a class="toctree-l4" href="#a-user-is-kicked-from-a-room">A user is kicked from a room</a></li>
-                
-                    <li><a class="toctree-l4" href="#a-user-is-banned">A user is banned</a></li>
+            
+                <li class="toctree-l3"><a href="#a-user-is-banned">A user is banned</a></li>
                 
             
             </ul>
@@ -124,7 +131,7 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../wio/">Who Is Online</a>
+        <a class="" href="../wio/">Who Is Online?</a>
         
     </li>
 <li>
@@ -161,8 +168,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="events">Events</h2>
-<h3 id="message-deleted">Message deleted</h3>
+                <h2 id="message-deleted">Message deleted</h2>
 <p>When an admin/mod/etc. deletes a message from a room, everyone on that room will receive an event with the name 
 <code>gn_message_deleted</code> so they can remove it locally as well.</p>
 <pre><code>{
@@ -181,7 +187,7 @@
     }
 }
 </code></pre>
-<h3 id="message-received">Message received</h3>
+<h2 id="message-received">Message received</h2>
 <p>When user A receives a private message, or a message from a room that user A is in, the event <code>gn_message</code> will be sent
 to user A with the following content:</p>
 <pre><code>{
@@ -204,7 +210,7 @@ to user A with the following content:</p>
     }
 }
 </code></pre>
-<h3 id="admin-presence-requested">Admin presence requested</h3>
+<h2 id="admin-presence-requested">Admin presence requested</h2>
 <p>When someone requests the presence of an admin in a room all users in the Admin room for that channel will receive an
 event called <code>gn_admin_requested</code> containing the following:</p>
 <pre><code>{
@@ -234,7 +240,7 @@ event called <code>gn_admin_requested</code> containing the following:</p>
     }
 }
 </code></pre>
-<h3 id="invitation-received">Invitation received</h3>
+<h2 id="invitation-received">Invitation received</h2>
 <p>When user B invites user A to join room X, the event <code>gn_invitation</code> will be sent to user A with the following content:</p>
 <pre><code>{
     "id": "&lt;server-generated UUID&gt;",
@@ -264,7 +270,7 @@ event called <code>gn_admin_requested</code> containing the following:</p>
     }
 }
 </code></pre>
-<h3 id="another-user-joins-the-room">Another user joins the room</h3>
+<h2 id="another-user-joins-the-room">Another user joins the room</h2>
 <p>If user A is in room X, and another user B joins room X, the server will send an event called <code>gn_user_joined</code> to user A
 with the following content:</p>
 <pre><code>{
@@ -294,7 +300,7 @@ with the following content:</p>
     "verb": "join"
 }
 </code></pre>
-<h3 id="another-user-leaves-room">Another user leaves room</h3>
+<h2 id="another-user-leaves-room">Another user leaves room</h2>
 <p>When user A is in room X, and another user B leaves room X, the sever will send an event called <code>gn_user_left</code> to user A
 with the following content:</p>
 <pre><code>{
@@ -311,7 +317,7 @@ with the following content:</p>
     "verb": "leave"
 }
 </code></pre>
-<h3 id="another-user-disconnects">Another user disconnects</h3>
+<h2 id="another-user-disconnects">Another user disconnects</h2>
 <p>If user A is in any room that user B is in, and user B disconnects from the chat server, an event called
 <code>gn_user_disconnected</code> will be sent to user A with the following content:</p>
 <pre><code>{
@@ -324,7 +330,7 @@ with the following content:</p>
     "verb": 'disconnect'
 }
 </code></pre>
-<h3 id="a-new-room-is-created">A new room is created</h3>
+<h2 id="a-new-room-is-created">A new room is created</h2>
 <p>When a new room is created in a channel that user A is in, an event called <code>gn_room_created</code> will be sent to user A with
 the following content:</p>
 <pre><code>{
@@ -354,7 +360,7 @@ the following content:</p>
     "verb": "create"
 }
 </code></pre>
-<h3 id="a-user-is-kicked-from-a-room">A user is kicked from a room</h3>
+<h2 id="a-user-is-kicked-from-a-room">A user is kicked from a room</h2>
 <p>When a user is kicked from a room, an event will be sent to all users in that room (except the kicked user), called 
 <code>gn_user_kicked</code>, with the following content:</p>
 <pre><code>{
@@ -395,7 +401,7 @@ the following content:</p>
     "verb": "kick"
 }
 </code></pre>
-<h3 id="a-user-is-banned">A user is banned</h3>
+<h2 id="a-user-is-banned">A user is banned</h2>
 <p>TODO: currently the user will be banned, but the "kicked" event will be broadcasted to relevant users. There's currently
 no "banned" event for this.</p>
               

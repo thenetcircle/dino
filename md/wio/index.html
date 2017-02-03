@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Who Is Online - Dino</title>
+  <title>Who Is Online? - Dino</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
@@ -17,7 +17,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Who Is Online";
+    var mkdocs_page_name = "Who Is Online?";
     var mkdocs_page_input_path = "md/wio.md";
     var mkdocs_page_url = "/md/wio/";
   </script>
@@ -97,19 +97,20 @@
           
             <li>
     <li class="toctree-l1 current">
-        <a class="current" href="./">Who Is Online</a>
+        <a class="current" href="./">Who Is Online?</a>
         
             <ul>
             
-                <li class="toctree-l3"><a href="#who-is-online">Who Is Online?</a></li>
+                <li class="toctree-l3"><a href="#usersonlinebitmap-bitmap">users:online:bitmap (BITMAP)</a></li>
                 
-                    <li><a class="toctree-l4" href="#usersonlinebitmap-bitmap">users:online:bitmap (BITMAP)</a></li>
+            
+                <li class="toctree-l3"><a href="#usersonlineset-set">users:online:set (SET)</a></li>
                 
-                    <li><a class="toctree-l4" href="#usersonlineset-set">users:online:set (SET)</a></li>
+            
+                <li class="toctree-l3"><a href="#usersmulticast-set">users:multicast (SET)</a></li>
                 
-                    <li><a class="toctree-l4" href="#usersmulticast-set">users:multicast (SET)</a></li>
-                
-                    <li><a class="toctree-l4" href="#userstatus-string">user:status: (STRING)</a></li>
+            
+                <li class="toctree-l3"><a href="#userstatususer_id-string">user:status:USER_ID (STRING)</a></li>
                 
             
             </ul>
@@ -139,7 +140,7 @@
     
       
     
-    <li>Who Is Online</li>
+    <li>Who Is Online?</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -149,8 +150,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="who-is-online">Who Is Online?</h2>
-<p>Online status is kept in redis for users who successfully logs in and keeps their socket connection open.</p>
+                <p>Online status is kept in redis for users who successfully logs in and keeps their socket connection open.</p>
 <p>Four keys are maintained in redis:</p>
 <ul>
 <li>users:online:bitmap</li>
@@ -158,17 +158,17 @@
 <li>users:multicast</li>
 <li>user:status:<user id></li>
 </ul>
-<h3 id="usersonlinebitmap-bitmap">users:online:bitmap (BITMAP)</h3>
+<h2 id="usersonlinebitmap-bitmap">users:online:bitmap (BITMAP)</h2>
 <p>The ID of the user is used as the offset in the bitmap. When a user logs in the bit in that offset will be set to 1,
 and when the user's socket closes the bit is set to 0.</p>
-<h3 id="usersonlineset-set">users:online:set (SET)</h3>
+<h2 id="usersonlineset-set">users:online:set (SET)</h2>
 <p>A set containing all the IDs of users who are currently online. When a user logs in the user ID is added to the set, and
 when the socket closes the ID is removed from the set.</p>
 <p>When a user changes his/her status to invisible his/her ID will also be removed from this set. </p>
-<h3 id="usersmulticast-set">users:multicast (SET)</h3>
+<h2 id="usersmulticast-set">users:multicast (SET)</h2>
 <p>Same as <code>users:online:set</code>, except that when a user goes invisible the user ID stays in this set. This allows 
 multicasting of notifications without showing up as <code>online</code>.</p>
-<h3 id="userstatus-string">user:status:<user id> (STRING)</h3>
+<h2 id="userstatususer_id-string">user:status:USER_ID (STRING)</h2>
 <p>One key for each user containing the status, which is a single character with the following meaning:</p>
 <ul>
 <li>0: available (online)</li>

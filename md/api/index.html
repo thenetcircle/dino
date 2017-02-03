@@ -73,43 +73,58 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#api">API</a></li>
+                <li class="toctree-l3"><a href="#connect">connect</a></li>
                 
-                    <li><a class="toctree-l4" href="#connect">connect</a></li>
+            
+                <li class="toctree-l3"><a href="#login">login</a></li>
                 
-                    <li><a class="toctree-l4" href="#login">login</a></li>
+            
+                <li class="toctree-l3"><a href="#list_channels">list_channels</a></li>
                 
-                    <li><a class="toctree-l4" href="#list_channels">list_channels</a></li>
+            
+                <li class="toctree-l3"><a href="#list_rooms">list_rooms</a></li>
                 
-                    <li><a class="toctree-l4" href="#list_rooms">list_rooms</a></li>
+            
+                <li class="toctree-l3"><a href="#request_admin">request_admin</a></li>
                 
-                    <li><a class="toctree-l4" href="#request_admin">request_admin</a></li>
+            
+                <li class="toctree-l3"><a href="#leave">leave</a></li>
                 
-                    <li><a class="toctree-l4" href="#leave">leave</a></li>
+            
+                <li class="toctree-l3"><a href="#users_in_room">users_in_room</a></li>
                 
-                    <li><a class="toctree-l4" href="#users_in_room">users_in_room</a></li>
+            
+                <li class="toctree-l3"><a href="#history">history</a></li>
                 
-                    <li><a class="toctree-l4" href="#history">history</a></li>
+            
+                <li class="toctree-l3"><a href="#status">status</a></li>
                 
-                    <li><a class="toctree-l4" href="#status">status</a></li>
+            
+                <li class="toctree-l3"><a href="#get_acl">get_acl</a></li>
                 
-                    <li><a class="toctree-l4" href="#get_acl">get_acl</a></li>
+            
+                <li class="toctree-l3"><a href="#set_acl">set_acl</a></li>
                 
-                    <li><a class="toctree-l4" href="#set_acl">set_acl</a></li>
+            
+                <li class="toctree-l3"><a href="#create">create</a></li>
                 
-                    <li><a class="toctree-l4" href="#create">create</a></li>
+            
+                <li class="toctree-l3"><a href="#invite">invite</a></li>
                 
-                    <li><a class="toctree-l4" href="#invite">invite</a></li>
+            
+                <li class="toctree-l3"><a href="#delete">delete</a></li>
                 
-                    <li><a class="toctree-l4" href="#delete">delete</a></li>
+            
+                <li class="toctree-l3"><a href="#kick">kick</a></li>
                 
-                    <li><a class="toctree-l4" href="#kick">kick</a></li>
+            
+                <li class="toctree-l3"><a href="#ban">ban</a></li>
                 
-                    <li><a class="toctree-l4" href="#ban">ban</a></li>
+            
+                <li class="toctree-l3"><a href="#message">message</a></li>
                 
-                    <li><a class="toctree-l4" href="#message">message</a></li>
-                
-                    <li><a class="toctree-l4" href="#join">join</a></li>
+            
+                <li class="toctree-l3"><a href="#join">join</a></li>
                 
             
             </ul>
@@ -140,7 +155,7 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../wio/">Who Is Online</a>
+        <a class="" href="../wio/">Who Is Online?</a>
         
     </li>
 <li>
@@ -177,8 +192,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="api">API</h2>
-<h3 id="connect">connect</h3>
+                <h2 id="connect">connect</h2>
 <p>Responds with event name "gn_connect".</p>
 <p>Request contains no data.</p>
 <p>Response data if successful:</p>
@@ -186,7 +200,7 @@
     "status_code": 200
 }
 </code></pre>
-<h3 id="login">login</h3>
+<h2 id="login">login</h2>
 <p>Responds with event name "gn_login".</p>
 <p>Request contains:</p>
 <pre><code>{
@@ -249,7 +263,7 @@ room/channel/global.</p>
 <li>room owner</li>
 <li>room moderator</li>
 </ul>
-<h3 id="list_channels">list_channels</h3>
+<h2 id="list_channels">list_channels</h2>
 <p>Responds with event name "gn_list_channels".</p>
 <p>Request contains:</p>
 <pre><code>{
@@ -292,7 +306,7 @@ room/channel/global.</p>
 }
 </code></pre>
 <p>Attachments for each channel describes the ACLs for that channel.</p>
-<h3 id="list_rooms">list_rooms</h3>
+<h2 id="list_rooms">list_rooms</h2>
 <p>Get a list of all rooms for a channel.</p>
 <p>Responds with event name "gn_list_rooms".</p>
 <p>Request contains:</p>
@@ -350,7 +364,7 @@ content will be empty, otherwise it will be a comma separated list of roles. Pos
 </ul>
 <p>Global roles and roles for channels are returned in the <code>gn_login</code> event.</p>
 <p>Attachments for each room describes the ACLs for that room.</p>
-<h3 id="request_admin">request_admin</h3>
+<h2 id="request_admin">request_admin</h2>
 <p>When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
 which only admins can see when listing rooms and only admins can join. When a request_admin event is sent to the server
 it will be delivered to the admin room for that channel and the admins in that room can decide what to do.</p>
@@ -375,7 +389,7 @@ it will be delivered to the admin room for that channel and the admins in that r
 reason text etc. </p>
 <p>The event generated to be sent to the admin room is called "gn_admin_requested" (see 
 <a href="../events/#gn_admin_requested">Events</a> for more information).</p>
-<h3 id="leave">leave</h3>
+<h2 id="leave">leave</h2>
 <p>Leave a room.</p>
 <p>Responds with event name "gn_leave".</p>
 <p>Request contains:</p>
@@ -391,7 +405,7 @@ reason text etc. </p>
     "status_code": 200
 }
 </code></pre>
-<h3 id="users_in_room">users_in_room</h3>
+<h2 id="users_in_room">users_in_room</h2>
 <p>List all users in a room.</p>
 <p>Responds with event name "gn_users_in_room".</p>
 <p>Request contains:</p>
@@ -443,7 +457,7 @@ reason text etc. </p>
     }
 }
 </code></pre>
-<h3 id="history">history</h3>
+<h2 id="history">history</h2>
 <p>TODO: include user UUID as well as user name.</p>
 <p>When joining a room the history will be included in the "gn_join" response event. If history is needed for a separate
 reason than the "history" event can be used. Can also be used to get history for a private chat with another user, if
@@ -492,7 +506,7 @@ reason than the "history" event can be used. Can also be used to get history for
     }
 }
 </code></pre>
-<h3 id="status">status</h3>
+<h2 id="status">status</h2>
 <p>Change the online status for this user.</p>
 <p>Responds with "gn_status".</p>
 <p>Request contains:</p>
@@ -505,7 +519,7 @@ reason than the "history" event can be used. Can also be used to get history for
     "status_code": 200
 }
 </code></pre>
-<h3 id="get_acl">get_acl</h3>
+<h2 id="get_acl">get_acl</h2>
 <p>Get the permissions (ACL) for a channel or room.</p>
 <p>Responds with "gn_get_acl".</p>
 <p>Request contains:</p>
@@ -544,7 +558,7 @@ reason than the "history" event can be used. Can also be used to get history for
     }
 }
 </code></pre>
-<h3 id="set_acl">set_acl</h3>
+<h2 id="set_acl">set_acl</h2>
 <p>Update the permissions of a room/channel. If the "content" is blank, the ACL with that type for the specified action
 will be removed. Example "API actions" are "join", "create", "message", "kick". Example "permission types" are "age",
 "gender", "membership".</p>
@@ -578,7 +592,7 @@ will be removed. Example "API actions" are "join", "create", "message", "kick". 
     "status_code": 200
 }
 </code></pre>
-<h3 id="create">create</h3>
+<h2 id="create">create</h2>
 <p>Create a new room under a channel. The sender of the event will be set as the first owner of the new room.</p>
 <p>Responds with "gn_create".</p>
 <p>Request contains:</p>
@@ -632,7 +646,7 @@ event:</p>
     "verb": "create"
 }
 </code></pre>
-<h3 id="invite">invite</h3>
+<h2 id="invite">invite</h2>
 <p>Invite another user to a room the current user is already in.</p>
 <p>Responds with "gn_invite".</p>
 <p>Request contains:</p>
@@ -651,7 +665,7 @@ event:</p>
     "status_code": 200
 }
 </code></pre>
-<h3 id="delete">delete</h3>
+<h2 id="delete">delete</h2>
 <p>Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator for room or owner 
 of room).</p>
 <p>Responds with "gn_delete".</p>
@@ -666,7 +680,7 @@ of room).</p>
     "verb": "delete"
 }
 </code></pre>
-<h3 id="kick">kick</h3>
+<h2 id="kick">kick</h2>
 <p>Kick a user from a room.</p>
 <p>Responds with "gn_kick".</p>
 <p>Request contains:</p>
@@ -685,7 +699,7 @@ of room).</p>
     "status_code": 200
 }
 </code></pre>
-<h3 id="ban">ban</h3>
+<h2 id="ban">ban</h2>
 <p>Ban a user from a room for a given amount of time.</p>
 <p>Responds with "gn_ban".</p>
 <p>Request contains:</p>
@@ -718,7 +732,7 @@ restriction is that the date when the ban ends (utcnow()+duration) must be befor
     "status_code": 200
 }
 </code></pre>
-<h3 id="message">message</h3>
+<h2 id="message">message</h2>
 <p>Send a message to a "room" UUID (can be the user UUID or an actual room UUID).</p>
 <p>Responds with event name "gn_message".</p>
 <p>Request contains:</p>
@@ -759,7 +773,7 @@ restriction is that the date when the ban ends (utcnow()+duration) must be befor
 </code></pre>
 <p>The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the "published" field set to the time the server received the request (in RFC3339 format).</p>
-<h3 id="join">join</h3>
+<h2 id="join">join</h2>
 <p>Responds with the event name "gn_join".</p>
 <p>Request contains:</p>
 <pre><code>{
