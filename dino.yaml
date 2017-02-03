@@ -1,5 +1,30 @@
-oscar:
+common_config: &common_config
     log_level: 'DEBUG'
+    auth:
+        type: 'redis'
+        host: '$DINO_AUTH_HOST'
+        db: 8
+    cache:
+        type: 'redis'
+        host: '$DINO_CACHE_HOST'
+        db: 9
+    queue:
+        type: 'redis'
+        host: '$DINO_QUEUE_HOST'
+        db: 7
+    stats:
+      type: 'statsd'
+      host: 'mock'
+    validation:
+        on_message:
+            - no_empty
+            - check_blacklist
+    history:
+        type: 'unread'  # unread or top
+        limit: 1000
+
+oscar:
+    <<: *common_config
     database:
         type: 'rdbms'
         driver: 'postgres+psycopg2'
@@ -18,32 +43,13 @@ oscar:
       port: 8125
       prefix: 'dino'
       include_hostname: 'true'
-    queue:
-        type: 'redis'
-        host: '$DINO_QUEUE_HOST'
-        db: 2
     ext_queue:
         type: 'redis'
         host: '$DINO_EXT_QUEUE_HOST'
         db: 8
-    auth:
-        type: 'redis'
-        host: '$DINO_AUTH_HOST'
-        db: 0
-    cache:
-        type: 'redis'
-        host: '$DINO_CACHE_HOST'
-        db: 3
-    history:
-        type: 'unread'  # unread or top
-        limit: 1000
-    validation:
-        on_message:
-            - no_empty
-            - check_blacklist
 
 dev:
-    log_level: 'DEBUG'
+    <<: *common_config
     database:
         type: 'rdbms'
         driver: 'mysql+mysqldb'
@@ -61,91 +67,50 @@ dev:
         queue: 'chat'
         vhost: '/'
         exchange: 'chat_exchange'
-    queue:
-        type: 'redis'
-        host: '$DINO_QUEUE_HOST'
-        db: 7
-    auth:
-        type: 'redis'
-        host: '$DINO_AUTH_HOST'
-        db: 8
-    cache:
-        type: 'redis'
-        host: '$DINO_CACHE_HOST'
-        db: 9
     storage:
         type: 'cassandra'
         host:
             - '$DINO_CASSANDRA_HOST_1'
             - '$DINO_CASSANDRA_HOST_2'
-    stats:
-      type: 'statsd'
-      host: 'mock'
     history:
         type: 'top'  # unread or top
         limit: 50
-    validation:
-        on_message:
-            - no_empty
-            - check_blacklist
 
 integration:
-    log_level: 'DEBUG'
+    <<: *common_config
     database:
         type: 'redis'
         host: 'mock'
         db: '12'
     storage:
         type: 'redis'
-        host: '10.60.1.126:6379'
+        host: '$DINO_CACHE_HOST'
         max_history: 200
         db: 6
-    stats:
-      type: 'statsd'
-      host: 'mock'
-    queue:
-        type: 'redis'
-        host: 'redis://10.60.1.126:6379'
-        db: 7
     ext_queue:
         type: 'rabbitmq'
-        host: 'snowball'
+        host: '$DINO_EXT_QUEUE_HOST'
         port: 5672
-        user: 'poppen'
-        password: 'poppen'
+        user: '$DINO_EXT_QUEUE_USER'
+        password: '$DINO_EXT_QUEUE_PASS'
         queue: 'chat'
         vhost: '/'
         exchange: 'chat_exchange'
-    auth:
-        type: 'redis'
-        host: '10.60.1.237:6379'
-        db: 8
-    cache:
-        type: 'redis'
-        host: '10.60.1.126:6379'
-        db: 9
     history:
         type: 'top'  # unread or top
         limit: 50
 
 test:
+    <<: *common_config
     testing: True
-    log_level: 'DEBUG'
     database:
         type: 'redis'
-        host: 'maggie-kafka-3:6379'
+        host: '$DINO_DB_HOST'
         db: 1
-    stats:
-      type: 'statsd'
-      host: 'mock'
     storage:
         type: 'mock'
         host: 'localhost:6379'
         db: 0
         max_history: 200
-    queue:
-        type: 'mock'
-        host: 'redis://localhost:6379'
-        db: 2
     auth:
         type: 'allowall'
