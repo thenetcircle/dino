@@ -27,6 +27,15 @@ class IDatabase(Interface):
         :return: the newly created room's uuid
         """
 
+    def is_room_ephemeral(self, room_id: str) -> bool:
+        """
+        check whether or not a room is ephemeral (temporary); rooms created by regular users are ephemeral, so if wanted
+        they can be automatically removed when the owners have all left the room
+
+        :param room_id: the uuid of the room
+        :return: true if ephemeral, false otherwise
+        """
+
     def add_words_to_blacklist(self, words: list) -> None:
         """
         add new words to the blacklist

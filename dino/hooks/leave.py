@@ -26,8 +26,13 @@ class OnLeaveHooks(object):
         user_id = activity.actor.id
         user_name = environ.env.session.get(SessionKeys.user_name.value)
         room_id = activity.target.id
+        room_name = utils.get_room_name(room_id)
+        channel_id = utils.get_channel_for_room(room_id)
 
         utils.remove_user_from_room(user_id, user_name, room_id)
+
+        activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
+        environ.env.emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
 
         # todo: can we do this async? let the request finish, as this might take a while for larger rooms
         # todo: move this to a plugin, use yapsy to inject
@@ -45,8 +50,6 @@ class OnLeaveHooks(object):
                 # don't remove the room if an owner is still in the room
                 return
 
-        channel_id = utils.get_channel_for_room(room_id)
-        room_name = utils.get_room_name(room_id)
         environ.env.db.remove_room(channel_id, room_id)
 
         for user_id_still_in_room, user_name_still_in_room in users_in_room.items():
@@ -69,24 +72,7 @@ class OnLeaveHooks(object):
             }
             environ.env.publish(kick_activity)
 
-    @staticmethod
-    def emit_leave_event(arg: tuple) -> None:
-        data, activity = arg
-
-        user_id = activity.actor.id
-        user_name = environ.env.session.get(SessionKeys.user_name.value)
-        room_id = activity.target.id
-        room_name = utils.get_room_name(room_id)
-
-        activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
-        environ.env.emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
-
 
 @environ.env.observer.on('on_leave')
 def _on_leave_leave_room(arg: tuple) -> None:
     OnLeaveHooks.leave_room(arg)
-
-
-@environ.env.observer.on('on_leave')
-def _on_leave_emit_leave_event(arg: tuple) -> None:
-    OnLeaveHooks.emit_leave_event(arg)

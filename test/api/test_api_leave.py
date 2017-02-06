@@ -52,6 +52,7 @@ class ApiLeaveTest(BaseTest):
         self.assert_in_room(True)
 
         tmp_room_id = str(uuid())
+        self.create_room(tmp_room_id, tmp_room_id)
         self.set_room_name(tmp_room_id, tmp_room_id)
         data = self.activity_for_leave()
         data['target']['id'] = tmp_room_id

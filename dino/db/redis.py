@@ -69,6 +69,9 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def is_room_ephemeral(self, room_id: str) -> bool:
+        return not self.redis.sismember(RedisKeys.non_ephemeral_rooms(), room_id)
+
     def add_words_to_blacklist(self, words: list) -> None:
         self.redis.sadd(RedisKeys.black_list(), words)
 
@@ -126,6 +129,7 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.room_name_for_id, room_id, 'Admins')
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, 'Admins')
         self.redis.hset(RedisKeys.channel_for_rooms(), room_id, channel_id)
+        self.redis.sadd(RedisKeys.non_ephemeral_rooms(), room_id)
 
         acls = {
             RoleKeys.ADMIN: '',
@@ -986,7 +990,7 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.channels(), channel_id, channel_name)
         self.set_owner_channel(channel_id, user_id)
 
-    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name) -> None:
+    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True) -> None:
         if self.env.cache.get_channel_exists(channel_id) is None:
             if not self.channel_exists(channel_id):
                 raise NoSuchChannelException(channel_id)
@@ -999,6 +1003,9 @@ class DatabaseRedis(object):
 
         if self.room_name_exists(channel_id, room_name):
             raise RoomNameExistsForChannelException(channel_id, room_name)
+
+        if ephemeral:
+            self.redis.sadd(RedisKeys.non_ephemeral_rooms(), room_id)
 
         self.redis.hset(RedisKeys.room_name_for_id(), room_id, room_name)
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
@@ -1042,10 +1049,11 @@ class DatabaseRedis(object):
         if not self.room_exists(channel_id, room_id):
             raise NoSuchRoomException(room_id)
 
+        self.redis.srem(RedisKeys.non_ephemeral_rooms(), room_id)
         self.redis.hdel(RedisKeys.room_name_for_id(), room_id)
         self.redis.delete(RedisKeys.room_roles(room_id))
         self.redis.hdel(RedisKeys.rooms(channel_id), room_id)
-        self.redis.delete(RedisKeys.channel_for_rooms(), room_id)
+        self.redis.hdel(RedisKeys.channel_for_rooms(), room_id)
 
     def get_user_status(self, user_id: str) -> str:
         status = self.env.cache.get_user_status(user_id)

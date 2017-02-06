@@ -89,6 +89,16 @@ class CacheRedis(object):
     def _del(self, key):
         self.cache.delete(key)
 
+    def set_is_room_ephemeral(self, room_id: str, is_ephemeral: bool) -> None:
+        redis_key = RedisKeys.non_ephemeral_rooms()
+        cache_key = '%s-%s' % (redis_key, room_id)
+        self.cache.set(cache_key, is_ephemeral)
+
+    def is_room_ephemeral(self, room_id: str) -> bool:
+        redis_key = RedisKeys.non_ephemeral_rooms()
+        cache_key = '%s-%s' % (redis_key, room_id)
+        return self.cache.get(cache_key)
+
     def get_black_list(self) -> set:
         cache_key = RedisKeys.black_list()
         value = self.cache.get(cache_key)

@@ -98,6 +98,19 @@ class DatabaseRdbms(object):
     def _session(self, session):
         return session
 
+    def is_room_ephemeral(self, room_id: str) -> bool:
+        @with_session
+        def is_ephemeral(session=None):
+            room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
+            return room.ephemeral
+
+        value = self.env.cache.is_room_ephemeral(room_id)
+        if value is not None:
+            return value
+        value = is_ephemeral()
+        self.env.cache.set_is_room_ephemeral(room_id, value)
+        return value
+
     def get_black_list(self) -> set:
         @with_session
         def _get_black_list(session=None):
@@ -206,6 +219,7 @@ class DatabaseRdbms(object):
         room.admin = True
         room.uuid = str(uuid())
         room.channel = channel
+        room.ephemeral = False
         room.acls.append(join_acl)
         room.acls.append(list_acl)
 
@@ -524,7 +538,7 @@ class DatabaseRdbms(object):
 
         _create_channel()
 
-    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str) -> None:
+    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True) -> None:
         @with_session
         def _create_room(session=None):
             channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
@@ -536,6 +550,7 @@ class DatabaseRdbms(object):
             room.name = room_name
             room.channel = channel
             room.created = datetime.utcnow()
+            room.ephemeral = ephemeral
             session.add(room)
 
             role = RoomRoles()

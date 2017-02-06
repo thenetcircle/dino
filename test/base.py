@@ -336,6 +336,7 @@ class BaseTest(unittest.TestCase):
 
         environ.env.auth.redis.hmset(RedisKeys.auth_key(BaseTest.USER_ID), self.session)
         environ.env.redis.hset(RedisKeys.room_name_for_id(), BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
+        environ.env.redis.sadd(RedisKeys.non_ephemeral_rooms(), BaseTest.ROOM_ID)
         environ.env.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.db.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
         environ.env.db.redis.hset(RedisKeys.auth_key(BaseTest.USER_ID), SessionKeys.user_name.value, BaseTest.USER_NAME)
@@ -384,6 +385,8 @@ class BaseTest(unittest.TestCase):
             room_name = BaseTest.ROOM_NAME
 
         environ.env.storage.redis.hset(RedisKeys.rooms(BaseTest.CHANNEL_ID), room_id, room_name)
+        environ.env.storage.redis.hset(RedisKeys.room_name_for_id(), room_id, room_name)
+        environ.env.storage.redis.hset(RedisKeys.channel_for_rooms(), room_id, BaseTest.CHANNEL_ID)
 
     def create_channel(self, room_id=None, room_name=None):
         if room_id is None:

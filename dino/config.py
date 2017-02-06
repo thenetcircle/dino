@@ -186,11 +186,16 @@ class RedisKeys(object):
     RKEY_ACL_VALIDATION = 'acl:validation:%s'  # acl:validation:acl_type (e.g. acl:validation:gender)
     RKEY_USER_ROLES = 'users:roles'
     RKEY_BLACK_LIST = 'words:blacklist'
+    RKEY_NON_EPHEMERAL_ROOMS = 'rooms:nonephemeral'
 
     RKEY_SID_TO_USER_ID = 'user:sid:map'
     RKEY_BANNED_USERS_GLOBAL = 'users:banned:global'
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
+
+    @staticmethod
+    def non_ephemeral_rooms() -> str:
+        return RedisKeys.RKEY_NON_EPHEMERAL_ROOMS
 
     @staticmethod
     def black_list() -> str:

@@ -18,6 +18,23 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ICache(Interface):
+    def set_is_room_ephemeral(self, room_id: str, is_ephemeral: bool) -> None:
+        """
+        set whether aroom is ephemeral (temporary) or not
+
+        :param room_id: the uuid of the room
+        :param is_ephemeral: boolean for whether or not it is ephemeral
+        :return: nothing
+        """
+
+    def is_room_ephemeral(self, room_id: str) -> bool:
+        """
+        check if a room is ephemeral (temporary) or not
+
+        :param room_id: the uuid of the room
+        :return: true if ephemeral, false if not, or None of not in cache or TTL expired
+        """
+
     def get_admin_room_for_channel(self, channel_id: str) -> str:
         """
         get the room uuid of the admin room in this channel, or None if no such room exists

@@ -52,6 +52,7 @@ class Rooms(DeclarativeBase):
     name = Column('name', String(128), nullable=False, index=True)
     created = Column('created', DateTime, nullable=False)
     admin = Column('admin', Boolean, nullable=False, default=True, index=True)
+    ephemeral = Column('ephemeral', Boolean, nullable=False, default=True, index=False)
 
     channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=False)
     channel = relationship('Channels', back_populates='rooms')
