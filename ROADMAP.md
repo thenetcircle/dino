@@ -103,6 +103,13 @@ A rough roadmap for possible upcoming features.
     - using plugins for validation
 * docker
     - include Dockerfile and documentation about how to run
+* backend admin interface
+    - show/search message history
+   
+0.13.0
+---
+* support for ephemeral (short-term) rooms
+    - when the last 'owner' of a room leaves, everyone will be kicked and the room is removed
 
 0.1X.0
 ---
@@ -111,8 +118,6 @@ A rough roadmap for possible upcoming features.
 * refactoring and cleanup
 * invisibility
     - invisible in chats
-* backend admin interface
-    - show/search message history
 * stats
     - messages are sent to kafka
     - use target id as topic partition key, to get sequence id per room/user

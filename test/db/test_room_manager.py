@@ -136,7 +136,7 @@ class RoomManagerTest(BaseDatabaseTest):
     def test_remove_room_before_create_channel(self):
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
         self.assertRaises(
-                NoSuchChannelException, self.manager.remove_room, BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID)
+                NoSuchRoomException, self.manager.remove_room, BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID)
         self.assertFalse(self.db.room_exists(BaseDatabaseTest.CHANNEL_ID, BaseDatabaseTest.ROOM_ID))
 
     def test_remove_room_empty_room_id(self):
