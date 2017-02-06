@@ -14,8 +14,8 @@
 
 from typing import Union
 import logging
-import traceback
 
+from dino import utils
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 from dino.exceptions import RoomNameExistsForChannelException
@@ -62,7 +62,10 @@ class RoomManager(BaseManager):
         return None
 
     def remove_room(self, channel_id: str, room_id: str) -> None:
+        room_name = self.env.db.get_room_name(room_id)
+        remove_activity = utils.activity_for_remove_room('0', 'admin', room_id, room_name)
         self.env.db.remove_room(channel_id, room_id)
+        self.env.publish(remove_activity)
 
     def rename(self, channel_id: str, room_id: str, room_name: str) -> Union[str, None]:
         try:

@@ -300,19 +300,31 @@ def handle_server_activity(data: dict, activity: Activity):
         logger.debug('publishing kick event to external queue: %s' % kick_activity)
         environ.env.publish(kick_activity, external=True)
 
+    def handle_remove():
+        environ.env.out_of_scope_emit(
+                'gn_room_removed', data, json=True, namespace=activity.target.url, broadcast=True)
+
     if activity.verb == 'kick':
         try:
             handle_kick()
         except Exception as e:
             logger.error('could not handle kick: %s' % str(e))
-            logger.error(traceback.format_exc())
+            logger.exception(traceback.format_exc())
 
     elif activity.verb == 'ban':
         try:
             handle_ban()
         except Exception as e:
             logger.error('could not handle ban: %s' % str(e))
-            logger.error(traceback.format_exc())
+            logger.exception(traceback.format_exc())
+
+    elif activity.verb == 'remove':
+        try:
+            handle_remove()
+        except Exception as e:
+            logger.error('could not emit remove activity to clients: %s' % str(e))
+            logger.exception(traceback.format_exc())
+
     else:
         environ.env.logger.error('unknown server activity verb "%s"' % activity.verb)
 

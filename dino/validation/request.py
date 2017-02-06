@@ -253,6 +253,11 @@ class RequestValidator(BaseValidator):
         room_id = activity.target.id
         user_id = activity.actor.id
 
+        try:
+            utils.get_room_name(room_id)
+        except NoSuchRoomException:
+            return False, ECodes.NO_SUCH_ROOM, 'room does not exist'
+
         if not hasattr(activity, 'object'):
             activity.object = DefObject(dict())
 

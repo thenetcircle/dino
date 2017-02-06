@@ -494,6 +494,22 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     return response
 
 
+def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
+    return {
+        'actor': {
+            'id': user_id,
+            'displayName': b64e(user_name)
+        },
+        'target': {
+            'id': room_id,
+            'displayName': b64e(room_name)
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'remove',
+        'id': str(uuid())
+    }
+
+
 def get_user_info_attachments_for(user_id: str) -> list:
     attachments = list()
     for info_key, info_val in environ.env.auth.get_user_info(user_id).items():

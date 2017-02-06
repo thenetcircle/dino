@@ -56,21 +56,24 @@ class OnLeaveHooks(object):
             kick_activity = {
                 'actor': {
                     'id': user_id,
-                    'summary': user_name
+                    'displayName': utils.b64e(user_name)
                 },
                 'verb': 'kick',
                 'object': {
                     'id': user_id_still_in_room,
-                    'displayName': user_name_still_in_room,
+                    'displayName': utils.b64e(user_name_still_in_room),
                     'content': utils.b64e('All owners have left the room')
                 },
                 'target': {
                     'url': environ.env.request.namespace,
                     'id': room_id,
-                    'displayName': room_name
+                    'displayName': utils.b64e(room_name)
                 }
             }
             environ.env.publish(kick_activity)
+
+        remove_activity = utils.activity_for_remove_room(user_id, user_name, room_id, room_name)
+        environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
 
 
 @environ.env.observer.on('on_leave')

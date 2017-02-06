@@ -105,6 +105,11 @@
                     });
                 });
 
+                socket.on('gn_room_removed', function(data) {
+                    console.log('a room was removed');
+                    console.log(data);
+                });
+
                 socket.on('gn_login', function(data) {
                     console.log(data);
                     socket.emit('list_channels', {

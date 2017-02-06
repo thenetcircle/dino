@@ -1,4 +1,5 @@
 common_config: &common_config
+    testing: False
     log_level: 'DEBUG'
     auth:
         type: 'redis'
