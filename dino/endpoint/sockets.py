@@ -28,19 +28,19 @@ from kombu.mixins import ConsumerMixin
 
 from dino import api
 from dino import environ
-from dino import utils
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
-from dino.exceptions import NoSuchUserException
 from dino.utils.decorators import pre_process
 from dino.utils.decorators import respond_with
 from dino.utils.decorators import count_connections
 from dino.forms import LoginForm
 from dino.server import app, socketio
 from dino.utils.handlers import GracefulInterruptHandler
+from dino.endpoint.queue import QueueHandler
 
 logger = logging.getLogger(__name__)
+queue_handler = QueueHandler(socketio, environ.env)
 
 
 class Worker(ConsumerMixin):
@@ -57,276 +57,10 @@ class Worker(ConsumerMixin):
 
     def process_task(self, body, message):
         try:
-            handle_server_activity(body, as_parser.parse(body))
+            queue_handler.handle_server_activity(body, as_parser.parse(body))
         except (ActivityException, AttributeError) as e:
             logger.error('could not parse server message: "%s", message was: %s' % (str(e), body))
         message.ack()
-
-
-def handle_server_activity(data: dict, activity: Activity):
-    # TODO: move this to another file so it's easier to read it, separate class
-
-    def _kick(_room_id, _user_id, _user_sid, namespace, activity_json):
-        try:
-            _users = list()
-            if _room_id in socketio.server.manager.rooms[namespace]:
-                _users = socketio.server.manager.rooms[namespace][_room_id]
-            else:
-                logger.warning('no room %s for namespace [%s] (or room is empty, or already removed)' % (_room_id, namespace))
-        except Exception as e:
-            logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, _room_id, str(e)))
-            logger.exception(traceback.format_exc())
-            return
-
-        environ.env.out_of_scope_emit(
-                'gn_user_kicked', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
-        send_kick_event_to_external_queue()
-
-        if _user_sid in _users:
-            try:
-                socketio.server.leave_room(_user_sid, _room_id, '/chat')
-            except Exception as e:
-                logger.error('could not kick user %s from room %s: %s' % (_user_id, _room_id, str(e)))
-                logger.exception(traceback.format_exc())
-
-            try:
-                environ.env.db.leave_room(_user_id, _room_id)
-            except Exception as e:
-                logger.warning('could not remove user from room in db (room might already have been deleted): %s' % str(e))
-
-    def _ban_room(_room_id, _user_id, _user_sid, namespace, activity_json):
-        environ.env.out_of_scope_emit(
-                'gn_user_banned', activity_json, json=True, namespace=namespace, room=_room_id, broadcast=True)
-
-        try:
-            _kick(_room_id, _user_id, _user_sid, namespace, activity_json)
-        except Exception as e:
-            logger.error('could not ban user %s from room %s: %s' % (_user_id, _room_id, str(e)))
-            return
-
-    def _ban_channel(rooms_in_channel, _channel_id, _user_id, _user_sid, namespace, activity_json):
-        try:
-            for room in rooms_in_channel:
-                environ.env.out_of_scope_emit(
-                        'gn_user_banned', activity_json, json=True, namespace=namespace, room=room, broadcast=True)
-                _kick(room, _user_id, _user_sid, namespace, activity_json)
-        except Exception as e:
-            logger.error('could not ban user %s from channel %s: %s' % (_user_id, _channel_id, str(e)))
-            logger.exception(traceback.format_exc(e))
-            return
-
-    def _ban_globally(rooms_for_user, _user_id, _user_sid, namespace, activity_json):
-        try:
-            for room in rooms_for_user:
-                environ.env.out_of_scope_emit(
-                        'gn_user_banned', activity_json, json=True, namespace=namespace, room=room, broadcast=True)
-                _kick(room, _user_id, _user_sid, namespace, activity_json)
-        except Exception as e:
-            logger.error('could not ban user %s globally: %s' % (_user_id, str(e)))
-            logger.exception(traceback.format_exc(e))
-            return
-
-    def handle_kick():
-        kicker_id = activity.actor.id
-        if kicker_id == '0':
-            kicker_name = 'admin'
-        else:
-            try:
-                kicker_name = activity.actor.display_name or utils.get_user_name_for(kicker_id)
-            except NoSuchUserException:
-                # if kicking from rest api the user might not exist
-                logger.error('no such user when kicking: %s' % kicker_id)
-                return
-
-        kicked_id = activity.object.id
-        kicked_name = activity.object.display_name or utils.get_user_name_for(kicked_id)
-        kicked_sid = utils.get_sid_for_user_id(kicked_id)
-        room_id = activity.target.id
-        room_name = activity.target.display_name or utils.get_room_name(room_id)
-        namespace = activity.target.url
-
-        if kicked_sid is None or kicked_sid == [None] or kicked_sid == '':
-            logger.warn('no sid found for user id %s' % kicked_id)
-            return
-
-        reason = None
-        if hasattr(activity.object, 'content'):
-            reason = activity.object.content
-
-        activity_json = utils.activity_for_user_kicked(
-                kicker_id, kicker_name, kicked_id, kicked_name, room_id, room_name, reason)
-
-        try:
-            # user just got banned globally, kick from all rooms
-            if room_id is None or room_id == '':
-                for room_key in socketio.server.manager.rooms[namespace].keys():
-                    _kick(room_key, kicked_id, kicked_sid, namespace, activity_json)
-            else:
-                _kick(room_id, kicked_id, kicked_sid, namespace, activity_json)
-        except KeyError:
-            pass
-
-    def handle_ban():
-        banner_id = activity.actor.id
-        if banner_id == '0':
-            banner_name = 'admin'
-        else:
-            try:
-                banner_name = utils.get_user_name_for(banner_id)
-            except NoSuchUserException:
-                # if banning from rest api the user might not exist
-                logger.error('no such user when banning: %s' % banner_id)
-                return
-
-        banned_id = activity.object.id
-        banned_name = utils.get_user_name_for(banned_id)
-        banned_sid = utils.get_sid_for_user_id(banned_id)
-        namespace = activity.target.url
-        target_type = activity.target.object_type
-
-        if target_type == 'room':
-            target_id = activity.target.id
-            target_name = utils.get_room_name(target_id)
-        elif target_type == 'channel':
-            target_id = activity.target.id
-            target_name = utils.get_channel_name(target_id)
-        else:
-            target_id = ''
-            target_name = ''
-
-        if banned_sid is None or banned_sid == [None] or banned_sid == '':
-            logger.warn('no sid found for user id %s' % banned_id)
-            return
-
-        reason = None
-        if hasattr(activity.object, 'content'):
-            reason = activity.object.content
-
-        activity_json = utils.activity_for_user_banned(
-                banner_id, banner_name, banned_id, banned_name, target_id, target_name, reason)
-
-        try:
-            ban_duration = activity.object.summary
-            ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
-            banner_id = activity_json['actor']['id']
-
-            if target_id is None or target_id == '':
-                rooms_for_user = environ.env.db.rooms_for_user(banned_id)
-                send_ban_event_to_external_queue('global')
-                environ.env.db.ban_user_global(banned_id, ban_timestamp, ban_duration, reason, banner_id)
-                _ban_globally(rooms_for_user, banned_id, banned_sid, namespace, activity_json)
-
-                environ.env.db.set_user_offline(banned_id)
-                activity_json = utils.activity_for_disconnect(banned_id, banned_name)
-                environ.env.publish(activity_json, external=True)
-
-            elif target_type == 'channel':
-                rooms_in_channel = environ.env.db.rooms_for_channel(target_id)
-                send_ban_event_to_external_queue('channel')
-                environ.env.db.ban_user_channel(banned_id, ban_timestamp, ban_duration, target_id, reason, banner_id)
-                _ban_channel(rooms_in_channel, target_id, banned_id, banned_sid, namespace, activity_json)
-
-            else:
-                send_ban_event_to_external_queue('room')
-                environ.env.db.ban_user_room(banned_id, ban_timestamp, ban_duration, target_id, reason, banner_id)
-                _ban_room(target_id, banned_id, banned_sid, namespace, activity_json)
-
-        except KeyError as ke:
-            logger.error('could not ban: %s' % str(ke))
-            logger.exception(traceback.format_exc())
-
-    def send_ban_event_to_external_queue(target_type) -> None:
-        ban_activity = {
-            'actor': {
-                'id': activity.actor.id,
-                'displayName': activity.actor.display_name
-            },
-            'verb': 'ban',
-            'object': {
-                'id': activity.object.id,
-                'displayName': activity.object.display_name,
-                'summary': activity.object.summary,
-                'updated': activity.object.updated
-            },
-            'id': str(uuid()),
-            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-        }
-
-        reason = None
-        if activity.object is not None:
-            reason = activity.object.content
-        if reason is not None and len(reason.strip()) > 0:
-            ban_activity['object']['content'] = reason
-
-        ban_activity['target'] = {
-            'objectType': target_type
-        }
-
-        # when banning globally, not target room is specified
-        if activity.target is not None:
-            ban_activity['target']['id'] = activity.target.id
-            ban_activity['target']['displayName'] = activity.target.display_name
-            ban_activity['target']['objectType'] = activity.target.object_type
-
-        logger.debug('publishing ban event to external queue: %s' % ban_activity)
-        environ.env.publish(ban_activity, external=True)
-
-    def send_kick_event_to_external_queue() -> None:
-        kick_activity = {
-            'actor': {
-                'id': activity.actor.id,
-                'displayName': activity.actor.display_name
-            },
-            'verb': 'kick',
-            'object': {
-                'id': activity.object.id,
-                'displayName': activity.object.display_name
-            },
-            'id': str(uuid()),
-            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-        }
-
-        reason = None
-        if hasattr(activity, 'object') and hasattr(activity.object, 'content'):
-            reason = activity.object.content
-        if reason is not None and len(reason.strip()) > 0:
-            kick_activity['object']['content'] = reason
-
-        if activity.target is not None:
-            kick_activity['target'] = dict()
-            kick_activity['target']['id'] = activity.target.id
-            kick_activity['target']['displayName'] = activity.target.display_name
-
-        logger.debug('publishing kick event to external queue: %s' % kick_activity)
-        environ.env.publish(kick_activity, external=True)
-
-    def handle_remove():
-        environ.env.out_of_scope_emit(
-                'gn_room_removed', data, json=True, namespace=activity.target.url, broadcast=True)
-
-    if activity.verb == 'kick':
-        try:
-            handle_kick()
-        except Exception as e:
-            logger.error('could not handle kick: %s' % str(e))
-            logger.exception(traceback.format_exc())
-
-    elif activity.verb == 'ban':
-        try:
-            handle_ban()
-        except Exception as e:
-            logger.error('could not handle ban: %s' % str(e))
-            logger.exception(traceback.format_exc())
-
-    elif activity.verb == 'remove':
-        try:
-            handle_remove()
-        except Exception as e:
-            logger.error('could not emit remove activity to clients: %s' % str(e))
-            logger.exception(traceback.format_exc())
-
-    else:
-        environ.env.logger.error('unknown server activity verb "%s"' % activity.verb)
 
 
 def consume():
