@@ -29,6 +29,46 @@ class OnLeaveHooks(object):
 
         utils.remove_user_from_room(user_id, user_name, room_id)
 
+        # todo: can we do this async? let the request finish, as this might take a while for larger rooms
+        # todo: move this to a plugin, use yapsy to inject
+        if not environ.env.db.is_room_ephemeral(room_id) or not utils.is_owner(room_id, user_id):
+            return
+
+        owners = utils.get_owners_for_room(room_id)
+        users_in_room = utils.get_users_in_room(room_id)
+
+        if user_id in users_in_room:
+            del users_in_room[user_id]
+
+        for owner_id, _ in owners.items():
+            if owner_id in users_in_room:
+                # don't remove the room if an owner is still in the room
+                return
+
+        channel_id = utils.get_channel_for_room(room_id)
+        room_name = utils.get_room_name(room_id)
+        environ.env.db.remove_room(channel_id, room_id)
+
+        for user_id_still_in_room, user_name_still_in_room in users_in_room.items():
+            kick_activity = {
+                'actor': {
+                    'id': user_id,
+                    'summary': user_name
+                },
+                'verb': 'kick',
+                'object': {
+                    'id': user_id_still_in_room,
+                    'displayName': user_name_still_in_room,
+                    'content': utils.b64e('All owners have left the room')
+                },
+                'target': {
+                    'url': environ.env.request.namespace,
+                    'id': room_id,
+                    'displayName': room_name
+                }
+            }
+            environ.env.publish(kick_activity)
+
     @staticmethod
     def emit_leave_event(arg: tuple) -> None:
         data, activity = arg

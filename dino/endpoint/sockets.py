@@ -72,7 +72,7 @@ def handle_server_activity(data: dict, activity: Activity):
             if _room_id in socketio.server.manager.rooms[namespace]:
                 _users = socketio.server.manager.rooms[namespace][_room_id]
             else:
-                logger.warning('no room %s for namespace [%s] (or room is empty)' % (_room_id, namespace))
+                logger.warning('no room %s for namespace [%s] (or room is empty, or already removed)' % (_room_id, namespace))
         except Exception as e:
             logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, _room_id, str(e)))
             logger.exception(traceback.format_exc())
@@ -85,10 +85,14 @@ def handle_server_activity(data: dict, activity: Activity):
         if _user_sid in _users:
             try:
                 socketio.server.leave_room(_user_sid, _room_id, '/chat')
-                environ.env.db.leave_room(_user_id, _room_id)
             except Exception as e:
                 logger.error('could not kick user %s from room %s: %s' % (_user_id, _room_id, str(e)))
                 logger.exception(traceback.format_exc())
+
+            try:
+                environ.env.db.leave_room(_user_id, _room_id)
+            except Exception as e:
+                logger.warning('could not remove user from room in db (room might already have been deleted): %s' % str(e))
 
     def _ban_room(_room_id, _user_id, _user_sid, namespace, activity_json):
         environ.env.out_of_scope_emit(
@@ -128,17 +132,17 @@ def handle_server_activity(data: dict, activity: Activity):
             kicker_name = 'admin'
         else:
             try:
-                kicker_name = utils.get_user_name_for(kicker_id)
+                kicker_name = activity.actor.display_name or utils.get_user_name_for(kicker_id)
             except NoSuchUserException:
                 # if kicking from rest api the user might not exist
                 logger.error('no such user when kicking: %s' % kicker_id)
                 return
 
         kicked_id = activity.object.id
-        kicked_name = utils.get_user_name_for(kicked_id)
+        kicked_name = activity.object.display_name or utils.get_user_name_for(kicked_id)
         kicked_sid = utils.get_sid_for_user_id(kicked_id)
         room_id = activity.target.id
-        room_name = utils.get_room_name(room_id)
+        room_name = activity.target.display_name or utils.get_room_name(room_id)
         namespace = activity.target.url
 
         if kicked_sid is None or kicked_sid == [None] or kicked_sid == '':

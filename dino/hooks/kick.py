@@ -28,12 +28,12 @@ class OnKickHooks(object):
         kick_activity = {
             'actor': {
                 'id': activity.actor.id,
-                'summary': activity.actor.summary
+                'displayName': activity.actor.summary
             },
             'verb': 'kick',
             'object': {
                 'id': activity.object.id,
-                'summary': activity.object.summary
+                'displayName': activity.object.summary
             },
             'target': {
                 'url': namespace
