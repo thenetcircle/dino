@@ -28,6 +28,13 @@ logger = logging.getLogger(__name__)
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
+def fail(error_message):
+    return {
+        'status': 'FAIL',
+        'message': error_message
+    }
+
+
 class BanResource(BaseResource):
     def __init__(self):
         super(BanResource, self).__init__()
@@ -35,13 +42,7 @@ class BanResource(BaseResource):
         self.request = request
 
     def do_post(self):
-        def fail(error_message):
-            return {
-                'status': 'FAIL',
-                'message': error_message
-            }
-
-        is_valid, msg, json = self.validate_json()
+        is_valid, msg, json = self.validate_json(self.request, silent=False)
         output = dict()
         if not is_valid:
             logger.error('invalid json: %s' % msg)
@@ -102,11 +103,3 @@ class BanResource(BaseResource):
                 logger.error(traceback.format_exc())
                 output[user_id] = fail(str(e))
         return output
-
-    def validate_json(self):
-        try:
-            return True, None, self.request.get_json(silent=False)
-        except Exception as e:
-            logger.error('error: %s' % str(e))
-            logger.exception(traceback.format_exc())
-            return False, 'invalid json in request', None

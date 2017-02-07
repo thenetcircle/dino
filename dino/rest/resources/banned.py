@@ -47,7 +47,7 @@ class BannedResource(BaseResource):
         return environ.env.db.get_bans_for_user(user_id)
 
     def do_get(self):
-        is_valid, msg, json = self.validate_json()
+        is_valid, msg, json = self.validate_json(self.request, silent=True)
         if not is_valid:
             logger.error('invalid json: %s' % msg)
             return dict()
@@ -63,11 +63,3 @@ class BannedResource(BaseResource):
         for user_id in json['users']:
             output[user_id] = self.do_get_with_params(user_id)
         return output
-
-    def validate_json(self):
-        try:
-            return True, None, self.request.get_json(silent=True)
-        except Exception as e:
-            logger.error('error: %s' % str(e))
-            logger.exception(traceback.format_exc())
-            return False, 'invalid json in request', None

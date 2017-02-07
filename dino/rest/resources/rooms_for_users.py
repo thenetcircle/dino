@@ -17,7 +17,6 @@ from datetime import datetime
 from flask import request
 
 import logging
-import traceback
 
 from dino.utils import b64e
 from dino.rest.resources.base import BaseResource
@@ -68,7 +67,7 @@ class RoomsForUsersResource(BaseResource):
         return self._do_get(user_id)
 
     def do_get(self):
-        is_valid, msg, json = self.validate_json()
+        is_valid, msg, json = self.validate_json(self.request, silent=False)
         if not is_valid:
             logger.error('invalid json: %s' % msg)
             return dict()
@@ -90,11 +89,3 @@ class RoomsForUsersResource(BaseResource):
 
     def _set_last_cleared(self, last_cleared):
         self.last_cleared = last_cleared
-
-    def validate_json(self):
-        try:
-            return True, None, self.request.get_json(silent=False)
-        except Exception as e:
-            logger.error('error: %s' % str(e))
-            logger.exception(traceback.format_exc())
-            return False, 'invalid json in request', None

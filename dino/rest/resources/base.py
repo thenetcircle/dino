@@ -46,6 +46,15 @@ class BaseResource(Resource):
             logger.exception(traceback.format_exc())
             return {'status_code': 500, 'data': str(e)}
 
+    def validate_json(self, request, silent=True):
+        try:
+            return True, None, request.get_json(silent=silent)
+        except Exception as e:
+            logger.error('error: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            return False, 'invalid json in request', None
+
+
     def do_post(self):
         raise NotImplementedError()
 
