@@ -32,13 +32,21 @@ RUN python3.5 get-pip.py
 
 # Time for Dino
 WORKDIR /
-RUN a=d git clone https://github.com/thenetcircle/dino.git
+RUN git clone https://github.com/thenetcircle/dino.git
 WORKDIR /dino
+
+# create the dino user and change to it, don't run as root
+RUN groupadd -r dinogroup && useradd -r -g dinogroup dinouser
+RUN chown -R dinouser /dino
+RUN mkdir -p /home/dinouser/.cache/pip
+RUN chown -R dinouser /home/dinouser/.cache/pip
+USER dinouser
+
 RUN virtualenv --python=python3.5 env
-RUN source env/bin/activate
-RUN pip install --upgrade pip setuptools
-RUN pip install --upgrade -r requirements.txt
-RUN pip install --no-deps .
+RUN source env/bin/activate && \
+        pip install --upgrade pip setuptools && \
+        pip install --upgrade -r requirements.txt && \
+        pip install --no-deps .
 
 # Set the default command to execute, use a bash script so we can send env vars to dino (port etc.)
-CMD ./dino-start.sh
+CMD source env/bin/activate && ./dino-start.sh
