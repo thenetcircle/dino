@@ -215,6 +215,8 @@ class GNEnvironment(object):
         self.request = _flask_request
         self.send_from_directory = _flask_send_from_directory
         self.disconnect = _flask_disconnect
+        self._force_disconnect_by_sid = None
+        self.disconnect_by_sid = None
 
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.session = config.get(ConfigKeys.SESSION, None)
@@ -229,7 +231,7 @@ class GNEnvironment(object):
 
         self.event_validator_map = dict()
         self.event_validators = dict()
-        self.connected_ips = dict()
+        self.connected_user_ids = dict()
 
         # TODO: remove this, go through storage interface
         self.redis = config.get(ConfigKeys.REDIS, None)

@@ -40,14 +40,6 @@ def connect() -> (int, None):
 
     :return: {'status_code': 200}
     """
-    if not environ.env.config.get(ConfigKeys.TESTING):
-        if request.remote_addr in environ.env.connected_ips:
-            logger.error('a connection from IP %s already exists' % request.remote_addr)
-            environ.env.disconnect()
-            return ECodes.NOT_ALLOWED, 'a connection from this client already exists'
-        else:
-            environ.env.connected_ips[request.remote_addr] = request.sid
-            environ.env.observer.emit('on_connect', (None, None))
     return ECodes.OK, None
 
 
@@ -61,6 +53,13 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     user_id = environ.env.session.get(SessionKeys.user_id.value)
     user_name = environ.env.session.get(SessionKeys.user_name.value)
+
+    if not environ.env.config.get(ConfigKeys.TESTING):
+        if str(user_id) in environ.env.connected_user_ids:
+            logger.info('a new connection for user ID %s, will disconnect previous one' % user_id)
+            environ.env.disconnect_by_sid(environ.env.connected_user_ids[str(user_id)])
+        environ.env.connected_user_ids[str(user_id)] = environ.env.request.sid
+
     user_roles = utils.get_user_roles(user_id)
 
     response = utils.activity_for_login(user_id, user_name)
@@ -449,15 +448,16 @@ def on_disconnect() -> (int, None):
 
     :return json if ok, {'status_code': 200}
     """
+    user_id = str(environ.env.session.get(SessionKeys.user_id.value))
     data = {
         'verb': 'disconnect',
         'actor': {
-            'id': str(environ.env.session.get(SessionKeys.user_id.value))
+            'id': user_id
         }
     }
     if not environ.env.config.get(ConfigKeys.TESTING):
-        if environ.env.connected_ips.get(request.remote_addr) == request.sid:
-            del environ.env.connected_ips[request.remote_addr]
+        if environ.env.connected_user_ids.get(user_id) == request.sid:
+            del environ.env.connected_user_ids[user_id]
 
     activity = as_parser(data)
     environ.env.observer.emit('on_disconnect', (data, activity))
