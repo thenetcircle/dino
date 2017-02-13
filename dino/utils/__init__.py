@@ -124,13 +124,11 @@ def activity_for_user_banned(
     activity_json = {
         'actor': {
             'id': banner_id,
-            'displayName': b64e(banner_name),
-            'attachments': get_user_info_attachments_for(banner_id)
+            'displayName': b64e(banner_name)
         },
         'object': {
             'id': banned_id,
-            'displayName': b64e(banned_name),
-            'attachments': get_user_info_attachments_for(banned_id)
+            'displayName': b64e(banned_name)
         },
         'target': {
             'id': room_id,
@@ -156,13 +154,11 @@ def activity_for_user_kicked(
     activity = {
         'actor': {
             'id': kicker_id,
-            'displayName': b64e(kicker_name),
-            'attachments': get_user_info_attachments_for(kicker_id)
+            'displayName': b64e(kicker_name)
         },
         'object': {
             'id': kicked_id,
-            'displayName': b64e(kicked_name),
-            'attachments': get_user_info_attachments_for(kicked_id)
+            'displayName': b64e(kicked_name)
         },
         'target': {
             'id': room_id,
