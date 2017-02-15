@@ -90,6 +90,9 @@
                 <li class="toctree-l3"><a href="#user-was-kicked-from-a-room">User was kicked from a room</a></li>
                 
             
+                <li class="toctree-l3"><a href="#user-used-a-blacklisted-word">User used a blacklisted word</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#user-was-banned">User was banned</a></li>
                 
             
@@ -189,6 +192,33 @@
 <li>object.displayName: base64 encoded username of the user was kicked,</li>
 <li>target.id: UUID of the room the user was kicked from,</li>
 <li>target.displayName: base64 encoded name of the room.</li>
+</ul>
+<h2 id="user-used-a-blacklisted-word">User used a blacklisted word</h2>
+<pre><code>{
+    "actor": {
+        "displayName": "YmF0bWFu",
+        "id": "997110"
+    },
+    "object": {
+        "content": "aGVsbG8gZnVjayB5b3U=",
+        "summary": "ZnVjaw=="
+    },
+    "target": {
+        "displayName": "Y29vbCBndXlz",
+        "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+    },
+    "verb": "blacklisted",
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<ul>
+<li>target.displayName: name of the room the message was sent in,</li>
+<li>target.id: uuid of the room the message was sent in,</li>
+<li>actor.id: id of the user who sent the message,</li>
+<li>actor.displayName: username of the user who sent the message,</li>
+<li>object.content: the full message that was sent,</li>
+<li>object.summary: the forbidden word that was used.</li>
 </ul>
 <h2 id="user-was-banned">User was banned</h2>
 <p>Example of activity posted to the external queue:</p>

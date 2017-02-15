@@ -101,6 +101,9 @@
                 <li class="toctree-l3"><a href="#another-user-disconnects">Another user disconnects</a></li>
                 
             
+                <li class="toctree-l3"><a href="#you-were-banned">You were banned</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#a-new-room-is-created">A new room is created</a></li>
                 
             
@@ -330,6 +333,36 @@ with the following content:</p>
     "verb": 'disconnect'
 }
 </code></pre>
+<h2 id="you-were-banned">You were banned</h2>
+<p>If you are banned, either in a room, a channel or globally, you will receive the following event named <code>gn_banned</code>:</p>
+<pre><code>{
+    "actor": {
+        "id": "&lt;ID of the one who banned you&gt;",
+        "displayName": "&lt;username of the one who banned you, in base64&gt;"
+    },
+    "object": {
+        "id": "&lt;your user ID&gt;",
+        "displayName": ""&lt;your username in base64&gt;",
+        "summary": "30s",
+        "updated": "2017-02-15T09:11:52Z",
+        "content": "&lt;the reason for the ban&gt;"
+    },
+    "target": {
+        "id": "&lt;room/channel uuid&gt;",
+        "displayName": "&lt;room/channel name, in base64&gt;",
+        "objectType": "&lt;room/channel/global&gt;"
+    },
+    "verb": "ban",
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<ul>
+<li>target.id and target.displayName will not be present if target.objectType is "global",</li>
+<li>object.summary is the duration of the ban, e.g. 30s, 2h, 7d etc.,</li>
+<li>object.updated is the timestamp when the ban will expire, in UTC,</li>
+<li>object.content is the reason for the ban, but if no reason is given by the banned, this field will not be present.</li>
+</ul>
 <h2 id="a-new-room-is-created">A new room is created</h2>
 <p>When a new room is created in a channel that user A is in, an event called <code>gn_room_created</code> will be sent to user A with
 the following content:</p>
