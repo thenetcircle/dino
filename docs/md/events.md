@@ -174,6 +174,37 @@ If user A is in any room that user B is in, and user B disconnects from the chat
         "verb": 'disconnect'
     }
 
+## You were banned
+
+If you are banned, either in a room, a channel or globally, you will receive the following event named `gn_banned`:
+
+    {
+        "actor": {
+            "id": "<ID of the one who banned you>",
+            "displayName": "<username of the one who banned you, in base64>"
+        },
+        "object": {
+            "id": "<your user ID>",
+            "displayName": ""<your username in base64>",
+            "summary": "30s",
+            "updated": "2017-02-15T09:11:52Z",
+            "content": "<the reason for the ban>"
+        },
+        "target": {
+            "id": "<room/channel uuid>",
+            "displayName": "<room/channel name, in base64>",
+            "objectType": "<room/channel/global>"
+        },
+        "verb": "ban",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
+
+* target.id and target.displayName will not be present if target.objectType is "global",
+* object.summary is the duration of the ban, e.g. 30s, 2h, 7d etc.,
+* object.updated is the timestamp when the ban will expire, in UTC,
+* object.content is the reason for the ban, but if no reason is given by the banned, this field will not be present.
+
 ## A new room is created
 
 When a new room is created in a channel that user A is in, an event called `gn_room_created` will be sent to user A with

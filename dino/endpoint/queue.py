@@ -208,8 +208,8 @@ class QueueHandler(object):
                 self.ban_globally(activity_json, activity, rooms_for_user, banned_id, banned_sid, namespace)
 
                 self.env.db.set_user_offline(banned_id)
-                activity_json = utils.activity_for_disconnect(banned_id, banned_name)
-                self.env.publish(activity_json, external=True)
+                disconnect_activity = utils.activity_for_disconnect(banned_id, banned_name)
+                self.env.publish(disconnect_activity, external=True)
 
             elif target_type == 'channel':
                 rooms_in_channel = self.env.db.rooms_for_channel(target_id)
@@ -222,11 +222,16 @@ class QueueHandler(object):
                 self.env.db.ban_user_room(banned_id, ban_timestamp, ban_duration, target_id, reason, banner_id)
                 self.ban_room(activity_json, activity, target_id, banned_id, banned_sid, namespace)
 
+            ban_activity = self.get_ban_activity(activity, target_type)
+            self.env.out_of_scope_emit(
+                    'gn_banned', ban_activity, json=True, namespace=namespace,
+                    room=utils.get_sid_for_user_id(banned_id))
+
         except KeyError as ke:
             logger.error('could not ban: %s' % str(ke))
             logger.exception(traceback.format_exc())
 
-    def send_ban_event_to_external_queue(self, activity: Activity, target_type: str) -> None:
+    def get_ban_activity(self, activity: Activity, target_type: str) -> dict:
         ban_activity = {
             'actor': {
                 'id': activity.actor.id,
@@ -259,6 +264,10 @@ class QueueHandler(object):
             ban_activity['target']['displayName'] = activity.target.display_name
             ban_activity['target']['objectType'] = activity.target.object_type
 
+        return ban_activity
+
+    def send_ban_event_to_external_queue(self, activity: Activity, target_type: str) -> None:
+        ban_activity = self.get_ban_activity(activity, target_type)
         logger.debug('publishing ban event to external queue: %s' % ban_activity)
         self.env.publish(ban_activity, external=True)
 

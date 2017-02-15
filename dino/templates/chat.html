@@ -117,6 +117,11 @@
                     });
                 });
 
+                socket.on('gn_banned', function(data) {
+                    console.log('you were banned!')
+                    console.log(data);
+                });
+
                 socket.on('gn_list_channels', function(response) {
                     console.log('listing channels');
                     console.log(response);
