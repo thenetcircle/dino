@@ -30,7 +30,7 @@ from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 def respond_with(gn_event_name=None):

@@ -25,6 +25,7 @@ from dino import validation
 from dino.config import UserKeys
 from dino.config import ApiActions
 from dino.config import ApiTargets
+from dino.utils.blacklist import BlackListChecker
 from datetime import timedelta
 from datetime import datetime
 from base64 import b64encode
@@ -52,7 +53,7 @@ def b64d(s: str) -> str:
     try:
         return str(b64decode(bytes(s, 'utf-8')), 'utf-8')
     except Exception as e:
-        logger.error('could not b64decode because: %s' % str(e))
+        logger.error('could not b64decode because: %s, value was: \n%s' % (str(e), str(s)))
     return ''
 
 
@@ -81,6 +82,10 @@ def is_base64(s):
         logger.exception(traceback.format_exc())
         return False
     return True
+
+
+def used_blacklisted_word(activity: Activity):
+    return environ.env.blacklist.contains_blacklisted_word(activity)
 
 
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
@@ -203,8 +208,7 @@ def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'displayName': b64e(user_name),
-            'attachments': get_user_info_attachments_for(user_id)
+            'displayName': b64e(user_name)
         },
         'verb': 'disconnect',
         'id': str(uuid()),

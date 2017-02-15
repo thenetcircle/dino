@@ -1,8 +1,0 @@
-[Core]
-Name = check_blacklist
-Module = check_blacklist
-
-[Documentation]
-Description = Checks a message content against a blacklist of words, rejecting the message if it matches
-Author = Oscar Eriksson
-Version = 1.0.0

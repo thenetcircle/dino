@@ -44,6 +44,8 @@ class OnMessageHooks(object):
     @staticmethod
     def broadcast(arg: tuple) -> None:
         data, activity = arg
+        if utils.used_blacklisted_word(activity):
+            return
         room_id = activity.target.id
         environ.env.send(data, json=True, room=room_id, broadcast=True)
 

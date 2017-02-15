@@ -19,7 +19,7 @@ common_config: &common_config
     validation:
         on_message:
             - no_empty
-            - check_blacklist
+            #- check_blacklist
     history:
         type: 'unread'  # unread or top
         limit: 1000

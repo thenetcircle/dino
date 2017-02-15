@@ -228,6 +228,7 @@ class GNEnvironment(object):
         self.exchange = None
         self.consume_worker = None
         self.start_consumer = None
+        self.blacklist = None
 
         self.event_validator_map = dict()
         self.event_validators = dict()
@@ -788,7 +789,15 @@ def init_request_validators(gn_env: GNEnvironment) -> None:
         if key not in gn_env.event_validator_map:
             gn_env.event_validator_map[key] = list()
         for plugin_name in validation[key]:
-            gn_env.event_validator_map[key].append(gn_env.event_validators[plugin_name])
+            try:
+                gn_env.event_validator_map[key].append(gn_env.event_validators[plugin_name])
+            except KeyError:
+                raise KeyError('specified plugin "%s" does not exist' % key)
+
+
+def init_blacklist_service(gn_env: GNEnvironment):
+    from dino.utils.blacklist import BlackListChecker
+    gn_env.blacklist = BlackListChecker(gn_env)
 
 
 def initialize_env(dino_env):
@@ -801,6 +810,7 @@ def initialize_env(dino_env):
     init_stats_service(dino_env)
     init_observer(dino_env)
     init_request_validators(dino_env)
+    init_blacklist_service(dino_env)
 
 
 _config_paths = None

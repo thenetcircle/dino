@@ -156,8 +156,9 @@ def on_message(data, activity: Activity):
         activity.object.display_name = ''
         activity.object.url = ''
 
-    activity.actor.display_name = environ.env.session.get(SessionKeys.user_name.value)
-    data['actor']['displayName'] = utils.b64e(activity.actor.display_name)
+    activity.actor.display_name = utils.b64e(environ.env.session.get(SessionKeys.user_name.value))
+    data['actor']['displayName'] = activity.actor.display_name
+
     data['target']['displayName'] = utils.b64e(activity.target.display_name)
     data['object']['displayName'] = utils.b64e(activity.object.display_name)
 

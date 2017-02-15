@@ -14,34 +14,29 @@ import logging
 import traceback
 import time
 
-from yapsy.IPlugin import IPlugin
 from activitystreams.models.activity import Activity
 
 from dino import utils
-from dino.environ import GNEnvironment
-
-logger = logging.getLogger()
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
+logger = logging.getLogger()
 
-class OnMessageCheckBlackList(IPlugin):
-    def __init__(self):
-        super(OnMessageCheckBlackList, self).__init__()
-        self.env = None
 
-    def setup(self, env: GNEnvironment):
+class BlackListChecker(object):
+    def __init__(self, env):
         self.env = env
 
-    def get_black_list(self):
+    def _get_black_list(self):
+        # cached in db object
         return self.env.db.get_black_list()
 
-    def _process(self, data: dict, activity: Activity):
+    def _contains_blacklisted_word(self, activity: Activity):
         message = activity.object.content
-        blacklist = self.get_black_list()
+        blacklist = self._get_black_list()
 
         if blacklist is None or len(blacklist) == 0:
-            return True, None
+            return False
         if message is not None and len(message) > 0:
             message = utils.b64d(message).lower()
 
@@ -51,23 +46,26 @@ class OnMessageCheckBlackList(IPlugin):
         )
 
         if not contains_forbidden_word:
-            return True, None
+            return False
 
         for word in blacklist:
             if word not in message:
                 continue
 
-            logger.warning('ignoring message from user %s because a blacklisted word "%s" was used' % (activity.actor.id, word))
-            return False, '"%s" is a forbidden word' % word
-        return True, None
+            # todo: send report to external queue
+            # blacklist_activity = utils.activity_for_blacklisted_word(activity)
+            # self.env.pusblish(blacklist_activity, external=True)
+            logger.warning('message from user %s used a blacklisted word "%s"' % (activity.actor.id, word))
+            return True
+        return False
 
-    def __call__(self, *args, **kwargs) -> (bool, str):
-        data, activity = args[0], args[1]
+    def contains_blacklisted_word(self, activity: Activity) -> (bool, str):
         start = time.time()
         try:
-            return self._process(data, activity)
+            return self._contains_blacklisted_word(activity)
         except Exception as e:
-            logger.error('could not execute plugin check_blacklist: %s' % str(e))
+            logger.error('could not check blacklist: %s' % str(e))
             logger.exception(traceback.format_exc())
         finally:
-            self.env.stats.timing('event.on_message.plugin.check_blacklist', (time.time()-start)*1000)
+            self.env.stats.timing('event.on_message.check_blacklist', (time.time()-start)*1000)
+        return False
