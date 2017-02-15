@@ -52,9 +52,8 @@ class BlackListChecker(object):
             if word not in message:
                 continue
 
-            # todo: send report to external queue
-            # blacklist_activity = utils.activity_for_blacklisted_word(activity)
-            # self.env.pusblish(blacklist_activity, external=True)
+            blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
+            self.env.publish(blacklist_activity, external=True)
             logger.warning('message from user %s used a blacklisted word "%s"' % (activity.actor.id, word))
             return True
         return False

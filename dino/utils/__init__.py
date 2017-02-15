@@ -234,6 +234,26 @@ def activity_for_message(user_id: str, user_name: str) -> dict:
     }
 
 
+def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> dict:
+    return {
+        'actor': {
+            'id': activity.actor.id,
+            'displayName': activity.actor.display_name
+        },
+        'object': {
+            'content': activity.object.content,
+            'summary': b64e(blacklisted_word)
+        },
+        'target': {
+            'id': activity.target.id,
+            'displayName': b64e(activity.target.display_name)
+        },
+        'verb': 'blacklisted',
+        'id': str(uuid()),
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+    }
+
+
 def activity_for_login(user_id: str, user_name: str) -> dict:
     return {
         'actor': {

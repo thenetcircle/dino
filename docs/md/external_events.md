@@ -31,6 +31,33 @@ Example of activity posted to the external queue:
 * target.id: UUID of the room the user was kicked from,
 * target.displayName: base64 encoded name of the room.
 
+## User used a blacklisted word
+    
+    {
+        "actor": {
+            "displayName": "YmF0bWFu",
+            "id": "997110"
+        },
+        "object": {
+            "content": "aGVsbG8gZnVjayB5b3U=",
+            "summary": "ZnVjaw=="
+        },
+        "target": {
+            "displayName": "Y29vbCBndXlz",
+            "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+        },
+        "verb": "blacklisted",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
+
+* target.displayName: name of the room the message was sent in,
+* target.id: uuid of the room the message was sent in,
+* actor.id: id of the user who sent the message,
+* actor.displayName: username of the user who sent the message,
+* object.content: the full message that was sent,
+* object.summary: the forbidden word that was used.
+
 ## User was banned
 
 Example of activity posted to the external queue:
