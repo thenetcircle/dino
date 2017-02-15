@@ -185,7 +185,7 @@ If you are banned, either in a room, a channel or globally, you will receive the
         },
         "object": {
             "id": "<your user ID>",
-            "displayName": ""<your username in base64>",
+            "displayName": "<your username in base64>",
             "summary": "30s",
             "updated": "2017-02-15T09:11:52Z",
             "content": "<the reason for the ban>"
