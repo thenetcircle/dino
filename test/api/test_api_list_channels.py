@@ -22,11 +22,10 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ApiListChannelsTest(BaseTest):
-    def test_invite(self):
+    def test_list_channels(self):
         self.create_and_join_room()
         self.set_owner()
         act = self.activity()
-        self.env.db.create_admin_room_for(BaseTest.CHANNEL_ID)
         code, act = api.on_list_channels(act, as_parser(act))
         self.assertEqual(200, code)
         self.assertEqual(BaseTest.CHANNEL_ID, act['object']['attachments'][0]['id'])

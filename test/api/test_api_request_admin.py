@@ -22,11 +22,11 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ApiRequestAdminTest(BaseTest):
-    def test_invite(self):
+    def test_request_admin(self):
         self.create_and_join_room()
         self.set_owner()
         act = self.activity()
-        self.env.db.create_admin_room_for(BaseTest.CHANNEL_ID)
+        self.env.db.create_admin_room()
         self.assertEqual(200, api.on_request_admin(act, as_parser(act))[0])
 
     def activity(self):

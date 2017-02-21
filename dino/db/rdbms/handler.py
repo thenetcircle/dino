@@ -194,45 +194,55 @@ class DatabaseRdbms(object):
         self.env.cache.set_user_roles(user_id, roles)
         return roles
 
-    @with_session
-    def create_admin_room_for(self, channel_id: str, session) -> str:
-        channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
-        if channel is None:
-            raise NoSuchChannelException(channel_id)
-
-        # only need to set admin, super users will be able to join as well, since they bypass acl validation anyway
-        join_acl = Acls()
-        join_acl.action = ApiActions.JOIN
-        join_acl.acl_type = RoleKeys.ADMIN
-        join_acl.acl_value = ''
-        session.add(join_acl)
-
-        list_acl = Acls()
-        list_acl.action = ApiActions.LIST
-        list_acl.acl_type = RoleKeys.ADMIN
-        list_acl.acl_value = ''
-        session.add(list_acl)
-
-        room = Rooms()
-        room.name = 'Admins'
-        room.created = datetime.utcnow()
-        room.admin = True
-        room.uuid = str(uuid())
-        room.channel = channel
-        room.ephemeral = False
-        room.acls.append(join_acl)
-        room.acls.append(list_acl)
-
-        session.add(room)
-        session.commit()
-        return room.uuid
-
-    def admin_room_for_channel(self, channel_id: str) -> str:
+    def create_admin_room(self) -> str:
         @with_session
-        def _admin_room_for_channel(session=None):
+        def _create(admin_channel_id: str, session=None):
+            # only need to set admin, super users will be able to join as well, since they bypass acl validation anyway
+            join_acl = Acls()
+            join_acl.action = ApiActions.JOIN
+            join_acl.acl_type = RoleKeys.ADMIN
+            join_acl.acl_value = ''
+            session.add(join_acl)
+
+            list_acl = Acls()
+            list_acl.action = ApiActions.LIST
+            list_acl.acl_type = RoleKeys.ADMIN
+            list_acl.acl_value = ''
+            session.add(list_acl)
+
+            channel = session.query(Channels).filter(Channels.uuid == admin_channel_id).first()
+
+            room = Rooms()
+            room.name = 'Admins'
+            room.created = datetime.utcnow()
+            room.admin = True
+            room.uuid = str(uuid())
+            room.channel = channel
+            room.ephemeral = False
+            room.acls.append(join_acl)
+            room.acls.append(list_acl)
+
+            session.add(room)
+            session.commit()
+            return room.uuid
+
+        admin_room_id = self.get_admin_room()
+        if admin_room_id is not None:
+            return admin_room_id
+
+        try:
+            self.create_user('0', 'Admin')
+        except UserExistsException:
+            pass
+
+        channel_id = str(uuid())
+        self.create_channel('Admins', channel_id, '0')
+        return _create(channel_id)
+
+    def get_admin_room(self) -> str:
+        @with_session
+        def _admin_room(session=None):
             room = session.query(Rooms)\
-                .join(Rooms.channel)\
-                .filter(Channels.uuid == channel_id)\
                 .filter(Rooms.admin.is_(True))\
                 .first()
 
@@ -241,11 +251,11 @@ class DatabaseRdbms(object):
 
             return room.uuid
 
-        room_id = self.env.cache.get_admin_room_for_channel(channel_id)
+        room_id = self.env.cache.get_admin_room()
         if room_id is None:
-            room_id = _admin_room_for_channel()
-            self.env.cache.set_admin_room_for_channel(channel_id, room_id)
-            return room_id
+            room_id = _admin_room()
+            if room_id is not None:
+                self.env.cache.set_admin_room(room_id)
         return room_id
 
     def room_exists(self, channel_id: str, room_id: str) -> bool:
@@ -551,6 +561,7 @@ class DatabaseRdbms(object):
             room.channel = channel
             room.created = datetime.utcnow()
             room.ephemeral = ephemeral
+            room.admin = False
             session.add(room)
 
             role = RoomRoles()

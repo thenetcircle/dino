@@ -120,13 +120,23 @@ class DatabaseRedis(object):
                 output['room'][room_id] = [a for a in room_roles.split(',')]
         return output
 
-    def create_admin_room_for(self, channel_id: str) -> str:
-        # make sure it exists, will throw NoSuchChannel otherwise
-        self.get_channel_name(channel_id)
+    def create_admin_room(self) -> str:
+        admin_room_id = self.get_admin_room()
+        if admin_room_id is not None:
+            return admin_room_id
 
+        try:
+            self.create_user('0', 'Admin')
+        except UserExistsException:
+            pass
+
+        channel_id = str(uuid())
         room_id = str(uuid())
-        self.redis.hset(RedisKeys.admin_room_for_channel(), channel_id, room_id)
-        self.redis.hset(RedisKeys.room_name_for_id, room_id, 'Admins')
+
+        self.create_channel('Admins', channel_id, '0')
+
+        self.redis.set(RedisKeys.admin_room(), room_id)
+        self.redis.hset(RedisKeys.room_name_for_id(), room_id, 'Admins')
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, 'Admins')
         self.redis.hset(RedisKeys.channel_for_rooms(), room_id, channel_id)
         self.redis.sadd(RedisKeys.non_ephemeral_rooms(), room_id)
@@ -139,13 +149,15 @@ class DatabaseRedis(object):
             'samechannel': ''
         }
 
+        self.add_acls_in_channel_for_action(channel_id, ApiActions.LIST, acls)
+        self.add_acls_in_channel_for_action(channel_id, ApiActions.JOIN, acls)
         self.add_acls_in_room_for_action(room_id, ApiActions.JOIN, acls)
         self.add_acls_in_room_for_action(room_id, ApiActions.LIST, acls)
         self.add_acls_in_room_for_action(room_id, ApiActions.CROSSROOM, samechannel)
         return room_id
 
-    def admin_room_for_channel(self, channel_id: str) -> str:
-        room_id = self.redis.hget(RedisKeys.admin_room_for_channel(), channel_id)
+    def get_admin_room(self) -> str:
+        room_id = self.redis.get(RedisKeys.admin_room())
         if room_id is None or len(str(room_id, 'utf-8').strip()) == 0:
             return None
         return str(room_id, 'utf-8')

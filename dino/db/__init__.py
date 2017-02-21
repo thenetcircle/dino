@@ -19,11 +19,10 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class IDatabase(Interface):
-    def create_admin_room_for(self, channel_id: str) -> str:
+    def create_admin_room(self) -> str:
         """
-        create the special admin room for a channel
+        create the special admin room
 
-        :param channel_id: the uuid of the channel
         :return: the newly created room's uuid
         """
 
@@ -74,11 +73,10 @@ class IDatabase(Interface):
         :return: a list of user dicts, e.g. {'uuid':'<uuid>','name':'foo'}
         """
 
-    def admin_room_for_channel(self, channel_id: str) -> str:
+    def get_admin_room(self) -> str:
         """
-        get the uuid of the admin room for this channel, or None of not found
+        get the uuid of the admin room , or None of not found
 
-        :param channel_id: the uuid of this channel
         :return: the uuid of the admin room, or None of not found
         """
 

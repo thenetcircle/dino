@@ -189,7 +189,7 @@ class RequestValidator(BaseValidator):
 
         room_id = activity.target.id
         channel_id = utils.get_channel_for_room(room_id)
-        admin_room_id = utils.get_admin_room_for_channel(channel_id)
+        admin_room_id = utils.get_admin_room()
 
         if admin_room_id is None or len(admin_room_id.strip()) == 0:
             logger.error('no admin room found for channel "%s"' % channel_id)

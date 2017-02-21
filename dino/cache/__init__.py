@@ -35,11 +35,10 @@ class ICache(Interface):
         :return: true if ephemeral, false if not, or None of not in cache or TTL expired
         """
 
-    def get_admin_room_for_channel(self, channel_id: str) -> str:
+    def get_admin_room(self) -> str:
         """
-        get the room uuid of the admin room in this channel, or None if no such room exists
+        get the room uuid of the admin room, or None if no such room exists
 
-        :param channel_id: the uuid of the channel
         :return: the uuid of the admin room, or None of not found
         """
 
@@ -202,10 +201,9 @@ class ICache(Interface):
         :return: nothing
         """
 
-    def set_admin_room_for_channel(self, channel_id: str, room_id: str) -> None:
+    def set_admin_room(self, room_id: str) -> None:
         """
 
-        :param channel_id:
         :param room_id:
         :return:
         """

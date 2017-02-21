@@ -182,7 +182,7 @@ class RedisKeys(object):
     RKEY_CHANNEL_FOR_ROOMS = 'room:channel'
     RKEY_LAST_READ = 'room:read:%s'  # room:read:room_id
     RKEY_USER_NAMES = 'user:names'
-    RKEY_ROOMS_ADMINS = 'room:admins'
+    RKEY_ROOM_ADMIN = 'room:admin'
     RKEY_ACL_VALIDATION = 'acl:validation:%s'  # acl:validation:acl_type (e.g. acl:validation:gender)
     RKEY_USER_ROLES = 'users:roles'
     RKEY_BLACK_LIST = 'words:blacklist'
@@ -257,8 +257,8 @@ class RedisKeys(object):
         return RedisKeys.RKEY_USERS_IN_ROOM % room_id
 
     @staticmethod
-    def admin_room_for_channel() -> str:
-        return RedisKeys.RKEY_ROOMS_ADMINS
+    def admin_room() -> str:
+        return RedisKeys.RKEY_ROOM_ADMIN
 
     @staticmethod
     def rooms(channel_id) -> str:

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import logging
 from flask import Flask
 from flask_socketio import SocketIO
 from werkzeug.contrib.fixers import ProxyFix
@@ -21,6 +22,8 @@ from dino import environ
 from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
+
+logger = logging.getLogger()
 
 
 def create_app():
@@ -31,7 +34,7 @@ def create_app():
 
     _socketio = SocketIO(
             _app,
-            logger=environ.env.logger,
+            logger=logger,
             engineio_logger=os.environ.get('DINO_DEBUG', '0') == '1',
             async_mode='eventlet',
             message_queue=environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default=''))

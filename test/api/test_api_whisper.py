@@ -26,7 +26,7 @@ class ApiWhisperTest(BaseTest):
         self.create_and_join_room()
         self.set_owner()
         act = self.activity()
-        self.env.db.create_admin_room_for(BaseTest.CHANNEL_ID)
+        self.env.db.create_admin_room()
         self.assertEqual(200, api.on_whisper(act, as_parser(act))[0])
 
     def activity(self):

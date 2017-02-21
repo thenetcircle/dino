@@ -787,8 +787,8 @@ def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: s
     return is_valid
 
 
-def get_admin_room_for_channel(channel_id: str) -> str:
-    return environ.env.db.admin_room_for_channel(channel_id)
+def get_admin_room() -> str:
+    return environ.env.db.get_admin_room()
 
 
 def get_channel_for_room(room_id: str) -> str:

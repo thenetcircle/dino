@@ -174,26 +174,24 @@ class CacheRedis(object):
         self.redis.hdel(key, user_id)
         self.cache.delete(cache_key)
 
-    def get_admin_room_for_channel(self, channel_id: str) -> str:
-        key = RedisKeys.admin_room_for_channel()
-        cache_key = '%s-%s' % (key, channel_id)
-        value = self.cache.get(cache_key)
+    def get_admin_room(self) -> str:
+        key = RedisKeys.admin_room()
+        value = self.cache.get(key)
         if value is not None:
             return value
 
-        room_id = self.redis.hget(key, channel_id)
+        room_id = self.redis.get(key)
         if room_id is None or len(str(room_id, 'utf-8').strip()) == 0:
             return None
 
         room_id = str(room_id, 'utf-8')
-        self.cache.set(cache_key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
+        self.cache.set(key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
         return room_id
 
-    def set_admin_room_for_channel(self, channel_id: str, room_id: str) -> None:
-        key = RedisKeys.admin_room_for_channel()
-        cache_key = '%s-%s' % (key, channel_id)
-        self.redis.hset(key, channel_id, room_id)
-        self.cache.set(cache_key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
+    def set_admin_room(self, room_id: str) -> None:
+        key = RedisKeys.admin_room()
+        self.redis.set(key, room_id)
+        self.cache.set(key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
 
     def _get_ban_timestamp(self, key: str, user_id: str) -> str:
         cache_key = '%s-%s' % (key, user_id)

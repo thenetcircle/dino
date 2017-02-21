@@ -63,13 +63,12 @@ class CacheRedisTest(TestCase):
         time.sleep(0.15)
         self.assertEqual(None, self.cache._get('foo'))
 
-    def test_get_admin_room_for_channel_after_expired(self):
-        self.cache.set_admin_room_for_channel(CacheRedisTest.CHANNEL_ID, CacheRedisTest.ROOM_ID)
-        self.assertEqual(CacheRedisTest.ROOM_ID, self.cache.get_admin_room_for_channel(CacheRedisTest.CHANNEL_ID))
-        key = RedisKeys.admin_room_for_channel()
-        cache_key = '%s-%s' % (key, CacheRedisTest.CHANNEL_ID)
-        self.cache._del(cache_key)
-        self.assertEqual(CacheRedisTest.ROOM_ID, self.cache.get_admin_room_for_channel(CacheRedisTest.CHANNEL_ID))
+    def test_get_admin_room_after_expired(self):
+        self.cache.set_admin_room(CacheRedisTest.ROOM_ID)
+        self.assertEqual(CacheRedisTest.ROOM_ID, self.cache.get_admin_room())
+        key = RedisKeys.admin_room()
+        self.cache._del(key)
+        self.assertEqual(CacheRedisTest.ROOM_ID, self.cache.get_admin_room())
 
     def test_get_global_ban_timestamp_after_expired(self):
         timestamp = str(int((datetime.utcnow() + timedelta(seconds=5*60)).timestamp()))

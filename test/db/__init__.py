@@ -733,24 +733,21 @@ class BaseDatabaseTest(BaseTest):
 
     def _test_create_admin_room(self):
         self._create_channel()
-        self.db.create_admin_room_for(BaseTest.CHANNEL_ID)
-        room_id = self.db.admin_room_for_channel(BaseTest.CHANNEL_ID)
+        self.db.create_admin_room()
+        room_id = self.db.get_admin_room()
         self.assertIsNotNone(room_id)
 
-    def _test_create_admin_room_no_channel(self):
-        self.assertRaises(NoSuchChannelException, self.db.create_admin_room_for, BaseTest.CHANNEL_ID)
-
-    def _test_admin_room_for_channel_before_exists(self):
+    def _test_admin_room_before_exists(self):
         self._create_channel()
-        room_uuid = self.db.admin_room_for_channel(BaseTest.CHANNEL_ID)
+        room_uuid = self.db.get_admin_room()
         self.assertIsNone(room_uuid)
 
-    def _test_admin_room_for_channel_get_from_cache(self):
+    def _test_admin_room_get_from_cache(self):
         self._create_channel()
-        self.db.create_admin_room_for(BaseTest.CHANNEL_ID)
-        room_uuid_1 = self.db.admin_room_for_channel(BaseTest.CHANNEL_ID)
+        self.db.create_admin_room()
+        room_uuid_1 = self.db.get_admin_room()
         self.assertIsNotNone(room_uuid_1)
-        room_uuid_2 = self.db.admin_room_for_channel(BaseTest.CHANNEL_ID)
+        room_uuid_2 = self.db.get_admin_room()
         self.assertIsNotNone(room_uuid_2)
         self.assertEqual(room_uuid_1, room_uuid_2)
 
@@ -794,9 +791,9 @@ class BaseDatabaseTest(BaseTest):
         self.db.set_super_user(BaseTest.USER_ID)
         self.assertTrue(self.db.is_super_user(BaseTest.USER_ID))
 
-    def _test_get_admin_room_for_channel(self):
+    def _test_get_admin_room(self):
         self._create_channel()
-        room_id = self.db.create_admin_room_for(BaseTest.CHANNEL_ID)
+        room_id = self.db.create_admin_room()
         self.assertIsNotNone(room_id)
 
     def _test_set_owner_channel_after_removing_owner(self):

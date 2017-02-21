@@ -18,7 +18,6 @@ import logging
 import traceback
 import time
 
-from logging import RootLogger
 from redis import Redis
 from typing import Union
 from types import MappingProxyType
@@ -49,6 +48,7 @@ from flask import session as _flask_session
 from flask_socketio import disconnect as _flask_disconnect
 
 from dino.config import ConfigKeys
+from dino.utils.decorators import timeit
 from dino.exceptions import AclValueNotFoundException
 
 from dino.validation.acl import AclConfigValidator
@@ -238,15 +238,6 @@ class GNEnvironment(object):
         self.redis = config.get(ConfigKeys.REDIS, None)
 
 
-def create_logger(_config_dict: dict) -> RootLogger:
-    logging.basicConfig(
-            level=getattr(logging, _config_dict.get(ConfigKeys.LOG_LEVEL, 'INFO')),
-            format=_config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
-    logging.getLogger('engineio').setLevel(logging.WARNING)
-    logging.getLogger('cassandra').setLevel(logging.WARNING)
-    return logging.getLogger(__name__)
-
-
 def find_config(config_paths: list) -> str:
     default_paths = ["dino.yaml", "dino.json"]
     config_dict = dict()
@@ -358,6 +349,7 @@ def load_secrets_file(config_dict: dict) -> dict:
     return ast.literal_eval(template)
 
 
+@timeit(logger, 'creating base environment')
 def create_env(config_paths: list = None) -> GNEnvironment:
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
     logger.info('using environment %s' % gn_environment)
@@ -387,8 +379,13 @@ def create_env(config_paths: list = None) -> GNEnvironment:
         pass
 
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
-    config_dict[ConfigKeys.LOGGER] = create_logger(config_dict)
     config_dict[ConfigKeys.SESSION] = _flask_session
+
+    logging.basicConfig(
+            level=getattr(logging, config_dict.get(ConfigKeys.LOG_LEVEL, 'DEBUG')),
+            format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
+    logging.getLogger('engineio').setLevel(logging.WARNING)
+    logging.getLogger('cassandra').setLevel(logging.WARNING)
 
     if ConfigKeys.HISTORY not in config_dict:
         config_dict[ConfigKeys.HISTORY] = {
@@ -493,6 +490,7 @@ def get_acl_config() -> dict:
     return acls
 
 
+@timeit(logger, 'init validation service')
 def init_acl_validators(gn_env: GNEnvironment) -> None:
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
@@ -547,6 +545,7 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
     gn_env.config.set(ConfigKeys.ACL, MappingProxyType(acl_config))
 
 
+@timeit(logger, 'init storage service')
 def init_storage_engine(gn_env: GNEnvironment) -> None:
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
@@ -582,6 +581,7 @@ def init_storage_engine(gn_env: GNEnvironment) -> None:
         raise RuntimeError('unknown storage engine type "%s"' % storage_type)
 
 
+@timeit(logger, 'init db service')
 def init_database(gn_env: GNEnvironment):
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
@@ -611,6 +611,7 @@ def init_database(gn_env: GNEnvironment):
         raise RuntimeError('unknown db type "%s", use one of [mock, redis, rdbms]' % db_type)
 
 
+@timeit(logger, 'init auth service')
 def init_auth_service(gn_env: GNEnvironment):
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
@@ -644,6 +645,7 @@ def init_auth_service(gn_env: GNEnvironment):
         raise RuntimeError('unknown auth type, use one of [redis, allowall, denyall]')
 
 
+@timeit(logger, 'init cache service')
 def init_cache_service(gn_env: GNEnvironment):
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
@@ -677,6 +679,7 @@ def init_cache_service(gn_env: GNEnvironment):
         raise RuntimeError('unknown cache type %s, use one of [redis, mock, missall]' % cache_type)
 
 
+@timeit(logger, 'init pub/sub service')
 def init_pub_sub(gn_env: GNEnvironment) -> None:
     def publish(message, external=None):
         if not external:
@@ -743,6 +746,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
         gn_env.external_queue = Queue(ext_queue, gn_env.external_exchange)
 
 
+@timeit(logger, 'init stats service')
 def init_stats_service(gn_env: GNEnvironment) -> None:
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
@@ -763,11 +767,13 @@ def init_stats_service(gn_env: GNEnvironment) -> None:
         gn_env.stats.set('connections', 0)
 
 
+@timeit(logger, 'init observers')
 def init_observer(gn_env: GNEnvironment) -> None:
     from pymitter import EventEmitter
     gn_env.observer = EventEmitter()
 
 
+@timeit(logger, 'init request validators')
 def init_request_validators(gn_env: GNEnvironment) -> None:
     from yapsy.PluginManager import PluginManager
     logging.getLogger('yapsy').setLevel(gn_env.config.get(ConfigKeys.LOG_LEVEL, logging.INFO))
@@ -795,9 +801,16 @@ def init_request_validators(gn_env: GNEnvironment) -> None:
                 raise KeyError('specified plugin "%s" does not exist' % key)
 
 
+@timeit(logger, 'init blacklist')
 def init_blacklist_service(gn_env: GNEnvironment):
     from dino.utils.blacklist import BlackListChecker
     gn_env.blacklist = BlackListChecker(gn_env)
+
+
+@timeit(logger, 'creating admin room')
+def init_admin_and_admin_room(gn_env: GNEnvironment):
+    # will create the admin user and room if not already existing
+    gn_env.db.create_admin_room()
 
 
 def initialize_env(dino_env):
@@ -811,6 +824,7 @@ def initialize_env(dino_env):
     init_observer(dino_env)
     init_request_validators(dino_env)
     init_blacklist_service(dino_env)
+    init_admin_and_admin_room(dino_env)
 
 
 _config_paths = None

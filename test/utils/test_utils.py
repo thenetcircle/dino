@@ -104,7 +104,7 @@ class FakeDb(object):
             return dict()
         return FakeDb._room_acls[action]
 
-    def admin_room_for_channel(self, *args):
+    def get_admin_room(self, *args):
         return BaseWithDb.ROOM_ID
 
     def channel_for_room(self, *args):
@@ -339,8 +339,8 @@ class UtilsSmallFunctionsTest(BaseWithDb):
     def test_get_channel_name(self):
         self.assertEqual(BaseWithDb.CHANNEL_NAME, utils.get_channel_name(BaseWithDb.CHANNEL_ID))
 
-    def test_get_admin_room_for_channel(self):
-        self.assertEqual(BaseWithDb.ROOM_ID, utils.get_admin_room_for_channel(BaseWithDb.CHANNEL_ID))
+    def test_get_admin_room(self):
+        self.assertEqual(BaseWithDb.ROOM_ID, utils.get_admin_room())
 
     def test_owner_is_allowed_to_delete_message(self):
         self.set_owner()

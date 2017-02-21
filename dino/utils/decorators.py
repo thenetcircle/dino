@@ -33,6 +33,25 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 logger = logging.getLogger()
 
 
+def timeit(_logger, tag: str):
+    def factory(view_func):
+        @wraps(view_func)
+        def decorator(*args, **kwargs):
+            failed = False
+            before = time.time()
+            try:
+                return view_func(*args, **kwargs)
+            except Exception as e:
+                failed = True
+                _logger.error(tag + '... FAILED')
+                raise e
+            finally:
+                if not failed:
+                    _logger.debug(tag + '... %.2fms' % ((time.time()-before)*1000))
+        return decorator
+    return factory
+
+
 def respond_with(gn_event_name=None):
     def factory(view_func):
         @wraps(view_func)

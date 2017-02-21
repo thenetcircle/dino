@@ -210,8 +210,8 @@ class DatabaseSqliteTest(BaseDatabaseTest):
     def test_is_super_user(self):
         self._test_is_super_user()
 
-    def test_get_admin_room_for_channel(self):
-        self._test_get_admin_room_for_channel()
+    def test_get_admin_room(self):
+        self._test_get_admin_room()
 
     def test_set_owner_and_moderator(self):
         self._test_set_owner_and_moderator()
@@ -519,14 +519,11 @@ class DatabaseSqliteTest(BaseDatabaseTest):
     def test_remove_room_before_create_room(self):
         self._test_remove_room_before_create_room()
 
-    def test_create_admin_room_no_channel(self):
-        self._test_create_admin_room_no_channel()
-
     def test_admin_room_for_channel_before_exists(self):
-        self._test_admin_room_for_channel_before_exists()
+        self._test_admin_room_before_exists()
 
     def test_admin_room_for_channel_get_from_cache(self):
-        self._test_admin_room_for_channel_get_from_cache()
+        self._test_admin_room_get_from_cache()
 
     def test_room_exists_from_cache(self):
         self._test_room_exists_from_cache()

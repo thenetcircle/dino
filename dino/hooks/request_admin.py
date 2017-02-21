@@ -27,8 +27,7 @@ class OnRequestAdminHooks(object):
 
         username = utils.get_user_name_for(user_id)
         room_name = utils.get_room_name(room_id)
-        channel_id = utils.get_channel_for_room(room_id)
-        admin_room_id = utils.get_admin_room_for_channel(channel_id)
+        admin_room_id = utils.get_admin_room()
 
         activity_json = utils.activity_for_request_admin(user_id, username, room_id, room_name, message)
         environ.env.emit('gn_admin_requested', activity_json, json=True, broadcast=True, room=admin_room_id)
