@@ -809,6 +809,9 @@ def init_blacklist_service(gn_env: GNEnvironment):
 
 @timeit(logger, 'creating admin room')
 def init_admin_and_admin_room(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
     # will create the admin user and room if not already existing
     gn_env.db.create_admin_room()
 
