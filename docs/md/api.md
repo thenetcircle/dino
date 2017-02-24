@@ -671,6 +671,36 @@ Response data if successful:
 The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the "published" field set to the time the server received the request (in RFC3339 format).
 
+## remove_room
+
+Response with the event name "gn_remove_room".
+
+Request contains:
+
+    {
+        "verb": "join",
+        "target": {
+            "id": "<room ID>"
+        }
+    }
+
+Response data if successful:
+
+    {
+        "status_code": 200,
+        "data": {
+            "target": {
+                "id": "<room uuid>",
+                "displayName": "<room name in base64>",
+                "objectType": "room"
+            },
+            "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+            "published": "2016-10-07T10:45:34Z",
+            "verb": "removed"
+        }
+    }
+
+
 ## join
 
 Responds with the event name "gn_join".
