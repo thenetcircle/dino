@@ -69,6 +69,13 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../usage/">Usage</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../api/">API</a>
         
     </li>
@@ -87,6 +94,9 @@
                 
             
                 <li class="toctree-l3"><a href="#admin-presence-requested">Admin presence requested</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#a-room-was-removed">A room was removed</a></li>
                 
             
                 <li class="toctree-l3"><a href="#invitation-received">Invitation received</a></li>
@@ -241,6 +251,27 @@ event called <code>gn_admin_requested</code> containing the following:</p>
         "id": "&lt;UUID of the room the help was requested for&gt;",
         "displayName": "&lt;name of the room&gt;"
     }
+}
+</code></pre>
+<h2 id="a-room-was-removed">A room was removed</h2>
+<p>When a room is removed by an admin/owner an event called <code>gn_room_removed</code> will be sent to everyone on the server (to
+keep the room list in sync on client side):</p>
+<pre><code>{
+    "actor": {
+        "id": "&lt;user ID who removed the room&gt;",
+        "displayName": "&lt;name of the user who removed the room, in base64&gt;"
+    },
+    "target": {
+        "id": "&lt;room uuid&gt;",
+        "displayName": "&lt;room name in base64&gt;",
+        "objectType": "room"
+    },
+    "object": {
+        "content": "&lt;an optional reason, in base64&gt;"
+    },
+    "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+    "published": "2016-10-07T10:45:34Z",
+    "verb": "removed"
 }
 </code></pre>
 <h2 id="invitation-received">Invitation received</h2>
