@@ -162,8 +162,7 @@ def activity_for_user_kicked(
             'displayName': b64e(kicker_name)
         },
         'object': {
-            'id': kicked_id,
-            'displayName': b64e(kicked_name)
+            'id': kicked_id
         },
         'target': {
             'id': room_id,
@@ -173,6 +172,11 @@ def activity_for_user_kicked(
         'verb': 'kick',
         'id': str(uuid())
     }
+
+    if not is_base64(kicked_name):
+        kicked_name = b64e(kicked_name)
+
+    activity['object']['displayName'] = kicked_name
 
     if reason is not None:
         if is_base64(reason):
