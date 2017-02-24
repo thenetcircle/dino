@@ -329,6 +329,26 @@ def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, utils.activity_for_history(activity, messages)
 
 
+def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    remove a room
+
+    :param data: json dict in activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
+    """
+    room_id = activity.target.id
+    room_name = utils.get_room_name(room_id)
+    channel_id = utils.get_channel_for_room(room_id)
+    remove_activity = utils.activity_for_remove_room(activity.actor.id, activity.actor.display_name, room_id, room_name)
+
+    environ.env.db.remove_room(channel_id, room_id)
+    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
+    environ.env.observer.emit('on_remove_room', (data, activity))
+
+    return ECodes.OK, utils.activity_for_room_removed(activity, room_name)
+
+
 def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     join a room

@@ -514,6 +514,19 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     return response
 
 
+def activity_for_room_removed(activity: Activity, room_name: str) -> dict:
+    return {
+        'target': {
+            'id': activity.target.id,
+            'displayName': b64e(room_name),
+            'objectType': 'room'
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'removed',
+        'id': str(uuid())
+    }
+
+
 def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
     return {
         'actor': {
@@ -843,7 +856,7 @@ def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
 def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) -> None:
     environ.env.db.join_room(user_id, user_name, room_id, room_name)
     environ.env.join_room(room_id)
-    environ.env.logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
+    logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
 
 
 def get_user_status(user_id: str) -> str:

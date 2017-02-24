@@ -351,6 +351,16 @@
                     console.log(response);
                 });
 
+                socket.on('gn_room_removed', function(response) {
+                    console.log('gn_room_removed');
+                    console.log(response);
+                });
+
+                socket.on('gn_remove_room', function(response) {
+                    console.log('gn_remove_room');
+                    console.log(response);
+                });
+
                 $('#text').keypress(function(e) {
                     var code = e.keyCode || e.which;
                     if (code == 13) {
@@ -386,6 +396,15 @@
                         verb: 'create',
                         target: {
                             displayName: b64e($('#new-room-name').val())
+                        }
+                    });
+                });
+
+                $('button#remove-room').click(function() {
+                    socket.emit('remove_room', {
+                        verb: 'remove',
+                        target: {
+                            id: $('#room-id').val()
                         }
                     });
                 });
@@ -550,6 +569,8 @@
                 </div>
             </div>
         </div>
+
+        <button id="remove-room">Remove room</button>
 
         <input id="target" type="hidden" />
         <input id="room-id" type="hidden" />

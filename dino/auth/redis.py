@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from typing import Union
 from zope.interface import implementer
 
@@ -22,6 +24,8 @@ from dino.config import RedisKeys
 from dino.auth import IAuth
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger()
 
 
 @implementer(IAuth)
@@ -72,7 +76,7 @@ class AuthRedis(object):
 
         stored_token = stored_session.get(SessionKeys.token.value)
         if stored_token != supplied_token:
-            environ.env.logger.warning('user "%s" supplied token "%s" but stored token is "%s"' %
+            logger.warning('user "%s" supplied token "%s" but stored token is "%s"' %
                                        (user_id, supplied_token, stored_token))
             return False, 'invalid token "%s" supplied for user id "%s"' % (supplied_token, user_id), None
 

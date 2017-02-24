@@ -135,6 +135,23 @@ class RequestValidator(BaseValidator):
 
         return True, None, None
 
+    def on_remove_room(self, activity: Activity) -> (bool, int, str):
+        user_id = activity.actor.id
+        room_id = activity.target.id
+
+        if utils.is_owner(room_id, user_id):
+            return True, None, None
+        if utils.is_super_user(user_id):
+            return True, None, None
+
+        channel_id = utils.get_channel_for_room(room_id)
+        if utils.is_admin(channel_id, user_id):
+            return True, None, None
+        if utils.is_owner_channel(channel_id, user_id):
+            return True, None, None
+
+        return False, ECodes.NOT_ALLOWED, 'user %s is not allowed to remove the room' % str(user_id)
+
     def on_disconnect(self, activity: Activity) -> (bool, int, str):
         user_id = environ.env.session.get(SessionKeys.user_id.value)
         user_name = environ.env.session.get(SessionKeys.user_name.value)

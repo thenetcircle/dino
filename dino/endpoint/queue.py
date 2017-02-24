@@ -55,7 +55,7 @@ class QueueHandler(object):
                 logger.exception(traceback.format_exc())
     
         else:
-            self.env.logger.error('unknown server activity verb "%s"' % activity.verb)
+            logger.error('unknown server activity verb "%s"' % activity.verb)
 
     def kick(self, data: dict, activity: Activity, room_id: str, user_id: str, user_sid: str, namespace: str) -> None:
         try:

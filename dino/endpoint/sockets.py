@@ -284,6 +284,13 @@ def on_users_in_room(data: dict, activity: Activity) -> (int, Union[str, dict, N
     return api.on_users_in_room(data, activity)
 
 
+@socketio.on('remove_room', namespace='/chat')
+@respond_with('gn_remove_room')
+@pre_process('on_remove_room')
+def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
+    return api.on_remove_room(data, activity)
+
+
 @socketio.on('list_rooms', namespace='/chat')
 @respond_with('gn_list_rooms')
 @pre_process('on_list_rooms')

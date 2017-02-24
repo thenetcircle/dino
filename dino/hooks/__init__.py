@@ -25,6 +25,7 @@ from dino.hooks.list_channels import *
 from dino.hooks.list_rooms import *
 from dino.hooks.login import *
 from dino.hooks.message import *
+from dino.hooks.remove_room import *
 from dino.hooks.request_admin import *
 from dino.hooks.set_acl import *
 from dino.hooks.status import *
