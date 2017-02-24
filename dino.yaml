@@ -21,8 +21,8 @@ common_config: &common_config
             - no_empty
             #- check_blacklist
     history:
-        type: 'unread'  # unread or top
-        limit: 1000
+        type: 'top'  # unread or top
+        limit: 50
 
 oscar:
     <<: *common_config

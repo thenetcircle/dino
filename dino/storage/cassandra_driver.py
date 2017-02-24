@@ -25,6 +25,8 @@ from datetime import datetime
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
+logger = logging.getLogger(__name__)
+
 
 class StatementKeys(Enum):
     msg_insert = 'msg_insert'
@@ -37,6 +39,7 @@ class StatementKeys(Enum):
     msgs_select_from_user_to_target_time_slice = 'msg_select_from_user_to_target_time_slice'
     msg_select_one = 'msg_select_one'
     msg_select_msg_id_from_user_not_deleted = 'msg_select_msg_id_from_user_not_deleted'
+    msg_select_msg_id_from_user_and_room_not_deleted = 'msg_select_msg_id_from_user_and_room_not_deleted'
 
 
 @implementer(IDriver)
@@ -220,6 +223,18 @@ class Driver(object):
                     ALLOW FILTERING
                     """
             )
+            self.statements[StatementKeys.msg_select_msg_id_from_user_and_room_not_deleted] = self.session.prepare(
+                    """
+                    SELECT
+                        message_id FROM messages_by_from_user_id
+                    WHERE
+                        from_user_id = ? AND
+                        target_id = ? AND
+                        deleted = False AND
+                        domain = 'room'
+                    ALLOW FILTERING
+                    """
+            )
 
         # create keyspace and tables for tests
         create_test_key_space()
@@ -261,6 +276,9 @@ class Driver(object):
     def msgs_select_non_deleted_for_user(self, from_user_id: str) -> ResultSet:
         return self._execute(StatementKeys.msg_select_msg_id_from_user_not_deleted, from_user_id)
 
+    def msgs_select_non_deleted_for_user_and_room(self, from_user_id: str, target_id: str) -> ResultSet:
+        return self._execute(StatementKeys.msg_select_msg_id_from_user_and_room_not_deleted, from_user_id, target_id)
+
     def msg_undelete(self, message_id: str) -> None:
         self._msg_delete(message_id, deleted=False)
 
@@ -295,6 +313,7 @@ class Driver(object):
         channel_name = message_row.channel_name
         target_name = message_row.target_name
         from_user_name = message_row.from_user_name
+        logger.debug('deleting row: %s' % str(message_row))
 
         self.msg_insert(
                 message_id, from_user_id, from_user_name, target_id, target_name, body,

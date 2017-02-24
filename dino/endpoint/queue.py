@@ -12,6 +12,7 @@
 
 import logging
 import traceback
+import time
 
 from datetime import datetime
 from uuid import uuid4 as uuid
@@ -24,7 +25,7 @@ from dino import utils
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class QueueHandler(object):
@@ -85,6 +86,8 @@ class QueueHandler(object):
             except Exception as e:
                 logger.warning('could not remove user from room in db (maybe room is already deleted): %s' % str(e))
 
+        self.delete_for_user_in_room(user_id, room_id)
+
     def ban_room(self, data: dict, act: Activity, room_id: str, user_id: str, user_sid: str, namespace: str) -> None:
         self.env.out_of_scope_emit(
                 'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
@@ -95,16 +98,21 @@ class QueueHandler(object):
             logger.error('could not ban user %s from room %s: %s' % (user_id, room_id, str(e)))
             return
 
+        self.delete_for_user_in_room(user_id, room_id)
+
     def ban_channel(self, data: dict, activity: Activity, rooms_in_channel, channel_id, user_id, user_sid, namespace):
         try:
-            for room in rooms_in_channel:
+            for room_id in rooms_in_channel:
                 self.env.out_of_scope_emit(
-                        'gn_user_banned', data, json=True, namespace=namespace, room=room, broadcast=True)
-                self.kick(data, activity, room, user_id, user_sid, namespace)
+                        'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
+                self.kick(data, activity, room_id, user_id, user_sid, namespace)
         except Exception as e:
             logger.error('could not ban user %s from channel %s: %s' % (user_id, channel_id, str(e)))
             logger.exception(traceback.format_exc(e))
             return
+
+        for room_id in rooms_in_channel:
+            self.delete_for_user_in_room(user_id, room_id)
 
     def ban_globally(self, data: dict, act: Activity, rooms: dict, user_id: str, user_sid: str, namespace: str) -> None:
         try:
@@ -116,6 +124,60 @@ class QueueHandler(object):
             logger.error('could not ban user %s globally: %s' % (user_id, str(e)))
             logger.exception(traceback.format_exc(e))
             return
+
+        self.delete_all_for_user(user_id)
+
+    def delete_for_user_in_room(self, user_id: str, room_id: str):
+        try:
+            before = time.time()
+            messages = self.env.storage.get_undeleted_message_ids_for_user_and_room(user_id, room_id)
+            logger.info('about to delete %s messages for user %s (fetching IDs took %.2fs)' % (len(messages), user_id, time.time()-before))
+        except Exception as e:
+            logger.error('could not get undeleted messages: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            return
+        self.delete_messages(user_id, messages)
+
+    def delete_all_for_user(self, user_id: str):
+        try:
+            before = time.time()
+            messages = self.env.storage.get_undeleted_message_ids_for_user(user_id)
+            logger.info('about to delete %s messages for user %s (fetching IDs took %.2fs)' % (len(messages), user_id, time.time()-before))
+        except Exception as e:
+            logger.error('could not get undeleted messages: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            return
+        self.delete_messages(user_id, messages)
+
+    def delete_messages(self, user_id: str, messages: list) -> None:
+        if messages is None or len(messages) == 0:
+            return
+
+        before = time.time()
+        successes, failures = self.try_to_delete_messages(messages)
+        elapsed = time.time() - before
+        logger.info('finished deleting %s messages (%s/%s successes) for user %s (deletion took %.2fs)' %
+                    (len(messages), successes, failures, user_id, elapsed))
+
+    def try_to_delete_messages(self, messages) -> (int, int):
+        try:
+            failures = 0
+            successes = 0
+
+            for message_id in messages:
+                try:
+                    self.env.storage.delete_message(message_id)
+                    successes += 1
+                except Exception as e:
+                    logger.error('could not delete message with id %s because: %s' % (message_id, str(e)))
+                    logger.exception(traceback.format_exc())
+                    failures += 1
+            return successes, failures
+        except Exception as e2:
+            logger.error('could not delete messages: %s' % str(e2))
+            logger.exception(traceback.format_exc())
+
+        return 0, len(messages)
 
     def handle_kick(self, activity: Activity):
         kicker_id = activity.actor.id
