@@ -514,8 +514,8 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     return response
 
 
-def activity_for_room_removed(activity: Activity, room_name: str) -> dict:
-    return {
+def activity_for_room_removed(activity: Activity, room_name: str, reason: str=None) -> dict:
+    act = {
         'target': {
             'id': activity.target.id,
             'displayName': b64e(room_name),
@@ -526,9 +526,16 @@ def activity_for_room_removed(activity: Activity, room_name: str) -> dict:
         'id': str(uuid())
     }
 
+    if reason is not None and len(reason.strip()) > 0:
+        act['object'] = {
+            'content': b64e(reason)
+        }
 
-def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
-    return {
+    return act
+
+
+def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_name: str, reason: str=None) -> dict:
+    act = {
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name)
@@ -541,6 +548,13 @@ def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_na
         'verb': 'remove',
         'id': str(uuid())
     }
+
+    if reason is not None and len(reason.strip()) > 0:
+        act['object'] = {
+            'content': b64e(reason)
+        }
+
+    return act
 
 
 def get_user_info_attachments_for(user_id: str) -> list:

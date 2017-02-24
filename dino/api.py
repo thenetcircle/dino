@@ -340,13 +340,19 @@ def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
     room_id = activity.target.id
     room_name = utils.get_room_name(room_id)
     channel_id = utils.get_channel_for_room(room_id)
-    remove_activity = utils.activity_for_remove_room(activity.actor.id, activity.actor.display_name, room_id, room_name)
+
+    reason = None
+    if hasattr(activity.object, 'content'):
+        reason = activity.object.content
+
+    remove_activity = utils.activity_for_remove_room(
+            activity.actor.id, activity.actor.display_name, room_id, room_name, reason)
 
     environ.env.db.remove_room(channel_id, room_id)
     environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
     environ.env.observer.emit('on_remove_room', (data, activity))
 
-    return ECodes.OK, utils.activity_for_room_removed(activity, room_name)
+    return ECodes.OK, utils.activity_for_room_removed(activity, room_name, reason)
 
 
 def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
