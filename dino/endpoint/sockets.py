@@ -298,6 +298,13 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[str, dict, None
     return api.on_list_rooms(data, activity)
 
 
+@socketio.on('report', namespace='/chat')
+@respond_with('gn_report')
+@pre_process('on_report')
+def on_report(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
+    return api.on_report(data, activity)
+
+
 @socketio.on('list_channels', namespace='/chat')
 @respond_with('gn_list_channels')
 @pre_process('on_list_channels')
