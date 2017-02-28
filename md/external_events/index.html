@@ -115,6 +115,9 @@
                 <li class="toctree-l3"><a href="#user-successfully-logged-in">User successfully logged in</a></li>
                 
             
+                <li class="toctree-l3"><a href="#a-user-was-reported-for-a-message-heshe-sent">A user was reported for a message he/she sent</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#user-disconnected">User disconnected</a></li>
                 
             
@@ -358,6 +361,27 @@ level of users. Example activity: </p>
         "displayName": "&lt;base64 encoded username&gt;"
     },
     "verb": "login",
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<h2 id="a-user-was-reported-for-a-message-heshe-sent">A user was reported for a message he/she sent</h2>
+<p>A message may be reported in the front-end, and a report will be published to the MQ. The event looks like this:</p>
+<pre><code>{
+    "actor": {
+        "id": "&lt;user ID that reported the message&gt;",
+        "displayName": "&lt;the user name who reported the message&gt;"
+    },
+    "object": {
+        "id": "&lt;uuid of message&gt;",
+        "content": "&lt;the actual message to report, base64&gt;",
+        "summary": "&lt;optional reason text, base64&gt;"
+    },
+    "target": {
+        "id": "&lt;user ID to report&gt;",
+        "displayName": "&lt;the user name of the reported user&gt;"
+    },
+    "verb": "report",
     "id": "&lt;server-generated UUID&gt;",
     "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
 }

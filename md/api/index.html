@@ -134,6 +134,9 @@
                 <li class="toctree-l3"><a href="#remove_room">remove_room</a></li>
                 
             
+                <li class="toctree-l3"><a href="#report">report</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#join">join</a></li>
                 
             
@@ -808,6 +811,22 @@ and the "published" field set to the time the server received the request (in RF
     }
 }
 </code></pre>
+<h2 id="report">report</h2>
+<p>No response.</p>
+<p>Request contains:</p>
+<pre><code>{
+    "verb": "report",
+    "object": {
+        "id": "&lt;uuid of message&gt;",
+        "content": "&lt;the actual message to report, base64&gt;",
+        "summary": "&lt;optional reason text, base64&gt;"
+    },
+    "target": {
+        "id": "&lt;user ID to report&gt;"
+    }
+}
+</code></pre>
+<p>A report will be sent to both the admin room and as an external event published on the MQ.</p>
 <h2 id="join">join</h2>
 <p>Responds with the event name "gn_join".</p>
 <p>Request contains:</p>
