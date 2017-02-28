@@ -14,7 +14,9 @@ from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
 from activitystreams.models.actor import Actor
 from activitystreams.models.target import Target
+
 import logging
+import traceback
 
 from dino import environ
 from dino import utils
@@ -157,6 +159,31 @@ class RequestValidator(BaseValidator):
         user_name = environ.env.session.get(SessionKeys.user_name.value)
         if user_id is None or not isinstance(user_id, str) or user_name is None:
             return False, ECodes.NO_USER_IN_SESSION, 'no user in session, not connected'
+        return True, None, None
+
+    def on_report(self, activity: Activity) -> (bool, int, str):
+        if not hasattr(activity, 'object') or not hasattr(activity.object, 'content'):
+            return False, ECodes.MISSING_OBJECT_CONTENT, 'need object.content (reported message)'
+        if not hasattr(activity.object, 'id'):
+            return False, ECodes.MISSING_OBJECT_ID, 'need object.id (id of reported message)'
+
+        if not hasattr(activity, 'target') or not hasattr(activity.target, 'id'):
+            return False, ECodes.MISSING_TARGET_ID, 'need target.id (id of user reported)'
+
+        try:
+            activity.target.display_name = utils.get_user_name_for(activity.target.id)
+        except Exception as e:
+            logger.warning('could not get username for id %s: %s' % (str(activity.target.id), str(e)))
+            logger.exception(traceback.format_exc(e))
+            return False, ECodes.NO_SUCH_USER, 'no such user %s' % activity.target.id
+
+        if not utils.is_base64(activity.object.content):
+            return False, ECodes.NOT_BASE64, 'object.content is not base64 encoded'
+
+        if hasattr(activity.object, 'summary') and len(activity.object.summary.trim()) > 0:
+            if not utils.is_base64(activity.object.summary):
+                return False, ECodes.NOT_BASE64, 'object.summary is not base64 encoded'
+
         return True, None, None
 
     def on_ban(self, activity: Activity) -> (bool, int, str):

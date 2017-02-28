@@ -154,6 +154,27 @@ def activity_for_user_banned(
     return activity_json
 
 
+def activity_for_report(activity: Activity) -> dict:
+    return {
+        'actor': {
+            'id': activity.actor.id,  # user id of the one reporting
+            'displayName': b64e(activity.actor.display_name)
+        },
+        'object': {
+            'summary': activity.object.summary,  # free-text reason for reporting
+            'content': activity.object.content,  # the reported message
+            'id': activity.object.id  # id of the reported message
+        },
+        'target': {
+            'id': activity.target.id,  # user id of user who sent to reported message
+            'displayName': activity.target.display_name
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'report',
+        'id': str(uuid())
+    }
+
+
 def activity_for_user_kicked(
         kicker_id: str, kicker_name: str, kicked_id: str, kicked_name: str, room_id: str, room_name: str, reason=None) -> dict:
     activity = {

@@ -701,6 +701,26 @@ Response data if successful:
     }
 
 
+## report
+
+No response.
+
+Request contains:
+
+    {
+        "verb": "report",
+        "object": {
+            "id": "<uuid of message>",
+            "content": "<the actual message to report, base64>",
+            "summary": "<optional reason text, base64>"
+        },
+        "target": {
+            "id": "<user ID to report>"
+        }
+    }
+
+A report will be sent to both the admin room and as an external event published on the MQ.
+
 ## join
 
 Responds with the event name "gn_join".

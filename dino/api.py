@@ -278,6 +278,18 @@ def on_set_acl(data: dict, activity: Activity) -> (int, str):
     return ECodes.OK, None
 
 
+def on_report(data: dict, activity: Activity) -> (int, str):
+    """
+    when a user reports a user based on a message
+
+    :param data: activity streams format dict
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
+    """
+    environ.env.observer.emit('on_report', (data, activity))
+    return ECodes.OK, None
+
+
 def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict]):
     """
     change ACL of a room; only allowed if the user is the owner of the room

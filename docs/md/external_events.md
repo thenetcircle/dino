@@ -202,6 +202,29 @@ Example of activity when a user successfully logs in:
         "published": "<server-generated timestamp, RFC3339 format>"
     }
 
+## A user was reported for a message he/she sent
+
+A message may be reported in the front-end, and a report will be published to the MQ. The event looks like this:
+
+    {
+        "actor": {
+            "id": "<user ID that reported the message>",
+            "displayName": "<the user name who reported the message>"
+        },
+        "object": {
+            "id": "<uuid of message>",
+            "content": "<the actual message to report, base64>",
+            "summary": "<optional reason text, base64>"
+        },
+        "target": {
+            "id": "<user ID to report>",
+            "displayName": "<the user name of the reported user>"
+        },
+        "verb": "report",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
+
 ## User disconnected
 
 Example of activity when a user disconnects:
