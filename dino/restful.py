@@ -20,6 +20,8 @@ from dino.rest.resources.ban import BanResource
 from dino.rest.resources.kick import KickResource
 from dino.rest.resources.roles import RolesResource
 from dino.rest.resources.rooms_for_users import RoomsForUsersResource
+from dino.rest.resources.remove_admin import RemoveAdminResource
+from dino.rest.resources.set_admin import SetAdminResource
 from dino.rest.resources.history import HistoryResource
 from dino.rest.resources.clear_history import ClearHistoryResource
 from dino import environ
@@ -45,3 +47,5 @@ api.add_resource(BanResource, '/ban')
 api.add_resource(HistoryResource, '/history')
 api.add_resource(KickResource, '/kick')
 api.add_resource(RoomsForUsersResource, '/rooms-for-users')
+api.add_resource(SetAdminResource, '/set-admin')
+api.add_resource(RemoveAdminResource, '/remove-admin')

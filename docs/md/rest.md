@@ -58,6 +58,53 @@ Response would be something similar to the following:
 * Either `user_id` or `room_id` is required (both can be specified at the same time),
 * `to_time` needs to be after `from_time`.
 
+## POST /set-admin
+
+Set a user as a global super user.
+
+Request contains user ID and the user's name (in case the user doesn't exist):
+
+    {
+        "id": "1234",
+        "name": "myuser"
+    }
+
+Response if OK:
+
+    {
+        "status_code": 200
+    }
+
+Or if any errors:
+
+    {
+        "data": "no name parameter in request", 
+        "status_code": 500
+    }
+
+## POST /remove-admin
+
+Remove global super user status for a user.
+
+Request contains the user's ID only:
+
+    {
+        "id": "1234"
+    }
+
+Response if OK:
+
+    {
+        "status_code": 200
+    }
+
+Or if any errors:
+
+    {
+        "data": "no id parameter in request", 
+        "status_code": 500
+    }
+
 ## POST /ban
 
 Request contains info on who to ban where. For banning globally:

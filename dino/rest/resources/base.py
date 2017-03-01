@@ -40,7 +40,11 @@ class BaseResource(Resource):
 
     def post(self):
         try:
-            return {'status_code': 200, 'data': self.do_post()}
+            data = self.do_post()
+            return_value = {'status_code': 200}
+            if data is not None:
+                return_value['data'] = data
+            return return_value
         except Exception as e:
             logger.error('could not do get: %s' % str(e))
             logger.exception(traceback.format_exc())
