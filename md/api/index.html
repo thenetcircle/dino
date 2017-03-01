@@ -80,6 +80,9 @@
         
             <ul>
             
+                <li class="toctree-l3"><a href="#error-codes">Error Codes</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#connect">connect</a></li>
                 
             
@@ -205,7 +208,40 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="connect">connect</h2>
+                <h2 id="error-codes">Error Codes</h2>
+<pre><code>OK = 200
+UNKNOWN_ERROR = 250
+
+NO_SUCH_USER = 300
+NO_SUCH_CHANNEL = 301
+NO_SUCH_ROOM = 302
+NO_ADMIN_ROOM_FOUND = 303
+NO_USER_IN_SESSION = 304
+
+EMPTY_MESSAGE = 400
+NOT_BASE64 = 401
+USER_NOT_IN_ROOM = 402
+USER_IS_BANNED = 403
+ROOM_ALREADY_EXISTS = 404
+NOT_ALLOWED = 405
+
+MISSING_ACTOR_ID = 500
+MISSING_OBJECT_ID = 501
+MISSING_TARGET_ID = 502
+MISSING_OBJECT_URL = 503
+MISSING_TARGET_DISPLAY_NAME = 504
+MISSING_ACTOR_URL = 505
+MISSING_OBJECT_CONTENT = 506
+
+INVALID_TARGET_TYPE = 600
+INVALID_ACL_TYPE = 601
+INVALID_ACL_ACTION = 602
+INVALID_ACL_VALUE = 603
+INVALID_STATUS = 604
+INVALID_OBJECT_TYPE = 605
+INVALID_BAN_DURATION = 606
+</code></pre>
+<h2 id="connect">connect</h2>
 <p>Responds with event name "gn_connect".</p>
 <p>Request contains no data.</p>
 <p>Response data if successful:</p>
