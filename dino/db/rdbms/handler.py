@@ -588,6 +588,29 @@ class DatabaseRdbms(object):
             raise RoomNameExistsForChannelException(channel_id, room_name)
         _create_room()
 
+    def remove_channel(self, channel_id: str) -> None:
+        @with_session
+        def get_all_rooms(session=None):
+            rooms = session.query(Rooms)\
+                .join(Rooms.channel)\
+                .filter(Channels.uuid == channel_id)\
+                .all()
+            return [room.uuid for room in rooms]
+
+        @with_session
+        def do_remove_channel(session=None):
+            channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
+            session.delete(channel)
+            session.commit()
+
+        self.get_channel_name(channel_id)
+        room_uuids = get_all_rooms()
+        for room_uuid in room_uuids:
+            self.remove_room(channel_id, room_uuid)
+
+        do_remove_channel()
+        self.env.cache.remove_channel_exists(channel_id)
+
     def remove_room(self, channel_id: str, room_id: str) -> None:
         @with_session
         def do_remove(session=None):

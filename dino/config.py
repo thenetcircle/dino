@@ -244,9 +244,9 @@ class RedisKeys(object):
         return RedisKeys.RKEY_GLOBAL_ROLES
 
     @staticmethod
-    def room_id_for_name(channel_id: str) -> str:
+    def room_id_for_name(room_name: str) -> str:
         # separate room name/id mapping per channel
-        return RedisKeys.RKEY_ROOM_ID_FOR_NAME % channel_id
+        return RedisKeys.RKEY_ROOM_ID_FOR_NAME % room_name
 
     @staticmethod
     def rooms_for_user(user_id: str) -> str:

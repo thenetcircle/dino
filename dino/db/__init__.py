@@ -193,6 +193,14 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def remove_channel(self, channel_id: str) -> None:
+        """
+        remove a channel
+
+        :param channel_id: the uuid of the channel to remove
+        :return: nothing
+        """
+
     def remove_room(self, channel_id: str, room_id: str) -> None:
         """
         remove a room

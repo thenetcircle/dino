@@ -272,10 +272,26 @@ class CacheRedis(object):
             return True
         return None
 
+    def remove_channel_exists(self, channel_id: str) -> None:
+        key = RedisKeys.channel_exists()
+        cache_key = '%s-%s' % (key, channel_id)
+        self.redis.hdel(key, channel_id)
+        self.cache.delete(cache_key)
+
+        key = RedisKeys.channels()
+        cache_key = '%s-name-%s' % (key, channel_id)
+        self.cache.delete(cache_key)
+        self.redis.hdel(key, channel_id)
+
     def remove_room_exists(self, channel_id, room_id):
         key = RedisKeys.rooms(channel_id)
         cache_key = '%s-%s' % (key, room_id)
         self.cache.set(cache_key, None)
+        self.redis.hdel(key, room_id)
+
+        key = RedisKeys.channel_for_rooms()
+        cache_key = '%s-%s' % (key, room_id)
+        self.cache.delete(cache_key)
         self.redis.hdel(key, room_id)
 
     def set_room_exists(self, channel_id, room_id, room_name):
@@ -349,7 +365,7 @@ class CacheRedis(object):
     def get_channel_for_room(self, room_id):
         key = RedisKeys.channel_for_rooms()
         cache_key = '%s-%s' % (key, room_id)
-        value = self.cache.get(key)
+        value = self.cache.get(cache_key)
         if value is not None:
             return value
 

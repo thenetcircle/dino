@@ -488,6 +488,12 @@ def delete_room(channel_uuid: str, room_uuid: str):
     return jsonify({'status_code': 200})
 
 
+@app.route('/channel/<channel_uuid>/remove', methods=['DELETE'])
+def delete_channel(channel_uuid: str):
+    channel_manager.remove_channel(channel_uuid)
+    return jsonify({'status_code': 200})
+
+
 @app.route('/channel/<channel_uuid>/create/acl', methods=['POST'])
 def create_acl_channel(channel_uuid: str):
     form = CreateChannelAclForm(request.form)

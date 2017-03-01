@@ -11,6 +11,8 @@
 # limitations under the License.
 
 import logging
+import traceback
+
 from typing import Union
 
 from dino.db.manager.base import BaseManager
@@ -36,12 +38,22 @@ class ChannelManager(BaseManager):
             })
         return output
 
+    def remove_channel(self, channel_uuid: str) -> Union[str, None]:
+        try:
+            self.env.db.remove_channel(channel_uuid)
+        except Exception as e:
+            logger.error('could not remove channel: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            return 'could not remove channel: %s' % str(e)
+        return None
+
     def create_channel(self, channel_name: str, channel_id: str, user_id: str) -> Union[str, None]:
         try:
             self.env.db.create_channel(channel_name.strip(), channel_id.strip(), user_id.strip())
             self.env.db.create_admin_room_for(channel_id.strip())
         except Exception as e:
             logger.error('could not create channel: %s' % str(e))
+            logger.exception(traceback.format_exc())
             return 'could not create channel: %s' % str(e)
         return None
 
@@ -50,6 +62,7 @@ class ChannelManager(BaseManager):
             return self.env.db.get_channel_name(channel_id)
         except Exception as e:
             logger.error('could not get channel name from id %s: %s' % (channel_id, str(e)))
+            logger.exception(traceback.format_exc())
             return None
 
     def rename(self, channel_id: str, channel_name: str) -> Union[str, None]:
@@ -57,6 +70,7 @@ class ChannelManager(BaseManager):
             self.env.db.rename_channel(channel_id, channel_name)
         except Exception as e:
             logger.error('could not rename channel with ID %s: %s' % (channel_id, str(e)))
+            logger.exception(traceback.format_exc())
             return 'could not rename channel with ID %s: %s' % (channel_id, str(e))
 
     def get_owners(self, channel_id: str) -> Union[str, list]:
@@ -71,6 +85,7 @@ class ChannelManager(BaseManager):
             return output
         except Exception as e:
             logger.error('could not get channel owners from id %s: %s' % (channel_id, str(e)))
+            logger.exception(traceback.format_exc())
             return 'could not get channel owners from id %s: %s' % (channel_id, str(e))
 
     def get_admins(self, channel_id: str) -> Union[str, list]:
@@ -86,4 +101,5 @@ class ChannelManager(BaseManager):
             return output
         except Exception as e:
             logger.error('could not get channel admins from id %s: %s' % (channel_id, str(e)))
+            logger.exception(traceback.format_exc())
             return 'could not get channel admins from id %s: %s' % (channel_id, str(e))

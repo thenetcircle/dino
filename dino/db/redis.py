@@ -540,6 +540,11 @@ class DatabaseRedis(object):
     def remove_channel_ban(self, channel_id: str, user_id: str) -> str:
         self.redis.hdel(RedisKeys.banned_users_channel(channel_id), user_id)
 
+    def remove_channel(self, channel_id: str) -> None:
+        self.redis.hdel(RedisKeys.channels(), channel_id)
+        self.redis.hdel(RedisKeys.banned_users_channel(channel_id))
+        self.redis.hdel(RedisKeys.channel_acl(channel_id))
+
     def remove_room_ban(self, room_id: str, user_id: str) -> str:
         self.redis.hdel(RedisKeys.banned_users(room_id), user_id)
 
