@@ -769,12 +769,12 @@ Response data if successful:
                         "objectType": "owner",
                         "attachments": [
                             {
-                                "id": "<owner"s user ID>",
-                                "displayName": "<owner"s user name>",
+                                "id": "<owner's user ID>",
+                                "displayName": "<owner's user name>",
                             },
                             {
-                                "id": "<owner"s user ID>",
-                                "displayName": "<owner"s user name>",
+                                "id": "<owner's user ID>",
+                                "displayName": "<owner's user name>",
                             }
                         ]
                     },
