@@ -104,6 +104,12 @@
                 <li class="toctree-l3"><a href="#get-history">GET /history</a></li>
                 
             
+                <li class="toctree-l3"><a href="#post-set-admin">POST /set-admin</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#post-remove-admin">POST /remove-admin</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#post-ban">POST /ban</a></li>
                 
             
@@ -227,6 +233,43 @@
 <li>Either <code>user_id</code> or <code>room_id</code> is required (both can be specified at the same time),</li>
 <li><code>to_time</code> needs to be after <code>from_time</code>.</li>
 </ul>
+<h2 id="post-set-admin">POST /set-admin</h2>
+<p>Set a user as a global super user.</p>
+<p>Request contains user ID and the user's name (in case the user doesn't exist):</p>
+<pre><code>{
+    "id": "1234",
+    "name": "myuser"
+}
+</code></pre>
+<p>Response if OK:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<p>Or if any errors:</p>
+<pre><code>{
+    "data": "no name parameter in request", 
+    "status_code": 500
+}
+</code></pre>
+<h2 id="post-remove-admin">POST /remove-admin</h2>
+<p>Remove global super user status for a user.</p>
+<p>Request contains the user's ID only:</p>
+<pre><code>{
+    "id": "1234"
+}
+</code></pre>
+<p>Response if OK:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<p>Or if any errors:</p>
+<pre><code>{
+    "data": "no id parameter in request", 
+    "status_code": 500
+}
+</code></pre>
 <h2 id="post-ban">POST /ban</h2>
 <p>Request contains info on who to ban where. For banning globally:</p>
 <pre><code>{
