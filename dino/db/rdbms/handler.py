@@ -176,14 +176,14 @@ class DatabaseRdbms(object):
             }
 
             if g_roles is not None:
-                output['global'] = [a for a in g_roles.roles.split(',')]
+                output['global'] = [a for a in g_roles.roles.split(',') if len(a) > 0]
 
             if c_roles is not None and len(c_roles) > 0:
                 for c_role in c_roles:
-                    output['channel'][c_role.channel.uuid] = [a for a in c_role.roles.split(',')]
+                    output['channel'][c_role.channel.uuid] = [a for a in c_role.roles.split(',') if len(a) > 0]
             if r_roles is not None and len(r_roles) > 0:
                 for r_role in r_roles:
-                    output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',')]
+                    output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',') if len(a) > 0]
             return output
 
         output = self.env.cache.get_user_roles(user_id)
