@@ -12,16 +12,25 @@
 
 from dino import environ
 from dino import utils
-from dino.config import SessionKeys
+
+import logging
+import traceback
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 class OnMessageHooks(object):
     @staticmethod
     def store(arg: tuple) -> None:
         data, activity = arg
-        environ.env.storage.store_message(activity)
+        try:
+            environ.env.storage.store_message(activity)
+        except Exception as e:
+            logger.error('could not store message %s because: %s' % (activity.id, str(e)))
+            logger.error(str(data))
+            logger.exception(traceback.format_exc())
 
     @staticmethod
     def update_last_read(arg: tuple) -> None:

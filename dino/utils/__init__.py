@@ -312,7 +312,7 @@ def activity_for_create_room(activity: Activity) -> dict:
     return {
         'actor': {
             'id': activity.actor.id,
-            'displayName': b64e(activity.actor.summary),
+            'displayName': b64e(activity.actor.display_name),
             'attachments': get_user_info_attachments_for(activity.actor.id)
         },
         'object': {
@@ -320,7 +320,7 @@ def activity_for_create_room(activity: Activity) -> dict:
         },
         'target': {
             'id': activity.target.id,
-            'displayName': b64e(activity.target.display_name)
+            'displayName': activity.target.display_name
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'create',
@@ -593,6 +593,13 @@ def get_user_info_attachments_for(user_id: str) -> list:
             'objectType': info_key,
             'content': b64e(info_val)
         })
+
+    roles = get_user_roles(user_id) # TODO
+    #attachments.append({
+    #    'objectType': 'roles',
+    #    'content': b64e()
+    #})
+
     return attachments
 
 
