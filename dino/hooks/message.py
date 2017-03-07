@@ -46,6 +46,8 @@ class OnMessageHooks(object):
         data, activity = arg
         user_id = activity.actor.id
         user_name = activity.actor.display_name
+        if utils.is_base64(user_name):
+            user_name = utils.b64d(user_name)
 
         activity_json = utils.activity_for_message(user_id, user_name)
         environ.env.publish(activity_json, external=True)
