@@ -123,6 +123,8 @@ def pre_process(validation_name, should_validate_request=True):
                             try:
                                 user_name = utils.get_user_name_for(data['actor']['id'])
                             except NoSuchUserException as e:
+                                logger.error('[%s] no user found for user_id "%s" in session' %
+                                             (validation_name, str(data['actor']['id'])))
                                 return 400, str(e)
                         data['actor']['displayName'] = utils.b64e(user_name)
 
@@ -132,6 +134,7 @@ def pre_process(validation_name, should_validate_request=True):
                     if should_validate_request:
                         is_valid, error_msg = validation.request.validate_request(activity)
                         if not is_valid:
+                            logger.error('[%s] validation failed, error message: %s' % (validation_name, str(error_msg)))
                             return 400, error_msg
 
                     is_valid, status_code, message = getattr(validation.request, validation_name)(activity)
@@ -142,8 +145,8 @@ def pre_process(validation_name, should_validate_request=True):
                                 all_ok, msg = validator(data, activity)
                                 if not all_ok:
                                     logger.warn(
-                                            'validator "%s" failed for event "%s": %s' %
-                                            (str(validator), validation_name, msg))
+                                            '[%s] validator "%s" failed: %s' %
+                                            (validation_name, str(validator), msg))
                                     status_code, message = 400, msg
                                     break
 

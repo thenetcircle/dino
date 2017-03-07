@@ -70,9 +70,13 @@ event called `gn_admin_requested` containing the following:
         "object": {
             "content": "<base64 encoded message>"
         },
-        "target": {
+        "generator": {
             "id": "<UUID of the room the help was requested for>",
             "displayName": "<name of the room>"
+        },
+        "generator": {
+            "id": "<UUID of the admin room>",
+            "displayName": "<base64 of the admin room name>"
         }
     }
 

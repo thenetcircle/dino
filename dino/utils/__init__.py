@@ -221,6 +221,10 @@ def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_
             'content': b64e(message)
         },
         'target': {
+            'id': get_admin_room(),
+            'displayName': b64e('Admins')
+        },
+        'generator': {
             'id': room_id,
             'displayName': b64e(room_name)
         },
