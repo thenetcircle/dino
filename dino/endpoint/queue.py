@@ -76,7 +76,7 @@ class QueueHandler(object):
 
         if user_sid in _users:
             try:
-                self.socketio.server.leave_room(user_sid, room_id, '/chat')
+                self.socketio.server.leave_room(user_sid, room_id, '/ws')
             except Exception as e:
                 logger.error('could not kick user %s from room %s: %s' % (user_id, room_id, str(e)))
                 logger.exception(traceback.format_exc())

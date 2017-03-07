@@ -161,7 +161,8 @@ def pre_process(validation_name, should_validate_request=True):
                     environ.env.stats.incr('event.' + validation_name + '.count')
                 else:
                     environ.env.stats.incr('event.' + validation_name + '.error')
-                    logger.warn('in decorator, status_code: %s, message: %s' % (status_code, str(message)))
+                    logger.warn('in decorator for %s, status_code: %s, message: %s' %
+                                (validation_name, status_code, str(message)))
                 return status_code, message
 
             start = time.time()

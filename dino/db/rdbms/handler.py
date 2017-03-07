@@ -1242,7 +1242,7 @@ class DatabaseRdbms(object):
             raise EmptyUserIdException()
 
         try:
-            username = self.get_user_name(user_id)
+            username = self.get_user_name(user_id, skip_cache=True)
             if username is not None:
                 raise UserExistsException(user_id)
         except NoSuchUserException:
@@ -1263,13 +1263,16 @@ class DatabaseRdbms(object):
             users[role.user_id] = self.get_user_name(role.user_id)
         return users
 
-    def get_user_name(self, user_id: str) -> str:
+    def get_user_name(self, user_id: str, skip_cache=False) -> str:
         @with_session
         def _get_user_name(session=None):
             user = session.query(Users).filter(Users.uuid == user_id).first()
             if user is None:
                 return None
             return user.name
+
+        if skip_cache:
+            return _get_user_name()
 
         user_name = self.env.cache.get_user_name(user_id)
         if user_name is not None and len(user_name.strip()) > 0:

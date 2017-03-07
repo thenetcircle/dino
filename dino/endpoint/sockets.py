@@ -83,7 +83,7 @@ if not environ.env.config.get(ConfigKeys.TESTING, False):
     def disconnect_by_sid(sid: str) -> None:
         if sid is None:
             raise ValueError('need sid to disconnect client')
-        environ.env._force_disconnect_by_sid(sid, '/chat')
+        environ.env._force_disconnect_by_sid(sid, '/ws')
 
     # preferably "emit" should be set during env creation, but the socketio object is not created until after env is
     environ.env.out_of_scope_emit = socketio.emit
@@ -132,7 +132,7 @@ def index():
     return environ.env.render_template('index.html', form=form)
 
 
-@app.route('/chat')
+@app.route('/ws')
 def chat():
     user_id = environ.env.session.get('user_id', '')
     user_name = environ.env.session.get('user_name', '')
@@ -164,14 +164,14 @@ def send_css(path):
 
 
 # no pre-processing for connect event
-@socketio.on('connect', namespace='/chat')
+@socketio.on('connect', namespace='/ws')
 @respond_with('gn_connect')
 @count_connections('connect')
 def connect() -> (int, None):
     return api.connect()
 
 
-@socketio.on('login', namespace='/chat')
+@socketio.on('login', namespace='/ws')
 @respond_with('gn_login')
 @pre_process('on_login', should_validate_request=False)
 def on_login(data: dict, activity: Activity) -> (int, str):
@@ -186,133 +186,133 @@ def on_login(data: dict, activity: Activity) -> (int, str):
         return 500, str(e)
 
 
-@socketio.on('message', namespace='/chat')
+@socketio.on('message', namespace='/ws')
 @respond_with('gn_message')
 @pre_process('on_message')
 def on_message(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
     return api.on_message(data, activity)
 
 
-@socketio.on('delete', namespace='/chat')
+@socketio.on('delete', namespace='/ws')
 @respond_with('gn_delete')
 @pre_process('on_delete')
 def on_delete(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
     return api.on_delete(data, activity)
 
 
-@socketio.on('request_admin', namespace='/chat')
+@socketio.on('request_admin', namespace='/ws')
 @respond_with('gn_request_admin')
 @pre_process('on_request_admin')
 def on_request_admin(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_request_admin(data, activity)
 
 
-@socketio.on('create', namespace='/chat')
+@socketio.on('create', namespace='/ws')
 @respond_with('gn_create')
 @pre_process('on_create')
 def on_create(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
     return api.on_create(data, activity)
 
 
-@socketio.on('invite', namespace='/chat')
+@socketio.on('invite', namespace='/ws')
 @respond_with('gn_invite')
 @pre_process('on_invite')
 def on_invite(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
     return api.on_invite(data, activity)
 
 
-@socketio.on('whisper', namespace='/chat')
+@socketio.on('whisper', namespace='/ws')
 @respond_with('gn_whisper')
 @pre_process('on_whisper')
 def on_whisper(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
     return api.on_whisper(data, activity)
 
 
-@socketio.on('ban', namespace='/chat')
+@socketio.on('ban', namespace='/ws')
 @respond_with('gn_ban')
 @pre_process('on_ban')
 def on_ban(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
     return api.on_ban(data, activity)
 
 
-@socketio.on('kick', namespace='/chat')
+@socketio.on('kick', namespace='/ws')
 @respond_with('gn_kick')
 @pre_process('on_kick')
 def on_kick(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
     return api.on_kick(data, activity)
 
 
-@socketio.on('set_acl', namespace='/chat')
+@socketio.on('set_acl', namespace='/ws')
 @respond_with('gn_set_acl')
 @pre_process('on_set_acl')
 def on_set_acl(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_set_acl(data, activity)
 
 
-@socketio.on('get_acl', namespace='/chat')
+@socketio.on('get_acl', namespace='/ws')
 @respond_with('gn_get_acl')
 @pre_process('on_get_acl')
 def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_get_acl(data, activity)
 
 
-@socketio.on('status', namespace='/chat')
+@socketio.on('status', namespace='/ws')
 @respond_with('gn_status')
 @pre_process('on_status')
 def on_status(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_status(data, activity)
 
 
-@socketio.on('history', namespace='/chat')
+@socketio.on('history', namespace='/ws')
 @respond_with('gn_history')
 @pre_process('on_history')
 def on_history(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_history(data, activity)
 
 
-@socketio.on('join', namespace='/chat')
+@socketio.on('join', namespace='/ws')
 @respond_with('gn_join')
 @pre_process('on_join')
 def on_join(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_join(data, activity)
 
 
-@socketio.on('users_in_room', namespace='/chat')
+@socketio.on('users_in_room', namespace='/ws')
 @respond_with('gn_users_in_room')
 @pre_process('on_users_in_room')
 def on_users_in_room(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_users_in_room(data, activity)
 
 
-@socketio.on('remove_room', namespace='/chat')
+@socketio.on('remove_room', namespace='/ws')
 @respond_with('gn_remove_room')
 @pre_process('on_remove_room')
 def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_remove_room(data, activity)
 
 
-@socketio.on('list_rooms', namespace='/chat')
+@socketio.on('list_rooms', namespace='/ws')
 @respond_with('gn_list_rooms')
 @pre_process('on_list_rooms')
 def on_list_rooms(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_list_rooms(data, activity)
 
 
-@socketio.on('report', namespace='/chat')
+@socketio.on('report', namespace='/ws')
 @respond_with('gn_report')
 @pre_process('on_report')
 def on_report(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_report(data, activity)
 
 
-@socketio.on('list_channels', namespace='/chat')
+@socketio.on('list_channels', namespace='/ws')
 @respond_with('gn_list_channels')
 @pre_process('on_list_channels')
 def on_list_channels(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_list_channels(data, activity)
 
 
-@socketio.on('leave', namespace='/chat')
+@socketio.on('leave', namespace='/ws')
 @respond_with('gn_leave')
 @pre_process('on_leave')
 def on_leave(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
@@ -320,7 +320,7 @@ def on_leave(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
 
 
 # no pre-processing for disconnect event
-@socketio.on('disconnect', namespace='/chat')
+@socketio.on('disconnect', namespace='/ws')
 @count_connections('disconnect')
 def on_disconnect() -> (int, None):
     return api.on_disconnect()

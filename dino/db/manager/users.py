@@ -87,7 +87,7 @@ class UserManager(BaseManager):
                 'id': room_id,
                 'displayName': room_name,
                 'objectType': 'room',
-                'url': '/chat'
+                'url': '/ws'
             }
         }
 
@@ -127,7 +127,7 @@ class UserManager(BaseManager):
                 'updated': utils.ban_duration_to_datetime(duration).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             },
             'target': {
-                'url': '/chat',
+                'url': '/ws',
                 'objectType': target_type
             }
         }

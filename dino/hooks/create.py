@@ -25,6 +25,8 @@ class OnCreateHooks(object):
         channel_id = activity.object.url
         user_id = activity.actor.id
         user_name = activity.actor.display_name
+        if utils.is_base64(room_name):
+            room_name = utils.b64d(room_name)
         environ.env.db.create_room(room_name, room_id, channel_id, user_id, user_name)
 
     @staticmethod

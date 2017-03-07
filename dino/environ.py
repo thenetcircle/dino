@@ -575,7 +575,8 @@ def init_storage_engine(gn_env: GNEnvironment) -> None:
         storage_hosts = storage_engine.get(ConfigKeys.HOST)
         strategy = storage_engine.get(ConfigKeys.STRATEGY, None)
         replication = storage_engine.get(ConfigKeys.REPLICATION, None)
-        gn_env.storage = CassandraStorage(storage_hosts, replications=replication, strategy=strategy)
+        key_space = gn_env.config.get(ConfigKeys.ENVIRONMENT, 'dino')
+        gn_env.storage = CassandraStorage(storage_hosts, replications=replication, strategy=strategy, key_space=key_space)
         gn_env.storage.init()
     else:
         raise RuntimeError('unknown storage engine type "%s"' % storage_type)
@@ -706,7 +707,12 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                 gn_env.stats.timing('publish.internal.time', (time.time()-start)*1000)
 
             with producers[queue_connection].acquire(block=True) as producer:
-                producer.publish(message, exchange=exchange, declare=[exchange, queue])
+                try:
+                    producer.publish(message, exchange=exchange, declare=[exchange, queue])
+                except Exception as pe:
+                    logger.error('failed to publish: %s' % str(pe))
+                    logger.exception(traceback.format_exc())
+                    gn_env.stats.incr('publish.error')
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())

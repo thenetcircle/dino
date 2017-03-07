@@ -85,7 +85,7 @@
 
             var socket;
             $(document).ready(function(){
-                socket = io.connect('http://' + document.domain + ':' + location.port + '/chat', {transports:['websocket']});
+                socket = io.connect('wss://' + document.domain + ':' + location.port + '/ws', {path: '/ws/socket.io', transports:['websocket']});
 
                 socket.on('connect', function() {
                     socket.emit('login', {

@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import json
+import logging
+import traceback
 
 from zope.interface import implementer
 
@@ -26,6 +28,8 @@ from datetime import timedelta
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 EIGHT_HOURS_IN_SECONDS = 8*60*60
+
+logger = logging.getLogger(__name__)
 
 
 class MemoryCache(object):
@@ -409,22 +413,34 @@ class CacheRedis(object):
         return self.user_check_status(user_id, UserKeys.STATUS_INVISIBLE)
 
     def set_user_offline(self, user_id: str) -> None:
-        self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_UNAVAILABLE)
-        self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
-        self.redis.srem(RedisKeys.online_set(), int(user_id))
-        self.redis.srem(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_UNAVAILABLE)
+        try:
+            self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_UNAVAILABLE)
+            self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
+            self.redis.srem(RedisKeys.online_set(), int(user_id))
+            self.redis.srem(RedisKeys.users_multi_cast(), user_id)
+            self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_UNAVAILABLE)
+        except Exception as e:
+            logger.error('could not set_user_offline(): %s' % str(e))
+            logger.exception(traceback.format_exc())
 
     def set_user_online(self, user_id: str) -> None:
-        self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
-        self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 1)
-        self.redis.sadd(RedisKeys.online_set(), int(user_id))
-        self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
+        try:
+            self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
+            self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 1)
+            self.redis.sadd(RedisKeys.online_set(), int(user_id))
+            self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
+            self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
+        except Exception as e:
+            logger.error('could not set_user_online(): %s' % str(e))
+            logger.exception(traceback.format_exc())
 
     def set_user_invisible(self, user_id: str) -> None:
-        self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_INVISIBLE)
-        self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
-        self.redis.srem(RedisKeys.online_set(), int(user_id))
-        self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-        self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_INVISIBLE)
+        try:
+            self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_INVISIBLE)
+            self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
+            self.redis.srem(RedisKeys.online_set(), int(user_id))
+            self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
+            self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_INVISIBLE)
+        except Exception as e:
+            logger.error('could not set_user_invisible(): %s' % str(e))
+            logger.exception(traceback.format_exc())

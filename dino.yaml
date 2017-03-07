@@ -66,13 +66,47 @@ fetc:
         user: '$DINO_EXT_QUEUE_USER'
         password: '$DINO_EXT_QUEUE_PASS'
         queue: 'chat'
-        vhost: '/'
+        vhost: '$DINO_EXT_QUEUE_VHOST'
         exchange: 'chat_exchange'
     stats:
       type: 'statsd'
       host: 'localhost'
       port: 8125
       prefix: 'dino.fetc'
+      include_hostname: 'true'
+    storage:
+        type: 'cassandra'
+        host:
+            - '$DINO_CASSANDRA_HOST_1'
+            - '$DINO_CASSANDRA_HOST_2'
+    history:
+        type: 'top'  # unread or top
+        limit: 50
+
+fetd:
+    <<: *common_config
+    database:
+        type: 'rdbms'
+        driver: 'postgres+psycopg2'
+        host: '$DINO_DB_HOST'
+        port: 5432
+        db: '$DINO_DB_NAME'
+        user: '$DINO_DB_USER'
+        password: '$DINO_DB_PASS'
+    ext_queue:
+        type: 'rabbitmq'
+        host: '$DINO_EXT_QUEUE_HOST'
+        port: 5672
+        user: '$DINO_EXT_QUEUE_USER'
+        password: '$DINO_EXT_QUEUE_PASS'
+        queue: 'chat'
+        vhost: '$DINO_EXT_QUEUE_VHOST'
+        exchange: 'chat_exchange'
+    stats:
+      type: 'statsd'
+      host: 'localhost'
+      port: 8125
+      prefix: 'dino.fetd'
       include_hostname: 'true'
     storage:
         type: 'cassandra'
@@ -100,7 +134,7 @@ dev:
         user: '$DINO_EXT_QUEUE_USER'
         password: '$DINO_EXT_QUEUE_PASS'
         queue: 'chat'
-        vhost: '/'
+        vhost: '$DINO_EXT_QUEUE_VHOST'
         exchange: 'chat_exchange'
     storage:
         type: 'cassandra'
