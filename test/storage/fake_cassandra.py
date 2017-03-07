@@ -69,6 +69,9 @@ class FakeCassandraDriver(object):
             msg_id, from_user_id, from_user_name, target_id, target_name, body, domain,
             sent_time, time_stamp, channel_id, channel_name, deleted))
 
+    def msgs_select_latest_non_deleted(self, to_user_id: str, limit: int=100) -> FakeResultSet:
+        return self.msgs_select(to_user_id, limit)
+
     def msgs_select(self, to_user_id: str, limit: int=100) -> FakeResultSet:
         msgs = self.msgs_to_user.get(to_user_id, list())[:limit]
         rows = list()
