@@ -68,9 +68,21 @@ fetc:
         queue: 'chat'
         vhost: '$DINO_EXT_QUEUE_VHOST'
         exchange: 'chat_exchange'
+    auth:
+        type: 'redis'
+        host: '$DINO_AUTH_HOST'
+        db: 8
+    cache:
+        type: 'redis'
+        host: '$DINO_CACHE_HOST'
+        db: 9
+    queue:
+        type: 'redis'
+        host: '$DINO_QUEUE_HOST'
+        db: 7
     stats:
       type: 'statsd'
-      host: 'localhost'
+      host: '$DINO_STATSD_HOST'
       port: 8125
       prefix: 'dino.fetc'
       include_hostname: 'true'
@@ -102,9 +114,21 @@ fetd:
         queue: 'chat'
         vhost: '$DINO_EXT_QUEUE_VHOST'
         exchange: 'chat_exchange'
+    auth:
+        type: 'redis'
+        host: '$DINO_AUTH_HOST'
+        db: 5
+    cache:
+        type: 'redis'
+        host: '$DINO_CACHE_HOST'
+        db: 6
+    queue:
+        type: 'redis'
+        host: '$DINO_QUEUE_HOST'
+        db: 4
     stats:
       type: 'statsd'
-      host: 'localhost'
+      host: '$DINO_STATSD_HOST'
       port: 8125
       prefix: 'dino.fetd'
       include_hostname: 'true'
