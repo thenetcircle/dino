@@ -130,6 +130,21 @@ class Driver(object):
                                 target_id IS NOT NULL AND
                                 from_user_id IS NOT NULL AND
                                 sent_time IS NOT NULL AND
+                                time_stamp IS NOT NULL
+                        PRIMARY KEY (target_id, time_stamp, from_user_id, sent_time)
+                        WITH CLUSTERING ORDER BY (time_stamp DESC)
+                    """
+            )
+            self.session.execute(
+                    """
+                    CREATE MATERIALIZED VIEW IF NOT EXISTS messages_by_time_stamp_non_deleted AS
+                        SELECT * from messages
+                            WHERE
+                                message_id IS NOT NULL AND
+                                body IS NOT NULL AND
+                                target_id IS NOT NULL AND
+                                from_user_id IS NOT NULL AND
+                                sent_time IS NOT NULL AND
                                 deleted IS NOT NULL AND
                                 time_stamp IS NOT NULL
                         PRIMARY KEY (target_id, deleted, time_stamp, from_user_id, sent_time)
@@ -186,7 +201,7 @@ class Driver(object):
             )
             self.statements[StatementKeys.msgs_select_latest_non_deleted] = self.session.prepare(
                     """
-                    SELECT * FROM messages_by_time_stamp WHERE target_id = ? AND deleted = False LIMIT ?
+                    SELECT * FROM messages_by_time_stamp_non_deleted WHERE target_id = ? AND deleted = False LIMIT ?
                     """
             )
             self.statements[StatementKeys.msgs_select_time_slice] = self.session.prepare(
