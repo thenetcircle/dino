@@ -74,7 +74,7 @@ event called `gn_admin_requested` containing the following:
             "id": "<UUID of the room the help was requested for>",
             "displayName": "<name of the room>"
         },
-        "generator": {
+        "target": {
             "id": "<UUID of the admin room>",
             "displayName": "<base64 of the admin room name>"
         }
