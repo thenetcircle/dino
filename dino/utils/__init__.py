@@ -308,8 +308,8 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     }
 
 
-def activity_for_create_room(activity: Activity) -> dict:
-    return {
+def activity_for_create_room(data: dict, activity: Activity) -> dict:
+    response = {
         'actor': {
             'id': activity.actor.id,
             'displayName': b64e(activity.actor.display_name),
@@ -326,6 +326,11 @@ def activity_for_create_room(activity: Activity) -> dict:
         'verb': 'create',
         'id': str(uuid())
     }
+
+    if 'object' in data and 'attachments' in data['object']:
+        response['object']['attachments'] = data['object']['attachments']
+
+    return response
 
 
 def activity_for_history(activity: Activity, messages: list) -> dict:
@@ -594,7 +599,7 @@ def get_user_info_attachments_for(user_id: str) -> list:
             'content': b64e(info_val)
         })
 
-    roles = get_user_roles(user_id) # TODO
+    #roles = get_user_roles(user_id) # TODO
     #attachments.append({
     #    'objectType': 'roles',
     #    'content': b64e()

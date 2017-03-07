@@ -32,7 +32,7 @@ class OnCreateHooks(object):
     @staticmethod
     def emit_creation_event(arg: tuple) -> None:
         data, activity = arg
-        activity_json = utils.activity_for_create_room(activity)
+        activity_json = utils.activity_for_create_room(data, activity)
         environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
 
 
