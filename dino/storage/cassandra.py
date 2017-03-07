@@ -121,14 +121,12 @@ class CassandraStorage(object):
         return msgs
 
     def get_history(self, room_id: str, limit: int=100) -> list:
-        rows = self.driver.msgs_select(room_id, limit)
+        rows = self.driver.msgs_select_latest_non_deleted(room_id, limit)
         if rows is None or len(rows.current_rows) == 0:
             return list()
 
         msgs = list()
         for row in rows:
-            if row.deleted:
-                continue
             msgs.append(self._row_to_json(row))
         return msgs
 

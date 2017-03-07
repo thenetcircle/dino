@@ -34,6 +34,7 @@ class StatementKeys(Enum):
     msgs_select = 'msgs_select'
     msgs_select_time_slice = 'msgs_select_time_slice'
     msgs_select_by_time_stamp = 'msgs_select_by_time_stamp'
+    msgs_select_latest_non_deleted = 'msgs_select_latest_non_deleted'
     msgs_select_from_user = 'msg_select_from_user'
     msgs_select_from_user_to_target = 'msg_select_from_user_to_target'
     msgs_select_from_user_to_target_time_slice = 'msg_select_from_user_to_target_time_slice'
@@ -129,8 +130,9 @@ class Driver(object):
                                 target_id IS NOT NULL AND
                                 from_user_id IS NOT NULL AND
                                 sent_time IS NOT NULL AND
+                                deleted IS NOT NULL AND
                                 time_stamp IS NOT NULL
-                        PRIMARY KEY (target_id, time_stamp, from_user_id, sent_time)
+                        PRIMARY KEY (target_id, deleted, time_stamp, from_user_id, sent_time)
                         WITH CLUSTERING ORDER BY (time_stamp DESC)
                     """
             )
@@ -180,6 +182,11 @@ class Driver(object):
             self.statements[StatementKeys.msgs_select_by_time_stamp] = self.session.prepare(
                     """
                     SELECT * FROM messages_by_time_stamp WHERE target_id = ? AND time_stamp > ?
+                    """
+            )
+            self.statements[StatementKeys.msgs_select_latest_non_deleted] = self.session.prepare(
+                    """
+                    SELECT * FROM messages_by_time_stamp WHERE target_id = ? AND deleted = False LIMIT ?
                     """
             )
             self.statements[StatementKeys.msgs_select_time_slice] = self.session.prepare(
@@ -269,6 +276,9 @@ class Driver(object):
 
     def msgs_select(self, target_id: str, limit: int=100) -> ResultSet:
         return self._execute(StatementKeys.msgs_select, target_id, limit)
+
+    def msgs_select_latest_non_deleted(self, target_id: str, limit: int=100) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_latest_non_deleted, target_id, limit)
 
     def msgs_select_since_time(self, target_id: str, time_stamp: int) -> ResultSet:
         return self._execute(StatementKeys.msgs_select_by_time_stamp, target_id, time_stamp)
