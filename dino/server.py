@@ -31,12 +31,11 @@ def create_app():
 
     # used for encrypting cookies for handling sessions
     _app.config['SECRET_KEY'] = 'secret!fdsa'
-    # os.environ.get('DINO_DEBUG', '0') == '1'
 
     _socketio = SocketIO(
             _app,
             logger=logger,
-            engineio_logger=logger,
+            engineio_logger=os.environ.get('DINO_DEBUG', '0') == '1',
             async_mode='eventlet',
             message_queue=environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default=''))
 
