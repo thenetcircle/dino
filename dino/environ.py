@@ -717,11 +717,11 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                     except Exception as pe:
                         failed = True
                         logger.error('[%s/%s tries] failed to publish: %s' % (str(current_try+1), str(n_tries), str(pe)))
+                        logger.exception(traceback.format_exc())
                         gn_env.stats.incr('publish.error')
 
                 if failed:
                     logger.error('failed to publish %s times, giving up!' % str(n_tries))
-                    logger.exception(traceback.format_exc())
                 elif current_try > 0:
                     logger.info('published successfully on attempt %s/%s' % (str(current_try+1), str(n_tries)))
 
