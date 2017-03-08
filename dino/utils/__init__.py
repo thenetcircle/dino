@@ -209,7 +209,7 @@ def activity_for_user_kicked(
     return activity
 
 
-def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_name: str, message: str):
+def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_name: str, message: str, admin_room_id: str):
     return {
         'actor': {
             'id': user_id,
@@ -218,10 +218,10 @@ def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_
         },
         'verb': 'request',
         'object': {
-            'content': b64e(message)
+            'content': message
         },
         'target': {
-            'id': get_admin_room(),
+            'id': admin_room_id,
             'displayName': b64e('Admins')
         },
         'generator': {
