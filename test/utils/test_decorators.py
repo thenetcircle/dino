@@ -20,6 +20,7 @@ from dino.utils.decorators import respond_with
 from dino.stats import IStats
 from dino.environ import ConfigDict
 from dino.config import SessionKeys
+from dino.config import ErrorCodes
 from dino import environ
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -76,7 +77,7 @@ class DecoratorTest(TestCase):
         def to_decorate(data: dict, activity: Activity=None):
             raise RuntimeError('testing')
         status, msg, *rest = to_decorate(self.get_activity())
-        self.assertEqual(500, status)
+        self.assertEqual(ErrorCodes.UNKNOWN_ERROR, status)
 
     def test_invalid_name(self):
         @pre_process('does-not-exist')
