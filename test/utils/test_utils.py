@@ -291,7 +291,7 @@ class UtilsActivityForTest(TestCase):
         self.assertIsNotNone(utils.activity_for_user_kicked('1', '2', '3', '4', '5', '6'))
 
     def test_activity_for_request_admin(self):
-        self.assertIsNotNone(utils.activity_for_request_admin('1', '2', '3', '4', '5'))
+        self.assertIsNotNone(utils.activity_for_request_admin('1', '2', '3', '4', '5', '6'))
 
     def test_activity_for_list_channels(self):
         channels = {'id': 'namne', 'other-id': 'other-name'}
