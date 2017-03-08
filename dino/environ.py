@@ -707,12 +707,24 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                 gn_env.stats.timing('publish.internal.time', (time.time()-start)*1000)
 
             with producers[queue_connection].acquire(block=True) as producer:
-                try:
-                    producer.publish(message, exchange=exchange, declare=[exchange, queue])
-                except Exception as pe:
-                    logger.error('failed to publish: %s' % str(pe))
+                n_tries = 3
+                current_try = 0
+                failed = False
+                for current_try in range(n_tries):
+                    try:
+                        producer.publish(message, exchange=exchange, declare=[exchange, queue])
+                        failed = False
+                    except Exception as pe:
+                        failed = True
+                        logger.error('[%s/%s tries] failed to publish: %s' % (str(current_try+1), str(n_tries), str(pe)))
+                        gn_env.stats.incr('publish.error')
+
+                if failed:
+                    logger.error('failed to publish %s times, giving up!' % str(n_tries))
                     logger.exception(traceback.format_exc())
-                    gn_env.stats.incr('publish.error')
+                elif current_try > 0:
+                    logger.info('published successfully on attempt %s/%s' % (str(current_try+1), str(n_tries)))
+
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())

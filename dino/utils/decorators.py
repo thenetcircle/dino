@@ -27,6 +27,7 @@ from dino import utils
 from dino.exceptions import NoSuchUserException
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
+from dino.config import ErrorCodes
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -123,9 +124,10 @@ def pre_process(validation_name, should_validate_request=True):
                             try:
                                 user_name = utils.get_user_name_for(data['actor']['id'])
                             except NoSuchUserException as e:
-                                logger.error('[%s] no user found for user_id "%s" in session' %
-                                             (validation_name, str(data['actor']['id'])))
-                                return 400, str(e)
+                                error_msg = '[%s] no user found for user_id "%s" in session' % \
+                                            (validation_name, str(data['actor']['id']))
+                                logger.error(error_msg)
+                                return ErrorCodes.NO_USER_IN_SESSION, error_msg
                         data['actor']['displayName'] = utils.b64e(user_name)
 
                     activity = as_parser.parse(data)
@@ -135,7 +137,7 @@ def pre_process(validation_name, should_validate_request=True):
                         is_valid, error_msg = validation.request.validate_request(activity)
                         if not is_valid:
                             logger.error('[%s] validation failed, error message: %s' % (validation_name, str(error_msg)))
-                            return 400, error_msg
+                            return ErrorCodes.VALIDATION_ERROR, error_msg
 
                     is_valid, status_code, message = getattr(validation.request, validation_name)(activity)
                     if is_valid:
@@ -147,7 +149,7 @@ def pre_process(validation_name, should_validate_request=True):
                                     logger.warn(
                                             '[%s] validator "%s" failed: %s' %
                                             (validation_name, str(validator), msg))
-                                    status_code, message = 400, msg
+                                    status_code, message = ErrorCodes.VALIDATION_ERROR, msg
                                     break
 
                         if all_ok:
@@ -158,7 +160,7 @@ def pre_process(validation_name, should_validate_request=True):
                     logger.error('%s: %s' % (validation_name, str(e)))
                     logger.exception(traceback.format_exc())
                     environ.env.stats.incr('event.' + validation_name + '.exception')
-                    return 500, str(e)
+                    return ErrorCodes.UNKNOWN_ERROR, str(e)
 
                 if status_code == 200:
                     environ.env.stats.incr('event.' + validation_name + '.count')
