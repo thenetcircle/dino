@@ -714,6 +714,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                     try:
                         producer.publish(message, exchange=exchange, declare=[exchange, queue])
                         failed = False
+                        break
                     except Exception as pe:
                         failed = True
                         logger.error('[%s/%s tries] failed to publish: %s' % (str(current_try+1), str(n_tries), str(pe)))
