@@ -1,0 +1,16 @@
+[Unit]
+Description=DinoWeb
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/dino/dino
+ExecStart=/home/dino/dino/bin/dino.sh dev 6500 web
+Restart=always
+User=dino
+Group=dino
+LimitNOFILE=10240
+LimitFSIZE=infinity
+
+[Install]
+WantedBy=multi-user.target

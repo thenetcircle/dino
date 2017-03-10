@@ -1,0 +1,52 @@
+#!/bin/sh
+#
+# dino - this script starts and stops the dino main app daemon
+#
+# description:  Dino main application
+# processname: dino-app
+# pidfile:     /var/run/dino/dino-app.pid
+
+dino=/home/dino/dino/bin/dino-app.sh
+
+start() {
+    [ -x $dino ] || exit 5
+    echo "Starting dino..."
+    $dino dev 6400 app &
+    return 0
+}
+
+stop() {
+    echo "can't stop"
+    return 1
+}
+
+status_q() {
+    echo "don't know"
+    return 1
+}
+
+restart() {
+    stop
+    echo
+    start
+}
+
+case "$1" in
+    start)
+        status_q && exit 0
+        $1
+        ;;
+    stop)
+        status_q || exit 0
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    status)
+        status_q && exit 0
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart}"
+        exit 2
+esac

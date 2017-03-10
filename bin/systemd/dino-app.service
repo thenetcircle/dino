@@ -1,0 +1,16 @@
+[Unit]
+Description=DinoApp
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/dino/dino
+ExecStart=/home/dino/dino/bin/dino.sh dev 6300 app
+Restart=always
+User=dino
+Group=dino
+LimitNOFILE=10240
+LimitFSIZE=infinity
+
+[Install]
+WantedBy=multi-user.target
