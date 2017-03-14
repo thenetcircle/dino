@@ -45,5 +45,6 @@ setup(
         'python-dateutil',
         'psycogreen',
         'statsd',
-        'pymitter'
+        'pymitter',
+        'psutil'
     ])
