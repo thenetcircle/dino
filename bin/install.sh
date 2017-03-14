@@ -56,7 +56,7 @@ process_systemd_file() {
         exit 1
     fi
 
-    if [[ ! -f  ]]; then
+    if [[ ! -f "$1" ]]; then
         echo "error: can't find skeleton systemd file in bin directory: $1"
         exit 1
     fi
