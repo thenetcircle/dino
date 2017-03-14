@@ -1,11 +1,11 @@
 [Unit]
-Description=DinoRest
+Description=dino-${DINO_SERVICE}
 After=network.target
 
 [Service]
 Type=simple
 WorkingDirectory=/home/dino/dino
-ExecStart=/home/dino/dino/bin/dino.sh dev 6400 rest
+ExecStart=/home/dino/dino/bin/dino.sh ${DINO_ENVIRONMENT} ${DINO_PORT} ${DINO_SERVICE}
 Restart=always
 User=dino
 Group=dino

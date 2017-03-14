@@ -6,7 +6,7 @@
 # processname: dino-app
 # pidfile:     /var/run/dino/dino-app.pid
 
-dino=/home/dino/dino/bin/dino-app.sh
+dino=/home/dino/dino/bin/dino.sh
 
 start() {
     [ -x $dino ] || exit 5

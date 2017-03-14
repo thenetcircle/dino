@@ -17,7 +17,7 @@ if [[ ! -d "$DINO_HOME" ]]; then
 fi
 
 if ! cd "$DINO_HOME"; then
-    echo "error: could not chang to directory '$DINO_HOME'"
+    echo "error: could not change to directory '$DINO_HOME'"
     exit 1
 fi
 
