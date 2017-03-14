@@ -18,16 +18,16 @@ def disk():
             disk_usage = psutil.disk_usage(path)
 
             st = os.statvfs(path)
-            total_inode = st.f_files        # inodes
-            free_inode = st.f_ffree   #free inodes
-            inode_percentage = float('%.2f' % (float(total_inode - free_inode) / total_inode))
+            total_inode = st.f_files
+            free_inode = st.f_ffree
+            inode_percentage = int(100*(float(total_inode - free_inode) / total_inode))
 
             c.gauge('%s.inodes.percent' % label, inode_percentage)
             c.gauge('%s.total' % label, disk_usage.total)
             c.gauge('%s.used' % label, disk_usage.used)
             c.gauge('%s.free' % label, disk_usage.free)
             c.gauge('%s.percent' % label, disk_usage.percent)
-            time.sleep(GRANULARITY)
+        time.sleep(GRANULARITY)
 
 
 def network():
