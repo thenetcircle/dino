@@ -17,7 +17,7 @@ DINO_SERVICE=$3
 DINO_PORT=$4
 
 SYSTEMD_DIR=/usr/lib/systemd/system/
-SKELETON="$DINO_DIR/bin/dino-base.service.skeleton"
+SKELETON="$DINO_DIR/bin/systemd/dino-base.service.skeleton"
 SCRIPT_PATH="$SYSTEMD_DIR/dino-$DINO_SERVICE-$DINO_ENVIRONMENT.service"
 
 re='^[0-9]+$'
