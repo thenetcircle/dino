@@ -22,7 +22,7 @@ if ! cd "$DINO_HOME"; then
 fi
 
 if [ -z "$VIRTUAL_ENV" ]; then
-    if [ ! source env/bin/activate ]; then
+    if ! source env/bin/activate; then
         echo "error: could not activate virtual environment"
         exit 1
     fi
