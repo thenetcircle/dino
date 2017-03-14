@@ -28,28 +28,36 @@ if [ -z "$VIRTUAL_ENV" ]; then
     fi
 fi
 
+SYSTEMD_PATH="/usr/lib/systemd/system"
+
 echo "pulling from git... "
 if ! git pull; then
     echo "error: could not pull from git"
     exit 1
 fi
 
-echo "stopping web... "
-if ! systemctl stop dino-web-${DINO_ENVIRONMENT}; then
-    echo "error: could not stop dino-web"
-    exit 1
+if [ -f "$SYSTEMD_PATH/dino-web-$DINO_ENVIRONMENT.service" ]; then
+    echo "stopping web... "
+    if ! systemctl stop dino-web-${DINO_ENVIRONMENT}; then
+        echo "error: could not stop dino-web"
+        exit 1
+    fi
 fi
 
-echo "stopping rest... "
-if ! systemctl stop dino-rest-${DINO_ENVIRONMENT}; then
-    echo "error: could not stop dino-rest"
-    exit 1
+if [ -f "$SYSTEMD_PATH/dino-rest-$DINO_ENVIRONMENT.service" ]; then
+    echo "stopping rest... "
+    if ! systemctl stop dino-rest-${DINO_ENVIRONMENT}; then
+        echo "error: could not stop dino-rest"
+        exit 1
+    fi
 fi
 
-echo "stopping app... "
-if ! systemctl stop dino-app-${DINO_ENVIRONMENT}; then
-    echo "error: could not stop dino-app"
-    exit 1
+if [ -f "$SYSTEMD_PATH/dino-app-$DINO_ENVIRONMENT.service" ]; then
+    echo "stopping app... "
+    if ! systemctl stop dino-app-${DINO_ENVIRONMENT}; then
+        echo "error: could not stop dino-app"
+        exit 1
+    fi
 fi
 
 echo "clearing online cache... "
@@ -64,23 +72,28 @@ if ! python bin/clear_db_online_table.py; then
     exit 1
 fi
 
-echo "starting app... "
-if ! systemctl start dino-app-${DINO_ENVIRONMENT}; then
-    echo "error: could not start dino-app"
-    exit 1
+if [ -f "$SYSTEMD_PATH/dino-app-$DINO_ENVIRONMENT.service" ]; then
+    echo "starting app... "
+    if ! systemctl start dino-app-${DINO_ENVIRONMENT}; then
+        echo "error: could not start dino-app"
+        exit 1
+    fi
 fi
 
-echo "starting rest... "
-if ! systemctl start dino-rest-${DINO_ENVIRONMENT}; then
-    echo "error: could not start dino-rest"
-    exit 1
+if [ -f "$SYSTEMD_PATH/dino-rest-$DINO_ENVIRONMENT.service" ]; then
+    echo "starting rest... "
+    if ! systemctl start dino-rest-${DINO_ENVIRONMENT}; then
+        echo "error: could not start dino-rest"
+        exit 1
+    fi
 fi
 
-
-echo "starting web... "
-if ! systemctl start dino-web-${DINO_ENVIRONMENT}; then
-    echo "error: could not start dino-web"
-    exit 1
+if [ -f "$SYSTEMD_PATH/dino-web-$DINO_ENVIRONMENT.service" ]; then
+    echo "starting web... "
+    if ! systemctl start dino-web-${DINO_ENVIRONMENT}; then
+        echo "error: could not start dino-web"
+        exit 1
+    fi
 fi
 
 echo "deployment done!"
