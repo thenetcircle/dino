@@ -20,21 +20,18 @@ from activitystreams.models.activity import Activity
 from dino import utils
 from dino.environ import GNEnvironment
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-class OnMessageCheckBlackList(IPlugin):
+class OnMessageCheckNotEmpty(IPlugin):
     def __init__(self):
-        super(OnMessageCheckBlackList, self).__init__()
+        super(OnMessageCheckNotEmpty, self).__init__()
         self.env = None
 
     def setup(self, env: GNEnvironment):
         self.env = env
-
-    def get_black_list(self):
-        return self.env.db.get_black_list()
 
     def _process(self, data: dict, activity: Activity):
         message = activity.object.content
@@ -49,4 +46,3 @@ class OnMessageCheckBlackList(IPlugin):
         except Exception as e:
             logger.error('could not execute plugin no_empty: %s' % str(e))
             logger.exception(traceback.format_exc())
-
