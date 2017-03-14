@@ -2,14 +2,12 @@
 
 LOG_DIR=/var/log/dino
 
-if [ -z $DINO_HOME ]; then
-    DINO_HOME=/home/dino/dino/
-fi
-
-if [ $# -ne 3 ]; then
+if [ $# -ne 4 ]; then
     echo "usage: $0 <environment> <port> <app/rest/web>"
     exit 1
 fi
+
+DINO_HOME=/home/dino/$1
 
 re='^[0-9]+$'
 if ! [[ $2 =~ $re ]] ; then
