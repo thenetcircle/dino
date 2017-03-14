@@ -2,7 +2,7 @@
 
 LOG_DIR=/var/log/dino
 
-if [ $# -ne 4 ]; then
+if [ $# -ne 3 ]; then
     echo "usage: $0 <environment> <port> <app/rest/web>"
     exit 1
 fi
