@@ -22,6 +22,50 @@ If using redis, postgresql/mysql and cassandra, please see relevant documentatio
 * [MySQL](https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-14-04)
 * [Apache Cassandra](https://www.digitalocean.com/community/tutorials/how-to-install-cassandra-and-run-a-single-node-cluster-on-ubuntu-14-04)
 
+## Installing
+
+There are a few choices included for how to install Dino.
+
+### Simple
+
+Just clone and run from the cloned directory:
+
+    $ git clone https://github.com/thenetcircle/dino.git
+    $ cd dino
+    $ virtualenv --python=python3.5 env
+    $ source env/bin/activate
+    (env) $ pip install --upgrade -r requirements.txt
+    (env) $ pip install --upgrade --no-deps .
+
+### Using init script
+
+    $ git clone https://github.com/thenetcircle/dino.git foobar-prod
+    $ cd foobar-prod
+    $ virtualenv --python=python3.5 env
+    $ sudo cp bin/initd/dino-app /etc/init.d/
+    $ source env/bin/activate
+    (env) $ pip install --upgrade -r requirements.txt
+    (env) $ pip install --upgrade --no-deps .
+
+Make sure to update the init script to use the correct paths.
+
+### Using the supplied install script
+
+The install script will copy the systemd files to  `/usr/lib/systemd/system/`, one for each service/environment you 
+install for.
+
+    $ pwd
+    /home/dino
+    $ git clone https://github.com/thenetcircle/dino.git foobar-prod
+    $ cd foobar-prod
+    $ virtualenv --python=python3.5 env
+    $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod app 5200
+    $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod rest 5400
+    $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod web 5300
+    $ source env/bin/activate
+    (env) $ pip install --upgrade -r requirements.txt
+    (env) $ pip install --upgrade --no-deps .
+
 ## Clustering
 
 If clustering dino, install a reverse proxy that supports websockets, e.g. nginx. Here's an example configuration:
@@ -66,11 +110,16 @@ If clustering dino, install a reverse proxy that supports websockets, e.g. nginx
 
 ## Running the application
 
+A few examples are included for running Dino: running in the foreground, using systemd and the deploy script, docker and
+lastly kubernetes.
+
+### Simple
+
+Running in the foreground:
+
     $ cd dino/
     $ virtualenv --python=python3.5 env
     $ source env/bin/activate
-    (env) $ pip install --upgrade -r requirements.txt
-    (env) $ pip install --upgrade --no-deps .
     (env) $ ENVIRONMENT=dev gunicorn \
                 --error-logfile ~/dino-gunicorn-error.log \
                 --log-file ~/dino-gunicorn.log \
@@ -83,6 +132,32 @@ If clustering dino, install a reverse proxy that supports websockets, e.g. nginx
 
 To run the rest API and admin interface use the same command but change `app:app` to `rest:app` and `web:app` 
 respectively.
+
+### Using the deploy script
+
+The simple deployment script included pulls from git master, shuts down services, clears online tables then starts
+everything up again. The script assumes the base directory where the project is checked out has the same name as the
+`environment`. The deployment script also assumes you're running with `systemd` and have used the installation script
+to first install Dino. The deployment script will deploy for all services that are installed for the environment, so if
+you've only installed the `app` and `rest` service but not the `web` service, then only the `app` and `rest` service 
+will be re-deployed.
+
+So if you're environment is called `foobar-prod`:
+
+    $ cd /home/dino/foobar-prod
+    $ DINO_ENVIRONMENT=foobar-prod DINO_HOME=/home/dino/foobar-prod ./bin/deploy-simple.sh 
+    starting deployment...
+    pulling from git... 
+    Already up-to-date.
+    stopping web... 
+    stopping rest... 
+    stopping app... 
+    clearing online cache... 
+    clearing online db tables... 
+    starting app... 
+    starting rest... 
+    starting web... 
+    deployment done!
 
 ### Running in Docker
 
