@@ -366,8 +366,14 @@ class RequestValidator(BaseValidator):
 
         return True, None, None
 
+    def _can_be_invisible(self, user_id: str):
+        if utils.is_super_user(user_id):
+            return True
+        return False
+
     def on_status(self, activity: Activity) -> (bool, int, str):
         user_name = environ.env.session.get(SessionKeys.user_name.value, None)
+        user_id = environ.env.session.get(SessionKeys.user_id.value, None)
         status = activity.verb
 
         if user_name is None:
@@ -379,6 +385,9 @@ class RequestValidator(BaseValidator):
 
         if status not in ['online', 'offline', 'invisible']:
             return False, ECodes.INVALID_STATUS, 'invalid status %s' % str(status)
+
+        if status == 'invisible' and not self._can_be_invisible(user_id):
+            return False, ECodes.NOT_ALLOWED, 'only ops can be invisible'
 
         return True, None, None
 

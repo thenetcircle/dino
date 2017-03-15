@@ -349,9 +349,15 @@ class DatabaseRdbms(object):
 
         rooms = dict()
         for room in all_rooms:
+            visible_users = set()
+            for user in room.users:
+                if self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
+                    continue
+                visible_users.add(user.uuid)
+
             rooms[room.uuid] = {
                 'name': room.name,
-                'users': len(room.users)
+                'users': len(visible_users)
             }
         return rooms
 
@@ -379,6 +385,8 @@ class DatabaseRdbms(object):
             users = dict()
             for row in rows:
                 for user in row.users:
+                    if self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
+                        continue
                     users[user.uuid] = user.name
             return users
 
