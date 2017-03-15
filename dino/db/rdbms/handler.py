@@ -378,19 +378,23 @@ class DatabaseRdbms(object):
             })
         return output
 
-    def users_in_room(self, room_id: str) -> dict:
+    def users_in_room(self, room_id: str, user_id: str=None) -> dict:
         @with_session
         def _users_in_room(session=None) -> dict:
             rows = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).all()
             users = dict()
             for row in rows:
                 for user in row.users:
-                    if self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
+                    if not is_super_user and self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
                         continue
                     users[user.uuid] = user.name
             return users
 
         self.get_room_name(room_id)
+        is_super_user = False
+        if user_id is not None:
+            is_super_user = self.is_super_user(user_id)
+
         return _users_in_room()
 
     def room_contains(self, room_id: str, user_id: str) -> bool:

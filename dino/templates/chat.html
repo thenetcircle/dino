@@ -401,6 +401,18 @@
                     });
                 });
 
+                $('button#set-invisible').click(function() {
+                    socket.emit('status', {
+                        verb: 'invisible'
+                    });
+                });
+
+                $('button#set-visible').click(function() {
+                    socket.emit('status', {
+                        verb: 'online'
+                    });
+                });
+
                 $('button#remove-room').click(function() {
                     socket.emit('remove_room', {
                         verb: 'remove',
@@ -572,6 +584,8 @@
         </div>
 
         <button id="remove-room">Remove room</button>
+        <button id="set-invisible">Set invisible</button>
+        <button id="set-visible">Set visible</button>
 
         <input id="target" type="hidden" />
         <input id="room-id" type="hidden" />

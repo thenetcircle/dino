@@ -760,8 +760,15 @@ def is_admin(channel_id: str, user_id: str) -> bool:
     return environ.env.db.is_admin(channel_id, user_id)
 
 
-def get_users_in_room(room_id: str) -> dict:
-    return environ.env.db.users_in_room(room_id)
+def get_users_in_room(room_id: str, user_id: str=None) -> dict:
+    """
+    get a dict of user_id => user_name for users in this room
+
+    :param room_id: the uuid of the room
+    :param user_id: if specified, will check if super user, and if so will also include invisible users
+    :return:
+    """
+    return environ.env.db.users_in_room(room_id, user_id)
 
 
 def get_acls_in_room_for_action(room_id: str, action: str) -> dict:
