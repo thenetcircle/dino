@@ -13,6 +13,7 @@
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
+from dino.config import UserKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -47,15 +48,16 @@ class OnLoginHooks(object):
         environ.env.publish(activity_json, external=True)
 
     @staticmethod
-    def set_user_online(arg: tuple) -> None:
+    def set_user_online_if_not_previously_invisible(arg: tuple) -> None:
         data, activity = arg
         user_id = activity.actor.id
-        environ.env.db.set_user_online(user_id)
+        if utils.get_user_status(user_id) != UserKeys.STATUS_INVISIBLE:
+            environ.env.db.set_user_online(user_id)
 
 
 @environ.env.observer.on('on_login')
 def _on_login_set_user_online(arg: tuple) -> None:
-    OnLoginHooks.set_user_online(arg)
+    OnLoginHooks.set_user_online_if_not_previously_invisible(arg)
 
 
 @environ.env.observer.on('on_login')
