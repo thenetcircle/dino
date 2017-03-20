@@ -24,6 +24,31 @@ $(document).ready(function() {
         'order': [[ 1, 'desc' ]]
     });
 
+    $('input[type=checkbox]').switchButton({
+        on_label: 'Yes',
+        off_label: 'No'
+    });
+
+    $('input[name="default-room"]').change(function() {
+        var room_id = $($(this).parent().find('input.room-id')[0]).val();
+        var state = $(this).is(':checked');
+        var change_url = '/room/' + room_id + '/'
+        if (state) {
+            change_url += 'set-default'
+        }
+        else {
+            change_url += 'unset-default'
+        }
+
+        $.ajax({
+            method: 'PUT',
+            url: change_url,
+            contentType: 'application/json;charset=UTF-8'
+        }).done(function(data) {
+            console.log(data)
+        });
+    });
+
     $('#api_action').change(function() {
         var api_action = $(this).find(':selected').val();
 

@@ -417,6 +417,12 @@ class DatabaseRedis(object):
         key = '%s|%s' % (action, acl_type)
         self.redis.hdel(RedisKeys.room_acl(room_id), key)
 
+    def add_default_room(self, room_id: str) -> None:
+        self.redis.sadd(RedisKeys.default_rooms(), room_id)
+
+    def remove_default_room(self, room_id: str) -> None:
+        self.redis.srem(RedisKeys.default_rooms(), room_id)
+
     def get_default_rooms(self) -> list:
         self.redis.smembers(RedisKeys.default_rooms())
 

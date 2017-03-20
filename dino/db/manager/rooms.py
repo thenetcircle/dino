@@ -31,15 +31,23 @@ class RoomManager(BaseManager):
 
     def get_rooms(self, channel_id: str) -> list:
         rooms = self.env.db.rooms_for_channel(channel_id)
+        default_rooms = self.env.db.get_default_rooms()
         output = list()
 
         for room_id, room_details in rooms.items():
             room_name = room_details['name']
             output.append({
                 'uuid': room_id,
+                'is_default': room_id in default_rooms,
                 'name': room_name
             })
         return output
+
+    def set_default_room(self, room_id: str) -> None:
+        self.env.db.add_default_room(room_id)
+
+    def unset_default_room(self, room_id: str) -> None:
+        self.env.db.remove_default_room(room_id)
 
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str) -> Union[str, None]:
         if room_name is None or len(room_name.strip()) == 0:

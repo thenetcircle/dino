@@ -105,6 +105,26 @@ def acl_types_for_target_and_action(target: str, api_action: str):
     return jsonify(output)
 
 
+@app.route('/room/<room_uuid>/set-default', methods=['PUT'])
+def set_default_room_on(room_uuid: str):
+    try:
+        room_manager.set_default_room(room_uuid)
+    except Exception as e:
+        logger.error('could not set room as default: %s' % str(e))
+        return jsonify({'status_code': 500, 'message': str(e)})
+    return jsonify({'status_code': 200})
+
+
+@app.route('/room/<room_uuid>/unset-default', methods=['PUT'])
+def set_default_room_off(room_uuid: str):
+    try:
+        room_manager.unset_default_room(room_uuid)
+    except Exception as e:
+        logger.error('could not unset room as default: %s' % str(e))
+        return jsonify({'status_code': 500, 'message': str(e)})
+    return jsonify({'status_code': 200})
+
+
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/user/<user_uuid>/kick', methods=['PUT'])
 def kick_user(channel_uuid: str, room_uuid: str, user_uuid: str):
     try:

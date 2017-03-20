@@ -27,6 +27,12 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def clear_default_rooms(self) -> None:
+        """
+        clear the list of default room uuids from the cache
+
+        :return: nothing
+        """
     def set_default_rooms(self, rooms: list) -> None:
         """
         set the list of default rooms in the cache

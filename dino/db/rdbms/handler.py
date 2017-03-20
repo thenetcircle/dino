@@ -407,6 +407,34 @@ class DatabaseRdbms(object):
     def remove_current_rooms_for_user(self, user_id: str, session=None) -> None:
         self._remove_current_rooms_for_user(user_id, session)
 
+    def add_default_room(self, room_id: str) -> None:
+        @with_session
+        def _add_default_room(session=None):
+            room = session.query(DefaultRooms).filter(DefaultRooms.uuid == room_id).first()
+            if room is not None:
+                return
+            default_room = DefaultRooms()
+            default_room.uuid = room_id
+            session.add(default_room)
+            session.commit()
+
+        _add_default_room()
+        self.env.cache.clear_default_rooms()
+        self.get_default_rooms()
+
+    def remove_default_room(self, room_id: str) -> None:
+        @with_session
+        def _remove_default_room(session=None):
+            room = session.query(DefaultRooms).filter(DefaultRooms.uuid == room_id).first()
+            if room is None:
+                return
+            session.delete(room)
+            session.commit()
+
+        _remove_default_room()
+        self.env.cache.clear_default_rooms()
+        self.get_default_rooms()
+
     def get_default_rooms(self) -> list:
         @with_session
         def _get_default_rooms(session=None) -> list:
@@ -414,13 +442,11 @@ class DatabaseRdbms(object):
             return [room.uuid for room in rooms]
 
         default_rooms = self.env.cache.get_default_rooms()
-        print('getting default rooms (cache): %s' % str(default_rooms))
         if default_rooms is not None:
             return default_rooms
 
         default_rooms = _get_default_rooms()
         self.env.cache.set_default_rooms(default_rooms)
-        print('getting default rooms (db): %s' % str(default_rooms))
         return default_rooms
 
     def _remove_current_rooms_for_user(self, user_id: str, session):

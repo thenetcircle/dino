@@ -183,6 +183,7 @@
             <td>
                 UUID
             </td>
+            <td>Default? (auto-join)</td>
         </tr>
     </thead>
     <tbody>
@@ -194,11 +195,23 @@
             <td>
                 <small>{{ room.uuid }}</small>
             </td>
+            <td>
+                <input class="room-id" type="hidden" value="{{ room.uuid }}" />
+                {% if room.is_default == True %}
+                    <input type="checkbox" name="default-room" checked>
+                {% else %}
+                    <input type="checkbox" name="default-room">
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
+<link rel="stylesheet" type="text/css" href="/static/jquery.switchButton.css" />
+<script type="text/javascript" src="/static/jquery.switchButton.js"></script>
+<script type="text/javascript" src="/static/jszip.min.js"></script>
+<script type="text/javascript" src="/static/buttons.html5.min.js"></script>
 <script type="text/javascript" src="/static/custom/js/rooms_in_channel.js"></script>
 
 {% endblock %}

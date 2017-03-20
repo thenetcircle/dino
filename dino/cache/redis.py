@@ -79,11 +79,11 @@ class CacheRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.cache = MemoryCache()
 
-    def _flushall(self):
+    def _flushall(self) -> None:
         self.redis.flushdb()
         self.cache.flushall()
 
-    def _set(self, key, val, ttl=None):
+    def _set(self, key, val, ttl=None) -> None:
         if ttl is None:
             self.cache.set(key, val)
         else:
@@ -92,7 +92,7 @@ class CacheRedis(object):
     def _get(self, key):
         return self.cache.get(key)
 
-    def _del(self, key):
+    def _del(self, key) -> None:
         self.cache.delete(key)
 
     def set_is_room_ephemeral(self, room_id: str, is_ephemeral: bool) -> None:
@@ -109,6 +109,10 @@ class CacheRedis(object):
         cache_key = RedisKeys.default_rooms()
         self.cache.set(cache_key, rooms, ttl=FIVE_MINUTES)
 
+    def clear_default_rooms(self) -> None:
+        redis_key = RedisKeys.default_rooms()
+        self.cache.delete(redis_key)
+
     def get_default_rooms(self) -> list:
         redis_key = RedisKeys.default_rooms()
         value = self.cache.get(redis_key)
@@ -116,7 +120,6 @@ class CacheRedis(object):
             return value
 
         rooms = self.redis.smembers(redis_key)
-        print('rooms in redis: %s' % str(rooms))
         if rooms is not None and len(rooms) > 0:
             rooms = [str(room, 'utf-8') for room in rooms]
             self.cache.set(redis_key, rooms, ttl=FIVE_MINUTES)
