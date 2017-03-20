@@ -62,10 +62,23 @@
                 <li class="toctree-l3"><a href="#requirements">Requirements</a></li>
                 
             
+                <li class="toctree-l3"><a href="#installing">Installing</a></li>
+                
+                    <li><a class="toctree-l4" href="#simple">Simple</a></li>
+                
+                    <li><a class="toctree-l4" href="#using-init-script">Using init script</a></li>
+                
+                    <li><a class="toctree-l4" href="#using-the-supplied-install-script">Using the supplied install script</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#clustering">Clustering</a></li>
                 
             
                 <li class="toctree-l3"><a href="#running-the-application">Running the application</a></li>
+                
+                    <li><a class="toctree-l4" href="#simple_1">Simple</a></li>
+                
+                    <li><a class="toctree-l4" href="#using-the-deploy-script">Using the deploy script</a></li>
                 
                     <li><a class="toctree-l4" href="#running-in-docker">Running in Docker</a></li>
                 
@@ -182,6 +195,42 @@ $ sudo make altinstall
 <li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-14-04">MySQL</a></li>
 <li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-cassandra-and-run-a-single-node-cluster-on-ubuntu-14-04">Apache Cassandra</a></li>
 </ul>
+<h2 id="installing">Installing</h2>
+<p>There are a few choices included for how to install Dino.</p>
+<h3 id="simple">Simple</h3>
+<p>Just clone and run from the cloned directory:</p>
+<pre><code>$ git clone https://github.com/thenetcircle/dino.git
+$ cd dino
+$ virtualenv --python=python3.5 env
+$ source env/bin/activate
+(env) $ pip install --upgrade -r requirements.txt
+(env) $ pip install --upgrade --no-deps .
+</code></pre>
+<h3 id="using-init-script">Using init script</h3>
+<pre><code>$ git clone https://github.com/thenetcircle/dino.git foobar-prod
+$ cd foobar-prod
+$ virtualenv --python=python3.5 env
+$ sudo cp bin/initd/dino-app /etc/init.d/
+$ source env/bin/activate
+(env) $ pip install --upgrade -r requirements.txt
+(env) $ pip install --upgrade --no-deps .
+</code></pre>
+<p>Make sure to update the init script to use the correct paths.</p>
+<h3 id="using-the-supplied-install-script">Using the supplied install script</h3>
+<p>The install script will copy the systemd files to  <code>/usr/lib/systemd/system/</code>, one for each service/environment you 
+install for.</p>
+<pre><code>$ pwd
+/home/dino
+$ git clone https://github.com/thenetcircle/dino.git foobar-prod
+$ cd foobar-prod
+$ virtualenv --python=python3.5 env
+$ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod app 5200
+$ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod rest 5400
+$ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod web 5300
+$ source env/bin/activate
+(env) $ pip install --upgrade -r requirements.txt
+(env) $ pip install --upgrade --no-deps .
+</code></pre>
 <h2 id="clustering">Clustering</h2>
 <p>If clustering dino, install a reverse proxy that supports websockets, e.g. nginx. Here's an example configuration:</p>
 <pre><code>upstream gridnodes {
@@ -223,11 +272,13 @@ server {
 }
 </code></pre>
 <h2 id="running-the-application">Running the application</h2>
+<p>A few examples are included for running Dino: running in the foreground, using systemd and the deploy script, docker and
+lastly kubernetes.</p>
+<h3 id="simple_1">Simple</h3>
+<p>Running in the foreground:</p>
 <pre><code>$ cd dino/
 $ virtualenv --python=python3.5 env
 $ source env/bin/activate
-(env) $ pip install --upgrade -r requirements.txt
-(env) $ pip install --upgrade --no-deps .
 (env) $ ENVIRONMENT=dev gunicorn \
             --error-logfile ~/dino-gunicorn-error.log \
             --log-file ~/dino-gunicorn.log \
@@ -240,6 +291,29 @@ $ source env/bin/activate
 </code></pre>
 <p>To run the rest API and admin interface use the same command but change <code>app:app</code> to <code>rest:app</code> and <code>web:app</code> 
 respectively.</p>
+<h3 id="using-the-deploy-script">Using the deploy script</h3>
+<p>The simple deployment script included pulls from git master, shuts down services, clears online tables then starts
+everything up again. The script assumes the base directory where the project is checked out has the same name as the
+<code>environment</code>. The deployment script also assumes you're running with <code>systemd</code> and have used the installation script
+to first install Dino. The deployment script will deploy for all services that are installed for the environment, so if
+you've only installed the <code>app</code> and <code>rest</code> service but not the <code>web</code> service, then only the <code>app</code> and <code>rest</code> service 
+will be re-deployed.</p>
+<p>So if you're environment is called <code>foobar-prod</code>:</p>
+<pre><code>$ cd /home/dino/foobar-prod
+$ DINO_ENVIRONMENT=foobar-prod DINO_HOME=/home/dino/foobar-prod ./bin/deploy-simple.sh 
+starting deployment...
+pulling from git... 
+Already up-to-date.
+stopping web... 
+stopping rest... 
+stopping app... 
+clearing online cache... 
+clearing online db tables... 
+starting app... 
+starting rest... 
+starting web... 
+deployment done!
+</code></pre>
 <h3 id="running-in-docker">Running in Docker</h3>
 <p>First create the image:</p>
 <pre><code>sudo docker build -t dino .
