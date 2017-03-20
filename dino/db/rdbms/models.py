@@ -67,6 +67,13 @@ class Rooms(DeclarativeBase):
         back_populates='rooms')
 
 
+class DefaultRooms(DeclarativeBase):
+    __tablename__ = 'defaultrooms'
+
+    id = Column(Integer, primary_key=True)
+    uuid = Column('uuid', String(128), nullable=False, index=True)
+
+
 class Bans(DeclarativeBase):
     __tablename__ = 'bans'
 

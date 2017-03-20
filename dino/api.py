@@ -375,7 +375,6 @@ def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
     """
-    # todo: how to deal with invisibility here?
     room_id = activity.target.id
     user_id = activity.actor.id
     last_read = activity.updated

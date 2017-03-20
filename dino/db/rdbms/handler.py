@@ -40,6 +40,7 @@ from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
 from dino.db.rdbms.models import LastReads
 from dino.db.rdbms.models import Bans
+from dino.db.rdbms.models import DefaultRooms
 from dino.db.rdbms.models import AclConfigs
 
 from dino.exceptions import ChannelExistsException
@@ -405,6 +406,22 @@ class DatabaseRdbms(object):
     @with_session
     def remove_current_rooms_for_user(self, user_id: str, session=None) -> None:
         self._remove_current_rooms_for_user(user_id, session)
+
+    def get_default_rooms(self) -> list:
+        @with_session
+        def _get_default_rooms(session=None) -> list:
+            rooms = session.query(DefaultRooms).all()
+            return [room.uuid for room in rooms]
+
+        default_rooms = self.env.cache.get_default_rooms()
+        print('getting default rooms (cache): %s' % str(default_rooms))
+        if default_rooms is not None:
+            return default_rooms
+
+        default_rooms = _get_default_rooms()
+        self.env.cache.set_default_rooms(default_rooms)
+        print('getting default rooms (db): %s' % str(default_rooms))
+        return default_rooms
 
     def _remove_current_rooms_for_user(self, user_id: str, session):
         user = session.query(Users).filter(Users.uuid == user_id).first()

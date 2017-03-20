@@ -28,6 +28,8 @@ from datetime import timedelta
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 EIGHT_HOURS_IN_SECONDS = 8*60*60
+TEN_MINUTES = 10*60
+FIVE_MINUTES = 5*60
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +105,24 @@ class CacheRedis(object):
         cache_key = '%s-%s' % (redis_key, room_id)
         return self.cache.get(cache_key)
 
+    def set_default_rooms(self, rooms: list) -> None:
+        cache_key = RedisKeys.default_rooms()
+        self.cache.set(cache_key, rooms, ttl=FIVE_MINUTES)
+
+    def get_default_rooms(self) -> list:
+        redis_key = RedisKeys.default_rooms()
+        value = self.cache.get(redis_key)
+        if value is not None:
+            return value
+
+        rooms = self.redis.smembers(redis_key)
+        print('rooms in redis: %s' % str(rooms))
+        if rooms is not None and len(rooms) > 0:
+            rooms = [str(room, 'utf-8') for room in rooms]
+            self.cache.set(redis_key, rooms, ttl=FIVE_MINUTES)
+            return rooms
+        return None
+
     def get_black_list(self) -> set:
         cache_key = RedisKeys.black_list()
         value = self.cache.get(cache_key)
@@ -112,13 +132,13 @@ class CacheRedis(object):
         values = self.redis.smembers(cache_key)
         if value is not None:
             decoded = {str(v, 'utf-8') for v in values}
-            self.cache.set(cache_key, decoded, ttl=60*10)
+            self.cache.set(cache_key, decoded, ttl=TEN_MINUTES)
             return decoded
         return None
 
     def set_black_list(self, the_list: set) -> None:
         cache_key = RedisKeys.black_list()
-        self.cache.set(cache_key, the_list, ttl=60*10)
+        self.cache.set(cache_key, the_list, ttl=TEN_MINUTES)
         self.redis.delete(cache_key)
         self.redis.sadd(cache_key, *the_list)
 

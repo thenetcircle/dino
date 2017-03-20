@@ -417,6 +417,9 @@ class DatabaseRedis(object):
         key = '%s|%s' % (action, acl_type)
         self.redis.hdel(RedisKeys.room_acl(room_id), key)
 
+    def get_default_rooms(self) -> list:
+        self.redis.smembers(RedisKeys.default_rooms())
+
     def delete_acl_in_channel_for_action(self, channel_id: str, acl_type: str, action: str) -> None:
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)

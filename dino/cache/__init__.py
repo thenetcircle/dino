@@ -27,6 +27,21 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def set_default_rooms(self, rooms: list) -> None:
+        """
+        set the list of default rooms in the cache
+
+        :param rooms: a list of room uuids
+        :return: nothing
+        """
+
+    def get_default_rooms(self) -> list:
+        """
+        get a list of default room uuids (auto-join)
+
+        :return: a list of room uuids
+        """
+
     def is_room_ephemeral(self, room_id: str) -> bool:
         """
         check if a room is ephemeral (temporary) or not

@@ -891,6 +891,13 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_default_rooms(self) -> list:
+        """
+        get a list of uuids for default rooms (auto-join)
+
+        :return: a list of room uuids
+        """
+
     def get_user_status(self, user_id: str) -> str:
         """
         the the status of the user (online/offline/invisible)

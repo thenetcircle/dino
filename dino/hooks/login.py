@@ -38,6 +38,24 @@ class OnLoginHooks(object):
         utils.set_sid_for_user_id(user_id, environ.env.request.sid)
         environ.env.join_room(user_id)
 
+        default_rooms = environ.env.db.get_default_rooms()
+        if default_rooms is None or len(default_rooms) == 0:
+            return
+
+        user_id = activity.actor.id
+        last_read = activity.updated
+
+        for room_id in default_rooms:
+            messages = utils.get_history_for_room(room_id, user_id, last_read)
+            owners = utils.get_owners_for_room(room_id)
+            acls = utils.get_acls_for_room(room_id)
+            users = utils.get_users_in_room(room_id, user_id)
+
+            activity.target.id = room_id
+            activity.target.display_name = utils.get_room_name(room_id)
+            environ.env.observer.emit('on_join', (data, activity))
+            environ.env.emit('gn_join', utils.activity_for_join(activity, acls, messages, owners, users))
+
     @staticmethod
     def publish_activity(arg: tuple) -> None:
         data, activity = arg
