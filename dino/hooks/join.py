@@ -13,6 +13,7 @@
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
+from dino.config import UserKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -32,9 +33,13 @@ class OnJoinHooks(object):
     @staticmethod
     def emit_join_event(arg: tuple) -> None:
         data, activity = arg
-
         room_id = activity.target.id
         user_id = activity.actor.id
+
+        # don't send the gn_user_joined event if this user is invisible
+        if utils.get_user_status(user_id) == UserKeys.STATUS_INVISIBLE:
+            return
+
         room_name = utils.get_room_name(room_id)
         user_name = environ.env.session.get(SessionKeys.user_name.value)
         image = environ.env.session.get(SessionKeys.image.value, '')
