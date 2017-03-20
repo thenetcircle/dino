@@ -126,7 +126,7 @@ def set_default_room_off(room_uuid: str):
 
 
 @app.route('/room/<room_uuid>/set-ephemeral', methods=['PUT'])
-def set_default_room_on(room_uuid: str):
+def set_ephemeral_room_on(room_uuid: str):
     try:
         room_manager.set_ephemeral_room(room_uuid)
     except Exception as e:
@@ -136,7 +136,7 @@ def set_default_room_on(room_uuid: str):
 
 
 @app.route('/room/<room_uuid>/unset-ephemeral', methods=['PUT'])
-def set_default_room_off(room_uuid: str):
+def set_ephemeral_room_off(room_uuid: str):
     try:
         room_manager.unset_ephemeral_room(room_uuid)
     except Exception as e:
