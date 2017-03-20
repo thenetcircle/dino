@@ -24,7 +24,7 @@ class RequestStatusTest(BaseTest):
 
     def test_status_invisible(self):
         response_data = request.on_status(as_parser(self.activity_for_status('invisible')))
-        self.assertEqual(True, response_data[0])
+        self.assertEqual(False, response_data[0])  # not super user, so False
 
     def test_status_offline(self):
         response_data = request.on_status(as_parser(self.activity_for_status('offline')))

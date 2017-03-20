@@ -5,7 +5,7 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-if [ $# -lt 5 ]; then
+if [ $# -lt 4 ]; then
     echo "usage: $0 <environment> <dino home dir> <app/rest/web> <port>"
     echo "example: $0 production /home/dino/dino/ app 5200"
     exit 1

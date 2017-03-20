@@ -391,7 +391,7 @@ class DatabaseRedis(object):
         self.channel_for_room(room_id)
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
-    def users_in_room(self, room_id: str) -> dict:
+    def users_in_room(self, room_id: str, user_id: str=None) -> dict:
         self.get_room_name(room_id)
         self.channel_for_room(room_id)
 

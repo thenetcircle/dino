@@ -57,5 +57,7 @@ DINO_ENVIRONMENT=$1 DINO_DEBUG=0 gunicorn \
     -w 1 \
     --threads 1 \
     --worker-connections 1000 \
+    --log-file ${LOG_DIR}/gunicorn-$3-$1.log \
+    --error-logfile ${LOG_DIR}/error-$3-$1.log \
     -b 0.0.0.0:$2 \
     $3:app 2>&1 >> ${LOG_DIR}/dino-$3-$1.log

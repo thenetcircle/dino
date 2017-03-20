@@ -866,7 +866,7 @@ class IDatabase(Interface):
         :return: a dict of acls for this action
         """
 
-    def users_in_room(self, room_id: str) -> dict:
+    def users_in_room(self, room_id: str, user_id: str=None) -> dict:
         """
         get a dict of {user_id: user_name} of users in the given room
 
