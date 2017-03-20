@@ -300,7 +300,8 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
     return {
         'actor': {
             'id': user_id,
-            'displayName': b64e(user_name)
+            'displayName': b64e(user_name),
+            'attachments': get_user_info_attachments_for(user_id)
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'connect',

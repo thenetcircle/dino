@@ -186,6 +186,30 @@ with the following content:
         "verb": "leave"
     }
 
+## Another user connects
+
+When a user connects (or stops being invisible), the `gn_user_connected` event will be sent.
+
+    {
+        "actor": {
+            "id": "<user B's UUID>",
+            "displayName": "<name of user B>",
+            "attachments": [
+                {
+                    "content": "NDA=",
+                    "objectType": "age"
+                },
+                {
+                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                    "objectType": "avatar"
+                }
+            ]
+        },
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>",
+        "verb": "connect"
+    }
+
 ## Another user disconnects
 
 If user A is in any room that user B is in, and user B disconnects from the chat server, an event called
