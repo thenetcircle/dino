@@ -108,6 +108,9 @@
                 <li class="toctree-l3"><a href="#another-user-leaves-room">Another user leaves room</a></li>
                 
             
+                <li class="toctree-l3"><a href="#another-user-connects">Another user connects</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#another-user-disconnects">Another user disconnects</a></li>
                 
             
@@ -353,6 +356,28 @@ with the following content:</p>
         "displayName": "&lt;name of the room&gt;"
     },
     "verb": "leave"
+}
+</code></pre>
+<h2 id="another-user-connects">Another user connects</h2>
+<p>When a user connects (or stops being invisible), the <code>gn_user_connected</code> event will be sent.</p>
+<pre><code>{
+    "actor": {
+        "id": "&lt;user B's UUID&gt;",
+        "displayName": "&lt;name of user B&gt;",
+        "attachments": [
+            {
+                "content": "NDA=",
+                "objectType": "age"
+            },
+            {
+                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                "objectType": "avatar"
+            }
+        ]
+    },
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "verb": "connect"
 }
 </code></pre>
 <h2 id="another-user-disconnects">Another user disconnects</h2>
