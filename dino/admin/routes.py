@@ -125,6 +125,26 @@ def set_default_room_off(room_uuid: str):
     return jsonify({'status_code': 200})
 
 
+@app.route('/room/<room_uuid>/set-ephemeral', methods=['PUT'])
+def set_default_room_on(room_uuid: str):
+    try:
+        room_manager.set_ephemeral_room(room_uuid)
+    except Exception as e:
+        logger.error('could not set room as ephemeral: %s' % str(e))
+        return jsonify({'status_code': 500, 'message': str(e)})
+    return jsonify({'status_code': 200})
+
+
+@app.route('/room/<room_uuid>/unset-ephemeral', methods=['PUT'])
+def set_default_room_off(room_uuid: str):
+    try:
+        room_manager.unset_ephemeral_room(room_uuid)
+    except Exception as e:
+        logger.error('could not unset room as ephemeral: %s' % str(e))
+        return jsonify({'status_code': 500, 'message': str(e)})
+    return jsonify({'status_code': 200})
+
+
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/user/<user_uuid>/kick', methods=['PUT'])
 def kick_user(channel_uuid: str, room_uuid: str, user_uuid: str):
     try:

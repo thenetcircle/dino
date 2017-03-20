@@ -49,6 +49,26 @@ $(document).ready(function() {
         });
     });
 
+    $('input[name="ephemeral-room"]').change(function() {
+        var room_id = $($(this).parent().find('input.room-id')[0]).val();
+        var state = $(this).is(':checked');
+        var change_url = '/room/' + room_id + '/'
+        if (state) {
+            change_url += 'set-ephemeral'
+        }
+        else {
+            change_url += 'unset-ephemeral'
+        }
+
+        $.ajax({
+            method: 'PUT',
+            url: change_url,
+            contentType: 'application/json;charset=UTF-8'
+        }).done(function(data) {
+            console.log(data)
+        });
+    });
+
     $('#api_action').change(function() {
         var api_action = $(this).find(':selected').val();
 

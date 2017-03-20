@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from activitystreams.models.target import Target
+
 import logging
 import traceback
 
@@ -49,8 +51,19 @@ class OnDisconnectHooks(object):
             rooms = environ.env.db.rooms_for_user(user_id)
 
             for room_id, room_name in rooms.items():
+                logger.info('checking whether to remove room %s or not' % room_id)
+                if 'target' not in data:
+                    data['target'] = dict()
+                data['target']['id'] = room_id
+
+                if not hasattr(activity, 'target'):
+                    activity.target = Target({'id': room_id})
+                else:
+                    activity.target.id = room_id
+
                 utils.remove_user_from_room(user_id, user_name, room_id)
                 environ.env.emit('gn_user_left', utils.activity_for_leave(user_id, user_name, room_id, room_name), room=room_id)
+                utils.check_if_should_remove_room(data, activity)
 
             environ.env.db.remove_current_rooms_for_user(user_id)
         except Exception as e:

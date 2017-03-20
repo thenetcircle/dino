@@ -25,6 +25,7 @@ from dino import validation
 from dino.config import UserKeys
 from dino.config import ApiActions
 from dino.config import ApiTargets
+from dino.config import SessionKeys
 from dino.utils.blacklist import BlackListChecker
 from datetime import timedelta
 from datetime import datetime
@@ -408,6 +409,54 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
     })
 
     return response
+
+
+def check_if_should_remove_room(data, activity):
+    user_id = activity.actor.id
+    user_name = environ.env.session.get(SessionKeys.user_name.value)
+    room_id = activity.target.id
+    room_name = get_room_name(room_id)
+    channel_id = get_channel_for_room(room_id)
+
+    if not environ.env.db.is_room_ephemeral(room_id) or not is_owner(room_id, user_id):
+        return
+
+    owners = get_owners_for_room(room_id)
+    users_in_room = get_users_in_room(room_id)
+
+    if user_id in users_in_room:
+        del users_in_room[user_id]
+
+    for owner_id, _ in owners.items():
+        if owner_id in users_in_room:
+            # don't remove the room if an owner is still in the room
+            return
+
+    logger.info('removing room %s (%s), last owner has left/disconnected' % (room_id, room_name))
+    environ.env.db.remove_room(channel_id, room_id)
+
+    for user_id_still_in_room, user_name_still_in_room in users_in_room.items():
+        kick_activity = {
+            'actor': {
+                'id': user_id,
+                'displayName': b64e(user_name)
+            },
+            'verb': 'kick',
+            'object': {
+                'id': user_id_still_in_room,
+                'displayName': b64e(user_name_still_in_room),
+                'content': b64e('All owners have left the room')
+            },
+            'target': {
+                'url': environ.env.request.namespace,
+                'id': room_id,
+                'displayName': b64e(room_name)
+            }
+        }
+        environ.env.publish(kick_activity)
+
+    remove_activity = activity_for_remove_room(user_id, user_name, room_id, room_name)
+    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
 
 
 def activity_for_owners(activity: Activity, owners: dict) -> dict:

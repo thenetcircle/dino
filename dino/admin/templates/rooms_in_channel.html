@@ -183,7 +183,8 @@
             <td>
                 UUID
             </td>
-            <td>Default? (auto-join)</td>
+            <td>Default?<br /><small>(auto-join)</small></td>
+            <td>Temporary?<br /><small>(deleted when owner leaves)</small></td>
         </tr>
     </thead>
     <tbody>
@@ -201,6 +202,14 @@
                     <input type="checkbox" name="default-room" checked>
                 {% else %}
                     <input type="checkbox" name="default-room">
+                {% endif %}
+            </td>
+            <td>
+                <input class="room-id" type="hidden" value="{{ room.uuid }}" />
+                {% if room.is_ephemeral == True %}
+                    <input type="checkbox" name="ephemeral-room" checked>
+                {% else %}
+                    <input type="checkbox" name="ephemeral-room">
                 {% endif %}
             </td>
         </tr>
