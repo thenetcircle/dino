@@ -38,6 +38,8 @@ class OnLoginHooks(object):
         utils.set_sid_for_user_id(user_id, environ.env.request.sid)
         environ.env.join_room(user_id)
 
+        # later for automatically joining default rooms
+        """
         default_rooms = environ.env.db.get_default_rooms()
         if default_rooms is None or len(default_rooms) == 0:
             return
@@ -55,6 +57,7 @@ class OnLoginHooks(object):
             activity.target.display_name = utils.get_room_name(room_id)
             environ.env.observer.emit('on_join', (data, activity))
             environ.env.emit('gn_join', utils.activity_for_join(activity, acls, messages, owners, users))
+        """
 
     @staticmethod
     def publish_activity(arg: tuple) -> None:
