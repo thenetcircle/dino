@@ -69,6 +69,12 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def set_ephemeral_room(self, room_id: str):
+        self.redis.srem(RedisKeys.non_ephemeral_rooms(), room_id)
+
+    def unset_ephemeral_room(self, room_id: str):
+        self.redis.sadd(RedisKeys.non_ephemeral_rooms(), room_id)
+
     def is_room_ephemeral(self, room_id: str) -> bool:
         return not self.redis.sismember(RedisKeys.non_ephemeral_rooms(), room_id)
 
@@ -336,6 +342,7 @@ class DatabaseRedis(object):
             room_id = str(room_id, 'utf-8')
             clean[room_id] = {
                 'name': str(room_name, 'utf-8'),
+                'ephemeral': self.is_room_ephemeral(room_id),
                 'users': len(self.users_in_room(room_id))
             }
         return clean

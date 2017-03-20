@@ -31,7 +31,7 @@ class RoomManager(BaseManager):
 
     def get_rooms(self, channel_id: str) -> list:
         rooms = self.env.db.rooms_for_channel(channel_id)
-        default_rooms = self.env.db.get_default_rooms()
+        default_rooms = self.env.db.get_default_rooms() or set()
         output = list()
 
         for room_id, room_details in rooms.items():

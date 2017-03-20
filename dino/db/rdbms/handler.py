@@ -409,13 +409,13 @@ class DatabaseRdbms(object):
         self._remove_current_rooms_for_user(user_id, session)
 
     def set_ephemeral_room(self, room_id: str, session=None):
-        self.set_ephemeral_on_room_to(room_id, is_ephemeral=True)
+        self._set_ephemeral_on_room_to(room_id, is_ephemeral=True)
 
     def unset_ephemeral_room(self, room_id: str, session=None):
-        self.set_ephemeral_on_room_to(room_id, is_ephemeral=False)
+        self._set_ephemeral_on_room_to(room_id, is_ephemeral=False)
 
     @with_session
-    def set_ephemeral_on_room_to(self, room_id: str, is_ephemeral: bool, session=None):
+    def _set_ephemeral_on_room_to(self, room_id: str, is_ephemeral: bool, session=None):
         room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
         if room is None:
             return

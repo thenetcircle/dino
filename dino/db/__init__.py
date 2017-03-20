@@ -35,6 +35,36 @@ class IDatabase(Interface):
         :return: true if ephemeral, false otherwise
         """
 
+    def set_ephemeral_room(self, room_id: str):
+        """
+        set as ephemeral room
+        :param room_id: roo uuid
+        :return: nothing
+        """
+
+    def unset_ephemeral_room(self, room_id: str):
+        """
+        unset as ephemeral room
+        :param room_id: roo uuid
+        :return: nothing
+        """
+
+    def add_default_room(self, room_id: str) -> None:
+        """
+        set as default room
+
+        :param room_id: room uuid
+        :return: nothing
+        """
+
+    def remove_default_room(self, room_id: str) -> None:
+        """
+        unset as default room
+
+        :param room_id: room uuid
+        :return: nothing
+        """
+
     def add_words_to_blacklist(self, words: list) -> None:
         """
         add new words to the blacklist
