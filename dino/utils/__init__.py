@@ -588,11 +588,14 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     }
 
     response['object']['attachments'] = list()
+
     for user_id, user_name in users.items():
+        user_roles = environ.env.db.get_user_roles_in_room(user_id, activity.target.id)
         response['object']['attachments'].append({
             'id': user_id,
             'displayName': b64e(user_name),
-            'attachments': get_user_info_attachments_for(user_id)
+            'attachments': get_user_info_attachments_for(user_id),
+            'content': ','.join(user_roles)
         })
 
     return response
@@ -891,7 +894,7 @@ def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: s
     if to_channel_id is None or len(to_channel_id.strip()) == 0:
         to_channel_id = get_channel_for_room(to_room_uuid)
 
-    # can not sent between channels
+    # can not send between channels
     if from_channel_id != to_channel_id:
         return False
 

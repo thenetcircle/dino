@@ -162,6 +162,26 @@ class DatabaseRdbms(object):
         self.env.cache.reset_user_roles(user_id)
         self.get_user_roles(user_id)
 
+    def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:
+        @with_session
+        def _roles(session=None) -> list:
+            room_roles = session.query(RoomRoles)\
+                .join(RoomRoles.room)\
+                .filter(RoomRoles.user_id == user_id)\
+                .filter(Rooms.uuid == room_id)\
+                .first()
+
+            if room_roles is None or room_roles.roles is None:
+                return list()
+            return [a for a in room_roles.roles.split(',') if len(a) > 0]
+
+        output = self.env.cache.get_user_roles(user_id)
+        if output is not None and room_id in output['room']:
+            return output['room'][room_id]
+
+        roles = _roles()
+        return roles
+
     def get_user_roles(self, user_id: str) -> dict:
         @with_session
         def _roles(session=None) -> dict:

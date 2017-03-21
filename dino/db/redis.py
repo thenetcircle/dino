@@ -94,6 +94,12 @@ class DatabaseRedis(object):
     def search_for_users(self, query: str) -> list:
         raise NotImplementedError('not implemented in redis db backend')
 
+    def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:
+        roles = self.get_user_roles(user_id)
+        if room_id in roles['room']:
+            return roles['room'][room_id]
+        return list()
+
     def get_user_roles(self, user_id: str) -> dict:
         output = {
             'global': list(),

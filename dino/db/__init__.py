@@ -110,6 +110,20 @@ class IDatabase(Interface):
         :return: the uuid of the admin room, or None of not found
         """
 
+    def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:
+        """
+        the the roles in only one room for a user, e.g.:
+
+            [
+                "owner",
+                "admin"
+            ]
+
+        :param user_id: the id of the user
+        :param room_id: the uuid of the room
+        :return: a list of strings, roles for that room
+        """
+
     def get_user_roles(self, user_id: str) -> dict:
         """
         get a all roles for a user (admin, mod, etc.)
