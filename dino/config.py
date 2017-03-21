@@ -74,6 +74,7 @@ class ErrorCodes(object):
     NO_SUCH_ROOM = 802
     NO_ADMIN_ROOM_FOUND = 803
     NO_USER_IN_SESSION = 804
+    NO_ADMIN_ONLINE = 805
 
 
 class ApiTargets(object):

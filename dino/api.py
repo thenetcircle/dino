@@ -238,6 +238,10 @@ def on_request_admin(data: dict, activity: Activity) -> (int, None):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
     """
+    online_admins = environ.env.db.get_online_admins()
+    if len(online_admins) == 0:
+        return ECodes.NO_ADMIN_ONLINE, None
+
     environ.env.observer.emit('on_request_admin', (data, activity))
     return ECodes.OK, None
 

@@ -179,8 +179,18 @@ class DatabaseRdbms(object):
         if output is not None and room_id in output['room']:
             return output['room'][room_id]
 
-        roles = _roles()
-        return roles
+        return _roles()
+
+    def get_online_admins(self, session=None) -> bool:
+        admins = session.query(GlobalRoles).filter(GlobalRoles.roles.ilike('%{}%'.format(RoleKeys.ADMIN)))
+        admin_ids = [admin.user_id for admin in admins]
+        online_admins = session.query(UserStatus)\
+            .filter(UserStatus.status.in_(
+                UserKeys.STATUS_INVISIBLE,
+                UserKeys.STATUS_AVAILABLE,
+                UserKeys.STATUS_CHAT))\
+            .filter(UserStatus.uuid.in_(admin_ids)).all()
+        return [admin.uuid for admin in online_admins]
 
     def get_user_roles(self, user_id: str) -> dict:
         @with_session
