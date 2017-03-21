@@ -241,6 +241,7 @@ NO_SUCH_CHANNEL = 801
 NO_SUCH_ROOM = 802
 NO_ADMIN_ROOM_FOUND = 803
 NO_USER_IN_SESSION = 804
+NO_ADMIN_ONLINE = 805
 </code></pre>
 <h2 id="connect">connect</h2>
 <p>Responds with event name "gn_connect".</p>
@@ -416,9 +417,14 @@ content will be empty, otherwise it will be a comma separated list of roles. Pos
 <p>Attachments for each room describes the ACLs for that room.</p>
 <h2 id="request_admin">request_admin</h2>
 <p>When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
-which only admins can see when listing rooms and only admins can join. When a request_admin event is sent to the server
+which only admins can see when listing rooms and only admins can join. When a <code>request_admin</code> event is sent to the server
 it will be delivered to the admin room for that channel and the admins in that room can decide what to do.</p>
-<p>Responds with event name "gn_request_admin".</p>
+<p>Important:</p>
+<ul>
+<li>Only users who are in the Admin room will receive the event,</li>
+<li>If no user with the global role <code>superuser</code> is online, the 805 code will be returned ("no admin is online").</li>
+</ul>
+<p>Responds with event name <code>gn_request_admin</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -433,6 +439,12 @@ it will be delivered to the admin room for that channel and the admins in that r
 <p>Response data if successful:</p>
 <pre><code>{
     "status_code": 200
+}
+</code></pre>
+<p>If no admin is online, the response will be:</p>
+<pre><code>{
+    "status_code": 805,
+    "message": "no admin is online"
 }
 </code></pre>
 <p>The "object.content" could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
@@ -866,6 +878,15 @@ and the "published" field set to the time the server received the request (in RF
 <p>A report will be sent to both the admin room and as an external event published on the MQ.</p>
 <h2 id="join">join</h2>
 <p>Responds with the event name "gn_join".</p>
+<p>In the <code>user</code> attachments, the <code>content</code> fields tells you the room roles that the user has in this room (as a comma
+separated value), plus any global roles. Possible roles are:</p>
+<ul>
+<li>superuser,</li>
+<li>owner,</li>
+<li>moderator,</li>
+<li>admin.</li>
+</ul>
+<p>Currently only the <code>superuser</code> role is considered when the <code>request_admin</code> api is used.</p>
 <p>Request contains:</p>
 <pre><code>{
     "verb": "join",
@@ -936,10 +957,12 @@ and the "published" field set to the time the server received the request (in RF
                         {
                             "id": "&lt;user ID of a user in the room&gt;",
                             "displayName": "&lt;user name of a user in the room&gt;",
+                            "content": "moderator,owner"
                         },
                         {
                             "id": "&lt;user ID of a user in the room&gt;",
                             "displayName": "&lt;user name of a user in the room&gt;",
+                            "content": "superuser"
                         }
                     ]
                 },
