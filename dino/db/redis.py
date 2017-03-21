@@ -132,6 +132,19 @@ class DatabaseRedis(object):
                 output['room'][room_id] = [a for a in room_roles.split(',')]
         return output
 
+    def get_online_admins(self) -> list:
+        admins = self.get_super_users()
+        return [
+            user_id for user_id, status in zip(
+                    admins.keys(),
+                    [self.get_user_status(user_id) for user_id in admins.keys()]
+            )
+            if status in [
+                UserKeys.STATUS_AVAILABLE,
+                UserKeys.STATUS_CHAT,
+                UserKeys.STATUS_INVISIBLE
+            ]]
+
     def create_admin_room(self) -> str:
         admin_room_id = self.get_admin_room()
         if admin_room_id is not None:

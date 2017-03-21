@@ -182,7 +182,7 @@ class DatabaseRdbms(object):
         return _roles()
 
     @with_session
-    def get_online_admins(self, session=None) -> bool:
+    def get_online_admins(self, session=None) -> list:
         admins = session.query(GlobalRoles).filter(GlobalRoles.roles.ilike('%{}%'.format(RoleKeys.SUPER_USER))).all()
         admin_ids = [admin.user_id for admin in admins]
         if len(admin_ids) == 0:

@@ -110,11 +110,11 @@ class IDatabase(Interface):
         :return: the uuid of the admin room, or None of not found
         """
 
-    def is_an_admin_online(self) -> bool:
+    def get_online_admins(self) -> list:
         """
-        check if any admin is online or not
+        get uuids of all admins that are online
 
-        :return: True or False
+        :return: list of uuids
         """
 
     def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:

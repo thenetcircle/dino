@@ -16,6 +16,7 @@ import os
 os.environ['ENVIRONMENT'] = 'test'
 
 from dino import api
+from dino.config import ErrorCodes
 from test.base import BaseTest
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -27,7 +28,7 @@ class ApiRequestAdminTest(BaseTest):
         self.set_owner()
         act = self.activity()
         self.env.db.create_admin_room()
-        self.assertEqual(200, api.on_request_admin(act, as_parser(act))[0])
+        self.assertEqual(ErrorCodes.NO_ADMIN_ONLINE, api.on_request_admin(act, as_parser(act))[0])
 
     def activity(self):
         return {
