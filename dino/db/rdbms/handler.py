@@ -164,22 +164,40 @@ class DatabaseRdbms(object):
 
     def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:
         @with_session
-        def _roles(session=None) -> list:
-            room_roles = session.query(RoomRoles)\
+        def _room_roles(session=None) -> list:
+            _roles = session.query(RoomRoles)\
                 .join(RoomRoles.room)\
                 .filter(RoomRoles.user_id == user_id)\
                 .filter(Rooms.uuid == room_id)\
                 .first()
 
-            if room_roles is None or room_roles.roles is None:
+            if _roles is None or _roles.roles is None:
                 return list()
-            return [a for a in room_roles.roles.split(',') if len(a) > 0]
+            return [a for a in _roles.roles.split(',') if len(a) > 0]
+
+        @with_session
+        def _global_roles(session=None) -> list:
+            _roles = session.query(GlobalRoles)\
+                .filter(GlobalRoles.user_id == user_id)\
+                .first()
+
+            if _roles is None or _roles.roles is None:
+                return list()
+            return [a for a in _roles.roles.split(',') if len(a) > 0]
 
         output = self.env.cache.get_user_roles(user_id)
-        if output is not None and room_id in output['room']:
-            return output['room'][room_id]
 
-        return _roles()
+        if output is not None and room_id in output['room']:
+            room_roles = output['room'][room_id]
+        else:
+            room_roles = _room_roles()
+
+        if output is not None and room_id in output['global']:
+            global_roles = output['global']
+        else:
+            global_roles = _global_roles()
+
+        return room_roles + global_roles
 
     @with_session
     def get_online_admins(self, session=None) -> list:

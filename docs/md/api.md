@@ -32,6 +32,7 @@
     NO_SUCH_ROOM = 802
     NO_ADMIN_ROOM_FOUND = 803
     NO_USER_IN_SESSION = 804
+    NO_ADMIN_ONLINE = 805
 
 ## connect
 
@@ -229,10 +230,15 @@ Attachments for each room describes the ACLs for that room.
 ## request_admin
 
 When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
-which only admins can see when listing rooms and only admins can join. When a request_admin event is sent to the server
+which only admins can see when listing rooms and only admins can join. When a `request_admin` event is sent to the server
 it will be delivered to the admin room for that channel and the admins in that room can decide what to do.
 
-Responds with event name "gn_request_admin".
+Important:
+
+* Only users who are in the Admin room will receive the event,
+* If no user with the global role `superuser` is online, the 805 code will be returned ("no admin is online").
+
+Responds with event name `gn_request_admin`.
 
 Request contains:
 
@@ -250,6 +256,13 @@ Response data if successful:
 
     {
         "status_code": 200
+    }
+
+If no admin is online, the response will be:
+
+    {
+        "status_code": 805,
+        "message": "no admin is online"
     }
 
 The "object.content" could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
@@ -760,6 +773,16 @@ A report will be sent to both the admin room and as an external event published 
 
 Responds with the event name "gn_join".
 
+In the `user` attachments, the `content` fields tells you the room roles that the user has in this room (as a comma
+separated value), plus any global roles. Possible roles are:
+
+* superuser,
+* owner,
+* moderator,
+* admin.
+
+Currently only the `superuser` role is considered when the `request_admin` api is used.
+
 Request contains:
 
     {
@@ -832,10 +855,12 @@ Response data if successful:
                             {
                                 "id": "<user ID of a user in the room>",
                                 "displayName": "<user name of a user in the room>",
+                                "content": "moderator,owner"
                             },
                             {
                                 "id": "<user ID of a user in the room>",
                                 "displayName": "<user name of a user in the room>",
+                                "content": "superuser"
                             }
                         ]
                     },
