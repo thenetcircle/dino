@@ -181,14 +181,18 @@ class DatabaseRdbms(object):
 
         return _roles()
 
+    @with_session
     def get_online_admins(self, session=None) -> bool:
-        admins = session.query(GlobalRoles).filter(GlobalRoles.roles.ilike('%{}%'.format(RoleKeys.ADMIN)))
+        admins = session.query(GlobalRoles).filter(GlobalRoles.roles.ilike('%{}%'.format(RoleKeys.SUPER_USER))).all()
         admin_ids = [admin.user_id for admin in admins]
+        if len(admin_ids) == 0:
+            return []
+
         online_admins = session.query(UserStatus)\
-            .filter(UserStatus.status.in_(
+            .filter(UserStatus.status.in_([
                 UserKeys.STATUS_INVISIBLE,
                 UserKeys.STATUS_AVAILABLE,
-                UserKeys.STATUS_CHAT))\
+                UserKeys.STATUS_CHAT]))\
             .filter(UserStatus.uuid.in_(admin_ids)).all()
         return [admin.uuid for admin in online_admins]
 
@@ -326,7 +330,13 @@ class DatabaseRdbms(object):
         @with_session
         def _set_user_invisible(session=None):
             self.env.cache.set_user_invisible(user_id)
-            session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserKeys.STATUS_INVISIBLE})
+            user_status = session.query(UserStatus).filter_by(uuid=user_id).first()
+            if user_status is None:
+                user_status = UserStatus()
+                user_status.uuid = user_id
+                session.add(user_status)
+
+            user_status.status = UserKeys.STATUS_INVISIBLE
             session.commit()
 
         if self.env.cache.user_is_invisible(user_id):
@@ -351,7 +361,13 @@ class DatabaseRdbms(object):
         @with_session
         def _set_user_online(session=None):
             self.env.cache.set_user_online(user_id)
-            session.query(UserStatus).filter_by(uuid=user_id).update({'status': UserKeys.STATUS_AVAILABLE})
+            user_status = session.query(UserStatus).filter_by(uuid=user_id).first()
+            if user_status is None:
+                user_status = UserStatus()
+                user_status.uuid = user_id
+                session.add(user_status)
+
+            user_status.status = UserKeys.STATUS_AVAILABLE
             session.commit()
 
         if self.env.cache.user_is_online(user_id):

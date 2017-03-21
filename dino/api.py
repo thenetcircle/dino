@@ -240,7 +240,7 @@ def on_request_admin(data: dict, activity: Activity) -> (int, None):
     """
     online_admins = environ.env.db.get_online_admins()
     if len(online_admins) == 0:
-        return ECodes.NO_ADMIN_ONLINE, None
+        return ECodes.NO_ADMIN_ONLINE, 'no admin is online'
 
     environ.env.observer.emit('on_request_admin', (data, activity))
     return ECodes.OK, None

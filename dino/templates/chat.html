@@ -325,6 +325,10 @@
                     lib.commit();
                 };
 
+                socket.on('gn_request_admin', function(response) {
+                    console.log(response);
+                });
+
                 socket.on('gn_message', function(response) {
                     console.log(response);
                     data = response.data
@@ -404,6 +408,18 @@
                 $('button#set-invisible').click(function() {
                     socket.emit('status', {
                         verb: 'invisible'
+                    });
+                });
+
+                $('button#request-admin').click(function() {
+                    socket.emit('request_admin', {
+                        verb: 'admin',
+                        target: {
+                            id: $('#room-id').val()
+                        },
+                        object: {
+                            content: b64e('some message for admins')
+                        }
                     });
                 });
 
@@ -586,6 +602,7 @@
         <button id="remove-room">Remove room</button>
         <button id="set-invisible">Set invisible</button>
         <button id="set-visible">Set visible</button>
+        <button id="request-admin">Request admin</button>
 
         <input id="target" type="hidden" />
         <input id="room-id" type="hidden" />
