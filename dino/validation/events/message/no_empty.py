@@ -12,12 +12,12 @@
 
 import logging
 import traceback
-import time
 
 from yapsy.IPlugin import IPlugin
 from activitystreams.models.activity import Activity
 
 from dino import utils
+from dino.config import ErrorCodes
 from dino.environ import GNEnvironment
 
 logger = logging.getLogger(__name__)
@@ -36,8 +36,8 @@ class OnMessageCheckNotEmpty(IPlugin):
     def _process(self, data: dict, activity: Activity):
         message = activity.object.content
         if message is None or len(message.strip()) == 0 or len(utils.b64d(message).strip()) == 0:
-            return False, 'message is empty'
-        return True, None
+            return False, ErrorCodes.EMPTY_MESSAGE, 'message is empty'
+        return True, None, None
 
     def __call__(self, *args, **kwargs) -> (bool, str):
         data, activity = args[0], args[1]
@@ -46,3 +46,4 @@ class OnMessageCheckNotEmpty(IPlugin):
         except Exception as e:
             logger.error('could not execute plugin no_empty: %s' % str(e))
             logger.exception(traceback.format_exc())
+            return False, ErrorCodes.VALIDATION_ERROR, 'could not execute validation plugin no_empty'

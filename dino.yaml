@@ -18,8 +18,13 @@ common_config: &common_config
       host: 'mock'
     validation:
         on_message:
-            - no_empty
+            - name: no_empty
             #- check_blacklist
+        on_join:
+            - name: not_full
+              max_users_low: 2
+              max_users_high: 3
+              exception: 'premium,vip,tg,tg_p'
     history:
         type: 'top'  # unread or top
         limit: 50

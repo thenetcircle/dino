@@ -803,7 +803,6 @@ def init_request_validators(gn_env: GNEnvironment) -> None:
 
     for pluginInfo in plugin_manager.getAllPlugins():
         plugin_manager.activatePluginByName(pluginInfo.name)
-        pluginInfo.plugin_object.setup(gn_env)
         gn_env.event_validators[pluginInfo.name] = pluginInfo.plugin_object
 
     validation = gn_env.config.get(ConfigKeys.VALIDATION, None)
@@ -813,11 +812,20 @@ def init_request_validators(gn_env: GNEnvironment) -> None:
     for key in validation.keys():
         if key not in gn_env.event_validator_map:
             gn_env.event_validator_map[key] = list()
-        for plugin_name in validation[key]:
+        plugins = validation[key].copy()
+        validation[key] = dict()
+        for plugin_info in plugins:
+            plugin_name = plugin_info.get('name')
+            validation[key][plugin_name] = plugin_info
             try:
                 gn_env.event_validator_map[key].append(gn_env.event_validators[plugin_name])
             except KeyError:
                 raise KeyError('specified plugin "%s" does not exist' % key)
+
+    gn_env.config.set(ConfigKeys.VALIDATION, validation)
+
+    for pluginInfo in plugin_manager.getAllPlugins():
+        pluginInfo.plugin_object.setup(gn_env)
 
 
 @timeit(logger, 'init blacklist')

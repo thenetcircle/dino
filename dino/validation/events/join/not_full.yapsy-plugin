@@ -1,0 +1,8 @@
+[Core]
+Name = not_full
+Module = not_full
+
+[Documentation]
+Description = Checks that a room is not full when joining
+Author = Oscar Eriksson
+Version = 1.0.0

@@ -68,6 +68,7 @@ class ErrorCodes(object):
     ROOM_ALREADY_EXISTS = 704
     NOT_ALLOWED = 705
     VALIDATION_ERROR = 706
+    ROOM_FULL = 707
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -142,6 +143,9 @@ class ConfigKeys(object):
     PREFIX = 'prefix'
     INCLUDE_HOST_NAME = 'include_hostname'
     VALIDATION = 'validation'
+    MAX_USERS_LOW = 'max_users_low'
+    MAX_USERS_HIGH = 'max_users_high'
+    MAX_USERS_EXCEPTION = 'exception'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'

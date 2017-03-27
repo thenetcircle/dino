@@ -144,12 +144,11 @@ def pre_process(validation_name, should_validate_request=True):
                         all_ok = True
                         if validation_name in environ.env.event_validator_map:
                             for validator in environ.env.event_validator_map[validation_name]:
-                                all_ok, msg = validator(data, activity)
+                                all_ok, status_code, msg = validator(data, activity)
                                 if not all_ok:
                                     logger.warn(
                                             '[%s] validator "%s" failed: %s' %
                                             (validation_name, str(validator), msg))
-                                    status_code, message = ErrorCodes.VALIDATION_ERROR, msg
                                     break
 
                         if all_ok:
