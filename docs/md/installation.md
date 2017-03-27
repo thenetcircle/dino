@@ -120,7 +120,7 @@ Running in the foreground:
     $ cd dino/
     $ virtualenv --python=python3.5 env
     $ source env/bin/activate
-    (env) $ ENVIRONMENT=dev gunicorn \
+    (env) $ DINO_ENVIRONMENT=dev gunicorn \
                 --error-logfile ~/dino-gunicorn-error.log \
                 --log-file ~/dino-gunicorn.log \
                 --worker-class eventlet \
