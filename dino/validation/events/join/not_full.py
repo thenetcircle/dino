@@ -30,10 +30,17 @@ class OnJoinCheckNotFull(IPlugin):
     def __init__(self):
         super(OnJoinCheckNotFull, self).__init__()
         self.env = None
+        self.enabled = False
 
     def setup(self, env: GNEnvironment):
         self.env = env
-        on_join_config = self.env.config.get(ConfigKeys.VALIDATION).get('on_join').get('not_full')
+        try:
+            on_join_config = self.env.config.get(ConfigKeys.VALIDATION).get('on_join').get('not_full')
+        except KeyError:
+            logger.info('no config enabled for plugin not_full, ignoring plugin')
+            return
+
+        self.enabled = True
         self.max_users_low = on_join_config.get(ConfigKeys.MAX_USERS_LOW, 100)
         self.max_users_high = on_join_config.get(ConfigKeys.MAX_USERS_HIGH, 120)
         self.max_users_exception = on_join_config.get(ConfigKeys.MAX_USERS_EXCEPTION, '').split(',')
@@ -59,6 +66,9 @@ class OnJoinCheckNotFull(IPlugin):
         return True, None, None
 
     def __call__(self, *args, **kwargs) -> (bool, str):
+        if not self.enabled:
+            return
+
         data, activity = args[0], args[1]
         try:
             return self._process(data, activity)
