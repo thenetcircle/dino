@@ -36,7 +36,7 @@ class OnJoinCheckNotFull(IPlugin):
         self.env = env
         try:
             on_join_config = self.env.config.get(ConfigKeys.VALIDATION).get('on_join').get('not_full')
-        except KeyError:
+        except Exception:
             logger.info('no config enabled for plugin not_full, ignoring plugin')
             return
 
