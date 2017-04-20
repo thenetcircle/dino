@@ -282,6 +282,7 @@ class DatabaseRdbms(object):
 
         try:
             self.create_user('0', 'Admin')
+            self.set_super_user('0')
         except UserExistsException:
             pass
 
@@ -1407,7 +1408,10 @@ class DatabaseRdbms(object):
             return user.name
 
         if skip_cache:
-            return _get_user_name()
+            user_name = _get_user_name()
+            if user_name is None or len(user_name.strip()) == 0:
+                raise NoSuchUserException(user_id)
+            return user_name
 
         user_name = self.env.cache.get_user_name(user_id)
         if user_name is not None and len(user_name.strip()) > 0:
