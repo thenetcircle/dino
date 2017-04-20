@@ -1634,7 +1634,7 @@ class DatabaseRdbms(object):
         self.get_user_name(user_id)
         ban = session.query(Bans)\
             .filter(Bans.user_id == user_id)\
-            .fitler(Bans.is_global.is_(True))\
+            .filter(Bans.is_global.is_(True))\
             .first()
         if ban is None:
             return ''
@@ -1646,7 +1646,7 @@ class DatabaseRdbms(object):
         ban = session.query(Bans)\
             .join(Bans.room)\
             .filter(Bans.user_id == user_id)\
-            .fitler(Bans.is_global.is_(False))\
+            .filter(Bans.is_global.is_(False))\
             .filter(Channels.uuid == channel_uuid)\
             .first()
         if ban is None:
@@ -1659,7 +1659,7 @@ class DatabaseRdbms(object):
         ban = session.query(Bans)\
             .join(Bans.room)\
             .filter(Bans.user_id == user_id)\
-            .fitler(Bans.is_global.is_(False))\
+            .filter(Bans.is_global.is_(False))\
             .filter(Rooms.uuid == room_uuid)\
             .first()
         if ban is None:
