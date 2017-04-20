@@ -50,7 +50,6 @@ class ChannelManager(BaseManager):
     def create_channel(self, channel_name: str, channel_id: str, user_id: str) -> Union[str, None]:
         try:
             self.env.db.create_channel(channel_name.strip(), channel_id.strip(), user_id.strip())
-            self.env.db.create_admin_room_for(channel_id.strip())
         except Exception as e:
             logger.error('could not create channel: %s' % str(e))
             logger.exception(traceback.format_exc())
