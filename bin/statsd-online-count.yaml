@@ -1,0 +1,2 @@
+# key is DINO_ENVIRONMENT, while value is the db number in redis where online info is stored
+foobar: 3

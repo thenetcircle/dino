@@ -25,6 +25,7 @@ from dino.config import ApiTargets
 from dino.config import ApiActions
 from dino.environ import GNEnvironment
 from dino.utils import b64e
+from dino.utils import b64d
 
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
@@ -1855,6 +1856,12 @@ class DatabaseRdbms(object):
             raise EmptyUserIdException(user_id)
         return get_sid()
 
+    @staticmethod
+    def _decode_reason(self, reason: str=None) -> str:
+        if reason is None or len(reason.strip()) == 0:
+            return ''
+        return b64d(reason)
+
     @with_session
     def ban_user_global(self, user_id: str, ban_timestamp: str, ban_duration: str, reason: str=None, banner_id: str=None, session=None):
         ban = session.query(Bans)\
@@ -1874,7 +1881,7 @@ class DatabaseRdbms(object):
         if ban is None:
             ban = Bans()
             ban.uuid = str(uuid())
-            ban.reason = reason
+            ban.reason = DatabaseRdbms._decode_reason(reason)
             ban.banner_id = banner_id
             ban.user_id = user_id
             ban.user_name = username
@@ -1899,7 +1906,7 @@ class DatabaseRdbms(object):
                 ban = Bans()
                 ban.uuid = str(uuid())
                 ban.user_id = user_id
-                ban.reason = reason
+                ban.reason = DatabaseRdbms._decode_reason(reason)
                 ban.banner_id = banner_id
                 ban.room = room
                 ban.user_name = username
@@ -1951,7 +1958,7 @@ class DatabaseRdbms(object):
                 channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
                 ban = Bans()
                 ban.uuid = str(uuid())
-                ban.reason = reason
+                ban.reason = DatabaseRdbms._decode_reason(reason)
                 ban.banner_id = banner_id
                 ban.user_id = user_id
                 ban.channel = channel

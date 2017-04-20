@@ -647,7 +647,8 @@ Request contains:
         },
         "object": {
             "id": "<UUID of the user to ban>",
-            "summary": "<ban duration, an integer suffixed with one of [d, h, m, s]>"
+            "summary": "<ban duration, an integer suffixed with one of [d, h, m, s]>",
+            "content": "<optional reason field, base64>"
         },
         "verb": "kick"
     }
