@@ -301,6 +301,7 @@ class RequestValidator(BaseValidator):
     def on_join(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
         user_id = activity.actor.id
+        print('room_id: %s' % str(room_id))
 
         try:
             utils.get_room_name(room_id)
@@ -321,12 +322,17 @@ class RequestValidator(BaseValidator):
             return False, ECodes.NOT_ALLOWED, error_msg
 
         is_banned, info_dict = utils.is_banned(user_id, room_id)
+        print(info_dict)
         if is_banned:
             scope = info_dict['scope']
             seconds_left = info_dict['seconds']
             target_id = info_dict['id']
-            target_name = utils.get_room_name(target_id)
-            reason = utils.reason_for_ban(user_id, 'room', room_id)
+            target_name = ''
+            if scope == 'room':
+                target_name = utils.get_room_name(target_id)
+            elif scope == 'channel':
+                target_name = utils.get_channel_name(target_id)
+            reason = utils.reason_for_ban(user_id, scope, target_id)
 
             json_act = utils.activity_for_already_banned(seconds_left, reason, scope, target_id, target_name)
             return False, ECodes.USER_IS_BANNED, json_act

@@ -773,7 +773,7 @@ def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
         seconds = str((end - now).seconds)
         logger.debug('user %s is banned globally for another %s seconds' %
                      (user_id, str((end - now).seconds)))
-        return True, {'scope': 'room', 'seconds': seconds, 'id': ''}
+        return True, {'scope': 'global', 'seconds': seconds, 'id': ''}
 
     if channel_time != '':
         end = datetime.fromtimestamp(int(channel_time))
@@ -781,7 +781,7 @@ def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
         channel_id = get_channel_for_room(room_id)
         logger.debug('user %s is banned in channel %s for another %s seconds' %
                      (user_id, channel_id, str((end - now).seconds)))
-        return True, {'scope': 'room', 'seconds': seconds, 'id': channel_id}
+        return True, {'scope': 'channel', 'seconds': seconds, 'id': channel_id}
 
     if room_time != '':
         end = datetime.fromtimestamp(int(room_time))
