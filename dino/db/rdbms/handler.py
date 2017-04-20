@@ -280,14 +280,14 @@ class DatabaseRdbms(object):
             session.commit()
             return room.uuid
 
-        admin_room_id = self.get_admin_room()
-        if admin_room_id is not None:
-            return admin_room_id
-
         try:
             self.create_user('0', 'Admin')
         except UserExistsException:
             pass
+
+        admin_room_id = self.get_admin_room()
+        if admin_room_id is not None:
+            return admin_room_id
 
         channel_id = str(uuid())
         self.create_channel('Admins', channel_id, '0')
