@@ -125,15 +125,18 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
     }
 
 
-def activity_for_already_banned(scope: str, target_id: str, target_name: str, seconds_left: str, reason: str) -> dict:
+def activity_for_already_banned(seconds_left: str, reason: str, scope: str='global', target_id: str=None, target_name: str=None) -> dict:
     activity_json = {
-        'verb': 'banned',
+        'verb': 'ban',
         'object': {
-            'content': ''
+            'content': '',
+            'summary': seconds_left
         },
         'target': {
             'objectType': scope
-        }
+        },
+        'id': str(uuid()),
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
     }
 
     if reason is not None and len(reason.strip()) > 0:
@@ -747,7 +750,7 @@ def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
     return True, (end - now).seconds
 
 
-def reason_for_ban(user_id: str, scope: str, target_id: str) -> str:
+def reason_for_ban(user_id: str, scope: str=None, target_id: str=None) -> str:
     if scope is None or len(scope.strip()) == 0 or scope == 'global':
         return environ.env.db.get_reason_for_ban_global(user_id)
     elif scope == 'channel':

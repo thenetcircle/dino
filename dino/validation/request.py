@@ -113,8 +113,13 @@ class RequestValidator(BaseValidator):
 
         is_banned, duration = utils.is_banned_globally(user_id)
         if is_banned:
+            environ.env.join_room(user_id)
+            reason = utils.reason_for_ban(user_id)
+            json_act = utils.activity_for_already_banned(duration, reason)
+            environ.env.emit('gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True)
             environ.env.disconnect()
-            return False, ECodes.USER_IS_BANNED, 'user is banned from chatting for: %ss' % duration
+            logger.info('user %s is banned from chatting for: %ss' % (user_id, duration))
+            return False, ECodes.USER_IS_BANNED, json_act
 
         if hasattr(activity.actor, 'attachments') and activity.actor.attachments is not None:
             for attachment in activity.actor.attachments:
@@ -323,7 +328,7 @@ class RequestValidator(BaseValidator):
             target_name = utils.get_room_name(target_id)
             reason = utils.reason_for_ban(user_id, 'room', room_id)
 
-            json_act = utils.activity_for_already_banned(scope, target_id, target_name, seconds_left, reason)
+            json_act = utils.activity_for_already_banned(seconds_left, reason, scope, target_id, target_name)
             return False, ECodes.USER_IS_BANNED, json_act
 
         return True, None, None

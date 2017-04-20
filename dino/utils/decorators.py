@@ -148,7 +148,7 @@ def pre_process(validation_name, should_validate_request=True):
                                 if not all_ok:
                                     logger.warn(
                                             '[%s] validator "%s" failed: %s' %
-                                            (validation_name, str(validator), msg))
+                                            (validation_name, str(validator), str(msg)))
                                     break
 
                         if all_ok:
