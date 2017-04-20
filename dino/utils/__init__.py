@@ -125,6 +125,27 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
     }
 
 
+def activity_for_already_banned(scope: str, target_id: str, target_name: str, seconds_left: str, reason: str) -> dict:
+    activity_json = {
+        'verb': 'banned',
+        'object': {
+            'content': ''
+        },
+        'target': {
+            'objectType': scope
+        }
+    }
+
+    if reason is not None and len(reason.strip()) > 0:
+        activity_json['object']['content'] = b64e(reason)
+
+    if target_id is not None and len(target_id.strip()) > 0:
+        activity_json['target']['id'] = target_id
+        activity_json['target']['displayName'] = b64e(target_name)
+
+    return activity_json
+
+
 def activity_for_user_banned(
         banner_id: str, banner_name: str, banned_id: str, banned_name: str, room_id: str, room_name: str, reason=None) -> dict:
     activity_json = {
@@ -726,6 +747,16 @@ def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
     return True, (end - now).seconds
 
 
+def reason_for_ban(user_id: str, scope: str, target_id: str) -> str:
+    if scope is None or len(scope.strip()) == 0 or scope == 'global':
+        return environ.env.db.get_reason_for_ban_global(user_id)
+    elif scope == 'channel':
+        return environ.env.db.get_reason_for_ban_channel(user_id, target_id)
+    elif scope == 'room':
+        return environ.env.db.get_reason_for_ban_room(user_id, target_id)
+    raise KeyError('scope not in [channel,room,global] but "%s"' % str(scope))
+
+
 def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
     bans = environ.env.db.get_user_ban_status(room_id, user_id)
 
@@ -736,15 +767,25 @@ def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
 
     if global_time != '':
         end = datetime.fromtimestamp(int(global_time))
-        return True, 'banned globally for another "%s" seconds"' % str((end - now).seconds)
+        seconds = str((end - now).seconds)
+        logger.debug('user %s is banned globally for another %s seconds' %
+                     (user_id, str((end - now).seconds)))
+        return True, {'scope': 'room', 'seconds': seconds, 'id': ''}
 
     if channel_time != '':
         end = datetime.fromtimestamp(int(channel_time))
-        return True, 'banned from channel for another "%s" seconds"' % str((end - now).seconds)
+        seconds = str((end - now).seconds)
+        channel_id = get_channel_for_room(room_id)
+        logger.debug('user %s is banned in channel %s for another %s seconds' %
+                     (user_id, channel_id, str((end - now).seconds)))
+        return True, {'scope': 'room', 'seconds': seconds, 'id': channel_id}
 
     if room_time != '':
         end = datetime.fromtimestamp(int(room_time))
-        return True, 'banned from room for another "%s" seconds"' % str((end - now).seconds)
+        seconds = str((end - now).seconds)
+        logger.debug('user %s is banned in room %s for another %s seconds' %
+                     (user_id, room_id, str((end - now).seconds)))
+        return True, {'scope': 'room', 'seconds': seconds, 'id': room_id}
 
     return False, None
 

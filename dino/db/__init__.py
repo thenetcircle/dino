@@ -131,6 +131,32 @@ class IDatabase(Interface):
         :return: a list of strings, roles for that room
         """
 
+    def get_reason_for_ban_global(self, user_id: str) -> str:
+        """
+        get the reason for a global ban, or empty string if no reason found
+
+        :param user_id: uuid of the user
+        :return: the reason string, or blank string if not found
+        """
+
+    def get_reason_for_ban_channel(self, user_id: str, channel_uuid: str) -> str:
+        """
+        get the reason for a ban in a room, or empty string if no reason found
+
+        :param user_id: uuid of the user
+        :param channel_uuid: uuid of the channel
+        :return: the reason string, or blank string if not found
+        """
+
+    def get_reason_for_ban_room(self, user_id: str, room_uuid: str) -> str:
+        """
+        get the reason for a ban in a room, or empty string if no reason found
+
+        :param user_id: uuid of the user
+        :param room_uuid: uuid of the room
+        :return: the reason string, or blank string if not found
+        """
+
     def get_user_roles(self, user_id: str) -> dict:
         """
         get a all roles for a user (admin, mod, etc.)

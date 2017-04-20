@@ -1629,6 +1629,43 @@ class DatabaseRdbms(object):
                 }
         return output
 
+    @with_session
+    def get_reason_for_ban_global(self, user_id: str, session=None) -> str:
+        self.get_user_name(user_id)
+        ban = session.query(Bans)\
+            .filter(Bans.user_id == user_id)\
+            .fitler(Bans.is_global.is_(True))\
+            .first()
+        if ban is None:
+            return ''
+        return ban.reason
+
+    @with_session
+    def get_reason_for_ban_channel(self, user_id: str, channel_uuid: str, session=None) -> str:
+        self.get_user_name(user_id)
+        ban = session.query(Bans)\
+            .join(Bans.room)\
+            .filter(Bans.user_id == user_id)\
+            .fitler(Bans.is_global.is_(False))\
+            .filter(Channels.uuid == channel_uuid)\
+            .first()
+        if ban is None:
+            return ''
+        return ban.reason
+
+    @with_session
+    def get_reason_for_ban_room(self, user_id: str, room_uuid: str, session=None) -> str:
+        self.get_user_name(user_id)
+        ban = session.query(Bans)\
+            .join(Bans.room)\
+            .filter(Bans.user_id == user_id)\
+            .fitler(Bans.is_global.is_(False))\
+            .filter(Rooms.uuid == room_uuid)\
+            .first()
+        if ban is None:
+            return ''
+        return ban.reason
+
     def get_user_ban_status(self, room_id: str, user_id: str) -> dict:
         # TODO: fix this method, it's a horribly ugly friday night hack
         def _has_passed(the_time):

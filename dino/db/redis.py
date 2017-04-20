@@ -187,6 +187,15 @@ class DatabaseRedis(object):
             return None
         return str(room_id, 'utf-8')
 
+    def get_reason_for_ban_global(self, user_id: str) -> str:
+        return ''
+
+    def get_reason_for_ban_channel(self, user_id: str, channel_uuid: str) -> str:
+        return ''
+
+    def get_reason_for_ban_room(self, user_id: str, room_uuid: str) -> str:
+        return ''
+
     def _has_role_in_room(self, role: str, room_id: str, user_id: str) -> bool:
         roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
         if roles is None:

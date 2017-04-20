@@ -687,11 +687,9 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
             external = False
 
         try:
-            if external:
-                logger.debug('publishing external message: %s' % str(message))
-
             start = time.time()
             if external:
+                logger.debug('publishing external message: %s' % str(message))
                 queue_connection = gn_env.external_queue_connection
                 if queue_connection is None:
                     return
@@ -725,6 +723,8 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                     logger.error('failed to publish %s times, giving up!' % str(n_tries))
                 elif current_try > 0:
                     logger.info('published successfully on attempt %s/%s' % (str(current_try+1), str(n_tries)))
+                else:
+                    logger.debug('published internal message: %s' % str(message))
 
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))

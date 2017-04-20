@@ -315,9 +315,16 @@ class RequestValidator(BaseValidator):
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, error_msg
 
-        is_banned, msg = utils.is_banned(user_id, room_id)
+        is_banned, info_dict = utils.is_banned(user_id, room_id)
         if is_banned:
-            return False, ECodes.USER_IS_BANNED, msg
+            scope = info_dict['scope']
+            seconds_left = info_dict['seconds']
+            target_id = info_dict['id']
+            target_name = utils.get_room_name(target_id)
+            reason = utils.reason_for_ban(user_id, 'room', room_id)
+
+            json_act = utils.activity_for_already_banned(scope, target_id, target_name, seconds_left, reason)
+            return False, ECodes.USER_IS_BANNED, json_act
 
         return True, None, None
 

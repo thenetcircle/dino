@@ -34,6 +34,8 @@ class QueueHandler(object):
         self.env = env
 
     def handle_server_activity(self, data: dict, activity: Activity):
+        logger.debug('got internally published message: %s' % str(data))
+
         if activity.verb == 'kick':
             try:
                 self.handle_kick(activity)
