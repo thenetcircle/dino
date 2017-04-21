@@ -95,6 +95,9 @@
                 <li class="toctree-l3"><a href="#list_rooms">list_rooms</a></li>
                 
             
+                <li class="toctree-l3"><a href="#update_user_info">update_user_info</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#request_admin">request_admin</a></li>
                 
             
@@ -219,6 +222,10 @@ MISSING_OBJECT_URL = 503
 MISSING_TARGET_DISPLAY_NAME = 504
 MISSING_ACTOR_URL = 505
 MISSING_OBJECT_CONTENT = 506
+MISSING_OBJECT = 507
+MISSING_OBJECT_ATTACHMENTS = 508
+MISSING_ATTACHMENT_TYPE = 509
+MISSING_ATTACHMENT_CONTENT = 510
 
 INVALID_TARGET_TYPE = 600
 INVALID_ACL_TYPE = 601
@@ -235,6 +242,7 @@ USER_IS_BANNED = 703
 ROOM_ALREADY_EXISTS = 704
 NOT_ALLOWED = 705
 VALIDATION_ERROR = 706
+ROOM_FULL = 707
 
 NO_SUCH_USER = 800
 NO_SUCH_CHANNEL = 801
@@ -415,6 +423,38 @@ content will be empty, otherwise it will be a comma separated list of roles. Pos
 </ul>
 <p>Global roles and roles for channels are returned in the <code>gn_login</code> event.</p>
 <p>Attachments for each room describes the ACLs for that room.</p>
+<h2 id="update_user_info">update_user_info</h2>
+<p>If a user e.g. changes his/her avatar, the change can be broadcasted to users in the same rooms as this user is in. To
+e.g. let other users know this user is currently streaming video, the <code>objectType</code> <code>is_streaming</code> might be used:</p>
+<pre><code>{
+    "object": {
+        "attachments": [
+            {
+                "content": "MA==",
+                "objectType": "streaming"
+            }
+        ],
+        "objectType": "userInfo"
+    },
+    "verb": "update",
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<p>The <code>content</code> of the attachments needs to be base64 encoded.</p>
+<p>Responds with event name <code>gn_update_user_info</code>. When the update is sent to other users it will be received as an event
+with name <a href="../events/#user-info-updated"><code>gn_user_info_updated</code></a>.</p>
+<p>Response data if successful:</p>
+<pre><code>{
+    "status_code": 200
+}
+</code></pre>
+<p>Or if missing data, e.g.:</p>
+<pre><code>{
+    "status_code": 509,
+    "message": "no objectType on attachment for object"
+}
+</code></pre>
 <h2 id="request_admin">request_admin</h2>
 <p>When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
 which only admins can see when listing rooms and only admins can join. When a <code>request_admin</code> event is sent to the server
@@ -450,7 +490,7 @@ it will be delivered to the admin room for that channel and the admins in that r
 <p>The "object.content" could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
 reason text etc. </p>
 <p>The event generated to be sent to the admin room is called "gn_admin_requested" (see 
-<a href="../events/#gn_admin_requested">Events</a> for more information).</p>
+<a href="../events/#admin-presence-requested">Events</a> for more information).</p>
 <h2 id="leave">leave</h2>
 <p>Leave a room.</p>
 <p>Responds with event name "gn_leave".</p>
