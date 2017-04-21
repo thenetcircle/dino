@@ -44,6 +44,35 @@ to user A with the following content:
         }
     }
 
+## User info updated
+
+When a user updates his/her user information (e.g. avatar, is streaming, age etc.), the event `gn_user_info_updated`
+will be sent to either all rooms that the user is in, or a specific room that user chose to send to. The event looks 
+like this:
+
+    {
+        "actor": {
+            "id": "997110",
+            "displayName": "YmF0bWFu"
+        },
+        "object": {
+            "attachments": [{
+                "content": "MA==",
+                "objectType": "streaming"
+            },{
+                "content": "MzU=",
+                "objectType": "age"
+            }],
+            "objectType": "userInfo"
+        },
+        "verb": "update",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
+
+The `content` on each attachment is always base64 encoded. The `objectType` tells which field has been updated. Possible
+values depends on implementation, but is usually same as what's returned for user info when joining a room (`gn_join`).
+
 ## Admin presence requested
 
 When someone requests the presence of an admin in a room all users in the Admin room for that channel will receive an

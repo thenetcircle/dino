@@ -142,6 +142,16 @@
                     add_to_chat('<< ' + response.data + ' >>\n');
                 });
 
+                socket.on('gn_user_info_updated', function(response) {
+                    console.log('gn_user_info_updated');
+                    console.log(response);
+                });
+
+                socket.on('gn_update_user_info', function(response) {
+                    console.log('gn_update_user_info');
+                    console.log(response);
+                });
+
                 socket.on('gn_join', function(response) {
                     console.log(response);
                     if (response.status_code != 200) {
@@ -393,6 +403,36 @@
                     }
                 });
 
+                $('button#set-streaming-on').click(function() {
+                    socket.emit('update_user_info', {
+                        'verb': 'update',
+                        'object': {
+                            'objectType': 'userInfo',
+                            'attachments': [
+                                {
+                                    'objectType': 'streaming',
+                                    'content': b64e('1')
+                                }
+                            ]
+                        }
+                    });
+                });
+
+                $('button#set-streaming-off').click(function() {
+                    socket.emit('update_user_info', {
+                        'verb': 'update',
+                        'object': {
+                            'objectType': 'userInfo',
+                            'attachments': [
+                                {
+                                    'objectType': 'streaming',
+                                    'content': b64e('0')
+                                }
+                            ]
+                        }
+                    });
+                });
+
                 $('input#create-the-room').click(function() {
                     socket.emit('create', {
                         object: {
@@ -603,6 +643,8 @@
         <button id="set-invisible">Set invisible</button>
         <button id="set-visible">Set visible</button>
         <button id="request-admin">Request admin</button>
+        <button id="set-streaming-on">Streaming on</button>
+        <button id="set-streaming-off">Streaming off</button>
 
         <input id="target" type="hidden" />
         <input id="room-id" type="hidden" />

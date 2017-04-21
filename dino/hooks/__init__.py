@@ -31,5 +31,6 @@ from dino.hooks.set_acl import *
 from dino.hooks.status import *
 from dino.hooks.users_in_room import *
 from dino.hooks.whisper import *
+from dino.hooks.update_user_info import *
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'

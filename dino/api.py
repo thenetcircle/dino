@@ -166,6 +166,20 @@ def on_message(data, activity: Activity):
     return ECodes.OK, data
 
 
+def on_update_user_info(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    broadcast a user info update to a room, or all rooms the user is in if no target.id specified
+
+    :param data: activity streams format, must include object.attachments (user info)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: {'status_code': ECodes.OK, 'data': '<same AS as client sent, plus timestamp>'}
+    """
+    activity.actor.display_name = utils.b64e(environ.env.session.get(SessionKeys.user_name.value))
+    data['actor']['displayName'] = activity.actor.display_name
+    environ.env.observer.emit('on_update_user_info', (data, activity))
+    return ECodes.OK, data
+
+
 def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     ban a user from a room (if user is an owner/admin/moderator)

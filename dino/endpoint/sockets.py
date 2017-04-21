@@ -15,7 +15,6 @@ import time
 import traceback
 import logging
 
-from datetime import datetime
 from typing import Union
 from uuid import uuid4 as uuid
 
@@ -205,6 +204,13 @@ def on_delete(data: dict, activity: Activity) -> (int, Union[dict, str, None]):
 @pre_process('on_request_admin')
 def on_request_admin(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_request_admin(data, activity)
+
+
+@socketio.on('update_user_info', namespace='/ws')
+@respond_with('gn_update_user_info')
+@pre_process('on_update_user_info')
+def on_update_user_info(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
+    return api.on_update_user_info(data, activity)
 
 
 @socketio.on('create', namespace='/ws')

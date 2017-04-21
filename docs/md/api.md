@@ -10,6 +10,10 @@
     MISSING_TARGET_DISPLAY_NAME = 504
     MISSING_ACTOR_URL = 505
     MISSING_OBJECT_CONTENT = 506
+    MISSING_OBJECT = 507
+    MISSING_OBJECT_ATTACHMENTS = 508
+    MISSING_ATTACHMENT_TYPE = 509
+    MISSING_ATTACHMENT_CONTENT = 510
 
     INVALID_TARGET_TYPE = 600
     INVALID_ACL_TYPE = 601
@@ -26,6 +30,7 @@
     ROOM_ALREADY_EXISTS = 704
     NOT_ALLOWED = 705
     VALIDATION_ERROR = 706
+    ROOM_FULL = 707
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -227,6 +232,44 @@ Global roles and roles for channels are returned in the `gn_login` event.
 
 Attachments for each room describes the ACLs for that room.
 
+## update_user_info
+
+If a user e.g. changes his/her avatar, the change can be broadcasted to users in the same rooms as this user is in. To
+e.g. let other users know this user is currently streaming video, the `objectType` `is_streaming` might be used:
+
+    {
+        "object": {
+            "attachments": [
+                {
+                    "content": "MA==",
+                    "objectType": "streaming"
+                }
+            ],
+            "objectType": "userInfo"
+        },
+        "verb": "update",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
+
+The `content` of the attachments needs to be base64 encoded.
+
+Responds with event name `gn_update_user_info`. When the update is sent to other users it will be received as an event
+with name [`gn_user_info_updated`](events.md#user-info-updated).
+
+Response data if successful:
+
+    {
+        "status_code": 200
+    }
+
+Or if missing data, e.g.:
+
+    {
+        "status_code": 509,
+        "message": "no objectType on attachment for object"
+    }
+
 ## request_admin
 
 When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
@@ -269,7 +312,7 @@ The "object.content" could be anything, e.g. a base64 encoded json message with 
 reason text etc. 
 
 The event generated to be sent to the admin room is called "gn_admin_requested" (see 
-[Events](events.md#gn_admin_requested) for more information).
+[Events](events.md#admin-presence-requested) for more information).
 
 ## leave
 

@@ -916,6 +916,13 @@ def get_user_roles(user_id: str):
     return environ.env.db.get_user_roles(user_id)
 
 
+def rooms_for_user(user_id: str):
+    rooms = environ.env.db.rooms_for_user(user_id)
+    if rooms is None or len(rooms) == 0:
+        return set()
+    return set(rooms.keys())
+
+
 def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: str) -> bool:
     if from_room_uuid is None:
         raise NoOriginRoomException()

@@ -363,6 +363,26 @@ class RequestValidator(BaseValidator):
 
         return True, None, None
 
+    def on_update_user_info(self, activity: Activity) -> (bool, int, str):
+        if not hasattr(activity, 'object'):
+            return False, ECodes.MISSING_OBJECT, 'no object on activity'
+        if not hasattr(activity.object, 'attachments'):
+            return False, ECodes.MISSING_OBJECT_ATTACHMENTS, 'no attachments on object'
+        if len(activity.object.attachments) == 0:
+            return False, ECodes.MISSING_OBJECT_ATTACHMENTS, 'no attachments on object'
+
+        attachments = activity.object.attachments
+        for attachment in attachments:
+            if not hasattr(attachment, 'object_type') or len(attachment.object_type.strip()) == 0:
+                logger.warn('no object.attachments.objectType specified')
+                return False, ECodes.MISSING_ATTACHMENT_TYPE, 'no objectType on attachment for object'
+            if not hasattr(attachment, 'content') or len(attachment.content.strip()) == 0:
+                logger.warn('no object.attachments.content specified')
+                return False, ECodes.MISSING_ATTACHMENT_CONTENT, 'no content on attachment for object'
+            if not utils.is_base64(attachment.content):
+                return False, ECodes.NOT_BASE64, 'content on attachment for object is not base64 encoded'
+        return True, None, None
+
     def on_users_in_room(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
         if room_id is None or len(room_id.strip()) == 0:
