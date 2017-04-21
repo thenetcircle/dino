@@ -242,7 +242,7 @@ e.g. let other users know this user is currently streaming video, the `objectTyp
             "attachments": [
                 {
                     "content": "MA==",
-                    "objectType": "streaming"
+                    "objectType": "is_streaming"
                 }
             ],
             "objectType": "userInfo"
