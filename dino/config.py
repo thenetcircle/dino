@@ -73,6 +73,7 @@ class ErrorCodes(object):
     NOT_ALLOWED = 705
     VALIDATION_ERROR = 706
     ROOM_FULL = 707
+    NOT_ONLINE = 708
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801

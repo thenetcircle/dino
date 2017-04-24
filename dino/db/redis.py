@@ -1131,6 +1131,7 @@ class DatabaseRedis(object):
 
     def set_user_online(self, user_id: str) -> None:
         self.env.cache.set_user_online(user_id)
+        self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
 
     def set_user_invisible(self, user_id: str) -> None:
         self.env.cache.set_user_invisible(user_id)

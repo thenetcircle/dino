@@ -300,16 +300,29 @@ class RequestValidator(BaseValidator):
 
     def on_join(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
-        user_id = activity.actor.id
-        print('room_id: %s' % str(room_id))
+        user_id = environ.env.session.get(SessionKeys.user_id.value, None)
+
+        if user_id is None or len(user_id.strip()) == 0:
+            user_id = activity.actor.id
 
         try:
-            utils.get_room_name(room_id)
+            room_name = utils.get_room_name(room_id)
         except NoSuchRoomException:
             return False, ECodes.NO_SUCH_ROOM, 'room does not exist'
 
         if not hasattr(activity, 'object'):
             activity.object = DefObject(dict())
+
+        if not utils.user_is_online(user_id):
+            user_name = '<unknown>'
+            try:
+                user_name = utils.get_user_name_for(user_id)
+            except Exception as e:
+                logger.error('could not get username for user id %s' % user_id)
+
+            logger.warn('user "%s" (%s) is not online, not joining room "%s" (%s)!' %
+                        (user_name, user_id, room_name, room_id))
+            return False, ECodes.NOT_ONLINE, 'user is not online'
 
         channel_id = utils.get_channel_for_room(room_id)
         activity.object.url = channel_id
@@ -322,7 +335,6 @@ class RequestValidator(BaseValidator):
             return False, ECodes.NOT_ALLOWED, error_msg
 
         is_banned, info_dict = utils.is_banned(user_id, room_id)
-        print(info_dict)
         if is_banned:
             scope = info_dict['scope']
             seconds_left = info_dict['seconds']

@@ -28,6 +28,7 @@ class RequestJoinTest(BaseTest):
     def setUp(self):
         super(RequestJoinTest, self).setUp()
         self.create_channel_and_room()
+        self.set_user_online()
 
     def ban_user(self, past=False):
         if past:

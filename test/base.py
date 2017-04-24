@@ -370,6 +370,9 @@ class BaseTest(unittest.TestCase):
     def clear_session(self):
         environ.env.session.clear()
 
+    def set_user_online(self):
+        environ.env.db.set_user_online(BaseTest.USER_ID)
+
     def create_channel_and_room(self, room_id=None, room_name=None):
         self.create_channel(room_id=room_id, room_name=room_name)
         self.create_room(room_id=room_id, room_name=room_name)

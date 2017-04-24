@@ -32,11 +32,6 @@ class OnJoinHooks(object):
         user_name = environ.env.session.get(SessionKeys.user_name.value)
         room_name = utils.get_room_name(room_id)
 
-        if not utils.user_is_online(user_id):
-            logger.warn('user "%s" (%s) is not online, not joining room "%s" (%s)!' %
-                        (user_name, user_id, room_name, room_id))
-            return
-
         utils.join_the_room(user_id, user_name, room_id, room_name)
 
     @staticmethod
@@ -51,11 +46,6 @@ class OnJoinHooks(object):
 
         room_name = utils.get_room_name(room_id)
         user_name = environ.env.session.get(SessionKeys.user_name.value)
-
-        if not utils.user_is_online(user_id):
-            logger.warn('user "%s" (%s) is not online, not emitting join event to room "%s" (%s)!' %
-                        (user_name, user_id, room_name, room_id))
-            return
 
         image = environ.env.session.get(SessionKeys.image.value, '')
 
