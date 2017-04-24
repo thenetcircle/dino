@@ -317,7 +317,7 @@ class RequestValidator(BaseValidator):
             user_name = '<unknown>'
             try:
                 user_name = utils.get_user_name_for(user_id)
-            except Exception as e:
+            except NoSuchUserException:
                 logger.error('could not get username for user id %s' % user_id)
 
             logger.warn('user "%s" (%s) is not online, not joining room "%s" (%s)!' %
