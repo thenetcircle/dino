@@ -1025,6 +1025,18 @@ def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) ->
     logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
 
 
+def user_is_online(user_id: str) -> bool:
+    if user_id is None or len(user_id.strip()) == 0:
+        logger.warn('can not check user online status, user_id was blank!')
+        return False
+
+    return get_user_status(user_id) in {
+        UserKeys.STATUS_AVAILABLE,
+        UserKeys.STATUS_CHAT,
+        UserKeys.STATUS_INVISIBLE
+    }
+
+
 def get_user_status(user_id: str) -> str:
     return environ.env.db.get_user_status(user_id)
 
