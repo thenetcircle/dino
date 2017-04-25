@@ -442,7 +442,10 @@ def check_if_should_remove_room(data, activity):
     room_name = get_room_name(room_id)
     channel_id = get_channel_for_room(room_id)
 
-    if not environ.env.db.is_room_ephemeral(room_id) or not is_owner(room_id, user_id):
+    logger.info('checking whether to remove room %s or not' % room_id)
+
+    if not environ.env.db.is_room_ephemeral(room_id):
+        logger.info('room %s (%s) is not ephemeral, not considering removal' % (room_name, room_id))
         return
 
     owners = get_owners_for_room(room_id)
@@ -451,9 +454,10 @@ def check_if_should_remove_room(data, activity):
     if user_id in users_in_room:
         del users_in_room[user_id]
 
-    for owner_id, _ in owners.items():
+    for owner_id, owner_name in owners.items():
         if owner_id in users_in_room:
-            # don't remove the room if an owner is still in the room
+            logger.info('owner %s (%s) is still in room %s (%s), not considering removal' %
+                        (owner_name, owner_id, room_name, room_id))
             return
 
     logger.info('removing room %s (%s), last owner has left/disconnected' % (room_id, room_name))

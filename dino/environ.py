@@ -843,6 +843,18 @@ def init_admin_and_admin_room(gn_env: GNEnvironment):
     gn_env.db.create_admin_room()
 
 
+@timeit(logger, 'deleting ephemeral rooms')
+def delete_ephemeral_rooms(gn_env: GNEnvironment):
+    channel_dict = gn_env.db.get_channels()
+    for channel_id, _ in channel_dict.items():
+        rooms = gn_env.db.rooms_for_channel(channel_id)
+        for room_uuid, room_info in rooms.items():
+            logger.debug('checking room %s: %s' % (room_uuid, str(room_info)))
+            if room_info['ephemeral']:
+                logger.info('removing ephemeral room "%s" (%s)' % (room_info['name'], room_uuid))
+                gn_env.db.remove_room(channel_id, room_uuid)
+
+
 def initialize_env(dino_env):
     init_storage_engine(dino_env)
     init_database(dino_env)
@@ -855,6 +867,7 @@ def initialize_env(dino_env):
     init_request_validators(dino_env)
     init_blacklist_service(dino_env)
     init_admin_and_admin_room(dino_env)
+    delete_ephemeral_rooms(dino_env)
 
 
 _config_paths = None
