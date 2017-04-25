@@ -845,6 +845,9 @@ def init_admin_and_admin_room(gn_env: GNEnvironment):
 
 @timeit(logger, 'deleting ephemeral rooms')
 def delete_ephemeral_rooms(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
     channel_dict = gn_env.db.get_channels()
     for channel_id, _ in channel_dict.items():
         rooms = gn_env.db.rooms_for_channel(channel_id)
