@@ -88,7 +88,9 @@ class UserManager(BaseManager):
                 'displayName': room_name,
                 'objectType': 'room',
                 'url': '/ws'
-            }
+            },
+            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+            'id': uuid()
         }
 
         if admin_id is not None:
@@ -129,7 +131,9 @@ class UserManager(BaseManager):
             'target': {
                 'url': '/ws',
                 'objectType': target_type
-            }
+            },
+            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+            'id': uuid()
         }
 
         if reason is not None:

@@ -10,8 +10,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from activitystreams import parse as as_parser
+
 from dino import environ
-from dino import utils
+from dino.endpoint import sockets
+from dino.config import ConfigKeys
+
+from datetime import datetime
+from uuid import uuid4 as uuid
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -37,7 +43,9 @@ class OnKickHooks(object):
             },
             'target': {
                 'url': namespace
-            }
+            },
+            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+            'id': uuid()
         }
 
         # when banning globally, no target room is specified
@@ -45,7 +53,7 @@ class OnKickHooks(object):
             kick_activity['target']['id'] = activity.target.id
             kick_activity['target']['displayName'] = activity.target.display_name
 
-        environ.env.publish(kick_activity)
+        sockets.queue_handler.handle_server_activity(data, as_parser(data))
 
 
 @environ.env.observer.on('on_kick')

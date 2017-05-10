@@ -21,6 +21,7 @@ from activitystreams.models.activity import Activity
 from dino.config import ConfigKeys
 from dino.exceptions import NoSuchUserException
 from dino.environ import GNEnvironment
+from dino import environ
 from dino import utils
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -32,8 +33,41 @@ class QueueHandler(object):
     def __init__(self, socketio, env: GNEnvironment):
         self.socketio = socketio
         self.env = env
+        self.recently_delegated_events = list()
+
+    def user_is_on_this_node(self, activity: Activity) -> bool:
+        room_id = activity.target.id
+        namespace = activity.target.url
+        user_id = activity.object.id
+        users = list()
+
+        try:
+            if room_id in self.socketio.server.manager.rooms[namespace]:
+                users = self.socketio.server.manager.rooms[namespace][room_id]
+            else:
+                logger.warning('no room %s for namespace [%s] (or room is empty/removed)' % (room_id, namespace))
+        except Exception as e:
+            logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, room_id, str(e)))
+            logger.exception(traceback.format_exc())
+            return
+
+        return user_id in users
+
+    def update_recently_delegated_events(self, activity_id: str):
+        self.recently_delegated_events.append(activity_id)
+        if len(self.recently_delegated_events) > 100:
+            del self.recently_delegated_events[0]
 
     def handle_server_activity(self, data: dict, activity: Activity):
+        if activity.id in self.recently_delegated_events:
+            logger.info('ignoring event with id %s sine we delegated from this node' % activity.id)
+            return
+
+        if not self.user_is_on_this_node(activity):
+            logger.info('user is not on this node, will publish on queue for other nodes to try')
+            self.update_recently_delegated_events(activity.id)
+            environ.env.publish(data)
+
         logger.debug('got internally published message: %s' % str(data))
 
         if activity.verb == 'kick':
@@ -42,21 +76,21 @@ class QueueHandler(object):
             except Exception as e:
                 logger.error('could not handle kick: %s' % str(e))
                 logger.exception(traceback.format_exc())
-    
+
         elif activity.verb == 'ban':
             try:
                 self.handle_ban(activity)
             except Exception as e:
                 logger.error('could not handle ban: %s' % str(e))
                 logger.exception(traceback.format_exc())
-    
+
         elif activity.verb == 'remove':
             try:
                 self.handle_remove(data, activity)
             except Exception as e:
                 logger.error('could not emit remove activity to clients: %s' % str(e))
                 logger.exception(traceback.format_exc())
-    
+
         else:
             logger.error('unknown server activity verb "%s"' % activity.verb)
 
