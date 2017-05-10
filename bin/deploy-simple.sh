@@ -2,6 +2,8 @@
 
 echo "starting deployment..."
 
+TAG_NAME=$1
+
 if [[ -z "$DINO_ENVIRONMENT" ]]; then
     echo "error: environment not set, specify using DINO_ENVIRONMENT"
     exit 1
