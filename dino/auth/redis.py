@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+import traceback
 
 from typing import Union
 from zope.interface import implementer
@@ -53,6 +54,16 @@ class AuthRedis(object):
                 continue
             stored_session[key] = val
         return stored_session
+
+    def update_session_for_key(self, user_id: str, session_key: str, session_value: str) -> None:
+        key = RedisKeys.auth_key(user_id)
+        try:
+            self.redis.hset(key, session_key, session_value)
+        except Exception as e:
+            logger.error(
+                    'could not update session for user %s; key "%s", value "%s": %s',
+                    user_id, session_key, session_value, str(e))
+            logger.exception(traceback.format_exc(e))
 
     def authenticate_and_populate_session(self, user_id: str, supplied_token: str) -> (bool, Union[None, str], Union[None, dict]):
         if user_id is None or len(user_id) == 0:

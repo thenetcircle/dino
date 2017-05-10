@@ -12,9 +12,9 @@
 
 from dino import environ
 from dino import utils
+from dino.config import SessionKeys
 
 import logging
-import traceback
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -43,7 +43,26 @@ class OnUpdateUserInfoHooks(object):
             logger.warn('empty object.attachments: %s' % str(orig_data))
             return
 
+        user_id = environ.env.session.get(SessionKeys.user_id.value, activity.actor.id)
+        user_name = environ.env.session.get(SessionKeys.user_name.value, activity.actor.display_name)
+        protected_keys = {
+            SessionKeys.user_id.value,
+            SessionKeys.token.value
+        }
+
         for attachment in activity.object.attachments:
+            if attachment.object_type in protected_keys:
+                logger.warn('user "%s" (%s) tried to change protected key "%s", skipping' % attachment.object_type)
+
+            decoded = utils.b64d(attachment.content)
+            if attachment.object_type in SessionKeys._member_names_:
+                environ.env.session[attachment.object_type] = decoded
+            else:
+                logger.warn(
+                        'key "%s" is not a predefined, not updating session for "%s" (%s), value was "%s"' %
+                        (attachment.object_type, user_name, user_id, decoded))
+
+            environ.env.auth.update_session_for_key(user_id, attachment.object_type, decoded)
             data['object']['attachments'].append({
                 'content': attachment.content,
                 'objectType': attachment.object_type,
