@@ -33,6 +33,7 @@ class SessionKeys(Enum):
     has_webcam = 'has_webcam'
     fake_checked = 'fake_checked'
     token = 'token'
+    is_streaming = 'is_streaming'
 
     requires_session_keys = {
         user_id,
