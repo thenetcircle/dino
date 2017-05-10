@@ -442,6 +442,8 @@ e.g. let other users know this user is currently streaming video, the <code>obje
 }
 </code></pre>
 <p>The <code>content</code> of the attachments needs to be base64 encoded.</p>
+<p>Updates are saved in redis and thus will be included in the user info returned in <a href="./#join"><code>gn_join</code></a> and 
+<a href="./#join"><code>gn_users_in_room</code></a>.</p>
 <p>Responds with event name <code>gn_update_user_info</code>. When the update is sent to other users it will be received as an event
 with name <a href="../events/#user-info-updated"><code>gn_user_info_updated</code></a>.</p>
 <p>Response data if successful:</p>
@@ -998,12 +1000,32 @@ separated value), plus any global roles. Possible roles are:</p>
                         {
                             "id": "&lt;user ID of a user in the room&gt;",
                             "displayName": "&lt;user name of a user in the room&gt;",
-                            "content": "moderator,owner"
+                            "content": "moderator,owner",
+                            "attachments": [
+                                {
+                                    "content": "NDA=",
+                                    "objectType": "age"
+                                },
+                                {
+                                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                                    "objectType": "avatar"
+                                }
+                            ]
                         },
                         {
                             "id": "&lt;user ID of a user in the room&gt;",
                             "displayName": "&lt;user name of a user in the room&gt;",
-                            "content": "superuser"
+                            "content": "superuser",
+                            "attachments": [
+                                {
+                                    "content": "NDA=",
+                                    "objectType": "age"
+                                },
+                                {
+                                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                                    "objectType": "avatar"
+                                }
+                            ]
                         }
                     ]
                 },
@@ -1016,6 +1038,7 @@ separated value), plus any global roles. Possible roles are:</p>
     }
 }
 </code></pre>
+<p>Attachments for each user contains the user data, e.g. user name, age, city etc.</p>
               
             </div>
           </div>
