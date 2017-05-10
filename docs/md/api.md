@@ -254,6 +254,9 @@ e.g. let other users know this user is currently streaming video, the `objectTyp
 
 The `content` of the attachments needs to be base64 encoded.
 
+Updates are saved in redis and thus will be included in the user info returned in [`gn_join`](api.md#join) and 
+[`gn_users_in_room`](api.md#join).
+
 Responds with event name `gn_update_user_info`. When the update is sent to other users it will be received as an event
 with name [`gn_user_info_updated`](events.md#user-info-updated).
 
@@ -898,12 +901,32 @@ Response data if successful:
                             {
                                 "id": "<user ID of a user in the room>",
                                 "displayName": "<user name of a user in the room>",
-                                "content": "moderator,owner"
+                                "content": "moderator,owner",
+                                "attachments": [
+                                    {
+                                        "content": "NDA=",
+                                        "objectType": "age"
+                                    },
+                                    {
+                                        "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                                        "objectType": "avatar"
+                                    }
+                                ]
                             },
                             {
                                 "id": "<user ID of a user in the room>",
                                 "displayName": "<user name of a user in the room>",
-                                "content": "superuser"
+                                "content": "superuser",
+                                "attachments": [
+                                    {
+                                        "content": "NDA=",
+                                        "objectType": "age"
+                                    },
+                                    {
+                                        "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                                        "objectType": "avatar"
+                                    }
+                                ]
                             }
                         ]
                     },
@@ -915,3 +938,5 @@ Response data if successful:
             }
         }
     }
+
+Attachments for each user contains the user data, e.g. user name, age, city etc.
