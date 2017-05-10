@@ -770,7 +770,7 @@ Response with the event name "gn_remove_room".
 Request contains:
 
     {
-        "verb": "join",
+        "verb": "remove",
         "target": {
             "id": "<room ID>"
         }
