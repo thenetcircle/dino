@@ -28,19 +28,19 @@ class OnKickHooks(object):
         kick_activity = {
             'actor': {
                 'id': activity.actor.id,
-                'displayName': activity.actor.summary
+                'displayName': activity.actor.display_name
             },
             'verb': 'kick',
             'object': {
                 'id': activity.object.id,
-                'displayName': activity.object.summary
+                'displayName': activity.object.display_name
             },
             'target': {
                 'url': namespace
             }
         }
 
-        # when banning globally, not target room is specified
+        # when banning globally, no target room is specified
         if activity.target is not None:
             kick_activity['target']['id'] = activity.target.id
             kick_activity['target']['displayName'] = activity.target.display_name

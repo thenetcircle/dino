@@ -76,6 +76,8 @@ class QueueHandler(object):
                 'gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
         self.send_kick_event_to_external_queue(activity)
 
+        logger.info('about to kick user %s, all users in room: %s' % (user_sid, str(_users)))
+
         if user_sid in _users:
             try:
                 self.socketio.server.leave_room(user_sid, room_id, '/ws')
@@ -218,8 +220,8 @@ class QueueHandler(object):
                     self.kick(activity_json, activity, room_key, kicked_id, kicked_sid, namespace)
             else:
                 self.kick(activity_json, activity, room_id, kicked_id, kicked_sid, namespace)
-        except KeyError:
-            pass
+        except KeyError as e:
+            logger.error('could not kick user %s: %s' % (kicked_id, str(e)))
 
     def handle_ban(self, activity: Activity):
         banner_id = activity.actor.id
