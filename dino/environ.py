@@ -683,8 +683,9 @@ def init_cache_service(gn_env: GNEnvironment):
 @timeit(logger, 'init pub/sub service')
 def init_pub_sub(gn_env: GNEnvironment) -> None:
     def publish(message, external=None):
-        if not external:
+        if external is None or not external:
             external = False
+        logger.info('about to publish (external? %s): %s' % (external, str(message)))
 
         try:
             start = time.time()
@@ -711,6 +712,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                 for current_try in range(n_tries):
                     try:
                         producer.publish(message, exchange=exchange, declare=[exchange, queue])
+                        logger.debug('publish successful')
                         failed = False
                         break
                     except Exception as pe:
