@@ -8,7 +8,8 @@ if [[ -z "$DINO_ENVIRONMENT" ]]; then
 fi
 
 if [[ -z "$DINO_HOME" ]]; then
-    DINO_HOME=/home/dino/dino/
+    echo "error: set DINO_HOME first"
+    exit 1
 fi
 
 if [[ ! -d "$DINO_HOME" ]]; then
@@ -28,7 +29,7 @@ if [ -z "$VIRTUAL_ENV" ]; then
     fi
 fi
 
-if [ -f .dino.yaml ]; then
+if [ ! -f .dino.yaml ]; then
     echo "error: you need to copy your dino.yaml settings to '.dino.yaml' before upgrading dino"
     exit 1
 fi
