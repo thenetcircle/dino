@@ -346,7 +346,8 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
         },
         'target': {
             'id': activity.target.id,
-            'displayName': activity.target.display_name
+            'displayName': activity.target.display_name,
+            'objectType': 'temporary'  # all rooms created using the api are temporary
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'create',
@@ -591,11 +592,16 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     for room_id, room_details in rooms.items():
         room_name = room_details['name']
         nr_users_in_room = room_details['users']
+
+        object_type = 'static'
+        if 'ephemeral' in room_details and room_details['ephemeral']:
+            object_type = 'temporary'
+
         response['object']['attachments'].append({
             'id': room_id,
             'displayName': b64e(room_name),
             'summary': nr_users_in_room,
-            'ephemeral': room_details['ephemeral'],
+            'objectType': object_type,
             'content': room_details['roles']
         })
 
