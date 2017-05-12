@@ -60,17 +60,61 @@ class QueueHandler(object):
 
         return user_sid in users
 
-    def update_recently_delegated_events(self, activity_id: str):
+    def create_ban_even_if_not_on_this_node(self, activity: Activity) -> None:
+        """
+        since bans can be created through the rest api we need to create the ban even though the user might not be on
+        this node, since one reason could be that he's not even connected. So make sure the ban is created first.
+        """
+        banned_id = activity.object.id
+        target_type = activity.target.object_type
+
+        if target_type == 'room':
+            target_id = activity.target.id
+        elif target_type == 'channel':
+            target_id = activity.target.id
+        else:
+            target_type = 'global'
+            target_id = ''
+
+        reason = None
+        if hasattr(activity.object, 'content'):
+            reason = activity.object.content
+
+        try:
+            ban_duration = activity.object.summary
+            ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
+            banner_id = activity.actor.id
+
+            self.send_ban_event_to_external_queue(activity, target_type)
+
+            if target_type == 'global':
+                logger.info('banning user %s globally for %s' % (banned_id, ban_duration))
+                self.env.db.ban_user_global(banned_id, ban_timestamp, ban_duration, reason, banner_id)
+            elif target_type == 'channel':
+                logger.info('banning user %s in channel %s for %s' % (banned_id, target_id, ban_duration))
+                self.env.db.ban_user_channel(banned_id, ban_timestamp, ban_duration, target_id, reason, banner_id)
+            else:
+                logger.info('banning user %s in room %s for %s' % (banned_id, target_id, ban_duration))
+                self.env.db.ban_user_room(banned_id, ban_timestamp, ban_duration, target_id, reason, banner_id)
+        except KeyError as ke:
+            logger.error('could not ban: %s' % str(ke))
+            logger.exception(traceback.format_exc())
+
+    def update_recently_delegated_events(self, activity_id: str) -> None:
         self.recently_delegated_events.append(activity_id)
         if len(self.recently_delegated_events) > 100:
             del self.recently_delegated_events[0]
 
-    def handle_server_activity(self, data: dict, activity: Activity):
+    def handle_server_activity(self, data: dict, activity: Activity) -> None:
         if activity.id in self.recently_delegated_events:
             logger.info('ignoring event with id %s sine we delegated from this node' % activity.id)
             return
 
         logger.debug('got internally published message: %s' % str(data))
+
+        # do this first, since ban might occur even if user is not connected
+        if activity.verb == 'ban':
+            self.create_ban_even_if_not_on_this_node(activity)
 
         if not self.user_is_on_this_node(activity):
             logger.info('user is not on this node, will publish on queue for other nodes to try')
@@ -305,29 +349,17 @@ class QueueHandler(object):
                 banner_id, banner_name, banned_id, banned_name, target_id, target_name, reason)
 
         try:
-            ban_duration = activity.object.summary
-            ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
-            banner_id = activity_json['actor']['id']
-
             if target_id is None or target_id == '':
                 rooms_for_user = self.env.db.rooms_for_user(banned_id)
-                self.send_ban_event_to_external_queue(activity, 'global')
-                self.env.db.ban_user_global(banned_id, ban_timestamp, ban_duration, reason, banner_id)
                 self.ban_globally(activity_json, activity, rooms_for_user, banned_id, banned_sid, namespace)
-
                 self.env.db.set_user_offline(banned_id)
                 disconnect_activity = utils.activity_for_disconnect(banned_id, banned_name)
                 self.env.publish(disconnect_activity, external=True)
 
             elif target_type == 'channel':
                 rooms_in_channel = self.env.db.rooms_for_channel(target_id)
-                self.send_ban_event_to_external_queue(activity, 'channel')
-                self.env.db.ban_user_channel(banned_id, ban_timestamp, ban_duration, target_id, reason, banner_id)
                 self.ban_channel(activity_json, activity, rooms_in_channel, target_id, banned_id, banned_sid, namespace)
-
             else:
-                self.send_ban_event_to_external_queue(activity, 'room')
-                self.env.db.ban_user_room(banned_id, ban_timestamp, ban_duration, target_id, reason, banner_id)
                 self.ban_room(activity_json, activity, target_id, banned_id, banned_sid, namespace)
 
             ban_activity = self.get_ban_activity(activity, target_type)

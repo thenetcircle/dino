@@ -15,6 +15,7 @@ from dino.environ import GNEnvironment
 from dino import utils
 from dino.config import ConfigKeys
 from dino.exceptions import UnknownBanTypeException
+from dino.exceptions import NoSuchUserException
 
 import traceback
 import logging
@@ -104,7 +105,7 @@ class UserManager(BaseManager):
 
         self.env.publish(kick_activity)
 
-    def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str, reason: str=None, banner_id: str=None) -> None:
+    def ban_user(self, user_id: str, target_id: str, duration: str, target_type: str, reason: str=None, banner_id: str=None, user_name: str=None) -> None:
         target_name = None
 
         if target_type == 'global':
@@ -116,6 +117,13 @@ class UserManager(BaseManager):
         else:
             raise UnknownBanTypeException(target_type)
 
+        try:
+            user_name = utils.b64e(self.env.db.get_user_name(user_id))
+        except NoSuchUserException:
+            logger.info('when processing ban request: user %s does not exist, will create' % user_id)
+            user_name = user_name or user_id
+            self.env.db.create_user(user_id, user_name)
+
         ban_activity = {
             'actor': {
                 'id': '0',
@@ -124,7 +132,7 @@ class UserManager(BaseManager):
             'verb': 'ban',
             'object': {
                 'id': user_id,
-                'displayName': utils.b64e(self.env.db.get_user_name(user_id)),
+                'displayName': user_name,
                 'summary': duration,
                 'updated': utils.ban_duration_to_datetime(duration).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             },

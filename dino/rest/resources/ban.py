@@ -82,7 +82,15 @@ class BanResource(BaseResource):
             banner_id = ban_info.get('admin_id')
 
             try:
-                self.user_manager.ban_user(user_id, target_id, duration, target_type, reason, banner_id)
+                user_name = ban_info['name']
+            except KeyError:
+                logger.warn('no name specified in ban info, if we have to create the user it will get the ID as name')
+                user_name = user_id
+
+            try:
+                self.user_manager.ban_user(
+                        user_id, target_id, duration, target_type,
+                        reason=reason, banner_id=banner_id, user_name=user_name)
                 output[user_id] = {
                     'status': 'OK'
                 }
