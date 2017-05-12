@@ -39,19 +39,26 @@ class QueueHandler(object):
         room_id = activity.target.id
         namespace = activity.target.url
         user_id = activity.object.id
+        user_sid = utils.get_sid_for_user_id(user_id)
         users = list()
 
         try:
+            logger.debug('checking if we have room %s in namespace %s' % (room_id, namespace))
             if room_id in self.socketio.server.manager.rooms[namespace]:
                 users = self.socketio.server.manager.rooms[namespace][room_id]
+                logger.debug('found users for room %s: %s' % (room_id, str(users)))
             else:
                 logger.warning('no room %s for namespace [%s] (or room is empty/removed)' % (room_id, namespace))
+        except KeyError as e:
+            logger.warn('namespace %s does not exist (maybe this is web/rest node?): %s' % (namespace, str(e)))
+            logger.debug('only have namespaces: %s' % str(self.socketio.server.manager.rooms))
+            return False
         except Exception as e:
             logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, room_id, str(e)))
             logger.exception(traceback.format_exc())
-            return
+            return False
 
-        return user_id in users
+        return user_sid in users
 
     def update_recently_delegated_events(self, activity_id: str):
         self.recently_delegated_events.append(activity_id)
@@ -107,8 +114,8 @@ class QueueHandler(object):
             logger.exception(traceback.format_exc())
             return
 
-        self.env.out_of_scope_emit(
-                'gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
+        self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
+        self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=user_id, broadcast=True)
         self.send_kick_event_to_external_queue(activity)
 
         logger.info('about to kick user %s, all users in room: %s' % (user_sid, str(_users)))
@@ -196,7 +203,7 @@ class QueueHandler(object):
         successes, failures = self.try_to_delete_messages(messages)
         elapsed = time.time() - before
         logger.info('finished deleting %s messages (%s/%s successes) for user %s (deletion took %.2fs)' %
-                    (len(messages), successes, failures, user_id, elapsed))
+                    (len(messages), successes, len(messages), user_id, elapsed))
 
     def try_to_delete_messages(self, messages) -> (int, int):
         try:

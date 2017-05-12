@@ -685,12 +685,10 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
     def publish(message, external=None):
         if external is None or not external:
             external = False
-        logger.info('about to publish (external? %s): %s' % (external, str(message)))
 
         try:
             start = time.time()
             if external:
-                logger.debug('publishing external message: %s' % str(message))
                 queue_connection = gn_env.external_queue_connection
                 if queue_connection is None:
                     return
@@ -741,11 +739,11 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
         return
 
     conf = gn_env.config
-    queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='redis://localhost:6379/')
+    queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)
     gn_env.queue_connection = Connection(queue_host)
 
     exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
-    gn_env.exchange = Exchange(exchange, type='direct')
+    gn_env.exchange = Exchange(exchange, type='fanout')
 
     queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default='node_queue')
     gn_env.queue = Queue(queue, gn_env.exchange)
