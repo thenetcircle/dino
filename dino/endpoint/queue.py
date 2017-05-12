@@ -63,12 +63,13 @@ class QueueHandler(object):
             logger.info('ignoring event with id %s sine we delegated from this node' % activity.id)
             return
 
+        logger.debug('got internally published message: %s' % str(data))
+
         if not self.user_is_on_this_node(activity):
             logger.info('user is not on this node, will publish on queue for other nodes to try')
             self.update_recently_delegated_events(activity.id)
             environ.env.publish(data)
-
-        logger.debug('got internally published message: %s' % str(data))
+            return
 
         if activity.verb == 'kick':
             try:
