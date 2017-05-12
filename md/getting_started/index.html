@@ -158,7 +158,7 @@
     {transports:['websocket']}
 );
 </code></pre>
-<p>We'll receive a "connect" event back after successfully connecting. Now we have to send the "login" event to provide the
+<p>We'll receive a <code>connect</code> event back after successfully connecting. Now we have to send the <code>login</code> event to provide the
 server with some extra user information and to do authentication:</p>
 <pre><code>socket.on('connect', function() {
     socket.emit('login', {
@@ -175,8 +175,8 @@ server with some extra user information and to do authentication:</p>
     });
 });
 </code></pre>
-<p>All events sent to the server will get a response with the same name plus a prefix of "gn_". For example, the login 
-event sent above will get the following response, "gn_login", meaning we've successfully authenticated with the server.
+<p>All events sent to the server will get a response with the same name plus a prefix of <code>gn_</code>. For example, the login 
+event sent above will get the following response, <code>gn_login</code>, meaning we've successfully authenticated with the server.
 Now we can start joining rooms, chatting, sending events etc.</p>
 <pre><code>socket.on('gn_login', function(response) {
     socket.emit('list_channels', {
@@ -185,15 +185,15 @@ Now we can start joining rooms, chatting, sending events etc.</p>
 });
 </code></pre>
 <p>The response from the server will be in JSON format. If no data is expected for the events, only a status code will be
-in the response. For example, sending the "join" event to join a room won't return any data, but only the following
+in the response. For example, sending the <code>join</code> event to join a room won't return any data, but only the following
 (if successful):</p>
 <pre><code>{
     "status_code": 200
 }
 </code></pre>
-<p>Failure to execute an event on the server will return code 400:</p>
+<p>Failure to execute an event on the server will return an <a href="../api/#error-codes">error code</a>:</p>
 <pre><code>{
-    "status_code": 400,
+    "status_code": 423,
     "data": "&lt;an error message, always a string&gt;"
 }
 </code></pre>
@@ -203,10 +203,10 @@ in the response. For example, sending the "join" event to join a room won't retu
     "data": "&lt;an error message, always a string&gt;"
 }
 </code></pre>
-<p>For events that contains data in the response, for example when sending the event "list_channels", we expect to get a list
+<p>For events that contains data in the response, for example when sending the event <code>list_channels</code>, we expect to get a list
 of channels in the response. For these events the data part is always a JSON in the ActivityStreams 1.0 format:</p>
 <pre><code>{
-    "status_code": 400,
+    "status_code": 200,
     "data": {       
         "object": {
             "objectType": "channels"
