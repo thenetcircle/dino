@@ -595,6 +595,7 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
             'id': room_id,
             'displayName': b64e(room_name),
             'summary': nr_users_in_room,
+            'ephemeral': room_details['ephemeral'],
             'content': room_details['roles']
         })
 
