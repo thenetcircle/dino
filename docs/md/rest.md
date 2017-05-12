@@ -114,9 +114,14 @@ Request contains info on who to ban where. For banning globally:
             "duration": "24h",
             "reason": "<optional base64 encoded free-text>",
             "admin_id": "<id of user banning (must already exist), or leave empty for default>",
-            "type": "global"
+            "type": "global",
+            "name": "<username, optional>"
         }
     }
+
+The `name` field is optional and is only used if a ban request is received for a user that doesn't exist on the server,
+e.g. if the user never logged in before it will not exist. If the name is not specified and the user has to be created
+before banning, the user ID will be set as the name (later when the user login the real username will overwrite this).
 
 Can also ban multiple users at the same time:
 
@@ -125,7 +130,8 @@ Can also ban multiple users at the same time:
             "duration": "24h",
             "type": "global",
             "reason": "<option reason field, base64 encoded>",
-            "admin_id": "<optional id of admin user who is banning>"
+            "admin_id": "<optional id of admin user who is banning>",
+            "name": "<username, optional>"
         },
         "<user id>": {
             "duration": "10m",
