@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Dino Admin Interface</title>
+        <title>Dino {{ environment }} {{ version }}</title>
 
         <link rel="stylesheet" type="text/css" media="all" href="/static/jquery.dataTables.min.css"/>
         <link rel="stylesheet" type="text/css" media="all" href="/static/datatables.min.css"/>
@@ -25,7 +25,7 @@
         <link rel="stylesheet" type="text/css" href="/static/custom/css/style.css" />
     </head>
     <body>
-        <h1>Dino Admin Interface</h1>
+        <h1>Dino Admin Interface <small>{{ environment }} {{ version }}</small></h1>
         {% from "forms/_buttons.html" import render_remove %}
         {% from "forms/_buttons.html" import render_rename %}
         {% from "forms/_buttons.html" import render_edit %}

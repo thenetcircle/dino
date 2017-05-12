@@ -46,5 +46,6 @@ setup(
         'psycogreen',
         'statsd',
         'pymitter',
-        'psutil'
+        'psutil',
+        'gitpython'
     ])

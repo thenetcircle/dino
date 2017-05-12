@@ -22,6 +22,8 @@ from uuid import uuid4 as uuid
 import logging
 import traceback
 
+from git.cmd import Git
+
 from dino import environ
 from dino.config import ConfigKeys
 from dino.config import ApiTargets
@@ -56,12 +58,21 @@ from dino.admin.forms import AddOwnerForm
 from dino.admin.forms import AddAdminForm
 from dino.admin.forms import BanForm
 
+import os
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 acl_config = environ.env.config.get(ConfigKeys.ACL)
+
+home_dir = os.environ.get('DINO_HOME', default=None)
+environment = os.environ.get('DINO_ENVIRONMENT', default=None)
+
+if home_dir is None:
+    home_dir = '.'
+tag_name = Git(home_dir).describe()
 
 
 def is_blank(s: str):
@@ -70,7 +81,10 @@ def is_blank(s: str):
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('home.html')
+    return render_template(
+            'home.html',
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/channels', methods=['GET'])
@@ -79,7 +93,9 @@ def channels():
     return render_template(
             'channels.html',
             form=form,
-            channels=channel_manager.get_channels())
+            channels=channel_manager.get_channels(),
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/acl/<target>/action/<api_action>/types', methods=['GET'])
@@ -258,7 +274,9 @@ def banned():
             form=ban_form,
             globally=global_bans,
             channels=channel_bans,
-            rooms=room_bans)
+            rooms=room_bans,
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/users', methods=['GET'])
@@ -267,7 +285,9 @@ def users():
     return render_template(
             'users.html',
             form=form,
-            superusers=user_manager.get_super_users())
+            superusers=user_manager.get_super_users(),
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/user/<user_uuid>/set/superuser', methods=['GET'])
@@ -291,13 +311,22 @@ def search_users():
 
 @app.route('/user/<user_uuid>', methods=['GET'])
 def user(user_uuid: str):
-    return render_template('user.html', user=user_manager.get_user(user_uuid))
+    return render_template(
+            'user.html',
+            user=user_manager.get_user(user_uuid),
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/history', methods=['GET', 'POST'])
 def history():
     form = SearchHistoryForm(request.form)
-    return render_template('history.html', form=form, messages=list())
+    return render_template(
+            'history.html',
+            form=form,
+            messages=list(),
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/history/<message_id>/delete', methods=['PUT'])
@@ -327,14 +356,24 @@ def search_history():
         logger.exception(traceback.format_exc())
         msgs = list()
 
-    return render_template('history.html', form=form, messages=msgs)
+    return render_template(
+            'history.html',
+            form=form,
+            messages=msgs,
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/blacklist', methods=['GET', 'POST'])
 def blacklist():
     form = AddBlackListForm()
     words = blacklist_manager.get_black_list()
-    return render_template('blacklist.html', form=form, words=words)
+    return render_template(
+            'blacklist.html',
+            form=form,
+            words=words,
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/blacklist/add', methods=['POST'])
@@ -382,7 +421,9 @@ def rooms_for_channel(channel_uuid):
             acls=acls_decoded,
             channel_uuid=channel_uuid,
             channel_name=channel_manager.name_for_uuid(channel_uuid),
-            rooms=room_manager.get_rooms(channel_uuid))
+            rooms=room_manager.get_rooms(channel_uuid),
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/channel/<channel_uuid>/room/<room_uuid>', methods=['GET'])
@@ -409,7 +450,9 @@ def users_for_room(channel_uuid, room_uuid):
             room_name=room_manager.name_for_uuid(room_uuid),
             owners=room_manager.get_owners(room_uuid),
             moderators=room_manager.get_moderators(room_uuid),
-            users=user_manager.get_users_for_room(room_uuid))
+            users=user_manager.get_users_for_room(room_uuid),
+            environment=environment,
+            version=tag_name)
 
 
 @app.route('/channel/<channel_uuid>/rename', methods=['PUT'])
