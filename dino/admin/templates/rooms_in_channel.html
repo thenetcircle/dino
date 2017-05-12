@@ -178,6 +178,9 @@
     <thead>
         <tr>
             <td>
+                Sort order
+            </td>
+            <td>
                 Name
             </td>
             <td>
@@ -191,7 +194,12 @@
         {% for room in rooms %}
         <tr>
             <td>
+                {{ room.sort }}
+                {{ render_edit("/channel/" + channel_uuid + "/room/" + room.uuid + "/sort") }}
+            </td>
+            <td>
                 <a class="rooms-link" href="/channel/{{ channel_uuid }}/room/{{ room.uuid }}">{{ room.name }}</a>
+                {{ render_rename("/channel/" + channel_uuid + "/room/" + room.uuid + "/rename") }}
             </td>
             <td>
                 <small>{{ room.uuid }}</small>

@@ -369,6 +369,10 @@ class DatabaseRedis(object):
             clean[str(channel_id, 'utf-8')] = (str(channel_name, 'utf-8'), 1)
         return clean
 
+    def update_room_sort_order(self, room_uuid: str, sort_order: int) -> None:
+        # not supported in redis db
+        pass
+
     def update_channel_sort_order(self, channel_uuid: str, sort: int) -> None:
         # not supported in redis db
         pass
@@ -384,6 +388,7 @@ class DatabaseRedis(object):
             room_id = str(room_id, 'utf-8')
             clean[room_id] = {
                 'name': str(room_name, 'utf-8'),
+                'sort_order': 1,
                 'ephemeral': self.is_room_ephemeral(room_id),
                 'users': len(self.users_in_room(room_id))
             }

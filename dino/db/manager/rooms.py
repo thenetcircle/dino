@@ -38,11 +38,26 @@ class RoomManager(BaseManager):
             room_name = room_details['name']
             output.append({
                 'uuid': room_id,
+                'sort': room_details['sort_order'],
                 'is_default': room_id in default_rooms,
                 'is_ephemeral': room_details['ephemeral'],
                 'name': room_name
             })
         return output
+
+    def update_sort(self, room_uuid: str, order: str):
+        try:
+            order = int(order)
+        except Exception as e:
+            logger.error('could not parser order "%s" as int: %s' % (order, str(e)))
+            return 'could not parser order "%s" as int: %s' % (order, str(e))
+
+        try:
+            self.env.db.update_room_sort_order(room_uuid, order)
+        except Exception as e:
+            logger.error('could not update room %s with order "%s" because: %s' %
+                         (room_uuid, order, str(e)))
+        return None
 
     def set_ephemeral_room(self, room_id: str) -> None:
         self.env.db.set_ephemeral_room(room_id)

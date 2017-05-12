@@ -798,6 +798,15 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def update_room_sort_order(self, room_uuid: str, sort: int) -> None:
+        """
+        update the sort order of a room
+
+        :param room_uuid: uuid of the room
+        :param sort: integer value to be sorted by (ascending)
+        :return: nothing
+        """
+
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         """
         join a room

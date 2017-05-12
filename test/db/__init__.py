@@ -341,7 +341,7 @@ class BaseDatabaseTest(BaseTest):
         channels = self._get_channels()
         self.assertEqual(1, len(channels))
         self.assertTrue(BaseTest.CHANNEL_ID in channels.keys())
-        self.assertTrue(BaseTest.CHANNEL_NAME in channels.values())
+        self.assertTrue(any((BaseTest.CHANNEL_NAME == channel_info[0] for channel_info in channels.values())))
 
     def _test_rooms_for_channel_before_create_channel(self):
         self.assertEqual(0, len(self._rooms_for_channel()))

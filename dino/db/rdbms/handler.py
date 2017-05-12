@@ -424,6 +424,7 @@ class DatabaseRdbms(object):
 
             rooms[room.uuid] = {
                 'name': room.name,
+                'sort_order': room.sort_order,
                 'ephemeral': room.ephemeral,
                 'users': len(visible_users)
             }
@@ -737,8 +738,25 @@ class DatabaseRdbms(object):
             channel.sort_order = sort_order
             session.commit()
 
-        logger.info('sort order: %s' % str(sort_order))
+        logger.info('new sort order %s for channel %s' % (str(sort_order), channel_uuid))
         self.get_channel_name(channel_uuid)
+        update()
+
+    def update_room_sort_order(self, room_uuid: str, sort_order: int) -> None:
+        @with_session
+        def update(session=None):
+            room = session.query(Rooms)\
+                .filter(Rooms.uuid == room_uuid)\
+                .first()
+
+            if room is None:
+                return
+
+            room.sort_order = sort_order
+            session.commit()
+
+        logger.info('new sort order %s for room %s' % (str(sort_order), room_uuid))
+        self.get_room_name(room_uuid)
         update()
 
     def remove_channel(self, channel_id: str) -> None:
