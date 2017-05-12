@@ -258,7 +258,7 @@ class IDatabase(Interface):
         :return: true if in room, false otherwsie
         """
 
-    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name) -> None:
+    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name, ephemeral: bool=False, sort_order: int=999) -> None:
         """
         create a new room (user_id will become the owner of the the new room)
 

@@ -685,7 +685,7 @@ class DatabaseRdbms(object):
 
         _create_channel()
 
-    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True) -> None:
+    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True, sort_order: int=999) -> None:
         @with_session
         def _create_room(session=None):
             channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
@@ -696,6 +696,7 @@ class DatabaseRdbms(object):
             room.uuid = room_id
             room.name = room_name
             room.channel = channel
+            room.sort_order = sort_order
             room.created = datetime.utcnow()
             room.ephemeral = ephemeral
             room.admin = False

@@ -1070,7 +1070,7 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.channels(), channel_id, channel_name)
         self.set_owner_channel(channel_id, user_id)
 
-    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True) -> None:
+    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True, sort_order: int=False) -> None:
         if self.env.cache.get_channel_exists(channel_id) is None:
             if not self.channel_exists(channel_id):
                 raise NoSuchChannelException(channel_id)
