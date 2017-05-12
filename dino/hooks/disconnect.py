@@ -72,6 +72,12 @@ class OnDisconnectHooks(object):
             logger.exception(traceback.format_exc())
 
     @staticmethod
+    def reset_temp_session_values(arg: tuple):
+        _, activity = arg
+        for key in SessionKeys.temporary_keys.value:
+            environ.env.auth.update_session_for_key(activity.actor.id, key, False)
+
+    @staticmethod
     def set_user_offline(arg: tuple):
         data, activity = arg
         try:
@@ -109,6 +115,11 @@ def _on_disconnect_leave_all_public_rooms_and_emit_leave_events(arg: tuple) -> N
 @environ.env.observer.on('on_disconnect')
 def _on_disconnect_set_user_offline(arg: tuple) -> None:
     OnDisconnectHooks.set_user_offline(arg)
+
+
+@environ.env.observer.on('on_disconnect')
+def _on_disconnect_reset_temp_session_values(arg: tuple) -> None:
+    OnDisconnectHooks.reset_temp_session_values(arg)
 
 
 @environ.env.observer.on('on_disconnect')

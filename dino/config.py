@@ -35,6 +35,10 @@ class SessionKeys(Enum):
     token = 'token'
     is_streaming = 'is_streaming'
 
+    temporary_keys = {
+        is_streaming
+    }
+
     requires_session_keys = {
         user_id,
         user_name,

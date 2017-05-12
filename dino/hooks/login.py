@@ -70,6 +70,12 @@ class OnLoginHooks(object):
         environ.env.publish(activity_json, external=True)
 
     @staticmethod
+    def reset_temp_session_values(arg: tuple):
+        _, activity = arg
+        for key in SessionKeys.temporary_keys.value:
+            environ.env.auth.update_session_for_key(activity.actor.id, key, False)
+
+    @staticmethod
     def set_user_online_if_not_previously_invisible(arg: tuple) -> None:
         data, activity = arg
         user_id = activity.actor.id
@@ -85,6 +91,11 @@ def _on_login_set_user_online(arg: tuple) -> None:
 @environ.env.observer.on('on_login')
 def _on_login_update_session(arg: tuple) -> None:
     OnLoginHooks.update_session_and_join_private_room(arg)
+
+
+@environ.env.observer.on('on_login')
+def _on_login_reset_temp_session_values(arg: tuple) -> None:
+    OnLoginHooks.reset_temp_session_values(arg)
 
 
 @environ.env.observer.on('on_login')
