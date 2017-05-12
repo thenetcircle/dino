@@ -60,7 +60,7 @@ Response would be something similar to the following:
 
 ## POST /set-admin
 
-Set a user as a global super user.
+Set a user as a global moderator.
 
 Request contains user ID and the user's name (in case the user doesn't exist):
 
@@ -84,7 +84,7 @@ Or if any errors:
 
 ## POST /remove-admin
 
-Remove global super user status for a user.
+Remove global moderator status for a user.
 
 Request contains the user's ID only:
 
@@ -248,7 +248,8 @@ Response would be something similar to the following:
                     ]
                 },
                 "global": [
-                    "superuser"
+                    "superuser",
+                    "globalmod"
                 ]
             },
             "5678": {
@@ -262,11 +263,15 @@ Response would be something similar to the following:
 
 Possible roles are:
 
-* global superuser
-* channel owner
-* channel admin
-* room owner
-* room moderator
+* global superuser (superuser)
+* global moderator (globalmod)
+* channel owner (owner)
+* channel admin (admin)
+* room owner (owner)
+* room moderator (moderator)
+
+The only difference between global superusers and global moderators is that global superusers can also remove static 
+rooms.
 
 ## GET /rooms-for-users
 

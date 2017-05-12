@@ -37,6 +37,7 @@ class FakeDb(object):
     _admins = dict()
     _super_users = set()
     _channel_owners = dict()
+    _global_moderators = dict()
 
     _bans = {
         'global': '',
@@ -74,6 +75,9 @@ class FakeDb(object):
 
     def is_super_user(self, user_id):
         return user_id in FakeDb._super_users
+
+    def is_global_moderator(self, user_id):
+        return user_id in FakeDb._global_moderators
 
     def is_moderator(self, room_id, user_id):
         return room_id in FakeDb._moderators and user_id in FakeDb._moderators[room_id]

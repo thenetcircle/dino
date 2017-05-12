@@ -559,7 +559,15 @@ class IDatabase(Interface):
         check if a user is a moderator of a room
 
         :param room_id: uuid of the room
-        :param user_id: uuid of the user
+        :param user_id: id of the user
+        :return: true or false
+        """
+
+    def is_global_moderator(self, user_id: str) -> bool:
+        """
+        check if a user is a global moderator
+
+        :param user_id: the id of the user
         :return: true or false
         """
 
@@ -612,6 +620,14 @@ class IDatabase(Interface):
         remove the moderator role from a user for a room
 
         :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: nothing
+        """
+
+    def remove_global_moderator(self, user_id: str) -> None:
+        """
+        remove the global moderator status for a user
+
         :param user_id: the id of the user
         :return: nothing
         """
@@ -720,6 +736,14 @@ class IDatabase(Interface):
 
         :param room_id: the uuid of the room
         :param user_id: the uuid of the user
+        :return: nothing
+        """
+
+    def set_global_moderator(self, user_id: str) -> None:
+        """
+        set a user as a global moderator
+
+        :param user_id: the id of the user
         :return: nothing
         """
 

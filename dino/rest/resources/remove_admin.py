@@ -49,11 +49,11 @@ class RemoveAdminResource(BaseResource):
 
         user_id = json.get('id')
         try:
-            environ.env.db.remove_super_user(user_id)
+            environ.env.db.remove_global_moderator(user_id)
         except Exception as e:
-            logger.error('could not remove super user with id "%s": %s' % (str(user_id), str(e)))
+            logger.error('could not remove global moderator with id "%s": %s' % (str(user_id), str(e)))
             logger.exception(traceback.format_exc())
-            raise RuntimeError('could not remove super user with id "%s": %s' % (str(user_id), str(e)))
+            raise RuntimeError('could not remove global moderator with id "%s": %s' % (str(user_id), str(e)))
 
     def validate_json(self):
         try:

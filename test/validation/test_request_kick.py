@@ -40,6 +40,7 @@ class FakeDb(object):
     _super_users = set()
     _channel_owners = dict()
     _room_names = dict()
+    _global_moderators = dict()
 
     _ban_status = {
         'global': '',
@@ -83,6 +84,9 @@ class FakeDb(object):
 
     def is_moderator(self, room_id, user_id):
         return room_id in FakeDb._moderators and user_id in FakeDb._moderators[room_id]
+
+    def is_global_moderator(self, user_id):
+        return user_id in FakeDb._global_moderators
 
     def channel_for_room(self, room_id):
         if room_id not in FakeDb._channel_for_room:

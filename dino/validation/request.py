@@ -150,6 +150,10 @@ class RequestValidator(BaseValidator):
             return True, None, None
         if utils.is_super_user(user_id):
             return True, None, None
+        if utils.is_global_moderator(user_id) and utils.is_room_ephemeral(room_id):
+            return True, None, None
+        if utils.is_moderator(room_id, user_id) and utils.is_room_ephemeral(room_id):
+            return True, None, None
 
         channel_id = utils.get_channel_for_room(room_id)
         if utils.is_admin(channel_id, user_id):
@@ -222,6 +226,9 @@ class RequestValidator(BaseValidator):
         if not is_global_ban and not utils.room_exists(channel_id, room_id):
             return False, ECodes.NO_SUCH_ROOM, 'no room with id "%s" exists' % room_id
 
+        if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
+            return True, None, None
+
         if not is_global_ban:
             if not utils.is_owner(room_id, user_id):
                 return False, ECodes.NOT_ALLOWED, 'only owners can ban'
@@ -266,7 +273,7 @@ class RequestValidator(BaseValidator):
                 if channel_id is not None and utils.is_owner_channel(channel_id, _user_id):
                     return True
 
-            if utils.is_super_user(_user_id):
+            if utils.is_super_user(_user_id) or utils.is_global_moderator(_user_id):
                 return True
             return False
 
@@ -417,7 +424,7 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def _can_be_invisible(self, user_id: str):
-        if utils.is_super_user(user_id):
+        if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             return True
         return False
 
@@ -470,6 +477,9 @@ class RequestValidator(BaseValidator):
 
         if user_id is None or user_id.strip() == '':
             return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'got blank user id, can not kick'
+
+        if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
+            return True, None, None
 
         channel_id = utils.get_channel_for_room(room_id)
         channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.KICK)

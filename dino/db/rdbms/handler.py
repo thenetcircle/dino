@@ -1015,6 +1015,9 @@ class DatabaseRdbms(object):
     def is_moderator(self, room_id: str, user_id: str) -> bool:
         return self._room_has_role_for_user(RoleKeys.MODERATOR, room_id, user_id)
 
+    def is_global_moderator(self, user_id: str) -> bool:
+        return self._has_global_role(user_id, RoleKeys.GLOBAL_MODERATOR)
+
     def is_admin(self, channel_id: str, user_id: str) -> bool:
         return self._channel_has_role_for_user(RoleKeys.ADMIN, channel_id, user_id)
 
@@ -1030,6 +1033,9 @@ class DatabaseRdbms(object):
     def set_moderator(self, room_id: str, user_id: str) -> None:
         self._set_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
 
+    def set_global_moderator(self, user_id: str) -> None:
+        self._add_global_role(user_id, RoleKeys.GLOBAL_MODERATOR)
+
     def set_owner(self, room_id: str, user_id: str) -> None:
         self._set_role_on_room_for_user(RoleKeys.OWNER, room_id, user_id)
 
@@ -1044,6 +1050,9 @@ class DatabaseRdbms(object):
 
     def remove_moderator(self, room_id: str, user_id: str) -> None:
         self._remove_role_on_room_for_user(RoleKeys.MODERATOR, room_id, user_id)
+
+    def remove_global_moderator(self, user_id: str) -> None:
+        self._remove_global_role(user_id, RoleKeys.GLOBAL_MODERATOR)
 
     def remove_owner(self, room_id: str, user_id: str) -> None:
         self._remove_role_on_room_for_user(RoleKeys.OWNER, room_id, user_id)

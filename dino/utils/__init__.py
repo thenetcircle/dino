@@ -854,12 +854,20 @@ def is_owner_channel(channel_id: str, user_id: str) -> bool:
     return environ.env.db.is_owner_channel(channel_id, user_id)
 
 
+def is_global_moderator(user_id: str) -> bool:
+    return environ.env.db.is_global_moderator(user_id)
+
+
 def is_moderator(room_id: str, user_id: str) -> bool:
     return environ.env.db.is_moderator(room_id, user_id)
 
 
 def is_admin(channel_id: str, user_id: str) -> bool:
     return environ.env.db.is_admin(channel_id, user_id)
+
+
+def is_room_ephemeral(room_id: str) -> bool:
+    return environ.env.db.is_room_ephemeral(room_id)
 
 
 def get_users_in_room(room_id: str, user_id: str=None) -> dict:
@@ -990,6 +998,8 @@ def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
     if is_admin(channel_id, user_id):
         return True
     if is_super_user(user_id):
+        return True
+    if is_global_moderator(user_id):
         return True
 
     return False

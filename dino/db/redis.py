@@ -298,9 +298,6 @@ class DatabaseRedis(object):
     def set_super_user(self, user_id: str) -> None:
         self._add_global_role(user_id, RoleKeys.SUPER_USER)
 
-    def remove_super_user(self, user_id: str) -> None:
-        self._remove_global_role(user_id, RoleKeys.SUPER_USER)
-
     def is_super_user(self, user_id: str) -> bool:
         return self._has_global_role(user_id, RoleKeys.SUPER_USER)
 
@@ -309,6 +306,9 @@ class DatabaseRedis(object):
 
     def is_moderator(self, room_id: str, user_id: str) -> bool:
         return self._has_role_in_room(RoleKeys.MODERATOR, room_id, user_id)
+
+    def is_global_moderator(self, user_id: str) -> bool:
+        return self._has_global_role(RoleKeys.GLOBAL_MODERATOR, user_id)
 
     def is_owner(self, room_id: str, user_id: str) -> bool:
         return self._has_role_in_room(RoleKeys.OWNER, room_id, user_id)
@@ -323,6 +323,9 @@ class DatabaseRedis(object):
 
     def set_moderator(self, room_id: str, user_id: str):
         self._add_room_role(RoleKeys.MODERATOR, room_id, user_id)
+
+    def set_global_moderator(self, room_id: str, user_id: str):
+        self._add_global_role(user_id, RoleKeys.GLOBAL_MODERATOR)
 
     def set_owner(self, room_id: str, user_id: str):
         self._add_room_role(RoleKeys.OWNER, room_id, user_id)
@@ -345,6 +348,12 @@ class DatabaseRedis(object):
         if not self.channel_for_room(room_id):
             raise NoChannelFoundException(room_id)
         self._remove_room_role(RoleKeys.MODERATOR, room_id, user_id)
+
+    def remove_super_user(self, user_id: str) -> None:
+        self._remove_global_role(user_id, RoleKeys.SUPER_USER)
+
+    def remove_global_moderator(self, user_id: str) -> None:
+        self._remove_global_role(user_id, RoleKeys.GLOBAL_MODERATOR)
 
     def remove_owner(self, room_id: str, user_id: str) -> None:
         if not self.channel_for_room(room_id):

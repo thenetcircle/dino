@@ -110,6 +110,7 @@ class RoleKeys(object):
     MODERATOR = 'moderator'
     ADMIN = 'admin'
     SUPER_USER = 'superuser'
+    GLOBAL_MODERATOR = 'globalmod'
 
 
 class UserKeys(object):

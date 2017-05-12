@@ -99,7 +99,7 @@ Response data if successful:
                     },
                     {
                         "objectType": "global_roles",
-                        "content": "superuser"
+                        "content": "superuser,globalmod"
                     }
                 ]
             },
@@ -113,11 +113,14 @@ room/channel/global.
 
 Possible roles are:
 
-* global superuser
-* channel owner
-* channel admin
-* room owner
-* room moderator
+* global superuser (globalmod)
+* channel owner (owner)
+* channel admin (admin)
+* room owner (owner)
+* room moderator (moderator)
+
+The only difference between global moderator and super user is that the global moderators can't remove static rooms 
+(ephemeral set to `false` in room list).
 
 ## list_channels
 
@@ -825,6 +828,7 @@ In the `user` attachments, the `content` fields tells you the room roles that th
 separated value), plus any global roles. Possible roles are:
 
 * superuser,
+* globalmod,
 * owner,
 * moderator,
 * admin.
