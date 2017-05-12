@@ -171,7 +171,7 @@ Attachments for each channel describes the ACLs for that channel.
 
 Get a list of all rooms for a channel.
 
-Responds with event name "gn_list_rooms".
+Responds with event name `gn_list_rooms`.
 
 Request contains:
 
@@ -194,6 +194,7 @@ Response data if successful:
                         "id": "<room UUID>",
                         "displayName": "<room name>",
                         "summary": <number of users in this room (integer)>,
+                        "ephemeral": true,
                         "content": "moderator,owner",
                         "attachments": [
                             {
@@ -207,6 +208,7 @@ Response data if successful:
                         "id": "<room UUID>",
                         "displayName": "<room name>",
                         "summary": <number of users in this room (integer)>,
+                        "ephemeral": false,
                         "content": "",
                         "attachments": [
                             {
@@ -222,7 +224,7 @@ Response data if successful:
         }
     }
 
-The "content" field on the attachments describe what kind of role you have for that room. If no roles are set then
+The `content` field on the attachments describe what kind of role you have for that room. If no roles are set then
 content will be empty, otherwise it will be a comma separated list of roles. Possible roles for rooms are:
 
 * moderator
