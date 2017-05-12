@@ -303,7 +303,7 @@ NO_ADMIN_ONLINE = 805
                 },
                 {
                     "objectType": "global_roles",
-                    "content": "superuser"
+                    "content": "superuser,globalmod"
                 }
             ]
         },
@@ -316,12 +316,14 @@ global role there will be no ID on the object. Roles are comma separated if more
 room/channel/global.</p>
 <p>Possible roles are:</p>
 <ul>
-<li>global superuser</li>
-<li>channel owner</li>
-<li>channel admin</li>
-<li>room owner</li>
-<li>room moderator</li>
+<li>global superuser (globalmod)</li>
+<li>channel owner (owner)</li>
+<li>channel admin (admin)</li>
+<li>room owner (owner)</li>
+<li>room moderator (moderator)</li>
 </ul>
+<p>The only difference between global moderator and super user is that the global moderators can't remove static rooms 
+(ephemeral set to <code>false</code> in room list).</p>
 <h2 id="list_channels">list_channels</h2>
 <p>Responds with event name "gn_list_channels".</p>
 <p>Request contains:</p>
@@ -367,7 +369,7 @@ room/channel/global.</p>
 <p>Attachments for each channel describes the ACLs for that channel.</p>
 <h2 id="list_rooms">list_rooms</h2>
 <p>Get a list of all rooms for a channel.</p>
-<p>Responds with event name "gn_list_rooms".</p>
+<p>Responds with event name <code>gn_list_rooms</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "object": {
@@ -387,6 +389,7 @@ room/channel/global.</p>
                     "id": "&lt;room UUID&gt;",
                     "displayName": "&lt;room name&gt;",
                     "summary": &lt;number of users in this room (integer)&gt;,
+                    "ephemeral": true,
                     "content": "moderator,owner",
                     "attachments": [
                         {
@@ -400,6 +403,7 @@ room/channel/global.</p>
                     "id": "&lt;room UUID&gt;",
                     "displayName": "&lt;room name&gt;",
                     "summary": &lt;number of users in this room (integer)&gt;,
+                    "ephemeral": false,
                     "content": "",
                     "attachments": [
                         {
@@ -415,7 +419,7 @@ room/channel/global.</p>
     }
 }
 </code></pre>
-<p>The "content" field on the attachments describe what kind of role you have for that room. If no roles are set then
+<p>The <code>content</code> field on the attachments describe what kind of role you have for that room. If no roles are set then
 content will be empty, otherwise it will be a comma separated list of roles. Possible roles for rooms are:</p>
 <ul>
 <li>moderator</li>
@@ -925,6 +929,7 @@ and the "published" field set to the time the server received the request (in RF
 separated value), plus any global roles. Possible roles are:</p>
 <ul>
 <li>superuser,</li>
+<li>globalmod,</li>
 <li>owner,</li>
 <li>moderator,</li>
 <li>admin.</li>

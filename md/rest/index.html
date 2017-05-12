@@ -234,7 +234,7 @@
 <li><code>to_time</code> needs to be after <code>from_time</code>.</li>
 </ul>
 <h2 id="post-set-admin">POST /set-admin</h2>
-<p>Set a user as a global super user.</p>
+<p>Set a user as a global moderator.</p>
 <p>Request contains user ID and the user's name (in case the user doesn't exist):</p>
 <pre><code>{
     "id": "1234",
@@ -253,7 +253,7 @@
 }
 </code></pre>
 <h2 id="post-remove-admin">POST /remove-admin</h2>
-<p>Remove global super user status for a user.</p>
+<p>Remove global moderator status for a user.</p>
 <p>Request contains the user's ID only:</p>
 <pre><code>{
     "id": "1234"
@@ -413,6 +413,7 @@ seconds). Negative or 0 durations are not allowed.</p>
 <p>Possible roles are:</p>
 <ul>
 <li>global superuser</li>
+<li>global moderator</li>
 <li>channel owner</li>
 <li>channel admin</li>
 <li>room owner</li>
