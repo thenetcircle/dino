@@ -277,17 +277,22 @@
         "duration": "24h",
         "reason": "&lt;optional base64 encoded free-text&gt;",
         "admin_id": "&lt;id of user banning (must already exist), or leave empty for default&gt;",
-        "type": "global"
+        "type": "global",
+        "name": "&lt;username, optional&gt;"
     }
 }
 </code></pre>
+<p>The <code>name</code> field is optional and is only used if a ban request is received for a user that doesn't exist on the server,
+e.g. if the user never logged in before it will not exist. If the name is not specified and the user has to be created
+before banning, the user ID will be set as the name (later when the user login the real username will overwrite this).</p>
 <p>Can also ban multiple users at the same time:</p>
 <pre><code>{
     "&lt;user id&gt;": {
         "duration": "24h",
         "type": "global",
         "reason": "&lt;option reason field, base64 encoded&gt;",
-        "admin_id": "&lt;optional id of admin user who is banning&gt;"
+        "admin_id": "&lt;optional id of admin user who is banning&gt;",
+        "name": "&lt;username, optional&gt;"
     },
     "&lt;user id&gt;": {
         "duration": "10m",
