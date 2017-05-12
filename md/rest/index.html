@@ -278,13 +278,10 @@
         "reason": "&lt;optional base64 encoded free-text&gt;",
         "admin_id": "&lt;id of user banning (must already exist), or leave empty for default&gt;",
         "type": "global",
-        "name": "&lt;username, optional&gt;"
+        "name": "&lt;username in base64, optional&gt;"
     }
 }
 </code></pre>
-<p>The <code>name</code> field is optional and is only used if a ban request is received for a user that doesn't exist on the server,
-e.g. if the user never logged in before it will not exist. If the name is not specified and the user has to be created
-before banning, the user ID will be set as the name (later when the user login the real username will overwrite this).</p>
 <p>Can also ban multiple users at the same time:</p>
 <pre><code>{
     "&lt;user id&gt;": {
@@ -292,7 +289,7 @@ before banning, the user ID will be set as the name (later when the user login t
         "type": "global",
         "reason": "&lt;option reason field, base64 encoded&gt;",
         "admin_id": "&lt;optional id of admin user who is banning&gt;",
-        "name": "&lt;username, optional&gt;"
+        "name": "&lt;username in base64, optional&gt;"
     },
     "&lt;user id&gt;": {
         "duration": "10m",
@@ -310,11 +307,15 @@ before banning, the user ID will be set as the name (later when the user login t
     }
 }
 </code></pre>
-<p>The "reason" field must be base64 encoded. If the "admin_id" field is specified it will be used, if not the default ID
-"0" will be used.</p>
-<p>Duration is an integer followed by a char for the unit, which can be one of "d", "h", "m", "s" (days, hours, minutes, 
+<p>The <code>name</code> field must be base64 encoded. The field is also optional and is only used if a ban request is received for 
+a user that doesn't exist on the server, e.g. if the user never logged in before it will not exist. If the name is 
+not specified and the user has to be created before banning, the user ID will be set as the name (later when the user 
+login the real username will overwrite this).</p>
+<p>The <code>reason</code> field must be base64 encoded. If the <code>admin_id</code> field is specified it will be used, if not the default ID
+<code>0</code> will be used (the default admin user).</p>
+<p>Duration is an integer followed by a char for the unit, which can be one of <code>d</code>, <code>h</code>, <code>m</code>, <code>s</code> (days, hours, minutes, 
 seconds). Negative or 0 durations are not allowed.</p>
-<p>When type is set to "global", no target is specified (meaning user is banned from the whole chat server).</p>
+<p>When type is set to <code>global</code>, no target is specified (meaning user is banned from the whole chat server).</p>
 <p>Response will be something like the following:</p>
 <pre><code>{
     "&lt;user id&gt;": {
