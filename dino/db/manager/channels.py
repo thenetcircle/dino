@@ -31,12 +31,27 @@ class ChannelManager(BaseManager):
         channels = self.env.db.get_channels()
         output = list()
 
-        for channel_id, channel_name in channels.items():
+        for channel_id, (channel_name, sort_order) in channels.items():
             output.append({
+                'sort': sort_order,
                 'uuid': channel_id,
                 'name': channel_name
             })
         return output
+
+    def update_sort(self, channel_uuid: str, order: str):
+        try:
+            order = int(order)
+        except Exception as e:
+            logger.error('could not parser order "%s" as int: %s' % (order, str(e)))
+            return 'could not parser order "%s" as int: %s' % (order, str(e))
+
+        try:
+            self.env.db.update_channel_sort_order(channel_uuid, order)
+        except Exception as e:
+            logger.error('could not update channel %s with order "%s" because: %s' %
+                         (channel_uuid, order, str(e)))
+        return None
 
     def remove_channel(self, channel_uuid: str) -> Union[str, None]:
         try:

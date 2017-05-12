@@ -522,11 +522,13 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
     }
 
     response['object']['attachments'] = list()
-    for channel_id, channel_name in channels.items():
+    for channel_id, (channel_name, sort_order) in channels.items():
         response['object']['attachments'].append({
             'id': channel_id,
+            'summary': sort_order,
             'displayName': b64e(channel_name)
         })
+        response['object']['attachments'] = sorted(response['object']['attachments'], key=lambda k: k['summary'])
 
     return response
 

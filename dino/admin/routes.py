@@ -455,6 +455,18 @@ def users_for_room(channel_uuid, room_uuid):
             version=tag_name)
 
 
+@app.route('/channel/<channel_uuid>/sort', methods=['PUT'])
+def edit_channel_row(channel_uuid: str) -> None:
+    try:
+        json_data = request.get_json()
+        sort_order = json_data['value']
+        channel_manager.update_sort(channel_uuid, sort_order)
+    except Exception as e:
+        logger.error('could not parse json: %s' % str(e))
+        return jsonify({'status_code': 400})
+    return jsonify({'status_code': 200})
+
+
 @app.route('/channel/<channel_uuid>/rename', methods=['PUT'])
 def rename_channel(channel_uuid: str) -> None:
     try:

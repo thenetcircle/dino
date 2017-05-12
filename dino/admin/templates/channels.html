@@ -21,6 +21,9 @@
     <thead>
         <tr>
             <td>
+                Sort order
+            </td>
+            <td>
                 Name
             </td>
             <td>
@@ -32,7 +35,12 @@
         {% for channel in channels %}
         <tr>
             <td>
+                {{ channel.sort }}
+                {{ render_edit("/channel/" + channel.uuid + "/sort") }}
+            </td>
+            <td>
                 <a class="channel-link" href="/channel/{{ channel.uuid }}/rooms">{{ channel.name }}</a>
+                {{ render_rename("/channel/" + channel.uuid + "/rename") }}
             </td>
             <td>
                 <small>{{ channel.uuid }}</small>

@@ -552,7 +552,7 @@ class DatabaseRdbms(object):
         rows = session.query(Channels).all()
         channels = dict()
         for row in rows:
-            channels[row.uuid] = row.name
+            channels[row.uuid] = (row.name, row.sort_order)
         return channels
 
     @with_session
@@ -723,6 +723,23 @@ class DatabaseRdbms(object):
         if self.room_name_exists(channel_id, room_name):
             raise RoomNameExistsForChannelException(channel_id, room_name)
         _create_room()
+
+    def update_channel_sort_order(self, channel_uuid: str, sort_order: int) -> None:
+        @with_session
+        def update(session=None):
+            channel = session.query(Channels)\
+                .filter(Channels.uuid == channel_uuid)\
+                .first()
+
+            if channel is None:
+                return
+
+            channel.sort_order = sort_order
+            session.commit()
+
+        logger.info('sort order: %s' % str(sort_order))
+        self.get_channel_name(channel_uuid)
+        update()
 
     def remove_channel(self, channel_id: str) -> None:
         @with_session

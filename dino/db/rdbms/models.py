@@ -37,6 +37,7 @@ class Channels(DeclarativeBase):
     uuid = Column('uuid', String(128), nullable=False, index=True)
     name = Column('name', String(128), nullable=False)
     created = Column('created', DateTime, nullable=False)
+    sort_order = Column('sort_order', Integer, nullable=False, default=1)
 
     rooms = relationship('Rooms', back_populates='channel')
     roles = relationship('ChannelRoles', back_populates='channel')

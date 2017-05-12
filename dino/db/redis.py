@@ -365,8 +365,13 @@ class DatabaseRedis(object):
         clean = dict()
 
         for channel_id, channel_name in all_channels.items():
-            clean[str(channel_id, 'utf-8')] = str(channel_name, 'utf-8')
+            # second argument in tuple is sort order, but it's not supported with redis db
+            clean[str(channel_id, 'utf-8')] = (str(channel_name, 'utf-8'), 1)
         return clean
+
+    def update_channel_sort_order(self, channel_uuid: str, sort: int) -> None:
+        # not supported in redis db
+        pass
 
     def rooms_for_channel(self, channel_id) -> dict:
         all_rooms = self.redis.hgetall(RedisKeys.rooms(channel_id))
