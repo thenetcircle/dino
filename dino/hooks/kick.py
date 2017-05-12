@@ -53,7 +53,7 @@ class OnKickHooks(object):
             kick_activity['target']['id'] = activity.target.id
             kick_activity['target']['displayName'] = activity.target.display_name
 
-        sockets.queue_handler.handle_server_activity(data, as_parser(data))
+        sockets.queue_handler.handle_server_activity(kick_activity, as_parser(kick_activity))
 
 
 @environ.env.observer.on('on_kick')
