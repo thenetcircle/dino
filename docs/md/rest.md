@@ -115,13 +115,9 @@ Request contains info on who to ban where. For banning globally:
             "reason": "<optional base64 encoded free-text>",
             "admin_id": "<id of user banning (must already exist), or leave empty for default>",
             "type": "global",
-            "name": "<username, optional>"
+            "name": "<username in base64, optional>"
         }
     }
-
-The `name` field is optional and is only used if a ban request is received for a user that doesn't exist on the server,
-e.g. if the user never logged in before it will not exist. If the name is not specified and the user has to be created
-before banning, the user ID will be set as the name (later when the user login the real username will overwrite this).
 
 Can also ban multiple users at the same time:
 
@@ -131,7 +127,7 @@ Can also ban multiple users at the same time:
             "type": "global",
             "reason": "<option reason field, base64 encoded>",
             "admin_id": "<optional id of admin user who is banning>",
-            "name": "<username, optional>"
+            "name": "<username in base64, optional>"
         },
         "<user id>": {
             "duration": "10m",
@@ -149,13 +145,18 @@ Can also ban multiple users at the same time:
         }
     }
 
-The "reason" field must be base64 encoded. If the "admin_id" field is specified it will be used, if not the default ID
-"0" will be used.
+The `name` field must be base64 encoded. The field is also optional and is only used if a ban request is received for 
+a user that doesn't exist on the server, e.g. if the user never logged in before it will not exist. If the name is 
+not specified and the user has to be created before banning, the user ID will be set as the name (later when the user 
+login the real username will overwrite this).
 
-Duration is an integer followed by a char for the unit, which can be one of "d", "h", "m", "s" (days, hours, minutes, 
+The `reason` field must be base64 encoded. If the `admin_id` field is specified it will be used, if not the default ID
+`0` will be used (the default admin user).
+
+Duration is an integer followed by a char for the unit, which can be one of `d`, `h`, `m`, `s` (days, hours, minutes, 
 seconds). Negative or 0 durations are not allowed.
 
-When type is set to "global", no target is specified (meaning user is banned from the whole chat server).
+When type is set to `global`, no target is specified (meaning user is banned from the whole chat server).
 
 Response will be something like the following:
 

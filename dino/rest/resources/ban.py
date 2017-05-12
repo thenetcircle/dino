@@ -16,6 +16,7 @@ import logging
 import traceback
 
 from dino import environ
+from dino import utils
 from dino.db.manager import UserManager
 from dino.rest.resources.base import BaseResource
 from dino.exceptions import UnknownBanTypeException
@@ -83,6 +84,7 @@ class BanResource(BaseResource):
 
             try:
                 user_name = ban_info['name']
+                user_name = utils.b64d(user_name)
             except KeyError:
                 logger.warn('no name specified in ban info, if we have to create the user it will get the ID as name')
                 user_name = user_id
