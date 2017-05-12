@@ -398,7 +398,8 @@ seconds). Negative or 0 durations are not allowed.</p>
                 ]
             },
             "global": [
-                "superuser"
+                "superuser",
+                "globalmod"
             ]
         },
         "5678": {
@@ -412,13 +413,15 @@ seconds). Negative or 0 durations are not allowed.</p>
 </code></pre>
 <p>Possible roles are:</p>
 <ul>
-<li>global superuser</li>
-<li>global moderator</li>
-<li>channel owner</li>
-<li>channel admin</li>
-<li>room owner</li>
-<li>room moderator</li>
+<li>global superuser (superuser)</li>
+<li>global moderator (globalmod)</li>
+<li>channel owner (owner)</li>
+<li>channel admin (admin)</li>
+<li>room owner (owner)</li>
+<li>room moderator (moderator)</li>
 </ul>
+<p>The only difference between global superusers and global moderators is that global superusers can also remove static 
+rooms.</p>
 <h2 id="get-rooms-for-users">GET /rooms-for-users</h2>
 <p>Request contains a list of user IDs, e.g.:</p>
 <pre><code>{
