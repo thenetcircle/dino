@@ -91,7 +91,7 @@ class UserManager(BaseManager):
                 'url': '/ws'
             },
             'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-            'id': uuid()
+            'id': str(uuid())
         }
 
         if admin_id is not None:
@@ -141,7 +141,7 @@ class UserManager(BaseManager):
                 'objectType': target_type
             },
             'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-            'id': uuid()
+            'id': str(uuid())
         }
 
         if reason is not None:

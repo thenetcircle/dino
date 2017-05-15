@@ -45,7 +45,7 @@ class OnKickHooks(object):
                 'url': namespace
             },
             'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-            'id': uuid()
+            'id': str(uuid())
         }
 
         # when banning globally, no target room is specified

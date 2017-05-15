@@ -105,7 +105,7 @@ class SocketsTest(unittest.TestCase):
             'verb': 'kick',
             'object': {
                 'id': '4321',
-                'summary': 'bad-guy'
+                'summary': '5m'
             },
             'target': {
                 'url': '/chat'

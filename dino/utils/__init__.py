@@ -528,7 +528,7 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
             'url': sort_order,
             'displayName': b64e(channel_name)
         })
-        response['object']['attachments'] = sorted(response['object']['attachments'], key=lambda k: k['summary'])
+        response['object']['attachments'] = sorted(response['object']['attachments'], key=lambda k: k['url'])
 
     return response
 

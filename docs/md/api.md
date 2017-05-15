@@ -143,6 +143,7 @@ Response data if successful:
                     {
                         "id": "<channel UUID>",
                         "displayName": "<channel name>",
+                        "url": 8,
                         "attachments": [
                             {
                                 "summary": "message",
@@ -154,6 +155,7 @@ Response data if successful:
                     {
                         "id": "<channel UUID>",
                         "displayName": "<channel name>",
+                        "url": 20,
                         "attachments": [
                             {
                                 "summary": "join",
@@ -167,6 +169,9 @@ Response data if successful:
             "verb": "list"
         }
     }
+
+Each channel has a `url` field, which is the sort order defined in the admin interface, in ascending order (lower `url`
+means higher up in the list).
 
 Attachments for each channel describes the ACLs for that channel.
 
@@ -196,6 +201,7 @@ Response data if successful:
                     {
                         "id": "<room UUID>",
                         "displayName": "<room name>",
+                        "url": 8,
                         "summary": <number of users in this room (integer)>,
                         "ephemeral": true,
                         "content": "moderator,owner",
@@ -210,6 +216,7 @@ Response data if successful:
                     {
                         "id": "<room UUID>",
                         "displayName": "<room name>",
+                        "url": 20,
                         "summary": <number of users in this room (integer)>,
                         "ephemeral": false,
                         "content": "",
@@ -226,6 +233,9 @@ Response data if successful:
             "verb": "list"
         }
     }
+
+Each room has a `url` field, which is the sort order defined in the admin interface, in ascending order (lower `url`
+means higher up in the list).
 
 The `content` field on the attachments describe what kind of role you have for that room. If no roles are set then
 content will be empty, otherwise it will be a comma separated list of roles. Possible roles for rooms are:
