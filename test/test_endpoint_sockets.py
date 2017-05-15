@@ -123,7 +123,7 @@ class SocketsTest(unittest.TestCase):
             'verb': 'ban',
             'object': {
                 'id': '4321',
-                'summary': 'bad-guy'
+                'summary': '5m'
             },
             'target': {
                 'url': '/chat'
