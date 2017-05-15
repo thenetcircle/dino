@@ -75,6 +75,9 @@ class FakeDb(object):
     def get_sid_for_user(self, user_id: str):
         return str(uuid())
 
+    def ban_user_global(self, banned_id, ban_timestamp, ban_duration, reason, banner_id):
+        pass
+
 
 class FakeLogger(object):
     def error(*args, **kwargs):
