@@ -301,8 +301,8 @@ it will be delivered to the admin room for that channel and the admins in that r
 
 Important:
 
-* Only users who are in the Admin room will receive the event,
-* If no user with the global role `superuser` is online, the 805 code will be returned ("no admin is online").
+* If no user with the global role `superuser` or `globalmod` is online, the 805 code will be returned ("no admin is 
+online").
 
 Responds with event name `gn_request_admin`.
 
@@ -331,10 +331,10 @@ If no admin is online, the response will be:
         "message": "no admin is online"
     }
 
-The "object.content" could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
+The `object.content` could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
 reason text etc. 
 
-The event generated to be sent to the admin room is called "gn_admin_requested" (see 
+The event generated to be sent to the admin room is called `gn_admin_requested` (see 
 [Events](events.md#admin-presence-requested) for more information).
 
 ## leave
@@ -862,7 +862,7 @@ separated value), plus any global roles. Possible roles are:
 * moderator,
 * admin.
 
-Currently only the `superuser` role is considered when the `request_admin` api is used.
+Currently only the `superuser` and `globalmod` role is considered when the `request_admin` api is used.
 
 Request contains:
 
