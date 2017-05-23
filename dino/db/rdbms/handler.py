@@ -920,9 +920,11 @@ class DatabaseRdbms(object):
     def _has_global_role(self, user_id: str, role: str, session=None):
         global_role = session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
         if global_role is None:
+            logger.debug('no global roles found for user id "%s"' % user_id)
             return False
 
         roles = set(global_role.roles.split(','))
+        logger.debug('found global roles for user id "%s": "%s"' % (user_id, roles))
         return role in roles
 
     @with_session
