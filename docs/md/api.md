@@ -242,6 +242,8 @@ content will be empty, otherwise it will be a comma separated list of roles. Pos
 
 * moderator
 * owner
+* globalmod
+* superuser
 
 Global roles and roles for channels are returned in the `gn_login` event.
 
@@ -382,6 +384,7 @@ Response data if successful:
                     {
                         "id": "<user UUID>",
                         "displayName": "<user name>",
+                        "content": "globalmod,moderator"
                         "attachments": [
                             {
                                 "content": "NDA=",
@@ -396,6 +399,7 @@ Response data if successful:
                     {
                         "id": "<user UUID>",
                         "displayName": "<user name>",
+                        "content": "moderator"
                         "attachments": [
                             {
                                 "content": "NDA=",
@@ -412,6 +416,14 @@ Response data if successful:
             "verb": "list"
         }
     }
+
+The `content` of the user attachment describes the roles this user has in this room, plus any global roles. Examples:
+
+* `globalmod,moderator`
+* `moderator`
+* `superuser`
+
+If no specific roles, the value will be blank.
 
 ## history
 

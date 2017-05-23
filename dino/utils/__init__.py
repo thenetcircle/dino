@@ -107,6 +107,7 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
 
 
 def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
+    user_roles = environ.env.db.get_user_roles_in_room(user_id, room_id)
     return {
         'actor': {
             'id': user_id,
@@ -114,7 +115,8 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
             'image': {
                 'url': image_url
             },
-            'attachments': get_user_info_attachments_for(user_id)
+            'attachments': get_user_info_attachments_for(user_id),
+            'content': ','.join(user_roles)
         },
         'target': {
             'id': room_id,
@@ -690,12 +692,6 @@ def get_user_info_attachments_for(user_id: str) -> list:
             'objectType': info_key,
             'content': b64e(info_val)
         })
-
-    roles = get_user_roles(user_id)
-    attachments.append({
-        'objectType': 'roles',
-        'content': b64e(json.dumps(roles))
-    })
 
     return attachments
 

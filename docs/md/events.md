@@ -175,6 +175,7 @@ with the following content:
         "actor": {
             "id": "<user B's UUID>",
             "displayName": "<name of user B>",
+            "content": "globalmod,moderator"
             "image": {
                 "url": "<user B's image url>"
             },
@@ -195,6 +196,14 @@ with the following content:
         },
         "verb": "join"
     }
+
+The `actor.content` describes the roles this user has in this room, plus any global roles. Examples:
+
+* `globalmod,moderator`
+* `moderator`
+* `superuser`
+
+If no specific roles, the value will be blank.
 
 ## Another user leaves room
 
