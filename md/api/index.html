@@ -817,7 +817,7 @@ of room).</p>
 </code></pre>
 <h2 id="ban">ban</h2>
 <p>Ban a user from a room for a given amount of time.</p>
-<p>Responds with "gn_ban".</p>
+<p>Responds with <code>gn_ban</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -829,12 +829,12 @@ of room).</p>
         "summary": "&lt;ban duration, an integer suffixed with one of [d, h, m, s]&gt;",
         "content": "&lt;optional reason field, base64&gt;"
     },
-    "verb": "kick"
+    "verb": "ban"
 }
 </code></pre>
-<p>If banning a used in a room, set objectType to "room" and target.id to the uuid of the room. If banning from a channel,
-set objectType to "channel" and target.id to the uuid of the channel. If banning globally, set objectType to "global"
-and skip target.id.</p>
+<p>If banning a used in a room, set objectType to <code>room</code> and <code>target.id</code> to the uuid of the room. If banning from a channel,
+set <code>objectType</code> to <code>channel</code> and <code>target.id</code> to the uuid of the channel. If banning globally, set objectType to <code>global</code>
+and skip <code>target.id</code>.</p>
 <p>Summary is the duration of the ban. It's a number with a suffix d, h, m or s, meaning days, hours, minutes and seconds.
 Only one suffix can be used. E.g.:</p>
 <ul>
@@ -843,15 +843,15 @@ Only one suffix can be used. E.g.:</p>
 <li>365d (ban for one year).</li>
 </ul>
 <p>It's not possible to permanently ban a user, but you can set a very large duration for the same effect. The only
-restriction is that the date when the ban ends (utcnow()+duration) must be before the year 10000 (date lib restriction).</p>
+restriction is that the date when the ban ends (<code>utcnow()+duration</code>) must be before the year 10000 (date lib restriction).</p>
 <p>Response data if successful:</p>
 <pre><code>{
     "status_code": 200
 }
 </code></pre>
 <h2 id="message">message</h2>
-<p>Send a message to a "room" UUID (can be the user UUID or an actual room UUID).</p>
-<p>Responds with event name "gn_message".</p>
+<p>Send a message to a <code>room</code> UUID (can be the user UUID or an actual room UUID).</p>
+<p>Responds with event name <code>gn_message</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     verb: "send",
@@ -889,7 +889,7 @@ restriction is that the date when the ban ends (utcnow()+duration) must be befor
 }
 </code></pre>
 <p>The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
-and the "published" field set to the time the server received the request (in RFC3339 format).</p>
+and the <code>published</code> field set to the time the server received the request (in RFC3339 format).</p>
 <h2 id="remove_room">remove_room</h2>
 <p>Response with the event name "gn_remove_room".</p>
 <p>Request contains:</p>
