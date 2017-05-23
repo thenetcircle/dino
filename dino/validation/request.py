@@ -197,6 +197,7 @@ class RequestValidator(BaseValidator):
 
     def on_ban(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
+        target_type = activity.target.object_type
         user_id = activity.actor.id
         kicked_id = activity.object.id
         ban_duration = activity.object.summary
@@ -212,13 +213,13 @@ class RequestValidator(BaseValidator):
         except ValueError as e:
             return False, ECodes.INVALID_BAN_DURATION, 'invalid ban duration: %s' % str(e)
 
-        if room_id is not None and len(room_id.strip()) > 0:
+        is_global_ban = target_type == 'global' or room_id is None or room_id == ''
+
+        if not is_global_ban and room_id is not None and len(room_id.strip()) > 0:
             try:
                 utils.get_room_name(room_id)
             except NoSuchRoomException as e:
                 return False, ECodes.NO_SUCH_ROOM, 'no room found for uuid: %s' % str(e)
-
-        is_global_ban = room_id is None or room_id == ''
 
         if kicked_id is None or kicked_id.strip() == '':
             return False, ECodes.MISSING_OBJECT_ID, 'got blank user id, can not ban'
