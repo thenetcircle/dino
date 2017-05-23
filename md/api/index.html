@@ -341,6 +341,7 @@ room/channel/global.</p>
                 {
                     "id": "&lt;channel UUID&gt;",
                     "displayName": "&lt;channel name&gt;",
+                    "url": 8,
                     "attachments": [
                         {
                             "summary": "message",
@@ -352,6 +353,7 @@ room/channel/global.</p>
                 {
                     "id": "&lt;channel UUID&gt;",
                     "displayName": "&lt;channel name&gt;",
+                    "url": 20,
                     "attachments": [
                         {
                             "summary": "join",
@@ -366,6 +368,8 @@ room/channel/global.</p>
     }
 }
 </code></pre>
+<p>Each channel has a <code>url</code> field, which is the sort order defined in the admin interface, in ascending order (lower <code>url</code>
+means higher up in the list).</p>
 <p>Attachments for each channel describes the ACLs for that channel.</p>
 <h2 id="list_rooms">list_rooms</h2>
 <p>Get a list of all rooms for a channel.</p>
@@ -388,6 +392,7 @@ room/channel/global.</p>
                 {
                     "id": "&lt;room UUID&gt;",
                     "displayName": "&lt;room name&gt;",
+                    "url": 8,
                     "summary": &lt;number of users in this room (integer)&gt;,
                     "ephemeral": true,
                     "content": "moderator,owner",
@@ -402,6 +407,7 @@ room/channel/global.</p>
                 {
                     "id": "&lt;room UUID&gt;",
                     "displayName": "&lt;room name&gt;",
+                    "url": 20,
                     "summary": &lt;number of users in this room (integer)&gt;,
                     "ephemeral": false,
                     "content": "",
@@ -419,6 +425,8 @@ room/channel/global.</p>
     }
 }
 </code></pre>
+<p>Each room has a <code>url</code> field, which is the sort order defined in the admin interface, in ascending order (lower <code>url</code>
+means higher up in the list).</p>
 <p>The <code>content</code> field on the attachments describe what kind of role you have for that room. If no roles are set then
 content will be empty, otherwise it will be a comma separated list of roles. Possible roles for rooms are:</p>
 <ul>
