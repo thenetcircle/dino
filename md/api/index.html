@@ -394,7 +394,7 @@ means higher up in the list).</p>
                     "displayName": "&lt;room name&gt;",
                     "url": 8,
                     "summary": &lt;number of users in this room (integer)&gt;,
-                    "ephemeral": true,
+                    "objectType": "static",
                     "content": "moderator,owner",
                     "attachments": [
                         {
@@ -409,7 +409,7 @@ means higher up in the list).</p>
                     "displayName": "&lt;room name&gt;",
                     "url": 20,
                     "summary": &lt;number of users in this room (integer)&gt;,
-                    "ephemeral": false,
+                    "objectType": "temporary",
                     "content": "",
                     "attachments": [
                         {
@@ -435,6 +435,8 @@ content will be empty, otherwise it will be a comma separated list of roles. Pos
 </ul>
 <p>Global roles and roles for channels are returned in the <code>gn_login</code> event.</p>
 <p>Attachments for each room describes the ACLs for that room.</p>
+<p>The <code>objectType</code> for each room describes if the room is static or temporary. Static rooms are not removed automatically
+when empty, while temporary rooms are removed when the owner leaves (usually only for user created rooms).</p>
 <h2 id="update_user_info">update_user_info</h2>
 <p>If a user e.g. changes his/her avatar, the change can be broadcasted to users in the same rooms as this user is in. To
 e.g. let other users know this user is currently streaming video, the <code>objectType</code> <code>is_streaming</code> might be used:</p>
@@ -728,7 +730,8 @@ will be removed. Example "API actions" are "join", "create", "message", "kick". 
     "data": {
         "target": {
             "id": "&lt;the generated UUID for this room&gt;",
-            "displayName": "&lt;name of the new room&gt;"
+            "displayName": "&lt;name of the new room&gt;",
+            "objectType": "temporary"
         },
         "object": {
             "url": "&lt;channel UUID&gt;"
@@ -737,6 +740,8 @@ will be removed. Example "API actions" are "join", "create", "message", "kick". 
     }
 }
 </code></pre>
+<p>The <code>target.objectType</code> will always be <code>temporary</code> since all rooms created using the API are user created rooms, meaning
+they will be automatically removed when the owner leaves.</p>
 <p>It is also possible to specify ACLs for a room while creating it, but adding <code>object.attachments</code> as in the <code>set_acl</code> 
 event:</p>
 <pre><code>{

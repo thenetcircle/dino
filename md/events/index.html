@@ -477,11 +477,14 @@ the following content:</p>
     },
     "target": {
         "id": "&lt;UUID of the new room&gt;",
-        "displayName": "&lt;name of the new room&gt;"
+        "displayName": "&lt;name of the new room&gt;",
+        "objectType": "temporary"
     },
     "verb": "create"
 }
 </code></pre>
+<p>The <code>target.objectType</code> will always be <code>temporary</code> since all rooms created using the API are user created rooms, meaning
+they will be automatically removed when the owner leaves.</p>
 <h2 id="a-user-is-kicked-from-a-room">A user is kicked from a room</h2>
 <p>When a user is kicked from a room, an event will be sent to all users in that room (except the kicked user), called 
 <code>gn_user_kicked</code>, with the following content:</p>
