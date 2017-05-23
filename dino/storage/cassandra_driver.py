@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+import pytz
 
 from cassandra.cluster import ResultSet
 from cassandra.cluster import Session
@@ -272,7 +273,9 @@ class Driver(object):
         prepare_statements()
 
     def msg_insert(self, msg_id, from_user_id, from_user_name, target_id, target_name, body, domain, sent_time, channel_id, channel_name, deleted=False) -> None:
-        time_stamp = int(datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT).strftime('%s'))
+        dt = datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT)
+        dt = pytz.timezone('utc').localize(dt, is_dst=None)
+        time_stamp = int(dt.astimezone(pytz.utc).strftime('%s'))
         self._execute(
                 StatementKeys.msg_insert, msg_id, from_user_id, from_user_name, target_id, target_name,
                 body, domain, sent_time, time_stamp, channel_id, channel_name, deleted)
