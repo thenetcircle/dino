@@ -16,6 +16,7 @@ from uuid import uuid4 as uuid
 
 import logging
 import traceback
+import json
 
 from dino.config import ConfigKeys
 from dino import environ
@@ -690,11 +691,11 @@ def get_user_info_attachments_for(user_id: str) -> list:
             'content': b64e(info_val)
         })
 
-    #roles = get_user_roles(user_id) # TODO
-    #attachments.append({
-    #    'objectType': 'roles',
-    #    'content': b64e()
-    #})
+    roles = get_user_roles(user_id)
+    attachments.append({
+        'objectType': 'roles',
+        'content': b64e(json.dumps(roles))
+    })
 
     return attachments
 
