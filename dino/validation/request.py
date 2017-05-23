@@ -202,18 +202,19 @@ class RequestValidator(BaseValidator):
         kicked_id = activity.object.id
         ban_duration = activity.object.summary
 
+        is_global_ban = target_type == 'global' or room_id is None or room_id == ''
+
         channel_id = None
-        if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
-            channel_id = activity.object.url
-        if channel_id is None or len(channel_id.strip()) == 0:
-            channel_id = utils.get_channel_for_room(room_id)
+        if not is_global_ban:
+            if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
+                channel_id = activity.object.url
+            if channel_id is None or len(channel_id.strip()) == 0:
+                channel_id = utils.get_channel_for_room(room_id)
 
         try:
             DurationValidator(ban_duration)
         except ValueError as e:
             return False, ECodes.INVALID_BAN_DURATION, 'invalid ban duration: %s' % str(e)
-
-        is_global_ban = target_type == 'global' or room_id is None or room_id == ''
 
         if not is_global_ban and room_id is not None and len(room_id.strip()) > 0:
             try:
