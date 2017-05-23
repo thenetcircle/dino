@@ -104,6 +104,7 @@ class ApiActions(object):
     LIST = 'list'
     HISTORY = 'history'
     SETACL = 'setacl'
+    CREATE = 'create'
 
 ApiActions.all_api_actions = \
     [getattr(ApiActions, d) for d in ApiActions.__dict__ if not d.startswith('_') and not d[0].islower()]
