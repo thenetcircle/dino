@@ -465,7 +465,7 @@ class DatabaseRdbms(object):
         self.get_room_name(room_id)
         is_super_user = False
         if user_id is not None:
-            is_super_user = self.is_super_user(user_id)
+            is_super_user = self.is_super_user(user_id) or self.is_global_moderator(user_id)
 
         return _users_in_room()
 
