@@ -187,7 +187,7 @@ Request contains:
         "object": {
             "url": "<channel UUID>"
         },
-        verb: "list"
+        "verb": "list"
     }
 
 Response data if successful:
