@@ -20,7 +20,7 @@ from dino import utils
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class BlackListChecker(object):
