@@ -203,7 +203,7 @@ Response data if successful:
                         "displayName": "<room name>",
                         "url": 8,
                         "summary": <number of users in this room (integer)>,
-                        "ephemeral": true,
+                        "objectType": "static",
                         "content": "moderator,owner",
                         "attachments": [
                             {
@@ -218,7 +218,7 @@ Response data if successful:
                         "displayName": "<room name>",
                         "url": 20,
                         "summary": <number of users in this room (integer)>,
-                        "ephemeral": false,
+                        "objectType": "temporary",
                         "content": "",
                         "attachments": [
                             {
@@ -246,6 +246,9 @@ content will be empty, otherwise it will be a comma separated list of roles. Pos
 Global roles and roles for channels are returned in the `gn_login` event.
 
 Attachments for each room describes the ACLs for that room.
+
+The `objectType` for each room describes if the room is static or temporary. Static rooms are not removed automatically
+when empty, while temporary rooms are removed when the owner leaves (usually only for user created rooms).
 
 ## update_user_info
 
