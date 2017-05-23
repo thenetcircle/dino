@@ -37,7 +37,7 @@ class QueueHandler(object):
 
     def user_is_on_this_node(self, activity: Activity) -> bool:
         room_id = activity.target.id
-        namespace = activity.target.url
+        namespace = activity.target.url or '/ws'
         user_id = activity.object.id
         user_sid = utils.get_sid_for_user_id(user_id)
         users = list()
