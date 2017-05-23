@@ -83,6 +83,8 @@ class AclValidator(object):
             return True, None
         if utils.is_super_user(user_id):
             return True, None
+        if utils.is_global_moderator(user_id):
+            return True, None
 
         # no acls for this target (room/channel) and action (join/kick/etc)
         if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
