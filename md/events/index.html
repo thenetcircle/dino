@@ -349,6 +349,7 @@ with the following content:</p>
     "actor": {
         "id": "&lt;user B's UUID&gt;",
         "displayName": "&lt;name of user B&gt;",
+        "content": "globalmod,moderator"
         "image": {
             "url": "&lt;user B's image url&gt;"
         },
@@ -370,6 +371,13 @@ with the following content:</p>
     "verb": "join"
 }
 </code></pre>
+<p>The <code>actor.content</code> describes the roles this user has in this room, plus any global roles. Examples:</p>
+<ul>
+<li><code>globalmod,moderator</code></li>
+<li><code>moderator</code></li>
+<li><code>superuser</code></li>
+</ul>
+<p>If no specific roles, the value will be blank.</p>
 <h2 id="another-user-leaves-room">Another user leaves room</h2>
 <p>When user A is in room X, and another user B leaves room X, the sever will send an event called <code>gn_user_left</code> to user A
 with the following content:</p>

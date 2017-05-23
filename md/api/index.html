@@ -432,6 +432,8 @@ content will be empty, otherwise it will be a comma separated list of roles. Pos
 <ul>
 <li>moderator</li>
 <li>owner</li>
+<li>globalmod</li>
+<li>superuser</li>
 </ul>
 <p>Global roles and roles for channels are returned in the <code>gn_login</code> event.</p>
 <p>Attachments for each room describes the ACLs for that room.</p>
@@ -544,6 +546,7 @@ reason text etc. </p>
                 {
                     "id": "&lt;user UUID&gt;",
                     "displayName": "&lt;user name&gt;",
+                    "content": "globalmod,moderator"
                     "attachments": [
                         {
                             "content": "NDA=",
@@ -558,6 +561,7 @@ reason text etc. </p>
                 {
                     "id": "&lt;user UUID&gt;",
                     "displayName": "&lt;user name&gt;",
+                    "content": "moderator"
                     "attachments": [
                         {
                             "content": "NDA=",
@@ -575,6 +579,13 @@ reason text etc. </p>
     }
 }
 </code></pre>
+<p>The <code>content</code> of the user attachment describes the roles this user has in this room, plus any global roles. Examples:</p>
+<ul>
+<li><code>globalmod,moderator</code></li>
+<li><code>moderator</code></li>
+<li><code>superuser</code></li>
+</ul>
+<p>If no specific roles, the value will be blank.</p>
 <h2 id="history">history</h2>
 <p>TODO: include user UUID as well as user name.</p>
 <p>When joining a room the history will be included in the "gn_join" response event. If history is needed for a separate
