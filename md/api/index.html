@@ -479,8 +479,8 @@ which only admins can see when listing rooms and only admins can join. When a <c
 it will be delivered to the admin room for that channel and the admins in that room can decide what to do.</p>
 <p>Important:</p>
 <ul>
-<li>Only users who are in the Admin room will receive the event,</li>
-<li>If no user with the global role <code>superuser</code> is online, the 805 code will be returned ("no admin is online").</li>
+<li>If no user with the global role <code>superuser</code> or <code>globalmod</code> is online, the 805 code will be returned ("no admin is 
+online").</li>
 </ul>
 <p>Responds with event name <code>gn_request_admin</code>.</p>
 <p>Request contains:</p>
@@ -505,9 +505,9 @@ it will be delivered to the admin room for that channel and the admins in that r
     "message": "no admin is online"
 }
 </code></pre>
-<p>The "object.content" could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
+<p>The <code>object.content</code> could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
 reason text etc. </p>
-<p>The event generated to be sent to the admin room is called "gn_admin_requested" (see 
+<p>The event generated to be sent to the admin room is called <code>gn_admin_requested</code> (see 
 <a href="../events/#admin-presence-requested">Events</a> for more information).</p>
 <h2 id="leave">leave</h2>
 <p>Leave a room.</p>
@@ -958,7 +958,7 @@ separated value), plus any global roles. Possible roles are:</p>
 <li>moderator,</li>
 <li>admin.</li>
 </ul>
-<p>Currently only the <code>superuser</code> role is considered when the <code>request_admin</code> api is used.</p>
+<p>Currently only the <code>superuser</code> and <code>globalmod</code> role is considered when the <code>request_admin</code> api is used.</p>
 <p>Request contains:</p>
 <pre><code>{
     "verb": "join",
