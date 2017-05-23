@@ -290,6 +290,9 @@ class RequestValidator(BaseValidator):
         if not _can_edit_acl(target_id, user_id):
             return False, ECodes.NOT_ALLOWED, 'user is not allowed to change acls on the target'
 
+        if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
+            return True, None, None
+
         # validate all acls before actually changing anything
         acls = activity.object.attachments
         all_available_acls_types = environ.env.config.get(ConfigKeys.ACL)['available']['acls']
@@ -330,6 +333,9 @@ class RequestValidator(BaseValidator):
             logger.warn('user "%s" (%s) is not online, not joining room "%s" (%s)!' %
                         (user_name, user_id, room_name, room_id))
             return False, ECodes.NOT_ONLINE, 'user is not online'
+
+        if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
+            return True, None, None
 
         channel_id = utils.get_channel_for_room(room_id)
         activity.object.url = channel_id
