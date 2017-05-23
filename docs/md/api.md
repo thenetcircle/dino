@@ -594,7 +594,8 @@ Response data if successful:
         "data": {
             "target": {
                 "id": "<the generated UUID for this room>",
-                "displayName": "<name of the new room>"
+                "displayName": "<name of the new room>",
+                "objectType": "temporary"
             },
             "object": {
                 "url": "<channel UUID>"
@@ -602,6 +603,9 @@ Response data if successful:
             "verb": "create"
         }
     }
+    
+The `target.objectType` will always be `temporary` since all rooms created using the API are user created rooms, meaning
+they will be automatically removed when the owner leaves.
 
 It is also possible to specify ACLs for a room while creating it, but adding `object.attachments` as in the `set_acl` 
 event:

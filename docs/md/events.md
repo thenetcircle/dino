@@ -312,10 +312,14 @@ the following content:
         },
         "target": {
             "id": "<UUID of the new room>",
-            "displayName": "<name of the new room>"
+            "displayName": "<name of the new room>",
+            "objectType": "temporary"
         },
         "verb": "create"
     }
+    
+The `target.objectType` will always be `temporary` since all rooms created using the API are user created rooms, meaning
+they will be automatically removed when the owner leaves.
 
 ## A user is kicked from a room
 
