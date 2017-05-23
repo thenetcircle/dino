@@ -323,7 +323,7 @@ class QueueHandler(object):
         banned_id = activity.object.id
         banned_name = utils.get_user_name_for(banned_id)
         banned_sid = utils.get_sid_for_user_id(banned_id)
-        namespace = activity.target.url
+        namespace = activity.target.url or '/ws'
         target_type = activity.target.object_type
 
         if target_type == 'room':
