@@ -697,7 +697,7 @@ Response data if successful:
 
 Ban a user from a room for a given amount of time.
 
-Responds with "gn_ban".
+Responds with `gn_ban`.
 
 Request contains:
 
@@ -711,12 +711,12 @@ Request contains:
             "summary": "<ban duration, an integer suffixed with one of [d, h, m, s]>",
             "content": "<optional reason field, base64>"
         },
-        "verb": "kick"
+        "verb": "ban"
     }
 
-If banning a used in a room, set objectType to "room" and target.id to the uuid of the room. If banning from a channel,
-set objectType to "channel" and target.id to the uuid of the channel. If banning globally, set objectType to "global"
-and skip target.id.
+If banning a used in a room, set objectType to `room` and `target.id` to the uuid of the room. If banning from a channel,
+set `objectType` to `channel` and `target.id` to the uuid of the channel. If banning globally, set objectType to `global`
+and skip `target.id`.
     
 Summary is the duration of the ban. It's a number with a suffix d, h, m or s, meaning days, hours, minutes and seconds.
 Only one suffix can be used. E.g.:
@@ -726,7 +726,7 @@ Only one suffix can be used. E.g.:
 * 365d (ban for one year).
 
 It's not possible to permanently ban a user, but you can set a very large duration for the same effect. The only
-restriction is that the date when the ban ends (utcnow()+duration) must be before the year 10000 (date lib restriction).
+restriction is that the date when the ban ends (`utcnow()+duration`) must be before the year 10000 (date lib restriction).
 
 Response data if successful:
 
@@ -736,9 +736,9 @@ Response data if successful:
 
 ## message
 
-Send a message to a "room" UUID (can be the user UUID or an actual room UUID).
+Send a message to a `room` UUID (can be the user UUID or an actual room UUID).
 
-Responds with event name "gn_message".
+Responds with event name `gn_message`.
 
 Request contains:
 
@@ -779,7 +779,7 @@ Response data if successful:
     }
     
 The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
-and the "published" field set to the time the server received the request (in RFC3339 format).
+and the `published` field set to the time the server received the request (in RFC3339 format).
 
 ## remove_room
 
