@@ -56,6 +56,9 @@ class FakeDb(object):
     def is_owner_channel(self, *args):
         return False
 
+    def is_global_moderator(self, user_id):
+        return False
+
     def is_super_user(self, user_id):
         return user_id in FakeDb._super_users
 

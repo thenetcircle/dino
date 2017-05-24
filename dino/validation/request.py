@@ -204,6 +204,7 @@ class RequestValidator(BaseValidator):
 
         is_global_ban = target_type == 'global' or room_id is None or room_id == ''
 
+        print('room_id? %s' % room_id)
         channel_id = None
         if not is_global_ban:
             if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
@@ -234,8 +235,8 @@ class RequestValidator(BaseValidator):
         if not is_global_ban:
             if not utils.is_owner(room_id, user_id):
                 return False, ECodes.NOT_ALLOWED, 'only owners can ban'
-        elif not utils.is_admin(channel_id, user_id) and not utils.is_super_user(user_id):
-            return False, ECodes.NOT_ALLOWED, 'only admins and super users can do global bans'
+        elif not utils.is_admin(channel_id, user_id):
+            return False, ECodes.NOT_ALLOWED, 'only admins, super users and global mods can do global bans'
 
         return True, None, None
 

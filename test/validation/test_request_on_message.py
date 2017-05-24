@@ -66,6 +66,9 @@ class FakeDb(object):
     def is_admin(self, *args):
         return False
 
+    def is_global_moderator(self, user_id):
+        return False
+
     def is_owner(self, *args):
         return False
 

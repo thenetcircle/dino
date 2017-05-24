@@ -175,7 +175,7 @@ class RequestBanTest(TestCase):
         act = self.json_act()
         del act['target']['id']
         is_valid, code, msg = self.validator.on_ban(as_parser(act))
-        self.assertTrue(is_valid)
+        self.assertFalse(is_valid)
 
     def test_global_ban_is_super_user(self):
         self.set_super_user()
