@@ -409,6 +409,30 @@ class DatabaseRdbms(object):
             rooms[row.uuid] = row.name
         return rooms
 
+    def type_of_rooms_in_channel(self, channel_id: str) -> str:
+        object_type = self.env.cache.get_type_of_rooms_in_channel(channel_id)
+        if object_type is not None:
+            return object_type
+
+        rooms = self.rooms_for_channel(channel_id)
+        ephemeral = 0
+        static = 0
+        for room in rooms:
+            if room['ephemeral']:
+                ephemeral += 1
+            else:
+                static += 1
+
+        if ephemeral >= 0 and static == 0:
+            object_type = 'temporary'
+        elif ephemeral == 0 and static > 0:
+            object_type = 'static'
+        else:
+            object_type = 'mix'
+
+        self.env.cache.set_type_of_rooms_in_channel(channel_id, object_type)
+        return object_type
+
     @with_session
     def rooms_for_channel(self, channel_id, session=None) -> dict:
         all_rooms = session.query(Rooms)\

@@ -27,6 +27,23 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def set_type_of_rooms_in_channel(self, channel_id: str, object_type: str) -> None:
+        """
+        type of rooms in a channel, if all rooms are static or all rooms are temporary, otherwise mix
+
+        :param channel_id: uuid of the channel
+        :param object_type: the type of rooms: static, temporary or mix
+        :return: nothing
+        """
+
+    def get_type_of_rooms_in_channel(self, channel_id: str) -> str:
+        """
+        type of rooms in a channel, if all rooms are static or all rooms are temporary, otherwise mix
+
+        :param channel_id: the uuid of the channel
+        :return: static, temporary or mix
+        """
+
     def clear_default_rooms(self) -> None:
         """
         clear the list of default room uuids from the cache

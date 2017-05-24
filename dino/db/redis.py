@@ -1121,6 +1121,9 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.room_name_for_id(), room_id, room_name)
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
 
+    def type_of_rooms_in_channel(self, channel_id: str) -> str:
+        return 'mix'
+
     def remove_room(self, channel_id: str, room_id: str) -> None:
         if self.env.cache.get_channel_exists(channel_id) is None:
             if not self.channel_exists(channel_id):

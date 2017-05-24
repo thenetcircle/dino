@@ -515,6 +515,10 @@ def activity_for_owners(activity: Activity, owners: dict) -> dict:
     return response
 
 
+def is_channel_static_or_temporary_or_mix(channel_id: str) -> str:
+    return environ.env.db.type_of_rooms_in_channel(channel_id)
+
+
 def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
     response = {
         'object': {
@@ -526,10 +530,13 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
 
     response['object']['attachments'] = list()
     for channel_id, (channel_name, sort_order) in channels.items():
+        object_type = is_channel_static_or_temporary_or_mix(channel_id)
+
         response['object']['attachments'].append({
             'id': channel_id,
             'url': sort_order,
-            'displayName': b64e(channel_name)
+            'displayName': b64e(channel_name),
+            'objectType': object_type
         })
         response['object']['attachments'] = sorted(response['object']['attachments'], key=lambda k: k['url'])
 

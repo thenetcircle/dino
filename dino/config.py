@@ -179,6 +179,7 @@ class ConfigKeys(object):
 
 
 class RedisKeys(object):
+    RKEY_TYPE_OF_ROOMS_IN_CHANNEL = 'channel:roomtype:%s'  # channel:roomtype:channel_id
     RKEY_ROOMS_FOR_USER = 'user:rooms:%s'  # user:rooms:user_id
     RKEY_USERS_IN_ROOM = 'room:%s'  # room:room_id
     RKEY_ROOMS = 'rooms:%s'  # room:channel_id
@@ -215,6 +216,10 @@ class RedisKeys(object):
     @staticmethod
     def default_rooms() -> str:
         return RedisKeys.RKEY_DEFAULT_ROOMS
+
+    @staticmethod
+    def room_types_in_channel(channel_id: str) -> str:
+        return RedisKeys.RKEY_TYPE_OF_ROOMS_IN_CHANNEL % channel_id
 
     @staticmethod
     def non_ephemeral_rooms() -> str:

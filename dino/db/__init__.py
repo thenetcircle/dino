@@ -289,6 +289,14 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def type_of_rooms_in_channel(self, channel_id: str) -> str:
+        """
+        get the type of rooms for this channel, all temporary, all static, or a mix of both
+
+        :param channel_id: the uuid of the channel
+        :return: temporary, static, or mix
+        """
+
     def leave_room(self, user_id: str, room_id: str) -> None:
         """
         leave a room

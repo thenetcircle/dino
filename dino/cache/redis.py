@@ -30,6 +30,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 EIGHT_HOURS_IN_SECONDS = 8*60*60
 TEN_MINUTES = 10*60
 FIVE_MINUTES = 5*60
+ONE_MINUTE = 60
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,14 @@ class CacheRedis(object):
 
     def _del(self, key) -> None:
         self.cache.delete(key)
+
+    def set_type_of_rooms_in_channel(self, channel_id: str, object_type: str) -> None:
+        cache_key = RedisKeys.room_types_in_channel(channel_id)
+        self.cache.set(cache_key, object_type, ttl=ONE_MINUTE)
+
+    def get_type_of_rooms_in_channel(self, channel_id: str) -> str:
+        cache_key = RedisKeys.room_types_in_channel(channel_id)
+        return self.cache.get(cache_key)
 
     def set_is_room_ephemeral(self, room_id: str, is_ephemeral: bool) -> None:
         redis_key = RedisKeys.non_ephemeral_rooms()

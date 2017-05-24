@@ -144,6 +144,7 @@ Response data if successful:
                         "id": "<channel UUID>",
                         "displayName": "<channel name>",
                         "url": 8,
+                        "objectType": "static",
                         "attachments": [
                             {
                                 "summary": "message",
@@ -156,6 +157,7 @@ Response data if successful:
                         "id": "<channel UUID>",
                         "displayName": "<channel name>",
                         "url": 20,
+                        "objectType": "temporary",
                         "attachments": [
                             {
                                 "summary": "join",
@@ -172,6 +174,15 @@ Response data if successful:
 
 Each channel has a `url` field, which is the sort order defined in the admin interface, in ascending order (lower `url`
 means higher up in the list).
+
+The `objectType` of a channel tells you if this channel only contains static rooms, only temporary rooms or a mix of 
+both. Possible values are thus:
+
+* temporary
+* static
+* mix
+
+If the channel has 0 rooms in it, the objectType will be `mix`.
 
 Attachments for each channel describes the ACLs for that channel.
 
