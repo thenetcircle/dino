@@ -57,10 +57,10 @@ class OnJoinCheckNotFull(IPlugin):
 
         if n_users < self.max_users_low:
             return True, None, None
-        if n_users > self.max_users_high:
-            return False, ErrorCodes.ROOM_FULL, 'room is full'
+        if len(membership.strip()) > 0 and membership not in self.max_users_exception:
+            return True, None, None
 
-        if len(membership.strip()) == 0 or membership not in self.max_users_exception:
+        if n_users > self.max_users_high:
             return False, ErrorCodes.ROOM_FULL, 'room is full'
 
         return True, None, None

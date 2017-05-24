@@ -20,11 +20,11 @@ common_config: &common_config
         on_message:
             - name: no_empty
             #- check_blacklist
-        #on_join:
-        #    - name: not_full
-        #      max_users_low: 2
-        #      max_users_high: 3
-        #      exception: 'premium,vip'
+        on_join:
+            - name: not_full
+              max_users_low: 2
+              max_users_high: 3
+              exception: 'normalo'
     history:
         type: 'top'  # unread or top
         limit: 50
