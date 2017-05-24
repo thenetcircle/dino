@@ -86,7 +86,7 @@ fi
 
 if [ -f "$SYSTEMD_PATH/dino-app-1-$DINO_ENVIRONMENT.service" ]; then
     echo "stopping app1... "
-    if ! systemctl stop dino-app1-${DINO_ENVIRONMENT}; then
+    if ! systemctl stop dino-app-1-${DINO_ENVIRONMENT}; then
         echo "error: could not stop dino-app1"
         exit 1
     fi
@@ -94,7 +94,7 @@ fi
 
 if [ -f "$SYSTEMD_PATH/dino-app-2-$DINO_ENVIRONMENT.service" ]; then
     echo "stopping app2... "
-    if ! systemctl stop dino-app2-${DINO_ENVIRONMENT}; then
+    if ! systemctl stop dino-app-2-${DINO_ENVIRONMENT}; then
         echo "error: could not stop dino-app2"
         exit 1
     fi
@@ -102,7 +102,7 @@ fi
 
 if [ -f "$SYSTEMD_PATH/dino-app-3-$DINO_ENVIRONMENT.service" ]; then
     echo "stopping app3... "
-    if ! systemctl stop dino-app3-${DINO_ENVIRONMENT}; then
+    if ! systemctl stop dino-app-3-${DINO_ENVIRONMENT}; then
         echo "error: could not stop dino-app3"
         exit 1
     fi
@@ -110,7 +110,7 @@ fi
 
 if [ -f "$SYSTEMD_PATH/dino-app-4-$DINO_ENVIRONMENT.service" ]; then
     echo "stopping app4... "
-    if ! systemctl stop dino-app4-${DINO_ENVIRONMENT}; then
+    if ! systemctl stop dino-app-4-${DINO_ENVIRONMENT}; then
         echo "error: could not stop dino-app4"
         exit 1
     fi
@@ -118,7 +118,7 @@ fi
 
 if [ -f "$SYSTEMD_PATH/dino-app-5-$DINO_ENVIRONMENT.service" ]; then
     echo "stopping app5... "
-    if ! systemctl stop dino-app5-${DINO_ENVIRONMENT}; then
+    if ! systemctl stop dino-app-5-${DINO_ENVIRONMENT}; then
         echo "error: could not stop dino-app5"
         exit 1
     fi
