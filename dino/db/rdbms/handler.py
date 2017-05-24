@@ -417,7 +417,7 @@ class DatabaseRdbms(object):
         rooms = self.rooms_for_channel(channel_id)
         ephemeral = 0
         static = 0
-        for room in rooms:
+        for _, room in rooms.items():
             if room['ephemeral']:
                 ephemeral += 1
             else:
