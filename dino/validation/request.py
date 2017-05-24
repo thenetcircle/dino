@@ -204,7 +204,6 @@ class RequestValidator(BaseValidator):
 
         is_global_ban = target_type == 'global' or room_id is None or room_id == ''
 
-        print('room_id? %s' % room_id)
         channel_id = None
         if not is_global_ban:
             if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
