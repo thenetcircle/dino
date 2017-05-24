@@ -21,3 +21,6 @@ eventlet.monkey_patch()
 
 # keep this import; even though unused, gunicorn needs it, otherwise it will not start
 from dino.restful import app
+
+from dino import environ
+environ.env.node = __name__

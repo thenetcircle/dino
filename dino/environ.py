@@ -229,6 +229,7 @@ class GNEnvironment(object):
         self.consume_worker = None
         self.start_consumer = None
         self.blacklist = None
+        self.node = None
 
         self.event_validator_map = dict()
         self.event_validators = dict()
@@ -685,6 +686,10 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
     def publish(message, external=None):
         if external is None or not external:
             external = False
+
+        if external and gn_env.node != 'rest':
+            # avoid publishing duplicate events by only letting the rest node publish external events
+            return
 
         try:
             start = time.time()
