@@ -24,7 +24,7 @@ common_config: &common_config
             - name: not_full
               max_users_low: 2
               max_users_high: 3
-              exception: 'normalo'
+              exception: 'normal'
     history:
         type: 'top'  # unread or top
         limit: 50
