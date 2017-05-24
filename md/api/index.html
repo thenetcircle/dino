@@ -342,6 +342,7 @@ room/channel/global.</p>
                     "id": "&lt;channel UUID&gt;",
                     "displayName": "&lt;channel name&gt;",
                     "url": 8,
+                    "objectType": "static",
                     "attachments": [
                         {
                             "summary": "message",
@@ -354,6 +355,7 @@ room/channel/global.</p>
                     "id": "&lt;channel UUID&gt;",
                     "displayName": "&lt;channel name&gt;",
                     "url": 20,
+                    "objectType": "temporary",
                     "attachments": [
                         {
                             "summary": "join",
@@ -370,6 +372,14 @@ room/channel/global.</p>
 </code></pre>
 <p>Each channel has a <code>url</code> field, which is the sort order defined in the admin interface, in ascending order (lower <code>url</code>
 means higher up in the list).</p>
+<p>The <code>objectType</code> of a channel tells you if this channel only contains static rooms, only temporary rooms or a mix of 
+both. Possible values are thus:</p>
+<ul>
+<li>temporary</li>
+<li>static</li>
+<li>mix</li>
+</ul>
+<p>If the channel has 0 rooms in it, the objectType will be <code>mix</code>.</p>
 <p>Attachments for each channel describes the ACLs for that channel.</p>
 <h2 id="list_rooms">list_rooms</h2>
 <p>Get a list of all rooms for a channel.</p>
