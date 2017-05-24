@@ -94,6 +94,11 @@ class OnDisconnectHooks(object):
         try:
             user_id = activity.actor.id
             user_name = environ.env.session.get(SessionKeys.user_name.value)
+
+            if user_id is None or len(user_name.strip()) == 0:
+                logger.error('blank userid/username, ignoring disconnect event')
+                return
+
             activity_json = utils.activity_for_disconnect(user_id, user_name)
             environ.env.publish(activity_json)
         except Exception as e:
