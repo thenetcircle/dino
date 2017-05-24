@@ -50,7 +50,7 @@ class OnMessageHooks(object):
             user_name = utils.b64d(user_name)
 
         activity_json = utils.activity_for_message(user_id, user_name)
-        environ.env.publish(activity_json, external=True)
+        environ.env.publish(activity_json)
 
     @staticmethod
     def broadcast(arg: tuple) -> None:

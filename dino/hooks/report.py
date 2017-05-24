@@ -21,7 +21,7 @@ class OnReportHooks(object):
     def publish_activity(arg: tuple) -> None:
         _, activity = arg
         report_activity = utils.activity_for_report(activity)
-        environ.env.publish(report_activity, external=True)
+        environ.env.publish(report_activity)
 
     @staticmethod
     def notify_admins(arg: tuple) -> None:

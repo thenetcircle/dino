@@ -53,7 +53,7 @@ class BlackListChecker(object):
                 continue
 
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
-            self.env.publish(blacklist_activity, external=True)
+            self.env.publish(blacklist_activity)
             logger.warning('message from user %s used a blacklisted word "%s"' % (activity.actor.id, word))
             return True
         return False

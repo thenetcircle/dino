@@ -104,13 +104,7 @@ class QueueHandler(object):
         if len(self.recently_delegated_events) > 100:
             del self.recently_delegated_events[0]
 
-    def handle_server_activity(self, data: dict, activity: Activity) -> None:
-        if activity.id in self.recently_delegated_events:
-            logger.info('ignoring event with id %s sine we delegated from this node' % activity.id)
-            return
-
-        logger.debug('got internally published message: %s' % str(data))
-
+    def handle_local_node_events(self, data: dict, activity: Activity):
         # do this first, since ban might occur even if user is not connected
         if activity.verb == 'ban':
             self.create_ban_even_if_not_on_this_node(activity)
@@ -142,8 +136,18 @@ class QueueHandler(object):
                 logger.error('could not emit remove activity to clients: %s' % str(e))
                 logger.exception(traceback.format_exc())
 
+    def handle_server_activity(self, data: dict, activity: Activity) -> None:
+        if activity.id in self.recently_delegated_events:
+            logger.info('ignoring event with id %s sine we delegated from this node' % activity.id)
+            return
+
+        logger.debug('got internally published message: %s' % str(data))
+
+        if activity.verb in ['ban', 'kick', 'remove']:
+            self.handle_local_node_events(data, activity)
         else:
-            logger.error('unknown server activity verb "%s"' % activity.verb)
+            # otherwise it's external events for possible analysis
+            environ.env.publish(data, external=True)
 
     def kick(self, data: dict, activity: Activity, room_id: str, user_id: str, user_sid: str, namespace: str) -> None:
         try:

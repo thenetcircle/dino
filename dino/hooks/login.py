@@ -67,7 +67,7 @@ class OnLoginHooks(object):
         user_name = environ.env.session.get(SessionKeys.user_name.value)
 
         activity_json = utils.activity_for_login(user_id, user_name)
-        environ.env.publish(activity_json, external=True)
+        environ.env.publish(activity_json)
 
     @staticmethod
     def reset_temp_session_values(arg: tuple):

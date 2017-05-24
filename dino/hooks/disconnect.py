@@ -95,7 +95,7 @@ class OnDisconnectHooks(object):
             user_id = activity.actor.id
             user_name = environ.env.session.get(SessionKeys.user_name.value)
             activity_json = utils.activity_for_disconnect(user_id, user_name)
-            environ.env.publish(activity_json, external=True)
+            environ.env.publish(activity_json)
         except Exception as e:
             logger.error('could not emit disconnect event: %s' % str(e))
             logger.debug('request for failed emit_disconnect_event(): %s' % str(data))

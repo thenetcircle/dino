@@ -16,7 +16,6 @@ from uuid import uuid4 as uuid
 
 import logging
 import traceback
-import json
 
 from dino.config import ConfigKeys
 from dino import environ

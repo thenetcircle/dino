@@ -188,7 +188,7 @@ class UserManager(BaseManager):
         else:
             raise UnknownBanTypeException(target_type)
 
-        self.env.publish(ban_activity, external=True)
+        self.env.publish(ban_activity)
 
     def get_banned_users(self) -> dict:
         return self.env.db.get_banned_users()

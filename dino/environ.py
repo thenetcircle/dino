@@ -720,11 +720,18 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                         gn_env.stats.incr('publish.error')
 
                 if failed:
-                    logger.error('failed to publish %s times, giving up!' % str(n_tries))
+                    if external:
+                        logger.error('failed to publish EXTERNAL message %s times! Republishing to internal queue' % str(n_tries))
+                        publish(message)
+                    else:
+                        logger.error('failed to publish INTERNAL message %s times! Dropping message: %s' % message)
                 elif current_try > 0:
                     logger.info('published successfully on attempt %s/%s' % (str(current_try+1), str(n_tries)))
                 else:
-                    logger.debug('published internal message: %s' % str(message))
+                    event_type = 'internal'
+                    if external:
+                        event_type = 'external'
+                    logger.debug('published %s message: %s' % (event_type, str(message)))
 
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
