@@ -1096,6 +1096,13 @@ def user_is_online(user_id: str) -> bool:
     }
 
 
+def user_is_invisible(user_id: str) -> bool:
+    if user_id is None or len(user_id.strip()) == 0:
+        logger.warn('can not check user online status, user_id was blank!')
+        return False
+    return get_user_status(user_id) == UserKeys.STATUS_INVISIBLE
+
+
 def get_user_status(user_id: str) -> str:
     return environ.env.db.get_user_status(user_id)
 

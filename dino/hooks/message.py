@@ -58,6 +58,9 @@ class OnMessageHooks(object):
         if utils.used_blacklisted_word(activity):
             return
         room_id = activity.target.id
+        user_id = activity.actor.id
+        if utils.user_is_invisible(user_id):
+            data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
         environ.env.send(data, json=True, room=room_id, broadcast=True)
 
 
