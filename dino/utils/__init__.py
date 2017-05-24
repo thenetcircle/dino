@@ -440,13 +440,49 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
 
 
 def check_if_should_remove_room(data, activity):
+    room_id = activity.target.id
+    room_name = get_room_name(room_id)
+
+    logger.info('checking whether to remove room "%s" (%s) or not' % (room_name, room_id))
+
+    #check_if_remove_room_owner(activity)
+    check_if_remove_room_empty(activity)
+
+
+def remove_room(channel_id, room_id, user_id, user_name, room_name):
+    logger.info('removing room %s (%s), last owner has left/disconnected' % (room_id, room_name))
+    environ.env.db.remove_room(channel_id, room_id)
+    remove_activity = activity_for_remove_room(user_id, user_name, room_id, room_name)
+    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
+
+
+def check_if_remove_room_empty(activity: Activity):
     user_id = activity.actor.id
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     room_id = activity.target.id
     room_name = get_room_name(room_id)
     channel_id = get_channel_for_room(room_id)
 
-    logger.info('checking whether to remove room %s or not' % room_id)
+    if not environ.env.db.is_room_ephemeral(room_id):
+        logger.info('room %s (%s) is not ephemeral, not considering removal' % (room_name, room_id))
+        return
+
+    users_in_room = get_users_in_room(room_id)
+
+    if user_id in users_in_room:
+        del users_in_room[user_id]
+    if len(users_in_room) > 0:
+        return
+    remove_room(channel_id, room_id, user_id, user_name, room_name)
+
+
+# currently not used, rooms are removed if empty, not if owner leaves
+def check_if_remove_room_owner(activity: Activity):
+    user_id = activity.actor.id
+    user_name = environ.env.session.get(SessionKeys.user_name.value)
+    room_id = activity.target.id
+    room_name = get_room_name(room_id)
+    channel_id = get_channel_for_room(room_id)
 
     if not environ.env.db.is_room_ephemeral(room_id):
         logger.info('room %s (%s) is not ephemeral, not considering removal' % (room_name, room_id))
@@ -463,9 +499,6 @@ def check_if_should_remove_room(data, activity):
             logger.info('owner %s (%s) is still in room %s (%s), not considering removal' %
                         (owner_name, owner_id, room_name, room_id))
             return
-
-    logger.info('removing room %s (%s), last owner has left/disconnected' % (room_id, room_name))
-    environ.env.db.remove_room(channel_id, room_id)
 
     for user_id_still_in_room, user_name_still_in_room in users_in_room.items():
         kick_activity = {
@@ -487,8 +520,7 @@ def check_if_should_remove_room(data, activity):
         }
         environ.env.publish(kick_activity)
 
-    remove_activity = activity_for_remove_room(user_id, user_name, room_id, room_name)
-    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
+    remove_room(channel_id, room_id, user_id, user_name, room_name)
 
 
 def activity_for_owners(activity: Activity, owners: dict) -> dict:
