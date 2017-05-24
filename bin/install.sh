@@ -6,8 +6,8 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 if [ $# -lt 4 ]; then
-    echo "usage: $0 <environment> <dino home dir> <app/rest/web> <port>"
-    echo "example: $0 production /home/dino/dino/ app 5200"
+    echo "usage: $0 <environment> <dino home dir> <app/rest/web> <port> <instance number>"
+    echo "example: $0 production /home/dino/dino/ app 5200 1"
     exit 1
 fi
 
@@ -15,10 +15,11 @@ DINO_ENVIRONMENT=$1
 DINO_DIR=$2
 DINO_SERVICE=$3
 DINO_PORT=$4
+DINO_INSTANCE=$5
 
 SYSTEMD_DIR=/usr/lib/systemd/system/
 SKELETON="$DINO_DIR/bin/systemd/dino-base.service.skeleton"
-SCRIPT_PATH="$SYSTEMD_DIR/dino-$DINO_SERVICE-$DINO_ENVIRONMENT.service"
+SCRIPT_PATH="$SYSTEMD_DIR/dino-$DINO_SERVICE-$DINO_INSTANCE-$DINO_ENVIRONMENT.service"
 
 re='^[0-9]+$'
 if ! [[ ${DINO_PORT} =~ $re ]] ; then
