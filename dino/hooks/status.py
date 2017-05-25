@@ -31,6 +31,9 @@ class OnStatusHooks(object):
             environ.env.db.set_user_online(user_id)
             activity_json = utils.activity_for_connect(user_id, user_name)
             environ.env.emit('gn_user_connected', activity_json, broadcast=True, include_self=False)
+            # TODO: join room events
+            #activity_json = utils.activity_for_connect(user_id, user_name)
+            #environ.env.emit('gn_user_connected', activity_json, broadcast=True, include_self=False)
 
         elif status == 'invisible':
             environ.env.db.set_user_invisible(user_id)

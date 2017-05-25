@@ -41,7 +41,7 @@ class BlackListChecker(object):
             message = utils.b64d(message).lower()
 
         contains_forbidden_word = any(
-            word in message
+            word.lower() in message
             for word in blacklist
         )
 
