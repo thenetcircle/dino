@@ -478,6 +478,7 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     environ.env.observer.emit('on_list_channels', (data, activity))
     activity_json = utils.activity_for_list_channels(activity, channels)
     channels_with_acls = activity_json['object']['attachments']
+    filtered_channels = list()
 
     for channel_info in channels_with_acls:
         channel_id = channel_info['id']
@@ -493,8 +494,9 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
         acls = utils.get_acls_for_channel(channel_id)
         acl_activity = utils.activity_for_get_acl(activity, acls)
         channel_info['attachments'] = acl_activity['object']['attachments']
+        filtered_channels.append(channel_info)
 
-    activity_json['object']['attachments'] = channels_with_acls
+    activity_json['object']['attachments'] = filtered_channels
     return ECodes.OK, activity_json
 
 
