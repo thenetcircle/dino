@@ -22,18 +22,21 @@ class OnStatusHooks(object):
     def set_status(arg: tuple) -> None:
         data, activity = arg
 
-        # todo: leave rooms on invisible/offline?
         user_id = activity.actor.id
         user_name = environ.env.session.get(SessionKeys.user_name.value, None)
+        image = environ.env.session.get(SessionKeys.image.value, '')
         status = activity.verb
 
         if status == 'online':
             environ.env.db.set_user_online(user_id)
             activity_json = utils.activity_for_connect(user_id, user_name)
             environ.env.emit('gn_user_connected', activity_json, broadcast=True, include_self=False)
-            # TODO: join room events
-            #activity_json = utils.activity_for_connect(user_id, user_name)
-            #environ.env.emit('gn_user_connected', activity_json, broadcast=True, include_self=False)
+
+            rooms = utils.rooms_for_user(user_id)
+            for room_id in rooms:
+                room_name = utils.get_room_name(room_id)
+                activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
+                environ.env.emit('gn_user_joined', activity_json, room=room_id, broadcast=True, include_self=False)
 
         elif status == 'invisible':
             environ.env.db.set_user_invisible(user_id)
