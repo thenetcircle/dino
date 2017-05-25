@@ -484,6 +484,7 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
         channel_id = channel_info['id']
         list_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
         activity.object.url = channel_id
+        activity.target.object_type = 'channel'
         is_valid, err_msg = validation.acl.validate_acl_for_action(
                 activity, ApiTargets.CHANNEL, ApiActions.LIST, list_acls, target_id=channel_id, object_type='channel')
 

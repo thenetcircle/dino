@@ -63,6 +63,8 @@ class Worker(ConsumerMixin):
 
 
 def consume():
+    if len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING, False):
+        return
     with GracefulInterruptHandler() as interrupt_handler:
         while True:
             with Connection(environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)) as conn:

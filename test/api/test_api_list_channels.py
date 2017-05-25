@@ -32,5 +32,8 @@ class ApiListChannelsTest(BaseTest):
 
     def activity(self):
         return {
+            'actor': {
+                'id': BaseTest.USER_ID
+            },
             'verb': 'list'
         }

@@ -30,7 +30,11 @@ class OnMessageHooks(object):
         if OnMessageHooks.LAST_READ_ENABLED is not None:
             return OnMessageHooks.LAST_READ_ENABLED
 
-        history_type = environ.env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.HISTORY)
+        history_type = environ.env.config.get(
+                ConfigKeys.TYPE,
+                domain=ConfigKeys.HISTORY,
+                default=ConfigKeys.DEFAULT_HISTORY_STRATEGY)
+
         OnMessageHooks.LAST_READ_ENABLED = history_type == ConfigKeys.HISTORY_TYPE_UNREAD
         return OnMessageHooks.LAST_READ_ENABLED
 
