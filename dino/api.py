@@ -480,7 +480,16 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     channels_with_acls = activity_json['object']['attachments']
 
     for channel_info in channels_with_acls:
-        acls = utils.get_acls_for_channel(channel_info['id'])
+        channel_id = channel_info['id']
+        list_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
+        is_valid, err_msg = validation.acl.validate_acl_for_action(
+                activity, ApiTargets.CHANNEL, ApiActions.LIST, list_acls, target_id=channel_id, object_type='channel')
+
+        # not allowed to list this channel
+        if not is_valid:
+            continue
+
+        acls = utils.get_acls_for_channel(channel_id)
         acl_activity = utils.activity_for_get_acl(activity, acls)
         channel_info['attachments'] = acl_activity['object']['attachments']
 
