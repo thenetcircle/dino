@@ -114,9 +114,6 @@ class AclValidator(object):
                 is_valid_func = all_acls['validation'][acl]['value']
                 is_valid, msg = is_valid_func(activity, environ.env, acl, target_acls[acl])
                 if not is_valid:
-                    logger.info(
-                            'acl "%s" did not validate for target acl "%s": %s' %
-                            (acl, target_acls[acl], msg))
                     return False, 'acl "%s" did not validate for target acl "%s": %s' % (
                         acl, target_acls[acl], msg)
 
