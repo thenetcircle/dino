@@ -12,6 +12,7 @@
 
 from dino import environ
 from dino import utils
+from dino.config import ConfigKeys
 
 import logging
 import traceback
@@ -22,6 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 class OnMessageHooks(object):
+    LAST_READ_ENABLED = None
+
+    @staticmethod
+    def last_read_enabled():
+        if OnMessageHooks.LAST_READ_ENABLED is not None:
+            return OnMessageHooks.LAST_READ_ENABLED
+
+        history_type = environ.env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.HISTORY)
+        OnMessageHooks.LAST_READ_ENABLED = history_type == ConfigKeys.HISTORY_TYPE_UNREAD
+        return OnMessageHooks.LAST_READ_ENABLED
+
     @staticmethod
     def store(arg: tuple) -> None:
         data, activity = arg
@@ -34,6 +46,9 @@ class OnMessageHooks(object):
 
     @staticmethod
     def update_last_read(arg: tuple) -> None:
+        if not OnMessageHooks.last_read_enabled():
+            return
+
         data, activity = arg
         room_id = activity.target.id
         if activity.target.object_type == 'private':
