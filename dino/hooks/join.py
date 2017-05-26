@@ -16,6 +16,7 @@ from dino import environ
 from dino import utils
 from dino.config import SessionKeys
 from dino.config import UserKeys
+from dino.utils.decorators import timeit
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class OnJoinHooks(object):
     @staticmethod
+    @timeit(logger, 'on_join_hook_join_room')
     def join_room(arg: tuple) -> None:
         data, activity = arg
         room_id = activity.target.id
@@ -35,6 +37,7 @@ class OnJoinHooks(object):
         utils.join_the_room(user_id, user_name, room_id, room_name)
 
     @staticmethod
+    @timeit(logger, 'on_join_hook_emit_join_event')
     def emit_join_event(arg: tuple) -> None:
         data, activity = arg
         room_id = activity.target.id
@@ -54,6 +57,7 @@ class OnJoinHooks(object):
         environ.env.publish(activity_json)
 
     @staticmethod
+    @timeit(logger, 'on_join_hook_set_sid_for_user')
     def set_sid_for_user(arg: tuple) -> None:
         data, activity = arg
         user_id = activity.actor.id
