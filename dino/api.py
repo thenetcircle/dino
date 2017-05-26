@@ -13,18 +13,16 @@
 # limitations under the License.
 
 from typing import Union
-from uuid import uuid4 as uuid
 
 from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
-from activitystreams import parse as as_parser
 from flask import request
 
 from dino.config import ApiTargets
-from dino.config import ConfigKeys
 from dino.config import ErrorCodes as ECodes
 from dino.hooks import *
 from dino.config import ApiActions
+from dino.utils.decorators import timeit
 from dino import validation
 
 import logging
@@ -43,6 +41,7 @@ def connect() -> (int, None):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_login')
 def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     event sent directly after a connection has successfully been made, to get the user_id for this connection
@@ -89,11 +88,13 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, response
 
 
+@timeit(logger, 'on_delete')
 def on_delete(data: dict, activity: Activity):
     environ.env.observer.emit('on_delete', (data, activity))
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_message')
 def on_message(data, activity: Activity):
     """
     send any kind of message/event to a target user/room
@@ -166,6 +167,7 @@ def on_message(data, activity: Activity):
     return ECodes.OK, data
 
 
+@timeit(logger, 'on_update_user_info')
 def on_update_user_info(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     broadcast a user info update to a room, or all rooms the user is in if no target.id specified
@@ -180,6 +182,7 @@ def on_update_user_info(data: dict, activity: Activity) -> (int, Union[str, None
     return ECodes.OK, data
 
 
+@timeit(logger, 'on_ban')
 def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     ban a user from a room (if user is an owner/admin/moderator)
@@ -201,6 +204,7 @@ def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_kick')
 def on_kick(data: dict, activity: Activity) -> (int, None):
     """
     kick a user from a room (if user is an owner)
@@ -220,6 +224,7 @@ def on_kick(data: dict, activity: Activity) -> (int, None):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_whisper')
 def on_whisper(data: dict, activity: Activity) -> (int, None):
     """
     whisper to another person in the same room, only that person will receive the event. Functions as a private message
@@ -232,6 +237,7 @@ def on_whisper(data: dict, activity: Activity) -> (int, None):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_invite')
 def on_invite(data: dict, activity: Activity) -> (int, None):
     """
     invite a user to the a room this user is in
@@ -244,6 +250,7 @@ def on_invite(data: dict, activity: Activity) -> (int, None):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_request_admin')
 def on_request_admin(data: dict, activity: Activity) -> (int, None):
     """
     request the presence of an admin in the current room
@@ -260,6 +267,7 @@ def on_request_admin(data: dict, activity: Activity) -> (int, None):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_create')
 def on_create(data: dict, activity: Activity) -> (int, dict):
     """
     create a new room
@@ -284,6 +292,7 @@ def on_create(data: dict, activity: Activity) -> (int, dict):
     return ECodes.OK, data
 
 
+@timeit(logger, 'on_set_acl')
 def on_set_acl(data: dict, activity: Activity) -> (int, str):
     """
     change ACL of a room; only allowed if the user is the owner of the room
@@ -296,6 +305,7 @@ def on_set_acl(data: dict, activity: Activity) -> (int, str):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_report')
 def on_report(data: dict, activity: Activity) -> (int, str):
     """
     when a user reports a user based on a message
@@ -308,6 +318,7 @@ def on_report(data: dict, activity: Activity) -> (int, str):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_get_acl')
 def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict]):
     """
     change ACL of a room; only allowed if the user is the owner of the room
@@ -325,6 +336,7 @@ def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict]):
     return ECodes.OK, utils.activity_for_get_acl(activity, acls)
 
 
+@timeit(logger, 'on_status')
 def on_status(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     change online status
@@ -338,6 +350,7 @@ def on_status(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_history')
 def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     get the history of a room
@@ -359,6 +372,7 @@ def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, utils.activity_for_history(activity, messages)
 
 
+@timeit(logger, 'on_remove_room')
 def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     remove a room
@@ -385,6 +399,7 @@ def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, utils.activity_for_room_removed(activity, room_name)
 
 
+@timeit(logger, 'on_join')
 def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     join a room
@@ -406,6 +421,7 @@ def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, utils.activity_for_join(activity, acls, messages, owners, users)
 
 
+@timeit(logger, 'on_users_in_room')
 def on_users_in_room(data: dict, activity: Activity) -> (int, Union[dict, str]):
     """
     get a list of users in a room
@@ -423,6 +439,7 @@ def on_users_in_room(data: dict, activity: Activity) -> (int, Union[dict, str]):
     return ECodes.OK, utils.activity_for_users_in_room(activity, users)
 
 
+@timeit(logger, 'on_list_rooms')
 def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     """
     get a list of rooms
@@ -465,6 +482,7 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     return ECodes.OK, activity_json
 
 
+@timeit(logger, 'on_list_channels')
 def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     """
     get a list of channels
@@ -501,6 +519,7 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     return ECodes.OK, activity_json
 
 
+@timeit(logger, 'on_leave')
 def on_leave(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     leave a room
@@ -513,6 +532,7 @@ def on_leave(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_disconnect')
 def on_disconnect() -> (int, None):
     """
     when a client disconnects or the server no longer gets a ping response from the client

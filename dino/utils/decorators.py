@@ -48,7 +48,10 @@ def timeit(_logger, tag: str):
                 raise e
             finally:
                 if not failed:
-                    _logger.debug(tag + '... %.2fms' % ((time.time()-before)*1000))
+                    the_time = (time.time()-before)*1000
+                    if tag.startswith('on_'):
+                        environ.env.stats.timing('api.' + tag, the_time)
+                    _logger.debug(tag + '... %.2fms' % the_time)
         return decorator
     return factory
 
