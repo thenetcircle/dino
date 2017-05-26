@@ -498,6 +498,31 @@ class ICache(Interface):
         :return:
         """
 
+    def get_user_info(self, user_id: str) -> dict:
+        """
+        get the cached user info
+
+        :param user_id: the id of the user
+        :return: a dict of user info key key -> user info value
+        """
+
+    def set_user_info(self, user_id: str, info: dict) -> None:
+        """
+        cache the user info
+
+        :param user_id: the id fo the user
+        :param info: a dict of user info key key -> user info value
+        :return: nothing
+        """
+
+    def reset_user_info(self, user_id: str) -> None:
+        """
+        delete the cache user info
+
+        :param user_id: id of the user
+        :return: nothing
+        """
+
     def set_room_exists(self, channel_id, room_id, room_name):
         """
 
