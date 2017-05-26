@@ -433,28 +433,35 @@ class DatabaseRdbms(object):
         self.env.cache.set_type_of_rooms_in_channel(channel_id, object_type)
         return object_type
 
-    @with_session
-    def rooms_for_channel(self, channel_id, session=None) -> dict:
-        all_rooms = session.query(Rooms)\
-            .join(Rooms.channel)\
-            .outerjoin(Rooms.users)\
-            .filter(Channels.uuid == channel_id)\
-            .all()
+    def rooms_for_channel(self, channel_id) -> dict:
+        @with_session
+        def _rooms(session=None):
+            all_rooms = session.query(Rooms)\
+                .join(Rooms.channel)\
+                .outerjoin(Rooms.users)\
+                .filter(Channels.uuid == channel_id)\
+                .all()
 
-        rooms = dict()
-        for room in all_rooms:
-            visible_users = set()
-            for user in room.users:
-                if self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
-                    continue
-                visible_users.add(user.uuid)
+            rooms = dict()
+            for room in all_rooms:
+                visible_users = set()
+                for user in room.users:
+                    if self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
+                        continue
+                    visible_users.add(user.uuid)
 
-            rooms[room.uuid] = {
-                'name': room.name,
-                'sort_order': room.sort_order,
-                'ephemeral': room.ephemeral,
-                'users': len(visible_users)
-            }
+                rooms[room.uuid] = {
+                    'name': room.name,
+                    'sort_order': room.sort_order,
+                    'ephemeral': room.ephemeral,
+                    'users': len(visible_users)
+                }
+            return rooms
+
+        rooms = self.env.cache.get_rooms_for_channel(channel_id)
+        if rooms is None:
+            rooms = _rooms()
+            self.env.cache.set_rooms_for_channel(channel_id, rooms)
         return rooms
 
     @with_session
@@ -1159,6 +1166,8 @@ class DatabaseRdbms(object):
         if action not in ApiActions.all_api_actions:
             raise InvalidApiActionException(action)
         do_delete()
+        self.env.cache.reset_acls_in_room_for_action(room_id, action)
+        self.env.cache.reset_acls_in_room(room_id)
 
     def delete_acl_in_channel_for_action(self, channel_id: str, acl_type: str, action: str, session=None) -> None:
         @with_session
@@ -1181,6 +1190,8 @@ class DatabaseRdbms(object):
         if action not in ApiActions.all_api_actions:
             raise InvalidApiActionException(action)
         do_delete()
+        self.env.cache.reset_acls_in_channel_for_action(channel_id, action)
+        self.env.cache.reset_acls_in_channel(channel_id)
 
     def add_acls_in_room_for_action(self, room_id: str, action: str, new_acls: dict) -> None:
         @with_session
@@ -1204,6 +1215,8 @@ class DatabaseRdbms(object):
 
         self.get_room_name(room_id)
         _add_acls_in_room_for_action()
+        self.env.cache.reset_acls_in_room_for_action(room_id, action)
+        self.env.cache.reset_acls_in_room(room_id)
 
     def add_acls_in_channel_for_action(self, channel_id: str, action: str, new_acls: dict) -> None:
         @with_session
@@ -1227,6 +1240,8 @@ class DatabaseRdbms(object):
 
         self.get_channel_name(channel_id)
         _add_acls_in_channel_for_action()
+        self.env.cache.reset_acls_in_channel_for_action(channel_id, action)
+        self.env.cache.reset_acls_in_channel(channel_id)
 
     def _add_acls(self, existing_acls: list, new_acls: dict, action: str, target: str) -> (list, list):
         updated_acls = set()
@@ -1320,93 +1335,121 @@ class DatabaseRdbms(object):
 
         return acl_config.acl_value
 
-    @with_session
-    def get_all_acls_channel(self, channel_id: str, session=None) -> dict:
-        # TODO: cache
-        channel = session.query(Channels)\
-            .outerjoin(Channels.acls)\
-            .filter(Channels.uuid == channel_id)\
-            .first()
+    def get_all_acls_channel(self, channel_id: str) -> dict:
+        @with_session
+        def _acls(session=None):
+            channel = session.query(Channels)\
+                .outerjoin(Channels.acls)\
+                .filter(Channels.uuid == channel_id)\
+                .first()
 
-        if channel is None:
-            raise NoSuchChannelException(channel_id)
+            if channel is None:
+                raise NoSuchChannelException(channel_id)
 
-        found_acls = channel.acls
-        if found_acls is None or len(found_acls) == 0:
-            return dict()
+            found_acls = channel.acls
+            if found_acls is None or len(found_acls) == 0:
+                return dict()
 
-        acls = dict()
-        for acl in found_acls:
-            if acl.action not in acls:
-                acls[acl.action] = dict()
-            acls[acl.action][acl.acl_type] = acl.acl_value
-        return acls
+            acls = dict()
+            for acl in found_acls:
+                if acl.action not in acls:
+                    acls[acl.action] = dict()
+                acls[acl.action][acl.acl_type] = acl.acl_value
+            return acls
 
-    @with_session
-    def get_all_acls_room(self, room_id: str, session=None) -> dict:
-        # TODO: cache
-        room = session.query(Rooms)\
-            .outerjoin(Rooms.acls)\
-            .filter(Rooms.uuid == room_id)\
-            .first()
+        value = self.env.cache.get_all_acls_for_channel(channel_id)
+        if value is not None:
+            return value
+        value = _acls()
+        self.env.cache.set_all_acls_for_channel(channel_id, value)
+        return value
 
-        if room is None:
-            raise NoSuchRoomException(room_id)
+    def get_all_acls_room(self, room_id: str) -> dict:
+        @with_session
+        def _acls(session=None):
+            room = session.query(Rooms)\
+                .outerjoin(Rooms.acls)\
+                .filter(Rooms.uuid == room_id)\
+                .first()
 
-        found_acls = room.acls
-        if found_acls is None or len(found_acls) == 0:
-            return dict()
+            if room is None:
+                raise NoSuchRoomException(room_id)
 
-        acls = dict()
-        for acl in found_acls:
-            if acl.action not in acls:
-                acls[acl.action] = dict()
-            acls[acl.action][acl.acl_type] = acl.acl_value
-        return acls
+            found_acls = room.acls
+            if found_acls is None or len(found_acls) == 0:
+                return dict()
 
-    @with_session
-    def get_acls_in_room_for_action(self, room_id: str, action: str, session=None):
-        # TODO: cache
-        room = session.query(Rooms)\
-            .outerjoin(Rooms.acls)\
-            .filter(Rooms.uuid == room_id)\
-            .first()
+            acls = dict()
+            for acl in found_acls:
+                if acl.action not in acls:
+                    acls[acl.action] = dict()
+                acls[acl.action][acl.acl_type] = acl.acl_value
+            return acls
 
-        if room is None:
-            raise NoSuchRoomException(room_id)
+        value = self.env.cache.get_all_acls_for_room(room_id)
+        if value is not None:
+            return value
+        value = _acls()
+        self.env.cache.set_all_acls_for_room(room_id, value)
+        return value
 
-        found_acls = room.acls
-        if found_acls is None or len(found_acls) == 0:
-            return dict()
+    def get_acls_in_room_for_action(self, room_id: str, action: str):
+        @with_session
+        def _acls(session=None):
+            room = session.query(Rooms)\
+                .outerjoin(Rooms.acls)\
+                .filter(Rooms.uuid == room_id)\
+                .first()
 
-        acls = dict()
-        for found_acl in found_acls:
-            if found_acl.action != action:
-                continue
-            acls[found_acl.acl_type] = found_acl.acl_value
-        return acls
+            if room is None:
+                raise NoSuchRoomException(room_id)
 
-    @with_session
-    def get_acls_in_channel_for_action(self, channel_id: str, action: str, session=None):
-        # TODO: cache
-        channel = session.query(Channels)\
-            .outerjoin(Channels.acls)\
-            .filter(Channels.uuid == channel_id)\
-            .first()
+            found_acls = room.acls
+            if found_acls is None or len(found_acls) == 0:
+                return dict()
 
-        if channel is None:
-            raise NoSuchChannelException(channel_id)
+            acls = dict()
+            for found_acl in found_acls:
+                if found_acl.action != action:
+                    continue
+                acls[found_acl.acl_type] = found_acl.acl_value
+            return acls
 
-        found_acls = channel.acls
-        if found_acls is None or len(found_acls) == 0:
-            return dict()
+        value = self.env.cache.get_acls_in_room_for_action(room_id, action)
+        if value is not None:
+            return value
+        value = _acls()
+        self.env.cache.set_acls_in_room_for_action(room_id, action, value)
+        return value
 
-        acls = dict()
-        for found_acl in found_acls:
-            if found_acl.action != action:
-                continue
-            acls[found_acl.acl_type] = found_acl.acl_value
-        return acls
+    def get_acls_in_channel_for_action(self, channel_id: str, action: str):
+        @with_session
+        def _acls(session=None):
+            channel = session.query(Channels)\
+                .outerjoin(Channels.acls)\
+                .filter(Channels.uuid == channel_id)\
+                .first()
+
+            if channel is None:
+                raise NoSuchChannelException(channel_id)
+
+            found_acls = channel.acls
+            if found_acls is None or len(found_acls) == 0:
+                return dict()
+
+            acls = dict()
+            for found_acl in found_acls:
+                if found_acl.action != action:
+                    continue
+                acls[found_acl.acl_type] = found_acl.acl_value
+            return acls
+
+        value = self.env.cache.get_acls_in_channel_for_action(channel_id, action)
+        if value is not None:
+            return value
+        value = _acls()
+        self.env.cache.set_acls_in_channel_for_action(channel_id, action, value)
+        return value
 
     @with_session
     def update_last_read_for(self, users: set, room_id: str, time_stamp: int, session=None) -> None:

@@ -58,6 +58,148 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def get_rooms_for_channel(self, channel_id: str) -> dict:
+        """
+        get the room info for this channel
+
+        returned info is a dict of dicts (or None of not found):
+
+            rooms[room.uuid] = {
+                'name': room.name,
+                'sort_order': room.sort_order,
+                'ephemeral': room.ephemeral,
+                'users': len(visible_users)
+            }
+
+        :param channel_id: uuid of the channel
+        :return: the room infos
+        """
+
+    def set_rooms_for_channel(self, channel_id: str, room_infos: dict) -> dict:
+        """
+        set the room info for this channel
+
+        room_infos should be a dict of dicts like this:
+
+            rooms[room.uuid] = {
+                'name': room.name,
+                'sort_order': room.sort_order,
+                'ephemeral': room.ephemeral,
+                'users': len(visible_users)
+            }
+
+        :param channel_id: uuid of the channel
+        :param room_infos: the room infos
+        :return: nothing
+        """
+
+    def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
+        """
+        get the acls for this room and action (join, message, etc.)
+
+        :param room_id: the uuid of the room
+        :param action: the action
+        :return: dict
+        """
+
+    def set_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
+        """
+        set acls in this room for an action
+
+        :param room_id: the uuid of the room
+        :param action: the action
+        :param acls: dict of acls
+        :return: nothing
+        """
+
+    def get_acls_in_channel_for_action(self, channel_id: str, action: str) -> dict:
+        """
+        get the acls for this channel and action (join, message, etc.)
+
+        :param channel_id: the uuid of the channel
+        :param action: the action
+        :return: dict
+        """
+
+    def set_acls_in_channel_for_action(self, channel_id: str, action: str, acls: dict) -> None:
+        """
+        set acls in this channel for an action
+
+        :param channe_id: the uuid of the channel
+        :param action: the action
+        :param acls: dict of acls
+        :return: nothing
+        """
+
+    def reset_acls_in_channel_for_action(self, channel_id: str, action: str) -> None:
+        """
+        delete the cached acls for this room for an action
+
+        :param room_id: the uuid of the room
+        :param action: the action to remove for
+        :return: nothing
+        """
+
+    def reset_acls_in_room_for_action(self, room_id: str, action: str) -> None:
+        """
+        delete the cached acls for this room
+
+        :param room_id: the uuid of the room
+        :param action: the action to remove for
+        :return: nothing
+        """
+
+    def reset_acls_in_channel(self, channel_id: str) -> None:
+        """
+        delete the cached acls for this channel
+
+        :param channel_id: the uuid of the channel
+        :return: nothing
+        """
+
+    def reset_acls_in_room(self, room_id: str) -> None:
+        """
+        delete the cached acls for this room
+
+        :param room_id: the uuid of the room
+        :return: nothing
+        """
+
+    def set_all_acls_for_channel(self, channel_id: str, acls: dict) -> None:
+        """
+        set acls in this channel
+
+        :param channel_id: the uuid of the channel
+        :param action: the action
+        :param acls: dict of acls
+        :return: nothing
+        """
+
+    def set_all_acls_for_room(self, room_id: str, acls: dict) -> None:
+        """
+        set acls in this room
+
+        :param room_id: the uuid of the room
+        :param acls: dict of acls
+        :return: nothing
+        """
+
+    def get_all_acls_for_channel(self, channel_id: str) -> dict:
+        """
+        get all acls for this channel
+
+        :param channel_id: the uuid of the channel
+        :return: a dict of acls
+        """
+
+    def get_all_acls_for_room(self, room_id: str) -> dict:
+        """
+        get all acls for this room
+
+        :param room_id: the uuid of the room
+        :return: a dict of acls
+        """
+
     def get_default_rooms(self) -> list:
         """
         get a list of default room uuids (auto-join)

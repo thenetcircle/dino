@@ -179,6 +179,11 @@ class ConfigKeys(object):
 
 
 class RedisKeys(object):
+    RKEY_ACLS_IN_CHANNEL = 'channel:acls:%s'  # channel:acls:channel_id
+    RKEY_ACLS_IN_ROOM = 'room:acls:%s'  # room:acls:room_id
+    RKEY_ACLS_IN_ROOM_FOR_ACTION = 'room:acls:%s:%s'  # room:acls:room_id:action_name
+    RKEY_ACLS_IN_CHANNEL_FOR_ACTION = 'channel:acls:%s:%s'  # room:acls:channel_id:action_name
+    RKEY_ROOMS_FOR_CHANNEL_WITH_INFO = 'channel:rooms:info:%s'  # channel:rooms:info:channel_id
     RKEY_TYPE_OF_ROOMS_IN_CHANNEL = 'channel:roomtype:%s'  # channel:roomtype:channel_id
     RKEY_ROOMS_FOR_USER = 'user:rooms:%s'  # user:rooms:user_id
     RKEY_USERS_IN_ROOM = 'room:%s'  # room:room_id
@@ -212,6 +217,26 @@ class RedisKeys(object):
     RKEY_BANNED_USERS_GLOBAL = 'users:banned:global'
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
+
+    @staticmethod
+    def acls_in_room_for_action(room_id: str, action: str) -> str:
+        return RedisKeys.RKEY_ACLS_IN_ROOM_FOR_ACTION % (room_id, action)
+
+    @staticmethod
+    def acls_in_channel_for_action(channel_id: str, action: str) -> str:
+        return RedisKeys.RKEY_ACLS_IN_CHANNEL_FOR_ACTION % (channel_id, action)
+
+    @staticmethod
+    def acls_in_room(room_id: str) -> str:
+        return RedisKeys.RKEY_ACLS_IN_ROOM % (room_id)
+
+    @staticmethod
+    def acls_in_channel(channel_id: str) -> str:
+        return RedisKeys.RKEY_ACLS_IN_CHANNEL % (channel_id)
+
+    @staticmethod
+    def rooms_for_channel_with_info(channel_id: str) -> str:
+        return RedisKeys.RKEY_ROOMS_FOR_CHANNEL_WITH_INFO % channel_id
 
     @staticmethod
     def default_rooms() -> str:

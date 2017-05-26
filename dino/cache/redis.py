@@ -246,6 +246,62 @@ class CacheRedis(object):
         key = RedisKeys.banned_users()
         return self._get_ban_timestamp(key, user_id)
 
+    def get_rooms_for_channel(self, channel_id: str) -> dict:
+        key = RedisKeys.rooms_for_channel_with_info(channel_id)
+        return self.cache.get(key)
+
+    def set_rooms_for_channel(self, channel_id: str, rooms_info: dict) -> None:
+        key = RedisKeys.rooms_for_channel_with_info(channel_id)
+        self.cache.set(key, rooms_info, ttl=FIVE_MINUTES)
+
+    def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
+        key = RedisKeys.acls_in_room_for_action(room_id, action)
+        return self.cache.get(key)
+
+    def set_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
+        key = RedisKeys.acls_in_room_for_action(room_id, action)
+        self.cache.set(key, acls, ttl=FIVE_MINUTES)
+
+    def get_acls_in_channel_for_action(self, channel_id: str, action: str) -> dict:
+        key = RedisKeys.acls_in_channel_for_action(channel_id, action)
+        return self.cache.get(key)
+
+    def set_acls_in_channel_for_action(self, channel_id: str, action: str, acls: dict) -> None:
+        key = RedisKeys.acls_in_channel_for_action(channel_id, action)
+        self.cache.set(key, acls, ttl=FIVE_MINUTES)
+
+    def reset_acls_in_channel_for_action(self, channel_id: str, action: str) -> None:
+        key = RedisKeys.acls_in_channel_for_action(channel_id, action)
+        self.cache.delete(key)
+
+    def reset_acls_in_room_for_action(self, room_id: str, action: str) -> None:
+        key = RedisKeys.acls_in_room_for_action(room_id, action)
+        self.cache.delete(key)
+
+    def reset_acls_in_channel(self, channel_id: str) -> None:
+        key = RedisKeys.acls_in_channel(channel_id)
+        self.cache.delete(key)
+
+    def reset_acls_in_room(self, room_id: str) -> None:
+        key = RedisKeys.acls_in_room(room_id)
+        self.cache.delete(key)
+
+    def set_all_acls_for_channel(self, channel_id: str, acls: dict) -> None:
+        key = RedisKeys.acls_in_channel(channel_id)
+        self.cache.set(key, acls, ttl=FIVE_MINUTES)
+
+    def set_all_acls_for_room(self, room_id: str, acls: dict) -> None:
+        key = RedisKeys.acls_in_room(room_id)
+        self.cache.set(key, acls, ttl=FIVE_MINUTES)
+
+    def get_all_acls_for_channel(self, channel_id: str) -> dict:
+        key = RedisKeys.acls_in_channel(channel_id)
+        return self.cache.get(key)
+
+    def get_all_acls_for_room(self, room_id: str) -> dict:
+        key = RedisKeys.acls_in_room(room_id)
+        return self.cache.get(key)
+
     def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> str:
         key = RedisKeys.banned_users_channel(channel_id)
         return self._get_ban_timestamp(key, user_id)
