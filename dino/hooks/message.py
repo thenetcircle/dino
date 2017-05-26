@@ -59,15 +59,8 @@ class OnMessageHooks(object):
                 data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
             environ.env.send(data, json=True, room=room_id, broadcast=True)
 
-        data, activity = arg
-        word = utils.used_blacklisted_word(activity)
-        if word is not None:
-            blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
-            environ.env.publish(blacklist_activity)
-            return
-
         @timeit(logger, 'on_message_hooks_update_last_read')
-        def update_last_read(arg: tuple) -> None:
+        def update_last_read() -> None:
             if not OnMessageHooks.last_read_enabled():
                 return
 
@@ -79,7 +72,7 @@ class OnMessageHooks(object):
                 utils.update_last_reads(room_id)
 
         @timeit(logger, 'on_message_hooks_store')
-        def store(arg: tuple) -> None:
+        def store() -> None:
             data, activity = arg
             try:
                 environ.env.storage.store_message(activity)
@@ -87,6 +80,13 @@ class OnMessageHooks(object):
                 logger.error('could not store message %s because: %s' % (activity.id, str(e)))
                 logger.error(str(data))
                 logger.exception(traceback.format_exc())
+
+        data, activity = arg
+        word = utils.used_blacklisted_word(activity)
+        if word is not None:
+            blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
+            environ.env.publish(blacklist_activity)
+            return
 
         broadcast()
         store()
