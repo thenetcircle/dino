@@ -58,6 +58,37 @@ Response would be something similar to the following:
 * Either `user_id` or `room_id` is required (both can be specified at the same time),
 * `to_time` needs to be after `from_time`.
 
+## POST /blacklist
+
+Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:
+
+    {
+        "word": "YmFkd29yZA=="
+    }
+
+Response if OK:
+
+    {
+        "status_code": 200
+    }
+
+## DELETE /blacklist
+
+Remove a matching word from the blacklist. Encode the word in base64 first, then post a request on the following format:
+
+    {
+        "word": "YmFkd29yZA=="
+    }
+
+The sent word will be compared lowercase to find  matching lowercased word in the blacklist and remove all words with
+and exact match (when both lowercase).
+
+Response if OK:
+
+    {
+        "status_code": 200
+    }
+
 ## POST /set-admin
 
 Set a user as a global moderator.
