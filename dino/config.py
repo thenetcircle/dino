@@ -117,6 +117,8 @@ class RoleKeys(object):
     SUPER_USER = 'superuser'
     GLOBAL_MODERATOR = 'globalmod'
 
+RoleKeys.all_roles = [getattr(RoleKeys, d) for d in RoleKeys.__dict__ if not d.startswith('_') and not d[0].islower()]
+
 
 class UserKeys(object):
     STATUS_AVAILABLE = '1'
@@ -179,6 +181,8 @@ class ConfigKeys(object):
 
 
 class RedisKeys(object):
+    RKEY_USERS_IN_ROOM_FOR_ROLE = 'room:role:%s:%s'  # room:role:room_id:role_type
+    RKEY_USERS_IN_CHANNEL_FOR_ROLE = 'channel:role:%s:%s'  # channel:role:room_id:role_type
     RKEY_ACLS_IN_CHANNEL = 'channel:acls:%s'  # channel:acls:channel_id
     RKEY_ACLS_IN_ROOM = 'room:acls:%s'  # room:acls:room_id
     RKEY_ACLS_IN_ROOM_FOR_ACTION = 'room:acls:%s:%s'  # room:acls:room_id:action_name
@@ -217,6 +221,14 @@ class RedisKeys(object):
     RKEY_BANNED_USERS_GLOBAL = 'users:banned:global'
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
+
+    @staticmethod
+    def users_in_channel_for_role(channel_id: str, role: str) -> str:
+        return RedisKeys.RKEY_USERS_IN_CHANNEL_FOR_ROLE % (channel_id, role)
+
+    @staticmethod
+    def users_in_room_for_role(room_id: str, role: str) -> str:
+        return RedisKeys.RKEY_USERS_IN_ROOM_FOR_ROLE % (room_id, role)
 
     @staticmethod
     def acls_in_room_for_action(room_id: str, action: str) -> str:

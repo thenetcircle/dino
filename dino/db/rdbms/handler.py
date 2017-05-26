@@ -1059,6 +1059,7 @@ class DatabaseRdbms(object):
 
         _set()
         self._update_user_roles_in_cache(user_id)
+        self.env.cache.reset_users_in_room_for_role(room_id, the_role)
 
     def _set_role_on_channel_for_user(self, the_role: str, channel_id: str, user_id: str) -> None:
         @with_session
@@ -1090,6 +1091,7 @@ class DatabaseRdbms(object):
 
         _set()
         self._update_user_roles_in_cache(user_id)
+        self.env.cache.reset_users_in_channel_for_role(channel_id, the_role)
 
     def set_super_user(self, user_id: str) -> None:
         self._add_global_role(user_id, RoleKeys.SUPER_USER)
@@ -1575,15 +1577,31 @@ class DatabaseRdbms(object):
                 logger.error('no username found for user_id %s: %s' % (role.user_id, str(e)))
         return found
 
-    @with_session
-    def _get_users_with_role_in_channel(self, channel_id: str, role_key: str, session=None) -> dict:
-        roles = session.query(ChannelRoles).join(ChannelRoles.channel).filter(Channels.uuid == channel_id).all()
-        return self._get_users_with_role(roles, role_key)
+    def _get_users_with_role_in_channel(self, channel_id: str, role_key: str) -> dict:
+        @with_session
+        def _roles(session=None):
+            return session.query(ChannelRoles).join(ChannelRoles.channel).filter(Channels.uuid == channel_id).all()
 
-    @with_session
-    def _get_users_with_role_in_room(self, room_id: str, role_key: str, session=None) -> dict:
-        roles = session.query(RoomRoles).join(RoomRoles.room).filter(Rooms.uuid == room_id).all()
-        return self._get_users_with_role(roles, role_key)
+        roles = self.env.cache.get_users_in_channel_for_role(channel_id, role_key)
+        if roles is not None:
+            return roles
+
+        roles = self._get_users_with_role(_roles(), role_key)
+        self.env.cache.set_users_in_channel_for_role(channel_id, role_key, roles)
+        return roles
+
+    def _get_users_with_role_in_room(self, room_id: str, role_key: str) -> dict:
+        @with_session
+        def _roles(session=None):
+            return session.query(RoomRoles).join(RoomRoles.room).filter(Rooms.uuid == room_id).all()
+
+        roles = self.env.cache.get_users_in_room_for_role(room_id, role_key)
+        if roles is not None:
+            return roles
+
+        roles = self._get_users_with_role(_roles(), role_key)
+        self.env.cache.set_users_in_room_for_role(room_id, role_key, roles)
+        return roles
 
     def get_owners_channel(self, channel_id: str) -> dict:
         return self._get_users_with_role_in_channel(channel_id, RoleKeys.OWNER)

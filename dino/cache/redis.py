@@ -266,6 +266,30 @@ class CacheRedis(object):
         key = RedisKeys.acls_in_channel_for_action(channel_id, action)
         return self.cache.get(key)
 
+    def get_users_in_room_for_role(self, room_id: str, role: str) -> dict:
+        key = RedisKeys.users_in_room_for_role(room_id, role)
+        return self.cache.get(key)
+
+    def set_users_in_room_for_role(self, room_id: str, role: str, users: dict) -> None:
+        key = RedisKeys.users_in_room_for_role(room_id, role)
+        self.cache.set(key, users, ttl=TEN_MINUTES)
+
+    def reset_users_in_room_for_role(self, room_id: str, role: str) -> None:
+        key = RedisKeys.users_in_room_for_role(room_id, role)
+        self.cache.delete(key)
+
+    def get_users_in_channel_for_role(self, channel_id: str, role: str) -> dict:
+        key = RedisKeys.users_in_channel_for_role(channel_id, role)
+        return self.cache.get(key)
+
+    def set_users_in_channel_for_role(self, channel_id: str, role: str, users: dict) -> None:
+        key = RedisKeys.users_in_channel_for_role(channel_id, role)
+        self.cache.set(key, users, ttl=TEN_MINUTES)
+
+    def reset_users_in_channel_for_role(self, channel_id: str, role: str) -> None:
+        key = RedisKeys.users_in_channel_for_role(channel_id, role)
+        self.cache.delete(key)
+
     def set_acls_in_channel_for_action(self, channel_id: str, action: str, acls: dict) -> None:
         key = RedisKeys.acls_in_channel_for_action(channel_id, action)
         self.cache.set(key, acls, ttl=FIVE_MINUTES)

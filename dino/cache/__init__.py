@@ -121,6 +121,62 @@ class ICache(Interface):
         :return: dict
         """
 
+    def get_users_in_room_for_role(self, room_id: str, role: str) -> dict:
+        """
+        get the users who have this role for this room
+
+        :param room_id: the uuid of the room
+        :param role: the role key
+        :return: dict of user_id -> user_name
+        """
+
+    def set_users_in_room_for_role(self, room_id: str, role: str, users: dict) -> None:
+        """
+        set the users who have this role for this room
+
+        :param room_id: the uuid of the room
+        :param role: the role key
+        :param users: a dict of user_id -> user_name
+        :return: nothing
+        """
+
+    def reset_users_in_room_for_role(self, room_id: str, role: str) -> None:
+        """
+        reset the users who have this role for this room
+
+        :param room_id: the uuid of the room
+        :param role: the role key
+        :return: nothing
+        """
+
+    def get_users_in_channel_for_role(self, channel_id: str, role: str) -> dict:
+        """
+        get the users who have this role for this channel
+
+        :param channel_id: the uuid of the channel
+        :param role: the role key
+        :return: dict of user_id -> user_name
+        """
+
+    def set_users_in_channel_for_role(self, channel_id: str, role: str, users: dict) -> None:
+        """
+        set the users who have this role for this channel
+
+        :param channel_id: the uuid of the channel
+        :param role: the role key
+        :param users: a dict of user_id -> user_name
+        :return: nothing
+        """
+
+    def reset_users_in_channel_for_role(self, channel_id: str, role: str) -> None:
+        """
+        reset the users who have this role for this channel
+
+        :param channel_id: the uuid of the channel
+        :param role: the role key
+        :return: nothing
+        """
+
     def set_acls_in_channel_for_action(self, channel_id: str, action: str, acls: dict) -> None:
         """
         set acls in this channel for an action
