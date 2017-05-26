@@ -675,7 +675,9 @@ class DatabaseRdbms(object):
         if value is not None:
             return value
 
-        return _channel_for_room()
+        channel_id = _channel_for_room()
+        self.env.cache.set_channel_for_room(channel_id, room_id)
+        return channel_id
 
     def channel_exists(self, channel_id) -> bool:
         @with_session
@@ -1646,7 +1648,9 @@ class DatabaseRdbms(object):
         value = self.env.cache.get_channel_name(channel_id)
         if value is not None:
             return value
-        return _get_channel_name()
+        channel_name = _get_channel_name()
+        self.env.cache.set_channel_name(channel_id, channel_name)
+        return channel_name
 
     def is_banned_globally(self, user_id: str) -> (bool, Union[str, None]):
         now = datetime.utcnow()

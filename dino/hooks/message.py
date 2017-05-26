@@ -13,6 +13,7 @@
 from dino import environ
 from dino import utils
 from dino.config import ConfigKeys
+from dino.utils.decorators import timeit
 
 import logging
 import traceback
@@ -39,6 +40,7 @@ class OnMessageHooks(object):
         return OnMessageHooks.LAST_READ_ENABLED
 
     @staticmethod
+    @timeit(logger, 'on_message_hooks_store')
     def store(arg: tuple) -> None:
         data, activity = arg
         try:
@@ -49,6 +51,7 @@ class OnMessageHooks(object):
             logger.exception(traceback.format_exc())
 
     @staticmethod
+    @timeit(logger, 'on_message_hooks_update_last_read')
     def update_last_read(arg: tuple) -> None:
         if not OnMessageHooks.last_read_enabled():
             return
@@ -61,6 +64,7 @@ class OnMessageHooks(object):
             utils.update_last_reads(room_id)
 
     @staticmethod
+    @timeit(logger, 'on_message_hooks_publish_activity')
     def publish_activity(arg: tuple) -> None:
         data, activity = arg
         user_id = activity.actor.id
@@ -72,6 +76,7 @@ class OnMessageHooks(object):
         environ.env.publish(activity_json)
 
     @staticmethod
+    @timeit(logger, 'on_message_hooks_broadcast')
     def broadcast(arg: tuple) -> None:
         data, activity = arg
         if utils.used_blacklisted_word(activity):
