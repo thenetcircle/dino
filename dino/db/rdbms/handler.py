@@ -17,6 +17,7 @@ from typing import Union
 from uuid import uuid4 as uuid
 import traceback
 from sqlalchemy import or_
+from sqlalchemy import func
 
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
@@ -128,6 +129,17 @@ class DatabaseRdbms(object):
             self.env.cache.set_black_list(blacklist)
         return blacklist
 
+    def remove_matching_word_from_blacklist(self, word: str) -> None:
+        @with_session
+        def _delete(_word: str, session=None) -> None:
+            session.query(BlackList).filter(func.lower(BlackList.word) == func.lower(_word)).delete()
+            session.commit()
+
+        if word is None or len(word.strip()) == 0:
+            raise ValueError('empty word when deleting from word list')
+        _delete(word)
+        self.env.cache.reset_black_list()
+
     def remove_word_from_blacklist(self, word_id) -> None:
         @with_session
         def _delete(_id: int, session=None) -> None:
@@ -146,9 +158,9 @@ class DatabaseRdbms(object):
 
     @with_session
     def add_words_to_blacklist(self, words: list, session=None) -> None:
-        all_words = {row.word for row in session.query(BlackList).all()}
+        all_words = {row.word.lower() for row in session.query(BlackList).all()}
         for word in words:
-            if word is None or len(word.strip()) == 0 or word.strip() in all_words:
+            if word is None or len(word.strip()) == 0 or word.strip().lower() in all_words:
                 continue
             blacklisted = BlackList()
             blacklisted.word = word

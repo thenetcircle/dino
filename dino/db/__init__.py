@@ -73,6 +73,14 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def remove_matching_word_from_blacklist(self, word: str) -> None:
+        """
+        remove all words from the blacklist that matches this string exactly (when both lowercase)
+
+        :param word: the word to remove
+        :return: nothing
+        """
+
     def remove_word_from_blacklist(self, word_id) -> None:
         """
         remove a word from the blacklist
