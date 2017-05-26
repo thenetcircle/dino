@@ -74,7 +74,7 @@ class BlacklistResource(BaseResource):
             raise RuntimeError('no json in request')
         if not isinstance(json, dict):
             raise RuntimeError('need a dict')
-        logger.debug('POST request: %s' % str(json))
+        logger.debug('DELETE request: %s' % str(json))
 
         if 'word' not in json:
             raise RuntimeError('no id parameter in request')

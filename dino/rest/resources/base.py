@@ -50,6 +50,18 @@ class BaseResource(Resource):
             logger.exception(traceback.format_exc())
             return {'status_code': 500, 'data': str(e)}
 
+    def delete(self):
+        try:
+            data = self.do_delete()
+            return_value = {'status_code': 200}
+            if data is not None:
+                return_value['data'] = data
+            return return_value
+        except Exception as e:
+            logger.error('could not do delete: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            return {'status_code': 500, 'data': str(e)}
+
     def validate_json(self, request, silent=True):
         try:
             return True, None, request.get_json(silent=silent)
@@ -58,6 +70,8 @@ class BaseResource(Resource):
             logger.exception(traceback.format_exc())
             return False, 'invalid json in request', None
 
+    def do_delete(self):
+        raise NotImplementedError()
 
     def do_post(self):
         raise NotImplementedError()
