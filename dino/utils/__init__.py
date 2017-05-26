@@ -670,13 +670,14 @@ def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     response['object']['attachments'] = list()
 
     for user_id, user_name in users.items():
-        user_roles = environ.env.db.get_user_roles_in_room(user_id, activity.target.id)
         user_info = get_user_info_attachments_for(user_id)
 
         # temporary fix for avoiding dead users
         if len(user_info) == 0:
             environ.env.db.leave_room(user_id, activity.target.id)
             continue
+
+        user_roles = environ.env.db.get_user_roles_in_room(user_id, activity.target.id)
 
         response['object']['attachments'].append({
             'id': user_id,
