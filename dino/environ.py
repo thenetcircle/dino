@@ -715,7 +715,6 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                 for current_try in range(n_tries):
                     try:
                         producer.publish(message, exchange=exchange, declare=[exchange, queue])
-                        logger.debug('publish successful')
                         failed = False
                         break
                     except Exception as pe:
@@ -729,7 +728,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                         logger.error('failed to publish EXTERNAL message %s times! Republishing to internal queue' % str(n_tries))
                         publish(message)
                     else:
-                        logger.error('failed to publish INTERNAL message %s times! Dropping message: %s' % message)
+                        logger.error('failed to publish INTERNAL message %s times! Dropping message: %s' % (str(n_tries), message))
                 elif current_try > 0:
                     logger.info('published successfully on attempt %s/%s' % (str(current_try+1), str(n_tries)))
                 else:
