@@ -49,11 +49,11 @@ class BlackListChecker(object):
             return None
 
         for word in blacklist:
-            if word not in message:
+            if word.lower() not in message:
                 continue
 
-            logger.warning('message from user %s used a blacklisted word "%s"' % (activity.actor.id, word))
-            return word
+            logger.warning('message from user %s used a blacklisted word "%s"' % (activity.actor.id, word.lower()))
+            return word.lower()
         return None
 
     def contains_blacklisted_word(self, activity: Activity) -> (bool, str):

@@ -43,7 +43,6 @@ class OnMessageHooks(object):
     def do_process(arg: tuple) -> None:
         @timeit(logger, 'on_message_hooks_publish_activity')
         def publish_activity() -> None:
-            user_id = activity.actor.id
             user_name = activity.actor.display_name
             if utils.is_base64(user_name):
                 user_name = utils.b64d(user_name)
@@ -54,7 +53,6 @@ class OnMessageHooks(object):
         @timeit(logger, 'on_message_hooks_broadcast')
         def broadcast():
             room_id = activity.target.id
-            user_id = activity.actor.id
             if utils.user_is_invisible(user_id):
                 data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
             environ.env.send(data, json=True, room=room_id, broadcast=True)
@@ -64,7 +62,6 @@ class OnMessageHooks(object):
             if not OnMessageHooks.last_read_enabled():
                 return
 
-            data, activity = arg
             room_id = activity.target.id
             if activity.target.object_type == 'private':
                 utils.update_last_reads_private(room_id)
@@ -73,7 +70,6 @@ class OnMessageHooks(object):
 
         @timeit(logger, 'on_message_hooks_store')
         def store() -> None:
-            data, activity = arg
             try:
                 environ.env.storage.store_message(activity)
             except Exception as e:
@@ -82,10 +78,13 @@ class OnMessageHooks(object):
                 logger.exception(traceback.format_exc())
 
         data, activity = arg
+        user_id = activity.actor.id
         word = utils.used_blacklisted_word(activity)
+
         if word is not None:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
             environ.env.publish(blacklist_activity)
+            environ.env.send(data, json=True, room=user_id, broadcast=False, include_self=True)
             return
 
         broadcast()
