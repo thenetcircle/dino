@@ -29,9 +29,6 @@ class OnStatusHooks(object):
 
         if status == 'online':
             environ.env.db.set_user_online(user_id)
-            activity_json = utils.activity_for_connect(user_id, user_name)
-            environ.env.emit('gn_user_connected', activity_json, broadcast=True, include_self=False)
-
             rooms = utils.rooms_for_user(user_id)
             for room_id in rooms:
                 room_name = utils.get_room_name(room_id)
