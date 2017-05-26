@@ -135,6 +135,9 @@ class DatabaseRedis(object):
                 output['room'][room_id] = [a for a in room_roles.split(',')]
         return output
 
+    def get_admins_in_room(self, room_id: str):
+        return list()
+
     def get_online_admins(self) -> list:
         admins = self.get_super_users()
         return [
