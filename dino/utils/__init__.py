@@ -915,7 +915,6 @@ def is_room_ephemeral(room_id: str) -> bool:
     return environ.env.db.is_room_ephemeral(room_id)
 
 
-@timeit(logger, 'on_get_users_in_room')
 def get_users_in_room(room_id: str, user_id: str=None) -> dict:
     """
     get a dict of user_id => user_name for users in this room
@@ -935,7 +934,6 @@ def get_acls_in_channel_for_action(channel_id: str, action: str) -> dict:
     return environ.env.db.get_acls_in_channel_for_action(channel_id, action)
 
 
-@timeit(logger, 'on_get_acls_for_room')
 def get_acls_for_room(room_id: str) -> dict:
     return environ.env.db.get_all_acls_room(room_id)
 
@@ -944,7 +942,6 @@ def get_acls_for_channel(channel_id: str) -> dict:
     return environ.env.db.get_all_acls_channel(channel_id)
 
 
-@timeit(logger, 'on_get_owners_for_room')
 def get_owners_for_room(room_id: str) -> dict:
     return environ.env.db.get_owners_room(room_id)
 
