@@ -286,6 +286,13 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def reset_black_list(self) -> None:
+        """
+        clear the cached black list
+
+        :return: nothing
+        """
+
     def add_to_black_list(self, word: str) -> None:
         """
         add a word to the black list

@@ -142,6 +142,7 @@ class DatabaseRdbms(object):
             logger.error('invalid id for word: "%s"' % word_id)
             raise
         _delete(word_id)
+        self.env.cache.reset_black_list()
 
     @with_session
     def add_words_to_blacklist(self, words: list, session=None) -> None:
@@ -153,6 +154,7 @@ class DatabaseRdbms(object):
             blacklisted.word = word
             session.add(blacklisted)
         session.commit()
+        self.env.cache.reset_black_list()
 
     @with_session
     def get_black_list_with_ids(self, session=None) -> list:

@@ -36,7 +36,7 @@ class BlackListChecker(object):
         blacklist = self._get_black_list()
 
         if blacklist is None or len(blacklist) == 0:
-            return False
+            return None
         if message is not None and len(message) > 0:
             message = utils.b64d(message).lower()
 
@@ -46,17 +46,15 @@ class BlackListChecker(object):
         )
 
         if not contains_forbidden_word:
-            return False
+            return None
 
         for word in blacklist:
             if word not in message:
                 continue
 
-            blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
-            self.env.publish(blacklist_activity)
             logger.warning('message from user %s used a blacklisted word "%s"' % (activity.actor.id, word))
-            return True
-        return False
+            return word
+        return None
 
     def contains_blacklisted_word(self, activity: Activity) -> (bool, str):
         start = time.time()
@@ -67,4 +65,4 @@ class BlackListChecker(object):
             logger.exception(traceback.format_exc())
         finally:
             self.env.stats.timing('event.on_message.check_blacklist', (time.time()-start)*1000)
-        return False
+        return None

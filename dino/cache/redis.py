@@ -150,6 +150,11 @@ class CacheRedis(object):
             return decoded
         return None
 
+    def reset_black_list(self) -> None:
+        cache_key = RedisKeys.black_list()
+        self.cache.delete(cache_key)
+        self.redis.delete(cache_key)
+
     def set_black_list(self, the_list: set) -> None:
         cache_key = RedisKeys.black_list()
         self.cache.set(cache_key, the_list, ttl=TEN_MINUTES)
