@@ -736,7 +736,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                     event_type = 'internal'
                     if external:
                         event_type = 'external'
-                    logger.debug('published %s message: %s' % (event_type, str(message)))
+                    logger.debug('published %s message with verb "%s" id "%s"' % (event_type, message['verb'], message['id']))
 
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
