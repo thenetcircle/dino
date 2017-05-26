@@ -26,6 +26,7 @@ from dino.config import UserKeys
 from dino.config import ApiActions
 from dino.config import ApiTargets
 from dino.config import SessionKeys
+from dino.utils.decorators import timeit
 from dino.utils.blacklist import BlackListChecker
 from datetime import timedelta
 from datetime import datetime
@@ -1049,6 +1050,7 @@ def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
     return False
 
 
+@timeit(logger, 'on_get_history_for_room')
 def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> list:
     history = environ.env.config.get(
             ConfigKeys.TYPE,
