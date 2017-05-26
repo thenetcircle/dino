@@ -41,6 +41,10 @@ class AuthRedis(object):
 
     def get_user_info(self, user_id: str) -> dict:
         key = RedisKeys.auth_key(user_id)
+        session = environ.env.cache.get_user_info(user_id)
+        if session is not None:
+            return session
+
         binary_stored_session = self.redis.hgetall(key)
         stored_session = dict()
 
@@ -53,6 +57,8 @@ class AuthRedis(object):
             if key in [SessionKeys.token.value, SessionKeys.user_name.value, SessionKeys.user_id.value]:
                 continue
             stored_session[key] = val
+
+        environ.env.cache.set_user_info(user_id, stored_session)
         return stored_session
 
     def update_session_for_key(self, user_id: str, session_key: str, session_value: str) -> None:

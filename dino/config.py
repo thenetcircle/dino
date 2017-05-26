@@ -111,6 +111,8 @@ ApiActions.all_api_actions = \
 
 
 class RoleKeys(object):
+    all_roles = list()
+
     OWNER = 'owner'
     MODERATOR = 'moderator'
     ADMIN = 'admin'

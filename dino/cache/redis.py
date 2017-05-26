@@ -21,6 +21,7 @@ from zope.interface import implementer
 from dino.config import RedisKeys
 from dino.config import ConfigKeys
 from dino.config import UserKeys
+from dino.config import RoleKeys
 from dino.cache import ICache
 from datetime import datetime
 from datetime import timedelta
@@ -31,6 +32,7 @@ EIGHT_HOURS_IN_SECONDS = 8*60*60
 TEN_MINUTES = 10*60
 FIVE_MINUTES = 5*60
 ONE_MINUTE = 60
+ONE_HOUR = 60*60
 
 logger = logging.getLogger(__name__)
 
@@ -410,6 +412,18 @@ class CacheRedis(object):
         self.cache.delete(cache_key)
         self.redis.hdel(key, room_id)
 
+        key = RedisKeys.room_roles(room_id)
+        self.redis.delete(key)
+
+        key = RedisKeys.room_name_for_id()
+        cache_key = '%s-%s-name' % (key, room_id)
+        self.cache.delete(cache_key)
+        self.redis.hdel(key, room_id)
+
+        for role in RoleKeys.all_roles:
+            key = RedisKeys.users_in_room_for_role(room_id, role)
+            self.redis.delete(key)
+
     def set_room_exists(self, channel_id, room_id, room_name):
         key = RedisKeys.rooms(channel_id)
         cache_key = '%s-%s' % (key, room_id)
@@ -478,6 +492,12 @@ class CacheRedis(object):
         self.cache.set(cache_key, value)
         return value
 
+    def set_room_name(self, room_id: str, room_name: str) -> None:
+        key = RedisKeys.room_name_for_id()
+        cache_key = '%s-%s-name' % (key, room_id)
+        self.cache.set(cache_key, room_name)
+        self.redis.hset(key, room_id, room_name)
+
     def get_channel_for_room(self, room_id):
         key = RedisKeys.channel_for_rooms()
         cache_key = '%s-%s' % (key, room_id)
@@ -510,7 +530,19 @@ class CacheRedis(object):
     def set_user_status(self, user_id: str, status: str) -> None:
         key = RedisKeys.user_status(user_id)
         self.redis.set(key, status)
-        self.cache.set(key, status)
+        self.cache.set(key, status, ttl=ONE_MINUTE)
+
+    def get_user_info(self, user_id: str) -> dict:
+        key = RedisKeys.auth_key(user_id)
+        return self.cache.get(key)
+
+    def set_user_info(self, user_id: str, info: dict) -> None:
+        key = RedisKeys.auth_key(user_id)
+        self.cache.set(key, info, ttl=ONE_HOUR)
+
+    def reset_user_info(self, user_id: str) -> None:
+        key = RedisKeys.auth_key(user_id)
+        self.cache.delete(key)
 
     def user_check_status(self, user_id, other_status):
         return self.get_user_status(user_id) == other_status

@@ -365,6 +365,7 @@ class DatabaseRdbms(object):
         if self.env.cache.user_is_invisible(user_id):
             return
         _set_user_invisible()
+        self.env.cache.set_user_status(user_id, UserKeys.STATUS_INVISIBLE)
 
     def set_user_offline(self, user_id: str) -> None:
         @with_session
@@ -379,6 +380,7 @@ class DatabaseRdbms(object):
         if self.env.cache.user_is_offline(user_id):
             return
         _set_user_offline()
+        self.env.cache.set_user_status(user_id, UserKeys.STATUS_UNAVAILABLE)
 
     def set_user_online(self, user_id: str) -> None:
         @with_session
@@ -396,6 +398,7 @@ class DatabaseRdbms(object):
         if self.env.cache.user_is_online(user_id):
             return
         _set_user_online()
+        self.env.cache.set_user_status(user_id, UserKeys.STATUS_AVAILABLE)
 
     @with_session
     def rooms_for_user(self, user_id: str, session=None) -> dict:
@@ -630,6 +633,7 @@ class DatabaseRdbms(object):
         if self.channel_name_exists(channel_name):
             raise ChannelNameExistsException(channel_name)
         _rename_channel()
+        self.env.cache.set_channel_name(channel_id, channel_name)
 
     def rename_room(self, channel_id: str, room_id: str, room_name: str) -> None:
         @with_session
@@ -649,6 +653,7 @@ class DatabaseRdbms(object):
         if self.room_name_exists(channel_id, room_name):
             raise RoomNameExistsForChannelException(channel_id, room_name)
         _rename_room()
+        self.env.cache.set_room_name(room_id, room_name)
 
     def channel_for_room(self, room_id: str) -> str:
         @with_session
@@ -1626,7 +1631,9 @@ class DatabaseRdbms(object):
         value = self.env.cache.get_room_name(room_id)
         if value is not None:
             return value
-        return _get_room_name()
+        value = _get_room_name()
+        self.env.cache.set_room_name(room_id, value)
+        return value
 
     def get_channel_name(self, channel_id: str) -> str:
         @with_session

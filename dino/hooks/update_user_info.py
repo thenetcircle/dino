@@ -23,6 +23,11 @@ logger = logging.getLogger(__name__)
 
 class OnUpdateUserInfoHooks(object):
     @staticmethod
+    def update_cache(arg: tuple) -> None:
+        _, activity = arg
+        environ.env.cache.reset_user_info(activity.actor.id)
+
+    @staticmethod
     def broadcast(arg: tuple) -> None:
         orig_data, activity = arg
         data = {
@@ -88,3 +93,8 @@ class OnUpdateUserInfoHooks(object):
 @environ.env.observer.on('on_update_user_info')
 def _on_update_user_info_do_broadcast(arg: tuple) -> None:
     OnUpdateUserInfoHooks.broadcast(arg)
+
+
+@environ.env.observer.on('on_update_user_info')
+def _on_update_user_info_update_cache(arg: tuple) -> None:
+    OnUpdateUserInfoHooks.update_cache(arg)
