@@ -89,6 +89,14 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_admins_in_room(self, room_id: str) -> list:
+        """
+        get a list of user_ids for all super users and global moderators in the room
+
+        :param room_id: the uuid of the room
+        :return: a list of user ids
+        """
+
     def get_black_list_with_ids(self) -> list:
         """
         same as get_black_list() but a list instead including the IDs of the words

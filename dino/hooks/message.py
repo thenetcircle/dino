@@ -81,16 +81,20 @@ class OnMessageHooks(object):
         user_id = activity.actor.id
         word = utils.used_blacklisted_word(activity)
 
-        if word is not None:
+        if word is None:
+            broadcast()
+            store()
+            publish_activity()
+            update_last_read()
+        else:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
             environ.env.publish(blacklist_activity)
             environ.env.send(data, json=True, room=user_id, broadcast=False, include_self=True)
-            return
 
-        broadcast()
-        store()
-        publish_activity()
-        update_last_read()
+            admins_in_room = environ.env.db.get_admins_in_room(activity.target.id)
+            if len(admins_in_room) > 0:
+                for admin_user_id in admins_in_room:
+                    environ.env.send(data, json=True, room=admin_user_id, broadcast=False, include_self=True)
 
 
 @environ.env.observer.on('on_message')
