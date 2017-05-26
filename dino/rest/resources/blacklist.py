@@ -91,11 +91,11 @@ class BlacklistResource(BaseResource):
             raise RuntimeError('could not decode base64 word "%s": %s' % (str(word), str(e)))
 
         try:
-            environ.env.db.remove_matching_word_from_blacklist([word])
+            environ.env.db.remove_matching_word_from_blacklist(word)
         except Exception as e:
-            logger.error('could not add word "%s" to blacklist: %s' % (str(word), str(e)))
+            logger.error('could not remove word "%s" from blacklist: %s' % (str(word), str(e)))
             logger.exception(traceback.format_exc())
-            raise RuntimeError('could not add word "%s" to blacklist: %s' % (str(word), str(e)))
+            raise RuntimeError('could not remove word "%s" from blacklist: %s' % (str(word), str(e)))
 
     def validate_json(self):
         try:
