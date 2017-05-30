@@ -193,6 +193,8 @@ class RedisKeys(object):
     RKEY_TYPE_OF_ROOMS_IN_CHANNEL = 'channel:roomtype:%s'  # channel:roomtype:channel_id
     RKEY_ROOMS_FOR_USER = 'user:rooms:%s'  # user:rooms:user_id
     RKEY_USERS_IN_ROOM = 'room:%s'  # room:room_id
+    RKEY_USERS_IN_ROOM_VISIBLE = 'room:visible:%s'  # room:visible:room_id
+    RKEY_USERS_IN_ROOM_WITH_INVISIBLE = 'room:with:invisible:%s'  # room:with:invisible:room_id
     RKEY_ROOMS = 'rooms:%s'  # room:channel_id
     RKEY_ONLINE_BITMAP = 'users:online:bitmap'
     RKEY_ONLINE_SET = 'users:online:set'
@@ -204,6 +206,7 @@ class RedisKeys(object):
     RKEY_ROOM_HISTORY = 'room:history:%s'  # room:history:room_id
     RKEY_AUTH = 'user:auth:%s'  # user:auth:user_id
     RKEY_CHANNELS = 'channels'
+    RKEY_CHANNELS_SORT = 'channels:sort'
     RKEY_CHANNEL_EXISTS = 'channel:exists'
     RKEY_ROOM_ID_FOR_NAME = 'room:id:%s'  # room:id:channel_id
     RKEY_CHANNEL_ROLES = 'channel:roles:%s'  # channel:roles:channel_id
@@ -223,6 +226,18 @@ class RedisKeys(object):
     RKEY_BANNED_USERS_GLOBAL = 'users:banned:global'
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
+
+    @staticmethod
+    def users_in_room_incl_invisible(room_id: str) -> str:
+        return RedisKeys.RKEY_USERS_IN_ROOM_WITH_INVISIBLE % room_id
+
+    @staticmethod
+    def users_in_room_only_visible(room_id: str) -> str:
+        return RedisKeys.RKEY_USERS_IN_ROOM_VISIBLE % room_id
+
+    @staticmethod
+    def channels_with_sort():
+        return RedisKeys.RKEY_CHANNELS_SORT
 
     @staticmethod
     def users_in_channel_for_role(channel_id: str, role: str) -> str:

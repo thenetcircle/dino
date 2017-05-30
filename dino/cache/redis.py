@@ -15,6 +15,7 @@
 import json
 import logging
 import traceback
+import random
 
 from zope.interface import implementer
 
@@ -33,6 +34,7 @@ TEN_MINUTES = 10*60
 FIVE_MINUTES = 5*60
 ONE_MINUTE = 60
 ONE_HOUR = 60*60
+TEN_SECONDS = 10
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +102,7 @@ class CacheRedis(object):
 
     def set_type_of_rooms_in_channel(self, channel_id: str, object_type: str) -> None:
         cache_key = RedisKeys.room_types_in_channel(channel_id)
-        self.cache.set(cache_key, object_type, ttl=ONE_MINUTE)
+        self.cache.set(cache_key, object_type, ttl=ONE_MINUTE + random.random()*ONE_MINUTE)
 
     def get_type_of_rooms_in_channel(self, channel_id: str) -> str:
         cache_key = RedisKeys.room_types_in_channel(channel_id)
@@ -202,14 +204,14 @@ class CacheRedis(object):
         value = self.redis.hget(key, user_id)
         if value is not None:
             value = json.loads(str(value, 'utf-8'))
-            self.cache.set(cache_key, value, ttl=FIVE_MINUTES)
+            self.cache.set(cache_key, value, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
         return value
 
     def set_user_roles(self, user_id: str, roles: dict) -> None:
         key = RedisKeys.user_roles()
         cache_key = '%s-%s' % (key, user_id)
         self.redis.hset(key, user_id, json.dumps(roles))
-        self.cache.set(cache_key, roles, ttl=FIVE_MINUTES)
+        self.cache.set(cache_key, roles, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
 
     def reset_user_roles(self, user_id: str) -> None:
         key = RedisKeys.user_roles()
@@ -253,6 +255,10 @@ class CacheRedis(object):
         key = RedisKeys.banned_users()
         return self._get_ban_timestamp(key, user_id)
 
+    def reset_rooms_for_channel(self, channel_id: str) -> dict:
+        key = RedisKeys.rooms_for_channel_with_info(channel_id)
+        return self.cache.delete(key)
+
     def get_rooms_for_channel(self, channel_id: str) -> dict:
         key = RedisKeys.rooms_for_channel_with_info(channel_id)
         return self.cache.get(key)
@@ -267,7 +273,7 @@ class CacheRedis(object):
 
     def set_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
         key = RedisKeys.acls_in_room_for_action(room_id, action)
-        self.cache.set(key, acls, ttl=FIVE_MINUTES)
+        self.cache.set(key, acls, ttl=TEN_MINUTES + random.random()*TEN_MINUTES)
 
     def get_acls_in_channel_for_action(self, channel_id: str, action: str) -> dict:
         key = RedisKeys.acls_in_channel_for_action(channel_id, action)
@@ -277,9 +283,23 @@ class CacheRedis(object):
         key = RedisKeys.users_in_room_for_role(room_id, role)
         return self.cache.get(key)
 
+    def get_users_in_room(self, room_id: str, is_super_user: bool) -> dict:
+        if is_super_user:
+            key = RedisKeys.users_in_room_incl_invisible(room_id)
+        else:
+            key = RedisKeys.users_in_room_only_visible(room_id)
+        return self.cache.get(key)
+
+    def set_users_in_room(self, room_id: str, users: dict, is_super_user: bool) -> None:
+        if is_super_user:
+            key = RedisKeys.users_in_room_incl_invisible(room_id)
+        else:
+            key = RedisKeys.users_in_room_only_visible(room_id)
+        self.cache.set(key, users, ttl=TEN_SECONDS + random.random()*TEN_SECONDS)
+
     def set_users_in_room_for_role(self, room_id: str, role: str, users: dict) -> None:
         key = RedisKeys.users_in_room_for_role(room_id, role)
-        self.cache.set(key, users, ttl=TEN_MINUTES)
+        self.cache.set(key, users, ttl=TEN_MINUTES + random.random()*TEN_MINUTES)
 
     def reset_users_in_room_for_role(self, room_id: str, role: str) -> None:
         key = RedisKeys.users_in_room_for_role(room_id, role)
@@ -291,7 +311,7 @@ class CacheRedis(object):
 
     def set_users_in_channel_for_role(self, channel_id: str, role: str, users: dict) -> None:
         key = RedisKeys.users_in_channel_for_role(channel_id, role)
-        self.cache.set(key, users, ttl=TEN_MINUTES)
+        self.cache.set(key, users, ttl=TEN_MINUTES + random.random()*TEN_MINUTES)
 
     def reset_users_in_channel_for_role(self, channel_id: str, role: str) -> None:
         key = RedisKeys.users_in_channel_for_role(channel_id, role)
@@ -319,11 +339,11 @@ class CacheRedis(object):
 
     def set_all_acls_for_channel(self, channel_id: str, acls: dict) -> None:
         key = RedisKeys.acls_in_channel(channel_id)
-        self.cache.set(key, acls, ttl=FIVE_MINUTES)
+        self.cache.set(key, acls, ttl=FIVE_MINUTES + random.random()*FIVE_MINUTES)
 
     def set_all_acls_for_room(self, room_id: str, acls: dict) -> None:
         key = RedisKeys.acls_in_room(room_id)
-        self.cache.set(key, acls, ttl=FIVE_MINUTES)
+        self.cache.set(key, acls, ttl=FIVE_MINUTES + random.random()*FIVE_MINUTES)
 
     def get_all_acls_for_channel(self, channel_id: str) -> dict:
         key = RedisKeys.acls_in_channel(channel_id)
@@ -332,6 +352,18 @@ class CacheRedis(object):
     def get_all_acls_for_room(self, room_id: str) -> dict:
         key = RedisKeys.acls_in_room(room_id)
         return self.cache.get(key)
+
+    def reset_channels_with_sort(self):
+        key = RedisKeys.channels_with_sort()
+        self.cache.delete(key)
+
+    def get_channels_with_sort(self):
+        key = RedisKeys.channels_with_sort()
+        return self.cache.get(key)
+
+    def set_channels_with_sort(self, channels):
+        key = RedisKeys.channels_with_sort()
+        self.cache.set(key, channels, ttl=TEN_MINUTES)
 
     def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> str:
         key = RedisKeys.banned_users_channel(channel_id)
@@ -422,8 +454,23 @@ class CacheRedis(object):
 
         key = RedisKeys.room_name_for_id()
         cache_key = '%s-%s-name' % (key, room_id)
+
+        room_name = self.redis.hget(key, room_id)
+        if room_name is not None:
+            try:
+                room_name = str(room_name, 'utf-8')
+            except Exception:
+                pass
+
         self.cache.delete(cache_key)
         self.redis.hdel(key, room_id)
+
+        key = RedisKeys.room_id_for_name(channel_id)
+        self.redis.hdel(key, room_id)
+
+        if room_name is not None:
+            cache_key = '%s-%s' % (key, room_name)
+            self.cache.delete(cache_key)
 
         for role in RoleKeys.all_roles:
             key = RedisKeys.users_in_room_for_role(room_id, role)
@@ -445,7 +492,7 @@ class CacheRedis(object):
         key = RedisKeys.channel_for_rooms()
         cache_key = '%s-%s' % (key, room_id)
         self.redis.hset(key, room_id, channel_id)
-        self.cache.set(cache_key, channel_id)
+        self.cache.set(cache_key, channel_id, ttl=EIGHT_HOURS_IN_SECONDS)
 
     def get_channel_exists(self, channel_id):
         key = RedisKeys.channel_exists()

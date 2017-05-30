@@ -93,6 +93,32 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def reset_channels_with_sort(self):
+        """
+        remove the cache channels
+
+        :return: nothing
+        """
+
+    def get_channels_with_sort(self):
+        """
+        get all channels with their sort value, in this format:
+
+            {channel_uuid: (channel_name, sort_value)}
+
+        :return: the channels
+        """
+
+    def set_channels_with_sort(self, channels):
+        """
+        cache all channels with their sort value, in this format:
+
+            {channel_uuid: (channel_name, sort_value)}
+
+        :param channels: the channels
+        :return: nothing
+        """
+
     def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
         """
         get the acls for this room and action (join, message, etc.)
@@ -218,6 +244,30 @@ class ICache(Interface):
         delete the cached acls for this room
 
         :param room_id: the uuid of the room
+        :return: nothing
+        """
+
+    def get_users_in_room(self, room_id: str, is_super_user: bool) -> dict:
+        """
+        short-lived cache of users in a room, depending on if super super or not (non-super users can't see invisible
+        users), in this format:
+
+            {user_id: user_name}
+
+        :param room_id: the uuid of the room
+        :param is_super_user: boolean; if either a super user or global moderator then True, otherwise False
+        :return: a dict of users in the room
+        """
+
+    def set_users_in_room(self, room_id: str, users: dict, is_super_user: bool) -> None:
+        """
+        short-lived cache of users in a room, depending on if super super or not (non-super users can't see invisible
+        users), in this format:
+
+            {user_id: user_name}
+
+        :param room_id: the uuid of the room
+        :param is_super_user: boolean; if either a super user or global moderator then True, otherwise False
         :return: nothing
         """
 

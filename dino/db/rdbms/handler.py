@@ -27,6 +27,7 @@ from dino.config import ApiActions
 from dino.environ import GNEnvironment
 from dino.utils import b64e
 from dino.utils import b64d
+from dino.utils.decorators import timeit
 
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
@@ -118,7 +119,7 @@ class DatabaseRdbms(object):
         @with_session
         def _get_black_list(session=None):
             rows = session.query(BlackList).all()
-            return {row.word for row in rows}
+            return {row.word.lower().strip() for row in rows}
 
         blacklist = self.env.cache.get_black_list()
         if blacklist is not None:
@@ -461,6 +462,7 @@ class DatabaseRdbms(object):
 
     def rooms_for_channel(self, channel_id) -> dict:
         @with_session
+        @timeit(logger, 'on_rooms_for_channel')
         def _rooms(session=None):
             all_rooms = session.query(Rooms)\
                 .join(Rooms.channel)\
@@ -520,11 +522,18 @@ class DatabaseRdbms(object):
             return users
 
         self.get_room_name(room_id)
+
         is_super_user = False
         if user_id is not None:
             is_super_user = self.is_super_user(user_id) or self.is_global_moderator(user_id)
 
-        return _users_in_room()
+        users = self.env.cache.get_users_in_room(room_id, is_super_user=is_super_user)
+        if users is not None:
+            return users
+
+        users = _users_in_room()
+        self.env.cache.set_users_in_room(room_id, is_super_user=is_super_user)
+        return users
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
         self.get_room_name(room_id)
@@ -608,12 +617,21 @@ class DatabaseRdbms(object):
             room.users.remove(user)
         session.commit()
 
-    @with_session
-    def get_channels(self, session=None) -> dict:
-        rows = session.query(Channels).all()
-        channels = dict()
-        for row in rows:
-            channels[row.uuid] = (row.name, row.sort_order)
+    def get_channels(self) -> dict:
+        @with_session
+        def _channels(session=None):
+            rows = session.query(Channels).all()
+            channels = dict()
+            for row in rows:
+                channels[row.uuid] = (row.name, row.sort_order)
+            return channels
+
+        channels = self.env.cache.get_channels()
+        if channels is not None:
+            return channels
+
+        channels = _channels()
+        self.env.cache.set_channels(channels)
         return channels
 
     @with_session
@@ -748,6 +766,7 @@ class DatabaseRdbms(object):
             raise ChannelExistsException(channel_id)
 
         _create_channel()
+        self.env.cache.reset_channels_with_sort()
 
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True, sort_order: int=999) -> None:
         @with_session
@@ -789,6 +808,7 @@ class DatabaseRdbms(object):
         if self.room_name_exists(channel_id, room_name):
             raise RoomNameExistsForChannelException(channel_id, room_name)
         _create_room()
+        self.env.cache.reset_rooms_for_channel(channel_id)
 
     def update_channel_sort_order(self, channel_uuid: str, sort_order: int) -> None:
         @with_session
@@ -806,6 +826,7 @@ class DatabaseRdbms(object):
         logger.info('new sort order %s for channel %s' % (str(sort_order), channel_uuid))
         self.get_channel_name(channel_uuid)
         update()
+        self.env.cache.reset_channels_with_sort()
 
     def update_room_sort_order(self, room_uuid: str, sort_order: int) -> None:
         @with_session
@@ -846,6 +867,8 @@ class DatabaseRdbms(object):
 
         do_remove_channel()
         self.env.cache.remove_channel_exists(channel_id)
+        self.env.cache.reset_rooms_for_channel(channel_id)
+        self.env.cache.reset_channels_with_sort()
 
     def remove_room(self, channel_id: str, room_id: str) -> None:
         @with_session
@@ -870,6 +893,7 @@ class DatabaseRdbms(object):
 
         do_remove()
         self.env.cache.remove_room_exists(channel_id, room_id)
+        self.env.cache.reset_rooms_for_channel(channel_id)
 
     def leave_room(self, user_id: str, room_id: str) -> None:
         @with_session
@@ -1427,6 +1451,7 @@ class DatabaseRdbms(object):
 
     def get_acls_in_room_for_action(self, room_id: str, action: str):
         @with_session
+        @timeit(logger, 'on_get_acls_in_room_for_action')
         def _acls(session=None):
             room = session.query(Rooms)\
                 .outerjoin(Rooms.acls)\
@@ -1456,6 +1481,7 @@ class DatabaseRdbms(object):
 
     def get_acls_in_channel_for_action(self, channel_id: str, action: str):
         @with_session
+        @timeit(logger, 'on_get_acls_in_channel_for_action')
         def _acls(session=None):
             channel = session.query(Channels)\
                 .outerjoin(Channels.acls)\
