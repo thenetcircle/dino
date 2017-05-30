@@ -532,7 +532,7 @@ class DatabaseRdbms(object):
             return users
 
         users = _users_in_room()
-        self.env.cache.set_users_in_room(room_id, is_super_user=is_super_user)
+        self.env.cache.set_users_in_room(room_id, users, is_super_user=is_super_user)
         return users
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
@@ -626,12 +626,12 @@ class DatabaseRdbms(object):
                 channels[row.uuid] = (row.name, row.sort_order)
             return channels
 
-        channels = self.env.cache.get_channels()
+        channels = self.env.cache.get_channels_with_sort()
         if channels is not None:
             return channels
 
         channels = _channels()
-        self.env.cache.set_channels(channels)
+        self.env.cache.set_channels_with_sort(channels)
         return channels
 
     @with_session

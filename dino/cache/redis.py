@@ -255,9 +255,9 @@ class CacheRedis(object):
         key = RedisKeys.banned_users()
         return self._get_ban_timestamp(key, user_id)
 
-    def reset_rooms_for_channel(self, channel_id: str) -> dict:
+    def reset_rooms_for_channel(self, channel_id: str) -> None:
         key = RedisKeys.rooms_for_channel_with_info(channel_id)
-        return self.cache.delete(key)
+        self.cache.delete(key)
 
     def get_rooms_for_channel(self, channel_id: str) -> dict:
         key = RedisKeys.rooms_for_channel_with_info(channel_id)

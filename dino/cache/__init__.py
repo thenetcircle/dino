@@ -58,6 +58,14 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def reset_rooms_for_channel(self, channel_id: str) -> None:
+        """
+        delete the cached rooms for the channel
+
+        :param channel_id: uuid of the channel
+        :return: nothing
+        """
+
     def get_rooms_for_channel(self, channel_id: str) -> dict:
         """
         get the room info for this channel
