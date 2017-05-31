@@ -133,7 +133,8 @@ class DatabaseRdbms(object):
     def remove_matching_word_from_blacklist(self, word: str) -> None:
         @with_session
         def _delete(_word: str, session=None) -> None:
-            session.query(BlackList).filter(func.lower(BlackList.word) == func.lower(_word)).delete()
+            session.query(BlackList).filter(func.lower(BlackList.word) == func.lower(_word))\
+                .delete(synchronize_session='fetch')
             session.commit()
 
         if word is None or len(word.strip()) == 0:
