@@ -82,7 +82,8 @@ class QueueHandler(object):
         try:
             ban_duration = activity.object.summary
             ban_timestamp = utils.ban_duration_to_timestamp(ban_duration)
-            activity.object.updated = ban_timestamp
+            activity.object.updated = utils.ban_duration_to_datetime(ban_duration)\
+                .strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             banner_id = activity.actor.id
 
             self.send_ban_event_to_external_queue(activity, target_type)
