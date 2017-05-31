@@ -163,6 +163,10 @@ class QueueHandler(object):
             logger.exception(traceback.format_exc())
             return
 
+        if activity.actor.id != '0':
+            self.env.out_of_scope_emit(
+                    'gn_user_kicked', data, json=True, namespace=namespace, room=activity.actor.id, broadcast=True)
+
         self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
         self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=user_id, broadcast=True)
         self.send_kick_event_to_external_queue(activity)
@@ -186,6 +190,9 @@ class QueueHandler(object):
     def ban_room(self, data: dict, act: Activity, room_id: str, user_id: str, user_sid: str, namespace: str) -> None:
         self.env.out_of_scope_emit(
                 'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
+        if act.actor.id != '0':
+            self.env.out_of_scope_emit(
+                     'gn_user_banned', data, json=True, namespace=namespace, room=act.actor.id, broadcast=True)
 
         try:
             self.kick(data, act, room_id, user_id, user_sid, namespace)
@@ -197,6 +204,9 @@ class QueueHandler(object):
 
     def ban_channel(self, data: dict, activity: Activity, rooms_in_channel, channel_id, user_id, user_sid, namespace):
         try:
+            if activity.actor.id != '0':
+                self.env.out_of_scope_emit(
+                        'gn_user_banned', data, json=True, namespace=namespace, room=activity.actor.id, broadcast=True)
             for room_id in rooms_in_channel:
                 self.env.out_of_scope_emit(
                         'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
@@ -211,6 +221,9 @@ class QueueHandler(object):
 
     def ban_globally(self, data: dict, act: Activity, rooms: dict, user_id: str, user_sid: str, namespace: str) -> None:
         try:
+            if act.actor.id != '0':
+                self.env.out_of_scope_emit(
+                        'gn_user_banned', data, json=True, namespace=namespace, room=act.actor.id, broadcast=True)
             for room_id, room_name in rooms.items():
                 self.env.out_of_scope_emit(
                         'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
