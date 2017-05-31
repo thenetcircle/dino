@@ -687,7 +687,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
         if external is None or not external:
             external = False
 
-        if external and message['verb'] and gn_env.node != 'rest':
+        if external and gn_env.node != 'rest':
             # avoid publishing duplicate events by only letting the rest node publish external events
             return
 
