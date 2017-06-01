@@ -23,4 +23,4 @@ eventlet.monkey_patch()
 from dino.restful import app
 
 from dino import environ
-environ.env.node = __name__
+environ.env.node = 'rest'

@@ -23,4 +23,4 @@ eventlet.monkey_patch()
 from dino.server import socketio, app
 
 from dino import environ
-environ.env.node = __name__
+environ.env.node = 'app'
