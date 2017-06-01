@@ -14,6 +14,7 @@ import threading
 import time
 import traceback
 import logging
+import json
 
 from typing import Union
 from uuid import uuid4 as uuid
@@ -35,6 +36,7 @@ from dino.utils.decorators import respond_with
 from dino.utils.decorators import count_connections
 from dino.forms import LoginForm
 from dino.server import app, socketio
+from dino.utils import b64d
 from dino.utils.handlers import GracefulInterruptHandler
 from dino.endpoint.queue import QueueHandler
 
@@ -42,6 +44,7 @@ logger = logging.getLogger(__name__)
 queue_handler = QueueHandler(socketio, environ.env)
 
 
+"""
 class Worker(ConsumerMixin):
     def __init__(self, connection, signal_handler: GracefulInterruptHandler):
         self.connection = connection
@@ -60,12 +63,49 @@ class Worker(ConsumerMixin):
         except (ActivityException, AttributeError) as e:
             logger.error('could not parse server message: "%s", message was: %s' % (str(e), body))
         message.ack()
+"""
 
 
 def consume():
     if len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING, False):
         return
+
+    queue_name = environ.env.config.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default='node_queue')
+    environ.env.pubsub.subscribe(queue_name)
+
     with GracefulInterruptHandler() as interrupt_handler:
+        while True:
+            if interrupt_handler.interrupted:
+                return
+
+            message = environ.env.pubsub.get_message()
+            if message is None:
+                continue
+
+            if 'type' in message:
+                if message['type'] == 'subscribe':
+                    continue
+                if message['type'] != 'message':
+                    logger.warning('got unknown internal message: %s' % str(message, 'utf-8'))
+                    continue
+
+            try:
+                body = json.loads(b64d(str(message['data'], 'utf-8')))
+            except Exception as e:
+                logger.warn('could not parse message from queue: %s' % str(e))
+                logger.exception(e)
+                logger.debug('message was: %s' % str(message))
+                continue
+
+            try:
+                queue_handler.handle_server_activity(body, as_parser.parse(body))
+            except (ActivityException, AttributeError) as e:
+                logger.error('could not parse server message: "%s", message was: %s' % (str(e), str(message)))
+                logger.exception(e)
+
+            time.sleep(0.001)
+
+        """
         while True:
             with Connection(environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)) as conn:
                 try:
@@ -78,6 +118,7 @@ def consume():
                 return
 
             time.sleep(1)
+        """
 
 
 if not environ.env.config.get(ConfigKeys.TESTING, False):

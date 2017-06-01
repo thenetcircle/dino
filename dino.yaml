@@ -12,6 +12,8 @@ common_config: &common_config
     queue:
         type: 'redis'
         host: '$DINO_QUEUE_HOST'
+        queue: 'node_queue'
+        port: 6379
         db: 7
     stats:
       type: 'statsd'
