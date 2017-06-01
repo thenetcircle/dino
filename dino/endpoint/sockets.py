@@ -80,9 +80,11 @@ def consume():
 
             message = environ.env.pubsub.get_message()
             if message is None:
+                time.sleep(0.001)
                 continue
 
             if 'type' in message:
+                time.sleep(0.001)
                 if message['type'] == 'subscribe':
                     continue
                 if message['type'] != 'message':
@@ -95,6 +97,7 @@ def consume():
                 logger.warn('could not parse message from queue: %s' % str(e))
                 logger.exception(e)
                 logger.debug('message was: %s' % str(message))
+                time.sleep(0.001)
                 continue
 
             try:
@@ -102,8 +105,7 @@ def consume():
             except (ActivityException, AttributeError) as e:
                 logger.error('could not parse server message: "%s", message was: %s' % (str(e), str(message)))
                 logger.exception(e)
-
-            time.sleep(0.001)
+                time.sleep(0.001)
 
         """
         while True:
