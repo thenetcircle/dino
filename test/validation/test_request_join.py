@@ -48,8 +48,17 @@ class RequestJoinTest(BaseTest):
         response = request.on_join(as_parser(activity))
         self.assertEqual(True, response[0])
 
+    def test_join_is_banned_owner(self):
+        self.ban_user()
+        self.set_owner()
+        activity = self.activity_for_join()
+        is_valid, code, msg = request.on_join(as_parser(activity))
+        self.assertTrue(is_valid)
+
     def test_join_is_banned(self):
         self.ban_user()
+        self.remove_owner_channel()
+        self.remove_owner()
         activity = self.activity_for_join()
         is_valid, code, msg = request.on_join(as_parser(activity))
         self.assertFalse(is_valid)
