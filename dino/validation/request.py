@@ -338,8 +338,14 @@ class RequestValidator(BaseValidator):
 
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             return True, None, None
+        if utils.is_owner(room_id, user_id):
+            return True, None, None
 
         channel_id = utils.get_channel_for_room(room_id)
+
+        if utils.is_owner_channel(channel_id, user_id):
+            return True, None, None
+
         activity.object.url = channel_id
         activity.object.display_name = utils.get_channel_name(channel_id)
 
