@@ -595,7 +595,6 @@ class RequestValidator(BaseValidator):
         if environ.env.db.room_name_exists(channel_id, room_name):
             return False, ECodes.ROOM_ALREADY_EXISTS, 'a room with that name already exists'
 
-        channel_id = utils.get_channel_for_room(activity.target.id)
         channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.CREATE)
         is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.CREATE, channel_acls)
         if not is_valid:
