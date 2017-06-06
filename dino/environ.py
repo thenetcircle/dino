@@ -736,7 +736,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                             gn_env.stats.incr('publish.error')
 
             else:
-                for i_current_try in range(n_tries):
+                for current_try in range(n_tries):
                     try:
                         gn_env.queue.publish(channel=gn_env.queue_name, message=b64e(json.dumps(message)))
                         gn_env.stats.incr('publish.internal.count')
@@ -745,7 +745,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                         break
                     except Exception as pe:
                         failed = True
-                        logger.error('[%s/%s tries] failed to publish internal: %s' % (str(i_current_try+1), str(n_tries), str(pe)))
+                        logger.error('[%s/%s tries] failed to publish internal: %s' % (str(current_try+1), str(n_tries), str(pe)))
                         logger.exception(traceback.format_exc())
                         gn_env.stats.incr('publish.error')
                         time.sleep(0.1)

@@ -44,28 +44,6 @@ logger = logging.getLogger(__name__)
 queue_handler = QueueHandler(socketio, environ.env)
 
 
-"""
-class Worker(ConsumerMixin):
-    def __init__(self, connection, signal_handler: GracefulInterruptHandler):
-        self.connection = connection
-        self.signal_handler = signal_handler
-
-    def get_consumers(self, consumer, channel):
-        return [consumer(queues=[environ.env.queue], callbacks=[self.process_task])]
-
-    def on_iteration(self):
-        if self.signal_handler.interrupted:
-            self.should_stop = True
-
-    def process_task(self, body, message):
-        try:
-            queue_handler.handle_server_activity(body, as_parser.parse(body))
-        except (ActivityException, AttributeError) as e:
-            logger.error('could not parse server message: "%s", message was: %s' % (str(e), body))
-        message.ack()
-"""
-
-
 def consume():
     if len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING, False):
         return
@@ -106,21 +84,6 @@ def consume():
                 logger.error('could not parse server message: "%s", message was: %s' % (str(e), str(message)))
                 logger.exception(e)
                 time.sleep(0.001)
-
-        """
-        while True:
-            with Connection(environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)) as conn:
-                try:
-                    environ.env.consume_worker = Worker(conn, interrupt_handler)
-                    environ.env.consume_worker.run()
-                except KeyboardInterrupt:
-                    return
-
-            if interrupt_handler.interrupted or environ.env.consume_worker.should_stop:
-                return
-
-            time.sleep(1)
-        """
 
 
 if not environ.env.config.get(ConfigKeys.TESTING, False):
