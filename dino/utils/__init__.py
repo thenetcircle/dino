@@ -624,7 +624,7 @@ def activity_for_whisper(
 def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     response = {
         'object': {
-            'id': activity.object.id,
+            'url': activity.object.url,
             'objectType': 'rooms'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
