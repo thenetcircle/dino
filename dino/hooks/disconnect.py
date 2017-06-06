@@ -18,6 +18,7 @@ import traceback
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
+from dino.exceptions import NoSuchUserException
 
 logger = logging.getLogger(__name__)
 
@@ -94,9 +95,14 @@ class OnDisconnectHooks(object):
         try:
             user_id = activity.actor.id
             user_name = environ.env.session.get(SessionKeys.user_name.value)
+            if user_name is None or len(user_name.strip()) == 0:
+                try:
+                    user_name = utils.get_user_name_for(user_id)
+                except NoSuchUserException:
+                    user_name = '<unknown>'
 
-            if user_id is None or user_name is None or len(user_name.strip()) == 0:
-                logger.warning('blank userid/username, ignoring disconnect event')
+            if user_id is None:
+                logger.warning('blank user_id, ignoring disconnect event')
                 return
 
             activity_json = utils.activity_for_disconnect(user_id, user_name)
