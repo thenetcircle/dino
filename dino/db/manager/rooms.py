@@ -39,6 +39,7 @@ class RoomManager(BaseManager):
             output.append({
                 'uuid': room_id,
                 'sort': room_details['sort_order'],
+                'ïs_admin': room_details['admin'],
                 'is_default': room_id in default_rooms,
                 'is_ephemeral': room_details['ephemeral'],
                 'name': room_name
@@ -64,6 +65,12 @@ class RoomManager(BaseManager):
 
     def unset_ephemeral_room(self, room_id: str) -> None:
         self.env.db.unset_ephemeral_room(room_id)
+
+    def set_admin_room(self, room_id: str) -> None:
+        self.env.db.set_admin_room(room_id)
+
+    def unset_admin_room(self, room_id: str) -> None:
+        self.env.db.unset_admin_room(room_id)
 
     def set_default_room(self, room_id: str) -> None:
         self.env.db.add_default_room(room_id)

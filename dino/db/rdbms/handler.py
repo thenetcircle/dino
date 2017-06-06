@@ -277,6 +277,53 @@ class DatabaseRdbms(object):
         self.env.cache.set_user_roles(user_id, roles)
         return roles
 
+    @with_session
+    def set_admin_room(self, room_uuid: str, session=None) -> None:
+        room = session.query(Rooms).filter(Rooms.uuid == room_uuid).first()
+        if room is None:
+            return
+
+        room.admin = True
+
+        has_join_acl = False
+        has_list_acl = False
+
+        for acl in room.acls:
+            if acl.acl_type != RoleKeys.ADMIN:
+                continue
+            if acl.action == ApiActions.JOIN:
+                has_join_acl = True
+            elif acl.action == ApiActions.LIST:
+                has_list_acl = True
+
+        if not has_list_acl:
+            list_acl = Acls()
+            list_acl.action = ApiActions.LIST
+            list_acl.acl_type = RoleKeys.ADMIN
+            list_acl.acl_value = ''
+            session.add(list_acl)
+            room.acls.append(list_acl)
+        if not has_join_acl:
+            join_acl = Acls()
+            join_acl.action = ApiActions.JOIN
+            join_acl.acl_type = RoleKeys.ADMIN
+            join_acl.acl_value = ''
+            session.add(join_acl)
+            room.acls.append(join_acl)
+
+        self.env.cache.set_admin_room(room_uuid)
+        session.commit()
+
+    @with_session
+    def unset_admin_room(self, room_uuid: str, session=None) -> None:
+        room = session.query(Rooms).filter(Rooms.uuid == room_uuid).first()
+        if room is None:
+            return
+
+        room.admin = False
+        self.env.cache.remove_admin_room()
+        session.commit()
+
     def create_admin_room(self) -> str:
         @with_session
         def _create(admin_channel_id: str, session=None):
@@ -484,6 +531,7 @@ class DatabaseRdbms(object):
                     'name': room.name,
                     'sort_order': room.sort_order,
                     'ephemeral': room.ephemeral,
+                    'admin': room.admin,
                     'users': len(visible_users)
                 }
             return rooms

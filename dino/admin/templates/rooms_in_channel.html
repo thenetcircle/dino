@@ -188,6 +188,7 @@
             </td>
             <td>Default?<br /><small>(auto-join)</small></td>
             <td>Temporary?<br /><small>(deleted when owner leaves)</small></td>
+            <td>Admin?<br /><small>(request admin events sent here)</small></td>
         </tr>
     </thead>
     <tbody>
@@ -218,6 +219,14 @@
                     <input type="checkbox" name="ephemeral-room" checked>
                 {% else %}
                     <input type="checkbox" name="ephemeral-room">
+                {% endif %}
+            </td>
+            <td>
+                <input class="room-id" type="hidden" value="{{ room.uuid }}" />
+                {% if room.is_admin == True %}
+                    <input type="checkbox" name="admin-room" checked>
+                {% else %}
+                    <input type="checkbox" name="admin-room">
                 {% endif %}
             </td>
         </tr>

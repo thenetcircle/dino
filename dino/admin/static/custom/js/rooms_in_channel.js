@@ -69,6 +69,26 @@ $(document).ready(function() {
         });
     });
 
+    $('input[name="admin-room"]').change(function() {
+        var room_id = $($(this).parent().find('input.room-id')[0]).val();
+        var state = $(this).is(':checked');
+        var change_url = '/room/' + room_id + '/'
+        if (state) {
+            change_url += 'set-admin'
+        }
+        else {
+            change_url += 'unset-admin'
+        }
+
+        $.ajax({
+            method: 'PUT',
+            url: change_url,
+            contentType: 'application/json;charset=UTF-8'
+        }).done(function(data) {
+            console.log(data)
+        });
+    });
+
     $('#api_action').change(function() {
         var api_action = $(this).find(':selected').val();
 

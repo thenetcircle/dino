@@ -238,6 +238,11 @@ class CacheRedis(object):
         self.redis.set(key, room_id)
         self.cache.set(key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
 
+    def remove_admin_room(self) -> None:
+        key = RedisKeys.admin_room()
+        self.redis.delete(key)
+        self.cache.delete(key)
+
     def _get_ban_timestamp(self, key: str, user_id: str) -> str:
         cache_key = '%s-%s' % (key, user_id)
         value = self.cache.get(cache_key)
