@@ -328,7 +328,7 @@ class Driver(object):
             return
 
         if len(keys.current_rows) > 1:
-            logger.warn('found %s msgs when deleting with message_id %s' % len(keys.current_rows), message_id)
+            logger.warn('found %s msgs when deleting with message_id %s' % (len(keys.current_rows), message_id))
 
         for key in keys.current_rows:
             target_id, from_user_id, timestamp = key.target_id, key.from_user_id, key.sent_time
