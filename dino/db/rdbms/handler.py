@@ -623,7 +623,7 @@ class DatabaseRdbms(object):
             session.commit()
         except StaleDataError:
             # might have just been removed by another node
-            pass
+            session.rollback()
 
     def get_channels(self) -> dict:
         @with_session
