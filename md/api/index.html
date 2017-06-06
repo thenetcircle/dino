@@ -398,6 +398,7 @@ both. Possible values are thus:</p>
     "data": {
         "object": {
             "objectType": "rooms",
+            "url": "&lt;channel UUID&gt;",
             "attachments": [
                 {
                     "id": "&lt;room UUID&gt;",
@@ -435,6 +436,7 @@ both. Possible values are thus:</p>
     }
 }
 </code></pre>
+<p>The <code>url</code> field for <code>object</code> is the <code>UUID</code> of the channel that these rooms are for.  </p>
 <p>Each room has a <code>url</code> field, which is the sort order defined in the admin interface, in ascending order (lower <code>url</code>
 means higher up in the list).</p>
 <p>The <code>content</code> field on the attachments describe what kind of role you have for that room. If no roles are set then
