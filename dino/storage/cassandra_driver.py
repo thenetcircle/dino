@@ -327,25 +327,30 @@ class Driver(object):
             # not found
             return
 
-        assert len(keys.current_rows) == 1
-        key = keys.current_rows[0]
-        target_id, from_user_id, timestamp = key.target_id, key.from_user_id, key.sent_time
+        if len(keys.current_rows) > 1:
+            logger.warn('found %s msgs when deleting with message_id %s' % len(keys.current_rows), message_id)
 
-        message_rows = self._execute(StatementKeys.msg_select_one, target_id, from_user_id, timestamp)
-        assert len(message_rows.current_rows) == 1
+        for key in keys.current_rows:
+            target_id, from_user_id, timestamp = key.target_id, key.from_user_id, key.sent_time
+            message_rows = self._execute(StatementKeys.msg_select_one, target_id, from_user_id, timestamp)
 
-        message_row = message_rows.current_rows[0]
-        body = message_row.body
-        domain = message_row.domain
-        channel_id = message_row.channel_id
-        channel_name = message_row.channel_name
-        target_name = message_row.target_name
-        from_user_name = message_row.from_user_name
-        logger.debug('deleting row: %s' % str(message_row))
+            if len(message_rows.current_rows) > 1:
+                logger.warn(
+                        'found %s msgs when deleting with target_id %s, from_user_id %s and timestamp %s' %
+                        (len(message_rows.current_rows), target_id, from_user_id, timestamp))
 
-        self.msg_insert(
-                message_id, from_user_id, from_user_name, target_id, target_name, body,
-                domain, timestamp, channel_id, channel_name, deleted=deleted)
+            for message_row in message_rows.current_rows:
+                body = message_row.body
+                domain = message_row.domain
+                channel_id = message_row.channel_id
+                channel_name = message_row.channel_name
+                target_name = message_row.target_name
+                from_user_name = message_row.from_user_name
+                logger.debug('deleting row: %s' % str(message_row))
+
+                self.msg_insert(
+                        message_id, from_user_id, from_user_name, target_id, target_name, body,
+                        domain, timestamp, channel_id, channel_name, deleted=deleted)
 
     def _execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:
