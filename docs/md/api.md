@@ -208,6 +208,7 @@ Response data if successful:
         "data": {
             "object": {
                 "objectType": "rooms",
+                "url": "<channel UUID>",
                 "attachments": [
                     {
                         "id": "<room UUID>",
@@ -244,6 +245,8 @@ Response data if successful:
             "verb": "list"
         }
     }
+
+The `url` field for `object` is the `UUID` of the channel that these rooms are for.  
 
 Each room has a `url` field, which is the sort order defined in the admin interface, in ascending order (lower `url`
 means higher up in the list).
