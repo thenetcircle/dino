@@ -18,6 +18,7 @@ from uuid import uuid4 as uuid
 import traceback
 from sqlalchemy import or_
 from sqlalchemy import func
+from sqlalchemy.orm.exc import StaleDataError
 
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
@@ -616,7 +617,13 @@ class DatabaseRdbms(object):
 
         for room in rooms:
             room.users.remove(user)
-        session.commit()
+
+
+        try:
+            session.commit()
+        except StaleDataError:
+            # might have just been removed by another node
+            pass
 
     def get_channels(self) -> dict:
         @with_session
