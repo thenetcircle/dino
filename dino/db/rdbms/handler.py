@@ -559,7 +559,7 @@ class DatabaseRdbms(object):
             })
         return output
 
-    def users_in_room(self, room_id: str, user_id: str=None) -> dict:
+    def users_in_room(self, room_id: str, user_id: str=None, skip_cache: bool=False) -> dict:
         @with_session
         def _users_in_room(session=None) -> dict:
             rows = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).all()
@@ -577,9 +577,10 @@ class DatabaseRdbms(object):
         if user_id is not None:
             is_super_user = self.is_super_user(user_id) or self.is_global_moderator(user_id)
 
-        users = self.env.cache.get_users_in_room(room_id, is_super_user=is_super_user)
-        if users is not None:
-            return users
+        if not skip_cache:
+            users = self.env.cache.get_users_in_room(room_id, is_super_user=is_super_user)
+            if users is not None:
+                return users
 
         users = _users_in_room()
         self.env.cache.set_users_in_room(room_id, users, is_super_user=is_super_user)
