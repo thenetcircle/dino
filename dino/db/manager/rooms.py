@@ -40,12 +40,11 @@ class RoomManager(BaseManager):
             output.append({
                 'uuid': room_id,
                 'sort': room_details['sort_order'],
-                'ïs_admin': room_id == admin_room_uuid,
+                'is_admin': room_id == admin_room_uuid,
                 'is_default': room_id in default_rooms,
                 'is_ephemeral': room_details['ephemeral'],
                 'name': room_name
             })
-        print(output)
         return output
 
     def update_sort(self, room_uuid: str, order: str):
