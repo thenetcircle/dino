@@ -906,6 +906,11 @@ class DatabaseRdbms(object):
 
         @with_session
         def do_remove_channel(session=None):
+            roles = session.query(ChannelRoles).join(ChannelRoles.room).filter(Channels.uuid == channel_id).all()
+            if roles is not None and len(roles) > 0:
+                for role in roles:
+                    session.delete(role)
+
             channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
             session.delete(channel)
             session.commit()
