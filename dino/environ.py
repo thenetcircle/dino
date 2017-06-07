@@ -715,44 +715,34 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
             failed = False
 
             if external:
+                message_type = 'external'
                 queue_connection = gn_env.external_queue_connection
                 if queue_connection is None:
                     return
                 exchange = gn_env.external_exchange
                 queue = gn_env.external_queue
-
-                with producers[queue_connection].acquire(block=True) as producer:
-                    for current_try in range(n_tries):
-                        try:
-                            producer.publish(message, exchange=exchange, declare=[exchange, queue])
-                            gn_env.stats.incr('publish.external.count')
-                            gn_env.stats.timing('publish.external.time', (time.time()-start)*1000)
-                            failed = False
-                            break
-                        except Exception as pe:
-                            failed = True
-                            logger.error('[%s/%s tries] failed to publish external: %s' % (str(current_try+1), str(n_tries), str(pe)))
-                            logger.exception(traceback.format_exc())
-                            gn_env.stats.incr('publish.error')
-
             else:
+                message_type = 'internal'
+                queue_connection = gn_env.queue_connection
+                if queue_connection is None:
+                    return
+                exchange = gn_env.exchange
+                queue = gn_env.queue
+
+            with producers[queue_connection].acquire(block=True) as producer:
                 for current_try in range(n_tries):
                     try:
-                        gn_env.queue.publish(channel=gn_env.queue_name, message=b64e(json.dumps(message)))
-                        gn_env.stats.incr('publish.internal.count')
-                        gn_env.stats.timing('publish.internal.time', (time.time()-start)*1000)
+                        producer.publish(message, exchange=exchange, declare=[exchange, queue])
+                        gn_env.stats.incr('publish.%s.count' % message_type)
+                        gn_env.stats.timing('publish.%s.time' % message_type, (time.time()-start)*1000)
                         failed = False
                         break
                     except Exception as pe:
                         failed = True
-                        logger.error('[%s/%s tries] failed to publish internal: %s' % (str(current_try+1), str(n_tries), str(pe)))
+                        logger.error('[%s/%s tries] failed to publish %s: %s' % (str(current_try+1), str(n_tries), message_type, str(pe)))
                         logger.exception(traceback.format_exc())
                         gn_env.stats.incr('publish.error')
                         time.sleep(0.1)
-
-            message_type = 'internal'
-            if external:
-                message_type = 'external'
 
             if failed:
                 logger.error(
@@ -780,8 +770,9 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
 
     conf = gn_env.config
     queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)
-    queue_port = None
 
+    """
+    queue_port = None
     if 'redis://' in queue_host:
         queue_host = queue_host[len('redis://'):]
     if ':' in queue_host:
@@ -790,16 +781,16 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
         queue_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=6379)
 
     queue_db = conf.get(ConfigKeys.DB, domain=ConfigKeys.QUEUE, default=0)
+    """
+
     gn_env.queue_connection = Connection(queue_host)
     gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default='node_queue')
 
     exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
     gn_env.exchange = Exchange(exchange, type='fanout')
 
-    #queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default='node_queue')
-    #gn_env.queue = Queue(queue, gn_env.exchange)
-    gn_env.queue = Redis(host=queue_host, port=queue_port, db=queue_db)
-    gn_env.pubsub = gn_env.queue.pubsub()
+    queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default='node_queue')
+    gn_env.queue = Queue(queue, gn_env.exchange)
     gn_env.publish = publish
 
     ext_queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='')
