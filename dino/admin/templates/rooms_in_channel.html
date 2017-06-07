@@ -215,6 +215,7 @@
             </td>
             <td>
                 <input class="room-id" type="hidden" value="{{ room.uuid }}" />
+                is_ephemeral: {{ room.is_ephemeral }}
                 {% if room.is_ephemeral %}
                     <input type="checkbox" name="ephemeral-room"  checked="checked">
                 {% else %}
@@ -222,6 +223,7 @@
                 {% endif %}
             </td>
             <td>
+                is_admin: {{ room.is_admin }}
                 <input class="room-id" type="hidden" value="{{ room.uuid }}" />
                 {% if room.is_admin %}
                     <input type="checkbox" name="admin-room"  checked="checked">
