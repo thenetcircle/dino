@@ -700,12 +700,21 @@ def init_cache_service(gn_env: GNEnvironment):
 
 @timeit(logger, 'init pub/sub service')
 def init_pub_sub(gn_env: GNEnvironment) -> None:
+    recently_sent_external_hash = set()
+    recently_sent_external_list = list()
+
     def publish(message, external=None):
         if external is None or not external:
             external = False
 
         if external and gn_env.node != 'rest':
             # avoid publishing duplicate events by only letting the rest node publish external events
+            return
+
+        if external and message['id'] in recently_sent_external_hash:
+            logger.debug(
+                    'ignoring external event with verb %s and id %s, already sent' %
+                    (message['verb'], message['id']))
             return
 
         try:
@@ -736,6 +745,14 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                         gn_env.stats.incr('publish.%s.count' % message_type)
                         gn_env.stats.timing('publish.%s.time' % message_type, (time.time()-start)*1000)
                         failed = False
+
+                        if external:
+                            recently_sent_external_hash.add(message['id'])
+                            recently_sent_external_list.append(message['id'])
+                            if len(recently_sent_external_list) > 100:
+                                old_id = recently_sent_external_list.pop(0)
+                                recently_sent_external_hash.remove(old_id)
+
                         break
                     except Exception as pe:
                         failed = True
@@ -746,14 +763,14 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
 
             if failed:
                 logger.error(
-                        'failed to publish %s message %s times! Republishing to internal queue' %
+                        'failed to publish %s event %s times! Republishing to internal queue' %
                         (message_type, str(n_tries)))
                 publish(message)
             elif current_try > 0:
                 logger.info('published successfully on attempt %s/%s' % (str(current_try+1), str(n_tries)))
             else:
                 logger.debug(
-                        'published %s message with verb "%s" id "%s"' %
+                        'published %s event with verb %s id %s' %
                         (message_type, message['verb'], message['id']))
 
         except Exception as e:

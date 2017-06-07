@@ -143,7 +143,7 @@ class QueueHandler(object):
             logger.info('ignoring event with id %s sine we delegated from this node' % activity.id)
             return
 
-        logger.debug('got internally published message, id %s, verb %s' % (activity.id, activity.verb))
+        logger.debug('got internally published event with verb %s id %s' % (activity.verb, activity.id))
 
         if activity.verb in ['ban', 'kick', 'remove']:
             self.handle_local_node_events(data, activity)
