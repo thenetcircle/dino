@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import eventlet
+from dino.hooks import *
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -24,3 +25,4 @@ from dino.restful import app
 
 from dino import environ
 environ.env.node = 'rest'
+environ.env.observer.emit('on_startup_done', (None, None))

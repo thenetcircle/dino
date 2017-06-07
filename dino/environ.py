@@ -223,7 +223,7 @@ class GNEnvironment(object):
         self.session = config.get(ConfigKeys.SESSION, None)
         self.auth = config.get(ConfigKeys.AUTH_SERVICE, None)
         self.db = None
-        self.publish = None
+        self.publish = lambda message, external: None
         self.queue_connection = None
         self.queue = None
         self.pubsub = None

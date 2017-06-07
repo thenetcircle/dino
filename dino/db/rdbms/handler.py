@@ -865,6 +865,7 @@ class DatabaseRdbms(object):
             raise RoomNameExistsForChannelException(channel_id, room_name)
         _create_room()
         self.env.cache.reset_rooms_for_channel(channel_id)
+        self.set_owner(room_id, user_id)
 
     def update_channel_sort_order(self, channel_uuid: str, sort_order: int) -> None:
         @with_session
