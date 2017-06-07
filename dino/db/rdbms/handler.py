@@ -910,6 +910,7 @@ class DatabaseRdbms(object):
             if roles is not None and len(roles) > 0:
                 for role in roles:
                     session.delete(role)
+                session.commit()
 
             channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
             session.delete(channel)
@@ -939,6 +940,7 @@ class DatabaseRdbms(object):
             if roles is not None and len(roles) > 0:
                 for role in roles:
                     session.delete(role)
+                session.commit()
 
             session.delete(room)
             session.commit()
