@@ -370,24 +370,14 @@ class DatabaseRdbms(object):
         self.create_channel('Admins', channel_id, '0')
         return _create(channel_id)
 
-    def get_admin_room(self) -> str:
-        @with_session
-        def _admin_room(session=None):
-            room = session.query(Rooms)\
-                .filter(Rooms.admin.is_(True))\
-                .first()
-
-            if room is None:
-                return None
-
-            return room.uuid
-
-        room_id = self.env.cache.get_admin_room()
-        if room_id is None:
-            room_id = _admin_room()
-            if room_id is not None:
-                self.env.cache.set_admin_room(room_id)
-        return room_id
+    @with_session
+    def get_admin_room(self, session=None) -> str:
+        room = session.query(Rooms)\
+            .filter(Rooms.admin.is_(True))\
+            .first()
+        if room is None:
+            return None
+        return room.uuid
 
     def room_exists(self, channel_id: str, room_id: str) -> bool:
         @with_session
