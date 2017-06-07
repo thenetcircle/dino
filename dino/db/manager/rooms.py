@@ -45,6 +45,7 @@ class RoomManager(BaseManager):
                 'is_ephemeral': room_details['ephemeral'],
                 'name': room_name
             })
+        print(output)
         return output
 
     def update_sort(self, room_uuid: str, order: str):
