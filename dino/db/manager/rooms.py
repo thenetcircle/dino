@@ -31,6 +31,7 @@ class RoomManager(BaseManager):
 
     def get_rooms(self, channel_id: str) -> list:
         rooms = self.env.db.rooms_for_channel(channel_id)
+        admin_room_uuid = self.env.db.get_admin_room()
         default_rooms = self.env.db.get_default_rooms() or set()
         output = list()
 
@@ -39,7 +40,7 @@ class RoomManager(BaseManager):
             output.append({
                 'uuid': room_id,
                 'sort': room_details['sort_order'],
-                'ïs_admin': room_details['admin'],
+                'ïs_admin': room_id == admin_room_uuid,
                 'is_default': room_id in default_rooms,
                 'is_ephemeral': room_details['ephemeral'],
                 'name': room_name
