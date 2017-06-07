@@ -208,7 +208,7 @@
             <td>
                 <input class="room-id" type="hidden" value="{{ room.uuid }}" />
                 {% if room.is_default == True %}
-                    <input type="checkbox" name="default-room" checked>
+                    <input type="checkbox" name="default-room"  checked="checked">
                 {% else %}
                     <input type="checkbox" name="default-room">
                 {% endif %}
@@ -216,7 +216,7 @@
             <td>
                 <input class="room-id" type="hidden" value="{{ room.uuid }}" />
                 {% if room.is_ephemeral == True %}
-                    <input type="checkbox" name="ephemeral-room" checked>
+                    <input type="checkbox" name="ephemeral-room"  checked="checked">
                 {% else %}
                     <input type="checkbox" name="ephemeral-room">
                 {% endif %}
@@ -224,7 +224,7 @@
             <td>
                 <input class="room-id" type="hidden" value="{{ room.uuid }}" />
                 {% if room.is_admin == True %}
-                    <input type="checkbox" name="admin-room" checked>
+                    <input type="checkbox" name="admin-room"  checked="checked">
                 {% else %}
                     <input type="checkbox" name="admin-room">
                 {% endif %}
