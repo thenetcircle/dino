@@ -598,6 +598,8 @@ class DatabaseRdbms(object):
             return
         room.ephemeral = is_ephemeral
         session.commit()
+        channel_id = self.channel_for_room(room_id)
+        self.env.cache.reset_rooms_for_channel(channel_id)
 
     def add_default_room(self, room_id: str) -> None:
         @with_session
