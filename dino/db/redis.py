@@ -502,6 +502,9 @@ class DatabaseRedis(object):
         key = '%s|%s' % (action, acl_type)
         self.redis.hdel(RedisKeys.channel_acl(channel_id), key)
 
+    def get_rooms_user_is_owner_for(self, user_id: str) -> None:
+        return list()
+
     def update_acl_in_room_for_action(self, channel_id: str, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)

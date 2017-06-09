@@ -149,6 +149,14 @@ class IDatabase(Interface):
         :return: list of uuids
         """
 
+    def get_rooms_user_is_owner_for(self, user_id: str) -> None:
+        """
+        get the room uuids that this user is an owner for
+
+        :param user_id: id of the user
+        :return: a list of room uuids
+        """
+
     def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:
         """
         the the roles in only one room for a user, e.g.:

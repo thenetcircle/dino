@@ -79,6 +79,7 @@ class ErrorCodes(object):
     VALIDATION_ERROR = 706
     ROOM_FULL = 707
     NOT_ONLINE = 708
+    TOO_MANY_PRIVATE_ROOMS = 709
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
