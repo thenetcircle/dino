@@ -95,6 +95,16 @@ Example of activity posted to the external queue:
 * target.displayName: base64 encoded name of the room,
 * target.objectType: one of "room", "channel", "global" (if "global", no displayName or id will be on target)
 
+## Server restarted
+
+When the server REST node starts up it will sent a `restart` event in this format: 
+
+    {
+        "verb": "restart",
+        "id": "c694ddc3-1b2b-4d43-ae5a-a843c2dce8aa",
+        "published": "2017-06-09T07:26:26Z"
+    }
+
 ## User joins room
 
 When a user joins a room the following activity is published to rabbitmq:
