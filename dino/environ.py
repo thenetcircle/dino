@@ -707,6 +707,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
         logger.warn('could not connect to MQ: %s' % str(exc))
 
     def publish(message, external=None):
+        logger.debug('publish: verb %s id %s external? %s' % (message['verb'], message['id'], str(external or False)))
         if external is None or not external:
             external = False
 
@@ -740,7 +741,6 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                     return
                 exchange = gn_env.exchange
                 queue = gn_env.queue
-
 
             with producers[queue_connection].acquire(block=True) as producer:
                 amqp_publish = queue_connection.ensure(producer, producer.publish, errback=error_callback, max_retries=3)
