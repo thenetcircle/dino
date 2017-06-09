@@ -61,17 +61,17 @@ if ! cp .dino.yaml dino.yaml; then
 fi
 
 if [ -f "$SYSTEMD_PATH/dino-web-$DINO_ENVIRONMENT.service" ]; then
-    echo "stopping web... "
+    echo "stopping dino-web-$DINO_ENVIRONMENT... "
     if ! systemctl stop dino-web-${DINO_ENVIRONMENT}; then
-        echo "error: could not stop dino-web"
+        echo "error: could not stop dino-web-$DINO_ENVIRONMENT"
         exit 1
     fi
 fi
 
 if [ -f "$SYSTEMD_PATH/dino-rest-$DINO_ENVIRONMENT.service" ]; then
-    echo "stopping rest... "
+    echo "stopping dino-rest-$DINO_ENVIRONMENT... "
     if ! systemctl stop dino-rest-${DINO_ENVIRONMENT}; then
-        echo "error: could not stop dino-rest"
+        echo "error: could not stop dino-rest-$DINO_ENVIRONMENT"
         exit 1
     fi
 fi
@@ -112,7 +112,7 @@ if [ -f "$SYSTEMD_PATH/dino-app-$DINO_ENVIRONMENT.service" ]; then
 fi
 
 if [ -f "$SYSTEMD_PATH/dino-rest-$DINO_ENVIRONMENT.service" ]; then
-    echo "starting rest... "
+    echo "starting dino-rest-$DINO_ENVIRONMENT... "
     if ! systemctl start dino-rest-${DINO_ENVIRONMENT}; then
         echo "error: could not start dino-rest"
         exit 1
@@ -120,7 +120,7 @@ if [ -f "$SYSTEMD_PATH/dino-rest-$DINO_ENVIRONMENT.service" ]; then
 fi
 
 if [ -f "$SYSTEMD_PATH/dino-web-$DINO_ENVIRONMENT.service" ]; then
-    echo "starting web... "
+    echo "starting dino-web-$DINO_ENVIRONMENT... "
     if ! systemctl start dino-web-${DINO_ENVIRONMENT}; then
         echo "error: could not start dino-web"
         exit 1
