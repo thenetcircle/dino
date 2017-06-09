@@ -388,6 +388,17 @@ class RequestValidator(BaseValidator):
         if channel_id is None or channel_id == '':
             return False, ECodes.MISSING_OBJECT_URL, 'need channel ID to list rooms'
 
+        user_id = activity.actor.id
+        is_banned, duration = utils.is_banned_globally(user_id)
+        if is_banned:
+            environ.env.join_room(user_id)
+            reason = utils.reason_for_ban(user_id)
+            json_act = utils.activity_for_already_banned(duration, reason)
+            environ.env.emit('gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True)
+            environ.env.disconnect()
+            logger.info('user %s is banned from chatting for: %ss' % (user_id, duration))
+            return False, ECodes.USER_IS_BANNED, json_act
+
         activity.target = Target({'objectType': 'channel'})
         acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
         is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.LIST, acls)
