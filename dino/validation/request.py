@@ -585,7 +585,7 @@ class RequestValidator(BaseValidator):
         if not hasattr(activity, 'actor') or not hasattr(activity.actor, 'id'):
             return False, ECodes.MISSING_ACTOR_ID, 'need actor.id (user uuid)'
 
-        rooms = environ.env.db.get_rooms_user_is_owner_for(activity.actor.id)
+        rooms = environ.env.db.get_temp_rooms_user_is_owner_for(activity.actor.id)
         if len(rooms) >= 3:
             return False, ECodes.TOO_MANY_PRIVATE_ROOMS, 'too many private rooms for user'
 

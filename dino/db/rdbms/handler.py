@@ -707,9 +707,10 @@ class DatabaseRdbms(object):
         return _room_name_exists()
 
     @with_session
-    def get_rooms_user_is_owner_for(self, user_id: str, session=None) -> None:
+    def get_temp_rooms_user_is_owner_for(self, user_id: str, session=None) -> None:
         roles = session.query(RoomRoles)\
             .join(RoomRoles.room)\
+            .filter(Rooms.ephemeral.is_(True))\
             .filter(RoomRoles.user_id == user_id)\
             .filter(RoomRoles.roles.ilike('%owner%'))\
             .all()

@@ -149,9 +149,9 @@ class IDatabase(Interface):
         :return: list of uuids
         """
 
-    def get_rooms_user_is_owner_for(self, user_id: str) -> None:
+    def get_temp_rooms_user_is_owner_for(self, user_id: str) -> None:
         """
-        get the room uuids that this user is an owner for
+        get the (temporary/ephemeral) room uuids that this user is an owner for
 
         :param user_id: id of the user
         :return: a list of room uuids
