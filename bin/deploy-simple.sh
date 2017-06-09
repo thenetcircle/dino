@@ -77,51 +77,14 @@ if [ -f "$SYSTEMD_PATH/dino-rest-$DINO_ENVIRONMENT.service" ]; then
 fi
 
 if [ -f "$SYSTEMD_PATH/dino-app-$DINO_ENVIRONMENT.service" ]; then
-    echo "stopping app... "
-    if ! systemctl stop dino-app-${DINO_ENVIRONMENT}; then
-        echo "error: could not stop dino-app"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-1-$DINO_ENVIRONMENT.service" ]; then
-    echo "stopping app1... "
-    if ! systemctl stop dino-app-1-${DINO_ENVIRONMENT}; then
-        echo "error: could not stop dino-app1"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-2-$DINO_ENVIRONMENT.service" ]; then
-    echo "stopping app2... "
-    if ! systemctl stop dino-app-2-${DINO_ENVIRONMENT}; then
-        echo "error: could not stop dino-app2"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-3-$DINO_ENVIRONMENT.service" ]; then
-    echo "stopping app3... "
-    if ! systemctl stop dino-app-3-${DINO_ENVIRONMENT}; then
-        echo "error: could not stop dino-app3"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-4-$DINO_ENVIRONMENT.service" ]; then
-    echo "stopping app4... "
-    if ! systemctl stop dino-app-4-${DINO_ENVIRONMENT}; then
-        echo "error: could not stop dino-app4"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-5-$DINO_ENVIRONMENT.service" ]; then
-    echo "stopping app5... "
-    if ! systemctl stop dino-app-5-${DINO_ENVIRONMENT}; then
-        echo "error: could not stop dino-app5"
-        exit 1
-    fi
+    for filename in "$SYSTEMD_PATH/dino-app*-$DINO_ENVIRONMENT.service"; do
+        nodename=`echo $filename | sed "s/.*\///g" | sed "s/\.service//g"`
+        echo "stopping $nodename... "
+        if ! systemctl stop $nodename; then
+            echo "error: could not stop $nodename"
+            exit 1
+        fi
+    done
 fi
 
 echo "clearing online cache... "
@@ -136,52 +99,16 @@ if ! python bin/clear_db_online_table.py; then
     exit 1
 fi
 
+
 if [ -f "$SYSTEMD_PATH/dino-app-$DINO_ENVIRONMENT.service" ]; then
-    echo "starting app... "
-    if ! systemctl start dino-app-${DINO_ENVIRONMENT}; then
-        echo "error: could not start dino-app"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-1-$DINO_ENVIRONMENT.service" ]; then
-    echo "starting app1... "
-    if ! systemctl start dino-app-1-${DINO_ENVIRONMENT}; then
-        echo "error: could not start dino-app-1"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-2-$DINO_ENVIRONMENT.service" ]; then
-    echo "starting app2... "
-    if ! systemctl start dino-app-2-${DINO_ENVIRONMENT}; then
-        echo "error: could not start dino-app-2"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-3-$DINO_ENVIRONMENT.service" ]; then
-    echo "starting app3... "
-    if ! systemctl start dino-app-3-${DINO_ENVIRONMENT}; then
-        echo "error: could not start dino-app-3"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-4-$DINO_ENVIRONMENT.service" ]; then
-    echo "starting app4... "
-    if ! systemctl start dino-app-4-${DINO_ENVIRONMENT}; then
-        echo "error: could not start dino-app-4"
-        exit 1
-    fi
-fi
-
-if [ -f "$SYSTEMD_PATH/dino-app-5-$DINO_ENVIRONMENT.service" ]; then
-    echo "starting app5... "
-    if ! systemctl start dino-app-5-${DINO_ENVIRONMENT}; then
-        echo "error: could not start dino-app-5"
-        exit 1
-    fi
+    for filename in "$SYSTEMD_PATH/dino-app*-$DINO_ENVIRONMENT.service"; do
+        nodename=`echo $filename | sed "s/.*\///g" | sed "s/\.service//g"`
+        echo "starting $nodename... "
+        if ! systemctl start $nodename; then
+            echo "error: could not start $nodename"
+            exit 1
+        fi
+    done
 fi
 
 if [ -f "$SYSTEMD_PATH/dino-rest-$DINO_ENVIRONMENT.service" ]; then
