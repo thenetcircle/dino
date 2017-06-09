@@ -795,13 +795,12 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
     queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)
 
     gn_env.queue_connection = Connection(queue_host)
-    gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default='node_queue')
+    gn_env.queue_name = 'node_queue_%s' % conf.get(ConfigKeys.ENVIRONMENT)
 
     exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
     gn_env.exchange = Exchange(exchange, type='fanout')
 
-    queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default='node_queue')
-    gn_env.queue = Queue(queue, gn_env.exchange)
+    gn_env.queue = Queue(gn_env.queue_name, gn_env.exchange)
     gn_env.publish = publish
 
     ext_queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='')
