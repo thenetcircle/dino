@@ -703,6 +703,9 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
     recently_sent_external_hash = set()
     recently_sent_external_list = list()
 
+    def error_callback(exc, interval):
+        logger.warn('could not connect to MQ: %s' % str(exc))
+
     def publish(message, external=None):
         if external is None or not external:
             external = False
@@ -738,10 +741,13 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
                 exchange = gn_env.exchange
                 queue = gn_env.queue
 
+
             with producers[queue_connection].acquire(block=True) as producer:
+                amqp_publish = queue_connection.ensure(producer, producer.publish, errback=error_callback, max_retries=3)
+
                 for current_try in range(n_tries):
                     try:
-                        producer.publish(message, exchange=exchange, declare=[exchange, queue])
+                        amqp_publish(message, exchange=exchange, declare=[exchange, queue])
                         gn_env.stats.incr('publish.%s.count' % message_type)
                         gn_env.stats.timing('publish.%s.time' % message_type, (time.time()-start)*1000)
                         failed = False
@@ -787,18 +793,6 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
 
     conf = gn_env.config
     queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)
-
-    """
-    queue_port = None
-    if 'redis://' in queue_host:
-        queue_host = queue_host[len('redis://'):]
-    if ':' in queue_host:
-        queue_host, queue_port = queue_host.split(':', 1)
-    if queue_port is None:
-        queue_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=6379)
-
-    queue_db = conf.get(ConfigKeys.DB, domain=ConfigKeys.QUEUE, default=0)
-    """
 
     gn_env.queue_connection = Connection(queue_host)
     gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default='node_queue')
