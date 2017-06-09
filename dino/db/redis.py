@@ -151,6 +151,12 @@ class DatabaseRedis(object):
                 UserKeys.STATUS_INVISIBLE
             ]]
 
+    def unset_admin_room(self, room_uuid: str) -> None:
+        self.redis.delete(RedisKeys.admin_room())
+
+    def set_admin_room(self, room_uuid: str) -> None:
+        self.redis.set(RedisKeys.admin_room(), room_uuid)
+
     def create_admin_room(self) -> str:
         admin_room_id = self.get_admin_room()
         if admin_room_id is not None:
@@ -451,7 +457,7 @@ class DatabaseRedis(object):
         self.channel_for_room(room_id)
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
-    def users_in_room(self, room_id: str, user_id: str=None) -> dict:
+    def users_in_room(self, room_id: str, user_id: str=None, skip_cache: bool=False) -> dict:
         self.get_room_name(room_id)
         self.channel_for_room(room_id)
 

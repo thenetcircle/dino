@@ -119,6 +119,22 @@ class IDatabase(Interface):
         :return: a list of user dicts, e.g. {'uuid':'<uuid>','name':'foo'}
         """
 
+    def unset_admin_room(self, room_uuid: str) -> None:
+        """
+        unset a room as admin room
+
+        :param room_uuid: uuid of the room
+        :return: nothing
+        """
+
+    def set_admin_room(self, room_uuid: str) -> None:
+        """
+        set a room as admin room
+
+        :param room_uuid: uuid of the room
+        :return: nothing
+        """
+
     def get_admin_room(self) -> str:
         """
         get the uuid of the admin room , or None of not found

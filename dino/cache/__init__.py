@@ -336,6 +336,13 @@ class ICache(Interface):
         :return: the uuid of the admin room, or None of not found
         """
 
+    def remove_admin_room(self) -> None:
+        """
+        remove the cached admin room
+
+        :return: nothing
+        """
+
     def remove_from_black_list(self, word: str) -> None:
         """
         remove a word from the black list
