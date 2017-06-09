@@ -14,10 +14,9 @@
 
 import logging
 import traceback
-import time
 
 from dino import environ
-from dino.db.manager import StorageManager
+from dino.utils.decorators import timeit
 from dino.rest.resources.base import BaseResource
 
 from flask import request
@@ -32,6 +31,7 @@ class RemoveAdminResource(BaseResource):
         super(RemoveAdminResource, self).__init__()
         self.request = request
 
+    @timeit(logger, 'on_rest_remove_admin')
     def do_post(self):
         is_valid, msg, json = self.validate_json()
         if not is_valid:

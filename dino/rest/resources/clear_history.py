@@ -17,6 +17,7 @@ import traceback
 import time
 
 from dino import environ
+from dino.utils.decorators import timeit
 from dino.db.manager import StorageManager
 from dino.rest.resources.base import BaseResource
 
@@ -33,6 +34,7 @@ class ClearHistoryResource(BaseResource):
         self.storage_manager = StorageManager(environ.env)
         self.request = request
 
+    @timeit(logger, 'on_rest_clear_history')
     def do_post(self):
         is_valid, msg, json = self.validate_json()
         if not is_valid:

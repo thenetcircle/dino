@@ -17,6 +17,7 @@ import traceback
 
 from dino import environ
 from dino import utils
+from dino.utils.decorators import timeit
 from dino.db.manager import UserManager
 from dino.rest.resources.base import BaseResource
 from dino.exceptions import UnknownBanTypeException
@@ -42,6 +43,7 @@ class BanResource(BaseResource):
         self.user_manager = UserManager(environ.env)
         self.request = request
 
+    @timeit(logger, 'on_rest_ban')
     def do_post(self):
         is_valid, msg, json = self.validate_json(self.request, silent=False)
         output = dict()

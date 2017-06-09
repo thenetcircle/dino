@@ -20,6 +20,7 @@ from functools import lru_cache
 from dino.rest.resources.base import BaseResource
 from dino.admin.orm import storage_manager
 from dino.utils import b64e
+from dino.utils.decorators import timeit
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class HistoryResource(BaseResource):
     def do_get_with_params(self, room_id, user_id, from_time, to_time):
         return storage_manager.find_history(room_id, user_id, from_time, to_time)
 
+    @timeit(logger, 'on_rest_history')
     def do_get(self):
         the_json = self.validate_json()
         logger.debug('GET request: %s' % str(the_json))

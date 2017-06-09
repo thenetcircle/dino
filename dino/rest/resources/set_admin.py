@@ -17,6 +17,7 @@ import traceback
 
 
 from dino import environ
+from dino.utils.decorators import timeit
 from dino.exceptions import UserExistsException
 from dino.rest.resources.base import BaseResource
 
@@ -32,6 +33,7 @@ class SetAdminResource(BaseResource):
         super(SetAdminResource, self).__init__()
         self.request = request
 
+    @timeit(logger, 'on_rest_set_admin')
     def do_post(self):
         is_valid, msg, json = self.validate_json()
         if not is_valid:

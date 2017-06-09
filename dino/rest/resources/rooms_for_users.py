@@ -19,6 +19,7 @@ from flask import request
 import logging
 
 from dino.utils import b64e
+from dino.utils.decorators import timeit
 from dino.rest.resources.base import BaseResource
 from dino import environ
 
@@ -66,6 +67,7 @@ class RoomsForUsersResource(BaseResource):
     def do_get_with_params(self, user_id):
         return self._do_get(user_id)
 
+    @timeit(logger, 'on_rest_rooms_for_users')
     def do_get(self):
         is_valid, msg, json = self.validate_json(self.request, silent=False)
         if not is_valid:

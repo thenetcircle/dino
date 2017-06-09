@@ -16,6 +16,7 @@ import logging
 import traceback
 
 from dino import environ
+from dino.utils.decorators import timeit
 from dino.db.manager import UserManager
 from dino.rest.resources.base import BaseResource
 
@@ -32,6 +33,7 @@ class KickResource(BaseResource):
         self.user_manager = UserManager(environ.env)
         self.request = request
 
+    @timeit(logger, 'on_rest_kick')
     def do_post(self):
         is_valid, msg, json = self.validate_json()
         output = dict()

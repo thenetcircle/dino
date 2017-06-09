@@ -17,6 +17,7 @@ import traceback
 
 from dino import environ
 from dino import utils
+from dino.utils.decorators import timeit
 from dino.rest.resources.base import BaseResource
 
 from flask import request
@@ -31,6 +32,7 @@ class BlacklistResource(BaseResource):
         super(BlacklistResource, self).__init__()
         self.request = request
 
+    @timeit(logger, 'on_rest_blacklist_add')
     def do_post(self):
         is_valid, msg, json = self.validate_json()
         if not is_valid:
@@ -64,6 +66,7 @@ class BlacklistResource(BaseResource):
             logger.exception(traceback.format_exc())
             raise RuntimeError('could not add word "%s" to blacklist: %s' % (str(word), str(e)))
 
+    @timeit(logger, 'on_rest_blacklist_delete')
     def do_delete(self):
         is_valid, msg, json = self.validate_json()
         if not is_valid:

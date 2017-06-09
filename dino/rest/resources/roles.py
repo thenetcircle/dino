@@ -18,6 +18,7 @@ import logging
 import traceback
 
 from dino.rest.resources.base import BaseResource
+from dino.utils.decorators import timeit
 from dino import environ
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ class RolesResource(BaseResource):
     def do_get_with_params(self, user_id):
         return environ.env.db.get_user_roles(user_id)
 
+    @timeit(logger, 'on_rest_roles')
     def do_get(self):
         is_valid, msg, json = self.validate_json()
         if not is_valid:
