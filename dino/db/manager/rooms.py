@@ -96,7 +96,11 @@ class RoomManager(BaseManager):
         channel_id = str(channel_id).strip()
         user_id = str(user_id).strip()
 
-        self.env.db.create_room(room_name, room_id, channel_id, user_id, user_name, ephemeral=False, sort_order=10)
+        try:
+            self.env.db.create_room(room_name, room_id, channel_id, user_id, user_name, ephemeral=False, sort_order=10)
+        except RoomNameExistsForChannelException:
+            return 'room name already exists for the channel'
+
         return None
 
     def remove_room(self, channel_id: str, room_id: str) -> None:

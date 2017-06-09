@@ -466,6 +466,15 @@ class ICache(Interface):
         :return: the timestamp in ConfigKeys.DEFAULT_DATE_FORMAT format, or '' if no ban exists
         """
 
+    def remove_room_id_for_name(self, channel_id: str, room_name: str) -> None:
+        """
+        remove the cache id for the room name
+
+        :param channel_id: uuid of the channel
+        :param room_name: name of the room
+        :return: nothing
+        """
+
     def get_room_id_for_name(self, channel_id: str, room_name: str) -> str:
         """
 

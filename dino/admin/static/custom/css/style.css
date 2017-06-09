@@ -26,6 +26,13 @@ textarea {
     font-size: 80%;
 }
 
+ul.flashes {
+    color: red;
+    font-weight: bold;
+    font-size: 125%;
+    border: 2p solid red;
+}
+
 .button-secondary {
     color: white;
     background: rgb(66, 184, 221); /* this is a light blue */

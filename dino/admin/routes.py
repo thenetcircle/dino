@@ -17,6 +17,7 @@ from flask import jsonify
 from flask import request
 from flask import send_from_directory
 from flask import render_template
+from flask import flash
 from uuid import uuid4 as uuid
 
 import logging
@@ -605,7 +606,11 @@ def create_room(channel_uuid):
     if is_blank(room_name) or is_blank(user_uuid):
         return redirect('/channel/%s/rooms' % channel_uuid)
 
-    room_manager.create_room(room_name, room_uuid, channel_uuid, user_uuid)
+    msg = room_manager.create_room(room_name, room_uuid, channel_uuid, user_uuid)
+    if msg is not None:
+        flash(msg)
+        return redirect('/channel/%s/rooms' % channel_uuid)
+
     return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 

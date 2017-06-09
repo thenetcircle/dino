@@ -946,11 +946,12 @@ class DatabaseRdbms(object):
             session.commit()
 
         self.get_channel_name(channel_id)
-        self.get_room_name(room_id)
+        room_name = self.get_room_name(room_id)
 
         do_remove()
         self.env.cache.remove_room_exists(channel_id, room_id)
         self.env.cache.reset_rooms_for_channel(channel_id)
+        self.env.cache.remove_room_id_for_name(room_id, room_name)
 
     def leave_room(self, user_id: str, room_id: str) -> None:
         @with_session

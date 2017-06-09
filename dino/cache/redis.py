@@ -378,6 +378,12 @@ class CacheRedis(object):
         key = RedisKeys.banned_users(room_id)
         return self._get_ban_timestamp(key, user_id)
 
+    def remove_room_id_for_name(self, channel_id: str, room_name: str) -> None:
+        key = RedisKeys.room_id_for_name(channel_id)
+        cache_key = '%s-%s' % (key, room_name)
+        self.cache.delete(cache_key)
+        self.redis.hdel(key, room_name)
+
     def get_room_id_for_name(self, channel_id: str, room_name: str) -> str:
         key = RedisKeys.room_id_for_name(channel_id)
         cache_key = '%s-%s' % (key, room_name)
