@@ -29,6 +29,7 @@ from dino.hooks.remove_room import *
 from dino.hooks.request_admin import *
 from dino.hooks.set_acl import *
 from dino.hooks.status import *
+from dino.hooks.startup import *
 from dino.hooks.users_in_room import *
 from dino.hooks.whisper import *
 from dino.hooks.update_user_info import *

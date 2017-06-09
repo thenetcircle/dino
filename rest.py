@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import eventlet
+from activitystreams import parse as as_parser
 from dino.hooks import *
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
