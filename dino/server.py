@@ -42,13 +42,13 @@ def create_app():
         message_queue = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
     elif message_queue_type == 'amqp':
         queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
-        message_queue = ';'.join(['amqp://%s:%s@%s:%s%s' % (
+        message_queue = 'amqp://%s:%s@%s:%s%s' % (
             environ.env.config.get(ConfigKeys.USER, domain=ConfigKeys.QUEUE, default=''),
             environ.env.config.get(ConfigKeys.PASSWORD, domain=ConfigKeys.QUEUE, default=''),
-            host,
+            queue_host.split(';')[0],
             environ.env.config.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=''),
             environ.env.config.get(ConfigKeys.VHOST, domain=ConfigKeys.QUEUE, default=''),
-        ) for host in queue_host.split(';')])
+        )
 
         message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT)
 
