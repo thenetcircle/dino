@@ -231,6 +231,9 @@ class RequestValidator(BaseValidator):
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             return True, None, None
 
+        if utils.is_super_user(kicked_id) or utils.is_global_moderator(kicked_id):
+            return False, ECodes.NO_SUCH_ROOM, 'not allowed to kick super users or global mobs'
+
         if not is_global_ban:
             if not utils.is_owner(room_id, user_id):
                 return False, ECodes.NOT_ALLOWED, 'only owners can ban'
