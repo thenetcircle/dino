@@ -324,6 +324,11 @@ def find_config_acl(acl_paths: list) -> str:
 
 
 def choose_queue_instance(config_dict: dict) -> object:
+    if len(config_dict) == 0 or ConfigKeys.CACHE_SERVICE not in config_dict:
+        # assume we're testing
+        from fakeredis import FakeStrictRedis
+        return FakeStrictRedis()
+
     queue_type = config_dict.get(ConfigKeys.CACHE_SERVICE).get(ConfigKeys.TYPE, 'mock')
 
     if queue_type == 'mock':
@@ -796,12 +801,23 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
     queue_type = conf.get(ConfigKeys.TYPE, domain=ConfigKeys.QUEUE, default=None)
     gn_env.queue_connection = None
 
+    import sys
+    import socket
+
+    args = sys.argv
+    port = args[[i for i,x in enumerate(args) if x == '--bind'][0]+1].split(':')[1]
+    hostname = socket.gethostname()
+
     if queue_host is not None:
         if queue_type == 'redis':
             gn_env.queue_connection = Connection(queue_host)
             gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
-            if gn_env.queue_name is None:
-                gn_env.queue_name = 'node_queue_%s' % conf.get(ConfigKeys.ENVIRONMENT)
+            if gn_env.queue_name is None or len(gn_env.queue_name.strip()) == 0:
+                gn_env.queue_name = 'node_queue_%s_%s_%s' % (
+                    conf.get(ConfigKeys.ENVIRONMENT),
+                    hostname,
+                    port
+                )
 
             exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
             gn_env.exchange = Exchange(exchange, type='fanout')
@@ -816,7 +832,11 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
             gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
 
             if gn_env.queue_name is None or len(gn_env.queue_name.strip()) == 0:
-                gn_env.queue_name = 'node_queue_%s' % conf.get(ConfigKeys.ENVIRONMENT)
+                gn_env.queue_name = 'node_queue_%s_%s_%s' % (
+                    conf.get(ConfigKeys.ENVIRONMENT),
+                    hostname,
+                    port
+                )
 
             queue_host = ';'.join(['amqp://%s' % host for host in queue_host.split(';')])
             gn_env.queue_connection = Connection(

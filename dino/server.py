@@ -24,6 +24,7 @@ from dino.config import ConfigKeys
 __author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
 
 logger = logging.getLogger(__name__)
+logging.getLogger('amqp').setLevel(logging.INFO)
 
 
 def create_app():
@@ -32,27 +33,11 @@ def create_app():
     # used for encrypting cookies for handling sessions
     _app.config['SECRET_KEY'] = 'secret!fdsa'
     message_queue_type = environ.env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.QUEUE, default=None)
-    if message_queue_type is None:
+    if message_queue_type is None and not (len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING)):
         raise RuntimeError('no message queue type specified')
 
     message_queue = 'redis://%s' % environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.CACHE_SERVICE, default='')
-    message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT)
-
-    """
-    message_queue = None
-    message_channel = None
-    if message_queue_type == 'redis':
-        message_queue = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.CACHE_SERVICE, default='')
-    elif message_queue_type == 'amqp':
-        queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
-        message_queue = 'amqp://%s:%s@%s:%s%s' % (
-            environ.env.config.get(ConfigKeys.USER, domain=ConfigKeys.QUEUE, default=''),
-            environ.env.config.get(ConfigKeys.PASSWORD, domain=ConfigKeys.QUEUE, default=''),
-            queue_host.split(';')[0],
-            environ.env.config.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=''),
-            environ.env.config.get(ConfigKeys.VHOST, domain=ConfigKeys.QUEUE, default=''),
-        )
-    """
+    message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT, default='test')
 
     logger.info('message_queue: %s' % message_queue)
 

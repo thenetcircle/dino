@@ -15,7 +15,8 @@
 from flask import Flask
 import logging
 
-logging.getLogger(__name__).setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 

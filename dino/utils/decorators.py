@@ -49,7 +49,7 @@ def timeit(_logger, tag: str):
             finally:
                 if not failed:
                     the_time = (time.time()-before)*1000
-                    if tag.startswith('on_'):
+                    if tag.startswith('on_') and environ.env.stats is not None:
                         environ.env.stats.timing('api.' + tag, the_time)
                     else:
                         _logger.debug(tag + '... %.2fms' % the_time)

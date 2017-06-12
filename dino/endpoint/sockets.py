@@ -22,7 +22,6 @@ import activitystreams as as_parser
 from activitystreams.exception import ActivityException
 from activitystreams.models.activity import Activity
 from flask_socketio import disconnect
-from kombu import Connection
 from kombu.mixins import ConsumerMixin
 
 from dino import api
