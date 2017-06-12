@@ -324,14 +324,13 @@ def find_config_acl(acl_paths: list) -> str:
 
 
 def choose_queue_instance(config_dict: dict) -> object:
-    # TODO: should choose between RabbitMQ and Redis
-    queue_type = config_dict.get(ConfigKeys.QUEUE).get(ConfigKeys.TYPE, 'mock')
+    queue_type = config_dict.get(ConfigKeys.CACHE_SERVICE).get(ConfigKeys.TYPE, 'mock')
 
     if queue_type == 'mock':
         from fakeredis import FakeStrictRedis
         return FakeStrictRedis()
     elif queue_type == 'redis':
-        redis_host = config_dict.get(ConfigKeys.QUEUE).get(ConfigKeys.HOST, 'localhost')
+        redis_host = config_dict.get(ConfigKeys.CACHE_SERVICE).get(ConfigKeys.HOST, 'localhost')
         redis_port = 6379
 
         if redis_host.startswith('redis://'):
@@ -387,7 +386,6 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     if ConfigKeys.STORAGE not in config_dict:
         raise RuntimeError('no storage configured for environment %s' % gn_environment)
 
-    # TODO: rename to ConfigKeys.QUEUE, could be either redis or rabbitmq
     config_dict[ConfigKeys.REDIS] = choose_queue_instance(config_dict)
 
     try:
@@ -792,16 +790,42 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
         return
 
     conf = gn_env.config
-    queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)
-
-    gn_env.queue_connection = Connection(queue_host)
-    gn_env.queue_name = 'node_queue_%s' % conf.get(ConfigKeys.ENVIRONMENT)
-
-    exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
-    gn_env.exchange = Exchange(exchange, type='fanout')
-
-    gn_env.queue = Queue(gn_env.queue_name, gn_env.exchange)
     gn_env.publish = publish
+
+    queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default=None)
+    queue_type = conf.get(ConfigKeys.TYPE, domain=ConfigKeys.QUEUE, default=None)
+    gn_env.queue_connection = None
+
+    if queue_host is not None:
+        if queue_type == 'redis':
+            gn_env.queue_connection = Connection(queue_host)
+            gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
+            if gn_env.queue_name is None:
+                gn_env.queue_name = 'node_queue_%s' % conf.get(ConfigKeys.ENVIRONMENT)
+
+            exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
+            gn_env.exchange = Exchange(exchange, type='fanout')
+            gn_env.queue = Queue(gn_env.queue_name, gn_env.exchange)
+
+        elif queue_type == 'amqp':
+            queue_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=None)
+            queue_vhost = conf.get(ConfigKeys.VHOST, domain=ConfigKeys.QUEUE, default=None)
+            queue_user = conf.get(ConfigKeys.USER, domain=ConfigKeys.QUEUE, default=None)
+            queue_pass = conf.get(ConfigKeys.PASSWORD, domain=ConfigKeys.QUEUE, default=None)
+            queue_exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default=None)
+            gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
+
+            if gn_env.queue_name is None:
+                gn_env.queue_name = 'node_queue_%s' % conf.get(ConfigKeys.ENVIRONMENT)
+
+            queue_host = ';'.join(['amqp://%s' % host for host in queue_host.split(';')])
+            gn_env.queue_connection = Connection(
+                    hostname=queue_host, port=queue_port, virtual_host=queue_vhost, userid=queue_user, password=queue_pass)
+            gn_env.exchange = Exchange(queue_exchange, type='fanout')
+            gn_env.queue = Queue(gn_env.queue_name, gn_env.exchange)
+
+    if gn_env.queue_connection is None:
+        raise RuntimeError('no message queue specified, need either redis or amqp')
 
     ext_queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='')
     gn_env.external_queue_connection = None

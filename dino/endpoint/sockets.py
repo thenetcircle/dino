@@ -68,7 +68,7 @@ def consume():
 
     with GracefulInterruptHandler() as interrupt_handler:
         while True:
-            with Connection(environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE)) as conn:
+            with environ.env.queue_connection as conn:
                 try:
                     environ.env.consume_worker = Worker(conn, interrupt_handler)
                     environ.env.consume_worker.run()

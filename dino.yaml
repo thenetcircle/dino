@@ -45,6 +45,14 @@ oscar:
         type: 'cassandra'
         host:
             - '$DINO_CASSANDRA_HOST_1'
+    queue:
+        type: 'amqp'
+        host: '$DINO_QUEUE_HOST'
+        port: 5672
+        user: '$DINO_QUEUE_USER'
+        password: '$DINO_QUEUE_PASS'
+        vhost: '$DINO_QUEUE_VHOST'
+        exchange: 'chat_exchange'
     stats:
       type: 'statsd'
       host: 'localhost'
@@ -67,7 +75,7 @@ dev:
         user: '$DINO_DB_USER'
         password: '$DINO_DB_PASS'
     ext_queue:
-        type: 'rabbitmq'
+        type: 'amqp'
         host: '$DINO_EXT_QUEUE_HOST'
         port: 5672
         user: '$DINO_EXT_QUEUE_USER'

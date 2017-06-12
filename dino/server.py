@@ -31,13 +31,36 @@ def create_app():
 
     # used for encrypting cookies for handling sessions
     _app.config['SECRET_KEY'] = 'secret!fdsa'
+    message_queue_type = environ.env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.QUEUE, default=None)
+    if message_queue_type is None:
+        raise RuntimeError('no message queue type specified')
+
+    message_queue = None
+    message_channel = None
+
+    if message_queue_type == 'redis':
+        message_queue = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
+    elif message_queue_type == 'amqp':
+        queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
+        message_queue = ';'.join(['amqp://%s:%s@%s:%s%s' % (
+            environ.env.config.get(ConfigKeys.USER, domain=ConfigKeys.QUEUE, default=''),
+            environ.env.config.get(ConfigKeys.PASSWORD, domain=ConfigKeys.QUEUE, default=''),
+            host,
+            environ.env.config.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=''),
+            environ.env.config.get(ConfigKeys.VHOST, domain=ConfigKeys.QUEUE, default=''),
+        ) for host in queue_host.split(';')])
+
+        message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT)
+
+    logger.info('message_queue: %s' % message_queue)
 
     _socketio = SocketIO(
             _app,
             logger=logger,
             engineio_logger=os.environ.get('DINO_DEBUG', '0') == '1',
             async_mode='eventlet',
-            message_queue=environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default=''))
+            message_queue=message_queue,
+            channel=message_channel)
 
     _app.wsgi_app = ProxyFix(_app.wsgi_app)
     return _app, _socketio
