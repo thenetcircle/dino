@@ -35,11 +35,14 @@ def create_app():
     if message_queue_type is None:
         raise RuntimeError('no message queue type specified')
 
+    message_queue = 'redis://%s' % environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.CACHE_SERVICE, default='')
+    message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT)
+
+    """
     message_queue = None
     message_channel = None
-
     if message_queue_type == 'redis':
-        message_queue = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
+        message_queue = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.CACHE_SERVICE, default='')
     elif message_queue_type == 'amqp':
         queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
         message_queue = 'amqp://%s:%s@%s:%s%s' % (
@@ -49,8 +52,7 @@ def create_app():
             environ.env.config.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=''),
             environ.env.config.get(ConfigKeys.VHOST, domain=ConfigKeys.QUEUE, default=''),
         )
-
-        message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT)
+    """
 
     logger.info('message_queue: %s' % message_queue)
 
