@@ -815,7 +815,7 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
             queue_exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default=None)
             gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
 
-            if gn_env.queue_name is None:
+            if gn_env.queue_name is None or len(gn_env.queue_name.strip()) == 0:
                 gn_env.queue_name = 'node_queue_%s' % conf.get(ConfigKeys.ENVIRONMENT)
 
             queue_host = ';'.join(['amqp://%s' % host for host in queue_host.split(';')])
