@@ -805,7 +805,14 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
     import socket
 
     args = sys.argv
-    port = args[[i for i,x in enumerate(args) if x == '--bind'][0]+1].split(':')[1]
+    bind_arg_pos = None
+    for a in ['--bind', '-b']:
+        bind_arg_pos = [i for i,x in enumerate(args) if x == a]
+        if len(bind_arg_pos) > 0:
+            bind_arg_pos = bind_arg_pos[0]
+            break
+
+    port = args[bind_arg_pos+1].split(':')[1]
     hostname = socket.gethostname()
 
     if queue_host is not None:
