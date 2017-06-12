@@ -835,7 +835,10 @@ def init_pub_sub(gn_env: GNEnvironment) -> None:
             queue_vhost = conf.get(ConfigKeys.VHOST, domain=ConfigKeys.QUEUE, default=None)
             queue_user = conf.get(ConfigKeys.USER, domain=ConfigKeys.QUEUE, default=None)
             queue_pass = conf.get(ConfigKeys.PASSWORD, domain=ConfigKeys.QUEUE, default=None)
-            queue_exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default=None)
+            queue_exchange = '%s_%s' % (
+                conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default=None),
+                conf.get(ConfigKeys.ENVIRONMENT)
+            )
             gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
 
             if gn_env.queue_name is None or len(gn_env.queue_name.strip()) == 0:
