@@ -37,6 +37,7 @@ class OnStartupDoneHooks(object):
         json_event = {
             'id': str(uuid()),
             'verb': 'restart',
+            'content': environ.env.config.get(ConfigKeys.ENVIRONMENT),
             'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
         }
 
