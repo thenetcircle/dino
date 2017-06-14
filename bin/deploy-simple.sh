@@ -77,7 +77,7 @@ if [ -f "$SYSTEMD_PATH/dino-rest-$DINO_ENVIRONMENT.service" ]; then
 fi
 
 if [ -f "$SYSTEMD_PATH/dino-app-$DINO_ENVIRONMENT.service" ]; then
-    for filename in "$SYSTEMD_PATH/dino-app*-$DINO_ENVIRONMENT.service"; do
+    for filename in $SYSTEMD_PATH/dino-app*-$DINO_ENVIRONMENT.service; do
         nodename=`echo $filename | sed "s/.*\///g" | sed "s/\.service//g"`
         echo "stopping $nodename... "
         if ! systemctl stop $nodename; then
@@ -101,7 +101,7 @@ fi
 
 
 if [ -f "$SYSTEMD_PATH/dino-app-$DINO_ENVIRONMENT.service" ]; then
-    for filename in "$SYSTEMD_PATH/dino-app*-$DINO_ENVIRONMENT.service"; do
+    for filename in $SYSTEMD_PATH/dino-app*-$DINO_ENVIRONMENT.service; do
         nodename=`echo $filename | sed "s/.*\///g" | sed "s/\.service//g"`
         echo "starting $nodename... "
         if ! systemctl start $nodename; then
