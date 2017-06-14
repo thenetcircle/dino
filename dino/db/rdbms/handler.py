@@ -1787,7 +1787,8 @@ class DatabaseRdbms(object):
             self.remove_global_ban(user_id)
             return False, None
 
-        self.env.cache.set_global_ban_timestamp(user_id, duration, time, username)
+        time_stamp = str(int(time.timestamp()))
+        self.env.cache.set_global_ban_timestamp(user_id, duration, time_stamp, username)
         return True, str((time-now).seconds)
 
     def is_banned_from_channel(self, channel_id: str, user_id: str) -> (bool, Union[str, None]):
