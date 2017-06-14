@@ -139,6 +139,13 @@ class QueueHandler(object):
                 logger.exception(traceback.format_exc())
 
     def handle_server_activity(self, data: dict, activity: Activity) -> None:
+        try:
+            self.handle_server_activity(data, activity)
+        except Exception as e:
+            logger.error('could not handle server activity: %s' % str(e))
+            logger.exception(traceback.format_exc())
+
+    def _handle_server_activity(self, data: dict, activity: Activity) -> None:
         if activity.id in self.recently_delegated_events:
             logger.info('ignoring event with id %s sine we delegated from this node' % activity.id)
             return
