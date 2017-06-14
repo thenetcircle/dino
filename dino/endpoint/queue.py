@@ -140,7 +140,7 @@ class QueueHandler(object):
 
     def handle_server_activity(self, data: dict, activity: Activity) -> None:
         try:
-            self.handle_server_activity(data, activity)
+            self._handle_server_activity(data, activity)
         except Exception as e:
             logger.error('could not handle server activity: %s' % str(e))
             logger.exception(traceback.format_exc())

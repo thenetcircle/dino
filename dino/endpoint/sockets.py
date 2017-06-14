@@ -56,7 +56,7 @@ class Worker(ConsumerMixin):
     def process_task(self, body, message):
         try:
             queue_handler.handle_server_activity(body, as_parser.parse(body))
-        except (ActivityException, AttributeError) as e:
+        except Exception as e:
             logger.error('could not parse server message: "%s", message was: %s' % (str(e), body))
         message.ack()
 
