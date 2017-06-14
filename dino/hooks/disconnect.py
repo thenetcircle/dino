@@ -101,7 +101,7 @@ class OnDisconnectHooks(object):
                 except NoSuchUserException:
                     user_name = '<unknown>'
 
-            if user_id is None:
+            if user_id is None or user_id == 'None':
                 logger.warning('blank user_id, ignoring disconnect event')
                 return
 
