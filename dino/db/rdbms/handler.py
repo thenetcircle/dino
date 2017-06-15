@@ -515,11 +515,12 @@ class DatabaseRdbms(object):
                 unique_users = set()
                 room_info = dict()
                 for room in all_rooms:
-                    room_info['name'] = room.name,
-                    room_info['sort_order'] = room.sort_order,
-                    room_info['ephemeral'] = room.ephemeral,
-                    room_info['admin'] = room.admin,
-                    room_info['users'] = [user.uuid for user in room.users]
+                    room_info[room.uuid] = dict()
+                    room_info[room.uuid]['name'] = room.name
+                    room_info[room.uuid]['sort_order'] = room.sort_order
+                    room_info[room.uuid]['ephemeral'] = room.ephemeral
+                    room_info[room.uuid]['admin'] = room.admin
+                    room_info[room.uuid]['users'] = [user.uuid for user in room.users]
                     for user in room.users:
                         unique_users.add(user.uuid)
                 return unique_users, room_info
