@@ -558,7 +558,7 @@ class CacheRedis(object):
     def set_room_name(self, room_id: str, room_name: str) -> None:
         key = RedisKeys.room_name_for_id()
         cache_key = '%s-%s-name' % (key, room_id)
-        self.cache.set(cache_key, room_name)
+        self.cache.set(cache_key, room_name, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
         self.redis.hset(key, room_id, room_name)
 
     def get_channel_for_room(self, room_id):
@@ -593,7 +593,7 @@ class CacheRedis(object):
     def set_user_status(self, user_id: str, status: str) -> None:
         key = RedisKeys.user_status(user_id)
         self.redis.set(key, status)
-        self.cache.set(key, status, ttl=ONE_MINUTE)
+        self.cache.set(key, status, ttl=FIVE_MINUTES + random.random()*FIVE_MINUTES)
 
     def get_user_info(self, user_id: str) -> dict:
         key = RedisKeys.auth_key(user_id)

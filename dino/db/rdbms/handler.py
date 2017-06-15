@@ -180,6 +180,7 @@ class DatabaseRdbms(object):
         self.env.cache.reset_user_roles(user_id)
         self.get_user_roles(user_id)
 
+    @timeit(logger, 'on_get_user_roles_in_room')
     def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:
         @with_session
         def _room_roles(session=None) -> list:
@@ -536,7 +537,7 @@ class DatabaseRdbms(object):
                 for room in all_rooms:
                     visible_users = set()
                     for user in room.users:
-                        if self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
+                        if user.uuid in user_statuses and user_statuses[user.uuid] == UserKeys.STATUS_INVISIBLE:
                             continue
                         visible_users.add(user.uuid)
 
@@ -575,31 +576,48 @@ class DatabaseRdbms(object):
             })
         return output
 
-    def users_in_room(self, room_id: str, user_id: str=None, skip_cache: bool=False) -> dict:
+    def users_in_room(self, room_id: str, this_user_id: str=None, skip_cache: bool=False) -> dict:
         @with_session
-        @timeit(logger, 'on_db_users_in_room')
-        def _users_in_room(session=None) -> dict:
-            rows = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).all()
-            users = dict()
-            for row in rows:
-                for user in row.users:
-                    if not is_super_user and self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
-                        continue
-                    users[user.uuid] = user.name
-            return users
+        @timeit(logger, 'on_users_in_room_user_ids')
+        def _user_ids(session=None):
+            room = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).first()
+            users_in_room = dict()
+            for user in room.users:
+                users_in_room[user.uuid] = user.name
+            return users_in_room
+
+        @timeit(logger, 'on_users_in_room_user_statuses')
+        def _user_statuses(user_ids: dict):
+            statuses = dict()
+            for user_id in user_ids.keys():
+                statuses[user_id] = self.get_user_status(user_id)
+            return statuses
+
+        def _visible_users(every_user_in_room: dict, statuses: dict) -> dict:
+            visible_users = dict()
+            for user_id, user_name in every_user_in_room.items():
+                if not is_super_user \
+                        and user_id in statuses \
+                        and statuses[user_id] == UserKeys.STATUS_INVISIBLE:
+                    continue
+                visible_users[user_id] = user_name
+            return visible_users
 
         self.get_room_name(room_id)
 
         is_super_user = False
-        if user_id is not None:
-            is_super_user = self.is_super_user(user_id) or self.is_global_moderator(user_id)
+        if this_user_id is not None:
+            is_super_user = self.is_super_user(this_user_id) or self.is_global_moderator(this_user_id)
 
         if not skip_cache:
             users = self.env.cache.get_users_in_room(room_id, is_super_user=is_super_user)
             if users is not None:
                 return users
 
-        users = _users_in_room()
+        all_users = _user_ids()
+        user_statuses = _user_statuses(all_users)
+        users = _visible_users(all_users, user_statuses)
+
         self.env.cache.set_users_in_room(room_id, users, is_super_user=is_super_user)
         return users
 
