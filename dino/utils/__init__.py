@@ -655,7 +655,8 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
 
 
 @timeit(logger, 'on_activity_for_users_in_room')
-def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
+def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
+    users = users_orig.copy()
     response = {
         'target': {
             'id': activity.target.id,
