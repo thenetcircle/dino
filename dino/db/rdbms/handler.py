@@ -522,7 +522,7 @@ class DatabaseRdbms(object):
                     room_info['users'] = [user.uuid for user in room.users]
                     for user in room.users:
                         unique_users.add(user.uuid)
-                return unique_users, room_data
+                return unique_users, room_info
 
             @timeit(logger, 'on_rooms_for_channel_user_statuses')
             def _user_statuses(_user_ids: set):
