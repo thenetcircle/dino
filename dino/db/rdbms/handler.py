@@ -505,53 +505,55 @@ class DatabaseRdbms(object):
         def _rooms():
             @with_session
             @timeit(logger, 'on_rooms_for_channel_user_ids')
-            def _user_ids(session=None):
+            def _user_ids_and_room_data(session=None):
                 all_rooms = session.query(Rooms)\
                     .join(Rooms.channel)\
                     .outerjoin(Rooms.users)\
                     .filter(Channels.uuid == channel_id)\
                     .all()
-                users = set()
+
+                unique_users = set()
+                room_info = dict()
                 for room in all_rooms:
+                    room_info['name'] = room.name,
+                    room_info['sort_order'] = room.sort_order,
+                    room_info['ephemeral'] = room.ephemeral,
+                    room_info['admin'] = room.admin,
+                    room_info['users'] = [user.uuid for user in room.users]
                     for user in room.users:
-                        users.add(user.uuid)
-                return users
+                        unique_users.add(user.uuid)
+                return unique_users, room_data
 
             @timeit(logger, 'on_rooms_for_channel_user_statuses')
-            def _user_statuses(user_ids: set):
+            def _user_statuses(_user_ids: set):
                 user_statuses = dict()
-                for user_id in user_ids:
+                for user_id in _user_ids:
                     user_statuses[user_id] = self.get_user_status(user_id)
                 return user_statuses
 
-            @with_session
             @timeit(logger, 'on_rooms_for_channel_get_the_rooms')
-            def _get_the_rooms(user_statuses: dict, session=None):
-                all_rooms = session.query(Rooms)\
-                    .join(Rooms.channel)\
-                    .outerjoin(Rooms.users)\
-                    .filter(Channels.uuid == channel_id)\
-                    .all()
-
-                rooms = dict()
-                for room in all_rooms:
+            def _get_the_rooms(all_rooms: dict, user_statuses: dict):
+                rooms_with_n_users = dict()
+                for room_id in all_rooms.keys():
                     visible_users = set()
-                    for user in room.users:
-                        if user.uuid in user_statuses and user_statuses[user.uuid] == UserKeys.STATUS_INVISIBLE:
-                            continue
-                        visible_users.add(user.uuid)
 
-                    rooms[room.uuid] = {
-                        'name': room.name,
-                        'sort_order': room.sort_order,
-                        'ephemeral': room.ephemeral,
-                        'admin': room.admin,
+                    for user_id in all_rooms[room_id]['users']:
+                        if user_id in user_statuses and user_statuses[user_id] == UserKeys.STATUS_INVISIBLE:
+                            continue
+                        visible_users.add(user_id)
+
+                    rooms_with_n_users[room_id] = {
+                        'name': all_rooms[room_id]['name'],
+                        'sort_order': all_rooms[room_id]['sort_order'],
+                        'ephemeral': all_rooms[room_id]['ephemeral'],
+                        'admin': all_rooms[room_id]['admin'],
                         'users': len(visible_users)
                     }
-                return rooms
+                return rooms_with_n_users
 
             # avoid overwriting the session variable
-            return _get_the_rooms(_user_statuses(_user_ids()))
+            user_ids, room_data = _user_ids_and_room_data()
+            return _get_the_rooms(room_data, _user_statuses(user_ids))
 
         rooms = self.env.cache.get_rooms_for_channel(channel_id)
         if rooms is None:
