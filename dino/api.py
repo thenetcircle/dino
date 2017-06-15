@@ -462,6 +462,7 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
                     activity, ApiTargets.ROOM, ApiActions.LIST, acls, target_id=room_id, object_type='room')
         except Exception as e:
             logger.warn('could not check acls for room %s in on_list_rooms: %s' % (room_id, str(e)))
+            logger.exception(traceback.format_exc())
             continue
 
         # if not allowed to join, don't show in list
