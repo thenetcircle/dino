@@ -500,31 +500,57 @@ class DatabaseRdbms(object):
         return object_type
 
     def rooms_for_channel(self, channel_id) -> dict:
-        @with_session
         @timeit(logger, 'on_rooms_for_channel')
-        def _rooms(session=None):
-            all_rooms = session.query(Rooms)\
-                .join(Rooms.channel)\
-                .outerjoin(Rooms.users)\
-                .filter(Channels.uuid == channel_id)\
-                .all()
+        def _rooms():
+            @with_session
+            @timeit(logger, 'on_rooms_for_channel_user_ids')
+            def _user_ids(session=None):
+                all_rooms = session.query(Rooms)\
+                    .join(Rooms.channel)\
+                    .outerjoin(Rooms.users)\
+                    .filter(Channels.uuid == channel_id)\
+                    .all()
+                users = set()
+                for room in all_rooms:
+                    for user in room.users:
+                        users.add(user.uuid)
+                return users
 
-            rooms = dict()
-            for room in all_rooms:
-                visible_users = set()
-                for user in room.users:
-                    if self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
-                        continue
-                    visible_users.add(user.uuid)
+            @timeit(logger, 'on_rooms_for_channel_user_statuses')
+            def _user_statuses(user_ids: set):
+                user_statuses = dict()
+                for user_id in user_ids:
+                    user_statuses[user_id] = self.get_user_status(user_id)
+                return user_statuses
 
-                rooms[room.uuid] = {
-                    'name': room.name,
-                    'sort_order': room.sort_order,
-                    'ephemeral': room.ephemeral,
-                    'admin': room.admin,
-                    'users': len(visible_users)
-                }
-            return rooms
+            @with_session
+            @timeit(logger, 'on_rooms_for_channel_get_the_rooms')
+            def _get_the_rooms(user_statuses: dict, session=None):
+                all_rooms = session.query(Rooms)\
+                    .join(Rooms.channel)\
+                    .outerjoin(Rooms.users)\
+                    .filter(Channels.uuid == channel_id)\
+                    .all()
+
+                rooms = dict()
+                for room in all_rooms:
+                    visible_users = set()
+                    for user in room.users:
+                        if self.get_user_status(user.uuid) == UserKeys.STATUS_INVISIBLE:
+                            continue
+                        visible_users.add(user.uuid)
+
+                    rooms[room.uuid] = {
+                        'name': room.name,
+                        'sort_order': room.sort_order,
+                        'ephemeral': room.ephemeral,
+                        'admin': room.admin,
+                        'users': len(visible_users)
+                    }
+                return rooms
+
+            # avoid overwriting the session variable
+            return _get_the_rooms(_user_statuses(_user_ids()))
 
         rooms = self.env.cache.get_rooms_for_channel(channel_id)
         if rooms is None:
@@ -551,6 +577,7 @@ class DatabaseRdbms(object):
 
     def users_in_room(self, room_id: str, user_id: str=None, skip_cache: bool=False) -> dict:
         @with_session
+        @timeit(logger, 'on_db_users_in_room')
         def _users_in_room(session=None) -> dict:
             rows = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).all()
             users = dict()

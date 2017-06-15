@@ -363,6 +363,7 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
     return response
 
 
+@timeit(logger, 'on_activity_for_history')
 def activity_for_history(activity: Activity, messages: list) -> dict:
     try:
         room_name = b64e(get_room_name(activity.target.id))
@@ -653,6 +654,7 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     return response
 
 
+@timeit(logger, 'on_activity_for_users_in_room')
 def activity_for_users_in_room(activity: Activity, users: dict) -> dict:
     response = {
         'target': {
