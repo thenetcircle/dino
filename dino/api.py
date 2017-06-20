@@ -20,6 +20,7 @@ from flask import request
 
 from dino.config import ApiTargets
 from dino.config import ErrorCodes as ECodes
+from dino.exceptions import NoSuchRoomException
 from dino.hooks import *
 from dino.config import ApiActions
 from dino.utils.decorators import timeit
@@ -479,7 +480,12 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
 
     rooms_with_acls = activity_json['object']['attachments']
     for room_info in rooms_with_acls:
-        acls = utils.get_acls_for_room(room_info['id'])
+        try:
+            acls = utils.get_acls_for_room(room_info['id'])
+        except NoSuchRoomException:
+            # might have been removed recently and cache hasn't updated yet
+            continue
+
         acl_activity = utils.activity_for_get_acl(activity, acls)
         room_info['attachments'] = acl_activity['object']['attachments']
 
