@@ -587,7 +587,7 @@ class CacheRedis(object):
             return None
 
         user_status = str(status, 'utf-8')
-        self.cache.set(key, user_status)
+        self.cache.set(key, user_status, ttl=FIVE_MINUTES + random.random()*FIVE_MINUTES)
         return user_status
 
     def set_user_status(self, user_id: str, status: str) -> None:
