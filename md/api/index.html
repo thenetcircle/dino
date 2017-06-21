@@ -243,6 +243,8 @@ ROOM_ALREADY_EXISTS = 704
 NOT_ALLOWED = 705
 VALIDATION_ERROR = 706
 ROOM_FULL = 707
+NOT_ONLINE = 708
+TOO_MANY_PRIVATE_ROOMS = 709
 
 NO_SUCH_USER = 800
 NO_SUCH_CHANNEL = 801
@@ -763,6 +765,7 @@ will be removed. Example "API actions" are "join", "create", "message", "kick". 
     }
 }
 </code></pre>
+<p>If the amount of private rooms already exceed 2, the error code <code>709</code> (<code>TOO_MANY_PRIVATE_ROOMS</code>) will be returned.</p>
 <p>The <code>target.objectType</code> will always be <code>temporary</code> since all rooms created using the API are user created rooms, meaning
 they will be automatically removed when the owner leaves.</p>
 <p>It is also possible to specify ACLs for a room while creating it, but adding <code>object.attachments</code> as in the <code>set_acl</code> 
