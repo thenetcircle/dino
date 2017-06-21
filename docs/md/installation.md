@@ -1,4 +1,5 @@
-## Requirements
+Requirements
+====
 
 Some package requirements (debian/ubuntu):
     
@@ -22,11 +23,13 @@ If using redis, postgresql/mysql and cassandra, please see relevant documentatio
 * [MySQL](https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-14-04)
 * [Apache Cassandra](https://www.digitalocean.com/community/tutorials/how-to-install-cassandra-and-run-a-single-node-cluster-on-ubuntu-14-04)
 
-## Installing
+Installing
+====
 
 There are a few choices included for how to install Dino.
 
-### Simple
+Simple
+----
 
 Just clone and run from the cloned directory:
 
@@ -37,7 +40,8 @@ Just clone and run from the cloned directory:
     (env) $ pip install --upgrade -r requirements.txt
     (env) $ pip install --upgrade --no-deps .
 
-### Using init script
+Using init script
+----
 
     $ git clone https://github.com/thenetcircle/dino.git foobar-prod
     $ cd foobar-prod
@@ -49,7 +53,8 @@ Just clone and run from the cloned directory:
 
 Make sure to update the init script to use the correct paths.
 
-### Using the supplied install script
+Using the supplied install script
+----
 
 The install script will copy the systemd files to  `/usr/lib/systemd/system/`, one for each service/environment you 
 install for.
@@ -66,7 +71,8 @@ install for.
     (env) $ pip install --upgrade -r requirements.txt
     (env) $ pip install --upgrade --no-deps .
 
-## Clustering
+Clustering
+----
 
 If clustering dino, install a reverse proxy that supports websockets, e.g. nginx. Here's an example configuration:
 
@@ -108,12 +114,14 @@ If clustering dino, install a reverse proxy that supports websockets, e.g. nginx
         }
     }
 
-## Running the application
+Running the application
+====
 
 A few examples are included for running Dino: running in the foreground, using systemd and the deploy script, docker and
 lastly kubernetes.
 
-### Simple
+Simple
+----
 
 Running in the foreground:
 
@@ -133,7 +141,8 @@ Running in the foreground:
 To run the rest API and admin interface use the same command but change `app:app` to `rest:app` and `web:app` 
 respectively.
 
-### Using the deploy script
+Using the deploy script
+----
 
 The simple deployment script included pulls from git master, shuts down services, clears online tables then starts
 everything up again. The script assumes the base directory where the project is checked out has the same name as the
@@ -159,7 +168,8 @@ So if you're environment is called `foobar-prod`:
     starting web... 
     deployment done!
 
-### Running in Docker
+Running in Docker
+----
 
 First create the image:
 
@@ -173,7 +183,8 @@ Then we can run it (create an environments file in secrets/ for your chosen envi
 Note that we didn't put the port in the `dev.env` file (though we could), because if starting multiple dino nodes they
 need to use different ports.
 
-### Running in Kubernetes
+Running in Kubernetes
+----
 
 For running in Kubernetes we need to use Kubernetes `Secrets` instead of the `.env` files. Example configuration for 
 some secret values for your pod:
@@ -202,7 +213,49 @@ some secret values for your pod:
 Read more on Kubernetes website on [how to create the secrets object](https://kubernetes.io/docs/user-guide/secrets/#creating-your-own-secrets) 
 and then how to [configure your pod to use it](https://kubernetes.io/docs/user-guide/secrets/#using-secrets-as-environment-variables).
 
-## Building the documentation
+Monitoring
+====
+
+Dino can be extensivly monitored by configuring a statsd endpoint. In `dino.yaml` you can either choose `mock` to disable metrics:
+
+    stats:
+      type: 'statsd'
+      host: 'mock'
+
+Or choose `statsd` with a host and port to publish all metrics to a statsd host, for example like this:
+
+    stats:
+      type: 'statsd'
+      host: '$DINO_STATSD_HOST'
+      port: 8125
+      prefix: 'dino.myapp'
+      include_hostname: 'true'
+
+If you choose `true` for `include_hostname` (good when running multiple nodes on different physical machines, in this example
+it's `skybox-04`) then the value of `import socket; socket.gethostname()` will be added _after_ the value supplied for `prefix`.
+So in the example above, when the mean timer value of the metric for how long time the api action `on_login` takes would be:
+
+    dino.myapp.skybox-04.event.on_login.timer.mean
+
+A already configured solution for `statsd` with `influxdb` and the `grafana` frontend is to use
+[the following docker image](https://github.com/advantageous/docker-grafana-statsd):
+
+    docker run -d \
+      --name grafana \
+      -p 3003:9000 \
+      -p 3004:8083 \
+      -p 8086:8086 \
+      -p 22022:22 \
+      -p 8125:8125/udp \
+      advantageous/grafana:latest:latest
+
+And configure the `statsd` host to the IP you run the docker image on, and the port `8125`. Example of enabling this `statsd`
+host with this docker image running:
+
+[![Dino Grafana](https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-grafana.png)](https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-grafana.png)
+
+Building the documentation
+====
 
 Viewing locally:
 

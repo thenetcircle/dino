@@ -18,6 +18,12 @@ Documentation is hosed on [GitHub Pages](https://thenetcircle.github.io/dino/).
 
 [![Dino Architecture](https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-arch.png)](https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-arch.svg)
 
+## Monitoring
+
+Loads of metrics is by default being collected by Dino and sent to `statsd`. To enable `statsd` monitoring, configure the `statsd` block in `dino.yaml` to [point to your `statsd` instance](https://thenetcircle.github.io/dino/md/installation/#monitoring):
+
+[![Dino Grafana](https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-grafana.png)](https://raw.githubusercontent.com/thenetcircle/dino/master/docs/dino-grafana.png)
+
 ## Future features
 
 * The socket.io flask cluster only acts as the router of events,
