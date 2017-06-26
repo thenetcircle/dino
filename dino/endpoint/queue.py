@@ -36,6 +36,9 @@ class QueueHandler(object):
         self.recently_delegated_events = list()
 
     def user_is_on_this_node(self, activity: Activity) -> bool:
+        if self.env.node != 'app':
+            return False
+
         room_id = activity.target.id
         namespace = activity.target.url or '/ws'
         user_id = activity.object.id
