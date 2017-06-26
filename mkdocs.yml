@@ -7,6 +7,7 @@ pages:
     - API: md/api.md
     - Events: md/events.md
     - External Events: md/external_events.md
+    - ACL: md/acl.md
     - REST API: md/rest.md
     - Who Is Online?: md/wio.md
 theme: readthedocs
