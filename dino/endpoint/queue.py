@@ -43,12 +43,24 @@ class QueueHandler(object):
         users = list()
 
         try:
-            logger.debug('checking if we have room %s in namespace %s' % (room_id, namespace))
-            if room_id in self.socketio.server.manager.rooms[namespace]:
-                users = self.socketio.server.manager.rooms[namespace][room_id]
-                logger.debug('found users for room %s: %s' % (room_id, str(users)))
+            if room_id is None:
+                logger.debug('checking if we have user %s in namespace %s' % (user_id, namespace))
+                if user_sid in self.socketio.server.manager.rooms[namespace]:
+                    logger.debug('found users %s on this node' % user_id)
+                    return True
+                else:
+                    logger.info('no user %s for namespace [%s] (or user not on this node)' % (room_id, namespace))
+                    return False
+
             else:
-                logger.warning('no room %s for namespace [%s] (or room is empty/removed)' % (room_id, namespace))
+                logger.debug('checking if we have room %s in namespace %s' % (room_id, namespace))
+                if room_id in self.socketio.server.manager.rooms[namespace]:
+                    users = self.socketio.server.manager.rooms[namespace][room_id]
+                    logger.debug('found users for room %s: %s' % (room_id, str(users)))
+                else:
+                    logger.warning('no room %s for namespace [%s] (or room is empty/removed)' % (room_id, namespace))
+                return user_sid in users
+
         except KeyError as e:
             logger.warn('namespace %s does not exist (maybe this is web/rest node?): %s' % (namespace, str(e)))
             return False
@@ -56,8 +68,6 @@ class QueueHandler(object):
             logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, room_id, str(e)))
             logger.exception(traceback.format_exc())
             return False
-
-        return user_sid in users
 
     def create_ban_even_if_not_on_this_node(self, activity: Activity) -> None:
         """
@@ -159,6 +169,9 @@ class QueueHandler(object):
             environ.env.publish(data, external=True)
 
     def kick(self, orig_data: dict, activity: Activity, room_id: str, user_id: str, user_sid: str, namespace: str) -> None:
+        if room_id is None:
+            raise RuntimeError('trying to kick when room is none')
+
         try:
             _users = list()
             if room_id in self.socketio.server.manager.rooms[namespace]:
@@ -178,9 +191,8 @@ class QueueHandler(object):
         self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
         self.send_kick_event_to_external_queue(activity)
 
-        logger.info('about to kick user %s, all users in room: %s' % (user_sid, str(_users)))
-
         if user_sid in _users:
+            logger.info('about to kick user %s' % user_sid)
             try:
                 self.socketio.server.leave_room(user_sid, room_id, '/ws')
             except Exception as e:
@@ -228,9 +240,8 @@ class QueueHandler(object):
 
     def ban_globally(self, data: dict, act: Activity, rooms: dict, user_id: str, user_sid: str, namespace: str) -> None:
         try:
-            if act.actor.id != '0':
-                self.env.out_of_scope_emit(
-                        'gn_user_banned', data, json=True, namespace=namespace, room=act.actor.id, broadcast=True)
+            if len(rooms) == 0:
+                logger.warn('rooms to ban globally for is empty for user %s' % user_id)
             for room_id, room_name in rooms.items():
                 self.env.out_of_scope_emit(
                         'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
@@ -368,6 +379,7 @@ class QueueHandler(object):
         try:
             if target_id is None or target_id == '':
                 rooms_for_user = self.env.db.rooms_for_user(banned_id)
+                logger.info('user %s is in these rooms (will ban from all): %s' % (banned_id, str(rooms_for_user)))
                 self.ban_globally(activity_json, activity, rooms_for_user, banned_id, banned_sid, namespace)
                 self.env.db.set_user_offline(banned_id)
                 disconnect_activity = utils.activity_for_disconnect(banned_id, banned_name)
