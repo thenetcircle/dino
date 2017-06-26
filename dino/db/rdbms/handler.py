@@ -707,7 +707,6 @@ class DatabaseRdbms(object):
         for room in rooms:
             room.users.remove(user)
 
-
         try:
             session.commit()
         except StaleDataError:
@@ -2243,7 +2242,6 @@ class DatabaseRdbms(object):
         except NoSuchUserException:
             pass
 
-        self._remove_current_rooms_for_user(user_id, session)
         self.env.cache.set_global_ban_timestamp(
                 user_id, ban_duration, ban_timestamp, self.get_user_name(user_id))
 
