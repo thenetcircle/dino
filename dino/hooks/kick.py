@@ -18,6 +18,9 @@ from dino.config import ConfigKeys
 
 from datetime import datetime
 from uuid import uuid4 as uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -47,6 +50,7 @@ class OnKickHooks(object):
             'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
             'id': str(uuid())
         }
+        logger.info('kick hook sending internal event: %s' % str(kick_activity))
 
         # when banning globally, no target room is specified
         if activity.target is not None:
