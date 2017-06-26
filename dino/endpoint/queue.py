@@ -158,7 +158,7 @@ class QueueHandler(object):
             # otherwise it's external events for possible analysis
             environ.env.publish(data, external=True)
 
-    def kick(self, data: dict, activity: Activity, room_id: str, user_id: str, user_sid: str, namespace: str) -> None:
+    def kick(self, orig_data: dict, activity: Activity, room_id: str, user_id: str, user_sid: str, namespace: str) -> None:
         try:
             _users = list()
             if room_id in self.socketio.server.manager.rooms[namespace]:
@@ -170,12 +170,12 @@ class QueueHandler(object):
             logger.exception(traceback.format_exc())
             return
 
-        if activity.actor.id != '0':
-            self.env.out_of_scope_emit(
-                    'gn_user_kicked', data, json=True, namespace=namespace, room=activity.actor.id, broadcast=True)
+        data = orig_data.copy()
+        data['target'] = {
+            'id': room_id
+        }
 
         self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
-        self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=user_id, broadcast=True)
         self.send_kick_event_to_external_queue(activity)
 
         logger.info('about to kick user %s, all users in room: %s' % (user_sid, str(_users)))
@@ -240,23 +240,10 @@ class QueueHandler(object):
             logger.exception(traceback.format_exc(e))
             return
 
-        self.delete_all_for_user(user_id)
-
     def delete_for_user_in_room(self, user_id: str, room_id: str):
         try:
             before = time.time()
             messages = self.env.storage.get_undeleted_message_ids_for_user_and_room(user_id, room_id)
-            logger.info('about to delete %s messages for user %s (fetching IDs took %.2fs)' % (len(messages), user_id, time.time()-before))
-        except Exception as e:
-            logger.error('could not get undeleted messages: %s' % str(e))
-            logger.exception(traceback.format_exc())
-            return
-        self.delete_messages(user_id, messages)
-
-    def delete_all_for_user(self, user_id: str):
-        try:
-            before = time.time()
-            messages = self.env.storage.get_undeleted_message_ids_for_user(user_id)
             logger.info('about to delete %s messages for user %s (fetching IDs took %.2fs)' % (len(messages), user_id, time.time()-before))
         except Exception as e:
             logger.error('could not get undeleted messages: %s' % str(e))
