@@ -331,7 +331,8 @@ class QueueHandler(object):
         try:
             # user just got banned globally, kick from all rooms
             if room_id is None or room_id == '':
-                for room_key in self.socketio.server.manager.rooms[namespace].keys():
+                room_keys = self.socketio.server.manager.rooms[namespace].keys().copy()
+                for room_key in room_keys:
                     self.kick(activity_json, activity, room_key, kicked_id, kicked_sid, namespace)
             else:
                 self.kick(activity_json, activity, room_id, kicked_id, kicked_sid, namespace)
