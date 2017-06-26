@@ -60,6 +60,7 @@ from dino.validation.acl import AclSameRoomValidator
 from dino.validation.acl import AclDisallowValidator
 from dino.validation.acl import AclIsAdminValidator
 from dino.validation.acl import AclIsSuperUserValidator
+from dino.validation.acl import AclPatternValidator
 
 ENV_KEY_ENVIRONMENT = 'DINO_ENVIRONMENT'
 
@@ -550,6 +551,9 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
 
         elif validation_type == 'samechannel':
             validation_config['value'] = AclSameChannelValidator()
+
+        elif validation_type == 'custom':
+            validation_config['value'] = AclPatternValidator()
 
         elif validation_type == 'sameroom':
             validation_config['value'] = AclSameRoomValidator()

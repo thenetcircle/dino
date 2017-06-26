@@ -17,6 +17,7 @@ available: &AVAILABLE
     - samechannel
     - sameroom
     - disallow
+    - custom
 
 validation:
     gender:
@@ -61,8 +62,7 @@ validation:
     superuser:
         type: "is_super_user"
     custom:
-        type: "accepted_pattern"
-        value: "'^[0-9a-z!\|,\(\):=-]*$"
+        type: "custom"
 
 channel:
     list:

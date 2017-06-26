@@ -165,12 +165,10 @@ class AclIsSuperUserValidator(BaseAclValidator):
 
 
 class AclPatternValidator(BaseAclValidator):
-    def __init__(self, pattern=None):
+    def __init__(self):
         self.tag = self.__class__.__name__
         self.acl_type = 'custom'
-
-        if pattern is None:
-            raise ValidationException('[%s] supplied pattern can not be blank' % self.tag)
+        pattern = '^[0-9a-z!\|,\(\):=-]*$'
 
         try:
             import re
@@ -524,7 +522,7 @@ class AclConfigValidator(object):
     def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
         validation_methods = [
             'str_in_csv', 'range', 'samechannel', 'sameroom', 'disallow',
-            'is_admin', 'is_super_user', 'anything'
+            'is_admin', 'is_super_user', 'anything', 'custom'
         ]
         validations = acls.get('validation')
 
