@@ -165,6 +165,146 @@ class AclIsSuperUserValidator(BaseAclValidator):
         return False, 'not super user'
 
 
+class AclPatternValidator(BaseAclValidator):
+    def __init__(self, pattern=None):
+        self.tag = self.__class__.__name__
+        if pattern is None:
+            raise ValidationException('[%s] supplied pattern can not be blank' % self.tag)
+
+        try:
+            import re
+            self.pattern = re.compile(pattern)
+        except Exception:
+            raise ValidationException('[%s] invalid pattern: %s' % (self.tag, str(pattern)))
+
+        all_acls = environ.env.config.get(ConfigKeys.ACL)
+        self.all_validators = all_acls['validation']
+
+    def _test_a_clause(self, clause):
+        if '=' not in clause:
+            raise ValidationException('[%s] no equal sign in clause: %s' % (self.tag, clause))
+
+        if len(clause.split('=')) != 2:
+            raise ValidationException('[%s] equal sign mismatch in clause: %s' % (self.tag, clause))
+
+        acl_type, acl_value = clause.split('=')
+        if acl_type not in self.all_validators:
+            raise ValidationException(
+                    '[%s] invalid acl "%s" in clause: %s' % (self.tag, acl_type, clause))
+
+        if acl_type == 'custom':
+            raise ValidationException(
+                    '[%s] nested custom acls not allowed in clause: %s' % (self.tag, clause))
+
+        validator_func = self.all_validators[acl_type]['value']
+        if not isinstance(validator_func, BaseAclValidator):
+            raise ValidationException(
+                    '[%s] validator for acl type "%s" is not of instance BaseAclValidator '
+                    'but "%s"' % (self.tag, acl_type, str(type(validator_func))))
+
+        try:
+            validator_func.validate_new_acl(acl_value)
+        except ValidationException as e:
+            raise ValidationException(
+                    '[%s] new acl value "%s" for type "%s" did not '
+                    'validate: %s' % (self.tag, acl_value, acl_type, str(e)))
+
+    def validate_new_acl(self, values):
+        if values is None or len(values.strip()) == 0:
+            raise ValidationException('[%s] blank pattern' % self.tag)
+
+        if self.pattern.match(values) is None:
+            raise ValidationException('[%s] pattern did not match new value: %s' % (self.tag, values))
+
+        if '(' in values or ')' in values:
+            left = len([a for a in values if a == '('])
+            right = len([a for a in values if a == ')'])
+            if left != right:
+                raise ValidationException('[%s] parenthesis mismatch in pattern: %s' % (self.tag, values))
+
+            opened, closed = 0, 0
+            for c in values:
+                if c == '(':
+                    opened += 1
+                elif c == ')':
+                    closed += 1
+                if abs(opened - closed) > 1 or closed > opened:
+                    raise ValidationException('[%s] nest parenthesis not allowed in pattern: %s' % (self.tag, values))
+
+        groups = dict()
+        self._split_and_test_clause(groups, values)
+
+    def _split_and_test_clause(self, groups, clause):
+        while '(' in clause:
+            pos = len(groups)
+            start = clause.index('(')+1
+            end = clause.index(')')
+            groups[pos] = clause[start:end]
+            clause = clause[:start-1] + '@%s@' % pos + clause[end+1:]
+
+        and_clauses = [clause]
+        if ',' in clause:
+            and_clauses = clause.split(',')
+
+        for and_clause in and_clauses:
+            or_clauses = [and_clause]
+            if '|' in and_clause:
+                or_clauses = and_clause.split('|')
+
+            for or_clause in or_clauses:
+                if '@' in or_clause:
+                    if or_clause.count('@') != 2:
+                        raise ValidationException('[%s] mismatched at-signs in clause: %s' % (self.tag, or_clause))
+
+                    new_clause = groups[int(or_clause[1:len(or_clause)-1])]
+                    logger.info('found at-sign, replacing clause %s with: %s' % (or_clause, new_clause))
+                    or_clause = new_clause
+
+                if len([c for c in or_clause if c in '|,']) > 0:
+                    logger.info('recursively checking clause: %s' % or_clause)
+                    self._split_and_test_clause(groups, or_clause)
+                else:
+                    logger.info('directly checking clause: %s' % or_clause)
+                    self._test_a_clause(or_clause)
+
+    def __call__(self, *args, **kwargs):
+        # activity = args[0]
+        env = args[1]
+        acl_type = args[2]
+        acl_range = args[3]
+
+        session_value = env.session.get(acl_type)
+
+        if acl_range is None or len(acl_range.strip()) == 0:
+            return False, 'blank range when creating AclRangeValidator'
+
+        range_min, range_max = acl_range.split(':', 1)
+
+        if range_min == '':
+            range_min = None
+        else:
+            range_min = int(range_min)
+
+        if range_max == '':
+            range_max = None
+        else:
+            range_max = int(range_max)
+
+        if session_value is None or len(session_value.strip()) == 0:
+            return False, 'blank value in AclRangeValidator'
+
+        try:
+            value = int(session_value)
+        except ValueError:
+            return False, 'session value "%s" is not a valid number' % session_value
+
+        if range_min is not None and range_min > value:
+            return False, 'value too low'
+        if range_max is not None and range_max < value:
+            return False, 'value too high'
+        return True, None
+
+
 class AclDisallowValidator(BaseAclValidator):
     def __init__(self):
         pass

@@ -60,6 +60,9 @@ validation:
         value: "y,n"
     superuser:
         type: "is_super_user"
+    custom:
+        type: "accepted_pattern"
+        value: "^[a-z-:!\|,]*$"
 
 channel:
     list:
