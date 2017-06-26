@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import logging
-import traceback
 
 from activitystreams.models.activity import Activity
 
@@ -168,6 +167,8 @@ class AclIsSuperUserValidator(BaseAclValidator):
 class AclPatternValidator(BaseAclValidator):
     def __init__(self, pattern=None):
         self.tag = self.__class__.__name__
+        self.acl_type = 'custom'
+
         if pattern is None:
             raise ValidationException('[%s] supplied pattern can not be blank' % self.tag)
 
@@ -180,7 +181,7 @@ class AclPatternValidator(BaseAclValidator):
         all_acls = environ.env.config.get(ConfigKeys.ACL)
         self.all_validators = all_acls['validation']
 
-    def _test_a_clause(self, clause):
+    def _test_a_clause(self, clause, is_validating_a_user: bool, activity: Activity=None, env=None):
         if '=' not in clause:
             raise ValidationException('[%s] no equal sign in clause: %s' % (self.tag, clause))
 
@@ -203,11 +204,23 @@ class AclPatternValidator(BaseAclValidator):
                     'but "%s"' % (self.tag, acl_type, str(type(validator_func))))
 
         try:
-            validator_func.validate_new_acl(acl_value)
+            # a user is using the api, so validate his action against set pattern
+            if is_validating_a_user:
+                if not callable(validator_func):
+                    raise ValidationException('[%s] validator function is not callable' % self.tag)
+
+                is_valid, msg = validator_func(activity, env, acl_type, acl_value)
+                if not is_valid:
+                    raise ValidationException(
+                        '[%s] acl "%s" did not validate for target acl "%s": %s' % (self.tag, acl_type, acl_value, msg))
+
+            # now we're validating a new acl rule set in admin interface
+            else:
+                validator_func.validate_new_acl(acl_value)
+
         except ValidationException as e:
             raise ValidationException(
-                    '[%s] new acl value "%s" for type "%s" did not '
-                    'validate: %s' % (self.tag, acl_value, acl_type, str(e)))
+                '[%s] acl value "%s" for type "%s" did not validate: %s' % (self.tag, acl_value, acl_type, str(e)))
 
     def validate_new_acl(self, values):
         if values is None or len(values.strip()) == 0:
@@ -232,9 +245,26 @@ class AclPatternValidator(BaseAclValidator):
                     raise ValidationException('[%s] nest parenthesis not allowed in pattern: %s' % (self.tag, values))
 
         groups = dict()
-        self._split_and_test_clause(groups, values)
+        self._split_and_test_clause(groups, values, is_validating_a_user=False)
 
-    def _split_and_test_clause(self, groups, clause):
+    def _split_and_test_clause(self, groups, clause, is_validating_a_user: bool=False, activity: Activity=None, env=None):
+        """
+        The default value for is_validating_a_user is False, meaning we're validating a new acl rule someone set in the
+        admin web interface. In this case the activity and env variables are not used. On the other hand, if
+        is_validating_a_user is set to true, it means we're validating the "custom" acl rule for something a user did
+        through the API, and in this case the activity and env is needed, since we'll be validating against the user
+        info set on the environment for this user, e.g. age, gender or whatever it could be in the current 7
+        implementation.
+
+        :param groups: the first time this method is called this dict has to be empty; it is used to store parenthesis
+        clauses, so we can split the and/or tokens without affecting the parenthesises; since this method is recursive
+        we have to pass this dict throughout the recursion
+        :param clause: the value of the "custom" acl, e.g. "gender=m|age=:35,gender=!m"
+        :param is_validating_a_user: true means validate a user api action, false means validate a new custom acl rule
+        :param activity: the activity the user supplied (if is_validating_a_user is True, None otherwise)
+        :param env: the current environ.env (if is_validating_a_user is True, None otherwise)
+        :return: nothing
+        """
         while '(' in clause:
             pos = len(groups)
             start = clause.index('(')+1
@@ -242,66 +272,72 @@ class AclPatternValidator(BaseAclValidator):
             groups[pos] = clause[start:end]
             clause = clause[:start-1] + '@%s@' % pos + clause[end+1:]
 
-        and_clauses = [clause]
-        if ',' in clause:
-            and_clauses = clause.split(',')
+        or_clauses = [clause]
+        if '|' in clause:
+            logger.info('got OR clause, split is: %s' % str(clause.split('|')))
+            or_clauses = clause.split('|')
 
-        for and_clause in and_clauses:
-            or_clauses = [and_clause]
-            if '|' in and_clause:
-                or_clauses = and_clause.split('|')
+        for or_clause in or_clauses:
+            and_clauses = [or_clause]
+            if ',' in or_clause:
+                and_clauses = or_clause.split(',')
 
-            for or_clause in or_clauses:
-                if '@' in or_clause:
-                    if or_clause.count('@') != 2:
-                        raise ValidationException('[%s] mismatched at-signs in clause: %s' % (self.tag, or_clause))
+            all_and_ok = True
+            for and_clause in and_clauses:
+                try:
+                    if '@' in and_clause:
+                        if and_clause.count('@') != 2:
+                            raise ValidationException('[%s] mismatched at-signs in clause: %s' % (self.tag, and_clause))
 
-                    new_clause = groups[int(or_clause[1:len(or_clause)-1])]
-                    logger.info('found at-sign, replacing clause %s with: %s' % (or_clause, new_clause))
-                    or_clause = new_clause
+                        new_clause = groups[int(and_clause[1:len(and_clause)-1])]
+                        logger.info('found at-sign, replacing clause %s with: %s' % (and_clause, new_clause))
+                        and_clause = new_clause
 
-                if len([c for c in or_clause if c in '|,']) > 0:
-                    logger.info('recursively checking clause: %s' % or_clause)
-                    self._split_and_test_clause(groups, or_clause)
-                else:
-                    logger.info('directly checking clause: %s' % or_clause)
-                    self._test_a_clause(or_clause)
+                    if len([c for c in and_clause if c in '|,']) > 0:
+                        logger.info('recursively checking clause: %s' % and_clause)
+                        self._split_and_test_clause(groups, and_clause, is_validating_a_user, activity, env)
+                    else:
+                        logger.info('directly checking clause: %s' % and_clause)
+                        self._test_a_clause(and_clause, is_validating_a_user, activity, env)
+                except ValidationException as e:
+                    logger.error('during AND checks: %s' % e.msg)
+                    logger.info('or clauses: %s' % str(and_clauses))
+                    all_and_ok = False
+                    break
+            if not all_and_ok:
+                continue
+
+            # at least one OR was ok so we can return
+            return
+
+        # if more than two we have or clauses, otherwise just one and clause
+        if len(or_clauses) > 1:
+            raise ValidationException(
+                '[%s] no OR clause validated true for: %s' % (self.tag, '|'.join(or_clauses)))
+        else:
+            raise ValidationException(
+                '[%s] the AND clause did not validate for: %s' % (self.tag, or_clauses[0]))
 
     def __call__(self, *args, **kwargs):
-        # activity = args[0]
+        activity = args[0]
+
+        # contains the session values for age, gender etc.
         env = args[1]
-        acl_type = args[2]
-        acl_range = args[3]
 
-        session_value = env.session.get(acl_type)
+        # this just says 'custom', not used for this validator since 'custom' is not in the session (like e.g. age,
+        # gender etc.)
+        # acl_type = args[2]
 
-        if acl_range is None or len(acl_range.strip()) == 0:
-            return False, 'blank range when creating AclRangeValidator'
-
-        range_min, range_max = acl_range.split(':', 1)
-
-        if range_min == '':
-            range_min = None
-        else:
-            range_min = int(range_min)
-
-        if range_max == '':
-            range_max = None
-        else:
-            range_max = int(range_max)
-
-        if session_value is None or len(session_value.strip()) == 0:
-            return False, 'blank value in AclRangeValidator'
+        # this is the custom value set, e.g. "age=23:30|gender=f"
+        acl_value = args[3]
 
         try:
-            value = int(session_value)
-        except ValueError:
-            return False, 'session value "%s" is not a valid number' % session_value
-
-        if range_min is not None and range_min > value:
-            return False, 'value too low'
-        if range_max is not None and range_max < value:
-            return False, 'value too high'
+            #  _split_and_test_clause() is called recursively, but we need to retain the extracted parenthesis "groups"
+            groups = dict()
+            self._split_and_test_clause(groups, acl_value, is_validating_a_user=True, activity=activity, env=env)
+        except ValidationException as e:
+            logger.error(e.msg)
+            return False, e.msg
         return True, None
 
 

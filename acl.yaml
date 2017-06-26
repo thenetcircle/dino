@@ -62,7 +62,7 @@ validation:
         type: "is_super_user"
     custom:
         type: "accepted_pattern"
-        value: "^[a-z-:!\|,]*$"
+        value: "'^[0-9a-z!\|,\(\):=-]*$"
 
 channel:
     list:
