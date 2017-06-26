@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Who Is Online? - Dino</title>
+  <title>ACL - Dino</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
@@ -17,9 +17,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Who Is Online?";
-    var mkdocs_page_input_path = "md/wio.md";
-    var mkdocs_page_url = "/md/wio/";
+    var mkdocs_page_name = "ACL";
+    var mkdocs_page_input_path = "md/acl.md";
+    var mkdocs_page_url = "/md/acl/";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js"></script>
@@ -96,8 +96,17 @@
 <li>
           
             <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../acl/">ACL</a>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">ACL</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#access-control-lists">Access Control Lists</a></li>
+                
+                    <li><a class="toctree-l4" href="#custom-acl-pattern">Custom ACL Pattern</a></li>
+                
+            
+            </ul>
         
     </li>
 <li>
@@ -110,24 +119,8 @@
 <li>
           
             <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Who Is Online?</a>
-        
-            <ul>
-            
-                <li class="toctree-l3"><a href="#usersonlinebitmap-bitmap">users:online:bitmap (BITMAP)</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#usersonlineset-set">users:online:set (SET)</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#usersmulticast-set">users:multicast (SET)</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#userstatususer_id-string">user:status:USER_ID (STRING)</a></li>
-                
-            
-            </ul>
+    <li class="toctree-l1 ">
+        <a class="" href="../wio/">Who Is Online?</a>
         
     </li>
 <li>
@@ -154,7 +147,7 @@
     
       
     
-    <li>Who Is Online?</li>
+    <li>ACL</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -164,33 +157,39 @@
           <div role="main">
             <div class="section">
               
-                <p>Online status is kept in redis for users who successfully logs in and keeps their socket connection open.</p>
-<p>Four keys are maintained in redis:</p>
+                <h2 id="access-control-lists">Access Control Lists</h2>
+<h3 id="custom-acl-pattern">Custom ACL Pattern</h3>
+<p>A custom ACL pattern may be set instead of the regular simple ACL types. A simple grammar exists to specify this.</p>
+<h4 id="grammar">Grammar</h4>
+<pre><code>|   OR
+,   AND
+!   NOT     (TODO)
+=   VALUE
+()  GROUP
+</code></pre>
 <ul>
-<li>users:online:bitmap</li>
-<li>users:online:set</li>
-<li>users:multicast</li>
-<li>user:status:<user id></li>
+<li>AND has preference over OR,</li>
+<li>GROUP can be used to combine grammars,</li>
+<li>Nested parentheses are NOT allowed.</li>
 </ul>
-<h2 id="usersonlinebitmap-bitmap">users:online:bitmap (BITMAP)</h2>
-<p>The ID of the user is used as the offset in the bitmap. When a user logs in the bit in that offset will be set to 1,
-and when the user's socket closes the bit is set to 0.</p>
-<h2 id="usersonlineset-set">users:online:set (SET)</h2>
-<p>A set containing all the IDs of users who are currently online. When a user logs in the user ID is added to the set, and
-when the socket closes the ID is removed from the set.</p>
-<p>When a user changes his/her status to invisible his/her ID will also be removed from this set. </p>
-<h2 id="usersmulticast-set">users:multicast (SET)</h2>
-<p>Same as <code>users:online:set</code>, except that when a user goes invisible the user ID stays in this set. This allows 
-multicasting of notifications without showing up as <code>online</code>.</p>
-<h2 id="userstatususer_id-string">user:status:USER_ID (STRING)</h2>
-<p>One key for each user containing the status, which is a single character with the following meaning:</p>
-<ul>
-<li>0: available (online)</li>
-<li>2: chatting (not currently used)</li>
-<li>3: invisible</li>
-<li>4: unavailable (offline)</li>
-<li>5: unknown</li>
-</ul>
+<h4 id="examples">Examples</h4>
+<p>Either the user is 35 years or older, OR the user is a female and less than (or equal to) 26 years old:</p>
+<pre><code>age=35:|gender=f,age:26
+</code></pre>
+<p>Parenthesis may be used to group or clauses before and clauses (since AND has priority before OR), as in this example,
+ if the user is a female or above the age of 35 (inclusive) he/she will be allowed to join, as long as he/she ALSO is
+ NOT a normal account.</p>
+<pre><code>(age=35:|gender=f),membership=!normal
+</code></pre>
+<p>Compare with the same without parenthesis, where the AND would take priority over the OR; as long as the user is above
+35 (inclusive) he/she'll be allowed to join. If less than 35, he/she can still join if BOTH female and NOT normal 
+account.</p>
+<pre><code>age=35:|gender=f,membership=!normal
+</code></pre>
+<p>For escort channels, females should not be allowed to list the rooms, unless they have the <code>tg-p</code> membership type.
+Everyone else can list and join:</p>
+<pre><code>gender=!w|gender=w,membership=tg-p
+</code></pre>
               
             </div>
           </div>
@@ -198,8 +197,10 @@ multicasting of notifications without showing up as <code>online</code>.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="../rest/" class="btn btn-neutral float-right" title="REST API">Next <span class="icon icon-circle-arrow-right"></span></a>
       
-        <a href="../rest/" class="btn btn-neutral" title="REST API"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+        <a href="../external_events/" class="btn btn-neutral" title="External Events"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -225,8 +226,10 @@ multicasting of notifications without showing up as <code>online</code>.</p>
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../rest/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../external_events/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
+      
+        <span style="margin-left: 15px"><a href="../rest/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
