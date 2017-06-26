@@ -270,7 +270,7 @@ class CacheRedis(object):
 
     def set_rooms_for_channel(self, channel_id: str, rooms_info: dict) -> None:
         key = RedisKeys.rooms_for_channel_with_info(channel_id)
-        self.cache.set(key, rooms_info, ttl=FIVE_MINUTES + random.random()*ONE_MINUTE)
+        self.cache.set(key, rooms_info, ttl=ONE_MINUTE + random.random()*ONE_MINUTE)
 
     def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
         key = RedisKeys.acls_in_room_for_action(room_id, action)
@@ -587,13 +587,13 @@ class CacheRedis(object):
             return None
 
         user_status = str(status, 'utf-8')
-        self.cache.set(key, user_status, ttl=FIVE_MINUTES + random.random()*FIVE_MINUTES)
+        self.cache.set(key, user_status, ttl=ONE_HOUR)
         return user_status
 
     def set_user_status(self, user_id: str, status: str) -> None:
         key = RedisKeys.user_status(user_id)
         self.redis.set(key, status)
-        self.cache.set(key, status, ttl=FIVE_MINUTES + random.random()*FIVE_MINUTES)
+        self.cache.set(key, status, ttl=ONE_HOUR)
 
     def get_user_info(self, user_id: str) -> dict:
         key = RedisKeys.auth_key(user_id)

@@ -310,7 +310,11 @@ class QueueHandler(object):
         kicked_name = activity.object.display_name or utils.get_user_name_for(kicked_id)
         kicked_sid = utils.get_sid_for_user_id(kicked_id)
         room_id = activity.target.id
-        room_name = activity.target.display_name or utils.get_room_name(room_id)
+
+        if room_id is not None:
+            room_name = utils.get_room_name(room_id)
+        else:
+            room_name = activity.target.display_name
         namespace = activity.target.url
 
         if kicked_sid is None or kicked_sid == [None] or kicked_sid == '':
