@@ -41,8 +41,7 @@ class OnKickHooks(object):
             },
             'verb': 'kick',
             'object': {
-                'id': activity.object.id,
-                'displayName': activity.object.display_name
+                'id': activity.object.id
             },
             'target': {
                 'url': namespace
@@ -50,7 +49,8 @@ class OnKickHooks(object):
             'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
             'id': str(uuid())
         }
-        logger.info('kick hook sending internal event: %s' % str(kick_activity))
+        if activity.object.display_name is not None:
+            kick_activity['object']['displayName'] = activity.object.display_name
 
         # when banning globally, no target room is specified
         if activity.target is not None:
