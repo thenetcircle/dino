@@ -34,6 +34,9 @@ class QueueHandler(object):
         self.socketio = socketio
         self.env = env
         self.recently_delegated_events = list()
+        self.recently_delegated_events_set = set()
+        self.recently_handled_events = list()
+        self.recently_handled_events_set = set()
 
     def user_is_on_this_node(self, activity: Activity) -> bool:
         if self.env.node != 'app':
@@ -116,8 +119,17 @@ class QueueHandler(object):
 
     def update_recently_delegated_events(self, activity_id: str) -> None:
         self.recently_delegated_events.append(activity_id)
+        self.recently_delegated_events_set.add(activity_id)
         if len(self.recently_delegated_events) > 100:
+            self.recently_delegated_events_set.remove(self.recently_delegated_events[0])
             del self.recently_delegated_events[0]
+
+    def update_recently_handled_events(self, activity_id: str) -> None:
+        self.recently_handled_events.append(activity_id)
+        self.recently_handled_events_set.add(activity_id)
+        if len(self.recently_handled_events) > 100:
+            self.recently_handled_events_set.remove(self.recently_handled_events[0])
+            del self.recently_handled_events[0]
 
     def handle_local_node_events(self, data: dict, activity: Activity):
         # do this first, since ban might occur even if user is not connected
@@ -159,11 +171,15 @@ class QueueHandler(object):
             logger.exception(traceback.format_exc())
 
     def _handle_server_activity(self, data: dict, activity: Activity) -> None:
-        if activity.id in self.recently_delegated_events:
-            logger.info('ignoring event with id %s sine we delegated from this node' % activity.id)
+        if activity.id in self.recently_delegated_events_set:
+            logger.info('ignoring event with id %s since we delegated from this node' % activity.id)
+            return
+        if activity.id in self.recently_handled_events_set:
+            logger.info('ignoring event with id %s since we already handled it on this node' % activity.id)
             return
 
         logger.debug('got internally published event with verb %s id %s' % (activity.verb, activity.id))
+        self.update_recently_handled_events(activity.id)
 
         if activity.verb in ['ban', 'kick', 'remove']:
             self.handle_local_node_events(data, activity)
