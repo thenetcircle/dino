@@ -119,7 +119,7 @@ class CustomPatternAclValidatorTest(TestCase):
                     },
                     'custom': {
                         'type': 'accepted_pattern',
-                        'value': AclPatternValidator('^[0-9a-z!\|,\(\):=-]*$')
+                        'value': AclPatternValidator()
                     },
                     'age': {
                         'type': 'range',
@@ -128,44 +128,77 @@ class CustomPatternAclValidatorTest(TestCase):
                 }
             }
         }
-        self.validator = AclPatternValidator('^[0-9a-z!\|,\(\):=-]*$')
+        self.validator = AclPatternValidator()
 
     def test_new_pattern(self):
         self.validator.validate_new_acl('gender=f,(membership=tg-p|membership=tg),(age=34:40|age=21:25)')
 
     def test_joining_as_gender_female_is_ok(self):
-        is_valid, _ = self.validator(self.activity_for_join(), environ.env, 'custom', 'gender=f')
-        self.assertTrue(is_valid)
+        self.true('gender=f')
+
+    def test_joining_as_gender_negated_female_is_not_ok(self):
+        self.false('gender=!f')
+
+    def test_joining_as_gender_ok_age_ok(self):
+        self.true('gender=f,age=55:65')
+
+    def test_joining_as_gender_ok_negated_age_not_ok(self):
+        self.false('gender=f,age=!55:65')
+
+    def test_joining_as_negated_gender_ok_negated_age_ok(self):
+        self.true('gender=!m,age=!:35')
+
+    def test_joining_as_negated_gender_ok_negated_age_range_ok(self):
+        self.true('gender=!m,age=!25:35')
 
     def test_joining_as_gender_female_and_not_membership_tg_not_ok(self):
-        is_valid, _ = self.validator(self.activity_for_join(), environ.env, 'custom', 'gender=f,membership=tg')
-        self.assertFalse(is_valid)
+        self.false('gender=f,membership=tg')
+
+    def test_joining_as_gender_female_and_negated_membership_tg_is_ok(self):
+        self.true('gender=f,membership=!tg')
 
     def test_joining_as_gender_female_and_membership_normal_is_ok(self):
-        is_valid, _ = self.validator(self.activity_for_join(), environ.env, 'custom', 'gender=f,membership=n')
-        self.assertTrue(is_valid)
+        self.true('gender=f,membership=n')
+
+    def test_joining_as_gender_female_and_negated_membership_normal_is_not_ok(self):
+        self.false('gender=f,membership=!n')
 
     def test_joining_as_gender_female_and_not_membership_tg_but_good_age_is_ok(self):
-        is_valid, _ = self.validator(self.activity_for_join(), environ.env, 'custom', 'age=60:|gender=f,membership=tg')
-        self.assertTrue(is_valid)
+        self.true('age=60:|gender=f,membership=tg')
+
+    def test_joining_as_gender_female_and_not_membership_tg_and_good_negated_age_is_not_ok(self):
+        self.false('age=!60:|gender=f,membership=tg')
 
     def test_joining_as_gender_female_and_not_membership_tg_also_bad_age_is_not_ok(self):
-        is_valid, _ = self.validator(self.activity_for_join(), environ.env, 'custom', 'age=65:|gender=f,membership=tg')
-        self.assertFalse(is_valid)
+        self.false('age=65:|gender=f,membership=tg')
 
     def test_joining_as_gender_ok_and_membership_ok_but_age_bad_is_ok(self):
-        is_valid, _ = self.validator(self.activity_for_join(), environ.env, 'custom', 'age=65:|gender=f,membership=n')
-        self.assertTrue(is_valid)
+        self.true('age=65:|gender=f,membership=n')
+
+    def test_joining_as_negated_gender_ok_and_membership_ok_but_age_bad_is_not_ok(self):
+        self.false('age=65:|gender=!f,membership=n')
 
     def test_joining_as_gender_not_ok_and_membership_ok_but_age_bad_is_not_ok(self):
-        is_valid, _ = self.validator(self.activity_for_join(), environ.env, 'custom', 'age=65:|gender=m,membership=n')
-        self.assertFalse(is_valid)
+        self.false('age=65:|gender=m,membership=n')
+
+    def test_joining_as_gender_not_ok_and_membership_ok_but_negated_age_is(self):
+        self.true('age=!65:|gender=m,membership=n')
 
     def test_joining_as_gender_male_not_ok(self):
-        is_valid, _ = self.validator(self.activity_for_join(), environ.env, 'custom', 'gender=m')
+        self.false('gender=m')
+
+    def test_joining_as_gender_not_male_ok(self):
+        self.true('gender=!m')
+
+    def false(self, pattern):
+        is_valid, _ = self.validator(self.act(), environ.env, 'custom', pattern)
         self.assertFalse(is_valid)
 
-    def activity_for_join(self):
+    def true(self, pattern):
+        is_valid, _ = self.validator(self.act(), environ.env, 'custom', pattern)
+        self.assertTrue(is_valid)
+
+    def act(self):
         return {
             'actor': {
                 'id': '1234'

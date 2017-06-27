@@ -137,8 +137,17 @@ class AclIsAdminValidator(BaseAclValidator):
         # acl_type = args[2]
         # acl_values = args[3]
 
+        value_is_negated = False
+        if len(args) > 4:
+            value_is_negated = args[4]
+
         user_id = activity.actor.id
         channel_id = activity.object.url
+
+        if value_is_negated:
+            if not env.db.is_admin(channel_id, user_id):
+                return True, None
+            return False, 'is admin (ACL negated)'
 
         if env.db.is_admin(channel_id, user_id):
             return True, None
@@ -158,7 +167,17 @@ class AclIsSuperUserValidator(BaseAclValidator):
         # acl_type = args[2]
         # acl_values = args[3]
 
+        value_is_negated = False
+        if len(args) > 4:
+            value_is_negated = args[4]
+
         user_id = activity.actor.id
+
+        if value_is_negated:
+            if not env.db.is_super_user(user_id):
+                return True, None
+            return False, 'is super user (ACL negated)'
+
         if env.db.is_super_user(user_id):
             return True, None
         return False, 'not super user'
@@ -174,64 +193,23 @@ class AclPatternValidator(BaseAclValidator):
             import re
             self.pattern = re.compile(pattern)
         except Exception:
-            raise ValidationException('[%s] invalid pattern: %s' % (self.tag, str(pattern)))
+            raise ValidationException('invalid pattern: %s' % str(pattern))
 
         all_acls = environ.env.config.get(ConfigKeys.ACL)
         self.all_validators = all_acls['validation']
 
-    def _test_a_clause(self, clause, is_validating_a_user: bool, activity: Activity=None, env=None):
-        if '=' not in clause:
-            raise ValidationException('[%s] no equal sign in clause: %s' % (self.tag, clause))
-
-        if len(clause.split('=')) != 2:
-            raise ValidationException('[%s] equal sign mismatch in clause: %s' % (self.tag, clause))
-
-        acl_type, acl_value = clause.split('=')
-        if acl_type not in self.all_validators:
-            raise ValidationException(
-                    '[%s] invalid acl "%s" in clause: %s' % (self.tag, acl_type, clause))
-
-        if acl_type == 'custom':
-            raise ValidationException(
-                    '[%s] nested custom acls not allowed in clause: %s' % (self.tag, clause))
-
-        validator_func = self.all_validators[acl_type]['value']
-        if not isinstance(validator_func, BaseAclValidator):
-            raise ValidationException(
-                    '[%s] validator for acl type "%s" is not of instance BaseAclValidator '
-                    'but "%s"' % (self.tag, acl_type, str(type(validator_func))))
-
-        try:
-            # a user is using the api, so validate his action against set pattern
-            if is_validating_a_user:
-                if not callable(validator_func):
-                    raise ValidationException('[%s] validator function is not callable' % self.tag)
-
-                is_valid, msg = validator_func(activity, env, acl_type, acl_value)
-                if not is_valid:
-                    raise ValidationException(
-                        '[%s] acl "%s" did not validate for target acl "%s": %s' % (self.tag, acl_type, acl_value, msg))
-
-            # now we're validating a new acl rule set in admin interface
-            else:
-                validator_func.validate_new_acl(acl_value)
-
-        except ValidationException as e:
-            raise ValidationException(
-                '[%s] acl value "%s" for type "%s" did not validate: %s' % (self.tag, acl_value, acl_type, str(e)))
-
-    def validate_new_acl(self, values):
+    def validate_new_acl(self, values: str):
         if values is None or len(values.strip()) == 0:
-            raise ValidationException('[%s] blank pattern' % self.tag)
+            raise ValidationException('blank pattern' % self.tag)
 
         if self.pattern.match(values) is None:
-            raise ValidationException('[%s] pattern did not match new value: %s' % (self.tag, values))
+            raise ValidationException('pattern did not match new value: %s' % values)
 
         if '(' in values or ')' in values:
             left = len([a for a in values if a == '('])
             right = len([a for a in values if a == ')'])
             if left != right:
-                raise ValidationException('[%s] parenthesis mismatch in pattern: %s' % (self.tag, values))
+                raise ValidationException('parenthesis mismatch in pattern: %s' % values)
 
             opened, closed = 0, 0
             for c in values:
@@ -240,10 +218,61 @@ class AclPatternValidator(BaseAclValidator):
                 elif c == ')':
                     closed += 1
                 if abs(opened - closed) > 1 or closed > opened:
-                    raise ValidationException('[%s] nest parenthesis not allowed in pattern: %s' % (self.tag, values))
+                    raise ValidationException('nest parenthesis not allowed in pattern: %s' % values)
 
         groups = dict()
         self._split_and_test_clause(groups, values, is_validating_a_user=False)
+
+    def _test_a_clause(self, clause, is_validating_a_user: bool, activity: Activity=None, env=None):
+        if '=' not in clause:
+            raise ValidationException('no equal sign in clause: %s' % clause)
+
+        if len(clause.split('=')) != 2:
+            raise ValidationException('equal sign mismatch in clause: %s' % clause)
+
+        acl_type, acl_value = clause.split('=')
+        if acl_type not in self.all_validators:
+            raise ValidationException(
+                    'invalid acl "%s" in clause: %s' % (acl_type, clause))
+
+        if acl_type == 'custom':
+            raise ValidationException(
+                    'nested custom acls not allowed in clause: %s' % clause)
+
+        value_is_negated = False
+        acl_value_prefix = ''
+        if acl_value[0] == '!':
+            logger.debug('ACL value for type %s is negated: %s' % (acl_type, acl_value))
+            acl_value = acl_value[1:]
+            acl_value_prefix = '!'
+            value_is_negated = True
+
+        validator_func = self.all_validators[acl_type]['value']
+        if not isinstance(validator_func, BaseAclValidator):
+            raise ValidationException(
+                    'validator for acl type "%s" is not of instance BaseAclValidator '
+                    'but "%s"' % (acl_type, str(type(validator_func))))
+
+        try:
+            # a user is using the api, so validate his action against set pattern
+            if is_validating_a_user:
+                if not callable(validator_func):
+                    raise ValidationException('validator function is not callable' % self.tag)
+
+                is_valid, msg = validator_func(activity, env, acl_type, acl_value, value_is_negated)
+                if not is_valid:
+                    raise ValidationException(
+                        'acl "%s" did not validate for target acl "%s%s": %s' %
+                        (acl_type, acl_value_prefix, acl_value, msg))
+
+            # now we're validating a new acl rule set in admin interface
+            else:
+                validator_func.validate_new_acl(acl_value)
+
+        except ValidationException as e:
+            raise ValidationException(
+                'acl value "%s%s" for type "%s" did not validate: %s' %
+                (acl_value_prefix, acl_value, acl_type, str(e)))
 
     def _split_and_test_clause(self, groups, clause, is_validating_a_user: bool=False, activity: Activity=None, env=None):
         """
@@ -263,6 +292,7 @@ class AclPatternValidator(BaseAclValidator):
         :param env: the current environ.env (if is_validating_a_user is True, None otherwise)
         :return: nothing
         """
+        logger.debug('splitting clause: %s' % clause)
         while '(' in clause:
             pos = len(groups)
             start = clause.index('(')+1
@@ -272,7 +302,7 @@ class AclPatternValidator(BaseAclValidator):
 
         or_clauses = [clause]
         if '|' in clause:
-            logger.info('got OR clause, split is: %s' % str(clause.split('|')))
+            logger.debug('got OR clause, split is: %s' % str(clause.split('|')))
             or_clauses = clause.split('|')
 
         for or_clause in or_clauses:
@@ -285,17 +315,17 @@ class AclPatternValidator(BaseAclValidator):
                 try:
                     if '@' in and_clause:
                         if and_clause.count('@') != 2:
-                            raise ValidationException('[%s] mismatched at-signs in clause: %s' % (self.tag, and_clause))
+                            raise ValidationException('mismatched at-signs in clause: %s' % (and_clause))
 
                         new_clause = groups[int(and_clause[1:len(and_clause)-1])]
-                        logger.info('found at-sign, replacing clause %s with: %s' % (and_clause, new_clause))
+                        logger.debug('found at-sign, replacing clause %s with: %s' % (and_clause, new_clause))
                         and_clause = new_clause
 
                     if len([c for c in and_clause if c in '|,']) > 0:
-                        logger.info('recursively checking clause: %s' % and_clause)
+                        logger.debug('recursively checking clause: %s' % and_clause)
                         self._split_and_test_clause(groups, and_clause, is_validating_a_user, activity, env)
                     else:
-                        logger.info('directly checking clause: %s' % and_clause)
+                        logger.debug('directly checking clause: %s' % and_clause)
                         self._test_a_clause(and_clause, is_validating_a_user, activity, env)
                 except ValidationException as e:
                     logger.error('during AND checks: %s' % e.msg)
@@ -311,10 +341,10 @@ class AclPatternValidator(BaseAclValidator):
         # if more than two we have or clauses, otherwise just one and clause
         if len(or_clauses) > 1:
             raise ValidationException(
-                '[%s] no OR clause validated true for: %s' % (self.tag, '|'.join(or_clauses)))
+                'no OR clause validated true for: %s' % ('|'.join(or_clauses)))
         else:
             raise ValidationException(
-                '[%s] the AND clause did not validate for: %s' % (self.tag, or_clauses[0]))
+                'the AND clause did not validate for: %s' % (or_clauses[0]))
 
     def __call__(self, *args, **kwargs):
         activity = args[0]
@@ -343,7 +373,7 @@ class AclDisallowValidator(BaseAclValidator):
     def __init__(self):
         pass
 
-    def validate_new_acl(self, values):
+    def validate_new_acl(self, values: str):
         pass
 
     def __call__(self, *args, **kwargs):
@@ -354,7 +384,7 @@ class AclSameChannelValidator(BaseAclValidator):
     def __init__(self):
         pass
 
-    def validate_new_acl(self, values):
+    def validate_new_acl(self, values: str):
         pass
 
     def __call__(self, *args, **kwargs):
@@ -363,6 +393,10 @@ class AclSameChannelValidator(BaseAclValidator):
         # acl_type = args[2]
         # acl_values = args[3]
 
+        value_is_negated = False
+        if len(args) > 4:
+            value_is_negated = args[4]
+
         origin_channel_id = activity.provider.url
         if origin_channel_id is None or len(origin_channel_id.strip()) == 0:
             return False, 'no origin channel uuid in actor.url'
@@ -370,6 +404,11 @@ class AclSameChannelValidator(BaseAclValidator):
         target_channel_id = activity.object.url
         if target_channel_id is None or len(target_channel_id.strip()) == 0:
             return False, 'no target channel uuid in object.url'
+
+        if value_is_negated:
+            if origin_channel_id != target_channel_id:
+                return True, None
+            return False, 'channels are the same (negated ACL)'
 
         if origin_channel_id == target_channel_id:
             return True, None
@@ -380,7 +419,7 @@ class AclSameRoomValidator(BaseAclValidator):
     def __init__(self):
         pass
 
-    def validate_new_acl(self, values):
+    def validate_new_acl(self, values: str):
         pass
 
     def __call__(self, *args, **kwargs):
@@ -388,6 +427,11 @@ class AclSameRoomValidator(BaseAclValidator):
         # env = args[1]
         # acl_type = args[2]
         # acl_values = args[3]
+
+        value_is_negated = False
+        if len(args) > 4:
+            value_is_negated = args[4]
+
         origin_room_id = activity.actor.url
         if origin_room_id is None or len(origin_room_id.strip()) == 0:
             return False, 'no origin room uuid in actor.url'
@@ -398,6 +442,11 @@ class AclSameRoomValidator(BaseAclValidator):
 
         if not utils.is_user_in_room(activity.actor.id, target_room_id):
             return False, 'user is not in room, not allowed'
+
+        if value_is_negated:
+            if origin_room_id != target_room_id:
+                return True, None
+            return False, 'rooms are the same (negated ACL)'
 
         if origin_room_id == target_room_id:
             return True, None
@@ -410,7 +459,7 @@ class AclStrInCsvValidator(BaseAclValidator):
         if csv is not None:
             self.valid_csvs = csv.split(',')
 
-    def validate_new_acl(self, values):
+    def validate_new_acl(self, values: str):
         # all new values accepted, e.g. for city or country
         if self.valid_csvs is None:
             return
@@ -433,6 +482,10 @@ class AclStrInCsvValidator(BaseAclValidator):
         acl_type = args[2]
         acl_values = args[3]
 
+        value_is_negated = False
+        if len(args) > 4:
+            value_is_negated = args[4]
+
         if acl_values.strip() == '':
             return True, None
         acl_values = acl_values.split(',')
@@ -442,9 +495,14 @@ class AclStrInCsvValidator(BaseAclValidator):
             logger.warning('no session value for acl "%s"' % acl_type)
             return False, 'no session value for acl"%s"' % acl_type
 
+        if value_is_negated:
+            if session_value in acl_values:
+                return False, 'session value %s is in non-allowed (ACL negated) values [%s]' % \
+                       (session_value, ','.join(acl_values))
+            return True, None
+
         if session_value not in acl_values:
             return False, 'session value %s not in allowed values [%s]' % (session_value, ','.join(acl_values))
-
         return True, None
 
 
@@ -452,7 +510,7 @@ class AclRangeValidator(BaseAclValidator):
     def __init__(self):
         pass
 
-    def validate_new_acl(self, values):
+    def validate_new_acl(self, values: str):
         if values is None or len(values.strip()) == 0:
             raise ValidationException('blank range when creating AclRangeValidator')
 
@@ -472,6 +530,10 @@ class AclRangeValidator(BaseAclValidator):
         env = args[1]
         acl_type = args[2]
         acl_range = args[3]
+
+        value_is_negated = False
+        if len(args) > 4:
+            value_is_negated = args[4]
 
         session_value = env.session.get(acl_type)
 
@@ -497,6 +559,17 @@ class AclRangeValidator(BaseAclValidator):
             value = int(session_value)
         except ValueError:
             return False, 'session value "%s" is not a valid number' % session_value
+
+        if value_is_negated:
+            if range_min is not None and range_max is not None:
+                if range_min <= value <= range_max:
+                    return False, 'value withing range (ACL negated)'
+            else:
+                if range_min is not None and range_min <= value:
+                    return False, 'value too high'
+                if range_max is not None and range_max >= value:
+                    return False, 'value too low'
+            return True, None
 
         if range_min is not None and range_min > value:
             return False, 'value too low'
