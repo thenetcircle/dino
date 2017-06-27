@@ -21,7 +21,7 @@ from activitystreams import parse
 from uuid import uuid4 as uuid
 from datetime import datetime
 
-from test.utils import BaseTest
+from test.base import BaseTest
 from dino import environ
 from dino.config import ConfigKeys
 from dino.storage.cassandra import CassandraStorage

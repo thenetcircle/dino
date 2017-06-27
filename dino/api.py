@@ -16,9 +16,12 @@ from typing import Union
 
 from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
+from activitystreams import parse as as_parser
 from flask import request
+from uuid import uuid4 as uuid
 
 from dino.config import ApiTargets
+from dino.config import ConfigKeys
 from dino.config import ErrorCodes as ECodes
 from dino.exceptions import NoSuchRoomException
 from dino.hooks import *

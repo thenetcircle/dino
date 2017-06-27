@@ -48,6 +48,7 @@ from dino.exceptions import UserExistsException
 from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import InvalidApiActionException
 from dino.exceptions import InvalidAclTypeException
+from dino.exceptions import ValidationException
 from dino.exceptions import InvalidAclValueException
 from dino.exceptions import EmptyRoomNameException
 from dino.exceptions import EmptyChannelNameException
@@ -1195,7 +1196,7 @@ class BaseDatabaseTest(BaseTest):
     def _test_update_acl_in_room_for_action_invalid_value(self):
         self._create_channel()
         self._create_room()
-        self.assertRaises(InvalidAclValueException, self.db.update_acl_in_room_for_action,
+        self.assertRaises(ValidationException, self.db.update_acl_in_room_for_action,
                           BaseTest.CHANNEL_ID, BaseTest.ROOM_ID, ApiActions.JOIN, 'age', 'something-invalid')
 
     def _test_update_acl_in_room_for_action(self):
@@ -1225,7 +1226,7 @@ class BaseDatabaseTest(BaseTest):
 
     def _test_update_acl_in_channel_for_action_invalid_value(self):
         self._create_channel()
-        self.assertRaises(InvalidAclValueException, self.db.update_acl_in_channel_for_action,
+        self.assertRaises(ValidationException, self.db.update_acl_in_channel_for_action,
                           BaseTest.CHANNEL_ID, ApiActions.LIST, 'age', 'something-invalid')
 
     def _test_update_acl_in_channel_for_action_no_channel(self):

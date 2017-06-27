@@ -529,11 +529,8 @@ class DatabaseRedis(object):
         for acl_type, acl_value in acls.items():
             if acl_type not in acl_configs['available']['acls']:
                 raise InvalidAclTypeException(acl_type)
-            try:
-                acl_configs['validation'][acl_type]['value'].validate_new_acl(acl_value)
-            except ValidationException:
-                raise InvalidAclValueException(acl_type, acl_value)
 
+            acl_configs['validation'][acl_type]['value'].validate_new_acl(acl_value)
             key = '%s|%s' % (action, acl_type)
             new_acls[key] = acl_value
 
@@ -554,11 +551,8 @@ class DatabaseRedis(object):
         for acl_type, acl_value in acls.items():
             if acl_type not in acl_configs['available']['acls']:
                 raise InvalidAclTypeException(acl_type)
-            try:
-                acl_configs['validation'][acl_type]['value'].validate_new_acl(acl_value)
-            except ValidationException:
-                raise InvalidAclValueException(acl_type, acl_value)
 
+            acl_configs['validation'][acl_type]['value'].validate_new_acl(acl_value)
             key = '%s|%s' % (action, acl_type)
             new_acls[key] = acl_value
 
