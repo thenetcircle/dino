@@ -186,7 +186,6 @@ class AclIsSuperUserValidator(BaseAclValidator):
 
 class AclPatternValidator(BaseAclValidator):
     def __init__(self):
-        self.tag = self.__class__.__name__
         self.acl_type = 'custom'
         pattern = '^[0-9a-z!\|,\(\):=-]*$'
 
@@ -241,11 +240,9 @@ class AclPatternValidator(BaseAclValidator):
                     'nested custom acls not allowed in clause: %s' % clause)
 
         value_is_negated = False
-        acl_value_prefix = ''
         if acl_value[0] == '!':
             logger.debug('ACL value for type %s is negated: %s' % (acl_type, acl_value))
             acl_value = acl_value[1:]
-            acl_value_prefix = '!'
             value_is_negated = True
 
         validator_func = self.all_validators[acl_type]['value']
@@ -254,26 +251,17 @@ class AclPatternValidator(BaseAclValidator):
                     'validator for acl type "%s" is not of instance BaseAclValidator '
                     'but "%s"' % (acl_type, str(type(validator_func))))
 
-        try:
-            # a user is using the api, so validate his action against set pattern
-            if is_validating_a_user:
-                if not callable(validator_func):
-                    raise ValidationException('validator function is not callable' % self.tag)
+        # a user is using the api, so validate his action against set pattern
+        if is_validating_a_user:
+            if not callable(validator_func):
+                raise ValidationException('validator function is not callable')
 
-                is_valid, msg = validator_func(activity, env, acl_type, acl_value, value_is_negated)
-                if not is_valid:
-                    raise ValidationException(
-                        'acl "%s" did not validate for target acl "%s%s": %s' %
-                        (acl_type, acl_value_prefix, acl_value, msg))
-
-            # now we're validating a new acl rule set in admin interface
-            else:
-                validator_func.validate_new_acl(acl_value)
-
-        except ValidationException as e:
-            raise ValidationException(
-                'acl value "%s%s" for type "%s" did not validate: %s' %
-                (acl_value_prefix, acl_value, acl_type, str(e)))
+            is_valid, msg = validator_func(activity, env, acl_type, acl_value, value_is_negated)
+            return is_valid, msg
+        # now we're validating a new acl rule set in admin interface
+        else:
+            validator_func.validate_new_acl(acl_value)
+            return True, None
 
     def _split_and_test_clause(self, groups, clause, is_validating_a_user: bool=False, activity: Activity=None, env=None):
         """
@@ -328,7 +316,11 @@ class AclPatternValidator(BaseAclValidator):
                         self._split_and_test_clause(groups, and_clause, is_validating_a_user, activity, env)
                     else:
                         logger.debug('directly checking clause: %s' % and_clause)
-                        self._test_a_clause(and_clause, is_validating_a_user, activity, env)
+                        is_valid, error_msg = self._test_a_clause(and_clause, is_validating_a_user, activity, env)
+                        if not is_valid:
+                            logger.error('during AND checks: %s' % error_msg)
+                            all_and_ok = False
+                            break
                 except ValidationException as e:
                     logger.error('during AND checks: %s' % e.msg)
                     all_and_ok = False
