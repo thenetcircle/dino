@@ -115,7 +115,7 @@ class CustomPatternAclValidatorTest(TestCase):
                     },
                     'membership': {
                         'type': 'str_in_csv',
-                        'value': AclStrInCsvValidator('n,tg,tg-p')
+                        'value': AclStrInCsvValidator('n,tg,tg_p')
                     },
                     'custom': {
                         'type': 'accepted_pattern',
@@ -131,28 +131,28 @@ class CustomPatternAclValidatorTest(TestCase):
         self.validator = AclPatternValidator()
 
     def test_new_pattern(self):
-        self.new_acl_ok('gender=f,(membership=tg-p|membership=tg),(age=34:40|age=21:25)')
+        self.new_acl_ok('gender=f,(membership=tg_p|membership=tg),(age=34:40|age=21:25)')
 
     def test_pattern_missing_comma(self):
-        self.new_acl_bad('gender=f(membership=tg-p|membership=tg),(age=34:40|age=21:25)')
+        self.new_acl_bad('gender=f(membership=tg_p|membership=tg),(age=34:40|age=21:25)')
 
     def test_pattern_missing_comma_2(self):
-        self.new_acl_bad('gender=f,(membership=tg-p|membership=tg)(age=34:40|age=21:25)')
+        self.new_acl_bad('gender=f,(membership=tg_p|membership=tg)(age=34:40|age=21:25)')
 
     def test_pattern_missing_parenthesis(self):
-        self.new_acl_bad('gender=f,membership=tg-p|membership=tg),(age=34:40|age=21:25)')
+        self.new_acl_bad('gender=f,membership=tg_p|membership=tg),(age=34:40|age=21:25)')
 
     def test_pattern_missing_parenthesis_2(self):
-        self.new_acl_bad('gender=f,(membership=tg-p|membership=tg,(age=34:40|age=21:25)')
+        self.new_acl_bad('gender=f,(membership=tg_p|membership=tg,(age=34:40|age=21:25)')
 
     def test_pattern_missing_pipe(self):
-        self.new_acl_bad('gender=f,(membership=tg-pmembership=tg),(age=34:40|age=21:25)')
+        self.new_acl_bad('gender=f,(membership=tg_pmembership=tg),(age=34:40|age=21:25)')
 
     def test_pattern_missing_equals(self):
-        self.new_acl_bad('gender=f,(membership=tg-p|membership=tg),(age34:40|age=21:25)')
+        self.new_acl_bad('gender=f,(membership=tg_p|membership=tg),(age34:40|age=21:25)')
 
     def test_pattern_nested_parenthesis(self):
-        self.new_acl_bad('gender=f,(membership=tg-p|membership=tg,(age34:40|age=21:25))')
+        self.new_acl_bad('gender=f,(membership=tg_p|membership=tg,(age34:40|age=21:25))')
 
     def test_pattern_missing_value(self):
         self.new_acl_bad('gender=')
@@ -233,7 +233,7 @@ class CustomPatternAclValidatorTest(TestCase):
 
     def new_acl_bad(self, pattern):
         with self.assertRaises(ValidationException):
-            self.new_acl_ok('gender=f(membership=tg-p|membership=tg),(age=34:40|age=21:25)')
+            self.new_acl_ok('gender=f(membership=tg_p|membership=tg),(age=34:40|age=21:25)')
 
     def act(self):
         return {
