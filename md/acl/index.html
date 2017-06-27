@@ -163,7 +163,7 @@
 <h4 id="grammar">Grammar</h4>
 <pre><code>|   OR
 ,   AND
-!   NOT     (TODO)
+!   NOT
 =   VALUE
 ()  GROUP
 </code></pre>
@@ -172,6 +172,15 @@
 <li>GROUP can be used to combine grammars,</li>
 <li>Nested parentheses are NOT allowed.</li>
 </ul>
+<p>Since AND has preference over OR, two or more OR clauses can be grouped using parentheses so avoid an AND clause taking
+over, same as with boolean logic:</p>
+<pre><code>a: true
+b: false
+c: true
+
+a &amp; b | c =&gt; false          age=35,gender=f|membership=normal
+b &amp; (b | c) =&gt; true         age=35,(gender=f|membership=normal)
+</code></pre>
 <h4 id="examples">Examples</h4>
 <p>Either the user is 35 years or older, OR the user is a female and less than (or equal to) 26 years old:</p>
 <pre><code>age=35:|gender=f,age:26
@@ -186,9 +195,9 @@
 account.</p>
 <pre><code>age=35:|gender=f,membership=!normal
 </code></pre>
-<p>For escort channels, females should not be allowed to list the rooms, unless they have the <code>tg-p</code> membership type.
-Everyone else can list and join:</p>
-<pre><code>gender=!w|gender=w,membership=tg-p
+<p>For some channels, maybe females should not be allowed to list the rooms, unless they have the <code>paying</code> membership type.
+In this case we can negate the values to allow everything except the specified one. Everyone else can list and join:</p>
+<pre><code>gender=!f|gender=f,membership=paying
 </code></pre>
               
             </div>
