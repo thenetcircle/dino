@@ -308,8 +308,10 @@ class RequestValidator(BaseValidator):
             if acl.summary is None or acl.summary not in ApiActions.all_api_actions:
                 return False, ECodes.INVALID_ACL_ACTION, 'invalid api action "%s"' % acl.summary
 
-            if not validation.acl.is_acl_valid(acl.object_type, acl.content):
-                return False, ECodes.INVALID_ACL_VALUE, 'invalid acl value "%s" for type "%s"' % (acl.content, acl.object_type)
+            is_valid, error_msg = validation.acl.is_acl_valid(acl.object_type, acl.content)
+            if not is_valid:
+                return False, ECodes.INVALID_ACL_VALUE, 'invalid acl value "%s" for type "%s": %s' % \
+                       (acl.content, acl.object_type, error_msg)
 
         return True, None, None
 

@@ -556,13 +556,15 @@ def update_acl_room(channel_uuid, room_uuid, action, acl_type):
     try:
         acl_manager.update_room_acl(channel_uuid, room_uuid, action, acl_type, new_value)
     except InvalidAclValueException:
-        return jsonify({'status_code': 400, 'message': 'Invalid ACL value'})
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL value: %s' % new_value})
     except InvalidAclTypeException:
-        return jsonify({'status_code': 400, 'message': 'Invalid ACL type'})
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL type: %s' % acl_type})
+    except ValidationException as e:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL: %s' % e.msg})
     except Exception as e:
         logger.error('could not update acl for room %s: %s' % (room_uuid, str(e)))
         logger.exception(traceback.format_exc())
-        return jsonify({'status_code': 500, 'message': 'Could not update'})
+        return jsonify({'status_code': 500, 'message': 'Could not update: %s' % str(e)})
 
     return jsonify({'status_code': 200})
 
@@ -579,13 +581,15 @@ def update_acl_channel(channel_uuid, action, acl_type):
     try:
         acl_manager.update_channel_acl(channel_uuid, action, acl_type, new_value)
     except InvalidAclValueException:
-        return jsonify({'status_code': 400, 'message': 'Invalid ACL value'})
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL value: %s' % new_value})
     except InvalidAclTypeException:
-        return jsonify({'status_code': 400, 'message': 'Invalid ACL type'})
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL type: %s' % acl_type})
+    except ValidationException as e:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL: %s' % e.msg})
     except Exception as e:
         logger.error('could not update acl for channel %s: %s' % (channel_uuid, str(e)))
         logger.exception(traceback.format_exc())
-        return jsonify({'status_code': 500, 'message': 'Could not update'})
+        return jsonify({'status_code': 500, 'message': 'Could not update: %s' % str(e)})
 
     return jsonify({'status_code': 200})
 
@@ -636,9 +640,18 @@ def create_acl_channel(channel_uuid: str):
     if is_blank(acl_type) or is_blank(acl_value):
         return redirect('/channel/%s/rooms' % channel_uuid)
 
-    # TODO: validate here
-
-    acl_manager.add_acl_channel(channel_uuid, action, acl_type, acl_value)
+    try:
+        acl_manager.add_acl_channel(channel_uuid, action, acl_type, acl_value)
+    except InvalidAclValueException:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL value: %s' % acl_value})
+    except InvalidAclTypeException:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL type: %s' % acl_type})
+    except ValidationException as e:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL: %s' % e.msg})
+    except Exception as e:
+        logger.error('could not update acl for channel %s: %s' % (channel_uuid, str(e)))
+        logger.exception(traceback.format_exc())
+        return jsonify({'status_code': 500, 'message': 'Could not update: %s' % str(e)})
     return redirect('/channel/%s/rooms' % channel_uuid)
 
 
@@ -736,9 +749,19 @@ def create_acl_room(channel_uuid: str, room_uuid: str):
     if is_blank(acl_type) or is_blank(acl_value):
         return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
 
-    # TODO: validate here
+    try:
+        acl_manager.add_acl_room(room_uuid, action, acl_type, acl_value)
+    except InvalidAclValueException:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL value: %s' % acl_value})
+    except InvalidAclTypeException:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL type: %s' % acl_type})
+    except ValidationException as e:
+        return jsonify({'status_code': 400, 'message': 'Invalid ACL: %s' % e.msg})
+    except Exception as e:
+        logger.error('could not update acl for room %s: %s' % (room_uuid, str(e)))
+        logger.exception(traceback.format_exc())
+        return jsonify({'status_code': 500, 'message': 'Could not update: %s' % str(e)})
 
-    acl_manager.add_acl_room(room_uuid, action, acl_type, acl_value)
     return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 

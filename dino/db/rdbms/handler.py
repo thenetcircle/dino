@@ -1436,8 +1436,9 @@ class DatabaseRdbms(object):
             if acl_type not in self._get_acls_for_target_and_action(target, action):
                 raise InvalidAclTypeException(acl_type)
 
-            if not self._validate_acl_for_target_and_action(target, action, acl_type, acl_value):
-                raise InvalidAclValueException(acl_type, acl_value)
+            is_valid, error_msg = self._validate_acl_for_target_and_action(target, action, acl_type, acl_value)
+            if not is_valid:
+                raise ValidationException(error_msg)
 
             acl = Acls()
             acl.action = action
@@ -1452,9 +1453,9 @@ class DatabaseRdbms(object):
         try:
             validators[acl_type]['value'].validate_new_acl(acl_value)
         except ValidationException as e:
-            logger.info('new acl values "%s" did not validate for type "%s": %s' % (acl_value, acl_type, str(e)))
-            return False
-        return True
+            logger.info('new acl values "%s" did not validate for type "%s": %s' % (acl_value, acl_type, e.msg))
+            return False, e.msg
+        return True, None
 
     def _get_acls(self) -> dict:
         return self.env.config.get(ConfigKeys.ACL)

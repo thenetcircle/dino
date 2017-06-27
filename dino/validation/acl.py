@@ -34,26 +34,27 @@ class AclValidator(object):
         all_validators = all_acls['validation']
 
         if acl_type not in all_validators:
-            logger.warn('acl type "%s" does not have a validator' % acl_type)
-            return False
+            error_msg = 'acl type "%s" does not have a validator' % acl_type
+            logger.warn(error_msg)
+            return False, error_msg
 
         validator_func = all_validators[acl_type]['value']
         if not isinstance(validator_func, BaseAclValidator):
-            logger.error(
-                    'validator for acl type "%s" is not of instance BaseAclValidator but "%s"' %
-                    (acl_type, str(type(validator_func))))
-            return False
+            error_msg = 'validator for acl type "%s" is not of instance BaseAclValidator but "%s"' % \
+                        (acl_type, str(type(validator_func)))
+            logger.error(error_msg)
+            return False, error_msg
 
         # blank means we're removing it
         if acl_value is None or len(acl_value.strip()) == 0:
-            return True
+            return True, None
 
         try:
             validator_func.validate_new_acl(acl_value)
         except ValidationException as e:
-            logger.info('new acl value "%s" for type "%s" did not validate: %s' % (acl_value, acl_type, str(e)))
-            return False
-        return True
+            logger.info('new acl value "%s" for type "%s" did not validate: %s' % (acl_value, acl_type, e.msg))
+            return False, e.msg
+        return True, None
 
     def validate_acl_for_action(self, activity: Activity, target: str, action: str, target_acls: dict, target_id: str=None, object_type: str=None) -> (bool, str):
         all_acls = environ.env.config.get(ConfigKeys.ACL)

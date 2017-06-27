@@ -720,19 +720,19 @@ class TestIsAclValid(BaseAclTestValidator):
         super(TestIsAclValid, self).setUp()
 
     def test_invalid_value(self):
-        is_valid = self.validator.is_acl_valid('gender', 'h')
+        is_valid, _ = self.validator.is_acl_valid('gender', 'h')
         self.assertFalse(is_valid)
 
     def test_valid_value(self):
-        is_valid = self.validator.is_acl_valid('gender', 'm')
+        is_valid, _ = self.validator.is_acl_valid('gender', 'm')
         self.assertTrue(is_valid)
 
     def test_invalid_type(self):
-        is_valid = self.validator.is_acl_valid('something-invalid', 'm')
+        is_valid, _ = self.validator.is_acl_valid('something-invalid', 'm')
         self.assertFalse(is_valid)
 
     def test_blank_value(self):
-        is_valid = self.validator.is_acl_valid('gender', '')
+        is_valid, _ = self.validator.is_acl_valid('gender', '')
         self.assertTrue(is_valid)
 
     def test_invalid_validator_class(self):
@@ -742,7 +742,7 @@ class TestIsAclValid(BaseAclTestValidator):
         new_acls = environ.env.config.get(ConfigKeys.ACL)
         new_acls['validation']['age']['value'] = FakeValidator()
         environ.env.config = {ConfigKeys.ACL: new_acls}
-        is_valid = self.validator.is_acl_valid('age', '28:35')
+        is_valid, _ = self.validator.is_acl_valid('age', '28:35')
         self.assertFalse(is_valid)
 
 
