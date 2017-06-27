@@ -195,9 +195,6 @@ class AclPatternValidator(BaseAclValidator):
         except Exception:
             raise ValidationException('invalid pattern: %s' % str(pattern))
 
-        all_acls = environ.env.config.get(ConfigKeys.ACL)
-        self.all_validators = all_acls['validation']
-
     def validate_new_acl(self, values: str):
         if values is None or len(values.strip()) == 0:
             raise ValidationException('blank pattern')
@@ -231,7 +228,9 @@ class AclPatternValidator(BaseAclValidator):
             raise ValidationException('equal sign mismatch in clause: %s' % clause)
 
         acl_type, acl_value = clause.split('=')
-        if acl_type not in self.all_validators:
+        all_acls = environ.env.config.get(ConfigKeys.ACL)
+        all_validators = all_acls['validation']
+        if acl_type not in all_validators:
             raise ValidationException(
                     'invalid acl "%s" in clause: %s' % (acl_type, clause))
 
@@ -245,7 +244,7 @@ class AclPatternValidator(BaseAclValidator):
             acl_value = acl_value[1:]
             value_is_negated = True
 
-        validator_func = self.all_validators[acl_type]['value']
+        validator_func = all_validators[acl_type]['value']
         if not isinstance(validator_func, BaseAclValidator):
             raise ValidationException(
                     'validator for acl type "%s" is not of instance BaseAclValidator '
