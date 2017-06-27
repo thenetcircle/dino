@@ -323,8 +323,7 @@ class AclPatternValidator(BaseAclValidator):
                             break
                 except ValidationException as e:
                     logger.error('during AND checks: %s' % e.msg)
-                    all_and_ok = False
-                    break
+                    raise e
             if not all_and_ok:
                 continue
 
