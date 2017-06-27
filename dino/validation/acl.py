@@ -200,7 +200,7 @@ class AclPatternValidator(BaseAclValidator):
 
     def validate_new_acl(self, values: str):
         if values is None or len(values.strip()) == 0:
-            raise ValidationException('blank pattern' % self.tag)
+            raise ValidationException('blank pattern')
 
         if self.pattern.match(values) is None:
             raise ValidationException('pattern did not match new value: %s' % values)
@@ -308,18 +308,20 @@ class AclPatternValidator(BaseAclValidator):
         for or_clause in or_clauses:
             and_clauses = [or_clause]
             if ',' in or_clause:
+                logger.debug('got AND clause, split is: %s' % str(or_clause.split(',')))
                 and_clauses = or_clause.split(',')
 
             all_and_ok = True
             for and_clause in and_clauses:
-                try:
-                    if '@' in and_clause:
-                        if and_clause.count('@') != 2:
-                            raise ValidationException('mismatched at-signs in clause: %s' % (and_clause))
+                if '@' in and_clause:
+                    if and_clause[0] != '@' or and_clause[-1] != '@' or and_clause.count('@') != 2:
+                        raise ValidationException('mismatched at-signs in clause: %s' % and_clause)
 
-                        new_clause = groups[int(and_clause[1:len(and_clause)-1])]
-                        logger.debug('found at-sign, replacing clause %s with: %s' % (and_clause, new_clause))
-                        and_clause = new_clause
+                    new_clause = groups[int(and_clause[1:len(and_clause)-1])]
+                    logger.debug('found at-sign, replacing clause %s with: %s' % (and_clause, new_clause))
+                    and_clause = new_clause
+
+                try:
 
                     if len([c for c in and_clause if c in '|,']) > 0:
                         logger.debug('recursively checking clause: %s' % and_clause)

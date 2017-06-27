@@ -131,7 +131,37 @@ class CustomPatternAclValidatorTest(TestCase):
         self.validator = AclPatternValidator()
 
     def test_new_pattern(self):
-        self.validator.validate_new_acl('gender=f,(membership=tg-p|membership=tg),(age=34:40|age=21:25)')
+        self.new_acl_ok('gender=f,(membership=tg-p|membership=tg),(age=34:40|age=21:25)')
+
+    def test_pattern_missing_comma(self):
+        self.new_acl_bad('gender=f(membership=tg-p|membership=tg),(age=34:40|age=21:25)')
+
+    def test_pattern_missing_comma_2(self):
+        self.new_acl_bad('gender=f,(membership=tg-p|membership=tg)(age=34:40|age=21:25)')
+
+    def test_pattern_missing_parenthesis(self):
+        self.new_acl_bad('gender=f,membership=tg-p|membership=tg),(age=34:40|age=21:25)')
+
+    def test_pattern_missing_parenthesis_2(self):
+        self.new_acl_bad('gender=f,(membership=tg-p|membership=tg,(age=34:40|age=21:25)')
+
+    def test_pattern_missing_pipe(self):
+        self.new_acl_bad('gender=f,(membership=tg-pmembership=tg),(age=34:40|age=21:25)')
+
+    def test_pattern_missing_equals(self):
+        self.new_acl_bad('gender=f,(membership=tg-p|membership=tg),(age34:40|age=21:25)')
+
+    def test_pattern_nested_parenthesis(self):
+        self.new_acl_bad('gender=f,(membership=tg-p|membership=tg,(age34:40|age=21:25))')
+
+    def test_pattern_missing_value(self):
+        self.new_acl_bad('gender=')
+
+    def test_pattern_missing_value_and_equals(self):
+        self.new_acl_bad('gender')
+
+    def test_pattern_blank(self):
+        self.new_acl_bad('')
 
     def test_joining_as_gender_female_is_ok(self):
         self.true('gender=f')
@@ -197,6 +227,13 @@ class CustomPatternAclValidatorTest(TestCase):
     def true(self, pattern):
         is_valid, _ = self.validator(self.act(), environ.env, 'custom', pattern)
         self.assertTrue(is_valid)
+
+    def new_acl_ok(self, pattern):
+        self.validator.validate_new_acl(pattern)
+
+    def new_acl_bad(self, pattern):
+        with self.assertRaises(ValidationException):
+            self.new_acl_ok('gender=f(membership=tg-p|membership=tg),(age=34:40|age=21:25)')
 
     def act(self):
         return {
