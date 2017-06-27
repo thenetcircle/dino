@@ -302,14 +302,14 @@ class AclPatternValidator(BaseAclValidator):
 
         or_clauses = [clause]
         if '|' in clause:
-            logger.debug('got OR clause, split is: %s' % str(clause.split('|')))
             or_clauses = clause.split('|')
+            logger.debug('got OR clause, split is: %s' % str(or_clauses))
 
         for or_clause in or_clauses:
             and_clauses = [or_clause]
             if ',' in or_clause:
-                logger.debug('got AND clause, split is: %s' % str(or_clause.split(',')))
                 and_clauses = or_clause.split(',')
+                logger.debug('got AND clause, split is: %s' % str(and_clauses))
 
             all_and_ok = True
             for and_clause in and_clauses:
@@ -322,7 +322,6 @@ class AclPatternValidator(BaseAclValidator):
                     and_clause = new_clause
 
                 try:
-
                     if len([c for c in and_clause if c in '|,']) > 0:
                         logger.debug('recursively checking clause: %s' % and_clause)
                         self._split_and_test_clause(groups, and_clause, is_validating_a_user, activity, env)
@@ -331,7 +330,6 @@ class AclPatternValidator(BaseAclValidator):
                         self._test_a_clause(and_clause, is_validating_a_user, activity, env)
                 except ValidationException as e:
                     logger.error('during AND checks: %s' % e.msg)
-                    logger.info('or clauses: %s' % str(and_clauses))
                     all_and_ok = False
                     break
             if not all_and_ok:
