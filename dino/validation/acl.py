@@ -187,7 +187,7 @@ class AclIsSuperUserValidator(BaseAclValidator):
 class AclPatternValidator(BaseAclValidator):
     def __init__(self):
         self.acl_type = 'custom'
-        pattern = '^[0-9a-z!\|,\(\):=-]*$'
+        pattern = '^[0-9a-z!\|,\(\):=_]*$'
 
         try:
             import re
