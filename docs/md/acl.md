@@ -8,13 +8,23 @@ A custom ACL pattern may be set instead of the regular simple ACL types. A simpl
 
     |   OR
     ,   AND
-    !   NOT     (TODO)
+    !   NOT
     =   VALUE
     ()  GROUP
 
 * AND has preference over OR,
 * GROUP can be used to combine grammars,
 * Nested parentheses are NOT allowed.
+
+Since AND has preference over OR, two or more OR clauses can be grouped using parentheses so avoid an AND clause taking
+over, same as with boolean logic:
+
+    a: true
+    b: false
+    c: true
+
+    a & b | c => false          age=35,gender=f|membership=normal
+    b & (b | c) => true         age=35,(gender=f|membership=normal)
 
 #### Examples
 
@@ -34,7 +44,7 @@ account.
 
     age=35:|gender=f,membership=!normal
 
-For escort channels, females should not be allowed to list the rooms, unless they have the `tg-p` membership type.
-Everyone else can list and join:
+For some channels, maybe females should not be allowed to list the rooms, unless they have the `paying` membership type.
+In this case we can negate the values to allow everything except the specified one. Everyone else can list and join:
 
-    gender=!w|gender=w,membership=tg-p
+    gender=!f|gender=f,membership=paying
