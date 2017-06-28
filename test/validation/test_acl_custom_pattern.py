@@ -220,6 +220,21 @@ class CustomPatternAclValidatorTest(TestCase):
     def test_joining_as_gender_not_male_ok(self):
         self.true('gender=!m')
 
+    def test_joining_as_gender_not_and_male_above_25_ok(self):
+        self.true('gender=!m,age=25:')
+
+    def test_joining_as_gender_male_and_above_25_not_ok(self):
+        self.false('gender=m,age=25:')
+
+    def test_joining_as_gender_male_and_below_25_not_ok(self):
+        self.false('gender=m,age=:25')
+
+    def test_joining_as_gender_male_or_below_25_not_ok(self):
+        self.false('gender=m|age=:25')
+
+    def test_joining_as_gender_male_or_above_25_ok(self):
+        self.true('gender=m|age=25:')
+
     def false(self, pattern):
         is_valid, _ = self.validator(self.act(), environ.env, 'custom', pattern)
         self.assertFalse(is_valid)

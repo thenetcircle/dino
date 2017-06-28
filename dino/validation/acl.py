@@ -240,7 +240,6 @@ class AclPatternValidator(BaseAclValidator):
 
         value_is_negated = False
         if acl_value[0] == '!':
-            logger.debug('ACL value for type %s is negated: %s' % (acl_type, acl_value))
             acl_value = acl_value[1:]
             value_is_negated = True
 
@@ -256,9 +255,6 @@ class AclPatternValidator(BaseAclValidator):
                 raise ValidationException('validator function is not callable')
 
             is_valid, msg = validator_func(activity, env, acl_type, acl_value, value_is_negated)
-            logger.debug(
-                    'ACL type %s value %s (negated? %s) validated? %s' %
-                    (acl_type, acl_value, value_is_negated, is_valid))
             return is_valid, msg
         # now we're validating a new acl rule set in admin interface
         else:
@@ -283,7 +279,6 @@ class AclPatternValidator(BaseAclValidator):
         :param env: the current environ.env (if is_validating_a_user is True, None otherwise)
         :return: nothing
         """
-        logger.debug('splitting clause: %s' % clause)
         while '(' in clause:
             pos = len(groups)
             start = clause.index('(')+1
@@ -294,30 +289,23 @@ class AclPatternValidator(BaseAclValidator):
         or_clauses = [clause]
         if '|' in clause:
             or_clauses = clause.split('|')
-            logger.debug('got OR clause, split is: %s' % str(or_clauses))
 
         for or_clause in or_clauses:
             and_clauses = [or_clause]
             if ',' in or_clause:
                 and_clauses = or_clause.split(',')
-                logger.debug('got AND clause, split is: %s' % str(and_clauses))
 
             all_and_ok = True
             for and_clause in and_clauses:
                 if '@' in and_clause:
                     if and_clause[0] != '@' or and_clause[-1] != '@' or and_clause.count('@') != 2:
                         raise ValidationException('mismatched at-signs in clause: %s' % and_clause)
-
-                    new_clause = groups[int(and_clause[1:len(and_clause)-1])]
-                    logger.debug('found at-sign, replacing clause %s with: %s' % (and_clause, new_clause))
-                    and_clause = new_clause
+                    and_clause = groups[int(and_clause[1:len(and_clause)-1])]
 
                 try:
                     if len([c for c in and_clause if c in '|,']) > 0:
-                        logger.debug('recursively checking clause: %s' % and_clause)
                         self._split_and_test_clause(groups, and_clause, is_validating_a_user, activity, env)
                     else:
-                        logger.debug('directly checking clause: %s' % and_clause)
                         is_valid, error_msg = self._test_a_clause(and_clause, is_validating_a_user, activity, env)
                         if not is_valid:
                             logger.error('during AND checks: %s' % error_msg)
