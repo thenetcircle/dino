@@ -256,6 +256,9 @@ class AclPatternValidator(BaseAclValidator):
                 raise ValidationException('validator function is not callable')
 
             is_valid, msg = validator_func(activity, env, acl_type, acl_value, value_is_negated)
+            logger.debug(
+                    'ACL type %s value %s (negated? %s) validated? %s' %
+                    (acl_type, acl_value, value_is_negated, is_valid))
             return is_valid, msg
         # now we're validating a new acl rule set in admin interface
         else:
