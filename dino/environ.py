@@ -960,14 +960,40 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
-    channel_dict = gn_env.db.get_channels()
-    for channel_id, _ in channel_dict.items():
-        rooms = gn_env.db.rooms_for_channel(channel_id)
-        for room_uuid, room_info in rooms.items():
-            logger.debug('checking room %s: %s' % (room_uuid, str(room_info)))
-            if room_info['ephemeral']:
-                logger.info('removing ephemeral room "%s" (%s)' % (room_info['name'], room_uuid))
-                gn_env.db.remove_room(channel_id, room_uuid)
+
+    def delete():
+        from dino import utils
+        from activitystreams import parse as as_parser
+
+        channel_dict = gn_env.db.get_channels()
+
+        for channel_id, _ in channel_dict.items():
+            rooms = gn_env.db.rooms_for_channel(channel_id)
+
+            for room_id, room_info in rooms.items():
+                short_id = room_id.split('-')[0]
+                room_name = room_info['name']
+                logger.debug('checking room %s: %s' % (room_id, room_name))
+
+                users = gn_env.db.users_in_room(room_id)
+                if len(users) > 0:
+                    logger.debug('[%s] NOT removing room (%s), has % user(s) in it' % (short_id, room_name, len(users)))
+                    continue
+
+                if not room_info['ephemeral']:
+                    logger.debug('[%s] NOT removing room (%s), not ephemeral' % (short_id, room_name))
+                    continue
+
+                logger.info('[%s] removing ephemeral room (%s)' % (short_id, room_name))
+                gn_env.db.remove_room(channel_id, room_id)
+                activity = utils.activity_for_remove_room('0', 'server', room_id, room_name, 'empty ephemeral room')
+
+                gn_env.db.remove_room(channel_id, room_id)
+                gn_env.emit('gn_room_removed', activity, broadcast=True, include_self=True)
+                gn_env.observer.emit('on_remove_room', (activity, as_parser(activity)))
+
+    import eventlet
+    eventlet.spawn_after(seconds=5*60, func=delete)
 
 
 def initialize_env(dino_env):
