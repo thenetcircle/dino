@@ -20,11 +20,11 @@ from dino.db.manager import UserManager
 from dino.db.manager import AclManager
 from dino.db.manager import StorageManager
 from dino.db.manager import BlackListManager
-from dino.environ import env
+from dino import environ
 
-channel_manager = ChannelManager(env)
-room_manager = RoomManager(env)
-user_manager = UserManager(env)
-storage_manager = StorageManager(env)
-acl_manager = AclManager(env)
-blacklist_manager = BlackListManager(env)
+channel_manager = ChannelManager(environ.env)
+room_manager = RoomManager(environ.env)
+user_manager = UserManager(environ.env)
+storage_manager = StorageManager(environ.env)
+acl_manager = AclManager(environ.env)
+blacklist_manager = BlackListManager(environ.env)

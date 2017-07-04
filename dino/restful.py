@@ -18,6 +18,7 @@ from flask_restful import Api
 from dino.rest.resources.banned import BannedResource
 from dino.rest.resources.ban import BanResource
 from dino.rest.resources.kick import KickResource
+from dino.rest.resources.broadcast import BroadcastResource
 from dino.rest.resources.roles import RolesResource
 from dino.rest.resources.rooms_for_users import RoomsForUsersResource
 from dino.rest.resources.remove_admin import RemoveAdminResource
@@ -51,3 +52,4 @@ api.add_resource(RoomsForUsersResource, '/rooms-for-users')
 api.add_resource(SetAdminResource, '/set-admin')
 api.add_resource(RemoveAdminResource, '/remove-admin')
 api.add_resource(BlacklistResource, '/blacklist')
+api.add_resource(BroadcastResource, '/broadcast')
