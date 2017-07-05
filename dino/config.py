@@ -163,6 +163,8 @@ class ConfigKeys(object):
     MAX_USERS_LOW = 'max_users_low'
     MAX_USERS_HIGH = 'max_users_high'
     MAX_USERS_EXCEPTION = 'exception'
+    WEB = 'web'
+    ROOT_URL = 'root_url'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'

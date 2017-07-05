@@ -5,7 +5,7 @@
 <p><strong>Super Users</strong></p>
 
 <div>
-    <form method="post" action="/create/super-user" class="pure-form">
+    <form method="post" action="{{ config.ROOT_URL }}create/super-user" class="pure-form">
         <fieldset>
              <legend>Create new super user</legend>
             {{ render_field(form.name) }}
@@ -30,7 +30,7 @@
         {% for user in superusers %}
         <tr>
             <td>
-                <a class="user-link" href="/user/{{ user.uuid }}">{{ user.name }}</a>
+                <a class="user-link" href="{{ config.ROOT_URL }}user/{{ user.uuid }}">{{ user.name }}</a>
             </td>
             <td>
                 <small>{{ user.uuid }}</small>
@@ -65,6 +65,6 @@
     </table>
 </div>
 
-<script type="text/javascript" src="/static/custom/js/users.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/custom/js/users.js"></script>
 
 {% endblock %}

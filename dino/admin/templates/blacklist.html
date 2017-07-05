@@ -7,7 +7,7 @@
 </p>
 
 <div>
-    <form method="post" action="/blacklist/add" class="pure-form">
+    <form method="post" action="{{ config.ROOT_URL }}blacklist/add" class="pure-form">
         <fieldset>
              <legend>Add words to black list</legend>
             {{ render_field(form.words) }}
@@ -34,13 +34,13 @@
                 {{ word.word }}
             </td>
             <td>
-                {{ render_remove("/blacklist/" + word.id|string + "/delete", "") }}
+                {{ render_remove(config.ROOT_URL + "/blacklist/" + word.id|string + "/delete", "") }}
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
-<script type="text/javascript" src="/static/custom/js/blacklist.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/custom/js/blacklist.js"></script>
 
 {% endblock %}

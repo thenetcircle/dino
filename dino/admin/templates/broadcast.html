@@ -19,7 +19,7 @@
 </div>
 
 <div>
-    <form id="send-broadcast" method="post" action="/send-broadcast" class="pure-form">
+    <form id="send-broadcast" method="post" action="{{ config.ROOT_URL }}send-broadcast" class="pure-form">
         <fieldset>
              <legend>Broadcast message to everyone</legend>
             {{ render_field(form.verb) }}<br />
@@ -30,6 +30,6 @@
     </form>
 </div>
 
-<script type="text/javascript" src="/static/custom/js/broadcast.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/custom/js/broadcast.js"></script>
 
 {% endblock %}
