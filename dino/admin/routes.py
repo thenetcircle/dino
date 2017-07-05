@@ -266,7 +266,7 @@ def banned():
                     ban_form.target_id.data,
                     ban_form.duration.data,
                     ban_form.target_type.data)
-            return redirect('/banned')
+            return redirect(app.config['ROOT_URL'] + 'banned')
         except ValidationException as e:
             ban_form.target_type.errors.append('Ban not valid: "%s"' % e.msg)
         except UnknownBanTypeException as e:
@@ -316,13 +316,13 @@ def users():
 @app.route('/user/<user_uuid>/set/superuser', methods=['GET'])
 def set_as_superuser(user_uuid):
     user_manager.set_super_user(user_uuid)
-    return redirect('/users')
+    return redirect(app.config['ROOT_URL'] + 'users')
 
 
 @app.route('/user/<user_uuid>/del/superuser', methods=['GET'])
 def del_as_superuser(user_uuid):
     user_manager.del_super_user(user_uuid)
-    return redirect('/users')
+    return redirect(app.config['ROOT_URL'] + 'users')
 
 
 @app.route('/users/search', methods=['POST'])
@@ -406,8 +406,8 @@ def add_to_blacklist():
         blacklist_manager.add_words(form.words.data)
     except Exception as e:
         logger.error('could not add word to blacklist: %s' % str(e))
-        return redirect('/blacklist')
-    return redirect('/blacklist')
+        return redirect(app.config['ROOT_URL'] + 'blacklist')
+    return redirect(app.config['ROOT_URL'] + 'blacklist')
 
 
 @app.route('/blacklist/<word_id>/delete', methods=['DELETE'])
@@ -608,14 +608,14 @@ def create_room(channel_uuid):
     user_uuid = str(form.owner.data)
 
     if is_blank(room_name) or is_blank(user_uuid):
-        return redirect('/channel/%s/rooms' % channel_uuid)
+        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
     msg = room_manager.create_room(room_name, room_uuid, channel_uuid, user_uuid)
     if msg is not None:
         flash(msg)
-        return redirect('/channel/%s/rooms' % channel_uuid)
+        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
-    return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+    return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/remove', methods=['DELETE'])
@@ -665,7 +665,7 @@ def post_broadcast():
         form.body.data = ''
         form.verb.data = ''
 
-    return redirect('/broadcast')
+    return redirect(app.config['ROOT_URL'] + 'broadcast')
 
 
 @app.route('/channel/<channel_uuid>/create/acl', methods=['POST'])
@@ -676,7 +676,7 @@ def create_acl_channel(channel_uuid: str):
     acl_value = form.acl_value.data
 
     if is_blank(acl_type) or is_blank(acl_value):
-        return redirect('/channel/%s/rooms' % channel_uuid)
+        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
     try:
         acl_manager.add_acl_channel(channel_uuid, action, acl_type, acl_value)
@@ -690,7 +690,7 @@ def create_acl_channel(channel_uuid: str):
         flash('could not update acl for channel %s: %s' % (channel_uuid, str(e)))
         logger.exception(traceback.format_exc())
 
-    return redirect('/channel/%s/rooms' % channel_uuid)
+    return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
 
 @app.route('/channel/<channel_uuid>/add/admin', methods=['POST'])
@@ -699,10 +699,10 @@ def create_channel_admin(channel_uuid: str):
     user_id = form.uuid.data
 
     if is_blank(user_id):
-        return redirect('/channel/%s/rooms' % channel_uuid)
+        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
     user_manager.add_channel_admin(channel_uuid, user_id)
-    return redirect('/channel/%s/rooms' % channel_uuid)
+    return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
 
 @app.route('/channel/<channel_uuid>/add/owner', methods=['POST'])
@@ -711,10 +711,10 @@ def create_channel_owner(channel_uuid: str):
     user_id = form.uuid.data
 
     if is_blank(user_id):
-        return redirect('/channel/%s/rooms' % channel_uuid)
+        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
     user_manager.add_channel_owner(channel_uuid, user_id)
-    return redirect('/channel/%s/rooms' % channel_uuid)
+    return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
 
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/add/owner', methods=['POST'])
@@ -723,10 +723,10 @@ def create_room_owner(channel_uuid: str, room_uuid: str):
     user_id = form.uuid.data
 
     if is_blank(user_id):
-        return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+        return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
 
     user_manager.add_room_owner(room_uuid, user_id)
-    return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+    return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 
 @app.route('/channel/<channel_uuid>/room/<room_uuid>/add/moderator', methods=['POST'])
@@ -735,10 +735,10 @@ def create_room_moderator(channel_uuid: str, room_uuid: str):
     user_id = form.uuid.data
 
     if is_blank(user_id):
-        return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+        return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
 
     user_manager.add_room_moderator(room_uuid, user_id)
-    return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+    return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 
 @app.route('/channel/<channel_uuid>/remove/admin/<user_id>', methods=['DELETE'])
@@ -753,7 +753,7 @@ def remove_channel_admin(channel_uuid: str, user_id: str):
 @app.route('/channel/<channel_uuid>/remove/owner/<user_id>', methods=['DELETE'])
 def remove_channel_owner(channel_uuid: str, user_id: str):
     if is_blank(user_id):
-        return redirect('/channel/%s/rooms' % channel_uuid)
+        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
     user_manager.remove_channel_owner(channel_uuid, user_id)
     return jsonify({'status_code': 200})
@@ -785,7 +785,7 @@ def create_acl_room(channel_uuid: str, room_uuid: str):
     acl_value = str(form.acl_value.data).strip()
 
     if is_blank(acl_type) or is_blank(acl_value):
-        return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+        return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
 
     try:
         acl_manager.add_acl_room(room_uuid, action, acl_type, acl_value)
@@ -799,7 +799,7 @@ def create_acl_room(channel_uuid: str, room_uuid: str):
         flash('could not update acl for room %s: %s' % (room_uuid, str(e)))
         logger.exception(traceback.format_exc())
 
-    return redirect('/channel/%s/room/%s' % (channel_uuid, room_uuid))
+    return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
 
 
 @app.route('/create/channel', methods=['POST'])
@@ -810,10 +810,10 @@ def create_channel():
     user_uuid = str(form.owner.data).strip()
 
     if is_blank(channel_name) or is_blank(user_uuid):
-        return redirect('/channels')
+        return redirect(app.config['ROOT_URL'] + 'channels')
 
     channel_manager.create_channel(channel_name, channel_uuid, user_uuid)
-    return redirect('/channel/%s/rooms' % channel_uuid)
+    return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
 
 
 @app.route('/create/super-user', methods=['POST'])
@@ -823,10 +823,10 @@ def create_super_user():
     user_id = str(form.uuid.data).strip()
 
     if is_blank(user_name) or is_blank(user_id):
-        return redirect('/users')
+        return redirect(app.config['ROOT_URL'] + 'users')
 
     user_manager.create_super_user(user_name, user_id)
-    return redirect('/user/%s' % user_id)
+    return redirect(app.config['ROOT_URL'] + 'user/%s' % user_id)
 
 
 @app.route('/static/custom/<path:path>')
