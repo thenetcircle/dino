@@ -3,7 +3,7 @@
 {% block content %}
 
 <p>
-    <a href="/channels">Channels</a> / {{ channel_name }}
+    <a href="channels">Channels</a> / {{ channel_name }}
 </p>
 
 <div class="pure-g">
@@ -211,7 +211,7 @@
                 {{ render_edit("channel/" + channel_uuid + "/room/" + room.uuid + "/sort") }}
             </td>
             <td>
-                <a class="rooms-link" href="/channel/{{ channel_uuid }}/room/{{ room.uuid }}">{{ room.name }}</a>
+                <a class="rooms-link" href="channel/{{ channel_uuid }}/room/{{ room.uuid }}">{{ room.name }}</a>
                 {{ render_rename("channel/" + channel_uuid + "/room/" + room.uuid + "/rename") }}
             </td>
             <td>
