@@ -22,8 +22,8 @@
                     <td>{{ channel_name }}</td>
                     <td><small>{{ channel_uuid }}</small></td>
                     <td class="actions">
-                        {{ render_remove("/channel/" + channel_uuid + "/remove", "/channels") }}
-                        {{ render_rename("/channel/" + channel_uuid + "/rename") }}
+                        {{ render_remove("channel/" + channel_uuid + "/remove", "/channels") }}
+                        {{ render_rename("channel/" + channel_uuid + "/rename") }}
                     </td>
                 </tr>
             </tbody>
@@ -41,7 +41,7 @@
             <!-- OWNERS -->
             <div class="pure-u-1 pure-u-lg-1-3 pure-u-md-1-2">
                 <br />
-                <form method="post" action="/channel/{{ channel_uuid }}/add/owner" class="pure-form pure-form-stacked">
+                <form method="post" action="channel/{{ channel_uuid }}/add/owner" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add owner</legend>
                         {{ render_field(owner_form.uuid) }}
@@ -53,7 +53,7 @@
             <!-- ADMINS -->
             <div class="pure-u-1 pure-u-lg-1-3 pure-u-md-1-2">
                 <br />
-                <form method="post" action="/channel/{{ channel_uuid }}/add/admin" class="pure-form pure-form-stacked">
+                <form method="post" action="channel/{{ channel_uuid }}/add/admin" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add admin</legend>
                         {{ render_field(admin_form.uuid) }}
@@ -65,7 +65,7 @@
             <!-- PERMISSIONS -->
             <div class="pure-u-1 pure-u-lg-1-3">
                 <br />
-                <form method="post" action="/channel/{{ channel_uuid }}/create/acl" class="pure-form pure-form-stacked">
+                <form method="post" action="channel/{{ channel_uuid }}/create/acl" class="pure-form pure-form-stacked">
                     <fieldset>
                          <legend>Add permission</legend>
                         {{ render_field(acl_form.api_action) }}
@@ -98,8 +98,8 @@
                                 <td>{{ acl.type }}</td>
                                 <td><small>{{ acl.value }}</small></td>
                                 <td class="actions">
-                                    {{ render_remove("/channel/" + channel_uuid + "/acl/" + acl.action + "/type/" + acl.type, "") }}
-                                    {{ render_edit("/channel/" + channel_uuid + "/acl/" + acl.action + "/type/" + acl.type) }}
+                                    {{ render_remove("channel/" + channel_uuid + "/acl/" + acl.action + "/type/" + acl.type, "") }}
+                                    {{ render_edit("channel/" + channel_uuid + "/acl/" + acl.action + "/type/" + acl.type) }}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -124,7 +124,7 @@
                                     <td>{{ owner.name }}</td>
                                     <td><small>{{ owner.uuid }}</small></td>
                                     <td class="actions">
-                                        {{ render_remove("/channel/" + channel_uuid + "/remove/owner/" + owner.uuid, "") }}
+                                        {{ render_remove("channel/" + channel_uuid + "/remove/owner/" + owner.uuid, "") }}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -149,7 +149,7 @@
                                     <td>{{ admin.name }}</td>
                                     <td><small>{{ admin.uuid }}</small></td>
                                     <td class="actions">
-                                        {{ render_remove("/channel/" + channel_uuid + "/remove/admin/" + admin.uuid, "") }}
+                                        {{ render_remove("channel/" + channel_uuid + "/remove/admin/" + admin.uuid, "") }}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -164,7 +164,7 @@
 <br />
 
 <div>
-    <form method="post" action="/channel/{{ channel_uuid }}/create" class="pure-form">
+    <form method="post" action="channel/{{ channel_uuid }}/create" class="pure-form">
         <fieldset>
              <legend>Create new room</legend>
             {{ render_field(form.name) }}
@@ -208,11 +208,11 @@
         <tr>
             <td>
                 {{ room.sort }}
-                {{ render_edit("/channel/" + channel_uuid + "/room/" + room.uuid + "/sort") }}
+                {{ render_edit("channel/" + channel_uuid + "/room/" + room.uuid + "/sort") }}
             </td>
             <td>
                 <a class="rooms-link" href="/channel/{{ channel_uuid }}/room/{{ room.uuid }}">{{ room.name }}</a>
-                {{ render_rename("/channel/" + channel_uuid + "/room/" + room.uuid + "/rename") }}
+                {{ render_rename("channel/" + channel_uuid + "/room/" + room.uuid + "/rename") }}
             </td>
             <td>
                 <small>{{ room.uuid }}</small>
