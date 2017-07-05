@@ -60,11 +60,14 @@ Response would be something similar to the following:
 
 ## POST /broadcast
 
-Broadcasts a message to everyone on the server. Request only needs the `body` key:
+Broadcasts a message to everyone on the server. Request needs the `body` and `verb` keys:
 
     {
-        "body": "aGkgdGhlcmU="
+        "body": "aGkgdGhlcmU=",
+        "verb": "broadcast"
     }
+
+Body needs to be in base64. The verb may be anything, it's up to clients to handle it.
 
 ## POST /blacklist
 
