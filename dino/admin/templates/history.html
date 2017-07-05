@@ -53,7 +53,7 @@
             </td>
             <td>
                 {% if message.domain == 'room' %}
-                    <a href="channel/{{ message.channel_id }}/room/{{ message.target_id }}">{{ message.target_name }}</a>
+                    <a href="/channel/{{ message.channel_id }}/room/{{ message.target_id }}">{{ message.target_name }}</a>
                 {% else %}
                     {{ message.target_name }}
                 {% endif %}
