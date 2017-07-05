@@ -56,10 +56,18 @@ class BroadcastResource(BaseResource):
 
         if 'body' not in json:
             raise RuntimeError('no key [body] in json message')
+        if 'verb' not in json:
+            raise RuntimeError('no key [verb] in json message')
 
         body = json.get('body')
+        if body is None or len(body.strip()) == 0:
+            raise RuntimeError('body may not be blank')
         if not utils.is_base64(body):
             raise RuntimeError('body in json message must be base64')
 
-        data = utils.activity_for_broadcast(body)
+        verb = json.get('verb')
+        if verb is None or len(verb.strip()) == 0:
+            raise RuntimeError('verb may not be blank')
+
+        data = utils.activity_for_broadcast(body, verb)
         environ.env.out_of_scope_emit('gn_broadcast', data, json=True, namespace='/ws', broadcast=True)

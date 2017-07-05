@@ -34,6 +34,7 @@ from dino.web import app
 from dino.admin.orm import channel_manager
 from dino.admin.orm import room_manager
 from dino.admin.orm import acl_manager
+from dino.admin.orm import broadcast_manager
 from dino.admin.orm import user_manager
 from dino.admin.orm import storage_manager
 from dino.admin.orm import blacklist_manager
@@ -55,6 +56,7 @@ from dino.admin.forms import CreateRoomAclForm
 from dino.admin.forms import AddBlackListForm
 from dino.admin.forms import SearchHistoryForm
 from dino.admin.forms import AddModeratorForm
+from dino.admin.forms import BroadcastForm
 from dino.admin.forms import AddOwnerForm
 from dino.admin.forms import AddAdminForm
 from dino.admin.forms import BanForm
@@ -626,6 +628,44 @@ def delete_room(channel_uuid: str, room_uuid: str):
 def delete_channel(channel_uuid: str):
     channel_manager.remove_channel(channel_uuid)
     return jsonify({'status_code': 200})
+
+
+@app.route('/broadcast', methods=['GET'])
+def get_broadcast():
+    form = BroadcastForm(request.form)
+    return render_template('broadcast.html', form=form)
+
+
+@app.route('/send-broadcast', methods=['POST'])
+def post_broadcast():
+    form = BroadcastForm(request.form)
+
+    def sent_successfully():
+        body = form.body.data
+        verb = form.verb.data
+
+        if body is None or len(body.strip()) == 0:
+            flash('Body may not be empty')
+            return False
+        if verb is None or len(verb.strip()) == 0:
+            flash('Verb may not be empty')
+            return False
+
+        try:
+            body = utils.b64e(body)
+            broadcast_manager.send(body, verb)
+        except Exception as e:
+            logger.error('could not send broadcast: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            flash(str(e))
+            return False
+        return True
+
+    if sent_successfully():
+        form.body.data = ''
+        form.verb.data = ''
+
+    return redirect('/broadcast')
 
 
 @app.route('/channel/<channel_uuid>/create/acl', methods=['POST'])

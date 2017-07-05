@@ -11,6 +11,10 @@ textarea {
     font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
 }
 
+#ban-form, #edit-form, #rename-form {
+    display: none;
+}
+
 #menubar {
     height: 50px;
     border-bottom: 1px solid #666;

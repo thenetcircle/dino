@@ -20,6 +20,7 @@ from dino.db.manager import UserManager
 from dino.db.manager import AclManager
 from dino.db.manager import StorageManager
 from dino.db.manager import BlackListManager
+from dino.db.manager import BroadcastManager
 from dino import environ
 
 channel_manager = ChannelManager(environ.env)
@@ -28,3 +29,4 @@ user_manager = UserManager(environ.env)
 storage_manager = StorageManager(environ.env)
 acl_manager = AclManager(environ.env)
 blacklist_manager = BlackListManager(environ.env)
+broadcast_manager = BroadcastManager(environ.env)

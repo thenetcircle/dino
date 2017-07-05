@@ -624,7 +624,7 @@ def activity_for_whisper(
     }
 
 
-def activity_for_broadcast(body: str) -> dict:
+def activity_for_broadcast(body: str, verb: str='broadcast') -> dict:
     return {
         'actor': {
             'displayName': ADMIN_B64,  # 'Admin' in base64
@@ -632,7 +632,7 @@ def activity_for_broadcast(body: str) -> dict:
         },
         'content': body,
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'broadcast',
+        'verb': verb,
         'id': str(uuid())
     }
 

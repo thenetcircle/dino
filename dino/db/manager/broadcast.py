@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -12,12 +10,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dino.db.manager.channels import ChannelManager
-from dino.db.manager.rooms import RoomManager
-from dino.db.manager.users import UserManager
-from dino.db.manager.acls import AclManager
-from dino.db.manager.storage import StorageManager
-from dino.db.manager.blacklist import BlackListManager
-from dino.db.manager.broadcast import BroadcastManager
+import logging
+
+from dino.db.manager.base import BaseManager
+from dino.environ import GNEnvironment
+
+from dino import utils
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
+
+
+class BroadcastManager(BaseManager):
+    def __init__(self, env: GNEnvironment):
+        self.env = env
+
+    def send(self, body: str, verb: str) -> None:
+        data = utils.activity_for_broadcast(body, verb)
+        self.env.out_of_scope_emit('gn_broadcast', data, json=True, namespace='/ws', broadcast=True)
