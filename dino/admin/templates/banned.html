@@ -7,7 +7,7 @@
 </p>
 
 <div>
-    <form method="post" action="banned" class="pure-form">
+    <form method="post" action="/banned" class="pure-form">
         {{ render_form("Create new ban", "Create", form) }}
     </form>
 </div>
@@ -55,7 +55,7 @@
                 &nbsp;
             </td>
             <td>
-                    {{ render_remove("banned/user/" + user_id, "") }}
+                    {{ render_remove("/banned/user/" + user_id, "") }}
             </td>
         </tr>
         {% endfor %}
@@ -118,7 +118,7 @@
                     &nbsp;
                 </td>
                 <td>
-                    {{ render_remove("banned/channel/" + channel_id + "/user/" + user_id, "") }}
+                    {{ render_remove("/banned/channel/" + channel_id + "/user/" + user_id, "") }}
                 </td>
             </tr>
             {% endfor %}
@@ -182,7 +182,7 @@
                     &nbsp;
                 </td>
                 <td>
-                    {{ render_remove("banned/room/" + room_id + "/user/" + user_id, "") }}
+                    {{ render_remove("/banned/room/" + room_id + "/user/" + user_id, "") }}
                 </td>
             </tr>
             {% endfor %}

@@ -7,7 +7,7 @@
 </p>
 
 <div>
-    <form method="post" action="create/channel" class="pure-form">
+    <form method="post" action="/create/channel" class="pure-form">
         <fieldset>
              <legend>Create new channel</legend>
             {{ render_field(form.name) }}
@@ -36,11 +36,11 @@
         <tr>
             <td>
                 {{ channel.sort }}
-                {{ render_edit("channel/" + channel.uuid + "/sort") }}
+                {{ render_edit("/channel/" + channel.uuid + "/sort") }}
             </td>
             <td>
                 <a class="channel-link" href="/channel/{{ channel.uuid }}/rooms">{{ channel.name }}</a>
-                {{ render_rename("channel/" + channel.uuid + "/rename") }}
+                {{ render_rename("/channel/" + channel.uuid + "/rename") }}
             </td>
             <td>
                 <small>{{ channel.uuid }}</small>
