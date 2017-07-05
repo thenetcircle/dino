@@ -111,6 +111,9 @@
                 <li class="toctree-l3"><a href="#get-history">GET /history</a></li>
                 
             
+                <li class="toctree-l3"><a href="#post-broadcast">POST /broadcast</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#post-blacklist">POST /blacklist</a></li>
                 
             
@@ -246,6 +249,14 @@
 <li>Either <code>user_id</code> or <code>room_id</code> is required (both can be specified at the same time),</li>
 <li><code>to_time</code> needs to be after <code>from_time</code>.</li>
 </ul>
+<h2 id="post-broadcast">POST /broadcast</h2>
+<p>Broadcasts a message to everyone on the server. Request needs the <code>body</code> and <code>verb</code> keys:</p>
+<pre><code>{
+    "body": "aGkgdGhlcmU=",
+    "verb": "broadcast"
+}
+</code></pre>
+<p>Body needs to be in base64. The verb may be anything, it's up to clients to handle it.</p>
 <h2 id="post-blacklist">POST /blacklist</h2>
 <p>Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:</p>
 <pre><code>{
