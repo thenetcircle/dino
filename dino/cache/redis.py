@@ -88,6 +88,10 @@ class RedisWrapper(object):
     def get(self, *args):
         return self.r_server.get(*args)
 
+    @timeit(logger, 'on_redis_set')
+    def set(self, *args):
+        return self.r_server.set(*args)
+
     @timeit(logger, 'on_redis_delete')
     def delete(self, *args):
         return self.r_server.delete(*args)
