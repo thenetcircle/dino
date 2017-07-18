@@ -17,7 +17,10 @@ import logging
 import traceback
 import random
 
+from typing import Union
+
 from zope.interface import implementer
+from fakeredis import FakeStrictRedis as RedisInterface
 
 from dino.config import RedisKeys
 from dino.config import ConfigKeys
@@ -71,6 +74,49 @@ class MemoryCache(object):
         self.vals = dict()
 
 
+class RedisWrapper(object):
+    def __init__(self, r_server: Union[RedisInterface, object]):
+        """
+        RedisInterface here is the FakeStrictRedis imported at the top (which is required by the project, while regular
+        redis package is NOT, so we can't import that). The Union with `object` is simple to make the CacheRedis init
+        method not complain when injecting the real Redis instance. Here we only want to reference the "interface" to
+        get IDE code completion and warnings of misspelled method names.
+        """
+        self.r_server = r_server
+
+    def get(self, key):
+        return self.r_server.get(key)
+
+    def delete(self, key):
+        return self.r_server.delete(key)
+
+    def flushdb(self):
+        return self.r_server.flushdb()
+
+    def hdel(self, bucket, key):
+        return self.r_server.hdel(bucket, key)
+
+    def hexists(self, bucket, key):
+        return self.r_server.hexists(bucket, key)
+
+    def hget(self, bucket, key):
+        self.r_server.hget(bucket, key)
+
+    def hset(self, bucket, key):
+        self.r_server.hget(bucket, key)
+
+    def sadd(self, bucket, value):
+        self.r_server.hset(bucket, value)
+
+    def setbit(self, bucket, value):
+        self.r_server.setbit(bucket, value)
+
+    def smembers(self, bucket):
+        return self.r_server.smembers(bucket)
+
+    def srem(self, bucket, key):
+        self.r_server.srem(bucket, key)
+
 @implementer(ICache)
 class CacheRedis(object):
     redis = None
@@ -81,7 +127,7 @@ class CacheRedis(object):
         else:
             from redis import Redis
 
-        self.redis = Redis(host=host, port=port, db=db)
+        self.redis = RedisWrapper(Redis(host=host, port=port, db=db))
         self.cache = MemoryCache()
 
     def _flushall(self) -> None:

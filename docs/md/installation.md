@@ -7,16 +7,21 @@ Some package requirements (debian/ubuntu):
     $ sudo apt-get install tar git curl nano wget dialog net-tools build-essential
     $ sudo apt-get install libssl-dev libmysqlclient-dev libpq-dev virtualenv
 
-Requires Python >=3.5. Download and install from source:
+Requires Python >=3.6.2. Download and install from source:
 
-    $ wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz
-    $ tar -xvf Python-3.5.2.tar.xz
-    $ cd Python-3.5.2/
-    $ ./configure --prefix=/usr/local --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+    $ wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz
+    $ tar -xvf Python-3.6.2.tar.xz
+    $ cd Python-3.6.2/
+    $ mkdir /opt/python-3.6.2 && ./configure --prefix=/opt/python-3.6.2 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
     $ make
     $ sudo make altinstall
 
-If using redis, postgresql/mysql and cassandra, please see relevant documentation for how to install:
+Add the paths to your `.bashrc` or `.profile`:
+
+    export PATH="/opt/python-3.6.2/bin/:$PATH"
+    export LD_LIBRARY_PATH="/opt/python-3.6.2/lib/:$LD_LIBRARY_PATH"
+
+If using redis, postgresql/mysql and/or cassandra, please see relevant documentation for how to install:
 
 * [Redis](https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-redis-on-ubuntu-16-04)
 * [PostgreSQL](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-16-04)
@@ -35,7 +40,7 @@ Just clone and run from the cloned directory:
 
     $ git clone https://github.com/thenetcircle/dino.git
     $ cd dino
-    $ virtualenv --python=python3.5 env
+    $ virtualenv --python=python3.6 env
     $ source env/bin/activate
     (env) $ pip install --upgrade -r requirements.txt
     (env) $ pip install --upgrade --no-deps .
@@ -45,7 +50,7 @@ Using init script
 
     $ git clone https://github.com/thenetcircle/dino.git foobar-prod
     $ cd foobar-prod
-    $ virtualenv --python=python3.5 env
+    $ virtualenv --python=python3.6 env
     $ sudo cp bin/initd/dino-app /etc/init.d/
     $ source env/bin/activate
     (env) $ pip install --upgrade -r requirements.txt
@@ -63,7 +68,7 @@ install for.
     /home/dino
     $ git clone https://github.com/thenetcircle/dino.git foobar-prod
     $ cd foobar-prod
-    $ virtualenv --python=python3.5 env
+    $ virtualenv --python=python3.6 env
     $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod app 5200
     $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod rest 5400
     $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod web 5300
@@ -126,7 +131,7 @@ Simple
 Running in the foreground:
 
     $ cd dino/
-    $ virtualenv --python=python3.5 env
+    $ virtualenv --python=python3.6 env
     $ source env/bin/activate
     (env) $ DINO_ENVIRONMENT=dev gunicorn \
                 --error-logfile ~/dino-gunicorn-error.log \
