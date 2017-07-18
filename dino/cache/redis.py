@@ -76,12 +76,11 @@ class MemoryCache(object):
 
 
 class RedisWrapper(object):
-    def __init__(self, r_server: Union[RedisInterface, object]):
+    def __init__(self, r_server):
         """
         RedisInterface here is the FakeStrictRedis imported at the top (which is required by the project, while regular
-        redis package is NOT, so we can't import that). The Union with `object` is simple to make the CacheRedis init
-        method not complain when injecting the real Redis instance. Here we only want to reference the "interface" to
-        get IDE code completion and warnings of misspelled method names.
+        redis package is NOT, so we can't import that). Here we only want to reference the "interface" to get IDE code
+        completion and warnings of misspelled method names.
         """
         self.r_server: RedisInterface = r_server
 
