@@ -12,7 +12,8 @@ Requires Python >=3.6.2. Download and install from source:
     $ wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz
     $ tar -xvf Python-3.6.2.tar.xz
     $ cd Python-3.6.2/
-    $ mkdir /opt/python-3.6.2 && ./configure --prefix=/opt/python-3.6.2 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+    $ mkdir /opt/python-3.6.2
+    $ ./configure --prefix=/opt/python-3.6.2 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" --enable-optimizations
     $ make
     $ sudo make altinstall
 
