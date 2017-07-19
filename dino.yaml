@@ -33,7 +33,7 @@ common_config: &common_config
         type: 'top'  # unread or top
         limit: 50
 
-oscar:
+default:
     <<: *common_config
     database:
         type: 'rdbms'

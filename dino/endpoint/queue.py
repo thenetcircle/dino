@@ -134,26 +134,32 @@ class QueueHandler(object):
     def handle_local_node_events(self, data: dict, activity: Activity):
         # do this first, since ban might occur even if user is not connected
         if activity.verb == 'ban':
+            user_is_on_node = True
+
+            # delegate so we don't end up re-reading this event before adding to ignore list
+            if not self.user_is_on_this_node(activity):
+                logger.info('user is not on this node, will publish on queue for other nodes to try')
+                self.update_recently_delegated_events(activity.id)
+                environ.env.publish(data)
+                user_is_on_node = False
+
             self.create_ban_even_if_not_on_this_node(activity)
 
-        if not self.user_is_on_this_node(activity):
-            logger.info('user is not on this node, will publish on queue for other nodes to try')
-            self.update_recently_delegated_events(activity.id)
-            environ.env.publish(data)
-            return
+            # no need to continue if the user is not on this node; event already delegated
+            if not user_is_on_node:
+                return
 
-        if activity.verb == 'kick':
-            try:
-                self.handle_kick(activity)
-            except Exception as e:
-                logger.error('could not handle kick: %s' % str(e))
-                logger.exception(traceback.format_exc())
-
-        elif activity.verb == 'ban':
             try:
                 self.handle_ban(activity)
             except Exception as e:
                 logger.error('could not handle ban: %s' % str(e))
+                logger.exception(traceback.format_exc())
+
+        elif activity.verb == 'kick':
+            try:
+                self.handle_kick(activity)
+            except Exception as e:
+                logger.error('could not handle kick: %s' % str(e))
                 logger.exception(traceback.format_exc())
 
         elif activity.verb == 'remove':
