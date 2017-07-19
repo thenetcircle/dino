@@ -890,7 +890,7 @@ def init_stats_service(gn_env: GNEnvironment) -> None:
 
     stats_type = stats_engine.get(ConfigKeys.TYPE, None)
     if stats_type is None:
-        raise RuntimeError('no stats type specified, use one of [redis, mock, missall]')
+        raise RuntimeError('no stats type specified, use one of [statsd] (set host to mock if no stats service wanted)')
 
     if stats_type == 'statsd':
         from dino.stats.statsd import StatsdService
