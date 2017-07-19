@@ -132,15 +132,20 @@ class QueueHandler(object):
             del self.recently_handled_events[0]
 
     def handle_local_node_events(self, data: dict, activity: Activity):
-        # do this first, since ban might occur even if user is not connected
-        if activity.verb == 'ban':
-            self.create_ban_even_if_not_on_this_node(activity)
+        should_return = False
 
+        # delegate so we don't end up re-reading this event before adding to ignore list
         if not self.user_is_on_this_node(activity):
             logger.info('user is not on this node, will publish on queue for other nodes to try')
             self.update_recently_delegated_events(activity.id)
             environ.env.publish(data)
-            return
+            should_return = True
+
+        # do this first, since ban might occur even if user is not connected
+        if activity.verb == 'ban':
+            self.create_ban_even_if_not_on_this_node(activity)
+            if should_return:
+                return
 
         if activity.verb == 'kick':
             try:
@@ -335,7 +340,7 @@ class QueueHandler(object):
         namespace = activity.target.url
 
         if kicked_sid is None or kicked_sid == [None] or kicked_sid == '':
-            logger.warn('no sid found for user id %s' % kicked_id)
+            logger.warning('no sid found for user id %s' % kicked_id)
             return
 
         reason = None
