@@ -13,3 +13,4 @@ setup.cfg
 /secrets/*.env
 /secrets/*.yaml
 !/secrets/default.yaml
+!/secrets/test.yaml
