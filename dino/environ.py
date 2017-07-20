@@ -828,7 +828,29 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
     eventlet.spawn_after(seconds=5*60, func=delete)
 
 
+@timeit(logger, 'init logging service')
+def init_logging(gn_env: GNEnvironment) -> None:
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    logging_type = gn_env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.LOGGING, default='logger')
+    if logging_type is None or len(logging_type.strip()) == 0 or logging_type in ['logger', 'default', 'mock']:
+        return
+    if logging_type != 'sentry':
+        raise RuntimeError('unknown logging type %s' % logging_type)
+
+    dsn = gn_env.config.get(ConfigKeys.DNS, domain=ConfigKeys.LOGGING, default='')
+    if dsn is None or len(dsn.strip()) == 0:
+        raise RuntimeError('no Sentry DSN specified, please check sentry docs')
+
+    from raven.contrib.flask import Sentry
+    from dino.server import app
+    gn_env.sentry = Sentry(app, dsn=dsn, logging=True, level=logging.ERROR)
+
+
 def initialize_env(dino_env):
+    init_logging(dino_env)
     init_storage_engine(dino_env)
     init_database(dino_env)
     init_auth_service(dino_env)
