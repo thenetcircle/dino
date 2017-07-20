@@ -2,7 +2,7 @@ language: python
 sudo: false
 
 python:
-  - "3.5"
+  - "3.6.2"
 
 install: 
   - "pip install -r test_requirements.txt"
@@ -10,7 +10,7 @@ install:
 
 script:
   - nosetests-3.4 --with-coverage --cover-package dino -s test
-  - coverage-3.5 report --omit=env -m
+  - coverage-3.6 report --omit=env -m
 
 after_success:
   - codecov

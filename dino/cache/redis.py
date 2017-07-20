@@ -27,6 +27,7 @@ from dino.config import ConfigKeys
 from dino.config import UserKeys
 from dino.config import RoleKeys
 from dino.cache import ICache
+from dino.utils.decorators import timeit
 from datetime import datetime
 from datetime import timedelta
 
@@ -75,47 +76,62 @@ class MemoryCache(object):
 
 
 class RedisWrapper(object):
-    def __init__(self, r_server: Union[RedisInterface, object]):
+    def __init__(self, r_server):
         """
         RedisInterface here is the FakeStrictRedis imported at the top (which is required by the project, while regular
-        redis package is NOT, so we can't import that). The Union with `object` is simple to make the CacheRedis init
-        method not complain when injecting the real Redis instance. Here we only want to reference the "interface" to
-        get IDE code completion and warnings of misspelled method names.
+        redis package is NOT, so we can't import that). Here we only want to reference the "interface" to get IDE code
+        completion and warnings of misspelled method names.
         """
-        self.r_server = r_server
+        self.r_server: RedisInterface = r_server
 
-    def get(self, key):
-        return self.r_server.get(key)
+    @timeit(logger, 'on_redis_get')
+    def get(self, *args):
+        return self.r_server.get(*args)
 
-    def delete(self, key):
-        return self.r_server.delete(key)
+    @timeit(logger, 'on_redis_set')
+    def set(self, *args):
+        return self.r_server.set(*args)
 
+    @timeit(logger, 'on_redis_delete')
+    def delete(self, *args):
+        return self.r_server.delete(*args)
+
+    @timeit(logger, 'on_redis_flushdb')
     def flushdb(self):
         return self.r_server.flushdb()
 
-    def hdel(self, bucket, key):
-        return self.r_server.hdel(bucket, key)
+    @timeit(logger, 'on_redis_hdel')
+    def hdel(self, *args):
+        return self.r_server.hdel(*args)
 
-    def hexists(self, bucket, key):
-        return self.r_server.hexists(bucket, key)
+    @timeit(logger, 'on_redis_hexists')
+    def hexists(self, *args):
+        return self.r_server.hexists(*args)
 
-    def hget(self, bucket, key):
-        self.r_server.hget(bucket, key)
+    @timeit(logger, 'on_redis_hget')
+    def hget(self, *args):
+        return self.r_server.hget(*args)
 
-    def hset(self, bucket, key):
-        self.r_server.hget(bucket, key)
+    @timeit(logger, 'on_redis_hset')
+    def hset(self, *args):
+        return self.r_server.hset(*args)
 
-    def sadd(self, bucket, value):
-        self.r_server.hset(bucket, value)
+    @timeit(logger, 'on_redis_sadd')
+    def sadd(self, *args):
+        return self.r_server.sadd(*args)
 
-    def setbit(self, bucket, value):
-        self.r_server.setbit(bucket, value)
+    @timeit(logger, 'on_redis_setbit')
+    def setbit(self, *args):
+        return self.r_server.setbit(*args)
 
-    def smembers(self, bucket):
-        return self.r_server.smembers(bucket)
+    @timeit(logger, 'on_redis_smembers')
+    def smembers(self, *args):
+        return self.r_server.smembers(*args)
 
-    def srem(self, bucket, key):
-        self.r_server.srem(bucket, key)
+    @timeit(logger, 'on_redis_srem')
+    def srem(self, *args):
+        return self.r_server.srem(*args)
+
 
 @implementer(ICache)
 class CacheRedis(object):

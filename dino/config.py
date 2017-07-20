@@ -134,6 +134,7 @@ class UserKeys(object):
 class ConfigKeys(object):
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'
+    LOGGING = 'logging'
     DATE_FORMAT = 'date_format'
     DEBUG = 'debug'
     QUEUE = 'queue'
@@ -149,6 +150,7 @@ class ConfigKeys(object):
     DRIVER = 'driver'
     STRATEGY = 'strategy'
     REPLICATION = 'replication'
+    DSN = 'dsn'
     DATABASE = 'database'
     DB = 'db'
     PORT = 'port'

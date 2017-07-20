@@ -45,6 +45,7 @@ def timeit(_logger, tag: str):
             except Exception as e:
                 failed = True
                 _logger.error(tag + '... FAILED')
+                environ.env.capture_exception(e)
                 raise e
             finally:
                 if not failed:
@@ -68,13 +69,14 @@ def respond_with(gn_event_name=None):
                 environ.env.stats.incr(gn_event_name + '.exception')
                 tb = traceback.format_exc()
                 logger.error('%s: %s' % (gn_event_name, str(e)))
+                environ.env.capture_exception(e)
                 return 500, str(e)
             finally:
                 if tb is not None:
                     logger.exception(tb)
 
             if status_code != 200:
-                logger.warn('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
+                logger.warning('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
             if data is not None:
                 environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
             else:
@@ -94,9 +96,10 @@ def count_connections(connect_type=None):
                 elif connect_type == 'disconnect':
                     environ.env.stats.decr('connections')
                 else:
-                    logger.warn('unknown connect type "%s"' % connect_type)
+                    logger.warning('unknown connect type "%s"' % connect_type)
             except Exception as e:
                 logger.error('could not record statistics: %s' % str(e))
+                environ.env.capture_exception(e)
 
             return view_func(*args, **kwargs)
         return decorator
@@ -127,7 +130,7 @@ def pre_process(validation_name, should_validate_request=True):
                         if user_name is None or len(user_name.strip()) == 0:
                             try:
                                 user_name = utils.get_user_name_for(data['actor']['id'])
-                            except NoSuchUserException as e:
+                            except NoSuchUserException:
                                 error_msg = '[%s] no user found for user_id "%s" in session' % \
                                             (validation_name, str(data['actor']['id']))
                                 logger.error(error_msg)
@@ -150,7 +153,7 @@ def pre_process(validation_name, should_validate_request=True):
                             for validator in environ.env.event_validator_map[validation_name]:
                                 all_ok, status_code, msg = validator(data, activity)
                                 if not all_ok:
-                                    logger.warn(
+                                    logger.warning(
                                             '[%s] validator "%s" failed: %s' %
                                             (validation_name, str(validator), str(msg)))
                                     break
@@ -163,13 +166,14 @@ def pre_process(validation_name, should_validate_request=True):
                     logger.error('%s: %s' % (validation_name, str(e)))
                     logger.exception(traceback.format_exc())
                     environ.env.stats.incr('event.' + validation_name + '.exception')
+                    environ.env.capture_exception(e)
                     return ErrorCodes.UNKNOWN_ERROR, str(e)
 
                 if status_code == 200:
                     environ.env.stats.incr('event.' + validation_name + '.count')
                 else:
                     environ.env.stats.incr('event.' + validation_name + '.error')
-                    logger.warn('in decorator for %s, status_code: %s, message: %s' %
+                    logger.warning('in decorator for %s, status_code: %s, message: %s' %
                                 (validation_name, status_code, str(message)))
                 return status_code, message
 

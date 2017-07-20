@@ -58,6 +58,7 @@ class Worker(ConsumerMixin):
             queue_handler.handle_server_activity(body, as_parser.parse(body))
         except Exception as e:
             logger.error('could not parse server message: "%s", message was: %s' % (str(e), body))
+            environ.env.capture_exception(e)
         message.ack()
 
 
@@ -182,6 +183,7 @@ def on_login(data: dict, activity: Activity) -> (int, str):
     except Exception as e:
         logger.error('could not login, will disconnect client: %s' % str(e))
         logger.exception(traceback.format_exc())
+        environ.env.capture_exception(e)
         return 500, str(e)
 
 

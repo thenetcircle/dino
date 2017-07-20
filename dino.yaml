@@ -16,10 +16,13 @@ common_config: &common_config
         port: 6379
         db: 7
     web:
-      root_url: '/'
+        root_url: '/'
     stats:
-      type: 'statsd'
-      host: 'mock'
+        type: 'statsd'
+        host: 'mock'
+    logging:
+        type: 'sentry'
+        dsn: '$DINO_SENTRY_DSN'
     validation:
         on_message:
             - name: no_empty
