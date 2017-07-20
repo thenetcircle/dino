@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.12.38'
+version = '0.12.39'
 
 setup(
     name='dino',
@@ -47,5 +47,6 @@ setup(
         'statsd',
         'pymitter',
         'psutil',
-        'gitpython'
+        'gitpython',
+        'raven'
     ])

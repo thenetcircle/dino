@@ -46,6 +46,7 @@ python-engineio==1.1.0
 python-socketio==1.6.1
 pytz==2016.7
 PyYAML==3.12
+raven==6.1.0
 redis==2.10.5
 requests==2.11.1
 six==1.10.0
