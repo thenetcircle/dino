@@ -117,6 +117,11 @@ class AddAdminForm(Form):
     uuid = StringField('ID', validators=[validators.DataRequired(), NonBlankString()], description='ID of the user')
 
 
+class BroadcastForm(Form):
+    body = TextAreaField('Body', validators=[validators.DataRequired(), NonBlankString()], description='Message to broadcast')
+    verb = StringField('Verb', validators=[validators.DataRequired(), NonBlankString()], description='Verb to use')
+
+
 class CreateChannelAclForm(Form):
     api_action = SelectField(
         'Action',

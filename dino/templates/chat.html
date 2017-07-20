@@ -123,6 +123,11 @@
                     console.log(data);
                 });
 
+                socket.on('gn_broadcast', function(data) {
+                    console.log('received broadcast event')
+                    console.log(data);
+                });
+
                 socket.on('gn_list_channels', function(response) {
                     console.log('listing channels');
                     console.log(response);

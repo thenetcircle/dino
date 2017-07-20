@@ -31,7 +31,7 @@ from dino import validation
 
 import logging
 
-__author__ = 'Oscar Eriksson <oscar@thenetcircle.com>'
+__author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
 logger = logging.getLogger(__name__)
 

@@ -7,16 +7,49 @@ Some package requirements (debian/ubuntu):
     $ sudo apt-get install tar git curl nano wget dialog net-tools build-essential
     $ sudo apt-get install libssl-dev libmysqlclient-dev libpq-dev virtualenv
 
-Requires Python >=3.5. Download and install from source:
+From source
+----
 
-    $ wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz
-    $ tar -xvf Python-3.5.2.tar.xz
-    $ cd Python-3.5.2/
-    $ ./configure --prefix=/usr/local --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+Requires Python >=3.6.0. Download and install from source (tip: install in `/opt` since it might interfere with other
+python installations, present or future):
+
+    $ wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz
+    $ tar -xvf Python-3.6.2.tar.xz
+    $ cd Python-3.6.2/
+    $ sudo mkdir /opt/python-3.6.2
+    $ ./configure --prefix=/opt/python-3.6.2 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" --enable-optimizations
     $ make
     $ sudo make altinstall
 
-If using redis, postgresql/mysql and cassandra, please see relevant documentation for how to install:
+Add the paths to your `.bashrc` or `.profile`:
+
+    export PATH="/opt/python-3.6.2/bin/:$PATH"
+    export LD_LIBRARY_PATH="/opt/python-3.6.2/lib/:$LD_LIBRARY_PATH"
+
+Install requirements:
+
+    $ source env/bin/activate
+    (env) $ pip install -r requirements.txt
+
+Using MiniConda
+----
+
+Install [miniconda](https://conda.io/docs/install/quick.html):
+
+    $ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    $ bash Miniconda3-latest-Linux-x86_64.sh # assuming defaults accepted
+    $ source ~/.bashrc
+
+Create your environment and install the requirements:
+
+    $ conda create -n env python=3.6
+    $ source activate env
+    $ pip install -r requirements.txt
+
+Other requirements
+----
+
+If you're using redis, postgresql/mysql and/or cassandra, please see relevant documentation for how to install:
 
 * [Redis](https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-redis-on-ubuntu-16-04)
 * [PostgreSQL](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-16-04)
@@ -35,7 +68,7 @@ Just clone and run from the cloned directory:
 
     $ git clone https://github.com/thenetcircle/dino.git
     $ cd dino
-    $ virtualenv --python=python3.5 env
+    $ virtualenv --python=python3.6 env
     $ source env/bin/activate
     (env) $ pip install --upgrade -r requirements.txt
     (env) $ pip install --upgrade --no-deps .
@@ -45,7 +78,7 @@ Using init script
 
     $ git clone https://github.com/thenetcircle/dino.git foobar-prod
     $ cd foobar-prod
-    $ virtualenv --python=python3.5 env
+    $ virtualenv --python=python3.6 env
     $ sudo cp bin/initd/dino-app /etc/init.d/
     $ source env/bin/activate
     (env) $ pip install --upgrade -r requirements.txt
@@ -63,7 +96,7 @@ install for.
     /home/dino
     $ git clone https://github.com/thenetcircle/dino.git foobar-prod
     $ cd foobar-prod
-    $ virtualenv --python=python3.5 env
+    $ virtualenv --python=python3.6 env
     $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod app 5200
     $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod rest 5400
     $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod web 5300
@@ -74,7 +107,7 @@ install for.
 Clustering
 ----
 
-If clustering dino, install a reverse proxy that supports websockets, e.g. nginx. Here's an example configuration:
+If clustering dino, install a reverse proxy that supports websockets, e.g. nginx (>= 1.4). Here's an example configuration:
 
     upstream gridnodes {
         ip_hash;
@@ -126,7 +159,7 @@ Simple
 Running in the foreground:
 
     $ cd dino/
-    $ virtualenv --python=python3.5 env
+    $ virtualenv --python=python3.6 env
     $ source env/bin/activate
     (env) $ DINO_ENVIRONMENT=dev gunicorn \
                 --error-logfile ~/dino-gunicorn-error.log \
@@ -216,13 +249,13 @@ and then how to [configure your pod to use it](https://kubernetes.io/docs/user-g
 Monitoring
 ====
 
-Dino can be extensivly monitored by configuring a statsd endpoint. In `dino.yaml` you can either choose `mock` to disable metrics:
+Dino can be extensively monitored by configuring a `statsd` endpoint. In `dino.yaml` you can either choose `mock` to disable metrics:
 
     stats:
       type: 'statsd'
       host: 'mock'
 
-Or choose `statsd` with a host and port to publish all metrics to a statsd host, for example like this:
+Or choose `statsd` with a host and port to publish all metrics to a `statsd` host, for example like this:
 
     stats:
       type: 'statsd'
@@ -237,7 +270,7 @@ So in the example above, when the mean timer value of the metric for how long ti
 
     dino.myapp.skybox-04.event.on_login.timer.mean
 
-A already configured solution for `statsd` with `influxdb` and the `grafana` frontend is to use
+An already configured solution for `statsd` with `influxdb` and the `grafana` frontend exists with
 [the following docker image](https://github.com/advantageous/docker-grafana-statsd):
 
     docker run -d \

@@ -15,6 +15,8 @@ common_config: &common_config
         queue: 'node_queue'
         port: 6379
         db: 7
+    web:
+      root_url: '/'
     stats:
       type: 'statsd'
       host: 'mock'

@@ -68,7 +68,7 @@ class QueueHandler(object):
                 return user_sid in users
 
         except KeyError as e:
-            logger.warn('namespace %s does not exist (maybe this is web/rest node?): %s' % (namespace, str(e)))
+            logger.warning('namespace %s does not exist (maybe this is web/rest node?): %s' % (namespace, str(e)))
             return False
         except Exception as e:
             logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, room_id, str(e)))
@@ -266,7 +266,7 @@ class QueueHandler(object):
     def ban_globally(self, data: dict, act: Activity, rooms: dict, user_id: str, user_sid: str, namespace: str) -> None:
         try:
             if len(rooms) == 0:
-                logger.warn('rooms to ban globally for is empty for user %s' % user_id)
+                logger.warning('rooms to ban globally for is empty for user %s' % user_id)
             for room_id, room_name in rooms.items():
                 self.env.out_of_scope_emit(
                         'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
@@ -341,7 +341,7 @@ class QueueHandler(object):
         namespace = activity.target.url
 
         if kicked_sid is None or kicked_sid == [None] or kicked_sid == '':
-            logger.warn('no sid found for user id %s' % kicked_id)
+            logger.warning('no sid found for user id %s' % kicked_id)
             return
 
         reason = None
@@ -391,7 +391,7 @@ class QueueHandler(object):
             target_name = ''
 
         if banned_sid is None or banned_sid == [None] or banned_sid == '':
-            logger.warn('no sid found for user id %s' % banned_id)
+            logger.warning('no sid found for user id %s' % banned_id)
             return
 
         reason = None

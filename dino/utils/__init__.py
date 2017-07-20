@@ -43,6 +43,8 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 logger = logging.getLogger(__name__)
 
+ADMIN_B64 = 'QWRtaW4='
+
 
 def b64d(s: str) -> str:
     if s is None:
@@ -618,6 +620,19 @@ def activity_for_whisper(
             'id': room_id,
             'displayName': b64e(room_name)
         },
+        'id': str(uuid())
+    }
+
+
+def activity_for_broadcast(body: str, verb: str='broadcast') -> dict:
+    return {
+        'actor': {
+            'displayName': ADMIN_B64,  # 'Admin' in base64
+            'id': '0'
+        },
+        'content': body,
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': verb,
         'id': str(uuid())
     }
 

@@ -58,6 +58,17 @@ Response would be something similar to the following:
 * Either `user_id` or `room_id` is required (both can be specified at the same time),
 * `to_time` needs to be after `from_time`.
 
+## POST /broadcast
+
+Broadcasts a message to everyone on the server. Request needs the `body` and `verb` keys:
+
+    {
+        "body": "aGkgdGhlcmU=",
+        "verb": "broadcast"
+    }
+
+Body needs to be in base64. The verb may be anything, it's up to clients to handle it.
+
 ## POST /blacklist
 
 Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:

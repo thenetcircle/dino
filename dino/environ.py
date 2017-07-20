@@ -15,18 +15,11 @@ import json
 import os
 import pkg_resources
 import logging
-import traceback
-import time
 
 from redis import Redis
 from typing import Union
 from types import MappingProxyType
 from base64 import b64encode
-
-from kombu import Exchange
-from kombu import Queue
-from kombu import Connection
-from kombu.pools import producers
 
 from flask_socketio import emit as _flask_emit
 from flask_socketio import send as _flask_send
@@ -225,10 +218,15 @@ class GNEnvironment(object):
         self.auth = config.get(ConfigKeys.AUTH_SERVICE, None)
         self.db = None
         self.publish = lambda message, external: None
+
+        self.external_queue_connection = None
+        self.external_queue = None
+        self.external_exchange = None
         self.queue_connection = None
         self.queue = None
-        self.pubsub = None
         self.exchange = None
+
+        self.pub_sub = None
         self.consume_worker = None
         self.start_consumer = None
         self.blacklist = None
@@ -707,174 +705,8 @@ def init_cache_service(gn_env: GNEnvironment):
 
 @timeit(logger, 'init pub/sub service')
 def init_pub_sub(gn_env: GNEnvironment) -> None:
-    recently_sent_external_hash = set()
-    recently_sent_external_list = list()
-
-    def error_callback(exc, interval):
-        logger.warn('could not connect to MQ: %s' % str(exc))
-
-    def publish(message, external=None):
-        logger.debug('publish: verb %s id %s external? %s' % (message['verb'], message['id'], str(external or False)))
-        if external is None or not external:
-            external = False
-
-        if external and gn_env.node != 'rest':
-            # avoid publishing duplicate events by only letting the rest node publish external events
-            return
-
-        if external and message['id'] in recently_sent_external_hash:
-            logger.debug(
-                    'ignoring external event with verb %s and id %s, already sent' %
-                    (message['verb'], message['id']))
-            return
-
-        try:
-            start = time.time()
-            n_tries = 3
-            current_try = 0
-            failed = False
-
-            if external:
-                message_type = 'external'
-                queue_connection = gn_env.external_queue_connection
-                if queue_connection is None:
-                    return
-                exchange = gn_env.external_exchange
-                queue = gn_env.external_queue
-            else:
-                message_type = 'internal'
-                queue_connection = gn_env.queue_connection
-                if queue_connection is None:
-                    return
-                exchange = gn_env.exchange
-                queue = gn_env.queue
-
-            with producers[queue_connection].acquire(block=True) as producer:
-                amqp_publish = queue_connection.ensure(producer, producer.publish, errback=error_callback, max_retries=3)
-
-                for current_try in range(n_tries):
-                    try:
-                        amqp_publish(message, exchange=exchange, declare=[exchange, queue])
-                        gn_env.stats.incr('publish.%s.count' % message_type)
-                        gn_env.stats.timing('publish.%s.time' % message_type, (time.time()-start)*1000)
-                        failed = False
-
-                        if external:
-                            recently_sent_external_hash.add(message['id'])
-                            recently_sent_external_list.append(message['id'])
-                            if len(recently_sent_external_list) > 100:
-                                old_id = recently_sent_external_list.pop(0)
-                                recently_sent_external_hash.remove(old_id)
-
-                        break
-                    except Exception as pe:
-                        failed = True
-                        logger.error('[%s/%s tries] failed to publish %s: %s' % (str(current_try+1), str(n_tries), message_type, str(pe)))
-                        logger.exception(traceback.format_exc())
-                        gn_env.stats.incr('publish.error')
-                        time.sleep(0.1)
-
-            if failed:
-                logger.error(
-                        'failed to publish %s event %s times! Republishing to internal queue' %
-                        (message_type, str(n_tries)))
-                publish(message)
-            elif current_try > 0:
-                logger.info('published successfully on attempt %s/%s' % (str(current_try+1), str(n_tries)))
-            else:
-                logger.debug(
-                        'published %s event with verb %s id %s' %
-                        (message_type, message['verb'], message['id']))
-
-        except Exception as e:
-            logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
-            logger.exception(traceback.format_exc())
-            gn_env.stats.incr('publish.error')
-
-    def mock_publish(message, external=False):
-        pass
-
-    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
-        gn_env.publish = mock_publish
-        return
-
-    conf = gn_env.config
-    gn_env.publish = publish
-
-    queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default=None)
-    queue_type = conf.get(ConfigKeys.TYPE, domain=ConfigKeys.QUEUE, default=None)
-    gn_env.queue_connection = None
-
-    import sys
-    import socket
-
-    args = sys.argv
-    bind_arg_pos = None
-    for a in ['--bind', '-b']:
-        bind_arg_pos = [i for i,x in enumerate(args) if x == a]
-        if len(bind_arg_pos) > 0:
-            bind_arg_pos = bind_arg_pos[0]
-            break
-
-    port = args[bind_arg_pos+1].split(':')[1]
-    hostname = socket.gethostname()
-
-    if queue_host is not None:
-        if queue_type == 'redis':
-            gn_env.queue_connection = Connection(queue_host)
-            gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
-            if gn_env.queue_name is None or len(gn_env.queue_name.strip()) == 0:
-                gn_env.queue_name = 'node_queue_%s_%s_%s' % (
-                    conf.get(ConfigKeys.ENVIRONMENT),
-                    hostname,
-                    port
-                )
-
-            exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
-            gn_env.exchange = Exchange(exchange, type='fanout')
-            gn_env.queue = Queue(gn_env.queue_name, gn_env.exchange)
-
-        elif queue_type == 'amqp':
-            queue_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=None)
-            queue_vhost = conf.get(ConfigKeys.VHOST, domain=ConfigKeys.QUEUE, default=None)
-            queue_user = conf.get(ConfigKeys.USER, domain=ConfigKeys.QUEUE, default=None)
-            queue_pass = conf.get(ConfigKeys.PASSWORD, domain=ConfigKeys.QUEUE, default=None)
-            queue_exchange = '%s_%s' % (
-                conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default=None),
-                conf.get(ConfigKeys.ENVIRONMENT)
-            )
-            gn_env.queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
-
-            if gn_env.queue_name is None or len(gn_env.queue_name.strip()) == 0:
-                gn_env.queue_name = 'node_queue_%s_%s_%s' % (
-                    conf.get(ConfigKeys.ENVIRONMENT),
-                    hostname,
-                    port
-                )
-
-            queue_host = ';'.join(['amqp://%s' % host for host in queue_host.split(';')])
-            gn_env.queue_connection = Connection(
-                    hostname=queue_host, port=queue_port, virtual_host=queue_vhost, userid=queue_user, password=queue_pass)
-            gn_env.exchange = Exchange(queue_exchange, type='fanout')
-            gn_env.queue = Queue(gn_env.queue_name, gn_env.exchange)
-
-    if gn_env.queue_connection is None:
-        raise RuntimeError('no message queue specified, need either redis or amqp')
-
-    ext_queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='')
-    gn_env.external_queue_connection = None
-    if ext_queue_host is not None and len(ext_queue_host.strip()) > 0:
-        ext_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
-        ext_vhost = conf.get(ConfigKeys.VHOST, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
-        ext_user = conf.get(ConfigKeys.USER, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
-        ext_pass = conf.get(ConfigKeys.PASSWORD, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
-        ext_exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
-        ext_queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
-
-        gn_env.external_queue_connection = Connection(
-                hostname=ext_queue_host, port=ext_port, virtual_host=ext_vhost, userid=ext_user, password=ext_pass)
-        gn_env.external_exchange = Exchange(ext_exchange, type='direct')
-        gn_env.external_queue = Queue(ext_queue, gn_env.external_exchange)
+    from dino.endpoint.pubsub import PubSub
+    gn_env.pub_sub = PubSub(gn_env)
 
 
 @timeit(logger, 'init stats service')
@@ -960,14 +792,40 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
-    channel_dict = gn_env.db.get_channels()
-    for channel_id, _ in channel_dict.items():
-        rooms = gn_env.db.rooms_for_channel(channel_id)
-        for room_uuid, room_info in rooms.items():
-            logger.debug('checking room %s: %s' % (room_uuid, str(room_info)))
-            if room_info['ephemeral']:
-                logger.info('removing ephemeral room "%s" (%s)' % (room_info['name'], room_uuid))
-                gn_env.db.remove_room(channel_id, room_uuid)
+
+    def delete():
+        from dino import utils
+        from activitystreams import parse as as_parser
+
+        channel_dict = gn_env.db.get_channels()
+
+        for channel_id, _ in channel_dict.items():
+            rooms = gn_env.db.rooms_for_channel(channel_id)
+
+            for room_id, room_info in rooms.items():
+                short_id = room_id.split('-')[0]
+                room_name = room_info['name']
+                logger.debug('checking room %s: %s' % (room_id, room_name))
+
+                users = gn_env.db.users_in_room(room_id)
+                if len(users) > 0:
+                    logger.debug('[%s] NOT removing room (%s), has % user(s) in it' % (short_id, room_name, len(users)))
+                    continue
+
+                if not room_info['ephemeral']:
+                    logger.debug('[%s] NOT removing room (%s), not ephemeral' % (short_id, room_name))
+                    continue
+
+                logger.info('[%s] removing ephemeral room (%s)' % (short_id, room_name))
+                gn_env.db.remove_room(channel_id, room_id)
+                activity = utils.activity_for_remove_room('0', 'server', room_id, room_name, 'empty ephemeral room')
+
+                gn_env.db.remove_room(channel_id, room_id)
+                gn_env.emit('gn_room_removed', activity, broadcast=True, include_self=True)
+                gn_env.observer.emit('on_remove_room', (activity, as_parser(activity)))
+
+    import eventlet
+    eventlet.spawn_after(seconds=5*60, func=delete)
 
 
 def initialize_env(dino_env):

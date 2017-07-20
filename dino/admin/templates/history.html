@@ -7,7 +7,7 @@
 </p>
 
 <div>
-    <form id="search-history" method="post" action="/history/search" class="pure-form">
+    <form id="search-history" method="post" action="{{ config.ROOT_URL }}history/search" class="pure-form">
         <fieldset>
              <legend>Show history for</legend>
             {{ render_field(form.room_id) }}
@@ -53,7 +53,7 @@
             </td>
             <td>
                 {% if message.domain == 'room' %}
-                    <a href="/channel/{{ message.channel_id }}/room/{{ message.target_id }}">{{ message.target_name }}</a>
+                    <a href="{{ config.ROOT_URL }}channel/{{ message.channel_id }}/room/{{ message.target_id }}">{{ message.target_name }}</a>
                 {% else %}
                     {{ message.target_name }}
                 {% endif %}
@@ -76,12 +76,12 @@
     </tbody>
 </table>
 
-<link rel="stylesheet" type="text/css" media="all" href="/static/buttons.dataTables.min.css"/>
-<link rel="stylesheet" type="text/css" href="/static/jquery.switchButton.css" />
-<script type="text/javascript" src="/static/jquery.switchButton.js"></script>
-<script type="text/javascript" src="/static/jszip.min.js"></script>
-<script type="text/javascript" src="/static/buttons.html5.min.js"></script>
-<script type="text/javascript" src="/static/dataTables.buttons.min.js"></script>
-<script type="text/javascript" src="/static/custom/js/history.js"></script>
+<link rel="stylesheet" type="text/css" media="all" href="{{ config.ROOT_URL }}static/buttons.dataTables.min.css"/>
+<link rel="stylesheet" type="text/css" href="{{ config.ROOT_URL }}static/jquery.switchButton.css" />
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/jquery.switchButton.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/jszip.min.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/buttons.html5.min.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/custom/js/history.js"></script>
 
 {% endblock %}

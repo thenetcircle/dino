@@ -86,8 +86,6 @@ if not environ.env.config.get(ConfigKeys.TESTING, False):
             raise ValueError('need sid to disconnect client')
         environ.env._force_disconnect_by_sid(sid, '/ws')
 
-    # preferably "emit" should be set during env creation, but the socketio object is not created until after env is
-    environ.env.out_of_scope_emit = socketio.emit
     environ.env._force_disconnect_by_sid = socketio.server.disconnect
     environ.env.disconnect_by_sid = disconnect_by_sid
     environ.env.consume_thread = threading.Thread(target=consume)
