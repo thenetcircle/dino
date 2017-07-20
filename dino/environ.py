@@ -844,9 +844,15 @@ def init_logging(gn_env: GNEnvironment) -> None:
     if dsn is None or len(dsn.strip()) == 0:
         raise RuntimeError('no Sentry DSN specified, please check sentry docs')
 
-    from raven.contrib.flask import Sentry
-    from dino.server import app
-    gn_env.sentry = Sentry(app, dsn=dsn, logging=True, level=logging.ERROR)
+    import raven
+    import socket
+
+    gn_env.sentry = raven.Client(
+        dsn=dsn,
+        environment=os.getenv(ENV_KEY_ENVIRONMENT),
+        name=socket.gethostname(),
+        release=raven.fetch_git_sha(os.path.dirname(__file__))
+    )
 
 
 def initialize_env(dino_env):
