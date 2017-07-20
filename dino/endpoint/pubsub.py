@@ -142,7 +142,6 @@ class PubSub(object):
         return msg_id in self.recently_sent_external_hash
 
     def _do_publish_async(self, message: dict, external: bool):
-        logger.info('time to publish this: %s' % str(message))
         if external:
             # avoid publishing duplicate events by only letting the rest node publish external events
             if self.env.node != 'rest':
