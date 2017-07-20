@@ -846,12 +846,18 @@ def init_logging(gn_env: GNEnvironment) -> None:
 
     import raven
     import socket
+    from git.cmd import Git
+
+    home_dir = os.environ.get('DINO_HOME', default=None)
+    if home_dir is None:
+        home_dir = '.'
+    tag_name = Git(home_dir).describe()
 
     gn_env.sentry = raven.Client(
         dsn=dsn,
         environment=os.getenv(ENV_KEY_ENVIRONMENT),
         name=socket.gethostname(),
-        release=raven.fetch_git_sha(os.path.dirname(__file__))
+        release=tag_name
     )
 
 
