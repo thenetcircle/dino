@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 from dino.environ import GNEnvironment
 from dino.config import ConfigKeys
@@ -40,7 +40,7 @@ def locked_method(method):
 class PubSub(object):
     def __init__(self, env: GNEnvironment):
         self.env = env
-        self.executor = ProcessPoolExecutor(max_workers=1)
+        self.executor = ThreadPoolExecutor(max_workers=2)
         self.recently_sent_external_hash = set()
         self.recently_sent_external_list = list()
 
@@ -142,6 +142,7 @@ class PubSub(object):
         return msg_id in self.recently_sent_external_hash
 
     def _do_publish_async(self, message: dict, external: bool):
+        logger.info('time to publish this: %s' % str(message))
         if external:
             # avoid publishing duplicate events by only letting the rest node publish external events
             if self.env.node != 'rest':

@@ -133,6 +133,7 @@ class QueueHandler(object):
 
     def handle_local_node_events(self, data: dict, activity: Activity):
         # do this first, since ban might occur even if user is not connected
+        logger.info(data)
         if activity.verb == 'ban':
             user_is_on_node = True
 
