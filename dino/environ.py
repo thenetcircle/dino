@@ -830,6 +830,7 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
 
 @timeit(logger, 'init logging service')
 def init_logging(gn_env: GNEnvironment) -> None:
+    gn_env.capture_exception = lambda e: False
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
@@ -859,6 +860,14 @@ def init_logging(gn_env: GNEnvironment) -> None:
         name=socket.gethostname(),
         release=tag_name
     )
+
+    def capture_exception(e) -> None:
+        try:
+            gn_env.sentry.captureException(e)
+        except Exception as e2:
+            logger.error('could not capture exception with sentry: %s' % str(e2))
+
+    gn_env.capture_exception = capture_exception
 
 
 def initialize_env(dino_env):

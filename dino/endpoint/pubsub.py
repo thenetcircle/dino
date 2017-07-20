@@ -12,8 +12,8 @@
 
 from concurrent.futures import ThreadPoolExecutor
 
-from dino.environ import GNEnvironment
 from dino.config import ConfigKeys
+from dino import environ
 
 from kombu import Exchange
 from kombu import Queue
@@ -38,7 +38,7 @@ def locked_method(method):
 
 
 class PubSub(object):
-    def __init__(self, env: GNEnvironment):
+    def __init__(self, env: environ.GNEnvironment):
         self.env = env
         self.executor = ThreadPoolExecutor(max_workers=2)
         self.recently_sent_external_hash = set()
@@ -172,6 +172,7 @@ class PubSub(object):
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())
             self.env.stats.incr('publish.error')
+            environ.env.capture_exception(e)
         return None
 
     def do_publish_internal(self, message: dict):
@@ -191,6 +192,7 @@ class PubSub(object):
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())
             self.env.stats.incr('publish.error')
+            environ.env.capture_exception(e)
         return None
 
     def try_publish(self, message: dict, message_type: str, queue_connection, exchange, queue) -> None:
@@ -218,6 +220,7 @@ class PubSub(object):
                         str(current_try+1), str(n_tries), message_type, str(pe)))
                     logger.exception(traceback.format_exc())
                     self.env.stats.incr('publish.error')
+                    environ.env.capture_exception(pe)
                     time.sleep(0.1)
 
         if failed:
