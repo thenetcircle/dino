@@ -150,6 +150,7 @@ class ConfigKeys(object):
     DRIVER = 'driver'
     STRATEGY = 'strategy'
     REPLICATION = 'replication'
+    DSN = 'dsn'
     DATABASE = 'database'
     DB = 'db'
     PORT = 'port'

@@ -840,7 +840,7 @@ def init_logging(gn_env: GNEnvironment) -> None:
     if logging_type != 'sentry':
         raise RuntimeError('unknown logging type %s' % logging_type)
 
-    dsn = gn_env.config.get(ConfigKeys.DNS, domain=ConfigKeys.LOGGING, default='')
+    dsn = gn_env.config.get(ConfigKeys.DSN, domain=ConfigKeys.LOGGING, default='')
     if dsn is None or len(dsn.strip()) == 0:
         raise RuntimeError('no Sentry DSN specified, please check sentry docs')
 
