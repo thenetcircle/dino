@@ -24,9 +24,20 @@ if ! cd "$DINO_HOME"; then
     exit 1
 fi
 
-if [ -z "$VIRTUAL_ENV" ]; then
-    if ! source env/bin/activate; then
-        echo "error: could not activate virtual environment"
+if [ -f env/bin/activate ]; then
+    if [ -z "$VIRTUAL_ENV" ]; then
+        if ! source env/bin/activate; then
+            echo "error: could not source virtual env"
+            exit 1
+        fi
+    fi
+else
+    if ! which conda >/dev/null; then
+        echo "error: no virtual environment found in $DINO_HOME/env and no conda executable found"
+        exit 1
+    fi
+    if ! source activate ${CONDA_ENV}; then
+        echo "error: could not activate conda environment $CONDA_ENV"
         exit 1
     fi
 fi
