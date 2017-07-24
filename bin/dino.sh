@@ -30,9 +30,11 @@ if [ ! -d $DINO_HOME ]; then
     exit 1
 fi
 
-CONDA_ENV="env"
+if [[ -z "$DINO_CONDA_ENV" ]]; then
+    DINO_CONDA_ENV="env"
+fi
 if [ $# -gt 3 ]; then
-    CONDA_ENV="$4"
+    DINO_CONDA_ENV="$4"
 fi
 
 if [ ! -d /var/log/dino/ ]; then
@@ -59,8 +61,8 @@ else
         echo "error: no virtual environment found in $DINO_HOME/env and no conda executable found"
         exit 1
     fi
-    if ! source activate ${CONDA_ENV}; then
-        echo "error: could not activate conda environment $CONDA_ENV"
+    if ! source activate ${DINO_CONDA_ENV}; then
+        echo "error: could not activate conda environment $DINO_CONDA_ENV"
         exit 1
     fi
 fi
