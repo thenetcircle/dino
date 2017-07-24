@@ -2,8 +2,8 @@
 
 LOG_DIR=/var/log/dino
 
-if [ $# -ne 3 ]; then
-    echo "usage: $0 <environment> <port> <app/rest/web>"
+if [ $# -lt 3 ]; then
+    echo "usage: $0 <environment> <port> <app/rest/web> [conda environment name (if used), defaults to 'env']"
     exit 1
 fi
 
@@ -30,9 +30,9 @@ if [ ! -d $DINO_HOME ]; then
     exit 1
 fi
 
-if [ ! -f env/bin/activate ]; then
-    echo "error: no virtual environment found in $DINO_HOME/env"
-    exit 1
+CONDA_ENV="env"
+if [ $# -gt 3 ]; then
+    CONDA_ENV="$4"
 fi
 
 if [ ! -d /var/log/dino/ ]; then
@@ -47,9 +47,20 @@ if ! cd ${DINO_HOME}; then
     exit 1
 fi
 
-if ! source env/bin/activate; then
-    echo "error: could not source virtual env"
-    exit 1
+if [ -f env/bin/activate ]; then
+    if ! source env/bin/activate; then
+        echo "error: could not source virtual env"
+        exit 1
+    fi
+else
+    if ! which conda >/dev/null; then
+        echo "error: no virtual environment found in $DINO_HOME/env and no conda executable found"
+        exit 1
+    fi
+    if ! source activate ${CONDA_ENV}; then
+        echo "error: could not activate conda environment $CONDA_ENV"
+        exit 1
+    fi
 fi
 
 DINO_ENVIRONMENT=$1 DINO_DEBUG=0 gunicorn \
