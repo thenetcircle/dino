@@ -57,6 +57,7 @@ if [ -f env/bin/activate ]; then
         fi
     fi
 else
+    source ~/.bashrc
     if ! which conda >/dev/null; then
         echo "error: no virtual environment found in $DINO_HOME/env and no conda executable found"
         exit 1
