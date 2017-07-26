@@ -56,6 +56,7 @@ from dino.validation.acl import AclIsSuperUserValidator
 from dino.validation.acl import AclPatternValidator
 
 ENV_KEY_ENVIRONMENT = 'DINO_ENVIRONMENT'
+ENV_KEY_SECRETS = 'DINO_SECRETS'
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +219,7 @@ class GNEnvironment(object):
         self.auth = config.get(ConfigKeys.AUTH_SERVICE, None)
         self.db = None
         self.publish = lambda message, external: None
+        self.capture_exception = lambda e: False
 
         self.external_queue_connection = None
         self.external_queue = None
@@ -353,7 +355,9 @@ def load_secrets_file(config_dict: dict) -> dict:
     import ast
 
     gn_env = os.getenv(ENV_KEY_ENVIRONMENT)
-    secrets_path = 'secrets/%s.yaml' % gn_env
+    secrets_path = os.getenv(ENV_KEY_SECRETS)
+    if secrets_path is None:
+        secrets_path = 'secrets/%s.yaml' % gn_env
 
     # first substitute environment variables, which holds precedence over the yaml config (if it exists)
     template = Template(str(config_dict))
@@ -830,7 +834,6 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
 
 @timeit(logger, 'init logging service')
 def init_logging(gn_env: GNEnvironment) -> None:
-    gn_env.capture_exception = lambda e: False
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
@@ -843,7 +846,8 @@ def init_logging(gn_env: GNEnvironment) -> None:
 
     dsn = gn_env.config.get(ConfigKeys.DSN, domain=ConfigKeys.LOGGING, default='')
     if dsn is None or len(dsn.strip()) == 0:
-        raise RuntimeError('no Sentry DSN specified, please check sentry docs')
+        logger.warning('sentry logging selected but no DSN supplied, not configuring senty')
+        return
 
     import raven
     import socket
