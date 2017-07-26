@@ -15,6 +15,8 @@
 import logging
 import traceback
 
+from concurrent.futures import ThreadPoolExecutor
+
 from dino import environ
 from dino import utils
 from dino.utils.decorators import timeit
@@ -37,81 +39,108 @@ def fail(error_message):
     }
 
 
+def ok():
+    return {
+        'status': 'OK'
+    }
+
+
 class BanResource(BaseResource):
     def __init__(self):
         super(BanResource, self).__init__()
         self.user_manager = UserManager(environ.env)
+        self.executor = ThreadPoolExecutor(max_workers=1)
         self.request = request
+        self.env = environ.env
 
-    @timeit(logger, 'on_rest_ban')
     def do_post(self):
+        try:
+            json = self._validate_params()
+            self.schedule_execution(json)
+            return ok()
+        except Exception as e:
+            self.env.capture_exception(e)
+            return fail(str(e))
+
+    def schedule_execution(self, json: dict):
+        try:
+            # avoid hanging clients
+            self.executor.submit(self._do_post, json)
+        except Exception as e:
+            logger.error('could not schedule ban request: %s' % str(e))
+            logger.exception(e)
+            self.env.capture_exception(e)
+
+    def _validate_params(self):
         is_valid, msg, json = self.validate_json(self.request, silent=False)
-        output = dict()
         if not is_valid:
-            logger.error('invalid json: %s' % msg)
-            raise RuntimeError('invalid json')
+            raise RuntimeError('invalid json: %s' % msg)
 
         if json is None:
             raise RuntimeError('no json in request')
         if not isinstance(json, dict):
             raise RuntimeError('need a dict of user-room keys')
-        logger.debug('POST request: %s' % str(json))
 
         for user_id, ban_info in json.items():
             try:
                 target_type = ban_info['type']
             except KeyError:
-                logger.error('missing target type for user id %s and request %s' % (user_id, ban_info))
-                output[user_id] = fail('missing target type, should be one of [room, channel, global]')
-                continue
+                raise KeyError('missing target type for user id %s and request %s' % (user_id, ban_info))
 
-            target_id = None
             try:
-                target_id = ban_info['target']
+                ban_info['target']
             except KeyError:
                 if target_type != 'global':
-                    logger.error('missing target id for user id %s and request %s' % (user_id, ban_info))
-                    output[user_id] = fail('missing target id (room/channel uuid)')
-                    continue
+                    raise KeyError('missing target id for user id %s and request %s' % (user_id, ban_info))
 
             try:
-                duration = ban_info['duration']
+                ban_info['duration']
             except KeyError:
-                logger.error('missing ban duration for user id %s and request %s' % (user_id, ban_info))
-                output[user_id] = fail('missing ban duration')
-                continue
+                raise KeyError('missing ban duration for user id %s and request %s' % (user_id, ban_info))
 
-            reason = ban_info.get('reason')
-            banner_id = ban_info.get('admin_id')
+            ban_info.get('reason')
+            ban_info.get('admin_id')
 
+        return json
+
+    @timeit(logger, 'on_rest_ban')
+    def _do_post(self, json: dict):
+        logger.debug('POST request: %s' % str(json))
+        for user_id, ban_info in json.items():
             try:
-                user_name = ban_info['name']
-                user_name = utils.b64d(user_name)
-            except KeyError:
-                logger.warn('no name specified in ban info, if we have to create the user it will get the ID as name')
-                user_name = user_id
-
-            try:
-                self.user_manager.ban_user(
-                        user_id, target_id, duration, target_type,
-                        reason=reason, banner_id=banner_id, user_name=user_name)
-                output[user_id] = {
-                    'status': 'OK'
-                }
-            except ValueError as e:
-                logger.error('invalid ban duration "%s" for user %s: %s' % (duration, user_id, str(e)))
-                output[user_id] = fail('invalid ban duration [%s]' % duration)
-
-            except NoSuchUserException as e:
-                logger.error('no such user %s: %s' % (user_id, str(e)))
-                output[user_id] = fail('no such user')
-
-            except UnknownBanTypeException as e:
-                logger.error('unknown ban type "%s" for user %s: %s' % (target_type, user_id, str(e)))
-                output[user_id] = fail('unknown ban type [%s]' % target_type)
-
+                self.ban_user(user_id, ban_info)
             except Exception as e:
+                self.env.capture_exception(e)
                 logger.error('could not ban user %s: %s' % (user_id, str(e)))
-                logger.error(traceback.format_exc())
-                output[user_id] = fail(str(e))
-        return output
+
+    def ban_user(self, user_id: str, ban_info: dict):
+        target_type = ban_info['type']
+        target_id = ban_info['target']
+        duration = ban_info['duration']
+        reason = ban_info.get('reason')
+        banner_id = ban_info.get('admin_id')
+
+        try:
+            user_name = ban_info['name']
+            user_name = utils.b64d(user_name)
+        except KeyError:
+            logger.warning('no name specified in ban info, if we have to create the user it will get the ID as name')
+            user_name = user_id
+
+        try:
+            self.user_manager.ban_user(
+                    user_id, target_id, duration, target_type,
+                    reason=reason, banner_id=banner_id, user_name=user_name)
+        except ValueError as e:
+            logger.error('invalid ban duration "%s" for user %s: %s' % (duration, user_id, str(e)))
+            self.env.capture_exception(e)
+        except NoSuchUserException as e:
+            logger.error('no such user %s: %s' % (user_id, str(e)))
+            self.env.capture_exception(e)
+        except UnknownBanTypeException as e:
+            logger.error('unknown ban type "%s" for user %s: %s' % (target_type, user_id, str(e)))
+            self.env.capture_exception(e)
+        except Exception as e:
+            logger.error('could not ban user %s: %s' % (user_id, str(e)))
+            logger.error(traceback.format_exc())
+            self.env.capture_exception(e)

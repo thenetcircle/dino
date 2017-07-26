@@ -11,6 +11,7 @@
 # limitations under the License.
 
 from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 
 from dino.config import ConfigKeys
 from dino import environ
@@ -39,6 +40,7 @@ def locked_method(method):
 
 class PubSub(object):
     def __init__(self, env: environ.GNEnvironment):
+        self._lock = Lock()
         self.env = env
         self.executor = ThreadPoolExecutor(max_workers=2)
         self.recently_sent_external_hash = set()
