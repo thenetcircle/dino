@@ -68,10 +68,9 @@ class OnMessageHooks(object):
             else:
                 utils.update_last_reads(room_id)
 
-        @timeit(logger, 'on_message_hooks_store')
         def store() -> None:
             try:
-                environ.env.storage.store_message(activity)
+                environ.env.pool_executor.submit(environ.env.storage.store_message, activity)
             except Exception as e:
                 logger.error('could not store message %s because: %s' % (activity.id, str(e)))
                 logger.error(str(data))

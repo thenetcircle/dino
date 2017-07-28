@@ -448,7 +448,6 @@ def check_if_should_remove_room(data, activity):
 
     logger.info('checking whether to remove room "%s" (%s) or not' % (room_name, room_id))
 
-    #check_if_remove_room_owner(activity)
     check_if_remove_room_empty(activity)
 
 

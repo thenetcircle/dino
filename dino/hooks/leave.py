@@ -37,4 +37,4 @@ class OnLeaveHooks(object):
 
 @environ.env.observer.on('on_leave')
 def _on_leave_leave_room(arg: tuple) -> None:
-    OnLeaveHooks.leave_room(arg)
+    environ.env.pool_executor.submit(OnLeaveHooks.leave_room, arg)

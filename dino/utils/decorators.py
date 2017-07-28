@@ -44,6 +44,7 @@ def timeit(_logger, tag: str):
                 return view_func(*args, **kwargs)
             except Exception as e:
                 failed = True
+                _logger.exception(traceback.format_exc())
                 _logger.error(tag + '... FAILED')
                 environ.env.capture_exception(e)
                 raise e

@@ -20,9 +20,12 @@ from activitystreams.models.activity import Activity
 from dino.storage import IStorage
 from dino.config import ConfigKeys
 from dino.utils import b64d
+from dino.utils.decorators import timeit
 from dino import environ
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 @implementer(IStorage)
@@ -40,7 +43,6 @@ class CassandraStorage(object):
         self.key_space = key_space
         self.strategy = strategy
         self.replications = replications
-        self.logger = logging.getLogger(__name__)
         self.validate(hosts, replications, strategy)
 
     def init(self):
@@ -50,6 +52,7 @@ class CassandraStorage(object):
         self.driver = Driver(cluster.connect(), self.key_space, self.strategy, self.replications)
         self.driver.init()
 
+    @timeit(logger, 'on_message_hooks_store')
     def store_message(self, activity: Activity) -> None:
         message = b64d(activity.object.content)
         actor_name = b64d(activity.actor.display_name)
@@ -155,7 +158,7 @@ class CassandraStorage(object):
             raise ValueError('replications needs to be in the interval [1, 99]')
 
         if replications > len(hosts):
-            self.logger.warn('replications (%s) is higher than number of nodes in cluster (%s)' %
+            logger.warning('replications (%s) is higher than number of nodes in cluster (%s)' %
                              (str(replications), len(hosts)))
 
         if not isinstance(strategy, str):

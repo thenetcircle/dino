@@ -149,8 +149,7 @@ def chat():
             image=environ.env.session.get('image', ''),
             country=environ.env.session.get('country', ''),
             city=environ.env.session.get('city', ''),
-            token=environ.env.session.get('token', ''),
-            version=environ.env.config.get(ConfigKeys.VERSION))
+            token=environ.env.session.get('token', ''))
 
 
 @app.route('/js/<path:path>')

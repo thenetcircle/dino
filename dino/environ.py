@@ -20,6 +20,7 @@ from redis import Redis
 from typing import Union
 from types import MappingProxyType
 from base64 import b64encode
+from concurrent.futures import ThreadPoolExecutor
 
 from flask_socketio import emit as _flask_emit
 from flask_socketio import send as _flask_send
@@ -230,6 +231,7 @@ class GNEnvironment(object):
 
         self.pub_sub = None
         self.consume_worker = None
+        self.pool_executor = None
         self.start_consumer = None
         self.blacklist = None
         self.node = None
@@ -791,15 +793,30 @@ def init_admin_and_admin_room(gn_env: GNEnvironment):
     gn_env.db.create_admin_room()
 
 
+@timeit(logger, 'creating process pool')
+def init_process_pool(gn_env: GNEnvironment):
+    class FakeExecutor(object):
+        def submit(self, method, *args):
+            method(*args)
+
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        gn_env.pool_executor = FakeExecutor()
+        return
+
+    gn_env.pool_executor = ThreadPoolExecutor(max_workers=4)
+
+
 @timeit(logger, 'deleting ephemeral rooms')
 def delete_ephemeral_rooms(gn_env: GNEnvironment):
+    from activitystreams import parse as as_parser
+
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
 
     def delete():
         from dino import utils
-        from activitystreams import parse as as_parser
 
         channel_dict = gn_env.db.get_channels()
 
@@ -881,6 +898,7 @@ def initialize_env(dino_env):
     init_auth_service(dino_env)
     init_cache_service(dino_env)
     init_pub_sub(dino_env)
+    init_process_pool(dino_env)
     init_acl_validators(dino_env)
     init_stats_service(dino_env)
     init_observer(dino_env)
