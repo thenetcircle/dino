@@ -364,22 +364,17 @@ login the real username will overwrite this).</p>
 <p>Duration is an integer followed by a char for the unit, which can be one of <code>d</code>, <code>h</code>, <code>m</code>, <code>s</code> (days, hours, minutes, 
 seconds). Negative or 0 durations are not allowed.</p>
 <p>When type is set to <code>global</code>, no target is specified (meaning user is banned from the whole chat server).</p>
-<p>Response will be something like the following:</p>
+<p>Response will be something like the following (if failure):</p>
 <pre><code>{
-    "&lt;user id&gt;": {
-        "status": "OK"
-    },
-    "&lt;user id&gt;": {
-        "status": "FAIL",
-        "message": "invalid duration 5k"
-    },
-    "&lt;user id&gt;": {
-        "status": "FAIL",
-        "message": "no such user"
-    },
-    "&lt;user id&gt;" {
-        "status": "OK"
-    }
+    "status": "FAIL",
+    "message": "missing target id for user id &lt;user id&gt; and request &lt;the request json&gt;"
+}
+</code></pre>
+<p>The banning is done async so if any of the provided user bans has invalid parameters the response will only tell you the
+first non-valid parameter and for which user ID.</p>
+<p>For success the response looks like this:</p>
+<pre><code>{
+    "status": "OK"
 }
 </code></pre>
 <h2 id="post-kick">POST /kick</h2>

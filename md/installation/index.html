@@ -61,6 +61,12 @@
             
                 <li class="toctree-l3"><a href="#requirements">Requirements</a></li>
                 
+                    <li><a class="toctree-l4" href="#from-source">From source</a></li>
+                
+                    <li><a class="toctree-l4" href="#using-miniconda">Using MiniConda</a></li>
+                
+                    <li><a class="toctree-l4" href="#other-requirements">Other requirements</a></li>
+                
             
                 <li class="toctree-l3"><a href="#installing">Installing</a></li>
                 
@@ -189,11 +195,14 @@
 $ sudo apt-get install tar git curl nano wget dialog net-tools build-essential
 $ sudo apt-get install libssl-dev libmysqlclient-dev libpq-dev virtualenv
 </code></pre>
-<p>Requires Python &gt;=3.6.2. Download and install from source:</p>
+<h2 id="from-source">From source</h2>
+<p>Requires Python &gt;=3.6.0. Download and install from source (tip: install in <code>/opt</code> since it might interfere with other
+python installations, present or future):</p>
 <pre><code>$ wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz
 $ tar -xvf Python-3.6.2.tar.xz
 $ cd Python-3.6.2/
-$ mkdir /opt/python-3.6.2 &amp;&amp; ./configure --prefix=/opt/python-3.6.2 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+$ sudo mkdir /opt/python-3.6.2
+$ ./configure --prefix=/opt/python-3.6.2 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" --enable-optimizations
 $ make
 $ sudo make altinstall
 </code></pre>
@@ -201,7 +210,23 @@ $ sudo make altinstall
 <pre><code>export PATH="/opt/python-3.6.2/bin/:$PATH"
 export LD_LIBRARY_PATH="/opt/python-3.6.2/lib/:$LD_LIBRARY_PATH"
 </code></pre>
-<p>If using redis, postgresql/mysql and/or cassandra, please see relevant documentation for how to install:</p>
+<p>Install requirements:</p>
+<pre><code>$ source env/bin/activate
+(env) $ pip install -r requirements.txt
+</code></pre>
+<h2 id="using-miniconda">Using MiniConda</h2>
+<p>Install <a href="https://conda.io/docs/install/quick.html">miniconda</a>:</p>
+<pre><code>$ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+$ bash Miniconda3-latest-Linux-x86_64.sh # assuming defaults accepted
+$ source ~/.bashrc
+</code></pre>
+<p>Create your environment and install the requirements:</p>
+<pre><code>$ conda create -n env python=3.6
+$ source activate env
+$ pip install -r requirements.txt
+</code></pre>
+<h2 id="other-requirements">Other requirements</h2>
+<p>If you're using redis, postgresql/mysql and/or cassandra, please see relevant documentation for how to install:</p>
 <ul>
 <li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-redis-on-ubuntu-16-04">Redis</a></li>
 <li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-16-04">PostgreSQL</a></li>
@@ -245,7 +270,7 @@ $ source env/bin/activate
 (env) $ pip install --upgrade --no-deps .
 </code></pre>
 <h2 id="clustering">Clustering</h2>
-<p>If clustering dino, install a reverse proxy that supports websockets, e.g. nginx. Here's an example configuration:</p>
+<p>If clustering dino, install a reverse proxy that supports websockets, e.g. nginx (&gt;= 1.4). Here's an example configuration:</p>
 <pre><code>upstream gridnodes {
     ip_hash;
 
@@ -364,12 +389,12 @@ spec:
 <p>Read more on Kubernetes website on <a href="https://kubernetes.io/docs/user-guide/secrets/#creating-your-own-secrets">how to create the secrets object</a> 
 and then how to <a href="https://kubernetes.io/docs/user-guide/secrets/#using-secrets-as-environment-variables">configure your pod to use it</a>.</p>
 <h1 id="monitoring">Monitoring</h1>
-<p>Dino can be extensivly monitored by configuring a statsd endpoint. In <code>dino.yaml</code> you can either choose <code>mock</code> to disable metrics:</p>
+<p>Dino can be extensively monitored by configuring a <code>statsd</code> endpoint. In <code>dino.yaml</code> you can either choose <code>mock</code> to disable metrics:</p>
 <pre><code>stats:
   type: 'statsd'
   host: 'mock'
 </code></pre>
-<p>Or choose <code>statsd</code> with a host and port to publish all metrics to a statsd host, for example like this:</p>
+<p>Or choose <code>statsd</code> with a host and port to publish all metrics to a <code>statsd</code> host, for example like this:</p>
 <pre><code>stats:
   type: 'statsd'
   host: '$DINO_STATSD_HOST'
@@ -382,7 +407,7 @@ it's <code>skybox-04</code>) then the value of <code>import socket; socket.getho
 So in the example above, when the mean timer value of the metric for how long time the api action <code>on_login</code> takes would be:</p>
 <pre><code>dino.myapp.skybox-04.event.on_login.timer.mean
 </code></pre>
-<p>A already configured solution for <code>statsd</code> with <code>influxdb</code> and the <code>grafana</code> frontend is to use
+<p>An already configured solution for <code>statsd</code> with <code>influxdb</code> and the <code>grafana</code> frontend exists with
 <a href="https://github.com/advantageous/docker-grafana-statsd">the following docker image</a>:</p>
 <pre><code>docker run -d \
   --name grafana \
