@@ -118,8 +118,8 @@ class BanResource(BaseResource):
 
     def ban_user(self, user_id: str, ban_info: dict):
         target_type = ban_info['type']
-        target_id = ban_info.get('target', default='')
-        duration = ban_info.get('duration', default=None)
+        target_id = ban_info.get('target', '')
+        duration = ban_info.get('duration', '')
         reason = ban_info.get('reason')
         banner_id = ban_info.get('admin_id')
 
