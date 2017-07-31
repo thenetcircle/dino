@@ -14,12 +14,13 @@ import threading
 import time
 import traceback
 import logging
+import sys
+
+import activitystreams as as_parser
 
 from typing import Union
 from uuid import uuid4 as uuid
 
-import activitystreams as as_parser
-from activitystreams.exception import ActivityException
 from activitystreams.models.activity import Activity
 from flask_socketio import disconnect
 from kombu.mixins import ConsumerMixin
@@ -58,7 +59,7 @@ class Worker(ConsumerMixin):
             queue_handler.handle_server_activity(body, as_parser.parse(body))
         except Exception as e:
             logger.error('could not parse server message: "%s", message was: %s' % (str(e), body))
-            environ.env.capture_exception(e)
+            environ.env.capture_exception(sys.exc_info())
         message.ack()
 
 
@@ -182,7 +183,7 @@ def on_login(data: dict, activity: Activity) -> (int, str):
     except Exception as e:
         logger.error('could not login, will disconnect client: %s' % str(e))
         logger.exception(traceback.format_exc())
-        environ.env.capture_exception(e)
+        environ.env.capture_exception(sys.exc_info())
         return 500, str(e)
 
 

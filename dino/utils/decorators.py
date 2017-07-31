@@ -15,6 +15,7 @@
 import traceback
 import logging
 import time
+import sys
 import activitystreams as as_parser
 
 from functools import wraps
@@ -46,7 +47,7 @@ def timeit(_logger, tag: str):
                 failed = True
                 _logger.exception(traceback.format_exc())
                 _logger.error(tag + '... FAILED')
-                environ.env.capture_exception(e)
+                environ.env.capture_exception(sys.exc_info())
                 raise e
             finally:
                 if not failed:
@@ -70,7 +71,7 @@ def respond_with(gn_event_name=None):
                 environ.env.stats.incr(gn_event_name + '.exception')
                 tb = traceback.format_exc()
                 logger.error('%s: %s' % (gn_event_name, str(e)))
-                environ.env.capture_exception(e)
+                environ.env.capture_exception(sys.exc_info())
                 return 500, str(e)
             finally:
                 if tb is not None:
@@ -100,7 +101,7 @@ def count_connections(connect_type=None):
                     logger.warning('unknown connect type "%s"' % connect_type)
             except Exception as e:
                 logger.error('could not record statistics: %s' % str(e))
-                environ.env.capture_exception(e)
+                environ.env.capture_exception(sys.exc_info())
 
             return view_func(*args, **kwargs)
         return decorator
@@ -167,7 +168,7 @@ def pre_process(validation_name, should_validate_request=True):
                     logger.error('%s: %s' % (validation_name, str(e)))
                     logger.exception(traceback.format_exc())
                     environ.env.stats.incr('event.' + validation_name + '.exception')
-                    environ.env.capture_exception(e)
+                    environ.env.capture_exception(sys.exc_info())
                     return ErrorCodes.UNKNOWN_ERROR, str(e)
 
                 if status_code == 200:

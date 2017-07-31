@@ -882,10 +882,11 @@ def init_logging(gn_env: GNEnvironment) -> None:
         release=tag_name
     )
 
-    def capture_exception(e) -> None:
+    def capture_exception(e_info) -> None:
         try:
-            gn_env.sentry.captureException(e)
+            gn_env.sentry.captureException(e_info)
         except Exception as e2:
+            logger.exception(e_info)
             logger.error('could not capture exception with sentry: %s' % str(e2))
 
     gn_env.capture_exception = capture_exception

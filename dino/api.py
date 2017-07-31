@@ -16,12 +16,9 @@ from typing import Union
 
 from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
-from activitystreams import parse as as_parser
 from flask import request
-from uuid import uuid4 as uuid
 
 from dino.config import ApiTargets
-from dino.config import ConfigKeys
 from dino.config import ErrorCodes as ECodes
 from dino.exceptions import NoSuchRoomException
 from dino.hooks import *
@@ -30,6 +27,7 @@ from dino.utils.decorators import timeit
 from dino import validation
 
 import logging
+import sys
 
 __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
@@ -467,7 +465,7 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
         except Exception as e:
             logger.warning('could not check acls for room %s in on_list_rooms: %s' % (room_id, str(e)))
             logger.exception(traceback.format_exc())
-            environ.env.capture_exception(e)
+            environ.env.capture_exception(sys.exc_info())
             continue
 
         # if not allowed to join, don't show in list
