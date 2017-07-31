@@ -24,6 +24,54 @@ logger = logging.getLogger(__name__)
 
 
 class BlackListChecker(object):
+    """
+    Check if a blacklisted word is used in a message. Here the check is implemented in this way:
+
+        contains_forbidden_word = any(
+            word in message
+            for word in blacklist
+        )
+
+    ...since a blacklisted work, e.g. 'the donald', might be blacklisted, but individual words like 'the' and 'donald'
+    might not be. So the following (faster) way:
+
+        contains_forbidden_word = any(
+            word in blacklist
+            for word in message.split()
+        )
+        if not contains_forbidden_word:
+            return None
+
+    ...shouldn't be done here. On the other hand it can help as a 'shortcut' if the blacklist is large enough, e.g.:
+
+        contains_partly_forbidden_word = any(
+            word in blacklist
+            for word in message.split()
+        )
+        if not contains_partly_forbidden_word:
+            return None
+
+    ...and then do the full, slower check:
+
+        contains_real_forbidden_word = any(
+            word in message
+            for word in blacklist
+        )
+        if not contains_real_forbidden_word:
+            return None
+
+    Since if 'the donald' is blocked, then so would 'donald'. So if 'donald' matches then we can check if 'the donald'
+    matches'.
+
+    The first partial check is around 20x faster in tests. Cuckoo filters weren't really effective until blacklist size
+    exceeded ~60k entries:
+
+        length of blacklist: 60000, messages to check: 1000000, word length: 25487
+        [cuckoo] done in 24.35s, avg time: 0.0243ms
+        [regular] done in 82.57s, avg time: 0.0826ms
+        [partial] done in 3.34s, avg time: 0.0033ms
+    """
+
     def __init__(self, env):
         self.env = env
 
