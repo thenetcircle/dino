@@ -41,7 +41,7 @@ class StorageManager(BaseManager):
     def delete_message(self, message_id: str) -> None:
         self.env.storage.delete_message(message_id)
 
-    def find_history(self, room_id, user_id, from_time, to_time):
+    def find_history(self, room_id, user_id, from_time, to_time) -> (list, datetime, datetime):
         if is_blank(user_id) and is_blank(room_id):
             raise RuntimeError('need user ID and/or room ID')
 
@@ -50,7 +50,7 @@ class StorageManager(BaseManager):
                 from_time = parser.parse(from_time).astimezone(tzutc())
             except Exception as e:
                 logger.error('invalid from time "%s": %s' % (str(from_time), str(e)))
-                raise RuntimeError('invalid from time "%s"' % str(from_time))
+                raise RuntimeError('invalid from time "%s": %s' % (str(to_time), str(e)))
         else:
             from_time = None
 
@@ -59,7 +59,7 @@ class StorageManager(BaseManager):
                 to_time = parser.parse(to_time).astimezone(tzutc())
             except Exception as e:
                 logger.error('invalid to time "%s": %s' % (str(to_time), str(e)))
-                raise RuntimeError('invalid to time "%s": %s' % str(to_time))
+                raise RuntimeError('invalid to time "%s": %s' % (str(to_time), str(e)))
         else:
             to_time = None
 
@@ -81,6 +81,7 @@ class StorageManager(BaseManager):
             to_time = datetime.datetime.utcnow()
             from_time = to_time - datetime.timedelta(days=7)
 
-        from_time = int(from_time.strftime('%s'))
-        to_time = int(to_time.strftime('%s'))
-        return self.env.storage.get_history_for_time_slice(room_id, user_id, from_time, to_time)
+        from_time_int = int(from_time.strftime('%s'))
+        to_time_int = int(to_time.strftime('%s'))
+        return self.env.storage.get_history_for_time_slice(
+            room_id, user_id, from_time_int, to_time_int), from_time, to_time

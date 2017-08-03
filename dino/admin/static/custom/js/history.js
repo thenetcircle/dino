@@ -18,10 +18,14 @@ $(document).ready(function() {
         off_label: 'No'
     });
 
+    $('span.datetime').each(function() {
+        $(this).html(moment($(this).html()).format('LLLL'))
+    });
+
     $('input[name="message-deleted"]').change(function() {
         var message_id = $($(this).parent().find('input.message-id')[0]).val();
         var state = $(this).is(':checked');
-        var change_url = '/history/' + message_id + '/'
+        var change_url = '/history/' + message_id + '/';
         if (state) {
             change_url += 'delete'
         }

@@ -372,17 +372,25 @@ def search_history():
     from_time = form.from_time.data
     to_time = form.to_time.data
 
+    msgs = list()
+    real_from_time, real_to_time = None, None
     try:
-        msgs = storage_manager.find_history(room_id, user_id, from_time, to_time)
+        msgs, real_from_time, real_to_time = storage_manager.find_history(room_id, user_id, from_time, to_time)
     except Exception as e:
         logger.error('could not get messages: %s' % str(e))
         logger.exception(traceback.format_exc())
-        msgs = list()
+
+    if real_from_time is not None:
+        real_from_time = real_from_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+    if real_to_time is not None:
+        real_to_time = real_to_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
 
     return render_template(
             'history.html',
             form=form,
             messages=msgs,
+            real_from_time=real_from_time,
+            real_to_time=real_to_time,
             environment=environment,
             version=tag_name)
 

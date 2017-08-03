@@ -15,6 +15,16 @@ textarea {
     display: none;
 }
 
+table#real-history-time td span {
+    padding: 5px;
+    font-size: 10pt;
+}
+span.time-header {
+    padding: 5px;
+    font-size: 10pt;
+    font-weight: bold;
+}
+
 #menubar {
     height: 50px;
     border-bottom: 1px solid #666;

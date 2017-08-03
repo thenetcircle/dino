@@ -283,14 +283,14 @@ class Driver(object):
     def msgs_select_time_slice(self, target_id: str, from_time: int, to_time: int) -> ResultSet:
         return self._execute(StatementKeys.msgs_select_time_slice, target_id, from_time, to_time)
 
-    def msgs_select_from_user(self, from_user_id: str) -> ResultSet:
-        return self._execute(StatementKeys.msgs_select_from_user, from_user_id)
+    def msgs_select_from_user(self, from_user_id: str, limit: int=500) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_from_user, from_user_id, limit)
 
-    def msgs_select_from_user_to_target(self, from_user_id: str, target_id: str) -> ResultSet:
-        return self._execute(StatementKeys.msgs_select_from_user_to_target, from_user_id, target_id)
+    def msgs_select_from_user_to_target(self, from_user_id: str, target_id: str, limit: int=500) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_from_user_to_target, from_user_id, target_id, limit)
 
-    def msgs_select_from_user_to_target_time_slice(self, from_user_id: str, target_id: str, from_time: int, to_time: int) -> ResultSet:
-        return self._execute(StatementKeys.msgs_select_from_user_to_target_time_slice, from_user_id, target_id, from_time, to_time)
+    def msgs_select_from_user_to_target_time_slice(self, from_user_id: str, target_id: str, from_time: int, to_time: int, limit: int=500) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_from_user_to_target_time_slice, from_user_id, target_id, from_time, to_time, limit)
 
     def msgs_select(self, target_id: str, limit: int=100) -> ResultSet:
         return self._execute(StatementKeys.msgs_select, target_id, limit)
