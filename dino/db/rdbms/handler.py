@@ -585,6 +585,9 @@ class DatabaseRdbms(object):
         def _user_ids(session=None):
             room = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).first()
             users_in_room = dict()
+            if room is None:
+                logger.warning('no room found for UUID %s' % room_id)
+                return users_in_room
             for user in room.users:
                 users_in_room[user.uuid] = user.name
             return users_in_room
