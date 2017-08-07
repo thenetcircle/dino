@@ -815,7 +815,7 @@ class DatabaseRdbms(object):
                 .first()
 
             if room is None or room.channel is None:
-                raise NoChannelFoundException(room_id)
+                raise NoSuchRoomException(room_id)
             return room.channel.uuid
 
         if room_id is None or room_id.strip() == '':
