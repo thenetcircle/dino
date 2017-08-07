@@ -19,7 +19,7 @@ $(document).ready(function() {
     });
 
     $('span.datetime').each(function() {
-        $(this).html(moment($(this).html()).format('LLLL'))
+        $(this).html(moment($(this).html()).format('LLL'));
     });
 
     $('input[name="message-deleted"]').change(function() {
