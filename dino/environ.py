@@ -195,9 +195,9 @@ class GNEnvironment(object):
 
         self.root_path = root_path
         self.config = config
-        self.storage: IStorage = None
-        self.cache: ICache = None
-        self.stats: IStats = None
+        self.storage = None
+        self.cache = None
+        self.stats = None
         self.observer = None
 
         self.out_of_scope_emit = None  # needs to be set later after socketio object has been created
@@ -223,8 +223,8 @@ class GNEnvironment(object):
 
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.session = config.get(ConfigKeys.SESSION, None)
-        self.auth: IAuth = config.get(ConfigKeys.AUTH_SERVICE, None)
-        self.db: IDatabase = None
+        self.auth = config.get(ConfigKeys.AUTH_SERVICE, None)
+        self.db = None
         self.publish = lambda message, external: None
         self.capture_exception = lambda e: False
 

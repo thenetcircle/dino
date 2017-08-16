@@ -82,7 +82,7 @@ class RedisWrapper(object):
         redis package is NOT, so we can't import that). Here we only want to reference the "interface" to get IDE code
         completion and warnings of misspelled method names.
         """
-        self.r_server: RedisInterface = r_server
+        self.r_server = r_server
 
     @timeit(logger, 'on_redis_get')
     def get(self, *args):
