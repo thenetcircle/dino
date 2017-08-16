@@ -384,11 +384,11 @@ class RedisKeys(object):
         return RedisKeys.RKEY_ROOM_HISTORY % room_id
 
     @staticmethod
-    def channel_acl(channel_id: str) -> dict:
+    def channel_acl(channel_id: str) -> str:
         return RedisKeys.RKEY_CHANNEL_ACL % channel_id
 
     @staticmethod
-    def room_acl(room_id: str) -> dict:
+    def room_acl(room_id: str) -> str:
         return RedisKeys.RKEY_ROOM_ACL % room_id
 
     @staticmethod
