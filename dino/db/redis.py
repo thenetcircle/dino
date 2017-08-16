@@ -960,6 +960,8 @@ class DatabaseRedis(object):
         if value is not None:
             return value
 
+        self.get_room_name(room_id)
+
         channel_id = self.redis.hget(RedisKeys.channel_for_rooms(), room_id)
         if channel_id is None:
             raise NoChannelFoundException(room_id)

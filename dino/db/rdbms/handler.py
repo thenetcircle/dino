@@ -825,6 +825,8 @@ class DatabaseRdbms(object):
         if value is not None:
             return value
 
+        self.get_room_name(room_id)
+
         channel_id = _channel_for_room()
         self.env.cache.set_channel_for_room(channel_id, room_id)
         return channel_id
