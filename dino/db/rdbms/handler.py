@@ -218,8 +218,8 @@ class DatabaseRdbms(object):
 
         return room_roles + global_roles
 
-    def get_admins_in_room(self, room_id: str) -> list:
-        users = self.users_in_room(room_id)
+    def get_admins_in_room(self, room_id: str, this_user_id: str=None) -> list:
+        users = self.users_in_room(room_id, this_user_id)
         mods_in_room = list()
         for user_id, _ in users.items():
             if not self.is_super_user(user_id) and not self.is_global_moderator(user_id):
