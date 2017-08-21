@@ -108,6 +108,12 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
     }
 
 
+def activity_for_user_joined_invisibly(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
+    act = activity_for_user_joined(user_id, user_name, room_id, room_name, image_url)
+    act['verb'] = 'join-invisible'
+    return act
+
+
 def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
     user_roles = environ.env.db.get_user_roles_in_room(user_id, room_id)
     return {

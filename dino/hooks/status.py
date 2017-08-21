@@ -40,6 +40,17 @@ class OnStatusHooks(object):
             activity_json = utils.activity_for_disconnect(user_id, user_name)
             environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
 
+            rooms = utils.rooms_for_user(user_id)
+            for room_id in rooms:
+                admins_in_room = environ.env.db.get_admins_in_room(room_id)
+                if admins_in_room is None or len(admins_in_room) == 0:
+                    continue
+
+                room_name = utils.get_room_name(room_id)
+                activity_json = utils.activity_for_user_joined_invisibly(user_id, user_name, room_id, room_name, image)
+                for admin_id in admins_in_room:
+                    environ.env.emit('gn_user_joined', activity_json, room=admin_id, broadcast=False)
+
         elif status == 'offline':
             environ.env.db.set_user_offline(user_id)
             activity_json = utils.activity_for_disconnect(user_id, user_name)
