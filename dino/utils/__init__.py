@@ -691,7 +691,8 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
     }
 
     response['object']['attachments'] = list()
-    this_user_is_super_user = is_super_user(environ.env.session.get(SessionKeys.user_id.value))
+    this_user_id = environ.env.session.get(SessionKeys.user_id.value)
+    this_user_is_super_user = is_super_user(this_user_id)
 
     for user_id, user_name in users.items():
         user_info = get_user_info_attachments_for(user_id)
@@ -706,8 +707,11 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
             'id': user_id,
             'displayName': b64e(user_name),
             'attachments': user_info,
-            'content': ','.join(user_roles)
+            'content': ','.join(user_roles),
+            'objectType': 'user'
         }
+        print('this_user_id: %s that_user_id: %s this_user_is_super_user: %s user_is_invisible: %s' %
+              (this_user_id, user_id, this_user_is_super_user, user_is_invisible(user_id)))
         if this_user_is_super_user and user_is_invisible(user_id):
             user_attachment['objectType'] = 'invisible'
 
