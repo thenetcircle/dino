@@ -114,6 +114,28 @@ def activity_for_user_joined_invisibly(user_id: str, user_name: str, room_id: st
     return act
 
 
+def activity_for_going_invisible(user_id: str) -> dict:
+    return {
+        'actor': {
+            'id': user_id
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'invisible',
+        'id': str(uuid())
+    }
+
+
+def activity_for_going_visible(user_id: str) -> dict:
+    return {
+        'actor': {
+            'id': user_id
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'visible',
+        'id': str(uuid())
+    }
+
+
 def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
     user_roles = environ.env.db.get_user_roles_in_room(user_id, room_id)
     return {

@@ -28,33 +28,59 @@ class OnStatusHooks(object):
         status = activity.verb
 
         if status == 'online':
+            was_invisible = utils.user_is_invisible(user_id)
             environ.env.db.set_user_online(user_id)
             rooms = utils.rooms_for_user(user_id)
+
+            if not was_invisible:
+                for room_id in rooms:
+                    room_name = utils.get_room_name(room_id)
+                    join_activity = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
+                    environ.env.emit('gn_user_joined', join_activity, room=room_id, broadcast=True, include_self=False)
+                return
+
+            visible_activity = utils.activity_for_going_visible(user_id)
             for room_id in rooms:
                 room_name = utils.get_room_name(room_id)
-                activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
-                environ.env.emit('gn_user_joined', activity_json, room=room_id, broadcast=True, include_self=False)
+                join_activity = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
+                admins_in_room = environ.env.db.get_admins_in_room(room_id, user_id)
+
+                if admins_in_room is None or len(admins_in_room) == 0:
+                    environ.env.emit('gn_user_joined', join_activity, room=room_id, broadcast=True, include_self=False)
+                    continue
+
+                users_in_room = utils.get_users_in_room(room_id)
+                for user_id, _ in users_in_room.items():
+                    environ.env.emit('gn_user_joined', join_activity, room=user_id, broadcast=True, include_self=False)
+
+                for admin_id in admins_in_room:
+                    environ.env.emit('gn_user_visible', visible_activity, room=admin_id, broadcast=False)
 
         elif status == 'invisible':
             environ.env.db.set_user_invisible(user_id)
-            activity_json = utils.activity_for_disconnect(user_id, user_name)
-            environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
+            disconnect_activity = utils.activity_for_disconnect(user_id, user_name)
 
             rooms = utils.rooms_for_user(user_id)
             for room_id in rooms:
-                admins_in_room = environ.env.db.get_admins_in_room(room_id)
+                admins_in_room = environ.env.db.get_admins_in_room(room_id, user_id)
                 if admins_in_room is None or len(admins_in_room) == 0:
+                    environ.env.emit('gn_user_disconnected', disconnect_activity, room=room_id, broadcast=True, include_self=False)
                     continue
 
-                room_name = utils.get_room_name(room_id)
-                activity_json = utils.activity_for_user_joined_invisibly(user_id, user_name, room_id, room_name, image)
+                users_in_room = utils.get_users_in_room(room_id)
+                for user_id, _ in users_in_room.items():
+                    environ.env.emit('gn_user_disconnected', disconnect_activity, room=user_id, broadcast=True, include_self=False)
+
+                invisible_activity = utils.activity_for_going_invisible(user_id)
                 for admin_id in admins_in_room:
-                    environ.env.emit('gn_user_joined', activity_json, room=admin_id, broadcast=False)
+                    environ.env.emit('gn_user_invisible', invisible_activity, room=admin_id, broadcast=False)
 
         elif status == 'offline':
             environ.env.db.set_user_offline(user_id)
             activity_json = utils.activity_for_disconnect(user_id, user_name)
-            environ.env.emit('gn_user_disconnected', activity_json, broadcast=True, include_self=False)
+            rooms = utils.rooms_for_user(user_id)
+            for room_id in rooms:
+                environ.env.emit('gn_user_disconnected', activity_json, room=room_id, broadcast=True, include_self=False)
 
 
 @environ.env.observer.on('on_status')
