@@ -51,6 +51,8 @@ class OnStatusHooks(object):
 
                 users_in_room = utils.get_users_in_room(room_id)
                 for user_id, _ in users_in_room.items():
+                    if user_id in admins_in_room:
+                        continue
                     environ.env.emit('gn_user_joined', join_activity, room=user_id, broadcast=True, include_self=False)
 
                 for admin_id in admins_in_room:
@@ -69,6 +71,8 @@ class OnStatusHooks(object):
 
                 users_in_room = utils.get_users_in_room(room_id)
                 for user_id, _ in users_in_room.items():
+                    if user_id in admins_in_room:
+                        continue
                     environ.env.emit('gn_user_disconnected', disconnect_activity, room=user_id, broadcast=True, include_self=False)
 
                 invisible_activity = utils.activity_for_going_invisible(user_id)
