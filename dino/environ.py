@@ -265,7 +265,7 @@ def b64e(s: str) -> str:
     return ''
 
 
-def find_config(config_paths: list) -> str:
+def find_config(config_paths: list) -> tuple:
     default_paths = ["dino.yaml", "dino.json"]
     config_dict = dict()
     config_path = None
