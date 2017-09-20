@@ -80,7 +80,7 @@ DINO_ENVIRONMENT=$1 DINO_DEBUG=0 gunicorn \
     --keep-alive 5 \
     --worker-connections 1000 \
     --statsd-host ${STATSD_HOST}:8125 \
-    --statsd_prefix gunicorn \
+    --statsd-prefix gunicorn-dino-${1}-${3}-${2} \
     --name dino-${1}-${3}-${2} \
     --log-file ${LOG_DIR}/gunicorn-$3-$1.log \
     --error-logfile ${LOG_DIR}/error-$3-$1.log \
