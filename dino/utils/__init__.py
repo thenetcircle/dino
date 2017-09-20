@@ -108,6 +108,34 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
     }
 
 
+def activity_for_user_joined_invisibly(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
+    act = activity_for_user_joined(user_id, user_name, room_id, room_name, image_url)
+    act['actor']['objectType'] = 'invisible'
+    return act
+
+
+def activity_for_going_invisible(user_id: str) -> dict:
+    return {
+        'actor': {
+            'id': user_id
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'invisible',
+        'id': str(uuid())
+    }
+
+
+def activity_for_going_visible(user_id: str) -> dict:
+    return {
+        'actor': {
+            'id': user_id
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'visible',
+        'id': str(uuid())
+    }
+
+
 def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
     user_roles = environ.env.db.get_user_roles_in_room(user_id, room_id)
     return {
@@ -685,6 +713,8 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
     }
 
     response['object']['attachments'] = list()
+    this_user_id = environ.env.session.get(SessionKeys.user_id.value)
+    this_user_is_super_user = is_super_user(this_user_id) or is_global_moderator(this_user_id)
 
     for user_id, user_name in users.items():
         user_info = get_user_info_attachments_for(user_id)
@@ -695,13 +725,17 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
             continue
 
         user_roles = environ.env.db.get_user_roles_in_room(user_id, activity.target.id)
-
-        response['object']['attachments'].append({
+        user_attachment = {
             'id': user_id,
             'displayName': b64e(user_name),
             'attachments': user_info,
-            'content': ','.join(user_roles)
-        })
+            'content': ','.join(user_roles),
+            'objectType': 'user'
+        }
+        if this_user_is_super_user and user_is_invisible(user_id):
+            user_attachment['objectType'] = 'invisible'
+
+        response['object']['attachments'].append(user_attachment)
 
     return response
 
