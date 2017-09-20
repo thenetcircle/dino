@@ -163,6 +163,17 @@ def send_css(path):
     return environ.env.send_from_directory('templates/css', path)
 
 
+@socketio.on_error('/ws')
+def error_handler_chat(e):
+    try:
+        environ.env.capture_exception(e)
+    except Exception as capture_e:
+        logger.error('could not capture exception: %s' % str(capture_e))
+        logger.exception(traceback.format_exc(capture_e))
+        logger.error('exception to capture was: %s' % str(e))
+        logger.exception(traceback.format_exc(e))
+
+
 # no pre-processing for connect event
 @socketio.on('connect', namespace='/ws')
 @respond_with('gn_connect')

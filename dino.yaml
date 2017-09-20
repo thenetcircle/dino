@@ -60,7 +60,7 @@ default:
         exchange: 'chat_exchange'
     stats:
       type: 'statsd'
-      host: 'localhost'
+      host: '$DINO_STATSD_HOST'
       port: 8125
       prefix: 'dino'
       include_hostname: 'true'

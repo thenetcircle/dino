@@ -68,11 +68,20 @@ else
     fi
 fi
 
+STATSD_HOST=$(grep STATSD ${DINO_HOME}/secrets/${1}.yaml | sed "s/.*'\(.*\)'$/\1/g")
+if [[ -z "$STATSD_HOST" ]]; then
+    STATSD_HOST="localhost"
+fi
+
 DINO_ENVIRONMENT=$1 DINO_DEBUG=0 gunicorn \
     --worker-class eventlet \
-    -w 1 \
+    --workers 1 \
     --threads 1 \
+    --keep-alive 5 \
     --worker-connections 1000 \
+    --statsd-host ${STATSD_HOST}:8125 \
+    --statsd_prefix gunicorn \
+    --name dino-${1}-${3}-${2} \
     --log-file ${LOG_DIR}/gunicorn-$3-$1.log \
     --error-logfile ${LOG_DIR}/error-$3-$1.log \
     -b 0.0.0.0:$2 \
