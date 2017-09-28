@@ -13,6 +13,7 @@
 import logging
 import traceback
 import time
+import sys
 
 from datetime import datetime
 from uuid import uuid4 as uuid
@@ -258,12 +259,22 @@ class QueueHandler(object):
         except Exception as e:
             logger.error('could not ban user %s from channel %s: %s' % (user_id, channel_id, str(e)))
             logger.exception(traceback.format_exc(e))
+            self.env.capture_exception(sys.exc_info())
             return
 
         for room_id in rooms_in_channel:
             self.delete_for_user_in_room(user_id, room_id)
 
     def ban_globally(self, data: dict, act: Activity, rooms: dict, user_id: str, user_sid: str, namespace: str) -> None:
+        try:
+            message_ids = self.get_undeleted_message_ids_for_user(user_id)
+            for message_id in message_ids:
+                self.env.storage.delete_message(message_id)
+        except Exception as e:
+            logger.error('could not delete message with id %s for user id %s: %s' % (message_id, user_id, str(e)))
+            logger.exception(traceback.format_exc(e))
+            self.env.capture_exception(sys.exc_info())
+
         try:
             if len(rooms) == 0:
                 logger.warning('rooms to ban globally for is empty for user %s' % user_id)
@@ -274,6 +285,7 @@ class QueueHandler(object):
         except Exception as e:
             logger.error('could not ban user %s globally: %s' % (user_id, str(e)))
             logger.exception(traceback.format_exc(e))
+            self.env.capture_exception(sys.exc_info())
             return
 
     def delete_for_user_in_room(self, user_id: str, room_id: str):
@@ -284,6 +296,7 @@ class QueueHandler(object):
         except Exception as e:
             logger.error('could not get undeleted messages: %s' % str(e))
             logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
             return
         self.delete_messages(user_id, messages)
 
@@ -309,6 +322,7 @@ class QueueHandler(object):
                 except Exception as e:
                     logger.error('could not delete message with id %s because: %s' % (message_id, str(e)))
                     logger.exception(traceback.format_exc())
+                    self.env.capture_exception(sys.exc_info())
                     failures += 1
             return successes, failures
         except Exception as e2:
@@ -361,6 +375,7 @@ class QueueHandler(object):
                 self.kick(activity_json, activity, room_id, kicked_id, kicked_sid, namespace)
         except KeyError as e:
             logger.error('could not kick user %s: %s' % (kicked_id, str(e)))
+            self.env.capture_exception(sys.exc_info())
 
     def handle_ban(self, activity: Activity):
         banner_id = activity.actor.id
@@ -424,6 +439,7 @@ class QueueHandler(object):
         except KeyError as ke:
             logger.error('could not ban: %s' % str(ke))
             logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
 
     def get_ban_activity(self, activity: Activity, target_type: str) -> dict:
         ban_activity = {
