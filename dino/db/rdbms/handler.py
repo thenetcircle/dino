@@ -2003,7 +2003,7 @@ class DatabaseRdbms(object):
         # TODO: fix this method, it's a horribly ugly friday night hack
         def _has_passed(the_time):
             now = datetime.utcnow()
-            return now > datetime.fromtimestamp(int(the_time))
+            return now > datetime.fromtimestamp(int(float(the_time)))
 
         def _set_in_cache_if_none(_gtime, _ctime, _rtime):
             if _gtime is None:
