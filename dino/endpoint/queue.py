@@ -267,11 +267,11 @@ class QueueHandler(object):
 
     def ban_globally(self, data: dict, act: Activity, rooms: dict, user_id: str, user_sid: str, namespace: str) -> None:
         try:
-            message_ids = self.get_undeleted_message_ids_for_user(user_id)
+            message_ids = self.env.storage.get_undeleted_message_ids_for_user(user_id)
             for message_id in message_ids:
                 self.env.storage.delete_message(message_id)
         except Exception as e:
-            logger.error('could not delete message with id %s for user id %s: %s' % (message_id, user_id, str(e)))
+            logger.error('could not delete messages for user %s: %s' % (user_id, str(e)))
             logger.exception(traceback.format_exc(e))
             self.env.capture_exception(sys.exc_info())
 
