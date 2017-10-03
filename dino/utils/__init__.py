@@ -999,7 +999,7 @@ def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False) -
     :param this_user_id: the id of the user making the request; if admin the response included more information
     :return: a list of users in the room
     """
-    return environ.env.db.users_in_room(room_id, skip_cache=skip_cache, this_user_id=user_id)
+    return environ.env.db.users_in_room(room_id, user_id=user_id, skip_cache=skip_cache)
 
 
 def get_acls_in_room_for_action(room_id: str, action: str) -> dict:
