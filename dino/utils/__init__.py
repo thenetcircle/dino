@@ -16,6 +16,7 @@ from uuid import uuid4 as uuid
 
 import logging
 import traceback
+import sys
 
 from dino.config import ConfigKeys
 from dino import environ
@@ -718,6 +719,19 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
 
     for user_id, user_name in users.items():
         user_info = get_user_info_attachments_for(user_id)
+        if this_user_is_super_user:
+            user_ip = ''
+            try:
+                user_ip = environ.env.request.remote_addr
+            except Exception as e:
+                logger.error('could not get remote address of user %s: %s' % (user_info, str(e)))
+                logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
+
+            user_info.append({
+                'objectType': 'ip',
+                'content': user_ip
+            })
 
         # temporary fix for avoiding dead users
         if len(user_info) == 0:
@@ -974,7 +988,7 @@ def is_room_ephemeral(room_id: str) -> bool:
     return environ.env.db.is_room_ephemeral(room_id)
 
 
-def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False) -> dict:
+def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False, this_user_id: str=None) -> dict:
     """
     get a dict of user_id => user_name for users in this room
 
@@ -982,9 +996,10 @@ def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False) -
     :param user_id: if specified, will check if super user, and if so will also include invisible users
     :param skip_cache: if True, check db directly, used for gn_join to get correct user list when joining; when listing
     rooms it is not necessary to have exact list; cache is 10-20s (random) per room
+    :param this_user_id: the id of the user making the request; if admin the response included more information
     :return: a list of users in the room
     """
-    return environ.env.db.users_in_room(room_id, user_id, skip_cache=skip_cache)
+    return environ.env.db.users_in_room(room_id, user_id, skip_cache=skip_cache, this_user_id=this_user_id)
 
 
 def get_acls_in_room_for_action(room_id: str, action: str) -> dict:
