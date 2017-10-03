@@ -50,10 +50,10 @@ class OnStatusHooks(object):
                     continue
 
                 users_in_room = utils.get_users_in_room(room_id)
-                for user_id, _ in users_in_room.items():
-                    if user_id in admins_in_room:
+                for user_id_in_room, _ in users_in_room.items():
+                    if user_id_in_room in admins_in_room:
                         continue
-                    environ.env.emit('gn_user_joined', join_activity, room=user_id, broadcast=True, include_self=False)
+                    environ.env.emit('gn_user_joined', join_activity, room=user_id_in_room, broadcast=True, include_self=False)
 
                 for admin_id in admins_in_room:
                     environ.env.emit('gn_user_visible', visible_activity, room=admin_id, broadcast=False)
