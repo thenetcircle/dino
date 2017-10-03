@@ -730,7 +730,7 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
 
             user_info.append({
                 'objectType': 'ip',
-                'content': user_ip
+                'content': b64e(user_ip)
             })
 
         # temporary fix for avoiding dead users
@@ -988,7 +988,7 @@ def is_room_ephemeral(room_id: str) -> bool:
     return environ.env.db.is_room_ephemeral(room_id)
 
 
-def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False, this_user_id: str=None) -> dict:
+def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False) -> dict:
     """
     get a dict of user_id => user_name for users in this room
 
@@ -999,7 +999,7 @@ def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False, t
     :param this_user_id: the id of the user making the request; if admin the response included more information
     :return: a list of users in the room
     """
-    return environ.env.db.users_in_room(room_id, skip_cache=skip_cache, this_user_id=this_user_id)
+    return environ.env.db.users_in_room(room_id, skip_cache=skip_cache, this_user_id=user_id)
 
 
 def get_acls_in_room_for_action(room_id: str, action: str) -> dict:
