@@ -1054,6 +1054,10 @@ class DatabaseRdbms(object):
                 user.name = user_name
                 session.add(user)
 
+            if room is None:
+                logger.error('no such room %s (%s)' % (room_id, room_name))
+                raise NoSuchRoomException(room_id)
+
             user.rooms.append(room)
             session.add(room)
 
