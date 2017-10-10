@@ -907,7 +907,7 @@ def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
         return True, {'scope': 'channel', 'seconds': seconds, 'id': channel_id}
 
     if room_time != '':
-        end = datetime.fromtimestamp(int(room_time))
+        end = datetime.fromtimestamp(int(float(room_time)))
         seconds = str((end - now).seconds)
         logger.debug('user %s is banned in room %s for another %s seconds' %
                      (user_id, room_id, str((end - now).seconds)))
