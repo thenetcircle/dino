@@ -45,12 +45,7 @@ from flask_socketio import disconnect as _flask_disconnect
 from dino.config import ConfigKeys
 from dino.utils.decorators import timeit
 from dino.exceptions import AclValueNotFoundException
-
-from dino.db import IDatabase
-from dino.cache import ICache
-from dino.auth import IAuth
-from dino.stats import IStats
-from dino.storage import IStorage
+from dino.exceptions import NoSuchRoomException
 
 from dino.validation.acl import AclConfigValidator
 from dino.validation.acl import AclRangeValidator
@@ -844,7 +839,13 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
                     continue
 
                 logger.info('[%s] removing ephemeral room (%s)' % (short_id, room_name))
-                gn_env.db.remove_room(channel_id, room_id)
+
+                try:
+                    gn_env.db.get_room_name(room_id)
+                except NoSuchRoomException:
+                    logger.info('[%s] ephemeral room (%s) has already been removed' % (short_id, room_name))
+                    continue
+
                 activity = utils.activity_for_remove_room('0', 'server', room_id, room_name, 'empty ephemeral room')
 
                 gn_env.db.remove_room(channel_id, room_id)
