@@ -49,7 +49,7 @@ class OnStatusHooks(object):
                     environ.env.emit('gn_user_joined', join_activity, room=room_id, broadcast=True, include_self=False)
                     continue
 
-                users_in_room = utils.get_users_in_room(room_id)
+                users_in_room = utils.get_users_in_room(room_id).copy()
                 for user_id_in_room, _ in users_in_room.items():
                     if user_id_in_room in admins_in_room:
                         continue
