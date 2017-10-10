@@ -282,7 +282,6 @@ class DatabaseRdbms(object):
                     except NoSuchRoomException:
                         logger.warning(
                             'user has room %s in roles, but room does not exist; will delete role' % room_id)
-                        self.env.capture_exception(sys.exc_info())
                         self.env.cache.reset_user_roles(user_id)
                         did_reset_user_roles = True
                         break
