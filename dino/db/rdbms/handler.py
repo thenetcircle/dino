@@ -1069,7 +1069,13 @@ class DatabaseRdbms(object):
             session.add(room)
             session.commit()
 
-        _join_room()
+        from sqlalchemy.orm.exc import UnmappedInstanceError
+        try:
+            _join_room()
+        except UnmappedInstanceError as e:
+            error_msg = 'user "%s" (%s) tried to join room "%s" (%s), but the room was None when joining; ' \
+                        'likely removed after check and before joining: %s'
+            logger.warning(error_msg % (user_id, user_name, room_id, room_name, str(e)))
 
     def _object_has_role_for_user(self, obj: Union[Rooms, Channels], the_role: str, user_id: str) -> bool:
         if obj is None:
