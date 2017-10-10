@@ -451,6 +451,11 @@ class DatabaseRdbms(object):
             except StaleDataError as e:
                 logger.error('could not set user %s invisible second time, logging to sentry: %s' % (user_id, str(e)))
                 self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error('other error when trying to set user %s invisible second try: %s' % (user_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
         self.env.cache.set_user_status(user_id, UserKeys.STATUS_INVISIBLE)
 
     def set_user_offline(self, user_id: str) -> None:
@@ -475,6 +480,11 @@ class DatabaseRdbms(object):
             except StaleDataError as e:
                 logger.error('could not set user %s offline second time, logging to sentry: %s' % (user_id, str(e)))
                 self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error('other error when trying to set user %s offline second try: %s' % (user_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
         self.env.cache.set_user_status(user_id, UserKeys.STATUS_UNAVAILABLE)
 
     def set_user_online(self, user_id: str) -> None:
@@ -502,6 +512,11 @@ class DatabaseRdbms(object):
             except StaleDataError as e:
                 logger.error('could not set user %s online second time, logging to sentry: %s' % (user_id, str(e)))
                 self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error('other error when trying to set user %s online second try: %s' % (user_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
         self.env.cache.set_user_status(user_id, UserKeys.STATUS_AVAILABLE)
 
     @with_session
@@ -1023,7 +1038,22 @@ class DatabaseRdbms(object):
         for room_uuid in room_uuids:
             self.remove_room(channel_id, room_uuid)
 
-        do_remove_channel()
+        try:
+            do_remove_channel()
+        except StaleDataError as e:
+            logger.warning(
+                'could not remove channel %s, got stale data, will try again: %s' % (channel_id, str(e)))
+            try:
+                do_remove_channel()
+            except StaleDataError as e:
+                logger.error(
+                    'could not remove channel %s for second time, logging to sentry: %s' % (channel_id, str(e)))
+                self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error('other error when trying to remove channel %s second try: %s' % (channel_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
         self.env.cache.remove_channel_exists(channel_id)
         self.env.cache.reset_rooms_for_channel(channel_id)
         self.env.cache.reset_channels_with_sort()
@@ -1050,7 +1080,20 @@ class DatabaseRdbms(object):
         self.get_channel_name(channel_id)
         room_name = self.get_room_name(room_id)
 
-        do_remove()
+        try:
+            do_remove()
+        except StaleDataError as e:
+            logger.warning('could not remove room %s, got stale data, will try again: %s' % (room_id, str(e)))
+            try:
+                do_remove()
+            except StaleDataError as e:
+                logger.error('could not remove room %s for second time, logging to sentry: %s' % (room_id, str(e)))
+                self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error('other error when trying to remove room %s second try: %s' % (room_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
         self.env.cache.remove_room_exists(channel_id, room_id)
         self.env.cache.reset_rooms_for_channel(channel_id)
         self.env.cache.remove_room_id_for_name(room_id, room_name)
