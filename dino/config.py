@@ -80,6 +80,8 @@ class ErrorCodes(object):
     ROOM_FULL = 707
     NOT_ONLINE = 708
     TOO_MANY_PRIVATE_ROOMS = 709
+    ROOM_NAME_TOO_LONG = 710
+    ROOM_NAME_TOO_SHORT = 711
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -167,6 +169,7 @@ class ConfigKeys(object):
     MAX_USERS_EXCEPTION = 'exception'
     WEB = 'web'
     ROOT_URL = 'root_url'
+    ROOM_NAME_LENGTH = 'room_name_length'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'

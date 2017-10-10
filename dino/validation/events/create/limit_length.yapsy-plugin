@@ -1,0 +1,8 @@
+[Core]
+Name = limit_length
+Module = limit_length
+
+[Documentation]
+Description = Checks that the length of a room name being created is withing min/max range
+Author = Oscar Eriksson
+Version = 1.0.0
