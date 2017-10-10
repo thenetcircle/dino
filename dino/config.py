@@ -154,6 +154,7 @@ class ConfigKeys(object):
     REPLICATION = 'replication'
     DSN = 'dsn'
     DATABASE = 'database'
+    POOL_SIZE = 'pool_size'
     DB = 'db'
     PORT = 'port'
     VHOST = 'vhost'

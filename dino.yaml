@@ -49,6 +49,7 @@ default:
         db: '$DINO_DB_NAME'
         user: '$DINO_DB_USER'
         password: '$DINO_DB_PASS'
+        pool_size: 150
     storage:
         type: 'cassandra'
         host:
