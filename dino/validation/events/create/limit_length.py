@@ -43,8 +43,8 @@ class OnCreateCheckNameLength(IPlugin):
             return
 
         self.enabled = True
-        self.min_length = on_create_config.get(ConfigKeys.MAX_USERS_LOW, 3)
-        self.max_length = on_create_config.get(ConfigKeys.MAX_USERS_HIGH, 120)
+        self.min_length = on_create_config.get(ConfigKeys.MIN_ROOM_NAME_LENGTH, 3)
+        self.max_length = on_create_config.get(ConfigKeys.MAX_ROOM_NAME_LENGTH, 120)
 
     def _process(self, data: dict, activity: Activity):
         room_name = activity.target.display_name

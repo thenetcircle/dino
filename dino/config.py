@@ -169,7 +169,8 @@ class ConfigKeys(object):
     MAX_USERS_EXCEPTION = 'exception'
     WEB = 'web'
     ROOT_URL = 'root_url'
-    ROOM_NAME_LENGTH = 'room_name_length'
+    MIN_ROOM_NAME_LENGTH = 'min_length'
+    MAX_ROOM_NAME_LENGTH = 'max_length'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'
