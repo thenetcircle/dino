@@ -23,6 +23,8 @@ from uuid import uuid4 as uuid
 from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy.orm.exc import StaleDataError
+from sqlalchemy.orm.exc import UnmappedInstanceError
+from sqlalchemy.exc import IntegrityError
 from zope.interface import implementer
 
 from dino.config import ApiActions
@@ -1158,13 +1160,16 @@ class DatabaseRdbms(object):
             session.add(room)
             session.commit()
 
-        from sqlalchemy.orm.exc import UnmappedInstanceError
         try:
             _join_room()
         except UnmappedInstanceError as e:
             error_msg = 'user "%s" (%s) tried to join room "%s" (%s), but the room was None when joining; ' \
                         'likely removed after check and before joining: %s'
             logger.warning(error_msg % (user_id, user_name, room_id, room_name, str(e)))
+        except IntegrityError as e:
+            logger.warning('user "%s" (%s) tried to join room "%s" (%s) but it has been deleted: %s' %
+                           (user_name, user_id, room_name, room_id, str(e)))
+            raise NoSuchRoomException(room_id)
 
     def _object_has_role_for_user(self, obj: Union[Rooms, Channels], the_role: str, user_id: str) -> bool:
         if obj is None:
