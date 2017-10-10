@@ -270,8 +270,22 @@ class DatabaseRdbms(object):
             return output
 
         output = self.env.cache.get_user_roles(user_id)
+
         if output is not None:
-            return output
+            did_reset_user_roles = False
+            if 'room' in output:
+                for room_id in output['room']:
+                    try:
+                        self.get_room_name(room_id)
+                    except NoSuchRoomException:
+                        logger.warning(
+                            'user has room %s in roles, but room does not exist; will delete role' % room_id)
+                        self.env.capture_exception(sys.exc_info())
+                        self.env.cache.reset_user_roles(user_id)
+                        did_reset_user_roles = True
+                        break
+            if not did_reset_user_roles:
+                return output
 
         roles = _roles()
         self.env.cache.set_user_roles(user_id, roles)
