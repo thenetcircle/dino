@@ -474,7 +474,16 @@ class DatabaseRdbms(object):
 
         if self.env.cache.user_is_online(user_id):
             return
-        _set_user_online()
+
+        try:
+            _set_user_online()
+        except StaleDataError as e:
+            logger.warning('could not set user %s online, will try again: %s' % (user_id, str(e)))
+            try:
+                _set_user_online()
+            except StaleDataError as e:
+                logger.error('could not set user %s online second time, logging to sentry: %s' % (user_id, str(e)))
+                self.env.capture_exception(sys.exc_info())
         self.env.cache.set_user_status(user_id, UserKeys.STATUS_AVAILABLE)
 
     @with_session
