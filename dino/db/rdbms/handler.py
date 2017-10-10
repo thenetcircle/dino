@@ -441,7 +441,16 @@ class DatabaseRdbms(object):
 
         if self.env.cache.user_is_invisible(user_id):
             return
-        _set_user_invisible()
+
+        try:
+            _set_user_invisible()
+        except StaleDataError as e:
+            logger.warning('could not set user %s invisible, will try again: %s' % (user_id, str(e)))
+            try:
+                _set_user_invisible()
+            except StaleDataError as e:
+                logger.error('could not set user %s invisible second time, logging to sentry: %s' % (user_id, str(e)))
+                self.env.capture_exception(sys.exc_info())
         self.env.cache.set_user_status(user_id, UserKeys.STATUS_INVISIBLE)
 
     def set_user_offline(self, user_id: str) -> None:
@@ -456,7 +465,16 @@ class DatabaseRdbms(object):
 
         if self.env.cache.user_is_offline(user_id):
             return
-        _set_user_offline()
+
+        try:
+            _set_user_offline()
+        except StaleDataError as e:
+            logger.warning('could not set user %s offline, will try again: %s' % (user_id, str(e)))
+            try:
+                _set_user_offline()
+            except StaleDataError as e:
+                logger.error('could not set user %s offline second time, logging to sentry: %s' % (user_id, str(e)))
+                self.env.capture_exception(sys.exc_info())
         self.env.cache.set_user_status(user_id, UserKeys.STATUS_UNAVAILABLE)
 
     def set_user_online(self, user_id: str) -> None:
