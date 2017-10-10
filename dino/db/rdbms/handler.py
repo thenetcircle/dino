@@ -1040,6 +1040,11 @@ class DatabaseRdbms(object):
         self.get_room_name(room_id)
         try:
             _leave()
+        except ValueError as e:
+            logger.warning(
+                'got ValueError when leaving room, likely user (%s) already left the room (%s): %s' %
+                (user_id, room_id, str(e)))
+            self.env.capture_exception(sys.exc_info())
         except StaleDataError as e:
             logger.warning(
                 'got StaleDataError when leaving room, likely already removed from assoc table: %s' % str(e))
