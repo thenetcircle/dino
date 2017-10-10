@@ -12,63 +12,62 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import sys
+import traceback
 from datetime import datetime
+from functools import wraps
 from typing import Union
 from uuid import uuid4 as uuid
-import traceback
-from sqlalchemy import or_
-from sqlalchemy import func
-from sqlalchemy.orm.exc import StaleDataError
 
+from sqlalchemy import func
+from sqlalchemy import or_
+from sqlalchemy.orm.exc import StaleDataError
+from zope.interface import implementer
+
+from dino.config import ApiActions
+from dino.config import ApiTargets
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
 from dino.config import UserKeys
-from dino.config import ApiTargets
-from dino.config import ApiActions
-from dino.environ import GNEnvironment
-from dino.utils import b64e
-from dino.utils import b64d
-from dino.utils.decorators import timeit
-
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import ChannelRoles
-from dino.db.rdbms.models import GlobalRoles
-from dino.db.rdbms.models import Channels
-from dino.db.rdbms.models import RoomRoles
-from dino.db.rdbms.models import BlackList
-from dino.db.rdbms.models import Rooms
+from dino.db.rdbms.models import AclConfigs
 from dino.db.rdbms.models import Acls
+from dino.db.rdbms.models import Bans
+from dino.db.rdbms.models import BlackList
+from dino.db.rdbms.models import ChannelRoles
+from dino.db.rdbms.models import Channels
+from dino.db.rdbms.models import DefaultRooms
+from dino.db.rdbms.models import GlobalRoles
+from dino.db.rdbms.models import LastReads
+from dino.db.rdbms.models import RoomRoles
+from dino.db.rdbms.models import Rooms
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
-from dino.db.rdbms.models import LastReads
-from dino.db.rdbms.models import Bans
-from dino.db.rdbms.models import DefaultRooms
-from dino.db.rdbms.models import AclConfigs
-
+from dino.environ import GNEnvironment
+from dino.exceptions import AclValueNotFoundException
 from dino.exceptions import ChannelExistsException
-from dino.exceptions import NoSuchChannelException
-from dino.exceptions import NoSuchRoomException
-from dino.exceptions import RoomExistsException
-from dino.exceptions import RoomNameExistsForChannelException
-from dino.exceptions import NoChannelFoundException
-from dino.exceptions import UserExistsException
-from dino.exceptions import NoSuchUserException
-from dino.exceptions import InvalidAclTypeException
-from dino.exceptions import InvalidAclValueException
+from dino.exceptions import ChannelNameExistsException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
-from dino.exceptions import EmptyUserNameException
 from dino.exceptions import EmptyUserIdException
-from dino.exceptions import ChannelNameExistsException
-from dino.exceptions import ValidationException
+from dino.exceptions import EmptyUserNameException
+from dino.exceptions import InvalidAclTypeException
+from dino.exceptions import InvalidAclValueException
 from dino.exceptions import InvalidApiActionException
-from dino.exceptions import AclValueNotFoundException
-
-from functools import wraps
-from zope.interface import implementer
-import logging
+from dino.exceptions import NoChannelFoundException
+from dino.exceptions import NoSuchChannelException
+from dino.exceptions import NoSuchRoomException
+from dino.exceptions import NoSuchUserException
+from dino.exceptions import RoomExistsException
+from dino.exceptions import RoomNameExistsForChannelException
+from dino.exceptions import UserExistsException
+from dino.exceptions import ValidationException
+from dino.utils import b64d
+from dino.utils import b64e
+from dino.utils.decorators import timeit
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -1039,7 +1038,12 @@ class DatabaseRdbms(object):
             raise EmptyUserIdException()
 
         self.get_room_name(room_id)
-        _leave()
+        try:
+            _leave()
+        except StaleDataError as e:
+            logger.warning(
+                'got StaleDataError when leaving room, likely already removed from assoc table: %s' % str(e))
+            self.env.capture_exception(sys.exc_info())
 
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.get_room_name(room_id)
