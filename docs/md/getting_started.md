@@ -105,3 +105,24 @@ Example:
     127.0.0.1:6379> hset user:auth:1234 token 302fe6be-a72f-11e6-b5fc-330653beb4be
     127.0.0.1:6379> hset user:auth:1234 age 35
     127.0.0.1:6379> hset user:auth:1234 gender m
+
+## Private messaging
+
+When the implementation is for one-to-one messaging and not a group chat, the usage is slightly different. After 
+having received the `gn_login` event described above, the user will automatically have joined their own room, 
+identified by their `user_id`, and another room identified by their `socket.io` session ID.
+
+When a logged in user wants to send a message to another user (logged in or not), use that user's ID as the
+`target.id` of the activity. E.g., if you wish to send a private message to user with ID `6`:
+
+    socket.emit('message', {
+        verb: 'send',
+        target: {
+            id: '6',
+            objectType: 'private'
+        },
+        object: {
+            content: '<the message, base64 encoded>'
+        }
+    });
+
