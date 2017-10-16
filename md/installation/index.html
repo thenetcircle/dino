@@ -196,19 +196,19 @@ $ sudo apt-get install tar git curl nano wget dialog net-tools build-essential
 $ sudo apt-get install libssl-dev libmysqlclient-dev libpq-dev virtualenv
 </code></pre>
 <h2 id="from-source">From source</h2>
-<p>Requires Python &gt;=3.6.0. Download and install from source (tip: install in <code>/opt</code> since it might interfere with other
+<p>Requires Python &gt;=3.5.0. Download and install from source (tip: install in <code>/opt</code> since it might interfere with other
 python installations, present or future):</p>
-<pre><code>$ wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz
-$ tar -xvf Python-3.6.2.tar.xz
-$ cd Python-3.6.2/
-$ sudo mkdir /opt/python-3.6.2
-$ ./configure --prefix=/opt/python-3.6.2 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" --enable-optimizations
+<pre><code>$ wget https://www.python.org/ftp/python/3.5.4/Python-3.5.4.tar.xz
+$ tar -xvf Python-3.5.4.tar.xz
+$ cd Python-3.5.4/
+$ sudo mkdir /opt/python-3.5.4
+$ ./configure --prefix=/opt/python-3.5.4 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" --enable-optimizations
 $ make
 $ sudo make altinstall
 </code></pre>
 <p>Add the paths to your <code>.bashrc</code> or <code>.profile</code>:</p>
-<pre><code>export PATH="/opt/python-3.6.2/bin/:$PATH"
-export LD_LIBRARY_PATH="/opt/python-3.6.2/lib/:$LD_LIBRARY_PATH"
+<pre><code>export PATH="/opt/python-3.5.4/bin/:$PATH"
+export LD_LIBRARY_PATH="/opt/python-3.5.4/lib/:$LD_LIBRARY_PATH"
 </code></pre>
 <p>Install requirements:</p>
 <pre><code>$ source env/bin/activate
@@ -221,7 +221,7 @@ $ bash Miniconda3-latest-Linux-x86_64.sh # assuming defaults accepted
 $ source ~/.bashrc
 </code></pre>
 <p>Create your environment and install the requirements:</p>
-<pre><code>$ conda create -n env python=3.6
+<pre><code>$ conda create -n env python=3.5
 $ source activate env
 $ pip install -r requirements.txt
 </code></pre>
@@ -239,7 +239,7 @@ $ pip install -r requirements.txt
 <p>Just clone and run from the cloned directory:</p>
 <pre><code>$ git clone https://github.com/thenetcircle/dino.git
 $ cd dino
-$ virtualenv --python=python3.6 env
+$ virtualenv --python=python3.5 env
 $ source env/bin/activate
 (env) $ pip install --upgrade -r requirements.txt
 (env) $ pip install --upgrade --no-deps .
@@ -247,7 +247,7 @@ $ source env/bin/activate
 <h2 id="using-init-script">Using init script</h2>
 <pre><code>$ git clone https://github.com/thenetcircle/dino.git foobar-prod
 $ cd foobar-prod
-$ virtualenv --python=python3.6 env
+$ virtualenv --python=python3.5 env
 $ sudo cp bin/initd/dino-app /etc/init.d/
 $ source env/bin/activate
 (env) $ pip install --upgrade -r requirements.txt
@@ -261,7 +261,7 @@ install for.</p>
 /home/dino
 $ git clone https://github.com/thenetcircle/dino.git foobar-prod
 $ cd foobar-prod
-$ virtualenv --python=python3.6 env
+$ virtualenv --python=python3.5 env
 $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod app 5200
 $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod rest 5400
 $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod web 5300
@@ -315,7 +315,7 @@ lastly kubernetes.</p>
 <h2 id="simple_1">Simple</h2>
 <p>Running in the foreground:</p>
 <pre><code>$ cd dino/
-$ virtualenv --python=python3.6 env
+$ virtualenv --python=python3.5 env
 $ source env/bin/activate
 (env) $ DINO_ENVIRONMENT=dev gunicorn \
             --error-logfile ~/dino-gunicorn-error.log \

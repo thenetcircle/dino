@@ -72,6 +72,9 @@
                 <li class="toctree-l3"><a href="#authentication">Authentication</a></li>
                 
             
+                <li class="toctree-l3"><a href="#private-messaging">Private messaging</a></li>
+                
+            
             </ul>
         
     </li>
@@ -251,6 +254,23 @@ first be set in the Redis <code>hset</code> with key <code>user:auth:&lt;user ID
 127.0.0.1:6379&gt; hset user:auth:1234 token 302fe6be-a72f-11e6-b5fc-330653beb4be
 127.0.0.1:6379&gt; hset user:auth:1234 age 35
 127.0.0.1:6379&gt; hset user:auth:1234 gender m
+</code></pre>
+<h2 id="private-messaging">Private messaging</h2>
+<p>When the implementation is for one-to-one messaging and not a group chat, the usage is slightly different. After 
+having received the <code>gn_login</code> event described above, the user will automatically have joined their own room, 
+identified by their <code>user_id</code>, and another room identified by their <code>socket.io</code> session ID.</p>
+<p>When a logged in user wants to send a message to another user (logged in or not), use that user's ID as the
+<code>target.id</code> of the activity. E.g., if you wish to send a private message to user with ID <code>6</code>:</p>
+<pre><code>socket.emit('message', {
+    verb: 'send',
+    target: {
+        id: '6',
+        objectType: 'private'
+    },
+    object: {
+        content: '&lt;the message, base64 encoded&gt;'
+    }
+});
 </code></pre>
               
             </div>
