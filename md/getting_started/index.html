@@ -66,6 +66,9 @@
         
             <ul>
             
+                <li class="toctree-l3"><a href="#quick-start">Quick start</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#encoding">Encoding</a></li>
                 
             
@@ -73,6 +76,9 @@
                 
             
                 <li class="toctree-l3"><a href="#private-messaging">Private messaging</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#java-client">Java client</a></li>
                 
             
             </ul>
@@ -161,7 +167,8 @@
           <div role="main">
             <div class="section">
               
-                <p>This example is using JavaScript.</p>
+                <h2 id="quick-start">Quick start</h2>
+<p>This example is using JavaScript.</p>
 <p>First we connect to the server:</p>
 <pre><code>socket = io.connect(
     'http://' + document.domain + ':' + location.port + '/chat', 
@@ -271,6 +278,19 @@ identified by their <code>user_id</code>, and another room identified by their <
         content: '&lt;the message, base64 encoded&gt;'
     }
 });
+</code></pre>
+<h2 id="java-client">Java client</h2>
+<p>Using the <a href="https://github.com/socketio/socket.io-client-java">Java socket.io library</a>, you have to use <code>http</code> 
+instead of <code>ws</code> and <code>https</code> instead of <code>wss</code> (it's the same thing).</p>
+<p>Create your object and use Gson to serialize it to json for a JSONObject (you cannot to a <code>toString</code> of the 
+obejct, it needs to be a json object):</p>
+<pre><code>Gson gson = new Gson();
+try {
+    JSONObject obj = new JSONObject(gson.toJson(o));
+    s.emit("login", obj);
+} catch (JSONException e) {
+    e.printStackTrace();
+}
 </code></pre>
               
             </div>
