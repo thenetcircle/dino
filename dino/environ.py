@@ -215,6 +215,7 @@ class GNEnvironment(object):
         self.disconnect = _flask_disconnect
         self._force_disconnect_by_sid = None
         self.disconnect_by_sid = None
+        self.response_formatter = lambda status_code, data: {'status_code': status_code, 'data': data}
 
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.session = config.get(ConfigKeys.SESSION, None)
@@ -794,6 +795,28 @@ def init_admin_and_admin_room(gn_env: GNEnvironment):
     gn_env.db.create_admin_room()
 
 
+@timeit(logger, 'init response formatter')
+def init_response_formatter(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    formatter = gn_env.config.get(ConfigKeys.RESPONSE_FORMATTER, None)
+    if formatter is None:
+        logger.info('using default response formatter, no config specified')
+        return
+
+    if formatter == 'data,error':
+        logger.info('using response format [status_code,error]')
+        gn_env.response_formatter = lambda status_code, data: {'status_code': status_code, 'error': data}
+    elif formatter == 'data,message':
+        logger.info('using response format [status_code,message]')
+        gn_env.response_formatter = lambda status_code, data: {'status_code': status_code, 'message': data}
+    else:
+        logger.info('using response format [status_code,data]')
+        gn_env.response_formatter = lambda status_code, data: {'status_code': status_code, 'data': data}
+
+
 @timeit(logger, 'creating process pool')
 def init_process_pool(gn_env: GNEnvironment):
     class FakeExecutor(object):
@@ -913,6 +936,7 @@ def initialize_env(dino_env):
     init_request_validators(dino_env)
     init_blacklist_service(dino_env)
     init_admin_and_admin_room(dino_env)
+    init_response_formatter(dino_env)
     delete_ephemeral_rooms(dino_env)
 
 

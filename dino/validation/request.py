@@ -118,14 +118,13 @@ class RequestValidator(BaseValidator):
             json_act = utils.activity_for_already_banned(duration, reason)
             environ.env.emit('gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True)
             logger.info('user %s is banned from chatting for: %ss' % (user_id, duration))
-            return False, ECodes.USER_IS_BANNED, json_act
+            return False, ECodes.USER_IS_BANNED, 'user %s is banned from chatting for: %ss' % (user_id, duration)
 
         if hasattr(activity.actor, 'attachments') and activity.actor.attachments is not None:
             for attachment in activity.actor.attachments:
                 environ.env.session[attachment.object_type] = attachment.content
 
         if SessionKeys.token.value not in environ.env.session:
-            environ.env.emit('gn_login', {'status_code': ECodes.NO_USER_IN_SESSION, 'data': 'no token in session'})
             logger.warning('no token in session when logging in for user id %s' % str(user_id))
             return False, ECodes.NO_USER_IN_SESSION, 'no token in session'
 
@@ -133,7 +132,6 @@ class RequestValidator(BaseValidator):
         is_valid, error_msg, session = self.validate_login(user_id, token)
 
         if not is_valid:
-            environ.env.emit('gn_login', {'status_code': ECodes.NOT_ALLOWED, 'data': error_msg})
             logger.warning('login is not valid for user id %s: %s' % (str(user_id), str(error_msg)))
             environ.env.stats.incr('on_login.failed')
             return False, ECodes.NOT_ALLOWED, error_msg

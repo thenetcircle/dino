@@ -138,6 +138,7 @@ class UserKeys(object):
 class ConfigKeys(object):
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'
+    RESPONSE_FORMATTER = 'response_formatter'
     LOGGING = 'logging'
     DATE_FORMAT = 'date_format'
     DEBUG = 'debug'
