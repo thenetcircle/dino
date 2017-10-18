@@ -797,6 +797,19 @@ def init_admin_and_admin_room(gn_env: GNEnvironment):
 
 @timeit(logger, 'init response formatter')
 def init_response_formatter(gn_env: GNEnvironment):
+    def _data_error(status_code, data):
+        if status_code != 200:
+            return {'status_code': status_code, 'error': data}
+        return {'status_code': status_code, 'data': data}
+
+    def _data_data(status_code, data):
+        return {'status_code': status_code, 'data': data}
+
+    def _data_message(status_code, data):
+        if status_code != 200:
+            return {'status_code': status_code, 'message': data}
+        return {'status_code': status_code, 'data': data}
+
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
@@ -808,13 +821,13 @@ def init_response_formatter(gn_env: GNEnvironment):
 
     if formatter == 'data,error':
         logger.info('using response format [status_code,error]')
-        gn_env.response_formatter = lambda status_code, data: {'status_code': status_code, 'error': data}
+        gn_env.response_formatter = _data_error
     elif formatter == 'data,message':
         logger.info('using response format [status_code,message]')
-        gn_env.response_formatter = lambda status_code, data: {'status_code': status_code, 'message': data}
+        gn_env.response_formatter = _data_message
     else:
         logger.info('using response format [status_code,data]')
-        gn_env.response_formatter = lambda status_code, data: {'status_code': status_code, 'data': data}
+        gn_env.response_formatter = _data_data
 
 
 @timeit(logger, 'creating process pool')

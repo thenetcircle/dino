@@ -86,7 +86,6 @@ def respond_with(gn_event_name=None, should_disconnect=False):
             if status_code != 200:
                 logger.warning('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
 
-            # TODO: implement configurable 'response formatters'
             response_message = environ.env.response_formatter(status_code, data)
             environ.env.emit(gn_event_name, response_message)
 
