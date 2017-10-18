@@ -60,7 +60,7 @@ def timeit(_logger, tag: str):
     return factory
 
 
-def respond_with(gn_event_name=None):
+def respond_with(gn_event_name=None, should_disconnect=False):
     def factory(view_func):
         @wraps(view_func)
         def decorator(*args, **kwargs):
@@ -76,11 +76,15 @@ def respond_with(gn_event_name=None):
             finally:
                 if tb is not None:
                     logger.exception(tb)
+                if should_disconnect:
+                    environ.env.disconnect()
 
             if status_code != 200:
                 logger.warning('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
             if data is not None:
                 environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
+                if should_disconnect:
+                    environ.env.disconnect()
             else:
                 environ.env.emit(gn_event_name, {'status_code': status_code})
             return status_code, None

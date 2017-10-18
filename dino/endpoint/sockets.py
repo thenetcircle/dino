@@ -183,7 +183,7 @@ def connect() -> (int, None):
 
 
 @socketio.on('login', namespace='/ws')
-@respond_with('gn_login')
+@respond_with('gn_login', should_disconnect=True)
 @pre_process('on_login', should_validate_request=False)
 def on_login(data: dict, activity: Activity) -> (int, str):
     try:

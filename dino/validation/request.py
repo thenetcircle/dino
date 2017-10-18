@@ -109,42 +109,39 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_login(self, activity: Activity) -> (bool, int, str):
-        def _on_login() -> (bool, int, str):
-            user_id = activity.actor.id
+        user_id = activity.actor.id
 
-            is_banned, duration = utils.is_banned_globally(user_id)
-            if is_banned:
-                environ.env.join_room(user_id)
-                reason = utils.reason_for_ban(user_id)
-                json_act = utils.activity_for_already_banned(duration, reason)
-                environ.env.emit('gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True)
-                logger.info('user %s is banned from chatting for: %ss' % (user_id, duration))
-                return False, ECodes.USER_IS_BANNED, json_act
+        is_banned, duration = utils.is_banned_globally(user_id)
+        if is_banned:
+            environ.env.join_room(user_id)
+            reason = utils.reason_for_ban(user_id)
+            json_act = utils.activity_for_already_banned(duration, reason)
+            environ.env.emit('gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True)
+            logger.info('user %s is banned from chatting for: %ss' % (user_id, duration))
+            return False, ECodes.USER_IS_BANNED, json_act
 
-            if hasattr(activity.actor, 'attachments') and activity.actor.attachments is not None:
-                for attachment in activity.actor.attachments:
-                    environ.env.session[attachment.object_type] = attachment.content
+        if hasattr(activity.actor, 'attachments') and activity.actor.attachments is not None:
+            for attachment in activity.actor.attachments:
+                environ.env.session[attachment.object_type] = attachment.content
 
-            if SessionKeys.token.value not in environ.env.session:
-                return False, ECodes.NO_USER_IN_SESSION, 'no token in session'
+        if SessionKeys.token.value not in environ.env.session:
+            environ.env.emit('gn_login', {'status_code': ECodes.NO_USER_IN_SESSION, 'data': 'no token in session'})
+            logger.warning('no token in session when logging in for user id %s' % str(user_id))
+            return False, ECodes.NO_USER_IN_SESSION, 'no token in session'
 
-            token = environ.env.session.get(SessionKeys.token.value)
-            is_valid, error_msg, session = self.validate_login(user_id, token)
+        token = environ.env.session.get(SessionKeys.token.value)
+        is_valid, error_msg, session = self.validate_login(user_id, token)
 
-            if not is_valid:
-                environ.env.stats.incr('on_login.failed')
-                return False, ECodes.NOT_ALLOWED, error_msg
+        if not is_valid:
+            environ.env.emit('gn_login', {'status_code': ECodes.NOT_ALLOWED, 'data': error_msg})
+            logger.warning('login is not valid for user id %s: %s' % (str(user_id), str(error_msg)))
+            environ.env.stats.incr('on_login.failed')
+            return False, ECodes.NOT_ALLOWED, error_msg
 
-            for session_key, session_value in session.items():
-                environ.env.session[session_key] = session_value
+        for session_key, session_value in session.items():
+            environ.env.session[session_key] = session_value
 
-            return True, None, None
-
-        success, code, msg = _on_login()
-        if not success:
-            environ.env.emit('gn_login', {'status_code': code, 'data': msg})
-            environ.env.disconnect()
-        return success, code, msg
+        return True, None, None
 
     def on_remove_room(self, activity: Activity) -> (bool, int, str):
         user_id = activity.actor.id
