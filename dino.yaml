@@ -24,6 +24,8 @@ common_config: &common_config
         type: 'sentry'
         dsn: '$DINO_SENTRY_DSN'
     validation:
+        on_login:
+            - name: single_session
         on_create:
             - name: limit_length
               max_length: 120

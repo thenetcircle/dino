@@ -54,13 +54,6 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     user_id = environ.env.session.get(SessionKeys.user_id.value)
     user_name = environ.env.session.get(SessionKeys.user_name.value)
-
-    if not environ.env.config.get(ConfigKeys.TESTING):
-        if str(user_id) in environ.env.connected_user_ids:
-            logger.info('a new connection for user ID %s, will disconnect previous one' % user_id)
-            environ.env.disconnect_by_sid(environ.env.connected_user_ids[str(user_id)])
-        environ.env.connected_user_ids[str(user_id)] = environ.env.request.sid
-
     user_roles = utils.get_user_roles(user_id)
 
     response = utils.activity_for_login(user_id, user_name)
