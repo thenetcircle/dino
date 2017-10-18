@@ -37,7 +37,7 @@ class OnLoginEnforceSingleSession(IPlugin):
         try:
             self.env.config.get(ConfigKeys.VALIDATION).get('on_login').get('single_session')
         except Exception:
-            logger.info('no config enabled for plugin not_full, ignoring plugin')
+            logger.info('no config enabled for plugin single_session, ignoring plugin')
             return
         self.enabled = True
 
