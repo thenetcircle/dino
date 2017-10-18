@@ -1,3 +1,5 @@
+## Quick start
+
 This example is using JavaScript.
 
 First we connect to the server:
@@ -125,4 +127,20 @@ When a logged in user wants to send a message to another user (logged in or not)
             content: '<the message, base64 encoded>'
         }
     });
+
+## Java client
+
+Using the [Java socket.io library](https://github.com/socketio/socket.io-client-java), you have to use `http` 
+instead of `ws` and `https` instead of `wss` (it's the same thing).
+
+Create your object and use Gson to serialize it to json for a JSONObject (you cannot to a `toString` of the 
+obejct, it needs to be a json object):
+
+    Gson gson = new Gson();
+    try {
+        JSONObject obj = new JSONObject(gson.toJson(o));
+        s.emit("login", obj);
+    } catch (JSONException e) {
+        e.printStackTrace();
+    }
 
