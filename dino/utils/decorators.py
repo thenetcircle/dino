@@ -17,6 +17,7 @@ import logging
 import time
 import sys
 import activitystreams as as_parser
+import eventlet
 
 from functools import wraps
 from datetime import datetime
@@ -61,6 +62,9 @@ def timeit(_logger, tag: str):
 
 
 def respond_with(gn_event_name=None, should_disconnect=False):
+    def delayed_disconnect(_sid: str):
+        environ.env.disconnect_by_sid(_sid)
+
     def factory(view_func):
         @wraps(view_func)
         def decorator(*args, **kwargs):
@@ -76,15 +80,15 @@ def respond_with(gn_event_name=None, should_disconnect=False):
             finally:
                 if tb is not None:
                     logger.exception(tb)
-                if should_disconnect:
-                    environ.env.disconnect()
+                if should_disconnect and environ.env.config.get('disconnect_on_failed_login', False):
+                    eventlet.spawn_after(seconds=1, func=delayed_disconnect, sid=environ.env.request.sid)
 
             if status_code != 200:
                 logger.warning('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
             if data is not None:
                 environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
-                if should_disconnect:
-                    environ.env.disconnect()
+                if should_disconnect and environ.env.config.get('disconnect_on_failed_login', False):
+                    eventlet.spawn_after(seconds=1, func=delayed_disconnect, sid=environ.env.request.sid)
             else:
                 environ.env.emit(gn_event_name, {'status_code': status_code})
             return status_code, None
