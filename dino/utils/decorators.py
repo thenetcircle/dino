@@ -62,8 +62,8 @@ def timeit(_logger, tag: str):
 
 
 def respond_with(gn_event_name=None, should_disconnect=False):
-    def delayed_disconnect(_sid: str):
-        environ.env.disconnect_by_sid(_sid)
+    def delayed_disconnect(sid: str):
+        environ.env.disconnect_by_sid(sid)
 
     def factory(view_func):
         @wraps(view_func)

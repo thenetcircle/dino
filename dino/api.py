@@ -27,7 +27,6 @@ from dino.utils.decorators import timeit
 from dino import validation
 
 import logging
-import sys
 
 __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
