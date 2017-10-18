@@ -36,17 +36,20 @@ class OnLoginEnforceSingleSession(IPlugin):
         self.env = env
         try:
             self.env.config.get(ConfigKeys.VALIDATION).get('on_login').get('single_session')
+            self.enabled = True
         except Exception:
             logger.info('no config enabled for plugin single_session, ignoring plugin')
-            return
-        self.enabled = True
 
     def _process(self, data: dict, activity: Activity):
         user_id = activity.actor.id
+        user_name = activity.actor.display_name
 
         if not self.env.config.get(ConfigKeys.TESTING):
             if str(user_id) in self.env.connected_user_ids:
                 logger.info('a new connection for user ID %s, will disconnect previous one' % user_id)
+                previous_sid = self.env.connected_user_ids[str(user_id)]
+                disconnect_act = utils.activity_for_disconnect(user_id, user_name)
+                self.env.emit('gn_disconnect', disconnect_act, room=previous_sid)
                 self.env.disconnect_by_sid(self.env.connected_user_ids[str(user_id)])
             self.env.connected_user_ids[str(user_id)] = self.env.request.sid
 
