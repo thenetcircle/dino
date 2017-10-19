@@ -61,12 +61,11 @@ def timeit(_logger, tag: str):
     return factory
 
 
-def delayed_disconnect(sid: str):
+def _delayed_disconnect(sid: str):
     environ.env.disconnect_by_sid(sid)
 
 
 def respond_with(gn_event_name=None, should_disconnect=False):
-
     def factory(view_func):
         @wraps(view_func)
         def decorator(*args, **kwargs):
@@ -83,12 +82,12 @@ def respond_with(gn_event_name=None, should_disconnect=False):
                 if tb is not None:
                     logger.exception(tb)
                 if should_disconnect and environ.env.config.get('disconnect_on_failed_login', False):
-                    eventlet.spawn_after(seconds=1, func=delayed_disconnect, sid=environ.env.request.sid)
+                    eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
 
             if status_code != 200:
                 logger.warning('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
                 if should_disconnect and environ.env.config.get('disconnect_on_failed_login', True):
-                    eventlet.spawn_after(seconds=1, func=delayed_disconnect, sid=environ.env.request.sid)
+                    eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
 
             response_message = environ.env.response_formatter(status_code, data)
             environ.env.emit(gn_event_name, response_message)
