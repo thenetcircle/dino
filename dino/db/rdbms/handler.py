@@ -46,6 +46,7 @@ from dino.db.rdbms.models import GlobalRoles
 from dino.db.rdbms.models import LastReads
 from dino.db.rdbms.models import RoomRoles
 from dino.db.rdbms.models import Rooms
+from dino.db.rdbms.models import Sids
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
 from dino.environ import GNEnvironment
@@ -2315,7 +2316,8 @@ class DatabaseRdbms(object):
             if user is None:
                 raise NoSuchUserException(user_id)
 
-            user.sids.clear()
+            for user_sid in user.sids:
+                session.delete(user_sid)
             session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
@@ -2332,9 +2334,11 @@ class DatabaseRdbms(object):
             if user is None:
                 raise NoSuchUserException(user_id)
 
-            if sid in user.sids:
-                user.sids.remove(sid)
-                session.commit()
+            for user_sid in user.sids:
+                if user_sid.sid == sid:
+                    session.delete(user_sid)
+                    break
+            session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
@@ -2350,9 +2354,16 @@ class DatabaseRdbms(object):
             if user is None:
                 raise NoSuchUserException(user_id)
 
-            if sid not in user.sids:
-                user.sids.append(sid)
-                session.commit()
+            for user_sid in user.sids:
+                if user_sid.sid == sid:
+                    return
+
+            user_sid = Sids()
+            user_sid.uuid = user_id
+            user_sid.sid = sid
+            user.sids.append(user_sid)
+            session.add(user_sid)
+            session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
@@ -2360,21 +2371,21 @@ class DatabaseRdbms(object):
 
     def get_sids_for_user(self, user_id: str) -> Union[list, None]:
         @with_session
-        def get_sids(session=None) -> list:
+        def get_sids(session=None) -> Union[list, None]:
             user = session.query(Users)\
                 .filter(Users.uuid == user_id)\
                 .first()
 
             if user is None:
                 return None
-            return user.sids
+            return [user_sid.sid for user_sid in user.sids]
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
         return get_sids()
 
     @staticmethod
-    def _decode_reason(self, reason: str=None) -> str:
+    def _decode_reason(reason: str=None) -> str:
         if reason is None or len(reason.strip()) == 0:
             return ''
         return b64d(reason)
