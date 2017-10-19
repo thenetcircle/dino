@@ -1,6 +1,8 @@
 common_config: &common_config
     testing: False
     log_level: 'DEBUG'
+    response_format: 'status_code,data,error'
+    disconnect_on_failed_login: True
     auth:
         type: 'redis'
         host: '$DINO_AUTH_HOST'
@@ -20,9 +22,9 @@ common_config: &common_config
     stats:
         type: 'statsd'
         host: 'mock'
-    logging:
-        type: 'sentry'
-        dsn: '$DINO_SENTRY_DSN'
+    #logging:
+    #    type: 'sentry'
+    #    dsn: '$DINO_SENTRY_DSN'
     validation:
         on_login:
             - name: single_session

@@ -797,37 +797,42 @@ def init_admin_and_admin_room(gn_env: GNEnvironment):
 
 @timeit(logger, 'init response formatter')
 def init_response_formatter(gn_env: GNEnvironment):
-    def _data_error(status_code, data):
-        if status_code != 200:
-            return {'status_code': status_code, 'error': data}
-        return {'status_code': status_code, 'data': data}
-
-    def _data_data(status_code, data):
-        return {'status_code': status_code, 'data': data}
-
-    def _data_message(status_code, data):
-        if status_code != 200:
-            return {'status_code': status_code, 'message': data}
-        return {'status_code': status_code, 'data': data}
-
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
 
-    formatter = gn_env.config.get(ConfigKeys.RESPONSE_FORMATTER, None)
-    if formatter is None:
-        logger.info('using default response formatter, no config specified')
-        return
+    def get_format_keys() -> list:
+        _def_keys = ['status_code', 'data', 'error']
 
-    if formatter == 'data,error':
-        logger.info('using response format [status_code,error]')
-        gn_env.response_formatter = _data_error
-    elif formatter == 'data,message':
-        logger.info('using response format [status_code,message]')
-        gn_env.response_formatter = _data_message
-    else:
-        logger.info('using response format [status_code,data]')
-        gn_env.response_formatter = _data_data
+        res_format = gn_env.config.get(ConfigKeys.RESPONSE_FORMAT, None)
+        if res_format is None:
+            logger.info('using default response format, no config specified')
+            return _def_keys
+
+        if type(res_format) != str:
+            logger.warning('configured response format is of type "%s", using default' % str(type(res_format)))
+            return _def_keys
+
+        if len(res_format.strip()) == 0:
+            logger.warning('configured response format is blank, using default')
+            return _def_keys
+
+        keys = res_format.split(',')
+        if len(keys) != 3:
+            logger.warning('configured response format not "<code>,<data>,<error>" but "%s", using default' % res_format)
+            return _def_keys
+
+        for i, key in enumerate(keys):
+            if len(key.strip()) == 0:
+                logger.warning('response format key if index %s is blank in "%s", using default' % (str(i), keys))
+                return _def_keys
+        return keys
+
+    code_key, data_key, error_key = get_format_keys()
+
+    from dino.utils.formatter import SimpleResponseFormatter
+    gn_env.response_formatter = SimpleResponseFormatter(code_key, data_key, error_key)
+    logger.info('configured response formatting as %s' % str(gn_env.response_formatter))
 
 
 @timeit(logger, 'creating process pool')

@@ -17,10 +17,7 @@ import logging
 import traceback
 import random
 
-from typing import Union
-
 from zope.interface import implementer
-from fakeredis import FakeStrictRedis as RedisInterface
 
 from dino.config import RedisKeys
 from dino.config import ConfigKeys
