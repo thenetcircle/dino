@@ -108,8 +108,6 @@ class Users(DeclarativeBase):
     # deprecated
     sid = Column('session_id', String(128), nullable=True)
 
-    sids = relationship('Sids')
-
     rooms = relationship(
         'Rooms',
         secondary=rooms_users_association_table,
@@ -119,7 +117,7 @@ class Users(DeclarativeBase):
 class Sids(DeclarativeBase):
     __tablename__ = 'sids'
 
-    uuid = Column('user_id', String(128), nullable=False, index=True, primary_key=True)
+    user_uuid = Column('user_uuid', String(128), nullable=False, index=True, primary_key=True)
     sid = Column('session_id', String(128), nullable=False, index=True, primary_key=True)
 
 

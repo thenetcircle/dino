@@ -2309,14 +2309,14 @@ class DatabaseRdbms(object):
     def reset_sids_for_user(self, user_id: str) -> None:
         @with_session
         def update_sid(session=None):
-            user = session.query(Users)\
+            user_sids = session.query(Users)\
                 .filter(Users.uuid == user_id)\
-                .first()
+                .all()
 
-            if user is None:
-                raise NoSuchUserException(user_id)
+            if user_sids is None or len(user_sids) == 0:
+                return
 
-            for user_sid in user.sids:
+            for user_sid in user_sids:
                 session.delete(user_sid)
             session.commit()
 
@@ -2327,17 +2327,15 @@ class DatabaseRdbms(object):
     def remove_sid_for_user(self, user_id: str, sid: str) -> None:
         @with_session
         def update_sid(session=None):
-            user = session.query(Users)\
-                .filter(Users.uuid == user_id)\
+            user_sid = session.query(Sids)\
+                .filter(Sids.user_uuid == user_id)\
+                .filter(Sids.sid == sid)\
                 .first()
 
-            if user is None:
-                raise NoSuchUserException(user_id)
+            if user_sid is None:
+                return
 
-            for user_sid in user.sids:
-                if user_sid.sid == sid:
-                    session.delete(user_sid)
-                    break
+            session.delete(user_sid)
             session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
@@ -2347,21 +2345,17 @@ class DatabaseRdbms(object):
     def add_sid_for_user(self, user_id: str, sid: str) -> None:
         @with_session
         def update_sid(session=None):
-            user = session.query(Users)\
-                .filter(Users.uuid == user_id)\
+            user_sid = session.query(Sids)\
+                .filter(Sids.user_uuid == user_id)\
+                .filter(Sids.sid == sid)\
                 .first()
 
-            if user is None:
-                raise NoSuchUserException(user_id)
-
-            for user_sid in user.sids:
-                if user_sid.sid == sid:
-                    return
+            if user_sid is not None:
+                return
 
             user_sid = Sids()
-            user_sid.uuid = user_id
+            user_sid.user_uuid = user_id
             user_sid.sid = sid
-            user.sids.append(user_sid)
             session.add(user_sid)
             session.commit()
 
@@ -2372,13 +2366,13 @@ class DatabaseRdbms(object):
     def get_sids_for_user(self, user_id: str) -> Union[list, None]:
         @with_session
         def get_sids(session=None) -> Union[list, None]:
-            user = session.query(Users)\
-                .filter(Users.uuid == user_id)\
-                .first()
+            user_sids = session.query(Sids)\
+                .filter(Sids.user_uuid == user_id)\
+                .all()
 
-            if user is None:
+            if user_sids is None:
                 return None
-            return [user_sid.sid for user_sid in user.sids]
+            return [user_sid.sid for user_sid in user_sids]
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
