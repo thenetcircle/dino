@@ -2305,7 +2305,7 @@ class DatabaseRdbms(object):
     def kick_user(self, room_id: str, user_id: str) -> None:
         self.leave_room(user_id, room_id)
 
-    def set_sid_for_user(self, user_id: str, sid: str) -> None:
+    def reset_sids_for_user(self, user_id: str) -> None:
         @with_session
         def update_sid(session=None):
             user = session.query(Users)\
@@ -2315,27 +2315,63 @@ class DatabaseRdbms(object):
             if user is None:
                 raise NoSuchUserException(user_id)
 
-            user.sid = sid
+            user.sids.clear()
             session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
         update_sid()
 
-    def get_sid_for_user(self, user_id: str) -> str:
+    def remove_sid_for_user(self, user_id: str, sid: str) -> None:
         @with_session
-        def get_sid(session=None) -> str:
+        def update_sid(session=None):
+            user = session.query(Users)\
+                .filter(Users.uuid == user_id)\
+                .first()
+
+            if user is None:
+                raise NoSuchUserException(user_id)
+
+            if sid in user.sids:
+                user.sids.remove(sid)
+                session.commit()
+
+        if user_id is None or len(user_id.strip()) == 0:
+            raise EmptyUserIdException(user_id)
+        update_sid()
+
+    def add_sid_for_user(self, user_id: str, sid: str) -> None:
+        @with_session
+        def update_sid(session=None):
+            user = session.query(Users)\
+                .filter(Users.uuid == user_id)\
+                .first()
+
+            if user is None:
+                raise NoSuchUserException(user_id)
+
+            if sid not in user.sids:
+                user.sids.append(sid)
+                session.commit()
+
+        if user_id is None or len(user_id.strip()) == 0:
+            raise EmptyUserIdException(user_id)
+        update_sid()
+
+    def get_sids_for_user(self, user_id: str) -> Union[list, None]:
+        @with_session
+        def get_sids(session=None) -> list:
             user = session.query(Users)\
                 .filter(Users.uuid == user_id)\
                 .first()
 
             if user is None:
                 return None
-            return user.sid
+            return user.sids
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
-        return get_sid()
+        return get_sids()
 
     @staticmethod
     def _decode_reason(self, reason: str=None) -> str:

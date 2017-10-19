@@ -11,6 +11,7 @@
 # limitations under the License.
 
 import logging
+import eventlet
 
 from dino import environ
 from dino import utils
@@ -55,18 +56,12 @@ class OnJoinHooks(object):
             room_name = utils.get_room_name(room_id)
             activity_json = utils.activity_for_user_joined_invisibly(user_id, user_name, room_id, room_name, image)
             for admin_id in admins_in_room:
-                environ.env.emit('gn_user_joined', activity_json, room=admin_id, broadcast=False)
+                environ.env.out_of_scope_emit('gn_user_joined', activity_json, room=admin_id, broadcast=False)
             return
 
         activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
-        environ.env.emit('gn_user_joined', activity_json, room=room_id, broadcast=True, include_self=False)
+        environ.env.out_of_scope_emit('gn_user_joined', activity_json, room=room_id, broadcast=True, include_self=False)
         environ.env.publish(activity_json)
-
-    @staticmethod
-    @timeit(logger, 'on_join_hook_set_sid_for_user')
-    def set_sid_for_user(_, activity, sid) -> None:
-        user_id = activity.actor.id
-        utils.set_sid_for_user_id(user_id, sid)
 
 
 @environ.env.observer.on('on_join')
@@ -75,10 +70,5 @@ def _on_join_join_room(arg: tuple) -> None:
 
 
 @environ.env.observer.on('on_join')
-def _on_join_set_sid_for_user(arg: tuple) -> None:
-    environ.env.pool_executor.submit(OnJoinHooks.set_sid_for_user, arg[0], arg[1], environ.env.request.sid)
-
-
-@environ.env.observer.on('on_join')
 def _on_join_emit_join_event(arg: tuple) -> None:
-    OnJoinHooks.emit_join_event(arg)
+    eventlet.spawn(OnJoinHooks.emit_join_event, arg)

@@ -843,15 +843,15 @@ def set_name_for_user_id(user_id: str, user_name: str) -> None:
     environ.env.db.set_user_name(user_id, user_name)
 
 
-def set_sid_for_user_id(user_id: str, sid: str) -> None:
+def add_sid_for_user_id(user_id: str, sid: str) -> None:
     if sid is None or len(sid.strip()) == 0:
-        logger.error('empty sid when setting sid')
+        logger.error('empty sid when adding sid')
         return
-    environ.env.db.set_sid_for_user(user_id, sid)
+    environ.env.db.add_sid_for_user(user_id, sid)
 
 
-def get_sid_for_user_id(user_id: str) -> str:
-    return environ.env.db.get_sid_for_user(user_id)
+def get_sids_for_user_id(user_id: str) -> str:
+    return environ.env.db.get_sids_for_user(user_id)
 
 
 def create_or_update_user(user_id: str, user_name: str) -> bool:

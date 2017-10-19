@@ -996,18 +996,26 @@ class DatabaseRedis(object):
                 logger.error('no username found for user_id %s' % user_id)
         return cleaned
 
-    def set_sid_for_user(self, user_id: str, sid: str) -> None:
+    def add_sid_for_user(self, user_id: str, sid: str) -> None:
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
         self.redis.hset(RedisKeys.sid_for_user_id(), user_id, sid)
 
-    def get_sid_for_user(self, user_id: str) -> str:
+    def reset_sids_for_user(self, user_id: str) -> None:
+        if user_id is None or len(user_id.strip()) == 0:
+            raise EmptyUserIdException(user_id)
+        self.redis.hdel(RedisKeys.sid_for_user_id(), user_id)
+
+    def remove_sid_for_user(self, user_id: str, sid: str) -> None:
+        self.reset_sids_for_user(user_id)
+
+    def get_sids_for_user(self, user_id: str) -> Union[list, None]:
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
         sid = self.redis.hget(RedisKeys.sid_for_user_id(), user_id)
         if sid is None:
             return None
-        return str(sid, 'utf-8')
+        return [str(sid, 'utf-8')]
 
     def _get_users_with_role_in_channel(self, channel_id: str, role_key: str):
         roles = self.redis.hgetall(RedisKeys.channel_roles(channel_id))
