@@ -39,13 +39,9 @@ class OnJoinHooks(object):
 
     @staticmethod
     @timeit(logger, 'on_join_hook_emit_join_event')
-    def emit_join_event(arg: tuple) -> None:
-        data, activity = arg
+    def emit_join_event(activity, user_id, user_name, image) -> None:
         room_id = activity.target.id
         room_name = utils.get_room_name(room_id)
-        user_name = environ.env.session.get(SessionKeys.user_name.value)
-        user_id = environ.env.session.get(SessionKeys.user_id.value)
-        image = environ.env.session.get(SessionKeys.image.value, '')
 
         # if invisible, only sent 'invisible' join to admins in the room
         if utils.get_user_status(user_id) == UserKeys.STATUS_INVISIBLE:
@@ -71,4 +67,7 @@ def _on_join_join_room(arg: tuple) -> None:
 
 @environ.env.observer.on('on_join')
 def _on_join_emit_join_event(arg: tuple) -> None:
-    eventlet.spawn(OnJoinHooks.emit_join_event, arg)
+    user_name = environ.env.session.get(SessionKeys.user_name.value)
+    user_id = environ.env.session.get(SessionKeys.user_id.value)
+    image = environ.env.session.get(SessionKeys.image.value, '')
+    eventlet.spawn(OnJoinHooks.emit_join_event, arg[1], user_id, user_name, image)
