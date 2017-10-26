@@ -354,7 +354,12 @@ class RequestValidator(BaseValidator):
         activity.object.display_name = utils.get_channel_name(channel_id)
 
         activity.target.object_type = 'room'
-        acls = utils.get_acls_in_room_for_action(room_id, ApiActions.JOIN)
+
+        try:
+            acls = utils.get_acls_in_room_for_action(room_id, ApiActions.JOIN)
+        except NoSuchRoomException:
+            return False, ECodes.NO_SUCH_ROOM, 'no such room'
+
         is_valid, error_msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.JOIN, acls)
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, error_msg
@@ -443,7 +448,11 @@ class RequestValidator(BaseValidator):
         if room_id is None or room_id.strip() == '':
             return False, ECodes.MISSING_TARGET_ID, 'invalid target id'
 
-        acls = utils.get_acls_in_room_for_action(room_id, ApiActions.HISTORY)
+        try:
+            acls = utils.get_acls_in_room_for_action(room_id, ApiActions.HISTORY)
+        except NoSuchRoomException:
+            return False, ECodes.NO_SUCH_ROOM, 'no such room'
+
         is_valid, error_msg = validation.acl.validate_acl_for_action(
                 activity, ApiTargets.ROOM, ApiActions.HISTORY, acls)
 
@@ -516,7 +525,11 @@ class RequestValidator(BaseValidator):
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, msg
 
-        room_acls = utils.get_acls_in_room_for_action(room_id, ApiActions.KICK)
+        try:
+            room_acls = utils.get_acls_in_room_for_action(room_id, ApiActions.KICK)
+        except NoSuchRoomException:
+            return False, ECodes.NO_SUCH_ROOM, 'no such room'
+
         is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.KICK, room_acls)
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, msg

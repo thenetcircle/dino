@@ -1090,7 +1090,12 @@ def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: s
         logger.debug('not allowed to send crossroom in channel: %s' % msg)
         return False
 
-    room_acls = get_acls_in_room_for_action(to_room_uuid, ApiActions.CROSSROOM)
+    try:
+        room_acls = get_acls_in_room_for_action(to_room_uuid, ApiActions.CROSSROOM)
+    except NoSuchRoomException:
+        logger.warning('room %s does not exist, maybe deleted before cache updated' % to_room_uuid)
+        return False
+
     is_valid, msg = validation.acl.validate_acl_for_action(
         activity, ApiTargets.ROOM, ApiActions.CROSSROOM, room_acls or dict())
     if not is_valid:
