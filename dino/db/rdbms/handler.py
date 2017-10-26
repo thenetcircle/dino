@@ -1117,7 +1117,11 @@ class DatabaseRdbms(object):
                 # user is not in the room, so nothing to do
                 return
 
-            room.users.remove(user)
+            try:
+                room.users.remove(user)
+            except ValueError as e:
+                logger.warning('user %s tried to leave room but already left, ignoring: %s' % (user_id, str(e)))
+                return
             session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
