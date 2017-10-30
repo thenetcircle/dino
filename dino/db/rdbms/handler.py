@@ -675,7 +675,7 @@ class DatabaseRdbms(object):
         if not skip_cache:
             users = self.env.cache.get_users_in_room(room_id, is_super_user=is_super_user)
             if users is not None:
-                return users
+                return users.copy()
 
         all_users = _user_ids()
         user_statuses = _user_statuses(all_users)
