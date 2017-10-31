@@ -443,6 +443,7 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     :return: if ok, {'status_code': ECodes.OK, 'data': <AS with rooms as object.attachments>}
     """
     channel_id = activity.object.url
+    user_id = activity.actor.id
     rooms = environ.env.db.rooms_for_channel(channel_id)
 
     roles = utils.get_user_roles(environ.env.session.get(SessionKeys.user_id.value))
@@ -455,8 +456,10 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
             is_valid, err_msg = validation.acl.validate_acl_for_action(
                     activity, ApiTargets.ROOM, ApiActions.LIST, acls, target_id=room_id, object_type='room')
         except Exception as e:
-            # likely the room was deleted before client cache updated
             logger.warning('could not check acls for room %s in on_list_rooms: %s' % (room_id, str(e)))
+
+            # likely the room was deleted, so reset cached user roles so this room is not included anymore
+            environ.env.cache.reset_user_roles(user_id)
             continue
 
         # if not allowed to join, don't show in list
