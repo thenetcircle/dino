@@ -2336,6 +2336,7 @@ class DatabaseRdbms(object):
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
+        self.env.cache.reset_sids_for_user(user_id)
         update_sid()
 
     def remove_sid_for_user(self, user_id: str, sid: str) -> None:
@@ -2354,6 +2355,7 @@ class DatabaseRdbms(object):
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
+        self.env.cache.remove_sid_for_user(user_id, sid)
         update_sid()
 
     def add_sid_for_user(self, user_id: str, sid: str) -> None:
@@ -2375,6 +2377,7 @@ class DatabaseRdbms(object):
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
+        self.env.cache.add_sid_for_user(user_id, sid)
         update_sid()
 
     def get_sids_for_user(self, user_id: str) -> Union[list, None]:
@@ -2390,7 +2393,14 @@ class DatabaseRdbms(object):
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
-        return get_sids()
+
+        all_sids = self.env.cache.get_sids_for_user(user_id)
+        if all_sids is not None and len(all_sids) > 0:
+            return all_sids.copy()
+
+        all_sids = get_sids()
+        self.env.cache.set_sids_for_user(user_id, all_sids)
+        return all_sids
 
     @staticmethod
     def _decode_reason(reason: str=None) -> str:

@@ -96,6 +96,8 @@ class OnDisconnectHooks(object):
         data, activity = arg
         try:
             user_id = activity.actor.id
+            current_sid = environ.env.request.sid
+            environ.env.db.remove_sid_for_user(user_id, current_sid)
 
             all_sids = utils.get_sids_for_user_id(user_id)
             # if the user still has another session up we don't set the user as offline
