@@ -58,6 +58,9 @@ class PubSub(object):
         queue_type = conf.get(ConfigKeys.TYPE, domain=ConfigKeys.QUEUE, default=None)
         self.env.queue_connection = None
 
+        if queue_type == 'mock':
+            return
+
         import sys
         import socket
 
