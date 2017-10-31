@@ -62,6 +62,8 @@ class OnDisconnectHooks(object):
             user_name = environ.env.session.get(SessionKeys.user_name.value)
             rooms = environ.env.db.rooms_for_user(user_id)
 
+            # TODO: when multi-device is to be done this has to be considered; leave only room this session was in?
+
             for room_id, room_name in rooms.items():
                 logger.info('checking whether to remove room %s or not' % room_id)
                 if 'target' not in data:
@@ -94,6 +96,12 @@ class OnDisconnectHooks(object):
         data, activity = arg
         try:
             user_id = activity.actor.id
+
+            all_sids = utils.get_sids_for_user_id(user_id)
+            # if the user still has another session up we don't set the user as offline
+            if all_sids is not None and len(all_sids) > 0:
+                return
+
             environ.env.db.set_user_offline(user_id)
         except Exception as e:
             logger.error('could not set user offline: %s' % str(e))
@@ -114,6 +122,11 @@ class OnDisconnectHooks(object):
 
             if user_id is None or user_id == 'None':
                 logger.warning('blank user_id, ignoring disconnect event')
+                return
+
+            all_sids = utils.get_sids_for_user_id(user_id)
+            # if the user still has another session up we don't send disconnect event
+            if all_sids is not None and len(all_sids) > 0:
                 return
 
             activity_json = utils.activity_for_disconnect(user_id, user_name)
