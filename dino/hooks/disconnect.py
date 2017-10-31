@@ -33,11 +33,22 @@ class OnDisconnectHooks(object):
             # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
             user_id = activity.actor.id
             user_name = environ.env.session.get(SessionKeys.user_name.value)
-            logger.debug('a user disconnected, id "%s" name "%s"' % (user_id, user_name))
+            current_sid = environ.env.request.sid
+            logger.debug('a user disconnected [id: "%s", name: "%s", sid: "%s"]' % (user_id, user_name, current_sid))
 
             if user_id is None or len(user_id.strip()) == 0:
                 return
-            environ.env.leave_room(user_id)
+            environ.env.leave_room(current_sid)
+
+            all_sids = utils.get_sids_for_user_id(user_id)
+            if all_sids is None:
+                all_sids = list()
+            all_sids = all_sids.copy()
+
+            if len(all_sids) == 0 or (current_sid in all_sids and len(all_sids) == 1):
+                environ.env.leave_room(user_id)
+                environ.env.db.reset_sids_for_user(user_id)
+
         except Exception as e:
             logger.error('could not leave private room: %s' % str(e))
             logger.debug('request for failed leave_private_room(): %s' % str(data))

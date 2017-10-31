@@ -2315,15 +2315,23 @@ class DatabaseRdbms(object):
     def reset_sids_for_user(self, user_id: str) -> None:
         @with_session
         def update_sid(session=None):
-            user_sids = session.query(Users)\
-                .filter(Users.uuid == user_id)\
+            user_sids = session.query(Sids)\
+                .filter(Sids.user_uuid == user_id)\
                 .all()
 
             if user_sids is None or len(user_sids) == 0:
                 return
 
             for user_sid in user_sids:
-                session.delete(user_sid)
+                try:
+                    session.delete(user_sid)
+                except Exception as e:
+                    if user_sid is None:
+                        logger.warning('sid already removed after fetching, ignoring: %s' % str(e))
+                    else:
+                        logger.error('could not remove sid %s for user %s: %s' % (user_sid.sid, user_id, str(e)))
+                        self.env.capture_exception(sys.exc_info())
+
             session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:

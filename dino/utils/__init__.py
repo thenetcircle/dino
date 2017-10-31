@@ -850,7 +850,7 @@ def add_sid_for_user_id(user_id: str, sid: str) -> None:
     environ.env.db.add_sid_for_user(user_id, sid)
 
 
-def get_sids_for_user_id(user_id: str) -> str:
+def get_sids_for_user_id(user_id: str) -> Union[list, None]:
     return environ.env.db.get_sids_for_user(user_id)
 
 
