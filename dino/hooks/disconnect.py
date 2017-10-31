@@ -125,6 +125,13 @@ class OnDisconnectHooks(object):
                 return
 
             all_sids = utils.get_sids_for_user_id(user_id)
+            if all_sids is None:
+                all_sids = list()
+
+            logger.debug(
+                'sid %s disconnected, all_sids: [%s] for user %s (%s)' % (
+                    environ.env.request.sid, ','.join(all_sids), user_id,  user_name))
+
             # if the user still has another session up we don't send disconnect event
             if all_sids is not None and len(all_sids) > 0:
                 return
