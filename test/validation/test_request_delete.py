@@ -134,6 +134,9 @@ class RequestDeleteTest(TestCase):
             'actor': {
                 'id': RequestDeleteTest.USER_ID
             },
+            'object': {
+                'id': str(uuid())
+            },
             'verb': 'delete',
             'target': {
                 'id': RequestDeleteTest.ROOM_ID,
