@@ -83,9 +83,6 @@
                 <li class="toctree-l3"><a href="#error-codes">Error Codes</a></li>
                 
             
-                <li class="toctree-l3"><a href="#delivery-acknowledgment">Delivery acknowledgment</a></li>
-                
-            
                 <li class="toctree-l3"><a href="#connect">connect</a></li>
                 
             
@@ -269,15 +266,6 @@ NO_SUCH_ROOM = 802
 NO_ADMIN_ROOM_FOUND = 803
 NO_USER_IN_SESSION = 804
 NO_ADMIN_ONLINE = 805
-</code></pre>
-<h2 id="delivery-acknowledgment">Delivery acknowledgment</h2>
-<p>All APIs will respond with a (status code, error message) tuple. These should be be 
-retrieved in the callback defined on the client side. If there was no error, the 
-second argument will be nil. Examples of callbacks on client side in JavaScript:</p>
-<pre><code>socket.emit('message', '&lt;omitted json message&gt;', function(status_code, error_message) {
-    console.log('Callback called with status_code:', status_code);
-    console.log('Callback called with error_message:', error_message);
-});
 </code></pre>
 <h2 id="connect"><code>connect</code></h2>
 <p>Responds with event name <code>gn_connect</code>.</p>
