@@ -78,7 +78,7 @@ def respond_with(gn_event_name=None, should_disconnect=False):
                 logger.error('%s: %s' % (gn_event_name, str(e)))
                 environ.env.capture_exception(sys.exc_info())
 
-                if should_disconnect and environ.env.config.get('disconnect_on_failed_login', False):
+                if should_disconnect and environ.env.config.get(ConfigKeys.DISCONNECT_ON_FAILED_LOGIN, False):
                     eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
                 return 500, str(e)
             finally:
@@ -87,7 +87,7 @@ def respond_with(gn_event_name=None, should_disconnect=False):
 
             if status_code != 200:
                 logger.warning('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
-                if should_disconnect and environ.env.config.get('disconnect_on_failed_login', False):
+                if should_disconnect and environ.env.config.get(ConfigKeys.DISCONNECT_ON_FAILED_LOGIN, False):
                     eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
 
             response_message = environ.env.response_formatter(status_code, data)

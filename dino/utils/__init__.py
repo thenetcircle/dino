@@ -1113,6 +1113,13 @@ def get_channel_for_room(room_id: str) -> str:
     return environ.env.db.channel_for_room(room_id)
 
 
+def get_sender_for_message(message_id: str) -> Union[str, None]:
+    message = environ.env.storage.get_message(message_id)
+    if message is None:
+        return None
+    return message.get('from_user_id', None)
+
+
 def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
     channel_id = get_channel_for_room(room_id)
     if is_owner(room_id, user_id):

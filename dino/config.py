@@ -175,6 +175,8 @@ class ConfigKeys(object):
     ROOT_URL = 'root_url'
     MIN_ROOM_NAME_LENGTH = 'min_length'
     MAX_ROOM_NAME_LENGTH = 'max_length'
+    DISCONNECT_ON_FAILED_LOGIN = 'disconnect_on_failed_login'
+    SENDER_CAN_DELETE = 'sender_can_delete'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'

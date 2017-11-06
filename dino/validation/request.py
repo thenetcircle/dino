@@ -103,6 +103,14 @@ class RequestValidator(BaseValidator):
     def on_delete(self, activity: Activity) -> (bool, int, str):
         user_id = activity.actor.id
         room_id = activity.target.id
+        message_id = activity.object.id
+
+        if message_id is None or len(message_id.strip()) == 0:
+            return False, ECodes.MISSING_OBJECT_ID, 'no object ID when deleting message'
+
+        sender_can_delete = environ.env.config.get(ConfigKeys.SENDER_CAN_DELETE, False)
+        if sender_can_delete and utils.get_sender_for_message(message_id) == user_id:
+            return True, None, None
 
         if not utils.user_is_allowed_to_delete_message(room_id, user_id):
             return False, ECodes.NOT_ALLOWED, 'not allowed to remove message in room %s' % room_id

@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 class StatementKeys(Enum):
     msg_insert = 'msg_insert'
     msg_select = 'msg_select'
+    msg_select_all = 'msg_select_all'
     msgs_select = 'msgs_select'
     msgs_select_time_slice = 'msgs_select_time_slice'
     msgs_select_by_time_stamp = 'msgs_select_by_time_stamp'
@@ -230,6 +231,11 @@ class Driver(object):
                     SELECT target_id, from_user_id, sent_time FROM messages_by_id WHERE message_id = ?
                     """
             )
+            self.statements[StatementKeys.msg_select_all] = self.session.prepare(
+                    """
+                    SELECT * FROM messages_by_id WHERE message_id = ?
+                    """
+            )
             self.statements[StatementKeys.msg_select_one] = self.session.prepare(
                     """
                     SELECT * FROM messages WHERE target_id = ? AND from_user_id = ? AND sent_time = ?
@@ -294,6 +300,9 @@ class Driver(object):
 
     def msgs_select(self, target_id: str, limit: int=100) -> ResultSet:
         return self._execute(StatementKeys.msgs_select, target_id, limit)
+
+    def msg_select(self, message_id) -> ResultSet:
+        return self._execute(StatementKeys.msg_select_all, message_id)
 
     def msgs_select_latest_non_deleted(self, target_id: str, limit: int=100) -> ResultSet:
         return self._execute(StatementKeys.msgs_select_latest_non_deleted, target_id, limit)

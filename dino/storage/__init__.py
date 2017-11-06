@@ -23,6 +23,14 @@ class IStorage(Interface):
         :return: nothing
         """
 
+    def get_message(self, message_id: str) -> dict:
+        """
+        get the message with the given ID
+
+        :param message_id: uuid of the message
+        :return: a dict describing the message
+        """
+
     def get_history(self, room_id: str, limit: int = 100) -> list:
         """
         get history for a room

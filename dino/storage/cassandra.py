@@ -133,6 +133,16 @@ class CassandraStorage(object):
             msgs.append(self._row_to_json(row))
         return msgs
 
+    def msg_select(self, message_id: str) -> dict:
+        rows = self.driver.msg_select(message_id)
+        if rows is None or len(rows.current_rows) == 0:
+            return dict()
+        if len(rows.current_rows) > 1:
+            logger.warning('multiple messages found for id %s' % message_id)
+        for row in rows:
+            # only interested in the first one if multiple
+            return self._row_to_json(row)
+
     def _row_to_json(self, row):
         return {
             'message_id': row.message_id,

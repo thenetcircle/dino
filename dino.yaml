@@ -3,6 +3,7 @@ common_config: &common_config
     log_level: 'DEBUG'
     response_format: 'status_code,data,error'
     disconnect_on_failed_login: True
+    sender_can_delete: True
     auth:
         type: 'redis'
         host: '$DINO_AUTH_HOST'
