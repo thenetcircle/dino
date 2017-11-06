@@ -144,3 +144,20 @@ obejct, it needs to be a json object):
         e.printStackTrace();
     }
 
+## Delivery acknowledgment
+
+All APIs will respond with a (status code, error message) tuple. These should be be 
+retrieved in the callback defined on the client side. If there was no error, the  
+second argument will be nil. Examples of callbacks on client side in JavaScript:
+
+    socket.emit('message', '<omitted json message>', function(status_code, error_message) {
+        console.log('Callback called with status_code:', status_code);
+        console.log('Callback called with error_message:', error_message);
+    });  
+
+## Limited sessions
+
+The session handler can be configured to either allow only one simultaneous connection per user or
+an unlimited amount. If only one session is allowed, then whenever a new session by the same user
+is started, the previous connection will be disconnected.
+

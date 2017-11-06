@@ -41,17 +41,6 @@
     NO_USER_IN_SESSION = 804
     NO_ADMIN_ONLINE = 805
 
-## Delivery acknowledgment
-
-All APIs will respond with a (status code, error message) tuple. These should be be 
-retrieved in the callback defined on the client side. If there was no error, the 
-second argument will be nil. Examples of callbacks on client side in JavaScript:
-
-    socket.emit('message', '<omitted json message>', function(status_code, error_message) {
-        console.log('Callback called with status_code:', status_code);
-        console.log('Callback called with error_message:', error_message);
-    });
-
 ## `connect`
 
 Responds with event name `gn_connect`.
