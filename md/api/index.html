@@ -83,6 +83,9 @@
                 <li class="toctree-l3"><a href="#error-codes">Error Codes</a></li>
                 
             
+                <li class="toctree-l3"><a href="#delivery-acknowledgment">Delivery acknowledgment</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#connect">connect</a></li>
                 
             
@@ -186,6 +189,13 @@
     </li>
 <li>
           
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../storage/">Storage</a>
+        
+    </li>
+<li>
+          
         </ul>
       </div>
       &nbsp;
@@ -260,16 +270,25 @@ NO_ADMIN_ROOM_FOUND = 803
 NO_USER_IN_SESSION = 804
 NO_ADMIN_ONLINE = 805
 </code></pre>
-<h2 id="connect">connect</h2>
-<p>Responds with event name "gn_connect".</p>
+<h2 id="delivery-acknowledgment">Delivery acknowledgment</h2>
+<p>All APIs will respond with a (status code, error message) tuple. These should be be 
+retrieved in the callback defined on the client side. If there was no error, the 
+second argument will be nil. Examples of callbacks on client side in JavaScript:</p>
+<pre><code>socket.emit('message', '&lt;omitted json message&gt;', function(status_code, error_message) {
+    console.log('Callback called with status_code:', status_code);
+    console.log('Callback called with error_message:', error_message);
+});
+</code></pre>
+<h2 id="connect"><code>connect</code></h2>
+<p>Responds with event name <code>gn_connect</code>.</p>
 <p>Request contains no data.</p>
 <p>Response data if successful:</p>
 <pre><code>{
     "status_code": 200
 }
 </code></pre>
-<h2 id="login">login</h2>
-<p>Responds with event name "gn_login".</p>
+<h2 id="login"><code>login</code></h2>
+<p>Responds with event name <code>gn_login</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     verb: "login",
@@ -333,8 +352,8 @@ room/channel/global.</p>
 </ul>
 <p>The only difference between global moderator and super user is that the global moderators can't remove static rooms 
 (ephemeral set to <code>false</code> in room list).</p>
-<h2 id="list_channels">list_channels</h2>
-<p>Responds with event name "gn_list_channels".</p>
+<h2 id="list_channels"><code>list_channels</code></h2>
+<p>Responds with event name <code>gn_list_channels</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "verb": "list"
@@ -390,7 +409,7 @@ both. Possible values are thus:</p>
 </ul>
 <p>If the channel has 0 rooms in it, the objectType will be <code>mix</code>.</p>
 <p>Attachments for each channel describes the ACLs for that channel.</p>
-<h2 id="list_rooms">list_rooms</h2>
+<h2 id="list_rooms"><code>list_rooms</code></h2>
 <p>Get a list of all rooms for a channel.</p>
 <p>Responds with event name <code>gn_list_rooms</code>.</p>
 <p>Request contains:</p>
@@ -460,7 +479,7 @@ content will be empty, otherwise it will be a comma separated list of roles. Pos
 <p>Attachments for each room describes the ACLs for that room.</p>
 <p>The <code>objectType</code> for each room describes if the room is static or temporary. Static rooms are not removed automatically
 when empty, while temporary rooms are removed when the owner leaves (usually only for user created rooms).</p>
-<h2 id="update_user_info">update_user_info</h2>
+<h2 id="update_user_info"><code>update_user_info</code></h2>
 <p>If a user e.g. changes his/her avatar, the change can be broadcasted to users in the same rooms as this user is in. To
 e.g. let other users know this user is currently streaming video, the <code>objectType</code> <code>is_streaming</code> might be used:</p>
 <pre><code>{
@@ -494,7 +513,7 @@ with name <a href="../events/#user-info-updated"><code>gn_user_info_updated</cod
     "message": "no objectType on attachment for object"
 }
 </code></pre>
-<h2 id="request_admin">request_admin</h2>
+<h2 id="request_admin"><code>request_admin</code></h2>
 <p>When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
 which only admins can see when listing rooms and only admins can join. When a <code>request_admin</code> event is sent to the server
 it will be delivered to the admin room for that channel and the admins in that room can decide what to do.</p>
@@ -530,9 +549,9 @@ online").</li>
 reason text etc. </p>
 <p>The event generated to be sent to the admin room is called <code>gn_admin_requested</code> (see 
 <a href="../events/#admin-presence-requested">Events</a> for more information).</p>
-<h2 id="leave">leave</h2>
+<h2 id="leave"><code>leave</code></h2>
 <p>Leave a room.</p>
-<p>Responds with event name "gn_leave".</p>
+<p>Responds with event name <code>gn_leave</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -546,9 +565,9 @@ reason text etc. </p>
     "status_code": 200
 }
 </code></pre>
-<h2 id="users_in_room">users_in_room</h2>
+<h2 id="users_in_room"><code>users_in_room</code></h2>
 <p>List all users in a room.</p>
-<p>Responds with event name "gn_users_in_room".</p>
+<p>Responds with event name <code>gn_users_in_room</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -607,12 +626,12 @@ reason text etc. </p>
 <li><code>superuser</code></li>
 </ul>
 <p>If no specific roles, the value will be blank.</p>
-<h2 id="history">history</h2>
+<h2 id="history"><code>history</code></h2>
 <p>TODO: include user UUID as well as user name.</p>
-<p>When joining a room the history will be included in the "gn_join" response event. If history is needed for a separate
-reason than the "history" event can be used. Can also be used to get history for a private chat with another user, if
+<p>When joining a room the history will be included in the <code>gn_join</code> response event. If history is needed for a separate
+reason than the <code>history</code> event can be used. Can also be used to get history for a private chat with another user, if
 "target.id" is set to the user UUID instead of the room UUID.</p>
-<p>Responds with event name "gn_history".</p>
+<p>Responds with event name <code>gn_history</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -656,9 +675,9 @@ reason than the "history" event can be used. Can also be used to get history for
     }
 }
 </code></pre>
-<h2 id="status">status</h2>
+<h2 id="status"><code>status</code></h2>
 <p>Change the online status for this user.</p>
-<p>Responds with "gn_status".</p>
+<p>Responds with <code>gn_status</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "verb": "&lt;one of online/offline/invisible&gt;"
@@ -669,9 +688,9 @@ reason than the "history" event can be used. Can also be used to get history for
     "status_code": 200
 }
 </code></pre>
-<h2 id="get_acl">get_acl</h2>
+<h2 id="get_acl"><code>get_acl</code></h2>
 <p>Get the permissions (ACL) for a channel or room.</p>
-<p>Responds with "gn_get_acl".</p>
+<p>Responds with <code>gn_get_acl</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -708,11 +727,11 @@ reason than the "history" event can be used. Can also be used to get history for
     }
 }
 </code></pre>
-<h2 id="set_acl">set_acl</h2>
+<h2 id="set_acl"><code>set_acl</code></h2>
 <p>Update the permissions of a room/channel. If the "content" is blank, the ACL with that type for the specified action
 will be removed. Example "API actions" are "join", "create", "message", "kick". Example "permission types" are "age",
 "gender", "membership".</p>
-<p>Responds with "gn_set_acl".</p>
+<p>Responds with <code>gn_set_acl</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -742,9 +761,9 @@ will be removed. Example "API actions" are "join", "create", "message", "kick". 
     "status_code": 200
 }
 </code></pre>
-<h2 id="create">create</h2>
+<h2 id="create"><code>create</code></h2>
 <p>Create a new room under a channel. The sender of the event will be set as the first owner of the new room.</p>
-<p>Responds with "gn_create".</p>
+<p>Responds with <code>gn_create</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -800,9 +819,9 @@ event:</p>
     "verb": "create"
 }
 </code></pre>
-<h2 id="invite">invite</h2>
+<h2 id="invite"><code>invite</code></h2>
 <p>Invite another user to a room the current user is already in.</p>
-<p>Responds with "gn_invite".</p>
+<p>Responds with <code>gn_invite</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -819,10 +838,10 @@ event:</p>
     "status_code": 200
 }
 </code></pre>
-<h2 id="delete">delete</h2>
-<p>Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator for room or owner 
-of room).</p>
-<p>Responds with "gn_delete".</p>
+<h2 id="delete"><code>delete</code></h2>
+<p>Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator of the room, owner 
+of room or (configurable) sender of the message).</p>
+<p>Responds with <code>gn_delete</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -834,9 +853,9 @@ of room).</p>
     "verb": "delete"
 }
 </code></pre>
-<h2 id="kick">kick</h2>
+<h2 id="kick"><code>kick</code></h2>
 <p>Kick a user from a room.</p>
-<p>Responds with "gn_kick".</p>
+<p>Responds with <code>gn_kick</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "target": {
@@ -853,7 +872,7 @@ of room).</p>
     "status_code": 200
 }
 </code></pre>
-<h2 id="ban">ban</h2>
+<h2 id="ban"><code>ban</code></h2>
 <p>Ban a user from a room for a given amount of time.</p>
 <p>Responds with <code>gn_ban</code>.</p>
 <p>Request contains:</p>
@@ -887,7 +906,7 @@ restriction is that the date when the ban ends (<code>utcnow()+duration</code>) 
     "status_code": 200
 }
 </code></pre>
-<h2 id="message">message</h2>
+<h2 id="message"><code>message</code></h2>
 <p>Send a message to a <code>room</code> UUID (can be the user UUID or an actual room UUID).</p>
 <p>Responds with event name <code>gn_message</code>.</p>
 <p>Request contains:</p>
@@ -928,8 +947,8 @@ restriction is that the date when the ban ends (<code>utcnow()+duration</code>) 
 </code></pre>
 <p>The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the <code>published</code> field set to the time the server received the request (in RFC3339 format).</p>
-<h2 id="remove_room">remove_room</h2>
-<p>Response with the event name "gn_remove_room".</p>
+<h2 id="remove_room"><code>remove_room</code></h2>
+<p>Response with the event name <code>gn_remove_room</code>.</p>
 <p>Request contains:</p>
 <pre><code>{
     "verb": "remove",
@@ -953,7 +972,7 @@ and the <code>published</code> field set to the time the server received the req
     }
 }
 </code></pre>
-<h2 id="report">report</h2>
+<h2 id="report"><code>report</code></h2>
 <p>No response.</p>
 <p>Request contains:</p>
 <pre><code>{
@@ -969,8 +988,8 @@ and the <code>published</code> field set to the time the server received the req
 }
 </code></pre>
 <p>A report will be sent to both the admin room and as an external event published on the MQ.</p>
-<h2 id="join">join</h2>
-<p>Responds with the event name "gn_join".</p>
+<h2 id="join"><code>join</code></h2>
+<p>Responds with the event name <code>gn_join</code>.</p>
 <p>In the <code>user</code> attachments, the <code>content</code> fields tells you the room roles that the user has in this room (as a comma
 separated value), plus any global roles. Possible roles are:</p>
 <ul>
