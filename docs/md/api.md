@@ -41,9 +41,20 @@
     NO_USER_IN_SESSION = 804
     NO_ADMIN_ONLINE = 805
 
-## connect
+## Delivery acknowledgment
 
-Responds with event name "gn_connect".
+All APIs will respond with a (status code, error message) tuple. These should be be 
+retrieved in the callback defined on the client side. If there was no error, the 
+second argument will be nil. Examples of callbacks on client side in JavaScript:
+
+    socket.emit('message', '<omitted json message>', function(status_code, error_message) {
+        console.log('Callback called with status_code:', status_code);
+        console.log('Callback called with error_message:', error_message);
+    });
+
+## `connect`
+
+Responds with event name `gn_connect`.
 
 Request contains no data.
 
@@ -53,9 +64,9 @@ Response data if successful:
         "status_code": 200
     }
     
-## login
+## `login`
 
-Responds with event name "gn_login".
+Responds with event name `gn_login`.
 
 Request contains:
 
@@ -124,9 +135,9 @@ Possible roles are:
 The only difference between global moderator and super user is that the global moderators can't remove static rooms 
 (ephemeral set to `false` in room list).
 
-## list_channels
+## `list_channels`
 
-Responds with event name "gn_list_channels".
+Responds with event name `gn_list_channels`.
 
 Request contains:
 
@@ -188,7 +199,7 @@ If the channel has 0 rooms in it, the objectType will be `mix`.
 
 Attachments for each channel describes the ACLs for that channel.
 
-## list_rooms
+## `list_rooms`
 
 Get a list of all rooms for a channel.
 
@@ -268,7 +279,7 @@ Attachments for each room describes the ACLs for that room.
 The `objectType` for each room describes if the room is static or temporary. Static rooms are not removed automatically
 when empty, while temporary rooms are removed when the owner leaves (usually only for user created rooms).
 
-## update_user_info
+## `update_user_info`
 
 If a user e.g. changes his/her avatar, the change can be broadcasted to users in the same rooms as this user is in. To
 e.g. let other users know this user is currently streaming video, the `objectType` `is_streaming` might be used:
@@ -309,7 +320,7 @@ Or if missing data, e.g.:
         "message": "no objectType on attachment for object"
     }
 
-## request_admin
+## `request_admin`
 
 When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
 which only admins can see when listing rooms and only admins can join. When a `request_admin` event is sent to the server
@@ -353,11 +364,11 @@ reason text etc.
 The event generated to be sent to the admin room is called `gn_admin_requested` (see 
 [Events](events.md#admin-presence-requested) for more information).
 
-## leave
+## `leave`
 
 Leave a room.
 
-Responds with event name "gn_leave".
+Responds with event name `gn_leave`.
 
 Request contains:
 
@@ -374,11 +385,11 @@ Response data if successful:
         "status_code": 200
     }
 
-## users_in_room
+## `users_in_room`
 
 List all users in a room.
 
-Responds with event name "gn_users_in_room".
+Responds with event name `gn_users_in_room`.
 
 Request contains:
 
@@ -441,15 +452,15 @@ The `content` of the user attachment describes the roles this user has in this r
 
 If no specific roles, the value will be blank.
 
-## history
+## `history`
 
 TODO: include user UUID as well as user name.
 
-When joining a room the history will be included in the "gn_join" response event. If history is needed for a separate
-reason than the "history" event can be used. Can also be used to get history for a private chat with another user, if
+When joining a room the history will be included in the `gn_join` response event. If history is needed for a separate
+reason than the `history` event can be used. Can also be used to get history for a private chat with another user, if
 "target.id" is set to the user UUID instead of the room UUID.
 
-Responds with event name "gn_history".
+Responds with event name `gn_history`.
 
 Request contains:
 
@@ -496,11 +507,11 @@ Response data if successful:
         }
     }
 
-## status
+## `status`
 
 Change the online status for this user.
 
-Responds with "gn_status".
+Responds with `gn_status`.
 
 Request contains:
 
@@ -514,11 +525,11 @@ Response data if successful:
         "status_code": 200
     }
 
-## get_acl
+## `get_acl`
 
 Get the permissions (ACL) for a channel or room.
 
-Responds with "gn_get_acl".
+Responds with `gn_get_acl`.
 
 Request contains:
 
@@ -558,13 +569,13 @@ Response data if successful:
         }
     }
 
-## set_acl
+## `set_acl`
 
 Update the permissions of a room/channel. If the "content" is blank, the ACL with that type for the specified action
 will be removed. Example "API actions" are "join", "create", "message", "kick". Example "permission types" are "age",
 "gender", "membership".
 
-Responds with "gn_set_acl".
+Responds with `gn_set_acl`.
 
 Request contains:
 
@@ -597,11 +608,11 @@ Response data if successful:
         "status_code": 200
     }
 
-## create
+## `create`
 
 Create a new room under a channel. The sender of the event will be set as the first owner of the new room.
 
-Responds with "gn_create".
+Responds with `gn_create`.
 
 Request contains:
 
@@ -663,11 +674,11 @@ event:
         "verb": "create"
     }
 
-## invite
+## `invite`
 
 Invite another user to a room the current user is already in.
 
-Responds with "gn_invite".
+Responds with `gn_invite`.
 
 Request contains:
 
@@ -687,12 +698,12 @@ Response data if successful:
         "status_code": 200
     }
 
-## delete
+## `delete`
 
-Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator for room or owner 
-of room).
+Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator of the room, owner 
+of room or (configurable) sender of the message).
 
-Responds with "gn_delete".
+Responds with `gn_delete`.
 
 Request contains:
 
@@ -706,11 +717,11 @@ Request contains:
         "verb": "delete"
     }
 
-## kick
+## `kick`
 
 Kick a user from a room.
 
-Responds with "gn_kick".
+Responds with `gn_kick`.
 
 Request contains:
 
@@ -730,7 +741,7 @@ Response data if successful:
         "status_code": 200
     }
 
-## ban
+## `ban`
 
 Ban a user from a room for a given amount of time.
 
@@ -771,7 +782,7 @@ Response data if successful:
         "status_code": 200
     }
 
-## message
+## `message`
 
 Send a message to a `room` UUID (can be the user UUID or an actual room UUID).
 
@@ -818,9 +829,9 @@ Response data if successful:
 The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the `published` field set to the time the server received the request (in RFC3339 format).
 
-## remove_room
+## `remove_room`
 
-Response with the event name "gn_remove_room".
+Response with the event name `gn_remove_room`.
 
 Request contains:
 
@@ -847,7 +858,7 @@ Response data if successful:
         }
     }
 
-## report
+## `report`
 
 No response.
 
@@ -867,9 +878,9 @@ Request contains:
 
 A report will be sent to both the admin room and as an external event published on the MQ.
 
-## join
+## `join`
 
-Responds with the event name "gn_join".
+Responds with the event name `gn_join`.
 
 In the `user` attachments, the `content` fields tells you the room roles that the user has in this room (as a comma
 separated value), plus any global roles. Possible roles are:

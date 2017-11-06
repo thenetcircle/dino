@@ -87,7 +87,7 @@ def respond_with(gn_event_name=None, should_disconnect=False):
 
             if status_code != 200:
                 logger.warning('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
-                if should_disconnect and environ.env.config.get('disconnect_on_failed_login', True):
+                if should_disconnect and environ.env.config.get('disconnect_on_failed_login', False):
                     eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
 
             response_message = environ.env.response_formatter(status_code, data)
