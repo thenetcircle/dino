@@ -470,9 +470,6 @@ class DatabaseRdbms(object):
             session.delete(status)
             session.commit()
 
-        if self.env.cache.user_is_offline(user_id):
-            return
-
         try:
             _set_user_offline()
         except StaleDataError as e:
