@@ -37,6 +37,7 @@ class OnDisconnectHooks(object):
                 all_sids = utils.get_sids_for_user_id(user_id)
                 # if the user still has another session up we don't set the user as offline
                 if all_sids is not None and len(all_sids) > 0:
+                    logger.debug('when setting user offline, found other sids: [%s]' % ','.join(all_sids))
                     return
 
                 environ.env.db.set_user_offline(user_id)
