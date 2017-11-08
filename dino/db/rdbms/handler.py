@@ -463,9 +463,9 @@ class DatabaseRdbms(object):
     def set_user_offline(self, user_id: str) -> None:
         @with_session
         def _set_user_offline(session=None):
-            self.env.cache.set_user_offline(user_id)
             status = session.query(UserStatus).filter_by(uuid=user_id).first()
             if status is None:
+                logger.warning('no UserStatus found in db for user ID %s' % user_id)
                 return
             session.delete(status)
             session.commit()
@@ -484,7 +484,8 @@ class DatabaseRdbms(object):
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
 
-        self.env.cache.set_user_status(user_id, UserKeys.STATUS_UNAVAILABLE)
+        logger.debug('setting user %s as offline in cache' % user_id)
+        self.env.cache.set_user_offline(user_id)
 
     def set_user_online(self, user_id: str) -> None:
         @with_session
