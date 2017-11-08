@@ -2387,7 +2387,7 @@ class DatabaseRdbms(object):
 
             if user_sids is None:
                 return None
-            return [user_sid.sid for user_sid in user_sids]
+            return [user_sid.sid for user_sid in user_sids if user_sid.sid is not None and len(user_sid.sid) > 0]
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
