@@ -2392,7 +2392,7 @@ class DatabaseRdbms(object):
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
 
-        all_sids = self.env.cache.get_sids_for_user(user_id)
+        all_sids = [sid for sid in self.env.cache.get_sids_for_user(user_id) if sid is not None and len(sid) > 0]
         if all_sids is not None and len(all_sids) > 0:
             return all_sids.copy()
 
