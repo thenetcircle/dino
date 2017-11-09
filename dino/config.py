@@ -84,6 +84,7 @@ class ErrorCodes(object):
     ROOM_NAME_TOO_SHORT = 711
     INVALID_TOKEN = 712
     INVALID_LOGIN = 713
+    MSG_TOO_LONG = 714
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -168,6 +169,7 @@ class ConfigKeys(object):
     PREFIX = 'prefix'
     INCLUDE_HOST_NAME = 'include_hostname'
     VALIDATION = 'validation'
+    MAX_MSG_LENGTH = 'max_length'
     MAX_USERS_LOW = 'max_users_low'
     MAX_USERS_HIGH = 'max_users_high'
     MAX_USERS_EXCEPTION = 'exception'
