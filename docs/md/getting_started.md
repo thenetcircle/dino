@@ -138,6 +138,9 @@ The callback method will contain the generated UUID of this room (e,g, `4b90eae8
 which should be used when joining, sending message etc. It is the responsibility of the implementer to keep track 
 of the room IDs associated with conversations.
 
+All users specied as the "owners" will receive the [`gn_room_created`](events.md#a-new-room-is-created) event if 
+they are online.
+
 To send a message in this `room`, first [`join`](api.md#join) the room (will return the history of this room):
 
 ```javascript
@@ -153,8 +156,10 @@ socket.emit('join', {
 
 Alternatively, a room can be joined by the `display_name` instead of by `id`, in case that the UUID is not known
 on the client side a the time of joining. If multiple rooms exists with the same `display_name`, the `join` event 
-will fail with the error code [`715`](api.md#error-codes) ("multiple rooms with given name exists"). Example of 
-joining using `display_name`:
+will fail with the [error code 715](api.md#error-codes), though in reality that should not happen unless the
+uniqueness of room names per channel during creation has been disabled. 
+
+Example of joining using `display_name`:
 
 ```javascript
 socket.emit('join', {

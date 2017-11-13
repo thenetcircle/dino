@@ -66,6 +66,7 @@ from dino.exceptions import NoSuchRoomException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import RoomExistsException
 from dino.exceptions import RoomNameExistsForChannelException
+from dino.exceptions import MultipleRoomsFoundForNameException
 from dino.exceptions import UserExistsException
 from dino.exceptions import ValidationException
 from dino.utils import b64d
@@ -811,8 +812,22 @@ class DatabaseRdbms(object):
 
         return _room_name_exists()
 
+    def get_room_id_for_name(self, room_name: str) -> str:
+        @with_session
+        def _do_get(session=None):
+            return session.query(Rooms)\
+                .filter(Rooms.name == room_name)\
+                .all()
+
+        rooms = _do_get()
+        if len(rooms) == 0:
+            raise NoSuchRoomException(room_name)
+        if len(rooms) > 1:
+            raise MultipleRoomsFoundForNameException(room_name)
+        return rooms[0].uuid
+
     @with_session
-    def get_temp_rooms_user_is_owner_for(self, user_id: str, session=None) -> None:
+    def get_temp_rooms_user_is_owner_for(self, user_id: str, session=None) -> list:
         roles = session.query(RoomRoles)\
             .join(RoomRoles.room)\
             .filter(Rooms.ephemeral.is_(True))\

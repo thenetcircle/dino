@@ -409,6 +409,9 @@ class DatabaseRedis(object):
     def room_exists(self, channel_id: str, room_id: str) -> bool:
         return self.redis.hexists(RedisKeys.rooms(channel_id), room_id)
 
+    def get_room_id_for_name(self, room_name: str) -> str:
+        raise NotImplementedError('redis db does not support getting room id from name')
+
     def room_name_exists(self, channel_id, room_name: str) -> bool:
         cleaned = set()
         for existing_room_name in self.redis.hvals(RedisKeys.rooms(channel_id)):

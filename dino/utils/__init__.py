@@ -1038,6 +1038,10 @@ def get_room_name(room_id: str) -> str:
     return environ.env.db.get_room_name(room_id)
 
 
+def get_room_id(room_name: str) -> str:
+    return environ.env.db.get_room_id_for_name(room_name)
+
+
 def room_exists(channel_id: str, room_id: str) -> bool:
     return environ.env.db.room_exists(channel_id, room_id)
 

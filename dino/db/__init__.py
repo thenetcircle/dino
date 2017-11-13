@@ -270,6 +270,16 @@ class IDatabase(Interface):
         :return: true if exists, false otherwise
         """
 
+    def get_room_id_for_name(self, room_name: str) -> str:
+        """
+        get the uuid of a room given its name
+
+        :param room_name:
+        :return: the uuid of the room, if found
+        :raises NoSuchRoomException if no room found with the given name
+        :raises MultipleRoomsFoundForNameException if multiple rooms found with the given name
+        """
+
     def room_name_exists(self, channel_id, room_name: str) -> bool:
         """
         check if a room name exists for a given channel or not
@@ -322,8 +332,8 @@ class IDatabase(Interface):
         """
         remove a room
 
-        :raises NoSuchChannel exception if the channel doesn't exist
-        :raises NoSuchRoom exception if the room doesn't exist
+        :raises NoSuchChannelException if the channel doesn't exist
+        :raises NoSuchRoomException if the room doesn't exist
         :param channel_id: the uuid of the channel
         :param room_id: the uuid of the room
         :return: nothing

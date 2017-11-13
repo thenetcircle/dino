@@ -30,6 +30,7 @@ from dino.exceptions import NoSuchRoomException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import NoSuchChannelException
 from dino.exceptions import NoChannelFoundException
+from dino.exceptions import MultipleRoomsFoundForNameException
 from dino import validation
 from dino.validation.duration import DurationValidator
 
@@ -324,15 +325,27 @@ class RequestValidator(BaseValidator):
 
     def on_join(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
+        room_name = activity.target.display_name
         user_id = environ.env.session.get(SessionKeys.user_id.value, None)
 
         if user_id is None or len(user_id.strip()) == 0:
             user_id = activity.actor.id
 
-        try:
-            room_name = utils.get_room_name(room_id)
-        except NoSuchRoomException:
-            return False, ECodes.NO_SUCH_ROOM, 'room does not exist'
+        if room_id is not None and len(room_id.strip()) > 0:
+            try:
+                room_name = utils.get_room_name(room_id)
+            except NoSuchRoomException:
+                return False, ECodes.NO_SUCH_ROOM, 'room does not exist'
+        else:
+            if room_name is None or len(room_name.strip()) == 0:
+                return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'neither room id nor name supplied'
+
+            try:
+                room_id = utils.get_room_id(room_name)
+            except NoSuchRoomException:
+                return False, ECodes.NO_SUCH_ROOM, 'room does not exists with given name'
+            except MultipleRoomsFoundForNameException:
+                return False, ECodes.MULTIPLE_ROOMS_WITH_NAME, 'found multiple rooms with name "%s"' % room_name
 
         if not hasattr(activity, 'object'):
             activity.object = DefObject(dict())
@@ -344,7 +357,7 @@ class RequestValidator(BaseValidator):
             except NoSuchUserException:
                 logger.error('could not get username for user id %s' % user_id)
 
-            logger.warn('user "%s" (%s) is not online, not joining room "%s" (%s)!' %
+            logger.warning('user "%s" (%s) is not online, not joining room "%s" (%s)!' %
                         (user_name, user_id, room_name, room_id))
             return False, ECodes.NOT_ONLINE, 'user is not online'
 
