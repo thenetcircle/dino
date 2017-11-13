@@ -56,6 +56,7 @@ from dino.validation.acl import AclDisallowValidator
 from dino.validation.acl import AclIsAdminValidator
 from dino.validation.acl import AclIsSuperUserValidator
 from dino.validation.acl import AclPatternValidator
+from dino.validation.acl import AclIsRoomOwnerValidator
 
 ENV_KEY_ENVIRONMENT = 'DINO_ENVIRONMENT'
 ENV_KEY_SECRETS = 'DINO_SECRETS'
@@ -566,6 +567,9 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
 
         elif validation_type == 'is_admin':
             validation_config['value'] = AclIsAdminValidator()
+
+        elif validation_type == 'is_room_owner':
+            validation_config['value'] = AclIsRoomOwnerValidator()
 
         elif validation_type == 'is_super_user':
             validation_config['value'] = AclIsSuperUserValidator()

@@ -155,6 +155,36 @@ class AclIsAdminValidator(BaseAclValidator):
         return False, 'not admin'
 
 
+class AclIsRoomOwnerValidator(BaseAclValidator):
+    def __init__(self):
+        pass
+
+    def validate_new_acl(self, values):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        activity = args[0]
+        env = args[1]
+        # acl_type = args[2]
+        # acl_values = args[3]
+
+        value_is_negated = False
+        if len(args) > 4:
+            value_is_negated = args[4]
+
+        user_id = activity.actor.id
+        room_id = activity.target.id
+
+        if value_is_negated:
+            if not env.db.is_owner(room_id, user_id):
+                return True, None
+            return False, 'is owner (ACL negated)'
+
+        if env.db.is_owner(room_id, user_id):
+            return True, None
+        return False, 'not owner'
+
+
 class AclIsSuperUserValidator(BaseAclValidator):
     def __init__(self):
         pass
@@ -577,7 +607,7 @@ class AclConfigValidator(object):
     def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
         validation_methods = [
             'str_in_csv', 'range', 'samechannel', 'sameroom', 'disallow',
-            'is_admin', 'is_super_user', 'anything', 'custom'
+            'is_admin', 'is_super_user', 'anything', 'custom', 'is_room_owner'
         ]
         validations = acls.get('validation')
 

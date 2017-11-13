@@ -128,12 +128,67 @@ When a logged in user wants to send a message to another user (logged in or not)
         }
     });
 
+### Conversation based messaging
+
+Sometimes private messaging should be identified by the unique combination of two user IDs, say `1` and `2`, so
+that the history between them can be accesses by both parties. In this case, the client implementation should
+generate an identifiable "name" for this combination, and create a room to group these messages in. 
+
+For example, the implementation generates a `thread_id` or `conversation_id` on their side, then call the
+[`create`](api.md#create) API with the name set as this generated ID. For example, if the ID `42` is generated 
+for the conversation assiciated with the users `A` and `B`:
+
+    socket.emit('create', {
+        target: {
+            displayName: '42',
+            objectType: 'private',
+            attatchments: [{
+                objectType: 'owners',
+                summary: '1,2'
+            }]
+        },
+        verb: 'create'
+    }, function(status_code, data, error_msg) {
+        // callback method, check create api for format of the data param
+    });
+
+The callback method will contain the generated UUID of this room (e,g, `4b90eae8-c82b-11e7-98ba-43d525dbbb29`), 
+which should be used when joining, sending message etc. It is the responsibility of the implementer to keep track 
+of the room IDs associated with conversations.
+
+To send a message in this `room`, first [`join`](api.md#join) the room (will return the history of this room):
+
+    socket.emit('join', {
+        verb: 'join',
+        target: {
+            id: '4b90eae8-c82b-11e7-98ba-43d525dbbb29'
+        }
+    }, function(status_code, data, error_msg) {
+        // callback method, generated room uuid is data.target.id
+    });
+
+Use the [`message`](api.md#message) API to send a message to this room:
+
+    socket.emit('join', {
+        verb: 'send',
+        target: {
+            id: '42',
+        },
+        object: {
+            content: '<the message, base64 encoded>',
+        }
+    }, function(status_code, data, error_msg) {
+        // callback method
+    });
+
+If the other user is online, he/she will get the [message received](events.md#message-received) event.
+
 ## Java client
 
 Using the [Java socket.io library](https://github.com/socketio/socket.io-client-java), you have to use `http` 
 instead of `ws` and `https` instead of `wss` (it's the same thing).
 
-Create your object and use Gson to serialize it to json for a JSONObject (you cannot to a `toString` of the 
+Create your object and use Gson to serialize it to json for a JSONObject (you cannot do a `toString` of the 
 obejct, it needs to be a json object):
 
     Gson gson = new Gson();
