@@ -110,47 +110,29 @@ Example:
 
 ## Private messaging
 
-When the implementation is for one-to-one messaging and not a group chat, the usage is slightly different. After 
-having received the `gn_login` event described above, the user will automatically have joined their own room, 
-identified by their `user_id`, and another room identified by their `socket.io` session ID.
-
-When a logged in user wants to send a message to another user (logged in or not), use that user's ID as the
-`target.id` of the activity. E.g., if you wish to send a private message to user with ID `6`:
-
-    socket.emit('message', {
-        verb: 'send',
-        target: {
-            id: '6',
-            objectType: 'private'
-        },
-        object: {
-            content: '<the message, base64 encoded>'
-        }
-    });
-
-### Conversation based messaging
-
 Sometimes private messaging should be identified by the unique combination of two user IDs, say `1` and `2`, so
 that the history between them can be accesses by both parties. In this case, the client implementation should
 generate an identifiable "name" for this combination, and create a room to group these messages in. 
 
-For example, the implementation generates a `thread_id` or `conversation_id` on their side, then call the
+For example, the implementer generates a `thread_id` or `conversation_id` on their side, then call the
 [`create`](api.md#create) API with the name set as this generated ID. For example, if the ID `42` is generated 
-for the conversation assiciated with the users `A` and `B`:
+for the conversation assiciated with the users `1` and `2`:
 
-    socket.emit('create', {
-        target: {
-            displayName: '42',
-            objectType: 'private',
-            attatchments: [{
-                objectType: 'owners',
-                summary: '1,2'
-            }]
-        },
-        verb: 'create'
-    }, function(status_code, data, error_msg) {
-        // callback method, check create api for format of the data param
-    });
+```javascript
+socket.emit('create', {
+    target: {
+        displayName: '42',
+        objectType: 'private',
+        attatchments: [{
+            objectType: 'owners',
+            summary: '1,2'
+        }]
+    },
+    verb: 'create'
+}, function(status_code, data, error_msg) {
+    // callback method, check create api for format of the data param
+});
+```
 
 The callback method will contain the generated UUID of this room (e,g, `4b90eae8-c82b-11e7-98ba-43d525dbbb29`), 
 which should be used when joining, sending message etc. It is the responsibility of the implementer to keep track 
@@ -158,28 +140,32 @@ of the room IDs associated with conversations.
 
 To send a message in this `room`, first [`join`](api.md#join) the room (will return the history of this room):
 
-    socket.emit('join', {
-        verb: 'join',
-        target: {
-            id: '4b90eae8-c82b-11e7-98ba-43d525dbbb29'
-        }
-    }, function(status_code, data, error_msg) {
-        // callback method, generated room uuid is data.target.id
-    });
+```javascript
+socket.emit('join', {
+    verb: 'join',
+    target: {
+        id: '4b90eae8-c82b-11e7-98ba-43d525dbbb29'
+    }
+}, function(status_code, data, error_msg) {
+    // callback method, generated room uuid is data.target.id
+});
+```
 
 Use the [`message`](api.md#message) API to send a message to this room:
 
-    socket.emit('join', {
-        verb: 'send',
-        target: {
-            id: '42',
-        },
-        object: {
-            content: '<the message, base64 encoded>',
-        }
-    }, function(status_code, data, error_msg) {
-        // callback method
-    });
+```javascript
+socket.emit('join', {
+    verb: 'send',
+    target: {
+        id: '42',
+    },
+    object: {
+        content: '<the message, base64 encoded>',
+    }
+}, function(status_code, data, error_msg) {
+    // callback method
+});
+```
 
 If the other user is online, he/she will get the [message received](events.md#message-received) event.
 
@@ -191,24 +177,27 @@ instead of `ws` and `https` instead of `wss` (it's the same thing).
 Create your object and use Gson to serialize it to json for a JSONObject (you cannot do a `toString` of the 
 obejct, it needs to be a json object):
 
-    Gson gson = new Gson();
-    try {
-        JSONObject obj = new JSONObject(gson.toJson(o));
-        s.emit("login", obj);
-    } catch (JSONException e) {
-        e.printStackTrace();
-    }
+```java
+Gson gson = new Gson();
+try {
+    JSONObject obj = new JSONObject(gson.toJson(o));
+    s.emit("login", obj);
+} catch (JSONException e) {
+    e.printStackTrace();
+}
+```
 
 ## Delivery acknowledgment
 
-All APIs will respond with a (status code, error message) tuple. These should be be 
+All APIs will respond with a (status code, data json object, error message) tuple. These should be be 
 retrieved in the callback defined on the client side. If there was no error, the  
-second argument will be nil. Examples of callbacks on client side in JavaScript:
+third argument will be nil. Examples of callbacks on client side in JavaScript:
 
-    socket.emit('message', '<omitted json message>', function(status_code, error_message) {
-        console.log('Callback called with status_code:', status_code);
-        console.log('Callback called with error_message:', error_message);
-    });  
+```javascript
+socket.emit('message', '<omitted json message>', function(status_code, data, error_msg) {
+    // do something
+});  
+```
 
 ## Limited sessions
 
