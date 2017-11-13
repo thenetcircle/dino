@@ -77,8 +77,6 @@
             
                 <li class="toctree-l3"><a href="#private-messaging">Private messaging</a></li>
                 
-                    <li><a class="toctree-l4" href="#conversation-based-messaging">Conversation based messaging</a></li>
-                
             
                 <li class="toctree-l3"><a href="#java-client">Java client</a></li>
                 
@@ -278,30 +276,13 @@ first be set in the Redis <code>hset</code> with key <code>user:auth:&lt;user ID
 127.0.0.1:6379&gt; hset user:auth:1234 gender m
 </code></pre>
 <h2 id="private-messaging">Private messaging</h2>
-<p>When the implementation is for one-to-one messaging and not a group chat, the usage is slightly different. After 
-having received the <code>gn_login</code> event described above, the user will automatically have joined their own room, 
-identified by their <code>user_id</code>, and another room identified by their <code>socket.io</code> session ID.</p>
-<p>When a logged in user wants to send a message to another user (logged in or not), use that user's ID as the
-<code>target.id</code> of the activity. E.g., if you wish to send a private message to user with ID <code>6</code>:</p>
-<pre><code>socket.emit('message', {
-    verb: 'send',
-    target: {
-        id: '6',
-        objectType: 'private'
-    },
-    object: {
-        content: '&lt;the message, base64 encoded&gt;'
-    }
-});
-</code></pre>
-<h3 id="conversation-based-messaging">Conversation based messaging</h3>
 <p>Sometimes private messaging should be identified by the unique combination of two user IDs, say <code>1</code> and <code>2</code>, so
 that the history between them can be accesses by both parties. In this case, the client implementation should
 generate an identifiable "name" for this combination, and create a room to group these messages in. </p>
-<p>For example, the implementation generates a <code>thread_id</code> or <code>conversation_id</code> on their side, then call the
+<p>For example, the implementer generates a <code>thread_id</code> or <code>conversation_id</code> on their side, then call the
 <a href="../api/#create"><code>create</code></a> API with the name set as this generated ID. For example, if the ID <code>42</code> is generated 
-for the conversation assiciated with the users <code>A</code> and <code>B</code>:</p>
-<pre><code>socket.emit('create', {
+for the conversation assiciated with the users <code>1</code> and <code>2</code>:</p>
+<pre><code class="javascript">socket.emit('create', {
     target: {
         displayName: '42',
         objectType: 'private',
@@ -315,11 +296,12 @@ for the conversation assiciated with the users <code>A</code> and <code>B</code>
     // callback method, check create api for format of the data param
 });
 </code></pre>
+
 <p>The callback method will contain the generated UUID of this room (e,g, <code>4b90eae8-c82b-11e7-98ba-43d525dbbb29</code>), 
 which should be used when joining, sending message etc. It is the responsibility of the implementer to keep track 
 of the room IDs associated with conversations.</p>
 <p>To send a message in this <code>room</code>, first <a href="../api/#join"><code>join</code></a> the room (will return the history of this room):</p>
-<pre><code>socket.emit('join', {
+<pre><code class="javascript">socket.emit('join', {
     verb: 'join',
     target: {
         id: '4b90eae8-c82b-11e7-98ba-43d525dbbb29'
@@ -328,8 +310,9 @@ of the room IDs associated with conversations.</p>
     // callback method, generated room uuid is data.target.id
 });
 </code></pre>
+
 <p>Use the <a href="../api/#message"><code>message</code></a> API to send a message to this room:</p>
-<pre><code>socket.emit('join', {
+<pre><code class="javascript">socket.emit('join', {
     verb: 'send',
     target: {
         id: '42',
@@ -341,29 +324,31 @@ of the room IDs associated with conversations.</p>
     // callback method
 });
 </code></pre>
+
 <p>If the other user is online, he/she will get the <a href="../events/#message-received">message received</a> event.</p>
 <h2 id="java-client">Java client</h2>
 <p>Using the <a href="https://github.com/socketio/socket.io-client-java">Java socket.io library</a>, you have to use <code>http</code> 
 instead of <code>ws</code> and <code>https</code> instead of <code>wss</code> (it's the same thing).</p>
 <p>Create your object and use Gson to serialize it to json for a JSONObject (you cannot do a <code>toString</code> of the 
 obejct, it needs to be a json object):</p>
-<pre><code>Gson gson = new Gson();
+<pre><code class="java">Gson gson = new Gson();
 try {
     JSONObject obj = new JSONObject(gson.toJson(o));
-    s.emit("login", obj);
+    s.emit(&quot;login&quot;, obj);
 } catch (JSONException e) {
     e.printStackTrace();
 }
 </code></pre>
+
 <h2 id="delivery-acknowledgment">Delivery acknowledgment</h2>
-<p>All APIs will respond with a (status code, error message) tuple. These should be be 
+<p>All APIs will respond with a (status code, data json object, error message) tuple. These should be be 
 retrieved in the callback defined on the client side. If there was no error, the<br />
-second argument will be nil. Examples of callbacks on client side in JavaScript:</p>
-<pre><code>socket.emit('message', '&lt;omitted json message&gt;', function(status_code, error_message) {
-    console.log('Callback called with status_code:', status_code);
-    console.log('Callback called with error_message:', error_message);
-});
+third argument will be nil. Examples of callbacks on client side in JavaScript:</p>
+<pre><code class="javascript">socket.emit('message', '&lt;omitted json message&gt;', function(status_code, data, error_msg) {
+    // do something
+});  
 </code></pre>
+
 <h2 id="limited-sessions">Limited sessions</h2>
 <p>The session handler can be configured to either allow only one simultaneous connection per user or
 an unlimited amount. If only one session is allowed, then whenever a new session by the same user
