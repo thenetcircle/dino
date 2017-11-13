@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from activitystreams import Activity
+
 from dino import environ
 from dino import utils
 
@@ -33,6 +35,24 @@ class OnCreateHooks(object):
     def emit_creation_event(arg: tuple) -> None:
         data, activity = arg
         activity_json = utils.activity_for_create_room(data, activity)
+
+        def get_owners(act: Activity) -> list:
+            if not hasattr(act.target, 'attachments'):
+                return list()
+            for attachment in act.target.attachments:
+                if not hasattr(attachment, 'object_type'):
+                    continue
+                if attachment.object_type == 'owners' and hasattr(attachment, 'summary'):
+                    all_owners = set(attachment.summary.split(','))
+                    return [owner.strip() for owner in all_owners if len(owner.strip()) > 0]
+            return list()
+
+        if activity.target.object_type == 'private':
+            owners = get_owners(activity)
+            for owner_id in owners:
+                environ.env.emit('gn_room_created', activity_json, room=owner_id)
+            return
+
         environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
 
 
