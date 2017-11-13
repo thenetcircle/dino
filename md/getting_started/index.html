@@ -300,6 +300,8 @@ for the conversation assiciated with the users <code>1</code> and <code>2</code>
 <p>The callback method will contain the generated UUID of this room (e,g, <code>4b90eae8-c82b-11e7-98ba-43d525dbbb29</code>), 
 which should be used when joining, sending message etc. It is the responsibility of the implementer to keep track 
 of the room IDs associated with conversations.</p>
+<p>All users specied as the "owners" will receive the <a href="../events/#a-new-room-is-created"><code>gn_room_created</code></a> event if 
+they are online.</p>
 <p>To send a message in this <code>room</code>, first <a href="../api/#join"><code>join</code></a> the room (will return the history of this room):</p>
 <pre><code class="javascript">socket.emit('join', {
     verb: 'join',
@@ -313,8 +315,9 @@ of the room IDs associated with conversations.</p>
 
 <p>Alternatively, a room can be joined by the <code>display_name</code> instead of by <code>id</code>, in case that the UUID is not known
 on the client side a the time of joining. If multiple rooms exists with the same <code>display_name</code>, the <code>join</code> event 
-will fail with the error code <a href="../api/#error-codes"><code>715</code></a> ("multiple rooms with given name exists"). Example of 
-joining using <code>display_name</code>:</p>
+will fail with the <a href="../api/#error-codes">error code 715</a>, though in reality that should not happen unless the
+uniqueness of room names per channel during creation has been disabled. </p>
+<p>Example of joining using <code>display_name</code>:</p>
 <pre><code class="javascript">socket.emit('join', {
     verb: 'join',
     target: {
