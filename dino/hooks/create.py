@@ -20,6 +20,18 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 class OnCreateHooks(object):
     @staticmethod
+    def _get_owners(activity: Activity) -> list:
+        if not hasattr(activity.target, 'attachments'):
+            return list()
+        for attachment in activity.target.attachments:
+            if not hasattr(attachment, 'object_type'):
+                continue
+            if attachment.object_type == 'owners' and hasattr(attachment, 'summary'):
+                all_owners = set(attachment.summary.split(','))
+                return [owner.strip() for owner in all_owners if len(owner.strip()) > 0]
+        return list()
+
+    @staticmethod
     def create_room(arg: tuple) -> None:
         data, activity = arg
         room_name = activity.target.display_name
@@ -33,33 +45,27 @@ class OnCreateHooks(object):
             object_type = activity.target.object_type
         is_ephemeral = object_type != 'private'
 
+        owners = OnCreateHooks._get_owners(activity)
+
         if utils.is_base64(room_name):
             room_name = utils.b64d(room_name)
         environ.env.db.create_room(room_name, room_id, channel_id, user_id, user_name, ephemeral=is_ephemeral)
+
+        for owner_id in owners:
+            environ.env.db.set_owner(room_id, owner_id)
 
     @staticmethod
     def emit_creation_event(arg: tuple) -> None:
         data, activity = arg
         activity_json = utils.activity_for_create_room(data, activity)
 
-        def get_owners(act: Activity) -> list:
-            if not hasattr(act.target, 'attachments'):
-                return list()
-            for attachment in act.target.attachments:
-                if not hasattr(attachment, 'object_type'):
-                    continue
-                if attachment.object_type == 'owners' and hasattr(attachment, 'summary'):
-                    all_owners = set(attachment.summary.split(','))
-                    return [owner.strip() for owner in all_owners if len(owner.strip()) > 0]
-            return list()
-
+        # only send creation even to everyone if it's a public room
         if activity.target.object_type == 'private':
-            owners = get_owners(activity)
+            owners = OnCreateHooks._get_owners(activity)
             for owner_id in owners:
                 environ.env.emit('gn_room_created', activity_json, room=owner_id)
-            return
-
-        environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
+        else:
+            environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
 
 
 @environ.env.observer.on('on_create')
