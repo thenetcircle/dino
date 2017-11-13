@@ -77,6 +77,8 @@
             
                 <li class="toctree-l3"><a href="#private-messaging">Private messaging</a></li>
                 
+                    <li><a class="toctree-l4" href="#conversation-based-messaging">Conversation based messaging</a></li>
+                
             
                 <li class="toctree-l3"><a href="#java-client">Java client</a></li>
                 
@@ -292,10 +294,58 @@ identified by their <code>user_id</code>, and another room identified by their <
     }
 });
 </code></pre>
+<h3 id="conversation-based-messaging">Conversation based messaging</h3>
+<p>Sometimes private messaging should be identified by the unique combination of two user IDs, say <code>1</code> and <code>2</code>, so
+that the history between them can be accesses by both parties. In this case, the client implementation should
+generate an identifiable "name" for this combination, and create a room to group these messages in. </p>
+<p>For example, the implementation generates a <code>thread_id</code> or <code>conversation_id</code> on their side, then call the
+<a href="../api/#create"><code>create</code></a> API with the name set as this generated ID. For example, if the ID <code>42</code> is generated 
+for the conversation assiciated with the users <code>A</code> and <code>B</code>:</p>
+<pre><code>socket.emit('create', {
+    target: {
+        displayName: '42',
+        objectType: 'private',
+        attatchments: [{
+            objectType: 'owners',
+            summary: '1,2'
+        }]
+    },
+    verb: 'create'
+}, function(status_code, data, error_msg) {
+    // callback method, check create api for format of the data param
+});
+</code></pre>
+<p>The callback method will contain the generated UUID of this room (e,g, <code>4b90eae8-c82b-11e7-98ba-43d525dbbb29</code>), 
+which should be used when joining, sending message etc. It is the responsibility of the implementer to keep track 
+of the room IDs associated with conversations.</p>
+<p>To send a message in this <code>room</code>, first <a href="../api/#join"><code>join</code></a> the room (will return the history of this room):</p>
+<pre><code>socket.emit('join', {
+    verb: 'join',
+    target: {
+        id: '4b90eae8-c82b-11e7-98ba-43d525dbbb29'
+    }
+}, function(status_code, data, error_msg) {
+    // callback method, generated room uuid is data.target.id
+});
+</code></pre>
+<p>Use the <a href="../api/#message"><code>message</code></a> API to send a message to this room:</p>
+<pre><code>socket.emit('join', {
+    verb: 'send',
+    target: {
+        id: '42',
+    },
+    object: {
+        content: '&lt;the message, base64 encoded&gt;',
+    }
+}, function(status_code, data, error_msg) {
+    // callback method
+});
+</code></pre>
+<p>If the other user is online, he/she will get the <a href="../events/#message-received">message received</a> event.</p>
 <h2 id="java-client">Java client</h2>
 <p>Using the <a href="https://github.com/socketio/socket.io-client-java">Java socket.io library</a>, you have to use <code>http</code> 
 instead of <code>ws</code> and <code>https</code> instead of <code>wss</code> (it's the same thing).</p>
-<p>Create your object and use Gson to serialize it to json for a JSONObject (you cannot to a <code>toString</code> of the 
+<p>Create your object and use Gson to serialize it to json for a JSONObject (you cannot do a <code>toString</code> of the 
 obejct, it needs to be a json object):</p>
 <pre><code>Gson gson = new Gson();
 try {
