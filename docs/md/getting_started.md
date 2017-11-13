@@ -120,6 +120,7 @@ for the conversation assiciated with the users `1` and `2`:
 
 ```javascript
 socket.emit('create', {
+    verb: 'create'
     target: {
         displayName: '42',
         objectType: 'private',
@@ -127,8 +128,7 @@ socket.emit('create', {
             objectType: 'owners',
             summary: '1,2'
         }]
-    },
-    verb: 'create'
+    }
 }, function(status_code, data, error_msg) {
     // callback method, check create api for format of the data param
 });
@@ -147,6 +147,22 @@ socket.emit('join', {
         id: '4b90eae8-c82b-11e7-98ba-43d525dbbb29'
     }
 }, function(status_code, data, error_msg) {
+    // callback method
+});
+```
+
+Alternatively, a room can be joined by the `display_name` instead of by `id`, in case that the UUID is not known
+on the client side a the time of joining. If multiple rooms exists with the same `display_name`, the `join` event 
+will fail with the error code [`715`](api.md#error-codes) ("multiple rooms with given name exists"). Example of 
+joining using `display_name`:
+
+```javascript
+socket.emit('join', {
+    verb: 'join',
+    target: {
+        display_name: '42'
+    }   
+}, function(status_code, data, error_msg) {
     // callback method, generated room uuid is data.target.id
 });
 ```
@@ -154,10 +170,10 @@ socket.emit('join', {
 Use the [`message`](api.md#message) API to send a message to this room:
 
 ```javascript
-socket.emit('join', {
+socket.emit('message', {
     verb: 'send',
     target: {
-        id: '42',
+        id: '4b90eae8-c82b-11e7-98ba-43d525dbbb29',
     },
     object: {
         content: '<the message, base64 encoded>',
