@@ -283,6 +283,7 @@ generate an identifiable "name" for this combination, and create a room to group
 <a href="../api/#create"><code>create</code></a> API with the name set as this generated ID. For example, if the ID <code>42</code> is generated 
 for the conversation assiciated with the users <code>1</code> and <code>2</code>:</p>
 <pre><code class="javascript">socket.emit('create', {
+    verb: 'create'
     target: {
         displayName: '42',
         objectType: 'private',
@@ -290,8 +291,7 @@ for the conversation assiciated with the users <code>1</code> and <code>2</code>
             objectType: 'owners',
             summary: '1,2'
         }]
-    },
-    verb: 'create'
+    }
 }, function(status_code, data, error_msg) {
     // callback method, check create api for format of the data param
 });
@@ -307,15 +307,29 @@ of the room IDs associated with conversations.</p>
         id: '4b90eae8-c82b-11e7-98ba-43d525dbbb29'
     }
 }, function(status_code, data, error_msg) {
+    // callback method
+});
+</code></pre>
+
+<p>Alternatively, a room can be joined by the <code>display_name</code> instead of by <code>id</code>, in case that the UUID is not known
+on the client side a the time of joining. If multiple rooms exists with the same <code>display_name</code>, the <code>join</code> event 
+will fail with the error code <a href="../api/#error-codes"><code>715</code></a> ("multiple rooms with given name exists"). Example of 
+joining using <code>display_name</code>:</p>
+<pre><code class="javascript">socket.emit('join', {
+    verb: 'join',
+    target: {
+        display_name: '42'
+    }   
+}, function(status_code, data, error_msg) {
     // callback method, generated room uuid is data.target.id
 });
 </code></pre>
 
 <p>Use the <a href="../api/#message"><code>message</code></a> API to send a message to this room:</p>
-<pre><code class="javascript">socket.emit('join', {
+<pre><code class="javascript">socket.emit('message', {
     verb: 'send',
     target: {
-        id: '42',
+        id: '4b90eae8-c82b-11e7-98ba-43d525dbbb29',
     },
     object: {
         content: '&lt;the message, base64 encoded&gt;',
