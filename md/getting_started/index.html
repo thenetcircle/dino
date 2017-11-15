@@ -183,14 +183,15 @@
                 <h2 id="quick-start">Quick start</h2>
 <p>This example is using JavaScript.</p>
 <p>First we connect to the server:</p>
-<pre><code>socket = io.connect(
+<pre><code class="javascript">socket = io.connect(
     'http://' + document.domain + ':' + location.port + '/chat', 
     {transports:['websocket']}
 );
 </code></pre>
+
 <p>We'll receive a <code>connect</code> event back after successfully connecting. Now we have to send the <code>login</code> event to provide the
 server with some extra user information and to do authentication:</p>
-<pre><code>socket.on('connect', function() {
+<pre><code class="javascript">socket.on('connect', function() {
     socket.emit('login', {
         verb: 'login',
         actor: {
@@ -205,60 +206,68 @@ server with some extra user information and to do authentication:</p>
     });
 });
 </code></pre>
+
 <p>All events sent to the server will get a response with the same name plus a prefix of <code>gn_</code>. For example, the login 
 event sent above will get the following response, <code>gn_login</code>, meaning we've successfully authenticated with the server.
 Now we can start joining rooms, chatting, sending events etc.</p>
-<pre><code>socket.on('gn_login', function(response) {
+<pre><code class="javascript">socket.on('gn_login', function(response) {
     socket.emit('list_channels', {
         verb: 'list'
     });
 });
 </code></pre>
+
 <p>The response from the server will be in JSON format. If no data is expected for the events, only a status code will be
 in the response. For example, sending the <code>join</code> event to join a room won't return any data, but only the following
 (if successful):</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <p>Failure to execute an event on the server will return an <a href="../api/#error-codes">error code</a>:</p>
-<pre><code>{
-    "status_code": 423,
-    "data": "&lt;an error message, always a string&gt;"
+<pre><code class="json">{
+    &quot;status_code&quot;: 423,
+    &quot;data&quot;: &quot;&lt;an error message, always a string&gt;&quot;
 }
 </code></pre>
+
 <p>If an internal server error occurs, code 500 is returned:</p>
-<pre><code>{
-    "status_code": 500,
-    "data": "&lt;an error message, always a string&gt;"
+<pre><code class="json">{
+    &quot;status_code&quot;: 500,
+    &quot;data&quot;: &quot;&lt;an error message, always a string&gt;&quot;
 }
 </code></pre>
+
+<p>The format of the response can be configured, e.g. to return key "error" for error messages and use "data" only for json
+data.</p>
 <p>For events that contains data in the response, for example when sending the event <code>list_channels</code>, we expect to get a list
 of channels in the response. For these events the data part is always a JSON in the ActivityStreams 1.0 format:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {       
-        "object": {
-            "objectType": "channels"
-            "attachments": [
+<pre><code class="javascript">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {       
+        &quot;object&quot;: {
+            &quot;objectType&quot;: &quot;channels&quot;
+            &quot;attachments&quot;: [
                 {
-                    "id": "&lt;channel ID 1&gt;",
-                    "content": "&lt;channel name 1 in base64&gt;"
+                    &quot;id&quot;: &quot;&lt;channel ID 1&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;channel name 1 in base64&gt;&quot;
                 },
                 {
-                    "id": "&lt;channel ID 2&gt;",
-                    "content": "&lt;channel name 2 in base64&gt;"
+                    &quot;id&quot;: &quot;&lt;channel ID 2&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;channel name 2 in base64&gt;&quot;
                 },
                 {
-                    "id": "&lt;channel ID 3&gt;",
-                    "content": "&lt;channel name 3 in base64&gt;"
+                    &quot;id&quot;: &quot;&lt;channel ID 3&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;channel name 3 in base64&gt;&quot;
                 }
             ]
         },
-        "verb": "list"
+        &quot;verb&quot;: &quot;list&quot;
     }
 }
 </code></pre>
+
 <h2 id="encoding">Encoding</h2>
 <p>All user names, room names, channel names and chat messages are expected to be base64 encoded unicode strings. All
 responses and events originating from the server will also follow this practice, so when listing rooms/channels/users
@@ -301,7 +310,7 @@ for the conversation assiciated with the users <code>1</code> and <code>2</code>
 which should be used when joining, sending message etc. It is the responsibility of the implementer to keep track 
 of the room IDs associated with conversations.</p>
 <p>All users specied as the "owners" will receive the <a href="../events/#a-new-room-is-created"><code>gn_room_created</code></a> event if 
-they are online.</p>
+they are online, otherwise they would get it as history later.</p>
 <p>To send a message in this <code>room</code>, first <a href="../api/#join"><code>join</code></a> the room (will return the history of this room):</p>
 <pre><code class="javascript">socket.emit('join', {
     verb: 'join',
