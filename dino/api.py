@@ -194,7 +194,6 @@ def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
     """
     environ.env.observer.emit('on_ban', (data, activity))
-    #environ.env.observer.emit('on_kick', (data, activity))
     return ECodes.OK, None
 
 

@@ -41,6 +41,5 @@ External production ready dialects:
 * EXASolution,
 * SAP Sybase SQL Anywhere,
 * MonetDB,
-* Snowflake
+* Snowflake,
 * CrateDB.
-.
