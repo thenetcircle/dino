@@ -227,3 +227,6 @@ class CassandraStorage(object):
         if strategy not in valid_strategies:
             raise ValueError('unknown strategy "%s", valid strategies are: %s' %
                              (str(strategy), ', '.join(valid_strategies)))
+
+        logger.info('connecting to [%s]/%s (%s, %s replications)' % (
+            ','.join(self.hosts), self.key_space, self.strategy, self.replications))

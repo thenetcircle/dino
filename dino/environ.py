@@ -296,7 +296,7 @@ def find_config(config_paths: list) -> tuple:
     return config_dict, config_path
 
 
-def find_config_acl(acl_paths: list) -> str:
+def find_config_acl(acl_paths: list) -> (dict, str):
     default_paths = ["acl.yaml", "acl.json"]
     acl_dict = dict()
     acl_path = None
@@ -364,6 +364,8 @@ def load_secrets_file(config_dict: dict) -> dict:
     if secrets_path is None:
         secrets_path = 'secrets/%s.yaml' % gn_env
 
+    logger.debug('loading secrets file "%s"' % secrets_path)
+
     # first substitute environment variables, which holds precedence over the yaml config (if it exists)
     template = Template(str(config_dict))
     template = template.safe_substitute(os.environ)
@@ -381,11 +383,14 @@ def load_secrets_file(config_dict: dict) -> dict:
 
 @timeit(logger, 'creating base environment')
 def create_env(config_paths: list = None) -> GNEnvironment:
+    logging.basicConfig(level='DEBUG', format=ConfigKeys.DEFAULT_LOG_FORMAT)
+
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
     logger.info('using environment %s' % gn_environment)
 
     # assuming tests are running
     if gn_environment is None:
+        logger.debug('no environment found, assuming tests are running')
         return GNEnvironment(None, ConfigDict(dict()))
 
     config_dict, config_path = find_config(config_paths)
@@ -463,16 +468,14 @@ def create_env(config_paths: list = None) -> GNEnvironment:
         config_dict[ConfigKeys.LOG_LEVEL] = ConfigKeys.DEFAULT_LOG_LEVEL
 
     config_dict[ConfigKeys.ACL] = get_acl_config()
-
     root_path = os.path.dirname(config_path)
-
     gn_env = GNEnvironment(root_path, ConfigDict(config_dict))
 
     logger.info('read config and created environment')
     return gn_env
 
 
-def get_acl_config() -> dict:
+def get_acl_config() -> Union[MappingProxyType, dict]:
     acl_paths = None
     if 'DINO_ACL' in os.environ:
         acl_paths = [os.environ['DINO_ACL']]
