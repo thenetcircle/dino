@@ -244,6 +244,38 @@ been seen or not.
 Unawknowledged (no received ack sent by client) messages will in future version be redelivered since it might
 indicate a loss during transmission.
 
+Example of sending acknowledgement of received message as well as listening for the `OK` server response to
+the ack:
+
+```javascript
+socket.on('gn_message', function(response) {
+    if (response.status_code !== 200) {
+        // handle error some way
+        return;
+    }
+
+    // acknowledge that we got the message
+    socket.emit('received', {
+        verb: 'receive',
+        target: {
+            id: room_id
+        },
+        object: {
+            attachments: [{
+                // response.data.id is the generated uuid of the message, see api docs
+                id: response.data.id
+            }]
+        }
+    }, function(status_code, error_msg) {
+        // server "acks our ack"
+        console.log('callback for received api: ' + status_code)
+    });
+
+    // finally handle the message
+    handle_message(data);
+});
+```
+
 ## Limited sessions
 
 The session handler can be configured to either allow only one simultaneous connection per user or
