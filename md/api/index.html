@@ -92,6 +92,12 @@
                 <li class="toctree-l3"><a href="#list_channels">list_channels</a></li>
                 
             
+                <li class="toctree-l3"><a href="#received">received</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#read">read</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#list_rooms">list_rooms</a></li>
                 
             
@@ -397,6 +403,46 @@ both. Possible values are thus:</p>
 </ul>
 <p>If the channel has 0 rooms in it, the objectType will be <code>mix</code>.</p>
 <p>Attachments for each channel describes the ACLs for that channel.</p>
+<h2 id="received"><code>received</code></h2>
+<p>Acknowledge that one or more messages has been received. The status will change from <code>sent</code> to <code>delivered</code>.</p>
+<p>Does not emit a response, only invokes the callback with the <code>status_code</code> and potentially and <code>error_message</code>. Note 
+that if multiple messages are being acknowledged at the same time, they all have to be for the same room (<code>target.id</code>).</p>
+<p>Request contains:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;receive&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;uuid of the room the messages are all in&gt;&quot;
+    },
+    &quot;object&quot;: {
+        &quot;attachments&quot;: [
+            {&quot;id&quot;: &quot;&lt;message1 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message2 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message3 uuid&gt;&quot;}
+        ]
+    }
+}
+</code></pre>
+
+<h2 id="read"><code>read</code></h2>
+<p>Acknowledge that one or more messages has been read. The status will change from <code>sent</code>/<code>delivered</code> to <code>read</code>.</p>
+<p>Does not emit a response, only invokes the callback with the <code>status_code</code> and potentially and <code>error_message</code>. Note 
+that if multiple messages are being acknowledged at the same time, they all have to be for the same room (<code>target.id</code>).</p>
+<p>Request contains:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;read&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;uuid of the room the messages are all in&gt;&quot; 
+    },   
+    &quot;object&quot;: {
+        &quot;attachments&quot;: [
+            {&quot;id&quot;: &quot;&lt;message1 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message2 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message3 uuid&gt;&quot;}
+        ]    
+    }    
+}
+</code></pre>
+
 <h2 id="list_rooms"><code>list_rooms</code></h2>
 <p>Get a list of all rooms for a channel.</p>
 <p>Responds with event name <code>gn_list_rooms</code>.</p>
