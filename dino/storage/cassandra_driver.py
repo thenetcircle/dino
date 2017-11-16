@@ -35,6 +35,7 @@ class StatementKeys(Enum):
     acks_update = 'acks_update'
     acks_insert = 'acks_insert'
     acks_get = 'acks_get'
+    acks_get_for_status = 'acks_get_for_status'
     msg_insert = 'msg_insert'
     msg_select = 'msg_select'
     msg_select_all = 'msg_select_all'
@@ -125,6 +126,19 @@ class Driver(object):
             )
 
         def create_views():
+            self.session.execute(
+                    """
+                    CREATE MATERIALIZED VIEW IF NOT EXISTS acks_by_user_and_status AS
+                        SELECT * from msg_acks
+                            WHERE
+                                for_user_id IS NOT NULL AND
+                                message_id IS NOT NULL AND
+                                status IS NOT NULL AND
+                                target_id IS NOT NULL
+                        PRIMARY KEY (for_user_id, status, message_id)
+                        WITH CLUSTERING ORDER BY (status DESC)
+                    """
+            )
             self.session.execute(
                     """
                     CREATE MATERIALIZED VIEW IF NOT EXISTS messages_by_id AS
@@ -221,6 +235,11 @@ class Driver(object):
             self.statements[StatementKeys.acks_get] = self.session.prepare(
                 """
                 SELECT * FROM msg_acks WHERE for_user_id = ? and message_id in ?
+                """
+            )
+            self.statements[StatementKeys.acks_get_for_status] = self.session.prepare(
+                """
+                SELECT * FROM acks_by_user_and_status WHERE for_user_id = ? and status = ?
                 """
             )
             self.statements[StatementKeys.msgs_select] = self.session.prepare(
@@ -323,8 +342,11 @@ class Driver(object):
                 StatementKeys.msg_insert, msg_id, from_user_id, from_user_name, target_id, target_name,
                 body, domain, sent_time, time_stamp, channel_id, channel_name, deleted)
 
-    def get_acks_for(self, message_ids: set, receiver_id: str):
+    def get_acks_for(self, message_ids: set, receiver_id: str) -> ResultSet:
         return self._execute(StatementKeys.acks_get, receiver_id, message_ids)
+
+    def get_acks_for_status(self, user_id: str, status: int) -> ResultSet:
+        return self._execute(StatementKeys.acks_get_for_status, user_id, status)
 
     def add_acks_with_status(self, message_ids: set, receiver_id: str, target_id: str, status: int):
         for message_id in message_ids:

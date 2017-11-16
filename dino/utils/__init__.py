@@ -11,6 +11,7 @@
 # limitations under the License.
 
 from activitystreams import Activity
+from activitystreams import parse as as_parser
 from typing import Union
 from uuid import uuid4 as uuid
 
@@ -343,7 +344,7 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> 
 
 
 def activity_for_login(user_id: str, user_name: str) -> dict:
-    return {
+    response = {
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
@@ -353,6 +354,20 @@ def activity_for_login(user_id: str, user_name: str) -> dict:
         'verb': 'login',
         'id': str(uuid())
     }
+
+    messages = get_unacked_messages(user_id)
+    if len(messages) > 0:
+        history_activity = activity_for_history(as_parser(response), messages)
+        response['object'] = {
+            'objectType': 'history',
+            'attachments': history_activity['object']['attachments']
+        }
+
+    return response
+
+
+def get_unacked_messages(user_id: str) -> list:
+    return environ.env.storage.get_unacked_history(user_id)
 
 
 def activity_for_connect(user_id: str, user_name: str) -> dict:
@@ -396,24 +411,25 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
 
 @timeit(logger, 'on_activity_for_history')
 def activity_for_history(activity: Activity, messages: list) -> dict:
-    try:
-        room_name = b64e(get_room_name(activity.target.id))
-    except NoSuchRoomException as e:
-        logger.exception('could not find room name for room id %s: %s' % (activity.target.id, str(e)))
-        room_name = ''
-
     response = {
         'object': {
             'objectType': 'messages'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'id': str(uuid()),
-        'verb': 'history',
-        'target': {
+        'verb': 'history'
+    }
+
+    if hasattr(activity, 'target') and hasattr(activity.target, 'id'):
+        try:
+            room_name = b64e(get_room_name(activity.target.id))
+        except NoSuchRoomException as e:
+            logger.exception('could not find room name for room id %s: %s' % (activity.target.id, str(e)))
+            room_name = ''
+        response['target'] = {
             'id': activity.target.id,
             'displayName': room_name
         }
-    }
 
     response['object']['attachments'] = list()
     for message in messages:
@@ -422,6 +438,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
                 'id': message['from_user_id'],
                 'displayName': b64e(message['from_user_name'])
             },
+            'summary': message['target_id'],
             'id': message['message_id'],
             'content': b64e(message['body']),
             'published': message['timestamp']

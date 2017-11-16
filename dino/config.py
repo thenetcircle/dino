@@ -141,7 +141,7 @@ class UserKeys(object):
 
 
 class AckStatus(object):
-    SENT = 0
+    NOT_ACKED = 0
     RECEIVED = 1
     READ = 2
 

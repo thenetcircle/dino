@@ -134,6 +134,22 @@ class CassandraStorage(object):
         self.driver.msg_undelete(message_id)
 
     @timeit(logger, 'on_cassandra_get_unread_history')
+    def get_unacked_history(self, user_id: str) -> list:
+        rows = self.driver.get_acks_for_status(user_id, AckStatus.NOT_ACKED)
+        if rows is None or len(rows.current_rows) == 0:
+            return list()
+
+        message_ids = {row.message_id for row in rows}
+        message_rows = self.driver.msgs_select_all_in(message_ids)
+
+        msgs = list()
+        for row in message_rows:
+            if row.deleted:
+                continue
+            msgs.append(self._row_to_json(row))
+        return msgs
+
+    @timeit(logger, 'on_cassandra_get_unread_history')
     def get_unread_history(self, room_id: str, last_read: int) -> list:
         rows = self.driver.msgs_select_since_time(room_id, last_read)
         if rows is None or len(rows.current_rows) == 0:
