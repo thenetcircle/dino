@@ -188,6 +188,56 @@ If the channel has 0 rooms in it, the objectType will be `mix`.
 
 Attachments for each channel describes the ACLs for that channel.
 
+## `received`
+
+Acknowledge that one or more messages has been received. The status will change from `sent` to `delivered`.
+
+Does not emit a response, only invokes the callback with the `status_code` and potentially and `error_message`. Note 
+that if multiple messages are being acknowledged at the same time, they all have to be for the same room (`target.id`).
+
+Request contains:
+
+```json
+{
+    "verb": "receive",
+    "target": {
+        "id": "<uuid of the room the messages are all in>"
+    },
+    "object": {
+        "attachments": [
+            {"id": "<message1 uuid>"},
+            {"id": "<message2 uuid>"},
+            {"id": "<message3 uuid>"}
+        ]
+    }
+}
+```
+
+## `read`
+
+Acknowledge that one or more messages has been read. The status will change from `sent`/`delivered` to `read`.
+
+Does not emit a response, only invokes the callback with the `status_code` and potentially and `error_message`. Note 
+that if multiple messages are being acknowledged at the same time, they all have to be for the same room (`target.id`).
+
+Request contains:
+
+```json
+{
+    "verb": "read",
+    "target": {
+        "id": "<uuid of the room the messages are all in>" 
+    },   
+    "object": {
+        "attachments": [
+            {"id": "<message1 uuid>"},
+            {"id": "<message2 uuid>"},
+            {"id": "<message3 uuid>"}
+        ]    
+    }    
+}
+```
+
 ## `list_rooms`
 
 Get a list of all rooms for a channel.
