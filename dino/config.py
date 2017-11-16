@@ -61,6 +61,7 @@ class ErrorCodes(object):
     MISSING_OBJECT_ATTACHMENTS = 508
     MISSING_ATTACHMENT_TYPE = 509
     MISSING_ATTACHMENT_CONTENT = 510
+    MISSING_VERB = 511
 
     INVALID_TARGET_TYPE = 600
     INVALID_ACL_TYPE = 601
@@ -69,6 +70,7 @@ class ErrorCodes(object):
     INVALID_STATUS = 604
     INVALID_OBJECT_TYPE = 605
     INVALID_BAN_DURATION = 606
+    INVALID_VERB = 607
 
     EMPTY_MESSAGE = 700
     NOT_BASE64 = 701
@@ -86,6 +88,7 @@ class ErrorCodes(object):
     INVALID_LOGIN = 713
     MSG_TOO_LONG = 714
     MULTIPLE_ROOMS_WITH_NAME = 715
+    TOO_MANY_ATTACHMENTS = 716
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -135,6 +138,12 @@ class UserKeys(object):
     STATUS_INVISIBLE = '3'
     STATUS_UNAVAILABLE = '4'
     STATUS_UNKNOWN = '5'
+
+
+class AckStatus(object):
+    SENT = 0
+    RECEIVED = 1
+    READ = 2
 
 
 class ConfigKeys(object):

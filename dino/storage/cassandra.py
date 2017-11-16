@@ -19,6 +19,7 @@ from activitystreams.models.activity import Activity
 
 from dino.storage import IStorage
 from dino.config import ConfigKeys
+from dino.config import AckStatus
 from dino.utils import b64d
 from dino.utils.decorators import timeit
 from dino import environ
@@ -70,24 +71,69 @@ class CassandraStorage(object):
                 deleted=False
         )
 
+    def _mark_as_status(self, message_ids: set, receiver_id: str, target_id: str, status: int):
+        rows = self.driver.get_acks_for(message_ids, receiver_id)
+
+        if rows is None or len(rows.current_rows) == 0:
+            current_acks = dict()
+        else:
+            current_acks = {row.message_id: int(row.status) for row in rows}
+
+        to_update = list()
+        to_add = list()
+
+        for message_id in message_ids:
+            if message_id not in current_acks:
+                to_add.append(message_id)
+                continue
+                # don't downgrade status
+            if current_acks.get(message_id) >= status:
+                continue
+            to_update.append(message_id)
+
+        if len(to_update) > 0:
+            self.driver.update_acks_with_status(message_ids, receiver_id, status)
+        if len(to_add) > 0:
+            self.driver.add_acks_with_status(message_ids, receiver_id, target_id, status)
+
+    @timeit(logger, 'on_cassandra_mark_as_received')
+    def mark_as_received(self, message_ids: set, receiver_id: str, target_id: str) -> None:
+        self._mark_as_status(message_ids, receiver_id, target_id, AckStatus.RECEIVED)
+
+    @timeit(logger, 'on_cassandra_mark_as_read')
+    def mark_as_read(self, message_ids: set, receiver_id: str, target_id: str) -> None:
+        self._mark_as_status(message_ids, receiver_id, target_id, AckStatus.READ)
+
+    @timeit(logger, 'on_cassandra_get_messages')
+    def get_messages(self, message_ids: set) -> list:
+        rows = self.driver.msgs_select_all_in(message_ids)
+        if rows is None or len(rows.current_rows) == 0:
+            return list()
+        return [self._row_to_json(row) for row in rows]
+
+    @timeit(logger, 'on_cassandra_get_undeleted_message_ids_for_user')
     def get_undeleted_message_ids_for_user(self, user_id: str):
         rows = self.driver.msgs_select_non_deleted_for_user(user_id)
         if rows is None or len(rows.current_rows) == 0:
             return list()
         return [row.message_id for row in rows]
 
+    @timeit(logger, 'on_cassandra_get_undeleted_message_ids_for_user_and_room')
     def get_undeleted_message_ids_for_user_and_room(self, user_id: str, room_id: str):
         rows = self.driver.msgs_select_non_deleted_for_user_and_room(user_id, room_id)
         if rows is None or len(rows.current_rows) == 0:
             return list()
         return [row.message_id for row in rows]
 
+    @timeit(logger, 'on_cassandra_delete_message')
     def delete_message(self, message_id: str, room_id: str=None) -> None:
         self.driver.msg_delete(message_id)
 
+    @timeit(logger, 'on_cassandra_undelete_message')
     def undelete_message(self, message_id: str) -> None:
         self.driver.msg_undelete(message_id)
 
+    @timeit(logger, 'on_cassandra_get_unread_history')
     def get_unread_history(self, room_id: str, last_read: int) -> list:
         rows = self.driver.msgs_select_since_time(room_id, last_read)
         if rows is None or len(rows.current_rows) == 0:
@@ -100,6 +146,7 @@ class CassandraStorage(object):
             msgs.append(self._row_to_json(row))
         return msgs
 
+    @timeit(logger, 'on_cassandra_get_history_for_time_slice')
     def get_history_for_time_slice(self, room_id: str, from_user_id: str, from_time: int, to_time: int) -> list:
         if room_id is not None and len(room_id.strip()) > 0:
             if from_user_id is not None and len(from_user_id.strip()) > 0:
@@ -123,6 +170,7 @@ class CassandraStorage(object):
             msgs.append(self._row_to_json(row))
         return msgs
 
+    @timeit(logger, 'on_cassandra_get_history')
     def get_history(self, room_id: str, limit: int=100) -> list:
         rows = self.driver.msgs_select_latest_non_deleted(room_id, limit)
         if rows is None or len(rows.current_rows) == 0:
@@ -133,6 +181,7 @@ class CassandraStorage(object):
             msgs.append(self._row_to_json(row))
         return msgs
 
+    @timeit(logger, 'on_cassandra_msg_select')
     def msg_select(self, message_id: str) -> dict:
         rows = self.driver.msg_select(message_id)
         if rows is None or len(rows.current_rows) == 0:

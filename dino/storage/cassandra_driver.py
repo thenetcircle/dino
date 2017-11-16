@@ -15,14 +15,16 @@
 import logging
 import pytz
 
-from cassandra.cluster import ResultSet
-from cassandra.cluster import Session
-from dino.storage.cassandra_interface import IDriver
+from datetime import datetime
 from enum import Enum
 from zope.interface import implementer
 
+from cassandra.cluster import ResultSet
+from cassandra.cluster import Session
+from cassandra.query import ValueSequence
+
+from dino.storage.cassandra_interface import IDriver
 from dino.config import ConfigKeys
-from datetime import datetime
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -30,10 +32,13 @@ logger = logging.getLogger(__name__)
 
 
 class StatementKeys(Enum):
+    acks_update = 'acks_update'
+    acks_insert = 'acks_insert'
     msg_insert = 'msg_insert'
     msg_select = 'msg_select'
     msg_select_all = 'msg_select_all'
     msgs_select = 'msgs_select'
+    msgs_select_all_in = 'msgs_select_all_in'
     msgs_select_time_slice = 'msgs_select_time_slice'
     msgs_select_by_time_stamp = 'msgs_select_by_time_stamp'
     msgs_select_latest_non_deleted = 'msgs_select_latest_non_deleted'
@@ -88,23 +93,34 @@ class Driver(object):
         def create_tables():
             self.logger.debug('creating tables...')
             self.session.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS messages (
-                        message_id varchar,
-                        from_user_id text,
-                        from_user_name text,
-                        target_id text,
-                        target_name text,
-                        body text,
-                        domain text,
-                        sent_time varchar,
-                        time_stamp int,
-                        channel_id varchar,
-                        channel_name text,
-                        deleted boolean,
-                        PRIMARY KEY (target_id, from_user_id, sent_time, time_stamp)
-                    )
-                    """
+                """
+                CREATE TABLE IF NOT EXISTS messages (
+                    message_id varchar,
+                    from_user_id text,
+                    from_user_name text,
+                    target_id text,
+                    target_name text,
+                    body text,
+                    domain text,
+                    sent_time varchar,
+                    time_stamp int,
+                    channel_id varchar,
+                    channel_name text,
+                    deleted boolean,
+                    PRIMARY KEY (target_id, from_user_id, sent_time, time_stamp)
+                )
+                """
+            )
+            self.session.execute(
+                """
+                CREATE TABLE IF NOT EXISTS msg_acks (
+                    for_user_id text, 
+                    message_id varchar, 
+                    status int, 
+                    target_id varchar,
+                    primary key(for_user_id, message_id)
+                )
+                """
             )
 
         def create_views():
@@ -191,9 +207,24 @@ class Driver(object):
                     )
                     """
             )
+            self.statements[StatementKeys.acks_update] = self.session.prepare(
+                """
+                UPDATE msg_acks SET status = ? where for_user_id = ? and message_id in ?
+                """
+            )
+            self.statements[StatementKeys.acks_insert] = self.session.prepare(
+                """
+                INSERT INTO msg_acks (for_user_id, message_id, status, target_id) values(?, ?, ?, ?)
+                """
+            )
             self.statements[StatementKeys.msgs_select] = self.session.prepare(
                     """
                     SELECT * FROM messages WHERE target_id = ? LIMIT ?
+                    """
+            )
+            self.statements[StatementKeys.msgs_select_all_in] = self.session.prepare(
+                    """
+                    SELECT * FROM messages_by_id WHERE message_id in ?
                     """
             )
             self.statements[StatementKeys.msgs_select_by_time_stamp] = self.session.prepare(
@@ -286,6 +317,13 @@ class Driver(object):
                 StatementKeys.msg_insert, msg_id, from_user_id, from_user_name, target_id, target_name,
                 body, domain, sent_time, time_stamp, channel_id, channel_name, deleted)
 
+    def add_acks_with_status(self, message_ids: set, receiver_id: str, target_id: str, status: int):
+        for message_id in message_ids:
+            self._execute(StatementKeys.acks_insert, receiver_id, message_id, status, target_id)
+
+    def update_acks_with_status(self, message_ids: set, receiver_id: str, status: int):
+        return self._execute(StatementKeys.acks_update, status, receiver_id, message_ids)
+
     def msgs_select_time_slice(self, target_id: str, from_time: int, to_time: int) -> ResultSet:
         return self._execute(StatementKeys.msgs_select_time_slice, target_id, from_time, to_time)
 
@@ -300,6 +338,9 @@ class Driver(object):
 
     def msgs_select(self, target_id: str, limit: int=100) -> ResultSet:
         return self._execute(StatementKeys.msgs_select, target_id, limit)
+
+    def msgs_select_all_in(self, message_ids: set) -> ResultSet:
+        return self._execute(StatementKeys.msgs_select_all_in, ValueSequence(list(message_ids)))
 
     def msg_select(self, message_id) -> ResultSet:
         return self._execute(StatementKeys.msg_select_all, message_id)
@@ -337,14 +378,14 @@ class Driver(object):
             return
 
         if len(keys.current_rows) > 1:
-            logger.warn('found %s msgs when deleting with message_id %s' % (len(keys.current_rows), message_id))
+            logger.warning('found %s msgs when deleting with message_id %s' % (len(keys.current_rows), message_id))
 
         for key in keys.current_rows:
             target_id, from_user_id, timestamp = key.target_id, key.from_user_id, key.sent_time
             message_rows = self._execute(StatementKeys.msg_select_one, target_id, from_user_id, timestamp)
 
             if len(message_rows.current_rows) > 1:
-                logger.warn(
+                logger.warning(
                         'found %s msgs when deleting with target_id %s, from_user_id %s and timestamp %s' %
                         (len(message_rows.current_rows), target_id, from_user_id, timestamp))
 

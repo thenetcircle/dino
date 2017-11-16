@@ -176,6 +176,36 @@ def on_update_user_info(data: dict, activity: Activity) -> (int, Union[str, None
     return ECodes.OK, data
 
 
+@timeit(logger, 'on_read')
+def on_read(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    acknowledge one or more messages has been read
+
+    target.attachments.id: the uuid of the message to acknowledge
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    environ.env.observer.emit('on_read', (data, activity))
+    return ECodes.OK, None
+
+
+@timeit(logger, 'on_received')
+def on_received(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    acknowledge one or more messages has been received
+
+    target.attachments.id: the uuid of the message to acknowledge
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    environ.env.observer.emit('on_received', (data, activity))
+    return ECodes.OK, None
+
+
 @timeit(logger, 'on_ban')
 def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
