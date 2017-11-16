@@ -25,7 +25,7 @@ class OnReadHooks(object):
         environ.env.storage.mark_as_read(message_ids, activity.actor.id, activity.target.id)
 
 
-@environ.env.observer.on('on_leave')
+@environ.env.observer.on('on_read')
 def _on_read_update_messages(arg: tuple) -> None:
     _, activity = arg
     eventlet.spawn(OnReadHooks.update_messages, activity)

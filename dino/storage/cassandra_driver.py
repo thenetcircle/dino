@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 class StatementKeys(Enum):
     acks_update = 'acks_update'
     acks_insert = 'acks_insert'
+    acks_get = 'acks_get'
     msg_insert = 'msg_insert'
     msg_select = 'msg_select'
     msg_select_all = 'msg_select_all'
@@ -217,6 +218,11 @@ class Driver(object):
                 INSERT INTO msg_acks (for_user_id, message_id, status, target_id) values(?, ?, ?, ?)
                 """
             )
+            self.statements[StatementKeys.acks_get] = self.session.prepare(
+                """
+                SELECT * FROM msg_acks WHERE for_user_id = ? and message_id in ?
+                """
+            )
             self.statements[StatementKeys.msgs_select] = self.session.prepare(
                     """
                     SELECT * FROM messages WHERE target_id = ? LIMIT ?
@@ -316,6 +322,9 @@ class Driver(object):
         self._execute(
                 StatementKeys.msg_insert, msg_id, from_user_id, from_user_name, target_id, target_name,
                 body, domain, sent_time, time_stamp, channel_id, channel_name, deleted)
+
+    def get_acks_for(self, message_ids: set, receiver_id: str):
+        return self._execute(StatementKeys.acks_get, receiver_id, message_ids)
 
     def add_acks_with_status(self, message_ids: set, receiver_id: str, target_id: str, status: int):
         for message_id in message_ids:

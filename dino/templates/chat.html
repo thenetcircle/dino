@@ -68,7 +68,7 @@
                         verb: 'list'
                     });
                 });
-            }
+            };
 
             on_user_click = function() {
                 $('a.user').click(function() {
@@ -135,7 +135,7 @@
                     channels = response.data.object.attachments
 
                     $('#channels').html('');
-                    for (i = 0; i < channels.length; i++) {
+                    for (var i = 0; i < channels.length; i++) {
                         channel_name = b64d(channels[i].displayName)
                         channel_id = channels[i].id
                         $('#channels').html('<a href="#" id="channel-id-' + channel_id + '" class="channel">' + channel_name + '</a>' + ' ' + $('#channels').html());
@@ -174,17 +174,17 @@
                     owners = undefined;
 
                     for (i = 0; i < attachments.length; i++) {
-                        attachment = attachments[i]
-                        if (attachment.objectType == 'user') {
+                        attachment = attachments[i];
+                        if (attachment.objectType === 'user') {
                             users = attachment.attachments;
                         }
-                        else if (attachment.objectType == 'history') {
+                        else if (attachment.objectType === 'history') {
                             msgs = attachment.attachments;
                         }
-                        else if (attachment.objectType == 'acl') {
+                        else if (attachment.objectType === 'acl') {
                             acls = attachment.attachments;
                         }
-                        else if (attachment.objectType == 'owner') {
+                        else if (attachment.objectType === 'owner') {
                             owners = attachment.attachments;
                         }
                     }
@@ -346,8 +346,22 @@
 
                 socket.on('gn_message', function(response) {
                     console.log(response);
-                    data = response.data
-                    if (response.status_code == 200) {
+                    var data = response.data;
+
+                    socket.emit('received', {
+                        verb: 'receive',
+                        target: {
+                            id: room_id
+                        },
+                        object: {
+                            attachments: [{
+                                id: data.id
+                            }]
+                        }
+                    }, function(status_code, error_msg) {
+                        console.log('callback for received api: ' + status_code)
+                    });
+                    if (response.status_code === 200) {
                         handle_message(data);
                     }
                 });

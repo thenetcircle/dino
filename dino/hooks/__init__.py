@@ -33,5 +33,7 @@ from dino.hooks.startup import *
 from dino.hooks.users_in_room import *
 from dino.hooks.whisper import *
 from dino.hooks.update_user_info import *
+from dino.hooks.read import *
+from dino.hooks.received import *
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'

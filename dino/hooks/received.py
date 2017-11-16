@@ -25,7 +25,7 @@ class OnReceivedHooks(object):
         environ.env.storage.mark_as_received(message_ids, activity.actor.id, activity.target.id)
 
 
-@environ.env.observer.on('on_leave')
+@environ.env.observer.on('on_received')
 def _on_receive_update_messages(arg: tuple) -> None:
-    _, activity = arg
+    data, activity = arg
     eventlet.spawn(OnReceivedHooks.update_messages, activity)
