@@ -21,7 +21,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class OnCreateHooks(object):
     @staticmethod
     def _get_owners(activity: Activity) -> list:
-        if not hasattr(activity.target, 'attachments'):
+        if not hasattr(activity.target, 'attachments') or activity.target.attachments is None:
             return list()
         for attachment in activity.target.attachments:
             if not hasattr(attachment, 'object_type'):
