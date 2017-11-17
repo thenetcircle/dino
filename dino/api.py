@@ -147,7 +147,6 @@ def on_message(data, activity: Activity):
     if activity.target.object_type == 'room':
         activity.target.display_name = utils.get_room_name(activity.target.id)
     else:
-        activity.target.display_name = utils.get_user_name_for(activity.target.id)
         activity.object.display_name = ''
         activity.object.url = ''
 

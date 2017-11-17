@@ -248,11 +248,21 @@ class RedisKeys(object):
     RKEY_BLACK_LIST = 'words:blacklist'
     RKEY_NON_EPHEMERAL_ROOMS = 'rooms:nonephemeral'
     RKEY_DEFAULT_ROOMS = 'rooms:default'
+    RKEY_ACKS_USER = 'acks:user:%s'
+    RKEY_ACKS_ROOM = 'acks:room:%s'
 
     RKEY_SID_TO_USER_ID = 'user:sid:map'
     RKEY_BANNED_USERS_GLOBAL = 'users:banned:global'
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
+
+    @staticmethod
+    def ack_for_user(user_id: str) -> str:
+        return RedisKeys.RKEY_ACKS_USER % user_id
+
+    @staticmethod
+    def ack_for_room(user_id: str) -> str:
+        return RedisKeys.RKEY_ACKS_ROOM % user_id
 
     @staticmethod
     def users_in_room_incl_invisible(room_id: str) -> str:
