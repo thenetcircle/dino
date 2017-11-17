@@ -81,8 +81,8 @@ Response data if successful:
             "id": "<server-generated UUID>",
             "published": "<server-generated timestamp, RFC3339 format>",
             "actor": {
-                "id": user_id,
-                "displayName": b64e(user_name),
+                "id": "<user id>",
+                "displayName": "<user name in base64>",
                 "attachments": [
                     {
                         "objectType": "room_role",
@@ -105,9 +105,27 @@ Response data if successful:
                     }
                 ]
             },
+            "object": {
+                "objectType": "history",
+                "attachments": [{
+                    "author": {
+                        "id": "<sender id>", 
+                        "displayName": "<send name in base64>"
+                    },
+                    "content": "<message in base64>",
+                    "id": "84421980-d84a-4f6f-9ad7-0357d15d99f8",
+                    "published": "2017-11-17T07:19:12Z",
+                    "summary": "9fa5b40a-f0a6-44ea-93c1-acf2947e5f09",
+                    "objectType": "history"
+                }]
+            }
             "verb": "login"
         }
     }
+
+The object attachments are non-acked messages sent to any `private` `room`s (i.e. conversation based private 
+messaging). The `object.attachments[0].id` is the message UUID, while the `object.attachments[0].summary` is the 
+room UUID. Multiple attachments will be listed if more than one un-acked message was found during login.
     
 For the user roles, there will be an ID on the attached object if the role is for a channel or for a room. If it's a
 global role there will be no ID on the object. Roles are comma separated if more than one role for a 
