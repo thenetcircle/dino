@@ -944,41 +944,47 @@ restriction is that the date when the ban ends (<code>utcnow()+duration</code>) 
 <p>Send a message to a <code>room</code> UUID (can be the user UUID or an actual room UUID).</p>
 <p>Responds with event name <code>gn_message</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    verb: "send",
+<pre><code class="javascript">{
+    verb: &quot;send&quot;,
     target: {
-        id: "&lt;room/user ID&gt;",
-        objectType: "&lt;room/private&gt;"
+        id: &quot;&lt;room/user ID&gt;&quot;,
+        objectType: &quot;&lt;room/private&gt;&quot;
     },
     object: {
-        content: "&lt;the message, base64 encoded&gt;",
+        content: &quot;&lt;the message, base64 encoded&gt;&quot;,
     }
 }
 </code></pre>
+
+<p>If request is for conversation-based private messaging, used <code>objectType: 'private'</code>. In this case, the other user(s)
+in this conversation (<code>owner</code>s of the <code>room</code>) will initially have a <code>NOT_ACKED</code> status for the message. If they are
+online they will receive it and they can acknowledge the message. If they are offline they will receive it in <code>gn_login</code>
+then they come online (all non-acked messages for rooms they are <code>owner</code> for).</p>
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
-        "published": "2016-10-07T10:45:34Z",
-        "actor": {
-            "id": "&lt;your user ID&gt;",
-            "displayName": "&lt;your user name&gt;"
+<pre><code class="javascript">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;id&quot;: &quot;c42ebf01-3d50-4f27-a345-4ed213be045d&quot;,
+        &quot;published&quot;: &quot;2016-10-07T10:45:34Z&quot;,
+        &quot;actor&quot;: {
+            &quot;id&quot;: &quot;&lt;your user ID&gt;&quot;,
+            &quot;displayName&quot;: &quot;&lt;your user name&gt;&quot;
         },
-        "verb": "send",
-        "target": {
-            "id": "&lt;room ID&gt;",
-            "displayName": "&lt;room name&gt;"
+        &quot;verb&quot;: &quot;send&quot;,
+        &quot;target&quot;: {
+            &quot;id&quot;: &quot;&lt;room ID&gt;&quot;,
+            &quot;displayName&quot;: &quot;&lt;room name&gt;&quot;
         },
-        "object": {
-            "content": "&lt;the message&gt;",
-            "displayName": "&lt;the channel name&gt;",
-            "url": "&lt;the channel id&gt;",
-            "objectType": "&lt;room/private&gt;"
+        &quot;object&quot;: {
+            &quot;content&quot;: &quot;&lt;the message&gt;&quot;,
+            &quot;displayName&quot;: &quot;&lt;the channel name&gt;&quot;,
+            &quot;url&quot;: &quot;&lt;the channel id&gt;&quot;,
+            &quot;objectType&quot;: &quot;&lt;room/private&gt;&quot;
         }
     }
 }
 </code></pre>
+
 <p>The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the <code>published</code> field set to the time the server received the request (in RFC3339 format).</p>
 <h2 id="remove_room"><code>remove_room</code></h2>
