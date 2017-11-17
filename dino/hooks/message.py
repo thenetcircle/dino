@@ -24,8 +24,6 @@ logger = logging.getLogger(__name__)
 
 
 class OnMessageHooks(object):
-    LAST_READ_ENABLED = None
-
     @staticmethod
     def last_read_enabled():
         if OnMessageHooks.LAST_READ_ENABLED is not None:
@@ -57,17 +55,6 @@ class OnMessageHooks(object):
                 data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
             environ.env.send(data, json=True, room=room_id, broadcast=True)
 
-        @timeit(logger, 'on_message_hooks_update_last_read')
-        def update_last_read() -> None:
-            if not OnMessageHooks.last_read_enabled():
-                return
-
-            room_id = activity.target.id
-            if activity.target.object_type == 'private':
-                utils.update_last_reads_private(room_id)
-            else:
-                utils.update_last_reads(room_id)
-
         def store() -> None:
             try:
                 environ.env.pool_executor.submit(environ.env.storage.store_message, activity)
@@ -76,15 +63,31 @@ class OnMessageHooks(object):
                 logger.error(str(data))
                 logger.exception(traceback.format_exc())
 
+        @timeit(logger, 'on_message_hooks_set_ack_status')
+        def set_ack_status() -> None:
+            if activity.target.object_type != 'private':
+                return
+
+            owners = environ.env.db.get_owners_room(activity.target.id)
+            environ.env.storage.mark_as_read(activity.id, activity.actor.id, activity.target.id)
+
+            if owners is None or len(owners) == 0:
+                return
+
+            for receiver_id in owners:
+                if activity.actor.id == receiver_id:
+                    continue
+                environ.env.storage.mark_as_unacked(activity.id, receiver_id, activity.target.id)
+
         data, activity = arg
         user_id = activity.actor.id
         word = utils.used_blacklisted_word(activity)
 
         if word is None:
-            broadcast()
             store()
+            set_ack_status()
+            broadcast()
             publish_activity()
-            update_last_read()
         else:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
             environ.env.publish(blacklist_activity)

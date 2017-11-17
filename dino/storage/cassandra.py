@@ -104,6 +104,10 @@ class CassandraStorage(object):
     def mark_as_read(self, message_ids: set, receiver_id: str, target_id: str) -> None:
         self._mark_as_status(message_ids, receiver_id, target_id, AckStatus.READ)
 
+    @timeit(logger, 'on_cassandra_mark_as_unacked')
+    def mark_as_unacked(self, message_id: str, receiver_id: str, target_id: str) -> None:
+        self._mark_as_status({message_id}, receiver_id, target_id, AckStatus.NOT_ACKED)
+
     @timeit(logger, 'on_cassandra_get_messages')
     def get_messages(self, message_ids: set) -> list:
         rows = self.driver.msgs_select_all_in(message_ids)
