@@ -829,41 +829,50 @@ Responds with event name `gn_message`.
 
 Request contains:
 
-    {
-        verb: "send",
-        target: {
-            id: "<room/user ID>",
-            objectType: "<room/private>"
-        },
-        object: {
-            content: "<the message, base64 encoded>",
-        }
+```javascript
+{
+    verb: "send",
+    target: {
+        id: "<room/user ID>",
+        objectType: "<room/private>"
+    },
+    object: {
+        content: "<the message, base64 encoded>",
     }
+}
+```
+
+If request is for conversation-based private messaging, used `objectType: 'private'`. In this case, the other user(s)
+in this conversation (`owner`s of the `room`) will initially have a `NOT_ACKED` status for the message. If they are
+online they will receive it and they can acknowledge the message. If they are offline they will receive it in `gn_login`
+then they come online (all non-acked messages for rooms they are `owner` for).
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
-            "published": "2016-10-07T10:45:34Z",
-            "actor": {
-                "id": "<your user ID>",
-                "displayName": "<your user name>"
-            },
-            "verb": "send",
-            "target": {
-                "id": "<room ID>",
-                "displayName": "<room name>"
-            },
-            "object": {
-                "content": "<the message>",
-                "displayName": "<the channel name>",
-                "url": "<the channel id>",
-                "objectType": "<room/private>"
-            }
+```javascript
+{
+    "status_code": 200,
+    "data": {
+        "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+        "published": "2016-10-07T10:45:34Z",
+        "actor": {
+            "id": "<your user ID>",
+            "displayName": "<your user name>"
+        },
+        "verb": "send",
+        "target": {
+            "id": "<room ID>",
+            "displayName": "<room name>"
+        },
+        "object": {
+            "content": "<the message>",
+            "displayName": "<the channel name>",
+            "url": "<the channel id>",
+            "objectType": "<room/private>"
         }
     }
+}
+```
     
 The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the `published` field set to the time the server received the request (in RFC3339 format).
