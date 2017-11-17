@@ -26,8 +26,7 @@ from dino.rest.resources.set_admin import SetAdminResource
 from dino.rest.resources.history import HistoryResource
 from dino.rest.resources.clear_history import ClearHistoryResource
 from dino.rest.resources.blacklist import BlacklistResource
-from dino.config import ConfigKeys
-from dino import environ
+from dino.rest.resources.send import SendResource
 from dino.hooks import *
 
 import os
@@ -88,3 +87,4 @@ api.add_resource(SetAdminResource, '/set-admin')
 api.add_resource(RemoveAdminResource, '/remove-admin')
 api.add_resource(BlacklistResource, '/blacklist')
 api.add_resource(BroadcastResource, '/broadcast')
+api.add_resource(SendResource, '/send')

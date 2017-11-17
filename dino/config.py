@@ -189,6 +189,7 @@ class ConfigKeys(object):
     MAX_ROOM_NAME_LENGTH = 'max_length'
     DISCONNECT_ON_FAILED_LOGIN = 'disconnect_on_failed_login'
     SENDER_CAN_DELETE = 'sender_can_delete'
+    DELIVERY_GUARANTEE = 'delivery_guarantee'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'

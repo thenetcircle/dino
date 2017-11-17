@@ -110,7 +110,7 @@ Response data if successful:
                 "attachments": [{
                     "author": {
                         "id": "<sender id>", 
-                        "displayName": "<send name in base64>"
+                        "displayName": "<sender name in base64>"
                     },
                     "content": "<message in base64>",
                     "id": "84421980-d84a-4f6f-9ad7-0357d15d99f8",
@@ -118,7 +118,7 @@ Response data if successful:
                     "summary": "9fa5b40a-f0a6-44ea-93c1-acf2947e5f09",
                     "objectType": "history"
                 }]
-            }
+            },
             "verb": "login"
         }
     }

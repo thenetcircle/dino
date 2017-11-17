@@ -4,6 +4,7 @@ common_config: &common_config
     response_format: 'status_code,data,error'
     disconnect_on_failed_login: True
     sender_can_delete: True
+    delivery_guarantee: True
     auth:
         type: 'redis'
         host: '$DINO_AUTH_HOST'
