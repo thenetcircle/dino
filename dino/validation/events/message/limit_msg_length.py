@@ -35,11 +35,12 @@ class OnMessageCheckContentLength(IPlugin):
 
     def setup(self, env: GNEnvironment):
         self.env = env
-        try:
-            on_create_config = self.env.config.get(ConfigKeys.VALIDATION).get('on_message').get('limit_msg_length')
-        except Exception:
+        validation_config = self.env.config.get(ConfigKeys.VALIDATION)
+        if 'on_message' not in validation_config or 'limit_msg_length' not in validation_config.get('on_message'):
             logger.info('no config enabled for plugin not_full, ignoring plugin')
             return
+
+        on_create_config = validation_config.get('on_message').get('limit_msg_length')
 
         self.enabled = True
         self.max_length = on_create_config.get(ConfigKeys.MAX_MSG_LENGTH, 1000)
