@@ -55,7 +55,8 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     user_roles = utils.get_user_roles(user_id)
 
-    response = utils.activity_for_login(user_id, user_name)
+    unread_history = _get_history_type() == ConfigKeys.HISTORY_TYPE_UNREAD
+    response = utils.activity_for_login(user_id, user_name, include_unread_history=unread_history)
     response['actor']['attachments'] = list()
 
     if len(user_roles['global']) > 0:
@@ -80,6 +81,14 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
 
     environ.env.observer.emit('on_login', (data, activity))
     return ECodes.OK, response
+
+
+def _get_history_type():
+    if ConfigKeys.HISTORY not in environ.env.config:
+        return 'unknown'
+    if ConfigKeys.TYPE not in environ.env.config.get(ConfigKeys.HISTORY):
+        return 'unknown'
+    return environ.env.config.get(ConfigKeys.HISTORY).get(ConfigKeys.TYPE)
 
 
 @timeit(logger, 'on_delete')

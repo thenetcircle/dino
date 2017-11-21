@@ -343,7 +343,7 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> 
     }
 
 
-def activity_for_login(user_id: str, user_name: str) -> dict:
+def activity_for_login(user_id: str, user_name: str, include_unread_history: bool=False) -> dict:
     response = {
         'actor': {
             'id': user_id,
@@ -355,13 +355,14 @@ def activity_for_login(user_id: str, user_name: str) -> dict:
         'id': str(uuid())
     }
 
-    messages = get_unacked_messages(user_id)
-    if len(messages) > 0:
-        history_activity = activity_for_history(as_parser(response), messages)
-        response['object'] = {
-            'objectType': 'history',
-            'attachments': history_activity['object']['attachments']
-        }
+    if include_unread_history:
+        messages = get_unacked_messages(user_id)
+        if len(messages) > 0:
+            history_activity = activity_for_history(as_parser(response), messages)
+            response['object'] = {
+                'objectType': 'history',
+                'attachments': history_activity['object']['attachments']
+            }
 
     return response
 
