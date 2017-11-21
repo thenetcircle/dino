@@ -420,8 +420,35 @@ def create_env(config_paths: list = None) -> GNEnvironment:
             format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
 
     logging.getLogger('cassandra').setLevel(logging.WARNING)
-    if os.environ.get('DINO_DEBUG', 0) == 1:
-        logging.getLogger('engineio').setLevel(logging.WARNING)
+    if str(os.environ.get('DINO_DEBUG', 0)).lower() in {'1', 'true', 'yes', 'y'}:
+        import sys
+        args = sys.argv
+        bind_arg_pos = None
+        for a in ['--bind', '-b']:
+            bind_arg_pos = [i for i, x in enumerate(args) if x == a]
+            if len(bind_arg_pos) > 0:
+                bind_arg_pos = bind_arg_pos[0]
+                break
+
+        port = 'standalone'
+        if bind_arg_pos is not None:
+            port = args[bind_arg_pos + 1].split(':')[1]
+
+        engineio_logger = logging.getLogger('engineio')
+        log_loc = config_dict.get(ConfigKeys.REQ_LOG_LOC, '/var/log/dino')
+        file_handler = logging.FileHandler('%s/engineio-%s-%s.log' % (log_loc, gn_environment, port))
+        formatter = logging.Formatter(ConfigKeys.DEFAULT_LOG_FORMAT)
+        file_handler.setFormatter(formatter)
+
+        if engineio_logger.hasHandlers():
+            for handler in engineio_logger.handlers.copy():
+                engineio_logger.removeHandler(handler)
+
+        engineio_logger.propagate = False
+        engineio_logger.addHandler(file_handler)
+        engineio_logger.setLevel(logging.DEBUG)
+    else:
+        logging.getLogger('engineio').setLevel(logging.DEBUG)
 
     if ConfigKeys.HISTORY not in config_dict:
         config_dict[ConfigKeys.HISTORY] = {

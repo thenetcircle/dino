@@ -147,6 +147,7 @@ class AckStatus(object):
 
 
 class ConfigKeys(object):
+    REQ_LOG_LOC = 'request_log_location'
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'
     RESPONSE_FORMAT = 'response_format'
