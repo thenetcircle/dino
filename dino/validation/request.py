@@ -89,6 +89,7 @@ class RequestValidator(BaseValidator):
                     return False, ECodes.NO_SUCH_ROOM, 'origin room %s does not exist' % from_room_id
 
             if not utils.is_user_in_room(user_id, room_id):
+                logger.warning('user "%s" is not in room "%s' % (user_id, room_id))
                 if from_room_id is None:
                     return False, ECodes.USER_NOT_IN_ROOM, 'user is not in target room'
                 if not utils.is_user_in_room(user_id, from_room_id):
