@@ -418,8 +418,10 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     logging.basicConfig(
             level=getattr(logging, config_dict.get(ConfigKeys.LOG_LEVEL, 'DEBUG')),
             format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
-    logging.getLogger('engineio').setLevel(logging.WARNING)
+
     logging.getLogger('cassandra').setLevel(logging.WARNING)
+    if os.environ.get('DINO_DEBUG', 0) == 1:
+        logging.getLogger('engineio').setLevel(logging.WARNING)
 
     if ConfigKeys.HISTORY not in config_dict:
         config_dict[ConfigKeys.HISTORY] = {
