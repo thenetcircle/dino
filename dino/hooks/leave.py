@@ -26,7 +26,7 @@ class OnLeaveHooks(object):
 
         #  todo: should handle invisibility here? don't broadcast leaving a room if invisible
         user_id = activity.actor.id
-        user_name = environ.env.session.get(SessionKeys.user_name.value)
+        user_name = activity.actor.display_name
         room_id = activity.target.id
         room_name = utils.get_room_name(room_id)
 
@@ -40,4 +40,4 @@ class OnLeaveHooks(object):
 
 @environ.env.observer.on('on_leave')
 def _on_leave_leave_room(arg: tuple) -> None:
-    eventlet.spawn(OnLeaveHooks.leave_room, arg)
+    OnLeaveHooks.leave_room(arg)
