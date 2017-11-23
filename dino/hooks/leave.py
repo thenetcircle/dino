@@ -14,6 +14,8 @@ from dino import environ
 from dino import utils
 from dino.config import SessionKeys
 
+import eventlet
+
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
@@ -38,4 +40,4 @@ class OnLeaveHooks(object):
 
 @environ.env.observer.on('on_leave')
 def _on_leave_leave_room(arg: tuple) -> None:
-    environ.env.pool_executor.submit(OnLeaveHooks.leave_room, arg)
+    eventlet.spawn(OnLeaveHooks.leave_room, arg)

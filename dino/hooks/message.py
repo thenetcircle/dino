@@ -17,6 +17,8 @@ from dino.utils.decorators import timeit
 
 import logging
 import traceback
+import eventlet
+import sys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -45,22 +47,22 @@ class OnMessageHooks(object):
                 data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
             send(data, _room=room_id)
 
+        @timeit(logger, 'on_message_hooks_store')
         def store() -> None:
             try:
-                environ.env.pool_executor.submit(environ.env.storage.store_message, activity)
+                environ.env.storage.store_message(activity)
             except Exception as e:
                 logger.error('could not store message %s because: %s' % (activity.id, str(e)))
                 logger.error(str(data))
                 logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
+                return
 
-        @timeit(logger, 'on_message_hooks_set_ack_status')
-        def set_ack_status() -> None:
             if environ.env.config.get(ConfigKeys.DELIVERY_GUARANTEE, False) or activity.target.object_type != 'private':
                 return
 
             owners = environ.env.db.get_owners_room(activity.target.id)
             environ.env.storage.mark_as_read(activity.id, activity.actor.id, activity.target.id)
-
             if owners is None or len(owners) == 0:
                 return
 
@@ -74,10 +76,9 @@ class OnMessageHooks(object):
         word = utils.used_blacklisted_word(activity)
 
         if word is None:
-            store()
-            set_ack_status()
+            eventlet.spawn(store, arg)
             broadcast()
-            publish_activity()
+            eventlet.spawn(publish_activity())
         else:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
             environ.env.publish(blacklist_activity)
