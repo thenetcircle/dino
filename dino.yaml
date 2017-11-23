@@ -114,6 +114,7 @@ dev:
 
 integration:
     <<: *common_config
+    request_log_location: '/var/log/dino/'
     database:
         type: 'redis'
         host: 'mock'
@@ -139,6 +140,7 @@ integration:
 test:
     <<: *common_config
     testing: True
+    request_log_location: '/var/log/dino/'
     database:
         type: 'redis'
         host: '$DINO_DB_HOST'

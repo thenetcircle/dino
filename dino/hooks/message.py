@@ -76,9 +76,15 @@ class OnMessageHooks(object):
         word = utils.used_blacklisted_word(activity)
 
         if word is None:
-            eventlet.spawn(store, arg)
-            broadcast()
-            eventlet.spawn(publish_activity())
+            running_tests = environ.env.config.get(ConfigKeys.TESTING, False)
+            if running_tests:
+                store()
+                broadcast()
+                publish_activity()
+            else:
+                eventlet.spawn(store)
+                broadcast()
+                eventlet.spawn(publish_activity)
         else:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
             environ.env.publish(blacklist_activity)

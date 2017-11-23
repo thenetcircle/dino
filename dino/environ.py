@@ -432,7 +432,7 @@ def create_env(config_paths: list = None) -> GNEnvironment:
                 break
 
         port = 'standalone'
-        if bind_arg_pos is not None:
+        if bind_arg_pos is not None and not isinstance(bind_arg_pos, list):
             port = args[bind_arg_pos + 1].split(':')[1]
 
         engineio_logger = logging.getLogger('engineio')
