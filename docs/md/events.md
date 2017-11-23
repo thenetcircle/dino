@@ -21,7 +21,7 @@ When an admin/mod/etc. deletes a message from a room, everyone on that room will
 
 ## Message received
 
-When user A receives a private message, or a message from a room that user A is in, the event `gn_message` will be sent
+When user A receives a private message, or a message from a room that user A is in, the event `message` will be sent
 to user A with the following content:
 
     {
