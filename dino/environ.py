@@ -383,7 +383,8 @@ def load_secrets_file(config_dict: dict) -> dict:
 
 def configure_request_log(gn_environment: str, config_dict: dict):
     request_log_location = config_dict.get(ConfigKeys.REQ_LOG_LOC, None)
-    request_log_disabled = str(request_log_location).lower() in {'mock', 'no', '', 'none', 'n'}
+    request_log_disabled = \
+        request_log_location is None or str(request_log_location).lower() in {'false', 'mock', 'no', '', 'none', 'n'}
 
     if request_log_disabled:
         logging.getLogger('engineio').setLevel(logging.WARNING)
