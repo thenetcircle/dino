@@ -448,7 +448,7 @@ def create_env(config_paths: list = None) -> GNEnvironment:
         engineio_logger.addHandler(file_handler)
         engineio_logger.setLevel(logging.DEBUG)
     else:
-        logging.getLogger('engineio').setLevel(logging.DEBUG)
+        logging.getLogger('engineio').setLevel(config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL))
 
     if ConfigKeys.HISTORY not in config_dict:
         config_dict[ConfigKeys.HISTORY] = {
