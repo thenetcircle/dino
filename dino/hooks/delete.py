@@ -26,7 +26,9 @@ class OnDeleteHooks(object):
     def broadcast_deletion(arg: tuple) -> None:
         data, activity = arg
         room_id = activity.target.id
-        environ.env.emit('gn_message_deleted', data, json=True, room=room_id, broadcast=True, include_self=True)
+        environ.env.emit(
+            'gn_message_deleted', data, json=True, room=room_id, broadcast=True,
+            include_self=True, namespace='/ws')
 
 
 @environ.env.observer.on('on_delete')

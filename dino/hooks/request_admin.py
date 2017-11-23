@@ -30,7 +30,8 @@ class OnRequestAdminHooks(object):
         admin_room_id = utils.get_admin_room()
 
         activity_json = utils.activity_for_request_admin(user_id, username, room_id, room_name, message, admin_room_id)
-        environ.env.emit('gn_admin_requested', activity_json, json=True, broadcast=True, room=admin_room_id)
+        environ.env.emit(
+            'gn_admin_requested', activity_json, json=True, broadcast=True, room=admin_room_id, namespace='/ws')
 
 
 @environ.env.observer.on('on_request_admin')

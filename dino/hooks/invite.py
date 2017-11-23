@@ -29,7 +29,7 @@ class OnInviteHooks(object):
         room_name = utils.get_room_name(invite_room)
 
         activity_json = utils.activity_for_invite(invitee, invitee_name, invite_room, room_name, channel_id, channel_name)
-        environ.env.emit('gn_invitation', activity_json, json=True, room=invitee)
+        environ.env.emit('gn_invitation', activity_json, json=True, room=invitee, namespace='/ws')
 
 
 @environ.env.observer.on('on_invite')

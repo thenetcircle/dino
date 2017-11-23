@@ -502,7 +502,7 @@ def remove_room(channel_id, room_id, user_id, user_name, room_name):
     logger.info('removing room %s (%s), last owner has left/disconnected' % (room_id, room_name))
     environ.env.db.remove_room(channel_id, room_id)
     remove_activity = activity_for_remove_room(user_id, user_name, room_id, room_name)
-    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
+    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
 
 
 def check_if_remove_room_empty(activity: Activity):

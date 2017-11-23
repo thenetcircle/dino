@@ -65,7 +65,9 @@ class OnCreateHooks(object):
             for owner_id in owners:
                 environ.env.emit('gn_room_created', activity_json, room=owner_id)
         else:
-            environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
+            environ.env.emit(
+                'gn_room_created', activity_json, broadcast=True, json=True,
+                include_self=True, namespace='/ws')
 
 
 @environ.env.observer.on('on_create')

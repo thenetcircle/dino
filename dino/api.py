@@ -424,7 +424,7 @@ def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
             activity.actor.id, activity.actor.display_name, room_id, room_name, reason)
 
     environ.env.db.remove_room(channel_id, room_id)
-    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
+    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
     environ.env.observer.emit('on_remove_room', (data, activity))
 
     return ECodes.OK, utils.activity_for_room_removed(activity, room_name)

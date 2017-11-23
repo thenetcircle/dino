@@ -31,7 +31,8 @@ class OnLeaveHooks(object):
         utils.remove_user_from_room(user_id, user_name, room_id)
 
         activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
-        environ.env.emit('gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False)
+        environ.env.emit(
+            'gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False, namespace='/ws')
         utils.check_if_should_remove_room(data, activity)
 
 

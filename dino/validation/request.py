@@ -165,7 +165,9 @@ class RequestValidator(BaseValidator):
             environ.env.join_room(user_id)
             reason = utils.reason_for_ban(user_id)
             json_act = utils.activity_for_already_banned(duration, reason)
-            environ.env.emit('gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True)
+            environ.env.emit(
+                'gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True, namespace='/ws')
+
             logger.info('user %s is banned from chatting for: %ss' % (user_id, duration))
             return False, ECodes.USER_IS_BANNED, 'user %s is banned from chatting for: %ss' % (user_id, duration)
 
@@ -465,7 +467,9 @@ class RequestValidator(BaseValidator):
             environ.env.join_room(user_id)
             reason = utils.reason_for_ban(user_id)
             json_act = utils.activity_for_already_banned(duration, reason)
-            environ.env.emit('gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True)
+            environ.env.emit(
+                'gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True, namespace='/ws')
+
             environ.env.disconnect()
             logger.info('user %s is banned from chatting for: %ss' % (user_id, duration))
             return False, ECodes.USER_IS_BANNED, json_act
