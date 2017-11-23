@@ -927,7 +927,8 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
                 activity = utils.activity_for_remove_room('0', 'server', room_id, room_name, 'empty ephemeral room')
 
                 gn_env.db.remove_room(channel_id, room_id)
-                gn_env.emit('gn_room_removed', activity, broadcast=True, include_self=True)
+                gn_env.out_of_scope_emit(
+                    'gn_room_removed', activity, broadcast=True, include_self=True, namespace='/ws')
                 gn_env.observer.emit('on_remove_room', (activity, as_parser(activity)))
 
     import eventlet
