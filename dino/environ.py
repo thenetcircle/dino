@@ -414,13 +414,14 @@ def create_env(config_paths: list = None) -> GNEnvironment:
 
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
     config_dict[ConfigKeys.SESSION] = _flask_session
+    log_level = config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL)
 
     logging.basicConfig(
-            level=getattr(logging, config_dict.get(ConfigKeys.LOG_LEVEL, 'DEBUG')),
+            level=getattr(logging, config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL)),
             format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
 
     logging.getLogger('cassandra').setLevel(logging.WARNING)
-    if str(os.environ.get('DINO_DEBUG', 0)).lower() in {'1', 'true', 'yes', 'y'}:
+    if log_level == 'DEBUG' or str(os.environ.get('DINO_DEBUG', 0)).lower() in {'1', 'true', 'yes', 'y'}:
         import sys
         args = sys.argv
         bind_arg_pos = None
