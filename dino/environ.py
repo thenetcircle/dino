@@ -381,7 +381,7 @@ def load_secrets_file(config_dict: dict) -> dict:
     return ast.literal_eval(template)
 
 
-def configure_request_log(gn_environment: GNEnvironment, config_dict: dict):
+def configure_request_log(gn_environment: str, config_dict: dict):
     request_log_location = config_dict.get(ConfigKeys.REQ_LOG_LOC, None)
     request_log_disabled = str(request_log_location).lower() in {'mock', 'no', '', 'none', 'n'}
 
@@ -457,6 +457,7 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
     config_dict[ConfigKeys.SESSION] = _flask_session
     log_level = config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL)
+    configure_request_log(gn_environment, config_dict)
 
     logging.basicConfig(
             level=getattr(logging, log_level),
