@@ -1675,7 +1675,7 @@ class DatabaseRdbms(object):
                 .first()
 
             if room is None:
-                raise NoSuchRoomException(room_id)
+                return None
 
             found_acls = room.acls
             if found_acls is None or len(found_acls) == 0:
@@ -1691,7 +1691,11 @@ class DatabaseRdbms(object):
         value = self.env.cache.get_all_acls_for_room(room_id)
         if value is not None:
             return value
+
         value = _acls()
+        if value is None:
+            raise NoSuchRoomException(room_id)
+
         self.env.cache.set_all_acls_for_room(room_id, value)
         return value
 
