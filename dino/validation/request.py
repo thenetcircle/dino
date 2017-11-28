@@ -400,8 +400,9 @@ class RequestValidator(BaseValidator):
             except NoSuchUserException:
                 logger.error('could not get username for user id %s' % user_id)
 
-            logger.warning('user "%s" (%s) is not online, not joining room "%s" (%s)!' %
-                        (user_name, user_id, room_name, room_id))
+            logger.warning(
+                'user "%s" (%s) is not online, not joining room "%s" (%s)!' %
+                (user_name, user_id, room_name, room_id))
             return False, ECodes.NOT_ONLINE, 'user is not online'
 
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
@@ -416,7 +417,6 @@ class RequestValidator(BaseValidator):
 
         activity.object.url = channel_id
         activity.object.display_name = utils.get_channel_name(channel_id)
-
         activity.target.object_type = 'room'
 
         try:
