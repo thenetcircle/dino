@@ -256,22 +256,22 @@ class DatabaseRdbms(object):
                 session.query(ChannelRoles).join(ChannelRoles.channel).filter(ChannelRoles.user_id == user_id).all(),
                 session.query(RoomRoles).join(RoomRoles.room).filter(RoomRoles.user_id == user_id).all()
             )
-            output = {
+            _output = {
                 'global': list(),
                 'channel': dict(),
                 'room': dict()
             }
 
             if g_roles is not None:
-                output['global'] = [a for a in g_roles.roles.split(',') if len(a) > 0]
+                _output['global'] = [a for a in g_roles.roles.split(',') if len(a) > 0]
 
             if c_roles is not None and len(c_roles) > 0:
                 for c_role in c_roles:
-                    output['channel'][c_role.channel.uuid] = [a for a in c_role.roles.split(',') if len(a) > 0]
+                    _output['channel'][c_role.channel.uuid] = [a for a in c_role.roles.split(',') if len(a) > 0]
             if r_roles is not None and len(r_roles) > 0:
                 for r_role in r_roles:
-                    output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',') if len(a) > 0]
-            return output
+                    _output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',') if len(a) > 0]
+            return _output
 
         output = self.env.cache.get_user_roles(user_id)
 
@@ -1188,23 +1188,6 @@ class DatabaseRdbms(object):
                            (user_name, user_id, room_name, room_id, str(e)))
             raise NoSuchRoomException(room_id)
 
-    def _object_has_role_for_user(self, obj: Union[Rooms, Channels], the_role: str, user_id: str) -> bool:
-        if obj is None:
-            return False
-
-        found_role = None
-        for role in obj.roles:
-            if role.user_id == user_id:
-                found_role = role
-                break
-
-        if found_role is None:
-            return False
-        if found_role.roles is None or found_role.roles == '':
-            return False
-
-        return the_role in set(found_role.roles.split(','))
-
     def _add_global_role(self, user_id: str, role: str):
         @with_session
         def _add(session=None):
@@ -1247,42 +1230,15 @@ class DatabaseRdbms(object):
         self._update_user_roles_in_cache(user_id)
 
     def _has_global_role(self, user_id: str, role: str):
-        @with_session
-        def check(session=None):
-            global_role = session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
-            if global_role is None:
-                logger.debug('no global roles found for user id "%s"' % user_id)
-                return False
-
-            roles = set(global_role.roles.split(','))
-            logger.debug('found global roles for user id "%s": "%s"' % (user_id, roles))
-            return role in roles
-
-        user_roles = self.env.cache.get_user_roles(user_id)
-        if user_roles is None:
-            return check()
+        user_roles = self.get_user_roles(user_id)
         return role in user_roles['global']
 
     def _room_has_role_for_user(self, the_role: str, room_id: str, user_id: str) -> bool:
-        @with_session
-        def check(session=None):
-            room = session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
-            return self._object_has_role_for_user(room, the_role, user_id)
-
-        user_roles = self.env.cache.get_user_roles(user_id)
-        if user_roles is None:
-            return check()
+        user_roles = self.get_user_roles(user_id)
         return room_id in user_roles['room'] and the_role in user_roles['room'][room_id]
 
     def _channel_has_role_for_user(self, the_role: str, channel_id: str, user_id: str) -> bool:
-        @with_session
-        def check(session=None):
-            channel = session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
-            return self._object_has_role_for_user(channel, the_role, user_id)
-
-        user_roles = self.env.cache.get_user_roles(user_id)
-        if user_roles is None:
-            return check()
+        user_roles = self.get_user_roles(user_id)
         return channel_id in user_roles['channel'] and the_role in user_roles['channel'][channel_id]
 
     def _remove_role_on_room_for_user(self, the_role: str, room_id: str, user_id: str) -> None:
