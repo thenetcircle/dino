@@ -1010,6 +1010,12 @@ class DatabaseRdbms(object):
         update()
         self.env.cache.reset_channels_with_sort()
 
+    @with_session
+    def get_all_user_ids(self, session=None) -> list:
+        from sqlalchemy.orm import load_only
+        users = session.query(Users).options(load_only('uuid')).all()
+        return [user.uuid for user in users]
+
     def update_room_sort_order(self, room_uuid: str, sort_order: int) -> None:
         @with_session
         def update(session=None):
