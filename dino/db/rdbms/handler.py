@@ -248,6 +248,50 @@ class DatabaseRdbms(object):
             .filter(UserStatus.uuid.in_(admin_ids)).all()
         return [admin.uuid for admin in online_admins]
 
+    @with_session
+    def get_users_roles(self, user_ids: list, session=None) -> None:
+        g_roles = session.query(GlobalRoles).all()
+        c_roles = session.query(ChannelRoles).join(ChannelRoles.channel).all()
+        r_roles = session.query(RoomRoles).join(RoomRoles.room).all()
+
+        user_g_roles = {g.user_id: g for g in g_roles}
+        user_c_roles = dict()
+        user_r_roles = dict()
+
+        for c_role in c_roles:
+            if c_role.user_id not in user_c_roles:
+                user_c_roles[c_role.user_id] = list()
+            user_c_roles[c_role.user_id].append(c_role)
+
+        for r_role in r_roles:
+            if r_role.user_id not in user_r_roles:
+                user_r_roles[r_role.user_id] = list()
+            user_r_roles[r_role.user_id].append(r_role)
+
+        for user_id in user_ids:
+            roles = self._format_user_roles(
+                user_g_roles.get(user_id), user_c_roles.get(user_id), user_r_roles.get(user_id))
+            self.env.cache.set_user_roles(user_id, roles)
+
+
+    def _format_user_roles(self, g_roles, c_roles, r_roles) -> dict:
+        _output = {
+            'global': list(),
+            'channel': dict(),
+            'room': dict()
+        }
+
+        if g_roles is not None:
+            _output['global'] = [a for a in g_roles.roles.split(',') if len(a) > 0]
+
+        if c_roles is not None and len(c_roles) > 0:
+            for c_role in c_roles:
+                _output['channel'][c_role.channel.uuid] = [a for a in c_role.roles.split(',') if len(a) > 0]
+        if r_roles is not None and len(r_roles) > 0:
+            for r_role in r_roles:
+                _output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',') if len(a) > 0]
+        return _output
+
     def get_user_roles(self, user_id: str) -> dict:
         @with_session
         def _roles(session=None) -> dict:
@@ -256,22 +300,7 @@ class DatabaseRdbms(object):
                 session.query(ChannelRoles).join(ChannelRoles.channel).filter(ChannelRoles.user_id == user_id).all(),
                 session.query(RoomRoles).join(RoomRoles.room).filter(RoomRoles.user_id == user_id).all()
             )
-            _output = {
-                'global': list(),
-                'channel': dict(),
-                'room': dict()
-            }
-
-            if g_roles is not None:
-                _output['global'] = [a for a in g_roles.roles.split(',') if len(a) > 0]
-
-            if c_roles is not None and len(c_roles) > 0:
-                for c_role in c_roles:
-                    _output['channel'][c_role.channel.uuid] = [a for a in c_role.roles.split(',') if len(a) > 0]
-            if r_roles is not None and len(r_roles) > 0:
-                for r_role in r_roles:
-                    _output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',') if len(a) > 0]
-            return _output
+            return self._format_user_roles(g_roles, c_roles, r_roles)
 
         output = self.env.cache.get_user_roles(user_id)
 

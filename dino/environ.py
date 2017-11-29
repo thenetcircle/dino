@@ -995,11 +995,7 @@ def init_logging(gn_env: GNEnvironment) -> None:
 @timeit(logger, 'warming up cache')
 def warm_up_cache(gn_env: GNEnvironment):
     all_users = gn_env.db.get_all_user_ids()
-    n_users = len(all_users)
-    for i, user_id in enumerate(all_users):
-        gn_env.db.get_user_roles(user_id)
-        if i % (n_users // 10) == 0:
-            logger.info('cache warm up: %s%%' % str(int(float(i/n_users*100))))
+    gn_env.db.get_users_roles(all_users)
 
 
 def initialize_env(dino_env):
