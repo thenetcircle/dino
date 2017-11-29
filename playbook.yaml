@@ -7,6 +7,9 @@
     dino_env: "{{ hostvars[inventory_hostname]['dino_env'] }}"
     dino_dir: "{{ hostvars[inventory_hostname]['dino_dir'] }}"
     nr_aux_nodes: "{{ aux_nodes | length }}"
+    env_vars:
+        DINO_ENV: "{{ dino_env }}"
+        DINO_HOME: "{{ dino_home }}"
 
   tasks:
     - name: stop dino app nodes async
@@ -48,7 +51,7 @@
         chdir: "{{ dino_dir }}"
   
     - name: run cleanup scripts
-      shell: bash bin/run_cleanup.sh "{{ dino_dir }}" "{{ conda_env }}"
+      shell: bash bin/run_cleanup.sh "{{ dino_dir }}" "{{ dino_env }}" "{{ conda_env }}"
       args:
         chdir: "{{ dino_dir }}"
       when: nr_aux_nodes | int != 0

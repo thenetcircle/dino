@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 DINO_HOME=$1
-DINO_CONDA_ENV=$2
+DINO_ENV=$2
+DINO_CONDA_ENV=$3
 
 if [[ -z "$DINO_HOME" ]]; then
     echo "error: set DINO_HOME first"
@@ -30,25 +31,25 @@ else
 fi
 
 echo "clearing online cache... "
-if ! python bin/clear_redis_cache.py; then
+if ! python bin/clear_redis_cache.py ${DINO_ENV} ${DINO_HOME}; then
     echo "error: could not clear redis cache"
     exit 1
 fi
 
 echo "clearing online db tables... "
-if ! python bin/clear_db_online_table.py; then
+if ! python bin/clear_db_online_table.py ${DINO_ENV} ${DINO_HOME}; then
     echo "error: could not clear db tables"
     exit 1
 fi
 
 echo "clearing sessions db tables... "
-if ! python bin/clear_db_sessions_table.py; then
+if ! python bin/clear_db_sessions_table.py ${DINO_ENV} ${DINO_HOME}; then
     echo "error: could not clear db tables"
     exit 1
 fi
 
 echo "warming up cache... "
-if ! python bin/warm_up_cache.py; then
+if ! DINO_ENVIRONMENT=${DINO_ENV} DINO_HOME=${DINO_HOME} python bin/warm_up_cache.py; then
     echo "error: could not warm up cache"
     exit 1
 fi
