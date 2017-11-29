@@ -13,11 +13,12 @@
 import yaml
 import os
 import redis
+import sys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-dino_env = os.getenv('DINO_ENVIRONMENT')
-dino_home = os.getenv('DINO_HOME')
+dino_env = os.getenv('DINO_ENVIRONMENT') or sys.argv[1]
+dino_home = os.getenv('DINO_HOME') or sys.argv[2]
 
 if dino_home is None:
     raise RuntimeError('need environment variable DINO_HOME')
