@@ -72,7 +72,12 @@ class PubSub(object):
                 bind_arg_pos = bind_arg_pos[0]
                 break
 
-        port = args[bind_arg_pos + 1].split(':')[1]
+        try:
+            port = args[bind_arg_pos + 1].split(':')[1]
+        except TypeError:
+            logging.info('skipping pubsub setup, no port specified')
+            return
+
         hostname = socket.gethostname()
 
         if queue_host is not None:

@@ -273,7 +273,6 @@ class DatabaseRdbms(object):
                 user_g_roles.get(user_id), user_c_roles.get(user_id), user_r_roles.get(user_id))
             self.env.cache.set_user_roles(user_id, roles)
 
-
     def _format_user_roles(self, g_roles, c_roles, r_roles) -> dict:
         _output = {
             'global': list(),

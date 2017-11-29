@@ -992,12 +992,6 @@ def init_logging(gn_env: GNEnvironment) -> None:
     gn_env.capture_exception = capture_exception
 
 
-@timeit(logger, 'warming up cache')
-def warm_up_cache(gn_env: GNEnvironment):
-    all_users = gn_env.db.get_all_user_ids()
-    gn_env.db.get_users_roles(all_users)
-
-
 def initialize_env(dino_env):
     init_logging(dino_env)
     init_storage_engine(dino_env)
@@ -1013,7 +1007,6 @@ def initialize_env(dino_env):
     init_blacklist_service(dino_env)
     init_admin_and_admin_room(dino_env)
     init_response_formatter(dino_env)
-    warm_up_cache(dino_env)
     delete_ephemeral_rooms(dino_env)
 
 
