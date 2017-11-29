@@ -38,7 +38,12 @@
       when: nr_aux_nodes | int != 0
   
     - name: checkout tag from git
-      shell: bash bin/checkout_tag.sh {{ dino_tag }}
+      shell: bash bin/checkout_tag.sh "{{ dino_tag }}"
+      args:
+        chdir: "{{ dino_dir }}"
+
+    - name: install requirements
+      shell: bash bin/install_requirements.sh "{{ conda_env }}"
       args:
         chdir: "{{ dino_dir }}"
   
