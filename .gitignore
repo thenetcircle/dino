@@ -14,3 +14,6 @@ setup.cfg
 /secrets/*.yaml
 !/secrets/default.yaml
 !/secrets/test.yaml
+
+# ansible inventory files
+inv-*

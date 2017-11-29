@@ -59,6 +59,7 @@ class PubSub(object):
         self.env.queue_connection = None
 
         if queue_type == 'mock':
+            self.env.publish = PubSub.mock_publish
             return
 
         import sys

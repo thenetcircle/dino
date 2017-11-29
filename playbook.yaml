@@ -3,10 +3,10 @@
   vars:
     aux_nodes: "{{ hostvars[inventory_hostname]['aux_nodes'] | default([]) }}"
     app_nodes: "{{ hostvars[inventory_hostname]['app_nodes'] | default([]) }}"
-    conda_env: "{{ hostvars[inventory_hostname]['conda_env'] | default('env') }}"
+    conda_env: "{{ hostvars[inventory_hostname]['conda_env'] }}"
     dino_env: "{{ hostvars[inventory_hostname]['dino_env'] }}"
     dino_dir: "{{ hostvars[inventory_hostname]['dino_dir'] }}"
-    nr_aux_nodes: "{{ aux_nodes | length }}"
+    nr_aux_nodes: "{{ hostvars[inventory_hostname]['aux_nodes'] | length }}"
     env_vars:
         DINO_ENV: "{{ dino_env }}"
         DINO_HOME: "{{ dino_home }}"
@@ -39,6 +39,8 @@
         state: stopped
       with_items: "{{ aux_nodes }}"
       when: nr_aux_nodes | int != 0
+      tags:
+        - aux
   
     - name: checkout tag from git
       shell: bash bin/checkout_tag.sh "{{ dino_tag }}"
@@ -55,6 +57,8 @@
       args:
         chdir: "{{ dino_dir }}"
       when: nr_aux_nodes | int != 0
+      tags:
+        - aux
   
     - name: start dino aux nodes
       systemd:
@@ -62,6 +66,8 @@
         state: started
       with_items: "{{ aux_nodes }}"
       when: nr_aux_nodes | int != 0
+      tags:
+        - aux
   
     - name: start dino app nodes
       systemd:
