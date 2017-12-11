@@ -1123,6 +1123,15 @@ class DatabaseRdbms(object):
                     session.delete(role)
                 session.commit()
 
+            # remove all users from this room
+            try:
+                room.users[:] = []
+                session.commit()
+            except Exception as remove_error:
+                logger.error(
+                    'could not remove users from room %s (%s) because: %s' % (room_id, room_name, str(remove_error)))
+                self.env.capture_exception(sys.exc_info())
+
             session.delete(room)
             session.commit()
 
@@ -1131,15 +1140,18 @@ class DatabaseRdbms(object):
 
         try:
             do_remove()
-        except StaleDataError as e:
-            logger.warning('could not remove room %s, got stale data, will try again: %s' % (room_id, str(e)))
+        except (StaleDataError, IntegrityError) as e:
+            logger.warning('could not remove room %s (%s), will try again: %s' % (room_id, room_name, str(e)))
             try:
                 do_remove()
-            except StaleDataError as e:
-                logger.error('could not remove room %s for second time, logging to sentry: %s' % (room_id, str(e)))
+            except (StaleDataError, IntegrityError) as e:
+                logger.error(
+                    'could not remove room %s (%s) for second time, logging to sentry: %s' %
+                    (room_id, room_name, str(e)))
                 self.env.capture_exception(sys.exc_info())
             except Exception as e:
-                logger.error('other error when trying to remove room %s second try: %s' % (room_id, str(e)))
+                logger.error(
+                    'other error when trying to remove room %s (%s) second try: %s' % (room_id, room_name, str(e)))
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
 
@@ -1182,9 +1194,9 @@ class DatabaseRdbms(object):
                 'got ValueError when leaving room, likely user (%s) already left the room (%s): %s' %
                 (user_id, room_id, str(e)))
             self.env.capture_exception(sys.exc_info())
-        except StaleDataError as e:
+        except (StaleDataError, IntegrityError) as e:
             logger.warning(
-                'got StaleDataError when leaving room, likely already removed from assoc table: %s' % str(e))
+                'db error when leaving room, likely already removed from assoc table: %s' % str(e))
             self.env.capture_exception(sys.exc_info())
 
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
