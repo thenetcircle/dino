@@ -475,11 +475,11 @@ class DatabaseRdbms(object):
 
         try:
             _set_user_invisible()
-        except StaleDataError as e:
+        except (IntegrityError, StaleDataError) as e:
             logger.warning('could not set user %s invisible, will try again: %s' % (user_id, str(e)))
             try:
                 _set_user_invisible()
-            except StaleDataError as e:
+            except (IntegrityError, StaleDataError) as e:
                 logger.error('could not set user %s invisible second time, logging to sentry: %s' % (user_id, str(e)))
                 self.env.capture_exception(sys.exc_info())
             except Exception as e:
@@ -501,11 +501,11 @@ class DatabaseRdbms(object):
 
         try:
             _set_user_offline()
-        except StaleDataError as e:
+        except (IntegrityError, StaleDataError) as e:
             logger.warning('could not set user %s offline, will try again: %s' % (user_id, str(e)))
             try:
                 _set_user_offline()
-            except StaleDataError as e:
+            except (IntegrityError, StaleDataError) as e:
                 logger.error('could not set user %s offline second time, logging to sentry: %s' % (user_id, str(e)))
                 self.env.capture_exception(sys.exc_info())
             except Exception as e:
@@ -534,11 +534,11 @@ class DatabaseRdbms(object):
 
         try:
             _set_user_online()
-        except StaleDataError as e:
+        except (IntegrityError, StaleDataError) as e:
             logger.warning('could not set user %s online, will try again: %s' % (user_id, str(e)))
             try:
                 _set_user_online()
-            except StaleDataError as e:
+            except (IntegrityError, StaleDataError) as e:
                 logger.error('could not set user %s online second time, logging to sentry: %s' % (user_id, str(e)))
                 self.env.capture_exception(sys.exc_info())
             except Exception as e:
