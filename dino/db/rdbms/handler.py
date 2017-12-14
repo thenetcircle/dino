@@ -460,8 +460,7 @@ class DatabaseRdbms(object):
     def set_user_invisible(self, user_id: str) -> None:
         @with_session
         def _set_user_invisible(session=None):
-            self.env.cache.set_user_invisible(user_id)
-            user_status = session.query(UserStatus).filter_by(uuid=user_id).first()
+            user_status = session.query(UserStatus).filter(Users.uuid == user_id).first()
             if user_status is None:
                 user_status = UserStatus()
                 user_status.uuid = user_id
@@ -472,6 +471,7 @@ class DatabaseRdbms(object):
 
         if self.env.cache.user_is_invisible(user_id):
             return
+        self.env.cache.set_user_invisible(user_id)
 
         try:
             _set_user_invisible()
@@ -487,17 +487,18 @@ class DatabaseRdbms(object):
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
 
-        self.env.cache.set_user_status(user_id, UserKeys.STATUS_INVISIBLE)
-
     def set_user_offline(self, user_id: str) -> None:
         @with_session
         def _set_user_offline(session=None):
-            status = session.query(UserStatus).filter_by(uuid=user_id).first()
+            status = session.query(UserStatus).filter(Users.uuid == user_id).first()
             if status is None:
                 logger.warning('no UserStatus found in db for user ID %s' % user_id)
                 return
             session.delete(status)
             session.commit()
+
+        logger.debug('setting user %s as offline in cache' % user_id)
+        self.env.cache.set_user_offline(user_id)
 
         try:
             _set_user_offline()
@@ -513,14 +514,10 @@ class DatabaseRdbms(object):
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
 
-        logger.debug('setting user %s as offline in cache' % user_id)
-        self.env.cache.set_user_offline(user_id)
-
     def set_user_online(self, user_id: str) -> None:
         @with_session
         def _set_user_online(session=None):
-            self.env.cache.set_user_online(user_id)
-            user_status = session.query(UserStatus).filter_by(uuid=user_id).first()
+            user_status = session.query(UserStatus).filter(Users.uuid == user_id).first()
             if user_status is None:
                 user_status = UserStatus()
                 user_status.uuid = user_id
@@ -531,6 +528,7 @@ class DatabaseRdbms(object):
 
         if self.env.cache.user_is_online(user_id):
             return
+        self.env.cache.set_user_online(user_id)
 
         try:
             _set_user_online()
@@ -545,8 +543,6 @@ class DatabaseRdbms(object):
                 logger.error('other error when trying to set user %s online second try: %s' % (user_id, str(e)))
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
-
-        self.env.cache.set_user_status(user_id, UserKeys.STATUS_AVAILABLE)
 
     @with_session
     def rooms_for_user(self, user_id: str, session=None) -> dict:
