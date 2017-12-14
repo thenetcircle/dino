@@ -10,4 +10,5 @@ pages:
     - ACL: md/acl.md
     - REST API: md/rest.md
     - Who Is Online?: md/wio.md
+    - Storage: md/storage.md
 theme: readthedocs

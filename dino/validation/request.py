@@ -18,6 +18,8 @@ from activitystreams.models.target import Target
 import logging
 import traceback
 
+from uuid import UUID
+
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
@@ -30,6 +32,7 @@ from dino.exceptions import NoSuchRoomException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import NoSuchChannelException
 from dino.exceptions import NoChannelFoundException
+from dino.exceptions import MultipleRoomsFoundForNameException
 from dino import validation
 from dino.validation.duration import DurationValidator
 
@@ -59,7 +62,8 @@ class RequestValidator(BaseValidator):
             return False, ECodes.MISSING_TARGET_ID, 'no room id specified when sending message'
 
         if object_type not in ['room', 'private']:
-            return False, ECodes.INVALID_TARGET_TYPE, 'invalid object_type "%s", must be one of [room, private]' % object_type
+            return False, ECodes.INVALID_TARGET_TYPE, \
+                   'invalid object_type "%s", must be one of [room, private]' % object_type
 
         if object_type == 'room':
             channel_id = None
@@ -85,12 +89,14 @@ class RequestValidator(BaseValidator):
                     return False, ECodes.NO_SUCH_ROOM, 'origin room %s does not exist' % from_room_id
 
             if not utils.is_user_in_room(user_id, room_id):
+                logger.warning('user "%s" is not in room "%s' % (user_id, room_id))
                 if from_room_id is None:
                     return False, ECodes.USER_NOT_IN_ROOM, 'user is not in target room'
                 if not utils.is_user_in_room(user_id, from_room_id):
                     return False, ECodes.USER_NOT_IN_ROOM, 'user is not in origin room, cannot send message from there'
                 if not utils.can_send_cross_room(activity, from_room_id, room_id):
-                    return False, ECodes.NOT_ALLOWED, 'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
+                    return False, ECodes.NOT_ALLOWED, \
+                           'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
 
         elif object_type == 'private':
             try:
@@ -100,9 +106,52 @@ class RequestValidator(BaseValidator):
 
         return True, None, None
 
+    def _on_read_or_receive(self, activity: Activity, expected_verb: str) -> (bool, int, str):
+        if not hasattr(activity, 'verb'):
+            return False, ECodes.MISSING_VERB, 'no verb on activity'
+        if not hasattr(activity, 'target') or not hasattr(activity.target, 'id') or len(activity.target.id.strip()) == 0:
+            return False, ECodes.MISSING_TARGET_ID, 'no target.id on activity'
+        if activity.verb != expected_verb:
+            return False, ECodes.INVALID_VERB, 'expecting verb "%s" but was "%s"' % (expected_verb, str(activity.verb))
+
+        if not hasattr(activity, 'object') or not hasattr(activity.object, 'attachments'):
+            return False, ECodes.MISSING_OBJECT_ATTACHMENTS, 'no attachments found on object'
+
+        message_ids = set()
+        for attachment in activity.object.attachments:
+            message_id = attachment.id
+            try:
+                UUID(message_id)
+                message_ids.add(message_id.strip())
+            except ValueError:
+                return False, ECodes.VALIDATION_ERROR, \
+                       '"%s" is not a valid uuid (activity.object.attachments.id)' % str(message_id)
+
+        if len(message_ids) == 0:
+            return False, ECodes.MISSING_OBJECT_ATTACHMENTS, 'no attachments found on object'
+        if len(message_ids) > 500:
+            return False, ECodes.TOO_MANY_ATTACHMENTS, \
+                   'max 500 attachments allowed at one time, received %s' % len(message_ids)
+
+        return True, None, None
+
+    def on_read(self, activity: Activity) -> (bool, int, str):
+        return self._on_read_or_receive(activity, 'read')
+
+    def on_received(self, activity: Activity) -> (bool, int, str):
+        return self._on_read_or_receive(activity, 'receive')
+
     def on_delete(self, activity: Activity) -> (bool, int, str):
         user_id = activity.actor.id
         room_id = activity.target.id
+        message_id = activity.object.id
+
+        if message_id is None or len(message_id.strip()) == 0:
+            return False, ECodes.MISSING_OBJECT_ID, 'no object ID when deleting message'
+
+        sender_can_delete = environ.env.config.get(ConfigKeys.SENDER_CAN_DELETE, False)
+        if sender_can_delete and utils.get_sender_for_message(message_id) == user_id:
+            return True, None, None
 
         if not utils.user_is_allowed_to_delete_message(room_id, user_id):
             return False, ECodes.NOT_ALLOWED, 'not allowed to remove message in room %s' % room_id
@@ -116,25 +165,26 @@ class RequestValidator(BaseValidator):
             environ.env.join_room(user_id)
             reason = utils.reason_for_ban(user_id)
             json_act = utils.activity_for_already_banned(duration, reason)
-            environ.env.emit('gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True)
-            environ.env.disconnect()
+            environ.env.emit(
+                'gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True, namespace='/ws')
+
             logger.info('user %s is banned from chatting for: %ss' % (user_id, duration))
-            return False, ECodes.USER_IS_BANNED, json_act
+            return False, ECodes.USER_IS_BANNED, 'user %s is banned from chatting for: %ss' % (user_id, duration)
 
         if hasattr(activity.actor, 'attachments') and activity.actor.attachments is not None:
             for attachment in activity.actor.attachments:
                 environ.env.session[attachment.object_type] = attachment.content
 
         if SessionKeys.token.value not in environ.env.session:
-            environ.env.disconnect()
+            logger.warning('no token in session when logging in for user id %s' % str(user_id))
             return False, ECodes.NO_USER_IN_SESSION, 'no token in session'
 
         token = environ.env.session.get(SessionKeys.token.value)
         is_valid, error_msg, session = self.validate_login(user_id, token)
 
         if not is_valid:
+            logger.warning('login is not valid for user id %s: %s' % (str(user_id), str(error_msg)))
             environ.env.stats.incr('on_login.failed')
-            environ.env.disconnect()
             return False, ECodes.NOT_ALLOWED, error_msg
 
         for session_key, session_value in session.items():
@@ -290,7 +340,8 @@ class RequestValidator(BaseValidator):
             return False, ECodes.INVALID_TARGET_TYPE, 'empty object_type, must be one of [channel, room]'
 
         if object_type not in ['channel', 'room']:
-            return False, ECodes.INVALID_TARGET_TYPE, 'invalid object_type "%s", must be one of [channel, room]' % object_type
+            return False, ECodes.INVALID_TARGET_TYPE, \
+                   'invalid object_type "%s", must be one of [channel, room]' % object_type
 
         if not _can_edit_acl(target_id, user_id):
             return False, ECodes.NOT_ALLOWED, 'user is not allowed to change acls on the target'
@@ -317,15 +368,27 @@ class RequestValidator(BaseValidator):
 
     def on_join(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
+        room_name = activity.target.display_name
         user_id = environ.env.session.get(SessionKeys.user_id.value, None)
 
         if user_id is None or len(user_id.strip()) == 0:
             user_id = activity.actor.id
 
-        try:
-            room_name = utils.get_room_name(room_id)
-        except NoSuchRoomException:
-            return False, ECodes.NO_SUCH_ROOM, 'room does not exist'
+        if room_id is not None and len(room_id.strip()) > 0:
+            try:
+                room_name = utils.get_room_name(room_id)
+            except NoSuchRoomException:
+                return False, ECodes.NO_SUCH_ROOM, 'room does not exist'
+        else:
+            if room_name is None or len(room_name.strip()) == 0:
+                return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'neither room id nor name supplied'
+
+            try:
+                room_id = utils.get_room_id(room_name)
+            except NoSuchRoomException:
+                return False, ECodes.NO_SUCH_ROOM, 'room does not exists with given name'
+            except MultipleRoomsFoundForNameException:
+                return False, ECodes.MULTIPLE_ROOMS_WITH_NAME, 'found multiple rooms with name "%s"' % room_name
 
         if not hasattr(activity, 'object'):
             activity.object = DefObject(dict())
@@ -337,8 +400,9 @@ class RequestValidator(BaseValidator):
             except NoSuchUserException:
                 logger.error('could not get username for user id %s' % user_id)
 
-            logger.warn('user "%s" (%s) is not online, not joining room "%s" (%s)!' %
-                        (user_name, user_id, room_name, room_id))
+            logger.warning(
+                'user "%s" (%s) is not online, not joining room "%s" (%s)!' %
+                (user_name, user_id, room_name, room_id))
             return False, ECodes.NOT_ONLINE, 'user is not online'
 
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
@@ -353,9 +417,13 @@ class RequestValidator(BaseValidator):
 
         activity.object.url = channel_id
         activity.object.display_name = utils.get_channel_name(channel_id)
-
         activity.target.object_type = 'room'
-        acls = utils.get_acls_in_room_for_action(room_id, ApiActions.JOIN)
+
+        try:
+            acls = utils.get_acls_in_room_for_action(room_id, ApiActions.JOIN)
+        except NoSuchRoomException:
+            return False, ECodes.NO_SUCH_ROOM, 'no such room'
+
         is_valid, error_msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.JOIN, acls)
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, error_msg
@@ -399,7 +467,9 @@ class RequestValidator(BaseValidator):
             environ.env.join_room(user_id)
             reason = utils.reason_for_ban(user_id)
             json_act = utils.activity_for_already_banned(duration, reason)
-            environ.env.emit('gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True)
+            environ.env.emit(
+                'gn_banned', json_act, json=True, room=user_id, broadcast=False, include_self=True, namespace='/ws')
+
             environ.env.disconnect()
             logger.info('user %s is banned from chatting for: %ss' % (user_id, duration))
             return False, ECodes.USER_IS_BANNED, json_act
@@ -444,7 +514,11 @@ class RequestValidator(BaseValidator):
         if room_id is None or room_id.strip() == '':
             return False, ECodes.MISSING_TARGET_ID, 'invalid target id'
 
-        acls = utils.get_acls_in_room_for_action(room_id, ApiActions.HISTORY)
+        try:
+            acls = utils.get_acls_in_room_for_action(room_id, ApiActions.HISTORY)
+        except NoSuchRoomException:
+            return False, ECodes.NO_SUCH_ROOM, 'no such room'
+
         is_valid, error_msg = validation.acl.validate_acl_for_action(
                 activity, ApiTargets.ROOM, ApiActions.HISTORY, acls)
 
@@ -513,11 +587,17 @@ class RequestValidator(BaseValidator):
 
         channel_id = utils.get_channel_for_room(room_id)
         channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.KICK)
-        is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.KICK, channel_acls)
+        is_valid, msg = validation.acl.validate_acl_for_action(
+            activity, ApiTargets.CHANNEL, ApiActions.KICK, channel_acls)
+
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, msg
 
-        room_acls = utils.get_acls_in_room_for_action(room_id, ApiActions.KICK)
+        try:
+            room_acls = utils.get_acls_in_room_for_action(room_id, ApiActions.KICK)
+        except NoSuchRoomException:
+            return False, ECodes.NO_SUCH_ROOM, 'no such room'
+
         is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.KICK, room_acls)
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, msg
@@ -617,7 +697,9 @@ class RequestValidator(BaseValidator):
 
         activity.target.object_type = 'room'  # for acl validation to know we're trying to create a room
         channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.CREATE)
-        is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.CREATE, channel_acls)
+        is_valid, msg = validation.acl.validate_acl_for_action(
+            activity, ApiTargets.CHANNEL, ApiActions.CREATE, channel_acls)
+
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, msg
 

@@ -17,10 +17,8 @@ import logging
 import traceback
 import random
 
-from typing import Union
-
 from zope.interface import implementer
-from fakeredis import FakeStrictRedis as RedisInterface
+from typing import Union
 
 from dino.config import RedisKeys
 from dino.config import ConfigKeys
@@ -82,7 +80,7 @@ class RedisWrapper(object):
         redis package is NOT, so we can't import that). Here we only want to reference the "interface" to get IDE code
         completion and warnings of misspelled method names.
         """
-        self.r_server: RedisInterface = r_server
+        self.r_server = r_server
 
     @timeit(logger, 'on_redis_get')
     def get(self, *args):
@@ -349,6 +347,65 @@ class CacheRedis(object):
     def get_users_in_room_for_role(self, room_id: str, role: str) -> dict:
         key = RedisKeys.users_in_room_for_role(room_id, role)
         return self.cache.get(key)
+
+    def reset_sids_for_user(self, user_id: str) -> None:
+        key = RedisKeys.sid_for_user_id()
+        cache_key = '%s-%s' % (key, user_id)
+        self.cache.delete(cache_key)
+        self.redis.hdel(key, user_id)
+
+    def remove_sid_for_user(self, user_id: str, sid: str) -> None:
+        all_sids = self.get_sids_for_user(user_id)
+        if all_sids is None:
+            all_sids = list()
+
+        if sid not in all_sids:
+            return
+
+        key = RedisKeys.sid_for_user_id()
+        cache_key = '%s-%s' % (key, user_id)
+
+        all_sids.remove(sid)
+        self.cache.set(cache_key, all_sids)
+        all_sids = ','.join(list(set(all_sids)))
+        self.redis.hset(key, user_id, all_sids)
+
+    def set_sids_for_user(self, user_id: str, all_sids: list) -> None:
+        key = RedisKeys.sid_for_user_id()
+        cache_key = '%s-%s' % (key, user_id)
+        all_sids = all_sids.copy()
+
+        self.cache.set(cache_key, all_sids)
+        all_sids = ','.join(list(set(all_sids)))
+        self.redis.hset(key, user_id, all_sids)
+
+    def add_sid_for_user(self, user_id: str, sid: str) -> None:
+        all_sids = self.get_sids_for_user(user_id)
+        if all_sids is None:
+            all_sids = list()
+
+        all_sids.append(sid)
+
+        key = RedisKeys.sid_for_user_id()
+        cache_key = '%s-%s' % (key, user_id)
+
+        self.cache.set(cache_key, all_sids)
+        all_sids = ','.join(list(set(all_sids)))
+        self.redis.hset(key, user_id, all_sids)
+
+    def get_sids_for_user(self, user_id: str) -> Union[None, list]:
+        key = RedisKeys.sid_for_user_id()
+        cache_key = '%s-%s' % (key, user_id)
+        all_sids = self.cache.get(cache_key)
+        if all_sids is not None:
+            return all_sids
+
+        all_sids = self.redis.hget(key, user_id)
+        if all_sids is None:
+            return None
+        all_sids = list(set(str(all_sids, 'utf-8').split(',')))
+        self.cache.set(cache_key, all_sids)
+        return all_sids
 
     def get_users_in_room(self, room_id: str, is_super_user: bool) -> dict:
         if is_super_user:

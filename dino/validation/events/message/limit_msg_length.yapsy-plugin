@@ -1,0 +1,8 @@
+[Core]
+Name = limit_msg_length
+Module = limit_msg_length
+
+[Documentation]
+Description = Checks that a message content not too long
+Author = Oscar Eriksson
+Version = 1.0.0

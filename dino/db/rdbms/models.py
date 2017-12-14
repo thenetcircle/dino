@@ -104,12 +104,21 @@ class Users(DeclarativeBase):
     id = Column(Integer, primary_key=True)
     uuid = Column('uuid', String(128), nullable=False, index=True)
     name = Column('name', String(128), nullable=False)
+
+    # deprecated
     sid = Column('session_id', String(128), nullable=True)
 
     rooms = relationship(
         'Rooms',
         secondary=rooms_users_association_table,
         back_populates='users')
+
+
+class Sids(DeclarativeBase):
+    __tablename__ = 'sids'
+
+    user_uuid = Column('user_uuid', String(128), nullable=False, index=True, primary_key=True)
+    sid = Column('session_id', String(128), nullable=False, index=True, primary_key=True)
 
 
 class LastReads(DeclarativeBase):

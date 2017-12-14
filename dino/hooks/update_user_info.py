@@ -45,7 +45,7 @@ class OnUpdateUserInfoHooks(object):
         }
 
         if not hasattr(activity.object, 'attachments') or len(activity.object.attachments) == 0:
-            logger.warn('empty object.attachments: %s' % str(orig_data))
+            logger.warning('empty object.attachments: %s' % str(orig_data))
             return
 
         user_id = environ.env.session.get(SessionKeys.user_id.value, activity.actor.id)
@@ -57,13 +57,13 @@ class OnUpdateUserInfoHooks(object):
 
         for attachment in activity.object.attachments:
             if attachment.object_type in protected_keys:
-                logger.warn('user "%s" (%s) tried to change protected key "%s", skipping' % attachment.object_type)
+                logger.warning('user "%s" (%s) tried to change protected key "%s", skipping' % attachment.object_type)
 
             decoded = utils.b64d(attachment.content)
             if attachment.object_type in SessionKeys._member_names_:
                 environ.env.session[attachment.object_type] = decoded
             else:
-                logger.warn(
+                logger.warning(
                         'key "%s" is not a predefined, not updating session for "%s" (%s), value was "%s"' %
                         (attachment.object_type, user_name, user_id, decoded))
 
@@ -81,13 +81,14 @@ class OnUpdateUserInfoHooks(object):
                 room_uuid = target_id
 
         if room_uuid is not None:
-            environ.env.emit('gn_user_info_updated', data, json=True, broadcast=True, room=room_uuid)
+            environ.env.emit('gn_user_info_updated', data, json=True, broadcast=True, room=room_uuid, namespace='/ws')
         else:
             rooms = utils.rooms_for_user(activity.actor.id)
             for room_uuid in rooms:
                 data_copy = data.copy()
                 data_copy['target'] = {'id': room_uuid}
-                environ.env.emit('gn_user_info_updated', data, json=True, broadcast=True, room=room_uuid)
+                environ.env.emit(
+                    'gn_user_info_updated', data, json=True, broadcast=True, room=room_uuid, namespace='/ws')
 
 
 @environ.env.observer.on('on_update_user_info')

@@ -199,7 +199,11 @@ class ApiJoinTest(BaseTest):
         act = self.activity_for_join()
         response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
-        history_obj = self.get_attachment_for_key(attachments, 'history')[0]
+        from pprint import pprint
+        pprint(self.get_attachment_for_key(attachments, 'history'))
+        all_history = self.get_attachment_for_key(attachments, 'history')
+        self.assertEqual(1, len(all_history))
+        history_obj = all_history[0]
 
         self.assertEqual(msg_response['id'], history_obj['id'])
         self.assertEqual(msg, b64d(history_obj['content']))

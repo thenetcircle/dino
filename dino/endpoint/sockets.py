@@ -14,12 +14,13 @@ import threading
 import time
 import traceback
 import logging
+import sys
+
+import activitystreams as as_parser
 
 from typing import Union
 from uuid import uuid4 as uuid
 
-import activitystreams as as_parser
-from activitystreams.exception import ActivityException
 from activitystreams.models.activity import Activity
 from flask_socketio import disconnect
 from kombu.mixins import ConsumerMixin
@@ -58,7 +59,7 @@ class Worker(ConsumerMixin):
             queue_handler.handle_server_activity(body, as_parser.parse(body))
         except Exception as e:
             logger.error('could not parse server message: "%s", message was: %s' % (str(e), body))
-            environ.env.capture_exception(e)
+            environ.env.capture_exception(sys.exc_info())
         message.ack()
 
 
@@ -149,8 +150,7 @@ def chat():
             image=environ.env.session.get('image', ''),
             country=environ.env.session.get('country', ''),
             city=environ.env.session.get('city', ''),
-            token=environ.env.session.get('token', ''),
-            version=environ.env.config.get(ConfigKeys.VERSION))
+            token=environ.env.session.get('token', ''))
 
 
 @app.route('/js/<path:path>')
@@ -163,6 +163,17 @@ def send_css(path):
     return environ.env.send_from_directory('templates/css', path)
 
 
+@socketio.on_error('/ws')
+def error_handler_chat(e):
+    try:
+        environ.env.capture_exception(e)
+    except Exception as capture_e:
+        logger.error('could not capture exception: %s' % str(capture_e))
+        logger.exception(traceback.format_exc(capture_e))
+        logger.error('exception to capture was: %s' % str(e))
+        logger.exception(traceback.format_exc(e))
+
+
 # no pre-processing for connect event
 @socketio.on('connect', namespace='/ws')
 @respond_with('gn_connect')
@@ -172,7 +183,7 @@ def connect() -> (int, None):
 
 
 @socketio.on('login', namespace='/ws')
-@respond_with('gn_login')
+@respond_with('gn_login', should_disconnect=True)
 @pre_process('on_login', should_validate_request=False)
 def on_login(data: dict, activity: Activity) -> (int, str):
     try:
@@ -183,8 +194,22 @@ def on_login(data: dict, activity: Activity) -> (int, str):
     except Exception as e:
         logger.error('could not login, will disconnect client: %s' % str(e))
         logger.exception(traceback.format_exc())
-        environ.env.capture_exception(e)
+        environ.env.capture_exception(sys.exc_info())
         return 500, str(e)
+
+
+@socketio.on('received', namespace='/ws')
+@respond_with('gn_received', emit_response=False)  # the callback with status_code is enough for this api so don't emit
+@pre_process('on_received')
+def on_received(data: dict, activity: Activity) -> (int, str):
+    return api.on_received(data, activity)
+
+
+@socketio.on('read', namespace='/ws')
+@respond_with('gn_read', emit_response=False)  # the callback with status_code is enough for this api so don't emit
+@pre_process('on_read')
+def on_read(data: dict, activity: Activity) -> (int, str):
+    return api.on_read(data, activity)
 
 
 @socketio.on('message', namespace='/ws')

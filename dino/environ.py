@@ -20,6 +20,7 @@ from redis import Redis
 from typing import Union
 from types import MappingProxyType
 from base64 import b64encode
+from concurrent.futures import ThreadPoolExecutor
 
 from flask_socketio import emit as _flask_emit
 from flask_socketio import send as _flask_send
@@ -44,6 +45,7 @@ from flask_socketio import disconnect as _flask_disconnect
 from dino.config import ConfigKeys
 from dino.utils.decorators import timeit
 from dino.exceptions import AclValueNotFoundException
+from dino.exceptions import NoSuchRoomException
 
 from dino.validation.acl import AclConfigValidator
 from dino.validation.acl import AclRangeValidator
@@ -54,6 +56,7 @@ from dino.validation.acl import AclDisallowValidator
 from dino.validation.acl import AclIsAdminValidator
 from dino.validation.acl import AclIsSuperUserValidator
 from dino.validation.acl import AclPatternValidator
+from dino.validation.acl import AclIsRoomOwnerValidator
 
 ENV_KEY_ENVIRONMENT = 'DINO_ENVIRONMENT'
 ENV_KEY_SECRETS = 'DINO_SECRETS'
@@ -213,6 +216,7 @@ class GNEnvironment(object):
         self.disconnect = _flask_disconnect
         self._force_disconnect_by_sid = None
         self.disconnect_by_sid = None
+        self.response_formatter = lambda status_code, data: {'status_code': status_code, 'data': data}
 
         self.logger = config.get(ConfigKeys.LOGGER, None)
         self.session = config.get(ConfigKeys.SESSION, None)
@@ -230,6 +234,7 @@ class GNEnvironment(object):
 
         self.pub_sub = None
         self.consume_worker = None
+        self.pool_executor = None
         self.start_consumer = None
         self.blacklist = None
         self.node = None
@@ -257,7 +262,7 @@ def b64e(s: str) -> str:
     return ''
 
 
-def find_config(config_paths: list) -> str:
+def find_config(config_paths: list) -> tuple:
     default_paths = ["dino.yaml", "dino.json"]
     config_dict = dict()
     config_path = None
@@ -291,7 +296,7 @@ def find_config(config_paths: list) -> str:
     return config_dict, config_path
 
 
-def find_config_acl(acl_paths: list) -> str:
+def find_config_acl(acl_paths: list) -> (dict, str):
     default_paths = ["acl.yaml", "acl.json"]
     acl_dict = dict()
     acl_path = None
@@ -359,6 +364,8 @@ def load_secrets_file(config_dict: dict) -> dict:
     if secrets_path is None:
         secrets_path = 'secrets/%s.yaml' % gn_env
 
+    logger.debug('loading secrets file "%s"' % secrets_path)
+
     # first substitute environment variables, which holds precedence over the yaml config (if it exists)
     template = Template(str(config_dict))
     template = template.safe_substitute(os.environ)
@@ -374,13 +381,59 @@ def load_secrets_file(config_dict: dict) -> dict:
     return ast.literal_eval(template)
 
 
+def configure_request_log(gn_environment: str, config_dict: dict):
+    request_log_location = config_dict.get(ConfigKeys.REQ_LOG_LOC, None)
+    request_log_disabled = \
+        request_log_location is None or str(request_log_location).lower() in {'false', 'mock', 'no', '', 'none', 'n'}
+
+    if request_log_disabled:
+        logging.getLogger('engineio').setLevel(logging.WARNING)
+        return
+
+    log_level = config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL)
+    debug_enabled = str(os.environ.get('DINO_DEBUG', 0)).lower() in {'1', 'true', 'yes', 'y'}
+
+    if log_level == 'DEBUG' or debug_enabled:
+        import sys
+        args = sys.argv
+        bind_arg_pos = None
+        for a in ['--bind', '-b']:
+            bind_arg_pos = [i for i, x in enumerate(args) if x == a]
+            if len(bind_arg_pos) > 0:
+                bind_arg_pos = bind_arg_pos[0]
+                break
+
+        port = 'standalone'
+        if bind_arg_pos is not None and not isinstance(bind_arg_pos, list):
+            port = args[bind_arg_pos + 1].split(':')[1]
+
+        engineio_logger = logging.getLogger('engineio')
+        log_loc = config_dict.get(ConfigKeys.REQ_LOG_LOC, '/var/log/dino')
+        file_handler = logging.FileHandler('%s/engineio-%s-%s.log' % (log_loc, gn_environment, port))
+        formatter = logging.Formatter(ConfigKeys.DEFAULT_LOG_FORMAT)
+        file_handler.setFormatter(formatter)
+
+        if engineio_logger.hasHandlers():
+            for handler in engineio_logger.handlers.copy():
+                engineio_logger.removeHandler(handler)
+
+        engineio_logger.propagate = False
+        engineio_logger.addHandler(file_handler)
+        engineio_logger.setLevel(logging.DEBUG)
+    else:
+        logging.getLogger('engineio').setLevel(config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL))
+
+
 @timeit(logger, 'creating base environment')
 def create_env(config_paths: list = None) -> GNEnvironment:
+    logging.basicConfig(level='DEBUG', format=ConfigKeys.DEFAULT_LOG_FORMAT)
+
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
     logger.info('using environment %s' % gn_environment)
 
     # assuming tests are running
     if gn_environment is None:
+        logger.debug('no environment found, assuming tests are running')
         return GNEnvironment(None, ConfigDict(dict()))
 
     config_dict, config_path = find_config(config_paths)
@@ -404,11 +457,12 @@ def create_env(config_paths: list = None) -> GNEnvironment:
 
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
     config_dict[ConfigKeys.SESSION] = _flask_session
+    log_level = config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL)
+    configure_request_log(gn_environment, config_dict)
 
     logging.basicConfig(
-            level=getattr(logging, config_dict.get(ConfigKeys.LOG_LEVEL, 'DEBUG')),
+            level=getattr(logging, log_level),
             format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
-    logging.getLogger('engineio').setLevel(logging.WARNING)
     logging.getLogger('cassandra').setLevel(logging.WARNING)
 
     if ConfigKeys.HISTORY not in config_dict:
@@ -458,16 +512,14 @@ def create_env(config_paths: list = None) -> GNEnvironment:
         config_dict[ConfigKeys.LOG_LEVEL] = ConfigKeys.DEFAULT_LOG_LEVEL
 
     config_dict[ConfigKeys.ACL] = get_acl_config()
-
     root_path = os.path.dirname(config_path)
-
     gn_env = GNEnvironment(root_path, ConfigDict(config_dict))
 
     logger.info('read config and created environment')
     return gn_env
 
 
-def get_acl_config() -> dict:
+def get_acl_config() -> Union[MappingProxyType, dict]:
     acl_paths = None
     if 'DINO_ACL' in os.environ:
         acl_paths = [os.environ['DINO_ACL']]
@@ -562,6 +614,9 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
 
         elif validation_type == 'is_admin':
             validation_config['value'] = AclIsAdminValidator()
+
+        elif validation_type == 'is_room_owner':
+            validation_config['value'] = AclIsRoomOwnerValidator()
 
         elif validation_type == 'is_super_user':
             validation_config['value'] = AclIsSuperUserValidator()
@@ -791,15 +846,70 @@ def init_admin_and_admin_room(gn_env: GNEnvironment):
     gn_env.db.create_admin_room()
 
 
+@timeit(logger, 'init response formatter')
+def init_response_formatter(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    def get_format_keys() -> list:
+        _def_keys = ['status_code', 'data', 'error']
+
+        res_format = gn_env.config.get(ConfigKeys.RESPONSE_FORMAT, None)
+        if res_format is None:
+            logger.info('using default response format, no config specified')
+            return _def_keys
+
+        if type(res_format) != str:
+            logger.warning('configured response format is of type "%s", using default' % str(type(res_format)))
+            return _def_keys
+
+        if len(res_format.strip()) == 0:
+            logger.warning('configured response format is blank, using default')
+            return _def_keys
+
+        keys = res_format.split(',')
+        if len(keys) != 3:
+            logger.warning('configured response format not "<code>,<data>,<error>" but "%s", using default' % res_format)
+            return _def_keys
+
+        for i, key in enumerate(keys):
+            if len(key.strip()) == 0:
+                logger.warning('response format key if index %s is blank in "%s", using default' % (str(i), keys))
+                return _def_keys
+        return keys
+
+    code_key, data_key, error_key = get_format_keys()
+
+    from dino.utils.formatter import SimpleResponseFormatter
+    gn_env.response_formatter = SimpleResponseFormatter(code_key, data_key, error_key)
+    logger.info('configured response formatting as %s' % str(gn_env.response_formatter))
+
+
+@timeit(logger, 'creating process pool')
+def init_process_pool(gn_env: GNEnvironment):
+    class FakeExecutor(object):
+        def submit(self, method, *args):
+            method(*args)
+
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        gn_env.pool_executor = FakeExecutor()
+        return
+
+    gn_env.pool_executor = ThreadPoolExecutor(max_workers=4)
+
+
 @timeit(logger, 'deleting ephemeral rooms')
 def delete_ephemeral_rooms(gn_env: GNEnvironment):
+    from activitystreams import parse as as_parser
+
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
 
     def delete():
         from dino import utils
-        from activitystreams import parse as as_parser
 
         channel_dict = gn_env.db.get_channels()
 
@@ -821,11 +931,18 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
                     continue
 
                 logger.info('[%s] removing ephemeral room (%s)' % (short_id, room_name))
-                gn_env.db.remove_room(channel_id, room_id)
+
+                try:
+                    gn_env.db.get_room_name(room_id)
+                except NoSuchRoomException:
+                    logger.info('[%s] ephemeral room (%s) has already been removed' % (short_id, room_name))
+                    continue
+
                 activity = utils.activity_for_remove_room('0', 'server', room_id, room_name, 'empty ephemeral room')
 
                 gn_env.db.remove_room(channel_id, room_id)
-                gn_env.emit('gn_room_removed', activity, broadcast=True, include_self=True)
+                gn_env.out_of_scope_emit(
+                    'gn_room_removed', activity, broadcast=True, include_self=True, namespace='/ws')
                 gn_env.observer.emit('on_remove_room', (activity, as_parser(activity)))
 
     import eventlet
@@ -865,10 +982,11 @@ def init_logging(gn_env: GNEnvironment) -> None:
         release=tag_name
     )
 
-    def capture_exception(e) -> None:
+    def capture_exception(e_info) -> None:
         try:
-            gn_env.sentry.captureException(e)
+            gn_env.sentry.captureException(e_info)
         except Exception as e2:
+            logger.exception(e_info)
             logger.error('could not capture exception with sentry: %s' % str(e2))
 
     gn_env.capture_exception = capture_exception
@@ -881,12 +999,14 @@ def initialize_env(dino_env):
     init_auth_service(dino_env)
     init_cache_service(dino_env)
     init_pub_sub(dino_env)
+    init_process_pool(dino_env)
     init_acl_validators(dino_env)
     init_stats_service(dino_env)
     init_observer(dino_env)
     init_request_validators(dino_env)
     init_blacklist_service(dino_env)
     init_admin_and_admin_room(dino_env)
+    init_response_formatter(dino_env)
     delete_ephemeral_rooms(dino_env)
 
 

@@ -24,6 +24,7 @@ from kombu.pools import producers
 import traceback
 import logging
 import time
+import sys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -57,6 +58,10 @@ class PubSub(object):
         queue_type = conf.get(ConfigKeys.TYPE, domain=ConfigKeys.QUEUE, default=None)
         self.env.queue_connection = None
 
+        if queue_type == 'mock':
+            self.env.publish = PubSub.mock_publish
+            return
+
         import sys
         import socket
 
@@ -68,7 +73,12 @@ class PubSub(object):
                 bind_arg_pos = bind_arg_pos[0]
                 break
 
-        port = args[bind_arg_pos + 1].split(':')[1]
+        try:
+            port = args[bind_arg_pos + 1].split(':')[1]
+        except TypeError:
+            logging.info('skipping pubsub setup, no port specified')
+            return
+
         hostname = socket.gethostname()
 
         if queue_host is not None:
@@ -174,7 +184,7 @@ class PubSub(object):
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())
             self.env.stats.incr('publish.error')
-            environ.env.capture_exception(e)
+            environ.env.capture_exception(sys.exc_info())
         return None
 
     def do_publish_internal(self, message: dict):
@@ -194,7 +204,7 @@ class PubSub(object):
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())
             self.env.stats.incr('publish.error')
-            environ.env.capture_exception(e)
+            environ.env.capture_exception(sys.exc_info())
         return None
 
     def try_publish(self, message: dict, message_type: str, queue_connection, exchange, queue) -> None:

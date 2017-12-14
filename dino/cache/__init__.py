@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from zope.interface import Interface
+from typing import Union
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -64,6 +65,49 @@ class ICache(Interface):
 
         :param channel_id: uuid of the channel
         :return: nothing
+        """
+
+    def reset_sids_for_user(self, user_id: str) -> None:
+        """
+        reset all cached sids for this user, if any
+
+        :param user_id: the id of the user
+        :return: nothing
+        """
+
+    def add_sid_for_user(self, user_id: str, sid: str) -> None:
+        """
+        add one sid to be cached for this user
+
+        :param user_id: the id of the user
+        :param sid: the sid to cache
+        :return: nothing
+        """
+
+    def set_sids_for_user(self, user_id: str, all_sids: list) -> None:
+        """
+        cache a list of sids for this user, will overwrite if any previous sid has been cached
+
+        :param user_id: the id of the user
+        :param all_sids: a list of sids to cache
+        :return: nothing
+        """
+
+    def remove_sid_for_user(self, user_id: str, sid: str) -> None:
+        """
+        remove a specific cached sid for a user, if it exists
+
+        :param user_id: the id of the user
+        :param sid: the sid to remove
+        :return: nothing
+        """
+
+    def get_sids_for_user(self, user_id: str) -> Union[None, list]:
+        """
+        get all sids for this user, or None if not cached
+
+        :param user_id: id of the user
+        :return: a list of sids or None if not cached
         """
 
     def get_rooms_for_channel(self, channel_id: str) -> dict:

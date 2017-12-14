@@ -93,8 +93,8 @@ class AuthRedis(object):
 
         stored_token = stored_session.get(SessionKeys.token.value)
         if stored_token != supplied_token:
-            logger.warning('user "%s" supplied token "%s" but stored token is "%s"' %
-                                       (user_id, supplied_token, stored_token))
+            logger.warning(
+                'user "%s" supplied token "%s" but stored token is "%s"' % (user_id, supplied_token, stored_token))
             return False, 'invalid token "%s" supplied for user id "%s"' % (supplied_token, user_id), None
 
         session = dict()

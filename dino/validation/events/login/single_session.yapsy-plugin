@@ -1,0 +1,8 @@
+[Core]
+Name = single_session
+Module = single_session
+
+[Documentation]
+Description = Checks that a user can only have a single session open
+Author = Oscar Eriksson
+Version = 1.0.0

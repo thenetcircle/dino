@@ -11,6 +11,7 @@ available: &AVAILABLE
     - fake_checked
     - owner
     - admin
+    - room_owner
     - moderator
     - superuser
     - crossroom
@@ -54,6 +55,8 @@ validation:
     owner:
         type: "str_in_csv"  # TODO: change to room_owner and channel_owner, doesn't work as expected now
         value: "y,n"
+    room_owner:
+        type: "is_room_owner"
     admin:
         type: "is_admin"
     moderator:

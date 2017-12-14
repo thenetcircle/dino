@@ -11,11 +11,13 @@
 # limitations under the License.
 
 from activitystreams import Activity
+from activitystreams import parse as as_parser
 from typing import Union
 from uuid import uuid4 as uuid
 
 import logging
 import traceback
+import sys
 
 from dino.config import ConfigKeys
 from dino import environ
@@ -104,6 +106,34 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'leave',
+        'id': str(uuid())
+    }
+
+
+def activity_for_user_joined_invisibly(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
+    act = activity_for_user_joined(user_id, user_name, room_id, room_name, image_url)
+    act['actor']['objectType'] = 'invisible'
+    return act
+
+
+def activity_for_going_invisible(user_id: str) -> dict:
+    return {
+        'actor': {
+            'id': user_id
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'invisible',
+        'id': str(uuid())
+    }
+
+
+def activity_for_going_visible(user_id: str) -> dict:
+    return {
+        'actor': {
+            'id': user_id
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'visible',
         'id': str(uuid())
     }
 
@@ -313,8 +343,8 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> 
     }
 
 
-def activity_for_login(user_id: str, user_name: str) -> dict:
-    return {
+def activity_for_login(user_id: str, user_name: str, include_unread_history: bool=False) -> dict:
+    response = {
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
@@ -324,6 +354,21 @@ def activity_for_login(user_id: str, user_name: str) -> dict:
         'verb': 'login',
         'id': str(uuid())
     }
+
+    if include_unread_history:
+        messages = get_unacked_messages(user_id)
+        if len(messages) > 0:
+            history_activity = activity_for_history(as_parser(response), messages)
+            response['object'] = {
+                'objectType': 'history',
+                'attachments': history_activity['object']['attachments']
+            }
+
+    return response
+
+
+def get_unacked_messages(user_id: str) -> list:
+    return environ.env.storage.get_unacked_history(user_id)
 
 
 def activity_for_connect(user_id: str, user_name: str) -> dict:
@@ -367,24 +412,25 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
 
 @timeit(logger, 'on_activity_for_history')
 def activity_for_history(activity: Activity, messages: list) -> dict:
-    try:
-        room_name = b64e(get_room_name(activity.target.id))
-    except NoSuchRoomException as e:
-        logger.exception('could not find room name for room id %s: %s' % (activity.target.id, str(e)))
-        room_name = ''
-
     response = {
         'object': {
             'objectType': 'messages'
         },
         'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'id': str(uuid()),
-        'verb': 'history',
-        'target': {
+        'verb': 'history'
+    }
+
+    if hasattr(activity, 'target') and hasattr(activity.target, 'id'):
+        try:
+            room_name = b64e(get_room_name(activity.target.id))
+        except NoSuchRoomException as e:
+            logger.exception('could not find room name for room id %s: %s' % (activity.target.id, str(e)))
+            room_name = ''
+        response['target'] = {
             'id': activity.target.id,
             'displayName': room_name
         }
-    }
 
     response['object']['attachments'] = list()
     for message in messages:
@@ -393,6 +439,7 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
                 'id': message['from_user_id'],
                 'displayName': b64e(message['from_user_name'])
             },
+            'summary': message['target_id'],
             'id': message['message_id'],
             'content': b64e(message['body']),
             'published': message['timestamp']
@@ -448,7 +495,6 @@ def check_if_should_remove_room(data, activity):
 
     logger.info('checking whether to remove room "%s" (%s) or not' % (room_name, room_id))
 
-    #check_if_remove_room_owner(activity)
     check_if_remove_room_empty(activity)
 
 
@@ -456,7 +502,7 @@ def remove_room(channel_id, room_id, user_id, user_name, room_name):
     logger.info('removing room %s (%s), last owner has left/disconnected' % (room_id, room_name))
     environ.env.db.remove_room(channel_id, room_id)
     remove_activity = activity_for_remove_room(user_id, user_name, room_id, room_name)
-    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
+    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
 
 
 def check_if_remove_room_empty(activity: Activity):
@@ -686,9 +732,24 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
     }
 
     response['object']['attachments'] = list()
+    this_user_id = environ.env.session.get(SessionKeys.user_id.value)
+    this_user_is_super_user = is_super_user(this_user_id) or is_global_moderator(this_user_id)
 
     for user_id, user_name in users.items():
         user_info = get_user_info_attachments_for(user_id)
+        if this_user_is_super_user:
+            user_ip = ''
+            try:
+                user_ip = environ.env.request.remote_addr
+            except Exception as e:
+                logger.error('could not get remote address of user %s: %s' % (user_info, str(e)))
+                logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
+
+            user_info.append({
+                'objectType': 'ip',
+                'content': b64e(user_ip)
+            })
 
         # temporary fix for avoiding dead users
         if len(user_info) == 0:
@@ -696,13 +757,17 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
             continue
 
         user_roles = environ.env.db.get_user_roles_in_room(user_id, activity.target.id)
-
-        response['object']['attachments'].append({
+        user_attachment = {
             'id': user_id,
             'displayName': b64e(user_name),
             'attachments': user_info,
-            'content': ','.join(user_roles)
-        })
+            'content': ','.join(user_roles),
+            'objectType': 'user'
+        }
+        if this_user_is_super_user and user_is_invisible(user_id):
+            user_attachment['objectType'] = 'invisible'
+
+        response['object']['attachments'].append(user_attachment)
 
     return response
 
@@ -796,15 +861,15 @@ def set_name_for_user_id(user_id: str, user_name: str) -> None:
     environ.env.db.set_user_name(user_id, user_name)
 
 
-def set_sid_for_user_id(user_id: str, sid: str) -> None:
+def add_sid_for_user_id(user_id: str, sid: str) -> None:
     if sid is None or len(sid.strip()) == 0:
-        logger.error('empty sid when setting sid')
+        logger.error('empty sid when adding sid')
         return
-    environ.env.db.set_sid_for_user(user_id, sid)
+    environ.env.db.add_sid_for_user(user_id, sid)
 
 
-def get_sid_for_user_id(user_id: str) -> str:
-    return environ.env.db.get_sid_for_user(user_id)
+def get_sids_for_user_id(user_id: str) -> Union[list, None]:
+    return environ.env.db.get_sids_for_user(user_id)
 
 
 def create_or_update_user(user_id: str, user_name: str) -> bool:
@@ -860,7 +925,7 @@ def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
         return True, {'scope': 'channel', 'seconds': seconds, 'id': channel_id}
 
     if room_time != '':
-        end = datetime.fromtimestamp(int(room_time))
+        end = datetime.fromtimestamp(int(float(room_time)))
         seconds = str((end - now).seconds)
         logger.debug('user %s is banned in room %s for another %s seconds' %
                      (user_id, room_id, str((end - now).seconds)))
@@ -949,9 +1014,10 @@ def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False) -
     :param user_id: if specified, will check if super user, and if so will also include invisible users
     :param skip_cache: if True, check db directly, used for gn_join to get correct user list when joining; when listing
     rooms it is not necessary to have exact list; cache is 10-20s (random) per room
+    :param this_user_id: the id of the user making the request; if admin the response included more information
     :return: a list of users in the room
     """
-    return environ.env.db.users_in_room(room_id, user_id, skip_cache=skip_cache)
+    return environ.env.db.users_in_room(room_id, this_user_id=user_id, skip_cache=skip_cache)
 
 
 def get_acls_in_room_for_action(room_id: str, action: str) -> dict:
@@ -988,6 +1054,10 @@ def get_channel_name(channel_id: str) -> str:
 
 def get_room_name(room_id: str) -> str:
     return environ.env.db.get_room_name(room_id)
+
+
+def get_room_id(room_name: str) -> str:
+    return environ.env.db.get_room_id_for_name(room_name)
 
 
 def room_exists(channel_id: str, room_id: str) -> bool:
@@ -1042,7 +1112,12 @@ def can_send_cross_room(activity: Activity, from_room_uuid: str, to_room_uuid: s
         logger.debug('not allowed to send crossroom in channel: %s' % msg)
         return False
 
-    room_acls = get_acls_in_room_for_action(to_room_uuid, ApiActions.CROSSROOM)
+    try:
+        room_acls = get_acls_in_room_for_action(to_room_uuid, ApiActions.CROSSROOM)
+    except NoSuchRoomException:
+        logger.warning('room %s does not exist, maybe deleted before cache updated' % to_room_uuid)
+        return False
+
     is_valid, msg = validation.acl.validate_acl_for_action(
         activity, ApiTargets.ROOM, ApiActions.CROSSROOM, room_acls or dict())
     if not is_valid:
@@ -1058,6 +1133,13 @@ def get_admin_room() -> str:
 
 def get_channel_for_room(room_id: str) -> str:
     return environ.env.db.channel_for_room(room_id)
+
+
+def get_sender_for_message(message_id: str) -> Union[str, None]:
+    message = environ.env.storage.get_message(message_id)
+    if message is None:
+        return None
+    return message.get('from_user_id', None)
 
 
 def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:

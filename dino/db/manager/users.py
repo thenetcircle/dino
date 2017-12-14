@@ -33,7 +33,7 @@ class UserManager(BaseManager):
         self.env = env
 
     def get_users_for_room(self, room_id: str) -> list:
-        users = self.env.db.users_in_room(room_id)
+        users = self.env.db.users_in_room(room_id, skip_cache=True)
         output = list()
 
         for user_id, user_name in users.items():

@@ -69,6 +69,17 @@ class NoSuchRoomException(Exception):
         self.uuid = uuid
 
 
+class MultipleRoomsFoundForNameException(Exception):
+    def __init__(self, room_name: str):
+        self.room_name = room_name
+
+    def __str__(self):
+        return 'MultipleRoomsFoundForNameException<room_name: "%s">' % self.room_name
+
+    def __repr__(self):
+        return self.__str__()
+
+
 class InvalidAclTypeException(Exception):
     def __init__(self, acl_type):
         self.acl_type = acl_type

@@ -2,7 +2,7 @@
 a=""
 b=""
 
-for i in $(seq 1 14)
+for i in $(seq 1 365)
 do  
     b=$(git diff --shortstat "@{ $i day ago }") 
     if [[ "$b" != "$a" ]]; then 

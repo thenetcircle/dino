@@ -12,63 +12,66 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import sys
+import traceback
 from datetime import datetime
+from functools import wraps
 from typing import Union
 from uuid import uuid4 as uuid
-import traceback
-from sqlalchemy import or_
-from sqlalchemy import func
-from sqlalchemy.orm.exc import StaleDataError
 
+from sqlalchemy import func
+from sqlalchemy import or_
+from sqlalchemy.orm.exc import StaleDataError
+from sqlalchemy.orm.exc import UnmappedInstanceError
+from sqlalchemy.exc import IntegrityError
+from zope.interface import implementer
+
+from dino.config import ApiActions
+from dino.config import ApiTargets
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
 from dino.config import UserKeys
-from dino.config import ApiTargets
-from dino.config import ApiActions
-from dino.environ import GNEnvironment
-from dino.utils import b64e
-from dino.utils import b64d
-from dino.utils.decorators import timeit
-
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import ChannelRoles
-from dino.db.rdbms.models import GlobalRoles
-from dino.db.rdbms.models import Channels
-from dino.db.rdbms.models import RoomRoles
-from dino.db.rdbms.models import BlackList
-from dino.db.rdbms.models import Rooms
+from dino.db.rdbms.models import AclConfigs
 from dino.db.rdbms.models import Acls
+from dino.db.rdbms.models import Bans
+from dino.db.rdbms.models import BlackList
+from dino.db.rdbms.models import ChannelRoles
+from dino.db.rdbms.models import Channels
+from dino.db.rdbms.models import DefaultRooms
+from dino.db.rdbms.models import GlobalRoles
+from dino.db.rdbms.models import LastReads
+from dino.db.rdbms.models import RoomRoles
+from dino.db.rdbms.models import Rooms
+from dino.db.rdbms.models import Sids
 from dino.db.rdbms.models import UserStatus
 from dino.db.rdbms.models import Users
-from dino.db.rdbms.models import LastReads
-from dino.db.rdbms.models import Bans
-from dino.db.rdbms.models import DefaultRooms
-from dino.db.rdbms.models import AclConfigs
-
+from dino.environ import GNEnvironment
+from dino.exceptions import AclValueNotFoundException
 from dino.exceptions import ChannelExistsException
-from dino.exceptions import NoSuchChannelException
-from dino.exceptions import NoSuchRoomException
-from dino.exceptions import RoomExistsException
-from dino.exceptions import RoomNameExistsForChannelException
-from dino.exceptions import NoChannelFoundException
-from dino.exceptions import UserExistsException
-from dino.exceptions import NoSuchUserException
-from dino.exceptions import InvalidAclTypeException
-from dino.exceptions import InvalidAclValueException
+from dino.exceptions import ChannelNameExistsException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
-from dino.exceptions import EmptyUserNameException
 from dino.exceptions import EmptyUserIdException
-from dino.exceptions import ChannelNameExistsException
-from dino.exceptions import ValidationException
+from dino.exceptions import EmptyUserNameException
+from dino.exceptions import InvalidAclTypeException
+from dino.exceptions import InvalidAclValueException
 from dino.exceptions import InvalidApiActionException
-from dino.exceptions import AclValueNotFoundException
-
-from functools import wraps
-from zope.interface import implementer
-import logging
+from dino.exceptions import NoChannelFoundException
+from dino.exceptions import NoSuchChannelException
+from dino.exceptions import NoSuchRoomException
+from dino.exceptions import NoSuchUserException
+from dino.exceptions import RoomExistsException
+from dino.exceptions import RoomNameExistsForChannelException
+from dino.exceptions import MultipleRoomsFoundForNameException
+from dino.exceptions import UserExistsException
+from dino.exceptions import ValidationException
+from dino.utils import b64d
+from dino.utils import b64e
+from dino.utils.decorators import timeit
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -218,8 +221,8 @@ class DatabaseRdbms(object):
 
         return room_roles + global_roles
 
-    def get_admins_in_room(self, room_id: str) -> list:
-        users = self.users_in_room(room_id)
+    def get_admins_in_room(self, room_id: str, this_user_id: str=None) -> list:
+        users = self.users_in_room(room_id, this_user_id)
         mods_in_room = list()
         for user_id, _ in users.items():
             if not self.is_super_user(user_id) and not self.is_global_moderator(user_id):
@@ -245,6 +248,49 @@ class DatabaseRdbms(object):
             .filter(UserStatus.uuid.in_(admin_ids)).all()
         return [admin.uuid for admin in online_admins]
 
+    @with_session
+    def get_users_roles(self, user_ids: list, session=None) -> None:
+        g_roles = session.query(GlobalRoles).all()
+        c_roles = session.query(ChannelRoles).join(ChannelRoles.channel).all()
+        r_roles = session.query(RoomRoles).join(RoomRoles.room).all()
+
+        user_g_roles = {g.user_id: g for g in g_roles}
+        user_c_roles = dict()
+        user_r_roles = dict()
+
+        for c_role in c_roles:
+            if c_role.user_id not in user_c_roles:
+                user_c_roles[c_role.user_id] = list()
+            user_c_roles[c_role.user_id].append(c_role)
+
+        for r_role in r_roles:
+            if r_role.user_id not in user_r_roles:
+                user_r_roles[r_role.user_id] = list()
+            user_r_roles[r_role.user_id].append(r_role)
+
+        for user_id in user_ids:
+            roles = self._format_user_roles(
+                user_g_roles.get(user_id), user_c_roles.get(user_id), user_r_roles.get(user_id))
+            self.env.cache.set_user_roles(user_id, roles)
+
+    def _format_user_roles(self, g_roles, c_roles, r_roles) -> dict:
+        _output = {
+            'global': list(),
+            'channel': dict(),
+            'room': dict()
+        }
+
+        if g_roles is not None:
+            _output['global'] = [a for a in g_roles.roles.split(',') if len(a) > 0]
+
+        if c_roles is not None and len(c_roles) > 0:
+            for c_role in c_roles:
+                _output['channel'][c_role.channel.uuid] = [a for a in c_role.roles.split(',') if len(a) > 0]
+        if r_roles is not None and len(r_roles) > 0:
+            for r_role in r_roles:
+                _output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',') if len(a) > 0]
+        return _output
+
     def get_user_roles(self, user_id: str) -> dict:
         @with_session
         def _roles(session=None) -> dict:
@@ -253,26 +299,24 @@ class DatabaseRdbms(object):
                 session.query(ChannelRoles).join(ChannelRoles.channel).filter(ChannelRoles.user_id == user_id).all(),
                 session.query(RoomRoles).join(RoomRoles.room).filter(RoomRoles.user_id == user_id).all()
             )
-            output = {
-                'global': list(),
-                'channel': dict(),
-                'room': dict()
-            }
-
-            if g_roles is not None:
-                output['global'] = [a for a in g_roles.roles.split(',') if len(a) > 0]
-
-            if c_roles is not None and len(c_roles) > 0:
-                for c_role in c_roles:
-                    output['channel'][c_role.channel.uuid] = [a for a in c_role.roles.split(',') if len(a) > 0]
-            if r_roles is not None and len(r_roles) > 0:
-                for r_role in r_roles:
-                    output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',') if len(a) > 0]
-            return output
+            return self._format_user_roles(g_roles, c_roles, r_roles)
 
         output = self.env.cache.get_user_roles(user_id)
+
         if output is not None:
-            return output
+            did_reset_user_roles = False
+            if 'room' in output:
+                for room_id in output['room']:
+                    try:
+                        self.get_room_name(room_id)
+                    except NoSuchRoomException:
+                        logger.warning(
+                            'user has room %s in roles, but room does not exist; will delete role' % room_id)
+                        self.env.cache.reset_user_roles(user_id)
+                        did_reset_user_roles = True
+                        break
+            if not did_reset_user_roles:
+                return output
 
         roles = _roles()
         self.env.cache.set_user_roles(user_id, roles)
@@ -428,23 +472,49 @@ class DatabaseRdbms(object):
 
         if self.env.cache.user_is_invisible(user_id):
             return
-        _set_user_invisible()
+
+        try:
+            _set_user_invisible()
+        except StaleDataError as e:
+            logger.warning('could not set user %s invisible, will try again: %s' % (user_id, str(e)))
+            try:
+                _set_user_invisible()
+            except StaleDataError as e:
+                logger.error('could not set user %s invisible second time, logging to sentry: %s' % (user_id, str(e)))
+                self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error('other error when trying to set user %s invisible second try: %s' % (user_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
         self.env.cache.set_user_status(user_id, UserKeys.STATUS_INVISIBLE)
 
     def set_user_offline(self, user_id: str) -> None:
         @with_session
         def _set_user_offline(session=None):
-            self.env.cache.set_user_offline(user_id)
             status = session.query(UserStatus).filter_by(uuid=user_id).first()
             if status is None:
+                logger.warning('no UserStatus found in db for user ID %s' % user_id)
                 return
             session.delete(status)
             session.commit()
 
-        if self.env.cache.user_is_offline(user_id):
-            return
-        _set_user_offline()
-        self.env.cache.set_user_status(user_id, UserKeys.STATUS_UNAVAILABLE)
+        try:
+            _set_user_offline()
+        except StaleDataError as e:
+            logger.warning('could not set user %s offline, will try again: %s' % (user_id, str(e)))
+            try:
+                _set_user_offline()
+            except StaleDataError as e:
+                logger.error('could not set user %s offline second time, logging to sentry: %s' % (user_id, str(e)))
+                self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error('other error when trying to set user %s offline second try: %s' % (user_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
+        logger.debug('setting user %s as offline in cache' % user_id)
+        self.env.cache.set_user_offline(user_id)
 
     def set_user_online(self, user_id: str) -> None:
         @with_session
@@ -461,7 +531,21 @@ class DatabaseRdbms(object):
 
         if self.env.cache.user_is_online(user_id):
             return
-        _set_user_online()
+
+        try:
+            _set_user_online()
+        except StaleDataError as e:
+            logger.warning('could not set user %s online, will try again: %s' % (user_id, str(e)))
+            try:
+                _set_user_online()
+            except StaleDataError as e:
+                logger.error('could not set user %s online second time, logging to sentry: %s' % (user_id, str(e)))
+                self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error('other error when trying to set user %s online second try: %s' % (user_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
         self.env.cache.set_user_status(user_id, UserKeys.STATUS_AVAILABLE)
 
     @with_session
@@ -585,6 +669,9 @@ class DatabaseRdbms(object):
         def _user_ids(session=None):
             room = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).first()
             users_in_room = dict()
+            if room is None:
+                logger.warning('no room found for UUID %s' % room_id)
+                return users_in_room
             for user in room.users:
                 users_in_room[user.uuid] = user.name
             return users_in_room
@@ -615,7 +702,7 @@ class DatabaseRdbms(object):
         if not skip_cache:
             users = self.env.cache.get_users_in_room(room_id, is_super_user=is_super_user)
             if users is not None:
-                return users
+                return users.copy()
 
         all_users = _user_ids()
         user_statuses = _user_statuses(all_users)
@@ -633,10 +720,10 @@ class DatabaseRdbms(object):
     def remove_current_rooms_for_user(self, user_id: str, session=None) -> None:
         self._remove_current_rooms_for_user(user_id, session)
 
-    def set_ephemeral_room(self, room_id: str, session=None):
+    def set_ephemeral_room(self, room_id: str):
         self._set_ephemeral_on_room_to(room_id, is_ephemeral=True)
 
-    def unset_ephemeral_room(self, room_id: str, session=None):
+    def unset_ephemeral_room(self, room_id: str):
         self._set_ephemeral_on_room_to(room_id, is_ephemeral=False)
 
     @with_session
@@ -753,8 +840,22 @@ class DatabaseRdbms(object):
 
         return _room_name_exists()
 
+    def get_room_id_for_name(self, room_name: str) -> str:
+        @with_session
+        def _do_get(session=None):
+            return session.query(Rooms)\
+                .filter(Rooms.name == room_name)\
+                .all()
+
+        rooms = _do_get()
+        if len(rooms) == 0:
+            raise NoSuchRoomException(room_name)
+        if len(rooms) > 1:
+            raise MultipleRoomsFoundForNameException(room_name)
+        return rooms[0].uuid
+
     @with_session
-    def get_temp_rooms_user_is_owner_for(self, user_id: str, session=None) -> None:
+    def get_temp_rooms_user_is_owner_for(self, user_id: str, session=None) -> list:
         roles = session.query(RoomRoles)\
             .join(RoomRoles.room)\
             .filter(Rooms.ephemeral.is_(True))\
@@ -812,7 +913,7 @@ class DatabaseRdbms(object):
                 .first()
 
             if room is None or room.channel is None:
-                raise NoChannelFoundException(room_id)
+                raise NoSuchRoomException(room_id)
             return room.channel.uuid
 
         if room_id is None or room_id.strip() == '':
@@ -821,6 +922,8 @@ class DatabaseRdbms(object):
         value = self.env.cache.get_channel_for_room(room_id)
         if value is not None:
             return value
+
+        self.get_room_name(room_id)
 
         channel_id = _channel_for_room()
         self.env.cache.set_channel_for_room(channel_id, room_id)
@@ -935,6 +1038,12 @@ class DatabaseRdbms(object):
         update()
         self.env.cache.reset_channels_with_sort()
 
+    @with_session
+    def get_all_user_ids(self, session=None) -> list:
+        from sqlalchemy.orm import load_only
+        users = session.query(Users).options(load_only('uuid')).all()
+        return [user.uuid for user in users]
+
     def update_room_sort_order(self, room_uuid: str, sort_order: int) -> None:
         @with_session
         def update(session=None):
@@ -978,7 +1087,22 @@ class DatabaseRdbms(object):
         for room_uuid in room_uuids:
             self.remove_room(channel_id, room_uuid)
 
-        do_remove_channel()
+        try:
+            do_remove_channel()
+        except StaleDataError as e:
+            logger.warning(
+                'could not remove channel %s, got stale data, will try again: %s' % (channel_id, str(e)))
+            try:
+                do_remove_channel()
+            except StaleDataError as e:
+                logger.error(
+                    'could not remove channel %s for second time, logging to sentry: %s' % (channel_id, str(e)))
+                self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error('other error when trying to remove channel %s second try: %s' % (channel_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
         self.env.cache.remove_channel_exists(channel_id)
         self.env.cache.reset_rooms_for_channel(channel_id)
         self.env.cache.reset_channels_with_sort()
@@ -999,13 +1123,38 @@ class DatabaseRdbms(object):
                     session.delete(role)
                 session.commit()
 
+            # remove all users from this room
+            try:
+                room.users[:] = []
+                session.commit()
+            except Exception as remove_error:
+                logger.error(
+                    'could not remove users from room %s (%s) because: %s' % (room_id, room_name, str(remove_error)))
+                self.env.capture_exception(sys.exc_info())
+
             session.delete(room)
             session.commit()
 
         self.get_channel_name(channel_id)
         room_name = self.get_room_name(room_id)
 
-        do_remove()
+        try:
+            do_remove()
+        except (StaleDataError, IntegrityError) as e:
+            logger.warning('could not remove room %s (%s), will try again: %s' % (room_id, room_name, str(e)))
+            try:
+                do_remove()
+            except (StaleDataError, IntegrityError) as e:
+                logger.error(
+                    'could not remove room %s (%s) for second time, logging to sentry: %s' %
+                    (room_id, room_name, str(e)))
+                self.env.capture_exception(sys.exc_info())
+            except Exception as e:
+                logger.error(
+                    'other error when trying to remove room %s (%s) second try: %s' % (room_id, room_name, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
+
         self.env.cache.remove_room_exists(channel_id, room_id)
         self.env.cache.reset_rooms_for_channel(channel_id)
         self.env.cache.remove_room_id_for_name(room_id, room_name)
@@ -1027,14 +1176,28 @@ class DatabaseRdbms(object):
                 # user is not in the room, so nothing to do
                 return
 
-            room.users.remove(user)
+            try:
+                room.users.remove(user)
+            except ValueError as e:
+                logger.warning('user %s tried to leave room but already left, ignoring: %s' % (user_id, str(e)))
+                return
             session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException()
 
         self.get_room_name(room_id)
-        _leave()
+        try:
+            _leave()
+        except ValueError as e:
+            logger.warning(
+                'got ValueError when leaving room, likely user (%s) already left the room (%s): %s' %
+                (user_id, room_id, str(e)))
+            self.env.capture_exception(sys.exc_info())
+        except (StaleDataError, IntegrityError) as e:
+            logger.warning(
+                'db error when leaving room, likely already removed from assoc table: %s' % str(e))
+            self.env.capture_exception(sys.exc_info())
 
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.get_room_name(room_id)
@@ -1049,6 +1212,10 @@ class DatabaseRdbms(object):
                 user.name = user_name
                 session.add(user)
 
+            if room is None:
+                logger.error('no such room %s (%s)' % (room_id, room_name))
+                raise NoSuchRoomException(room_id)
+
             user.rooms.append(room)
             session.add(room)
 
@@ -1056,24 +1223,16 @@ class DatabaseRdbms(object):
             session.add(room)
             session.commit()
 
-        _join_room()
-
-    def _object_has_role_for_user(self, obj: Union[Rooms, Channels], the_role: str, user_id: str) -> bool:
-        if obj is None:
-            return False
-
-        found_role = None
-        for role in obj.roles:
-            if role.user_id == user_id:
-                found_role = role
-                break
-
-        if found_role is None:
-            return False
-        if found_role.roles is None or found_role.roles == '':
-            return False
-
-        return the_role in set(found_role.roles.split(','))
+        try:
+            _join_room()
+        except UnmappedInstanceError as e:
+            error_msg = 'user "%s" (%s) tried to join room "%s" (%s), but the room was None when joining; ' \
+                        'likely removed after check and before joining: %s'
+            logger.warning(error_msg % (user_id, user_name, room_id, room_name, str(e)))
+        except IntegrityError as e:
+            logger.warning('user "%s" (%s) tried to join room "%s" (%s) but it has been deleted: %s' %
+                           (user_name, user_id, room_name, room_id, str(e)))
+            raise NoSuchRoomException(room_id)
 
     def _add_global_role(self, user_id: str, role: str):
         @with_session
@@ -1117,42 +1276,15 @@ class DatabaseRdbms(object):
         self._update_user_roles_in_cache(user_id)
 
     def _has_global_role(self, user_id: str, role: str):
-        @with_session
-        def check(session=None):
-            global_role = session.query(GlobalRoles).filter(GlobalRoles.user_id == user_id).first()
-            if global_role is None:
-                logger.debug('no global roles found for user id "%s"' % user_id)
-                return False
-
-            roles = set(global_role.roles.split(','))
-            logger.debug('found global roles for user id "%s": "%s"' % (user_id, roles))
-            return role in roles
-
-        user_roles = self.env.cache.get_user_roles(user_id)
-        if user_roles is None:
-            return check()
+        user_roles = self.get_user_roles(user_id)
         return role in user_roles['global']
 
     def _room_has_role_for_user(self, the_role: str, room_id: str, user_id: str) -> bool:
-        @with_session
-        def check(session=None):
-            room = session.query(Rooms).join(Rooms.roles).filter(Rooms.uuid == room_id).first()
-            return self._object_has_role_for_user(room, the_role, user_id)
-
-        user_roles = self.env.cache.get_user_roles(user_id)
-        if user_roles is None:
-            return check()
+        user_roles = self.get_user_roles(user_id)
         return room_id in user_roles['room'] and the_role in user_roles['room'][room_id]
 
     def _channel_has_role_for_user(self, the_role: str, channel_id: str, user_id: str) -> bool:
-        @with_session
-        def check(session=None):
-            channel = session.query(Channels).join(Channels.roles).filter(Channels.uuid == channel_id).first()
-            return self._object_has_role_for_user(channel, the_role, user_id)
-
-        user_roles = self.env.cache.get_user_roles(user_id)
-        if user_roles is None:
-            return check()
+        user_roles = self.get_user_roles(user_id)
         return channel_id in user_roles['channel'] and the_role in user_roles['channel'][channel_id]
 
     def _remove_role_on_room_for_user(self, the_role: str, room_id: str, user_id: str) -> None:
@@ -1545,7 +1677,7 @@ class DatabaseRdbms(object):
                 .first()
 
             if room is None:
-                raise NoSuchRoomException(room_id)
+                return None
 
             found_acls = room.acls
             if found_acls is None or len(found_acls) == 0:
@@ -1561,7 +1693,11 @@ class DatabaseRdbms(object):
         value = self.env.cache.get_all_acls_for_room(room_id)
         if value is not None:
             return value
+
         value = _acls()
+        if value is None:
+            raise NoSuchRoomException(room_id)
+
         self.env.cache.set_all_acls_for_room(room_id, value)
         return value
 
@@ -1587,6 +1723,8 @@ class DatabaseRdbms(object):
                     continue
                 acls[found_acl.acl_type] = found_acl.acl_value
             return acls
+
+        self.get_room_name(room_id)
 
         value = self.env.cache.get_acls_in_room_for_action(room_id, action)
         if value is not None:
@@ -1998,7 +2136,7 @@ class DatabaseRdbms(object):
         # TODO: fix this method, it's a horribly ugly friday night hack
         def _has_passed(the_time):
             now = datetime.utcnow()
-            return now > datetime.fromtimestamp(int(the_time))
+            return now > datetime.fromtimestamp(int(float(the_time)))
 
         def _set_in_cache_if_none(_gtime, _ctime, _rtime):
             if _gtime is None:
@@ -2193,40 +2331,102 @@ class DatabaseRdbms(object):
     def kick_user(self, room_id: str, user_id: str) -> None:
         self.leave_room(user_id, room_id)
 
-    def set_sid_for_user(self, user_id: str, sid: str) -> None:
+    def reset_sids_for_user(self, user_id: str) -> None:
         @with_session
         def update_sid(session=None):
-            user = session.query(Users)\
-                .filter(Users.uuid == user_id)\
-                .first()
+            user_sids = session.query(Sids)\
+                .filter(Sids.user_uuid == user_id)\
+                .all()
 
-            if user is None:
-                raise NoSuchUserException(user_id)
+            if user_sids is None or len(user_sids) == 0:
+                return
 
-            user.sid = sid
+            for user_sid in user_sids:
+                try:
+                    session.delete(user_sid)
+                except Exception as e:
+                    if user_sid is None:
+                        logger.warning('sid already removed after fetching, ignoring: %s' % str(e))
+                    else:
+                        logger.error('could not remove sid %s for user %s: %s' % (user_sid.sid, user_id, str(e)))
+                        self.env.capture_exception(sys.exc_info())
+
             session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
+        self.env.cache.reset_sids_for_user(user_id)
         update_sid()
 
-    def get_sid_for_user(self, user_id: str) -> str:
+    def remove_sid_for_user(self, user_id: str, sid: str) -> None:
         @with_session
-        def get_sid(session=None) -> str:
-            user = session.query(Users)\
-                .filter(Users.uuid == user_id)\
+        def update_sid(session=None):
+            user_sid = session.query(Sids)\
+                .filter(Sids.user_uuid == user_id)\
+                .filter(Sids.sid == sid)\
                 .first()
 
-            if user is None:
-                return None
-            return user.sid
+            if user_sid is None:
+                return
+
+            session.delete(user_sid)
+            session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
-        return get_sid()
+        self.env.cache.remove_sid_for_user(user_id, sid)
+        update_sid()
+
+    def add_sid_for_user(self, user_id: str, sid: str) -> None:
+        @with_session
+        def update_sid(session=None):
+            user_sid = session.query(Sids)\
+                .filter(Sids.user_uuid == user_id)\
+                .filter(Sids.sid == sid)\
+                .first()
+
+            if user_sid is not None:
+                return
+
+            user_sid = Sids()
+            user_sid.user_uuid = user_id
+            user_sid.sid = sid
+            session.add(user_sid)
+            session.commit()
+
+        if user_id is None or len(user_id.strip()) == 0:
+            raise EmptyUserIdException(user_id)
+        self.env.cache.add_sid_for_user(user_id, sid)
+        update_sid()
+
+    def get_sids_for_user(self, user_id: str) -> list:
+        @with_session
+        def get_sids(session=None) -> Union[list, None]:
+            user_sids = session.query(Sids)\
+                .filter(Sids.user_uuid == user_id)\
+                .all()
+
+            if user_sids is None:
+                return list()
+            return [user_sid.sid for user_sid in user_sids if user_sid.sid is not None and len(user_sid.sid) > 0]
+
+        if user_id is None or len(user_id.strip()) == 0:
+            raise EmptyUserIdException(user_id)
+
+        all_sids = self.env.cache.get_sids_for_user(user_id)
+        if all_sids is None:
+            return list()
+
+        all_sids = [sid for sid in all_sids if sid is not None and len(sid) > 0]
+        if len(all_sids) > 0:
+            return all_sids.copy()
+
+        all_sids = get_sids()
+        self.env.cache.set_sids_for_user(user_id, all_sids)
+        return all_sids
 
     @staticmethod
-    def _decode_reason(self, reason: str=None) -> str:
+    def _decode_reason(reason: str=None) -> str:
         if reason is None or len(reason.strip()) == 0:
             return ''
         return b64d(reason)

@@ -44,7 +44,8 @@ class HistoryResource(BaseResource):
 
     @lru_cache()
     def do_get_with_params(self, room_id, user_id, from_time, to_time):
-        return storage_manager.find_history(room_id, user_id, from_time, to_time)
+        msgs, from_time, to_time = storage_manager.find_history(room_id, user_id, from_time, to_time)
+        return msgs
 
     @timeit(logger, 'on_rest_history')
     def do_get(self):

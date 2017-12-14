@@ -31,7 +31,7 @@ class SendMessageTest(BaseTest):
 
         act = self.activity_for_message('this is a message')
         act['actor']['id'] = BaseTest.OTHER_USER_ID
-        act['target']['id'] = BaseTest.USER_ID
+        act['target']['id'] = BaseTest.ROOM_ID
         act['target']['objectType'] = 'private'
 
         api.on_message(act, as_parser(act))
@@ -39,7 +39,7 @@ class SendMessageTest(BaseTest):
         # make sure hooks have fired, async
         time.sleep(0.05)
 
-        self.assertIsNotNone(self.msgs_sent.get(BaseTest.USER_ID))
+        self.assertIsNotNone(self.msgs_sent.get(BaseTest.ROOM_ID))
 
     def test_send_room_message(self):
         act = self.activity_for_join(BaseTest.OTHER_USER_ID, BaseTest.ROOM_ID)

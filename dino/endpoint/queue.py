@@ -13,6 +13,7 @@
 import logging
 import traceback
 import time
+import sys
 
 from datetime import datetime
 from uuid import uuid4 as uuid
@@ -45,18 +46,18 @@ class QueueHandler(object):
         room_id = activity.target.id
         namespace = activity.target.url or '/ws'
         user_id = activity.object.id
-        user_sid = utils.get_sid_for_user_id(user_id)
+        user_sids = utils.get_sids_for_user_id(user_id)
         users = list()
 
         try:
             if room_id is None:
                 logger.debug('checking if we have user %s in namespace %s' % (user_id, namespace))
-                if user_sid in self.socketio.server.manager.rooms[namespace]:
-                    logger.debug('found users %s on this node' % user_id)
-                    return True
-                else:
-                    logger.info('no user %s for namespace [%s] (or user not on this node)' % (room_id, namespace))
-                    return False
+                for user_sid in user_sids:
+                    if user_sid in self.socketio.server.manager.rooms[namespace]:
+                        logger.debug('found user %s on this node' % user_id)
+                        return True
+                logger.info('no user %s for namespace [%s] (or user not on this node)' % (room_id, namespace))
+                return False
 
             else:
                 logger.debug('checking if we have room %s in namespace %s' % (room_id, namespace))
@@ -65,7 +66,7 @@ class QueueHandler(object):
                     logger.debug('found users for room %s: %s' % (room_id, str(users)))
                 else:
                     logger.warning('no room %s for namespace [%s] (or room is empty/removed)' % (room_id, namespace))
-                return user_sid in users
+                return any(user_sid in users for user_sid in user_sids)
 
         except KeyError as e:
             logger.warning('namespace %s does not exist (maybe this is web/rest node?): %s' % (namespace, str(e)))
@@ -193,7 +194,7 @@ class QueueHandler(object):
             # otherwise it's external events for possible analysis
             environ.env.publish(data, external=True)
 
-    def kick(self, orig_data: dict, activity: Activity, room_id: str, user_id: str, user_sid: str, namespace: str) -> None:
+    def kick(self, orig_data: dict, activity: Activity, room_id: str, user_id: str, user_sids: list, namespace: str) -> None:
         if room_id is None:
             raise RuntimeError('trying to kick when room is none')
 
@@ -216,22 +217,23 @@ class QueueHandler(object):
         self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
         self.send_kick_event_to_external_queue(activity)
 
-        if user_sid in _users:
-            logger.info('about to kick user %s' % user_sid)
-            try:
-                self.socketio.server.leave_room(user_sid, room_id, '/ws')
-            except Exception as e:
-                logger.error('could not kick user %s from room %s: %s' % (user_id, room_id, str(e)))
-                logger.exception(traceback.format_exc())
+        for user_sid in user_sids:
+            if user_sid in _users:
+                logger.info('about to kick user %s' % user_sid)
+                try:
+                    self.socketio.server.leave_room(user_sid, room_id, '/ws')
+                except Exception as e:
+                    logger.error('could not kick user %s from room %s: %s' % (user_id, room_id, str(e)))
+                    logger.exception(traceback.format_exc())
 
-            try:
-                self.env.db.leave_room(user_id, room_id)
-            except Exception as e:
-                logger.warning('could not remove user from room in db (maybe room is already deleted): %s' % str(e))
+                try:
+                    self.env.db.leave_room(user_id, room_id)
+                except Exception as e:
+                    logger.warning('could not remove user from room in db (maybe room is already deleted): %s' % str(e))
 
         self.delete_for_user_in_room(user_id, room_id)
 
-    def ban_room(self, data: dict, act: Activity, room_id: str, user_id: str, user_sid: str, namespace: str) -> None:
+    def ban_room(self, data: dict, act: Activity, room_id: str, user_id: str, user_sids: list, namespace: str) -> None:
         self.env.out_of_scope_emit(
                 'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
         if act.actor.id != '0':
@@ -239,14 +241,14 @@ class QueueHandler(object):
                      'gn_user_banned', data, json=True, namespace=namespace, room=act.actor.id, broadcast=True)
 
         try:
-            self.kick(data, act, room_id, user_id, user_sid, namespace)
+            self.kick(data, act, room_id, user_id, user_sids, namespace)
         except Exception as e:
             logger.error('could not ban user %s from room %s: %s' % (user_id, room_id, str(e)))
             return
 
         self.delete_for_user_in_room(user_id, room_id)
 
-    def ban_channel(self, data: dict, activity: Activity, rooms_in_channel, channel_id, user_id, user_sid, namespace):
+    def ban_channel(self, data: dict, activity: Activity, rooms_in_channel, channel_id, user_id, user_sids: list, namespace):
         try:
             if activity.actor.id != '0':
                 self.env.out_of_scope_emit(
@@ -254,26 +256,37 @@ class QueueHandler(object):
             for room_id in rooms_in_channel:
                 self.env.out_of_scope_emit(
                         'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
-                self.kick(data, activity, room_id, user_id, user_sid, namespace)
+                self.kick(data, activity, room_id, user_id, user_sids, namespace)
         except Exception as e:
             logger.error('could not ban user %s from channel %s: %s' % (user_id, channel_id, str(e)))
             logger.exception(traceback.format_exc(e))
+            self.env.capture_exception(sys.exc_info())
             return
 
         for room_id in rooms_in_channel:
             self.delete_for_user_in_room(user_id, room_id)
 
-    def ban_globally(self, data: dict, act: Activity, rooms: dict, user_id: str, user_sid: str, namespace: str) -> None:
+    def ban_globally(self, data: dict, act: Activity, rooms: dict, user_id: str, user_sids: list, namespace: str) -> None:
+        try:
+            message_ids = self.env.storage.get_undeleted_message_ids_for_user(user_id)
+            for message_id in message_ids:
+                self.env.storage.delete_message(message_id)
+        except Exception as e:
+            logger.error('could not delete messages for user %s: %s' % (user_id, str(e)))
+            logger.exception(traceback.format_exc(e))
+            self.env.capture_exception(sys.exc_info())
+
         try:
             if len(rooms) == 0:
                 logger.warning('rooms to ban globally for is empty for user %s' % user_id)
             for room_id, room_name in rooms.items():
                 self.env.out_of_scope_emit(
                         'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
-                self.kick(data, act, room_id, user_id, user_sid, namespace)
+                self.kick(data, act, room_id, user_id, user_sids, namespace)
         except Exception as e:
             logger.error('could not ban user %s globally: %s' % (user_id, str(e)))
             logger.exception(traceback.format_exc(e))
+            self.env.capture_exception(sys.exc_info())
             return
 
     def delete_for_user_in_room(self, user_id: str, room_id: str):
@@ -284,6 +297,7 @@ class QueueHandler(object):
         except Exception as e:
             logger.error('could not get undeleted messages: %s' % str(e))
             logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
             return
         self.delete_messages(user_id, messages)
 
@@ -309,6 +323,7 @@ class QueueHandler(object):
                 except Exception as e:
                     logger.error('could not delete message with id %s because: %s' % (message_id, str(e)))
                     logger.exception(traceback.format_exc())
+                    self.env.capture_exception(sys.exc_info())
                     failures += 1
             return successes, failures
         except Exception as e2:
@@ -331,7 +346,7 @@ class QueueHandler(object):
 
         kicked_id = activity.object.id
         kicked_name = activity.object.display_name or utils.get_user_name_for(kicked_id)
-        kicked_sid = utils.get_sid_for_user_id(kicked_id)
+        kicked_sids = utils.get_sids_for_user_id(kicked_id)
         room_id = activity.target.id
 
         if room_id is not None:
@@ -340,8 +355,8 @@ class QueueHandler(object):
             room_name = activity.target.display_name
         namespace = activity.target.url
 
-        if kicked_sid is None or kicked_sid == [None] or kicked_sid == '':
-            logger.warning('no sid found for user id %s' % kicked_id)
+        if kicked_sids is None or len(kicked_sids) == 0 or kicked_sids == [None] or kicked_sids[0] == '':
+            logger.warning('no sid(s) found for user id %s' % kicked_id)
             return
 
         reason = None
@@ -356,11 +371,12 @@ class QueueHandler(object):
             if room_id is None or room_id == '':
                 room_keys = self.env.db.rooms_for_user(kicked_id).copy().keys()
                 for room_key in room_keys:
-                    self.kick(activity_json, activity, room_key, kicked_id, kicked_sid, namespace)
+                    self.kick(activity_json, activity, room_key, kicked_id, kicked_sids, namespace)
             else:
-                self.kick(activity_json, activity, room_id, kicked_id, kicked_sid, namespace)
+                self.kick(activity_json, activity, room_id, kicked_id, kicked_sids, namespace)
         except KeyError as e:
             logger.error('could not kick user %s: %s' % (kicked_id, str(e)))
+            self.env.capture_exception(sys.exc_info())
 
     def handle_ban(self, activity: Activity):
         banner_id = activity.actor.id
@@ -376,7 +392,7 @@ class QueueHandler(object):
 
         banned_id = activity.object.id
         banned_name = utils.get_user_name_for(banned_id)
-        banned_sid = utils.get_sid_for_user_id(banned_id)
+        banned_sids = utils.get_sids_for_user_id(banned_id)
         namespace = activity.target.url or '/ws'
         target_type = activity.target.object_type
 
@@ -390,8 +406,8 @@ class QueueHandler(object):
             target_id = ''
             target_name = ''
 
-        if banned_sid is None or banned_sid == [None] or banned_sid == '':
-            logger.warning('no sid found for user id %s' % banned_id)
+        if banned_sids is None or len(banned_sids) == 0 or banned_sids == [None] or banned_sids[0] == '':
+            logger.warning('no sid(s) found for user id %s' % banned_id)
             return
 
         reason = None
@@ -405,25 +421,25 @@ class QueueHandler(object):
             if target_id is None or target_id == '':
                 rooms_for_user = self.env.db.rooms_for_user(banned_id)
                 logger.info('user %s is in these rooms (will ban from all): %s' % (banned_id, str(rooms_for_user)))
-                self.ban_globally(activity_json, activity, rooms_for_user, banned_id, banned_sid, namespace)
+                self.ban_globally(activity_json, activity, rooms_for_user, banned_id, banned_sids, namespace)
                 self.env.db.set_user_offline(banned_id)
                 disconnect_activity = utils.activity_for_disconnect(banned_id, banned_name)
                 self.env.publish(disconnect_activity, external=True)
 
             elif target_type == 'channel':
                 rooms_in_channel = self.env.db.rooms_for_channel(target_id)
-                self.ban_channel(activity_json, activity, rooms_in_channel, target_id, banned_id, banned_sid, namespace)
+                self.ban_channel(activity_json, activity, rooms_in_channel, target_id, banned_id, banned_sids, namespace)
             else:
-                self.ban_room(activity_json, activity, target_id, banned_id, banned_sid, namespace)
+                self.ban_room(activity_json, activity, target_id, banned_id, banned_sids, namespace)
 
             ban_activity = self.get_ban_activity(activity, target_type)
             self.env.out_of_scope_emit(
-                    'gn_banned', ban_activity, json=True, namespace=namespace,
-                    room=utils.get_sid_for_user_id(banned_id))
+                    'gn_banned', ban_activity, json=True, namespace=namespace, room=banned_id)
 
         except KeyError as ke:
             logger.error('could not ban: %s' % str(ke))
             logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
 
     def get_ban_activity(self, activity: Activity, target_type: str) -> dict:
         ban_activity = {

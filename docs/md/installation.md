@@ -10,21 +10,21 @@ Some package requirements (debian/ubuntu):
 From source
 ----
 
-Requires Python >=3.6.0. Download and install from source (tip: install in `/opt` since it might interfere with other
+Requires Python >=3.5.0. Download and install from source (tip: install in `/opt` since it might interfere with other
 python installations, present or future):
 
-    $ wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz
-    $ tar -xvf Python-3.6.2.tar.xz
-    $ cd Python-3.6.2/
-    $ sudo mkdir /opt/python-3.6.2
-    $ ./configure --prefix=/opt/python-3.6.2 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" --enable-optimizations
+    $ wget https://www.python.org/ftp/python/3.5.4/Python-3.5.4.tar.xz
+    $ tar -xvf Python-3.5.4.tar.xz
+    $ cd Python-3.5.4/
+    $ sudo mkdir /opt/python-3.5.4
+    $ ./configure --prefix=/opt/python-3.5.4 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" --enable-optimizations
     $ make
     $ sudo make altinstall
 
 Add the paths to your `.bashrc` or `.profile`:
 
-    export PATH="/opt/python-3.6.2/bin/:$PATH"
-    export LD_LIBRARY_PATH="/opt/python-3.6.2/lib/:$LD_LIBRARY_PATH"
+    export PATH="/opt/python-3.5.4/bin/:$PATH"
+    export LD_LIBRARY_PATH="/opt/python-3.5.4/lib/:$LD_LIBRARY_PATH"
 
 Install requirements:
 
@@ -42,7 +42,7 @@ Install [miniconda](https://conda.io/docs/install/quick.html):
 
 Create your environment and install the requirements:
 
-    $ conda create -n env python=3.6
+    $ conda create -n env python=3.5
     $ source activate env
     $ pip install -r requirements.txt
 
@@ -68,7 +68,7 @@ Just clone and run from the cloned directory:
 
     $ git clone https://github.com/thenetcircle/dino.git
     $ cd dino
-    $ virtualenv --python=python3.6 env
+    $ virtualenv --python=python3.5 env
     $ source env/bin/activate
     (env) $ pip install --upgrade -r requirements.txt
     (env) $ pip install --upgrade --no-deps .
@@ -78,7 +78,7 @@ Using init script
 
     $ git clone https://github.com/thenetcircle/dino.git foobar-prod
     $ cd foobar-prod
-    $ virtualenv --python=python3.6 env
+    $ virtualenv --python=python3.5 env
     $ sudo cp bin/initd/dino-app /etc/init.d/
     $ source env/bin/activate
     (env) $ pip install --upgrade -r requirements.txt
@@ -96,7 +96,7 @@ install for.
     /home/dino
     $ git clone https://github.com/thenetcircle/dino.git foobar-prod
     $ cd foobar-prod
-    $ virtualenv --python=python3.6 env
+    $ virtualenv --python=python3.5 env
     $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod app 5200
     $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod rest 5400
     $ sudo ./bin/install.sh foobar-prod /home/dino/foobar-prod web 5300
@@ -159,7 +159,7 @@ Simple
 Running in the foreground:
 
     $ cd dino/
-    $ virtualenv --python=python3.6 env
+    $ virtualenv --python=python3.5 env
     $ source env/bin/activate
     (env) $ DINO_ENVIRONMENT=dev gunicorn \
                 --error-logfile ~/dino-gunicorn-error.log \

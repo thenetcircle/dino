@@ -81,6 +81,12 @@ class DatabaseRedis(object):
     def add_words_to_blacklist(self, words: list) -> None:
         self.redis.sadd(RedisKeys.black_list(), words)
 
+    def get_users_roles(self, user_ids: list) -> None:
+        raise NotImplementedError('not available in redis implementation of db interface')
+
+    def get_all_user_ids(self) -> list:
+        raise NotImplementedError('not available in redis implementation of db interface')
+
     def remove_word_from_blacklist(self, word_id) -> None:
         raise NotImplementedError('not available in redis implementation of db interface')
 
@@ -409,6 +415,9 @@ class DatabaseRedis(object):
     def room_exists(self, channel_id: str, room_id: str) -> bool:
         return self.redis.hexists(RedisKeys.rooms(channel_id), room_id)
 
+    def get_room_id_for_name(self, room_name: str) -> str:
+        raise NotImplementedError('redis db does not support getting room id from name')
+
     def room_name_exists(self, channel_id, room_name: str) -> bool:
         cleaned = set()
         for existing_room_name in self.redis.hvals(RedisKeys.rooms(channel_id)):
@@ -457,7 +466,7 @@ class DatabaseRedis(object):
         self.channel_for_room(room_id)
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
-    def users_in_room(self, room_id: str, user_id: str=None, skip_cache: bool=False) -> dict:
+    def users_in_room(self, room_id: str, this_user_id: str=None, skip_cache: bool=False) -> dict:
         self.get_room_name(room_id)
         self.channel_for_room(room_id)
 
@@ -960,6 +969,8 @@ class DatabaseRedis(object):
         if value is not None:
             return value
 
+        self.get_room_name(room_id)
+
         channel_id = self.redis.hget(RedisKeys.channel_for_rooms(), room_id)
         if channel_id is None:
             raise NoChannelFoundException(room_id)
@@ -994,18 +1005,26 @@ class DatabaseRedis(object):
                 logger.error('no username found for user_id %s' % user_id)
         return cleaned
 
-    def set_sid_for_user(self, user_id: str, sid: str) -> None:
+    def add_sid_for_user(self, user_id: str, sid: str) -> None:
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
         self.redis.hset(RedisKeys.sid_for_user_id(), user_id, sid)
 
-    def get_sid_for_user(self, user_id: str) -> str:
+    def reset_sids_for_user(self, user_id: str) -> None:
+        if user_id is None or len(user_id.strip()) == 0:
+            raise EmptyUserIdException(user_id)
+        self.redis.hdel(RedisKeys.sid_for_user_id(), user_id)
+
+    def remove_sid_for_user(self, user_id: str, sid: str) -> None:
+        self.reset_sids_for_user(user_id)
+
+    def get_sids_for_user(self, user_id: str) -> Union[list, None]:
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
         sid = self.redis.hget(RedisKeys.sid_for_user_id(), user_id)
         if sid is None:
             return None
-        return str(sid, 'utf-8')
+        return [str(sid, 'utf-8')]
 
     def _get_users_with_role_in_channel(self, channel_id: str, role_key: str):
         roles = self.redis.hgetall(RedisKeys.channel_roles(channel_id))

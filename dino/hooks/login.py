@@ -35,7 +35,7 @@ class OnLoginHooks(object):
             environ.env.session[SessionKeys.image.value] = 'y'
 
         utils.create_or_update_user(user_id, user_name)
-        utils.set_sid_for_user_id(user_id, environ.env.request.sid)
+        utils.add_sid_for_user_id(user_id, environ.env.request.sid)
         environ.env.join_room(user_id)
         environ.env.join_room(environ.env.request.sid)
 

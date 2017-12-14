@@ -16,12 +16,9 @@ from typing import Union
 
 from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
-from activitystreams import parse as as_parser
 from flask import request
-from uuid import uuid4 as uuid
 
 from dino.config import ApiTargets
-from dino.config import ConfigKeys
 from dino.config import ErrorCodes as ECodes
 from dino.exceptions import NoSuchRoomException
 from dino.hooks import *
@@ -56,16 +53,10 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
     user_id = environ.env.session.get(SessionKeys.user_id.value)
     user_name = environ.env.session.get(SessionKeys.user_name.value)
-
-    if not environ.env.config.get(ConfigKeys.TESTING):
-        if str(user_id) in environ.env.connected_user_ids:
-            logger.info('a new connection for user ID %s, will disconnect previous one' % user_id)
-            environ.env.disconnect_by_sid(environ.env.connected_user_ids[str(user_id)])
-        environ.env.connected_user_ids[str(user_id)] = environ.env.request.sid
-
     user_roles = utils.get_user_roles(user_id)
 
-    response = utils.activity_for_login(user_id, user_name)
+    unread_history = _get_history_type() == ConfigKeys.HISTORY_TYPE_UNREAD
+    response = utils.activity_for_login(user_id, user_name, include_unread_history=unread_history)
     response['actor']['attachments'] = list()
 
     if len(user_roles['global']) > 0:
@@ -90,6 +81,14 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
 
     environ.env.observer.emit('on_login', (data, activity))
     return ECodes.OK, response
+
+
+def _get_history_type():
+    if ConfigKeys.HISTORY not in environ.env.config:
+        return 'unknown'
+    if ConfigKeys.TYPE not in environ.env.config.get(ConfigKeys.HISTORY):
+        return 'unknown'
+    return environ.env.config.get(ConfigKeys.HISTORY).get(ConfigKeys.TYPE)
 
 
 @timeit(logger, 'on_delete')
@@ -157,7 +156,6 @@ def on_message(data, activity: Activity):
     if activity.target.object_type == 'room':
         activity.target.display_name = utils.get_room_name(activity.target.id)
     else:
-        activity.target.display_name = utils.get_user_name_for(activity.target.id)
         activity.object.display_name = ''
         activity.object.url = ''
 
@@ -186,6 +184,36 @@ def on_update_user_info(data: dict, activity: Activity) -> (int, Union[str, None
     return ECodes.OK, data
 
 
+@timeit(logger, 'on_read')
+def on_read(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    acknowledge one or more messages has been read
+
+    target.attachments.id: the uuid of the message to acknowledge
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    environ.env.observer.emit('on_read', (data, activity))
+    return ECodes.OK, None
+
+
+@timeit(logger, 'on_received')
+def on_received(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    acknowledge one or more messages has been received
+
+    target.attachments.id: the uuid of the message to acknowledge
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    environ.env.observer.emit('on_received', (data, activity))
+    return ECodes.OK, None
+
+
 @timeit(logger, 'on_ban')
 def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
@@ -204,7 +232,6 @@ def on_ban(data: dict, activity: Activity) -> (int, Union[str, None]):
     :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
     """
     environ.env.observer.emit('on_ban', (data, activity))
-    #environ.env.observer.emit('on_kick', (data, activity))
     return ECodes.OK, None
 
 
@@ -397,7 +424,7 @@ def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
             activity.actor.id, activity.actor.display_name, room_id, room_name, reason)
 
     environ.env.db.remove_room(channel_id, room_id)
-    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
+    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
     environ.env.observer.emit('on_remove_room', (data, activity))
 
     return ECodes.OK, utils.activity_for_room_removed(activity, room_name)
@@ -419,7 +446,7 @@ def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     messages = utils.get_history_for_room(room_id, user_id, last_read)
     owners = utils.get_owners_for_room(room_id)
     acls = utils.get_acls_for_room(room_id)
-    users = utils.get_users_in_room(room_id, user_id, skip_cache=True)
+    users = utils.get_users_in_room(room_id, user_id=user_id, skip_cache=True)
 
     environ.env.observer.emit('on_join', (data, activity))
     return ECodes.OK, utils.activity_for_join(activity, acls, messages, owners, users)
@@ -453,6 +480,7 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     :return: if ok, {'status_code': ECodes.OK, 'data': <AS with rooms as object.attachments>}
     """
     channel_id = activity.object.url
+    user_id = activity.actor.id
     rooms = environ.env.db.rooms_for_channel(channel_id)
 
     roles = utils.get_user_roles(environ.env.session.get(SessionKeys.user_id.value))
@@ -466,8 +494,9 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
                     activity, ApiTargets.ROOM, ApiActions.LIST, acls, target_id=room_id, object_type='room')
         except Exception as e:
             logger.warning('could not check acls for room %s in on_list_rooms: %s' % (room_id, str(e)))
-            logger.exception(traceback.format_exc())
-            environ.env.capture_exception(e)
+
+            # likely the room was deleted, so reset cached user roles so this room is not included anymore
+            environ.env.cache.reset_user_roles(user_id)
             continue
 
         # if not allowed to join, don't show in list

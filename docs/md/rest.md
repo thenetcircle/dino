@@ -200,23 +200,20 @@ seconds). Negative or 0 durations are not allowed.
 
 When type is set to `global`, no target is specified (meaning user is banned from the whole chat server).
 
-Response will be something like the following:
+Response will be something like the following (if failure):
 
     {
-        "<user id>": {
-            "status": "OK"
-        },
-        "<user id>": {
-            "status": "FAIL",
-            "message": "invalid duration 5k"
-        },
-        "<user id>": {
-            "status": "FAIL",
-            "message": "no such user"
-        },
-        "<user id>" {
-            "status": "OK"
-        }
+        "status": "FAIL",
+        "message": "missing target id for user id <user id> and request <the request json>"
+    }
+
+The banning is done async so if any of the provided user bans has invalid parameters the response will only tell you the
+first non-valid parameter and for which user ID.
+
+For success the response looks like this:
+
+    {
+        "status": "OK"
     }
 
 ## POST /kick

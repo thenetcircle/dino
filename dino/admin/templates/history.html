@@ -20,7 +20,40 @@
     </form>
 </div>
 
+<div id="history-search-info">
+    Limited to 500 messages per query, narrow your time window if you wish to see more. Max time window is 7 days. If
+    chosen window is longer, then 7 days after "from timestamp" will be used as "to timestamp". If no "to timestamp" is
+    chosen but a "from timestamp" is chosen, then "to timestamp" wil be set to <i>one hour after</i> "to timestamp".
+    Similarly, if a "to timestamp" is chosen but no "from timestamp", then "from timestamp" will be set to <i>one
+    hour before</i> "to timestamp". If neither "from timestamp" nor "to timestamp" is selected, "to timestamp" will be
+    set to "now" and "from timestamp" set to <i>7 days</i> before now.<br /><br />
+    See the "from" and "to" times below to know the real time window used in the query.
+</div>
+
 <hr />
+
+<table id="real-history-time">
+    <thead>
+        <tr>
+            <th>&nbsp;</th>
+            <th><span class="time-header">Local time</span></th>
+            <th><span class="time-header">UTC</span></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><span class="time-header">From</span></td>
+            <td><span class="datetime">{{ real_from_time }}</span></td>
+            <td><span>{{ real_from_time }}</span></td>
+        </tr>
+        <tr>
+            <td><span class="time-header">To</span></td>
+            <td><span class="datetime">{{ real_to_time }}</span></td>
+            <td><span>{{ real_to_time }}</span></td>
+        </tr>
+    </tbody>
+</table>
+<br />
 
 <table id="list-history" class="display responsive" cellspacing="0" width="100%">
     <thead>

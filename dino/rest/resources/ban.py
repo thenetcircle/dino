@@ -14,6 +14,7 @@
 
 import logging
 import traceback
+import sys
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -59,7 +60,9 @@ class BanResource(BaseResource):
             self.schedule_execution(json)
             return ok()
         except Exception as e:
-            self.env.capture_exception(e)
+            logger.error('could not ban user: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
             return fail(str(e))
 
     def schedule_execution(self, json: dict):
@@ -69,7 +72,7 @@ class BanResource(BaseResource):
         except Exception as e:
             logger.error('could not schedule ban request: %s' % str(e))
             logger.exception(e)
-            self.env.capture_exception(e)
+            self.env.capture_exception(sys.exc_info())
 
     def _validate_params(self):
         is_valid, msg, json = self.validate_json(self.request, silent=False)
@@ -110,13 +113,13 @@ class BanResource(BaseResource):
             try:
                 self.ban_user(user_id, ban_info)
             except Exception as e:
-                self.env.capture_exception(e)
+                self.env.capture_exception(sys.exc_info())
                 logger.error('could not ban user %s: %s' % (user_id, str(e)))
 
     def ban_user(self, user_id: str, ban_info: dict):
         target_type = ban_info['type']
-        target_id = ban_info['target']
-        duration = ban_info['duration']
+        target_id = ban_info.get('target', '')
+        duration = ban_info.get('duration', '')
         reason = ban_info.get('reason')
         banner_id = ban_info.get('admin_id')
 
@@ -133,14 +136,14 @@ class BanResource(BaseResource):
                     reason=reason, banner_id=banner_id, user_name=user_name)
         except ValueError as e:
             logger.error('invalid ban duration "%s" for user %s: %s' % (duration, user_id, str(e)))
-            self.env.capture_exception(e)
+            self.env.capture_exception(sys.exc_info())
         except NoSuchUserException as e:
             logger.error('no such user %s: %s' % (user_id, str(e)))
-            self.env.capture_exception(e)
+            self.env.capture_exception(sys.exc_info())
         except UnknownBanTypeException as e:
             logger.error('unknown ban type "%s" for user %s: %s' % (target_type, user_id, str(e)))
-            self.env.capture_exception(e)
+            self.env.capture_exception(sys.exc_info())
         except Exception as e:
             logger.error('could not ban user %s: %s' % (user_id, str(e)))
             logger.error(traceback.format_exc())
-            self.env.capture_exception(e)
+            self.env.capture_exception(sys.exc_info())

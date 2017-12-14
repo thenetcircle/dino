@@ -28,7 +28,7 @@ class OnReportHooks(object):
         _, activity = arg
         report_activity = utils.activity_for_report(activity)
         admin_room_id = utils.get_admin_room()
-        environ.env.emit('gn_reported', report_activity, json=True, broadcast=True, room=admin_room_id)
+        environ.env.emit('gn_reported', report_activity, json=True, broadcast=True, room=admin_room_id, namespace='/ws')
 
 
 @environ.env.observer.on('on_report')

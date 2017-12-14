@@ -15,7 +15,9 @@
 import traceback
 import logging
 import time
+import sys
 import activitystreams as as_parser
+import eventlet
 
 from functools import wraps
 from datetime import datetime
@@ -44,8 +46,9 @@ def timeit(_logger, tag: str):
                 return view_func(*args, **kwargs)
             except Exception as e:
                 failed = True
+                _logger.exception(traceback.format_exc())
                 _logger.error(tag + '... FAILED')
-                environ.env.capture_exception(e)
+                environ.env.capture_exception(sys.exc_info())
                 raise e
             finally:
                 if not failed:
@@ -58,7 +61,11 @@ def timeit(_logger, tag: str):
     return factory
 
 
-def respond_with(gn_event_name=None):
+def _delayed_disconnect(sid: str):
+    environ.env.disconnect_by_sid(sid)
+
+
+def respond_with(gn_event_name=None, should_disconnect=False, emit_response=True):
     def factory(view_func):
         @wraps(view_func)
         def decorator(*args, **kwargs):
@@ -69,7 +76,10 @@ def respond_with(gn_event_name=None):
                 environ.env.stats.incr(gn_event_name + '.exception')
                 tb = traceback.format_exc()
                 logger.error('%s: %s' % (gn_event_name, str(e)))
-                environ.env.capture_exception(e)
+                environ.env.capture_exception(sys.exc_info())
+
+                if should_disconnect and environ.env.config.get(ConfigKeys.DISCONNECT_ON_FAILED_LOGIN, False):
+                    eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
                 return 500, str(e)
             finally:
                 if tb is not None:
@@ -77,10 +87,14 @@ def respond_with(gn_event_name=None):
 
             if status_code != 200:
                 logger.warning('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
-            if data is not None:
-                environ.env.emit(gn_event_name, {'status_code': status_code, 'data': data})
-            else:
-                environ.env.emit(gn_event_name, {'status_code': status_code})
+                if should_disconnect and environ.env.config.get(ConfigKeys.DISCONNECT_ON_FAILED_LOGIN, False):
+                    eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
+
+            # in some cases the callback is enough
+            if emit_response:
+                response_message = environ.env.response_formatter(status_code, data)
+                environ.env.emit(gn_event_name, response_message)
+
             return status_code, None
         return decorator
     return factory
@@ -99,7 +113,7 @@ def count_connections(connect_type=None):
                     logger.warning('unknown connect type "%s"' % connect_type)
             except Exception as e:
                 logger.error('could not record statistics: %s' % str(e))
-                environ.env.capture_exception(e)
+                environ.env.capture_exception(sys.exc_info())
 
             return view_func(*args, **kwargs)
         return decorator
@@ -166,7 +180,7 @@ def pre_process(validation_name, should_validate_request=True):
                     logger.error('%s: %s' % (validation_name, str(e)))
                     logger.exception(traceback.format_exc())
                     environ.env.stats.incr('event.' + validation_name + '.exception')
-                    environ.env.capture_exception(e)
+                    environ.env.capture_exception(sys.exc_info())
                     return ErrorCodes.UNKNOWN_ERROR, str(e)
 
                 if status_code == 200:

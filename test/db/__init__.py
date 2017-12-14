@@ -470,11 +470,11 @@ class BaseDatabaseTest(BaseTest):
         self.assertFalse(self._is_moderator())
 
     def _test_channel_for_room_no_channel(self):
-        self.assertRaises(NoChannelFoundException, self._channel_for_room)
+        self.assertRaises(NoSuchRoomException, self._channel_for_room)
 
     def _test_channel_for_room_with_channel_without_room(self):
         self._create_channel()
-        self.assertRaises(NoChannelFoundException, self._channel_for_room)
+        self.assertRaises(NoSuchRoomException, self._channel_for_room)
 
     def _test_channel_for_room_with_channel_with_room(self):
         self._create_channel()
@@ -1633,7 +1633,7 @@ class BaseDatabaseTest(BaseTest):
         self.assertRaises(NoSuchRoomException, self.db.channel_for_room, '')
 
     def _test_channel_for_room_before_create(self):
-        self.assertRaises(NoChannelFoundException, self.db.channel_for_room, BaseTest.ROOM_ID)
+        self.assertRaises(NoSuchRoomException, self.db.channel_for_room, BaseTest.ROOM_ID)
 
     def _test_channel_for_room_after_create(self):
         self._create_channel()

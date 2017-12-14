@@ -54,6 +54,7 @@ class Database(object):
         username = self.env.config.get(ConfigKeys.USER, default=None, domain=domain)
         password = self.env.config.get(ConfigKeys.PASSWORD, default=None, domain=domain)
         database = self.env.config.get(ConfigKeys.DB, default=None, domain=domain)
+        pool_size = self.env.config.get(ConfigKeys.POOL_SIZE, default=75, domain=domain)
 
         if host is not None and host != '':
             params['host'] = host
@@ -66,7 +67,7 @@ class Database(object):
         if database is not None and database != '':
             params['database'] = database
 
-        return create_engine(URL(**params), pool_recycle=280, pool_size=75)
+        return create_engine(URL(**params), pool_recycle=280, pool_size=pool_size)
 
     def truncate(self):
         DeclarativeBase.metadata.drop_all(self.engine)

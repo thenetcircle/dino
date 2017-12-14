@@ -23,6 +23,40 @@ class IStorage(Interface):
         :return: nothing
         """
 
+    def get_message(self, message_id: str) -> dict:
+        """
+        get the message with the given ID
+
+        :param message_id: uuid of the message
+        :return: a dict describing the message
+        """
+
+    def mark_as_received(self, message_ids: set, receiver_id: str) -> None:
+        """
+        mark messages as received by client
+
+        :param message_ids: a set of message uuids
+        :param receiver_id: the uuid of the receiving user, must match for update to be done
+        :return: nothing
+        """
+
+    def mark_as_read(self, message_ids: set, receiver_id: str) -> None:
+        """
+        mark messages as read by client
+
+        :param message_ids: a set of message uuids
+        :param receiver_id: the uuid of the receiving user, must match for update to be done
+        :return: nothing
+        """
+
+    def get_messages(self, message_ids: set) -> list:
+        """
+        get all messages with the given IDs
+
+        :param message_ids: set of uuids of messages
+        :return: a list of dicts describing the messages
+        """
+
     def get_history(self, room_id: str, limit: int = 100) -> list:
         """
         get history for a room
