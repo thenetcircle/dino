@@ -96,7 +96,7 @@ class OnDisconnectHooks(object):
 
                     utils.remove_user_from_room(user_id, user_name, room_id)
                     environ.env.emit('gn_user_left', utils.activity_for_leave(user_id, user_name, room_id, room_name),
-                                     room=room_id)
+                                     room=room_id, namespace='/ws')
                     utils.check_if_should_remove_room(data, activity)
 
                 environ.env.db.remove_current_rooms_for_user(user_id)

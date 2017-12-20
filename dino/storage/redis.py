@@ -19,6 +19,7 @@ from dino import environ
 from dino.storage import IStorage
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
+from dino.config import AckStatus
 from dino.config import RedisKeys
 from dino.utils import is_base64
 from dino.utils import b64d
@@ -107,6 +108,61 @@ class StorageRedis(object):
             })
 
         return cleaned_messages
+
+    def _get_acks_for(self, message_ids: set, receiver_id: str) -> dict:
+        redis_key = RedisKeys.ack_for_user(receiver_id)
+        acks = dict()
+        for message_id in message_ids:
+            ack = self.redis.hget(redis_key, message_id)
+            if ack is None:
+                continue
+            acks[message_ids] = int(float(str(ack, 'utf-8')))
+        return acks
+
+    def _update_acks_with_status(self, message_ids: set, receiver_id: str, target_id: str, status: int):
+        redis_key_user = RedisKeys.ack_for_user(receiver_id)
+        redis_key_room = RedisKeys.ack_for_room(target_id)
+
+        for message_id in message_ids:
+            self.redis.hset(redis_key_user, message_id, str(status))
+            self.redis.sadd(redis_key_room, message_id)
+
+    def _mark_as_status(self, message_ids: set, receiver_id: str, target_id: str, status: int):
+        current_acks = self._get_acks_for(message_ids, receiver_id)
+        to_update = list()
+        to_add = list()
+
+        for message_id in message_ids:
+            if message_id not in current_acks:
+                to_add.append(message_id)
+                continue
+                # don't downgrade status
+            if current_acks.get(message_id) >= status:
+                continue
+            to_update.append(message_id)
+
+        if len(to_update) > 0:
+            self._update_acks_with_status(message_ids, receiver_id, target_id, status)
+        if len(to_add) > 0:
+            self._update_acks_with_status(message_ids, receiver_id, target_id, status)
+
+    def get_unacked_history(self, user_id: str) -> list:
+        """
+        redis_key_user = RedisKeys.ack_for_user(user_id)
+        redis_key_room = RedisKeys.ack_for_room(target_id)
+        acks = self.redis.hgetall(redis_key_user)
+        msg_ids = {str(msg_id, 'utf-8') for msg_id, ack in acks if int(float(str(ack, 'utf-8'))) == AckStatus.NOT_ACKED}
+        """
+        return list()
+
+    def mark_as_received(self, message_ids: set, receiver_id: str, target_id: str) -> None:
+        self._mark_as_status(message_ids, receiver_id, target_id, AckStatus.RECEIVED)
+
+    def mark_as_read(self, message_ids: set, receiver_id: str, target_id: str) -> None:
+        self._mark_as_status(message_ids, receiver_id, target_id, AckStatus.READ)
+
+    def mark_as_unacked(self, message_id: str, receiver_id: str, target_id: str) -> None:
+        self._mark_as_status({message_id}, receiver_id, target_id, AckStatus.NOT_ACKED)
 
     def get_history_for_time_slice(self, room_id: str, from_time: int, to_time: int) -> list:
         raise NotImplementedError()

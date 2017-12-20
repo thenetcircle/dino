@@ -4,6 +4,8 @@ common_config: &common_config
     response_format: 'status_code,data,error'
     disconnect_on_failed_login: True
     sender_can_delete: True
+    delivery_guarantee: True
+    request_log_location: '$DINO_REQ_LOG_LOC'
     auth:
         type: 'redis'
         host: '$DINO_AUTH_HOST'
@@ -58,11 +60,11 @@ default:
         password: '$DINO_DB_PASS'
         pool_size: 150
     storage:
-        type: 'redis'
-        host: 'localhost:6379'
-        #type: 'cassandra'
-        #host:
-        #    - '$DINO_CASSANDRA_HOST_1'
+        #type: 'redis'
+        #host: 'localhost:6379'
+        type: 'cassandra'
+        host:
+            - '$DINO_CASSANDRA_HOST_1'
     queue:
         type: 'amqp'
         host: '$DINO_QUEUE_HOST'
@@ -112,6 +114,7 @@ dev:
 
 integration:
     <<: *common_config
+    request_log_location: False
     database:
         type: 'redis'
         host: 'mock'
@@ -137,6 +140,7 @@ integration:
 test:
     <<: *common_config
     testing: True
+    request_log_location: False
     database:
         type: 'redis'
         host: '$DINO_DB_HOST'

@@ -103,6 +103,7 @@ class BaseTest(unittest.TestCase):
     USER_ID = '1234'
     USER_NAME = 'Joe'
     ROOM_ID = str(uuid())
+    OTHER_ROOM_ID = str(uuid())
     CHANNEL_ID = str(uuid())
     CHANNEL_NAME = 'Best Channel'
     ROOM_NAME = 'Shanghai'

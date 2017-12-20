@@ -65,7 +65,7 @@ def _delayed_disconnect(sid: str):
     environ.env.disconnect_by_sid(sid)
 
 
-def respond_with(gn_event_name=None, should_disconnect=False):
+def respond_with(gn_event_name=None, should_disconnect=False, emit_response=True):
     def factory(view_func):
         @wraps(view_func)
         def decorator(*args, **kwargs):
@@ -90,8 +90,11 @@ def respond_with(gn_event_name=None, should_disconnect=False):
                 if should_disconnect and environ.env.config.get(ConfigKeys.DISCONNECT_ON_FAILED_LOGIN, False):
                     eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
 
-            response_message = environ.env.response_formatter(status_code, data)
-            environ.env.emit(gn_event_name, response_message)
+            # in some cases the callback is enough
+            if emit_response:
+                response_message = environ.env.response_formatter(status_code, data)
+                environ.env.emit(gn_event_name, response_message)
+
             return status_code, None
         return decorator
     return factory

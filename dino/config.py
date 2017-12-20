@@ -61,6 +61,7 @@ class ErrorCodes(object):
     MISSING_OBJECT_ATTACHMENTS = 508
     MISSING_ATTACHMENT_TYPE = 509
     MISSING_ATTACHMENT_CONTENT = 510
+    MISSING_VERB = 511
 
     INVALID_TARGET_TYPE = 600
     INVALID_ACL_TYPE = 601
@@ -69,6 +70,7 @@ class ErrorCodes(object):
     INVALID_STATUS = 604
     INVALID_OBJECT_TYPE = 605
     INVALID_BAN_DURATION = 606
+    INVALID_VERB = 607
 
     EMPTY_MESSAGE = 700
     NOT_BASE64 = 701
@@ -86,6 +88,7 @@ class ErrorCodes(object):
     INVALID_LOGIN = 713
     MSG_TOO_LONG = 714
     MULTIPLE_ROOMS_WITH_NAME = 715
+    TOO_MANY_ATTACHMENTS = 716
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -137,7 +140,14 @@ class UserKeys(object):
     STATUS_UNKNOWN = '5'
 
 
+class AckStatus(object):
+    NOT_ACKED = 0
+    RECEIVED = 1
+    READ = 2
+
+
 class ConfigKeys(object):
+    REQ_LOG_LOC = 'request_log_location'
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'
     RESPONSE_FORMAT = 'response_format'
@@ -180,6 +190,7 @@ class ConfigKeys(object):
     MAX_ROOM_NAME_LENGTH = 'max_length'
     DISCONNECT_ON_FAILED_LOGIN = 'disconnect_on_failed_login'
     SENDER_CAN_DELETE = 'sender_can_delete'
+    DELIVERY_GUARANTEE = 'delivery_guarantee'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'
@@ -239,11 +250,21 @@ class RedisKeys(object):
     RKEY_BLACK_LIST = 'words:blacklist'
     RKEY_NON_EPHEMERAL_ROOMS = 'rooms:nonephemeral'
     RKEY_DEFAULT_ROOMS = 'rooms:default'
+    RKEY_ACKS_USER = 'acks:user:%s'
+    RKEY_ACKS_ROOM = 'acks:room:%s'
 
     RKEY_SID_TO_USER_ID = 'user:sid:map'
     RKEY_BANNED_USERS_GLOBAL = 'users:banned:global'
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
+
+    @staticmethod
+    def ack_for_user(user_id: str) -> str:
+        return RedisKeys.RKEY_ACKS_USER % user_id
+
+    @staticmethod
+    def ack_for_room(user_id: str) -> str:
+        return RedisKeys.RKEY_ACKS_ROOM % user_id
 
     @staticmethod
     def users_in_room_incl_invisible(room_id: str) -> str:

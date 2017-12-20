@@ -55,7 +55,8 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     user_roles = utils.get_user_roles(user_id)
 
-    response = utils.activity_for_login(user_id, user_name)
+    unread_history = _get_history_type() == ConfigKeys.HISTORY_TYPE_UNREAD
+    response = utils.activity_for_login(user_id, user_name, include_unread_history=unread_history)
     response['actor']['attachments'] = list()
 
     if len(user_roles['global']) > 0:
@@ -80,6 +81,14 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
 
     environ.env.observer.emit('on_login', (data, activity))
     return ECodes.OK, response
+
+
+def _get_history_type():
+    if ConfigKeys.HISTORY not in environ.env.config:
+        return 'unknown'
+    if ConfigKeys.TYPE not in environ.env.config.get(ConfigKeys.HISTORY):
+        return 'unknown'
+    return environ.env.config.get(ConfigKeys.HISTORY).get(ConfigKeys.TYPE)
 
 
 @timeit(logger, 'on_delete')
@@ -147,7 +156,6 @@ def on_message(data, activity: Activity):
     if activity.target.object_type == 'room':
         activity.target.display_name = utils.get_room_name(activity.target.id)
     else:
-        activity.target.display_name = utils.get_user_name_for(activity.target.id)
         activity.object.display_name = ''
         activity.object.url = ''
 
@@ -174,6 +182,36 @@ def on_update_user_info(data: dict, activity: Activity) -> (int, Union[str, None
     data['actor']['displayName'] = activity.actor.display_name
     environ.env.observer.emit('on_update_user_info', (data, activity))
     return ECodes.OK, data
+
+
+@timeit(logger, 'on_read')
+def on_read(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    acknowledge one or more messages has been read
+
+    target.attachments.id: the uuid of the message to acknowledge
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    environ.env.observer.emit('on_read', (data, activity))
+    return ECodes.OK, None
+
+
+@timeit(logger, 'on_received')
+def on_received(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    acknowledge one or more messages has been received
+
+    target.attachments.id: the uuid of the message to acknowledge
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    environ.env.observer.emit('on_received', (data, activity))
+    return ECodes.OK, None
 
 
 @timeit(logger, 'on_ban')
@@ -386,7 +424,7 @@ def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
             activity.actor.id, activity.actor.display_name, room_id, room_name, reason)
 
     environ.env.db.remove_room(channel_id, room_id)
-    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True)
+    environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
     environ.env.observer.emit('on_remove_room', (data, activity))
 
     return ECodes.OK, utils.activity_for_room_removed(activity, room_name)

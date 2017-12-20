@@ -17,6 +17,8 @@ from dino.utils.decorators import timeit
 
 import logging
 import traceback
+import eventlet
+import sys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -24,23 +26,11 @@ logger = logging.getLogger(__name__)
 
 
 class OnMessageHooks(object):
-    LAST_READ_ENABLED = None
-
-    @staticmethod
-    def last_read_enabled():
-        if OnMessageHooks.LAST_READ_ENABLED is not None:
-            return OnMessageHooks.LAST_READ_ENABLED
-
-        history_type = environ.env.config.get(
-                ConfigKeys.TYPE,
-                domain=ConfigKeys.HISTORY,
-                default=ConfigKeys.DEFAULT_HISTORY_STRATEGY)
-
-        OnMessageHooks.LAST_READ_ENABLED = history_type == ConfigKeys.HISTORY_TYPE_UNREAD
-        return OnMessageHooks.LAST_READ_ENABLED
-
     @staticmethod
     def do_process(arg: tuple) -> None:
+        def send(_data: dict, _room: str, _json: bool=True, _broadcast: bool=True) -> None:
+            environ.env.send(_data, json=_json, room=_room, broadcast=_broadcast)
+
         @timeit(logger, 'on_message_hooks_publish_activity')
         def publish_activity() -> None:
             user_name = activity.actor.display_name
@@ -55,45 +45,55 @@ class OnMessageHooks(object):
             room_id = activity.target.id
             if utils.user_is_invisible(user_id):
                 data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
-            environ.env.send(data, json=True, room=room_id, broadcast=True)
+            send(data, _room=room_id)
 
-        @timeit(logger, 'on_message_hooks_update_last_read')
-        def update_last_read() -> None:
-            if not OnMessageHooks.last_read_enabled():
-                return
-
-            room_id = activity.target.id
-            if activity.target.object_type == 'private':
-                utils.update_last_reads_private(room_id)
-            else:
-                utils.update_last_reads(room_id)
-
+        @timeit(logger, 'on_message_hooks_store')
         def store() -> None:
             try:
-                environ.env.pool_executor.submit(environ.env.storage.store_message, activity)
+                environ.env.storage.store_message(activity)
             except Exception as e:
                 logger.error('could not store message %s because: %s' % (activity.id, str(e)))
                 logger.error(str(data))
                 logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
+                return
+
+            if environ.env.config.get(ConfigKeys.DELIVERY_GUARANTEE, False) or activity.target.object_type != 'private':
+                return
+
+            owners = environ.env.db.get_owners_room(activity.target.id)
+            environ.env.storage.mark_as_read(activity.id, activity.actor.id, activity.target.id)
+            if owners is None or len(owners) == 0:
+                return
+
+            for receiver_id in owners:
+                if activity.actor.id == receiver_id:
+                    continue
+                environ.env.storage.mark_as_unacked(activity.id, receiver_id, activity.target.id)
 
         data, activity = arg
         user_id = activity.actor.id
         word = utils.used_blacklisted_word(activity)
 
         if word is None:
-            broadcast()
-            store()
-            publish_activity()
-            update_last_read()
+            running_tests = environ.env.config.get(ConfigKeys.TESTING, False)
+            if running_tests:
+                store()
+                broadcast()
+                publish_activity()
+            else:
+                eventlet.spawn(store)
+                broadcast()
+                eventlet.spawn(publish_activity)
         else:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
             environ.env.publish(blacklist_activity)
-            environ.env.send(data, json=True, room=user_id, broadcast=False, include_self=True)
+            send(data, _room=user_id, _broadcast=False)
 
             admins_in_room = environ.env.db.get_admins_in_room(activity.target.id)
             if len(admins_in_room) > 0:
                 for admin_user_id in admins_in_room:
-                    environ.env.send(data, json=True, room=admin_user_id, broadcast=False, include_self=True)
+                    send(data, _room=admin_user_id, _broadcast=False)
 
 
 @environ.env.observer.on('on_message')

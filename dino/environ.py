@@ -296,7 +296,7 @@ def find_config(config_paths: list) -> tuple:
     return config_dict, config_path
 
 
-def find_config_acl(acl_paths: list) -> str:
+def find_config_acl(acl_paths: list) -> (dict, str):
     default_paths = ["acl.yaml", "acl.json"]
     acl_dict = dict()
     acl_path = None
@@ -364,6 +364,8 @@ def load_secrets_file(config_dict: dict) -> dict:
     if secrets_path is None:
         secrets_path = 'secrets/%s.yaml' % gn_env
 
+    logger.debug('loading secrets file "%s"' % secrets_path)
+
     # first substitute environment variables, which holds precedence over the yaml config (if it exists)
     template = Template(str(config_dict))
     template = template.safe_substitute(os.environ)
@@ -379,13 +381,59 @@ def load_secrets_file(config_dict: dict) -> dict:
     return ast.literal_eval(template)
 
 
+def configure_request_log(gn_environment: str, config_dict: dict):
+    request_log_location = config_dict.get(ConfigKeys.REQ_LOG_LOC, None)
+    request_log_disabled = \
+        request_log_location is None or str(request_log_location).lower() in {'false', 'mock', 'no', '', 'none', 'n'}
+
+    if request_log_disabled:
+        logging.getLogger('engineio').setLevel(logging.WARNING)
+        return
+
+    log_level = config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL)
+    debug_enabled = str(os.environ.get('DINO_DEBUG', 0)).lower() in {'1', 'true', 'yes', 'y'}
+
+    if log_level == 'DEBUG' or debug_enabled:
+        import sys
+        args = sys.argv
+        bind_arg_pos = None
+        for a in ['--bind', '-b']:
+            bind_arg_pos = [i for i, x in enumerate(args) if x == a]
+            if len(bind_arg_pos) > 0:
+                bind_arg_pos = bind_arg_pos[0]
+                break
+
+        port = 'standalone'
+        if bind_arg_pos is not None and not isinstance(bind_arg_pos, list):
+            port = args[bind_arg_pos + 1].split(':')[1]
+
+        engineio_logger = logging.getLogger('engineio')
+        log_loc = config_dict.get(ConfigKeys.REQ_LOG_LOC, '/var/log/dino')
+        file_handler = logging.FileHandler('%s/engineio-%s-%s.log' % (log_loc, gn_environment, port))
+        formatter = logging.Formatter(ConfigKeys.DEFAULT_LOG_FORMAT)
+        file_handler.setFormatter(formatter)
+
+        if engineio_logger.hasHandlers():
+            for handler in engineio_logger.handlers.copy():
+                engineio_logger.removeHandler(handler)
+
+        engineio_logger.propagate = False
+        engineio_logger.addHandler(file_handler)
+        engineio_logger.setLevel(logging.DEBUG)
+    else:
+        logging.getLogger('engineio').setLevel(config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL))
+
+
 @timeit(logger, 'creating base environment')
 def create_env(config_paths: list = None) -> GNEnvironment:
+    logging.basicConfig(level='DEBUG', format=ConfigKeys.DEFAULT_LOG_FORMAT)
+
     gn_environment = os.getenv(ENV_KEY_ENVIRONMENT)
     logger.info('using environment %s' % gn_environment)
 
     # assuming tests are running
     if gn_environment is None:
+        logger.debug('no environment found, assuming tests are running')
         return GNEnvironment(None, ConfigDict(dict()))
 
     config_dict, config_path = find_config(config_paths)
@@ -409,11 +457,12 @@ def create_env(config_paths: list = None) -> GNEnvironment:
 
     config_dict[ConfigKeys.ENVIRONMENT] = gn_environment
     config_dict[ConfigKeys.SESSION] = _flask_session
+    log_level = config_dict.get(ConfigKeys.LOG_LEVEL, ConfigKeys.DEFAULT_LOG_LEVEL)
+    configure_request_log(gn_environment, config_dict)
 
     logging.basicConfig(
-            level=getattr(logging, config_dict.get(ConfigKeys.LOG_LEVEL, 'DEBUG')),
+            level=getattr(logging, log_level),
             format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
-    logging.getLogger('engineio').setLevel(logging.WARNING)
     logging.getLogger('cassandra').setLevel(logging.WARNING)
 
     if ConfigKeys.HISTORY not in config_dict:
@@ -463,16 +512,14 @@ def create_env(config_paths: list = None) -> GNEnvironment:
         config_dict[ConfigKeys.LOG_LEVEL] = ConfigKeys.DEFAULT_LOG_LEVEL
 
     config_dict[ConfigKeys.ACL] = get_acl_config()
-
     root_path = os.path.dirname(config_path)
-
     gn_env = GNEnvironment(root_path, ConfigDict(config_dict))
 
     logger.info('read config and created environment')
     return gn_env
 
 
-def get_acl_config() -> dict:
+def get_acl_config() -> Union[MappingProxyType, dict]:
     acl_paths = None
     if 'DINO_ACL' in os.environ:
         acl_paths = [os.environ['DINO_ACL']]
@@ -894,7 +941,8 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
                 activity = utils.activity_for_remove_room('0', 'server', room_id, room_name, 'empty ephemeral room')
 
                 gn_env.db.remove_room(channel_id, room_id)
-                gn_env.emit('gn_room_removed', activity, broadcast=True, include_self=True)
+                gn_env.out_of_scope_emit(
+                    'gn_room_removed', activity, broadcast=True, include_self=True, namespace='/ws')
                 gn_env.observer.emit('on_remove_room', (activity, as_parser(activity)))
 
     import eventlet

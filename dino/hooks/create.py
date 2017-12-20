@@ -21,7 +21,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class OnCreateHooks(object):
     @staticmethod
     def _get_owners(activity: Activity) -> list:
-        if not hasattr(activity.target, 'attachments'):
+        if not hasattr(activity.target, 'attachments') or activity.target.attachments is None:
             return list()
         for attachment in activity.target.attachments:
             if not hasattr(attachment, 'object_type'):
@@ -65,7 +65,9 @@ class OnCreateHooks(object):
             for owner_id in owners:
                 environ.env.emit('gn_room_created', activity_json, room=owner_id)
         else:
-            environ.env.emit('gn_room_created', activity_json, broadcast=True, json=True, include_self=True)
+            environ.env.emit(
+                'gn_room_created', activity_json, broadcast=True, json=True,
+                include_self=True, namespace='/ws')
 
 
 @environ.env.observer.on('on_create')

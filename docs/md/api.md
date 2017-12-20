@@ -81,8 +81,8 @@ Response data if successful:
             "id": "<server-generated UUID>",
             "published": "<server-generated timestamp, RFC3339 format>",
             "actor": {
-                "id": user_id,
-                "displayName": b64e(user_name),
+                "id": "<user id>",
+                "displayName": "<user name in base64>",
                 "attachments": [
                     {
                         "objectType": "room_role",
@@ -105,9 +105,27 @@ Response data if successful:
                     }
                 ]
             },
+            "object": {
+                "objectType": "history",
+                "attachments": [{
+                    "author": {
+                        "id": "<sender id>", 
+                        "displayName": "<sender name in base64>"
+                    },
+                    "content": "<message in base64>",
+                    "id": "84421980-d84a-4f6f-9ad7-0357d15d99f8",
+                    "published": "2017-11-17T07:19:12Z",
+                    "summary": "9fa5b40a-f0a6-44ea-93c1-acf2947e5f09",
+                    "objectType": "history"
+                }]
+            },
             "verb": "login"
         }
     }
+
+The object attachments are non-acked messages sent to any `private` `room`s (i.e. conversation based private 
+messaging). The `object.attachments[0].id` is the message UUID, while the `object.attachments[0].summary` is the 
+room UUID. Multiple attachments will be listed if more than one un-acked message was found during login.
     
 For the user roles, there will be an ID on the attached object if the role is for a channel or for a room. If it's a
 global role there will be no ID on the object. Roles are comma separated if more than one role for a 
@@ -187,6 +205,56 @@ both. Possible values are thus:
 If the channel has 0 rooms in it, the objectType will be `mix`.
 
 Attachments for each channel describes the ACLs for that channel.
+
+## `received`
+
+Acknowledge that one or more messages has been received. The status will change from `sent` to `delivered`.
+
+Does not emit a response, only invokes the callback with the `status_code` and potentially and `error_message`. Note 
+that if multiple messages are being acknowledged at the same time, they all have to be for the same room (`target.id`).
+
+Request contains:
+
+```json
+{
+    "verb": "receive",
+    "target": {
+        "id": "<uuid of the room the messages are all in>"
+    },
+    "object": {
+        "attachments": [
+            {"id": "<message1 uuid>"},
+            {"id": "<message2 uuid>"},
+            {"id": "<message3 uuid>"}
+        ]
+    }
+}
+```
+
+## `read`
+
+Acknowledge that one or more messages has been read. The status will change from `sent`/`delivered` to `read`.
+
+Does not emit a response, only invokes the callback with the `status_code` and potentially and `error_message`. Note 
+that if multiple messages are being acknowledged at the same time, they all have to be for the same room (`target.id`).
+
+Request contains:
+
+```json
+{
+    "verb": "read",
+    "target": {
+        "id": "<uuid of the room the messages are all in>" 
+    },   
+    "object": {
+        "attachments": [
+            {"id": "<message1 uuid>"},
+            {"id": "<message2 uuid>"},
+            {"id": "<message3 uuid>"}
+        ]    
+    }    
+}
+```
 
 ## `list_rooms`
 
@@ -779,41 +847,50 @@ Responds with event name `gn_message`.
 
 Request contains:
 
-    {
-        verb: "send",
-        target: {
-            id: "<room/user ID>",
-            objectType: "<room/private>"
-        },
-        object: {
-            content: "<the message, base64 encoded>",
-        }
+```javascript
+{
+    verb: "send",
+    target: {
+        id: "<room/user ID>",
+        objectType: "<room/private>"
+    },
+    object: {
+        content: "<the message, base64 encoded>",
     }
+}
+```
+
+If request is for conversation-based private messaging, used `objectType: 'private'`. In this case, the other user(s)
+in this conversation (`owner`s of the `room`) will initially have a `NOT_ACKED` status for the message. If they are
+online they will receive it and they can acknowledge the message. If they are offline they will receive it in `gn_login`
+then they come online (all non-acked messages for rooms they are `owner` for).
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
-            "published": "2016-10-07T10:45:34Z",
-            "actor": {
-                "id": "<your user ID>",
-                "displayName": "<your user name>"
-            },
-            "verb": "send",
-            "target": {
-                "id": "<room ID>",
-                "displayName": "<room name>"
-            },
-            "object": {
-                "content": "<the message>",
-                "displayName": "<the channel name>",
-                "url": "<the channel id>",
-                "objectType": "<room/private>"
-            }
+```javascript
+{
+    "status_code": 200,
+    "data": {
+        "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+        "published": "2016-10-07T10:45:34Z",
+        "actor": {
+            "id": "<your user ID>",
+            "displayName": "<your user name>"
+        },
+        "verb": "send",
+        "target": {
+            "id": "<room ID>",
+            "displayName": "<room name>"
+        },
+        "object": {
+            "content": "<the message>",
+            "displayName": "<the channel name>",
+            "url": "<the channel id>",
+            "objectType": "<room/private>"
         }
     }
+}
+```
     
 The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the `published` field set to the time the server received the request (in RFC3339 format).

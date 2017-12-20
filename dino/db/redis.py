@@ -81,6 +81,12 @@ class DatabaseRedis(object):
     def add_words_to_blacklist(self, words: list) -> None:
         self.redis.sadd(RedisKeys.black_list(), words)
 
+    def get_users_roles(self, user_ids: list) -> None:
+        raise NotImplementedError('not available in redis implementation of db interface')
+
+    def get_all_user_ids(self) -> list:
+        raise NotImplementedError('not available in redis implementation of db interface')
+
     def remove_word_from_blacklist(self, word_id) -> None:
         raise NotImplementedError('not available in redis implementation of db interface')
 

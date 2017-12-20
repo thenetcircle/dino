@@ -62,5 +62,5 @@ except:
     raise RuntimeError('could not connect to db')
 
 cur = conn.cursor()
-cur.execute("""delete from rooms_users_association_table""")
+cur.execute("""delete from sids""")
 conn.commit()

@@ -227,14 +227,53 @@ try {
 
 ## Delivery acknowledgment
 
-All APIs will respond with a (status code, data json object, error message) tuple. These should be be 
-retrieved in the callback defined on the client side. If there was no error, the  
-third argument will be nil. Examples of callbacks on client side in JavaScript:
+All APIs will invoke the callback (if specified) with a `status_code` and possibly `error_message` (if any 
+errors). These should be be retrieved in the callback defined on the client side. If there was no error, the  
+second argument will be nil. Examples of callbacks on client side in JavaScript:
 
 ```javascript
-socket.emit('message', '<omitted json message>', function(status_code, data, error_msg) {
+socket.emit('message', '<omitted json message>', function(status_code, error_msg) {
     // do something
 });  
+```
+
+Messages should also be awknowledged by the client when [received](api.md#received). An awknowledgement can also 
+be sent by the client when a messages as been [read](api.md#read), to let other clients know if the message has 
+been seen or not.
+
+Unawknowledged (no received ack sent by client) messages will in future version be redelivered since it might
+indicate a loss during transmission.
+
+Example of sending acknowledgement of received message as well as listening for the `OK` server response to
+the ack:
+
+```javascript
+socket.on('gn_message', function(response) {
+    if (response.status_code !== 200) {
+        // handle error some way
+        return;
+    }
+
+    // acknowledge that we got the message
+    socket.emit('received', {
+        verb: 'receive',
+        target: {
+            id: room_id
+        },
+        object: {
+            attachments: [{
+                // response.data.id is the generated uuid of the message, see api docs
+                id: response.data.id
+            }]
+        }
+    }, function(status_code, error_msg) {
+        // server "acks our ack"
+        console.log('callback for received api: ' + status_code)
+    });
+
+    // finally handle the message
+    handle_message(data);
+});
 ```
 
 ## Limited sessions

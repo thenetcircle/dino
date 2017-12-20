@@ -114,6 +114,12 @@ if ! python bin/clear_db_online_table.py; then
     exit 1
 fi
 
+echo "clearing sessions db tables... "
+if ! python bin/clear_db_sessions_table.py; then
+    echo "error: could not clear db tables"
+    exit 1
+fi
+
 
 if [ -f "$SYSTEMD_PATH/dino-app-$DINO_ENVIRONMENT.service" ]; then
     for filename in $SYSTEMD_PATH/dino-app*-$DINO_ENVIRONMENT.service; do

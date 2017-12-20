@@ -52,11 +52,12 @@ class OnJoinHooks(object):
             room_name = utils.get_room_name(room_id)
             activity_json = utils.activity_for_user_joined_invisibly(user_id, user_name, room_id, room_name, image)
             for admin_id in admins_in_room:
-                environ.env.out_of_scope_emit('gn_user_joined', activity_json, room=admin_id, broadcast=False)
+                environ.env.out_of_scope_emit(
+                    'gn_user_joined', activity_json, room=admin_id, broadcast=False, namespace='/ws')
             return
 
         activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
-        environ.env.out_of_scope_emit('gn_user_joined', activity_json, room=room_id, broadcast=True)
+        environ.env.out_of_scope_emit('gn_user_joined', activity_json, room=room_id, broadcast=True, namespace='/ws')
         environ.env.publish(activity_json)
 
 

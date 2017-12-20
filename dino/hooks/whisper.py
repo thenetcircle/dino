@@ -31,7 +31,7 @@ class OnWhisperHooks(object):
         room_name = utils.get_room_name(room_id)
 
         activity_json = utils.activity_for_whisper(message, whisperer, whisperer_name, room_id, room_name, channel_id, channel_name)
-        environ.env.emit('gn_whisper', activity_json, json=True, room=user_room)
+        environ.env.emit('gn_whisper', activity_json, json=True, room=user_room, namespace='/ws')
 
 
 @environ.env.observer.on('on_whisper')

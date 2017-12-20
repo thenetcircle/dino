@@ -81,13 +81,14 @@ class OnUpdateUserInfoHooks(object):
                 room_uuid = target_id
 
         if room_uuid is not None:
-            environ.env.emit('gn_user_info_updated', data, json=True, broadcast=True, room=room_uuid)
+            environ.env.emit('gn_user_info_updated', data, json=True, broadcast=True, room=room_uuid, namespace='/ws')
         else:
             rooms = utils.rooms_for_user(activity.actor.id)
             for room_uuid in rooms:
                 data_copy = data.copy()
                 data_copy['target'] = {'id': room_uuid}
-                environ.env.emit('gn_user_info_updated', data, json=True, broadcast=True, room=room_uuid)
+                environ.env.emit(
+                    'gn_user_info_updated', data, json=True, broadcast=True, room=room_uuid, namespace='/ws')
 
 
 @environ.env.observer.on('on_update_user_info')

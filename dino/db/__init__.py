@@ -26,6 +26,21 @@ class IDatabase(Interface):
         :return: the newly created room's uuid
         """
 
+    def get_users_roles(self, user_ids: list) -> None:
+        """
+        will get and cache all roles for all users, only used for cache warm up during deployment
+
+        :param user_ids: a list of user ids
+        :return: nothing
+        """
+
+    def get_all_user_ids(self) -> list:
+        """
+        get the ids of all users, only used for cache warm up during deployment
+
+        :return: nothing
+        """
+
     def is_room_ephemeral(self, room_id: str) -> bool:
         """
         check whether or not a room is ephemeral (temporary); rooms created by regular users are ephemeral, so if wanted

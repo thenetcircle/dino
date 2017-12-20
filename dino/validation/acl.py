@@ -621,7 +621,7 @@ class AclConfigValidator(object):
             if 'value' in validations[validation]:
                 validation_value = validations[validation]['value']
                 if validation_method == 'anything':
-                    logger.warn(
+                    logger.warning(
                             'validation method set to "anything" but a validation value also '
                             'specified, "%s", ignoring the value' % validation_value)
 
