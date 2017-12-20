@@ -269,12 +269,12 @@ class Driver(object):
             )
             self.statements[StatementKeys.msgs_select_from_user] = self.session.prepare(
                     """
-                    SELECT * FROM messages_by_from_user_id WHERE from_user_id = ?
+                    SELECT * FROM messages_by_from_user_id WHERE from_user_id = ? LIMIT ?
                     """
             )
             self.statements[StatementKeys.msgs_select_from_user_to_target] = self.session.prepare(
                     """
-                    SELECT * FROM messages_by_from_user_id WHERE from_user_id = ? AND target_id = ?
+                    SELECT * FROM messages_by_from_user_id WHERE from_user_id = ? AND target_id = ? LIMIT ?
                     """
             )
             self.statements[StatementKeys.msgs_select_from_user_to_target_time_slice] = self.session.prepare(
