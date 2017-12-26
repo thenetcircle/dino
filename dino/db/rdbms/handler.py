@@ -469,8 +469,6 @@ class DatabaseRdbms(object):
             user_status.status = UserKeys.STATUS_INVISIBLE
             session.commit()
 
-        if self.env.cache.user_is_invisible(user_id):
-            return
         self.env.cache.set_user_invisible(user_id)
 
         try:
@@ -526,8 +524,6 @@ class DatabaseRdbms(object):
             user_status.status = UserKeys.STATUS_AVAILABLE
             session.commit()
 
-        if self.env.cache.user_is_online(user_id):
-            return
         self.env.cache.set_user_online(user_id)
 
         try:
