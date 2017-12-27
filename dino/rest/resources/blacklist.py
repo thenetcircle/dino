@@ -70,7 +70,7 @@ class BlacklistResource(BaseResource):
         except Exception as e:
             logger.error('could not add word "%s" to blacklist: %s' % (str(word), str(e)))
             logger.exception(traceback.format_exc())
-            raise RuntimeError('could not add word "%s" to blacklist: %s' % (str(word), str(e)))on =
+            raise RuntimeError('could not add word "%s" to blacklist: %s' % (str(word), str(e)))
 
     @timeit(logger, 'on_rest_blacklist_delete')
     def do_delete(self):
