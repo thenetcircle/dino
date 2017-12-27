@@ -32,8 +32,18 @@ class BlacklistResource(BaseResource):
         super(BlacklistResource, self).__init__()
         self.request = request
 
-    @timeit(logger, 'on_rest_blacklist_add')
-    def do_post(self):
+    def decode_or_throw(self, b64_word: str) -> str:
+        if not utils.is_base64(b64_word):
+            logger.error('word is not base64 encoded: "%s"' % b64_word)
+            raise RuntimeError('word is not base64 encoded: "%s"' % b64_word)
+
+        try:
+            return utils.b64d(b64_word)
+        except Exception as e:
+            logger.error('could not decode base64 word "%s": %s' % (str(b64_word), str(e)))
+            raise RuntimeError('could not decode base64 word "%s": %s' % (str(b64_word), str(e)))
+
+    def validate_and_get_word(self):
         is_valid, msg, json = self.validate_json()
         if not is_valid:
             logger.error('invalid json: %s' % msg)
@@ -43,55 +53,30 @@ class BlacklistResource(BaseResource):
             raise RuntimeError('no json in request')
         if not isinstance(json, dict):
             raise RuntimeError('need a dict')
-        logger.debug('POST request: %s' % str(json))
 
         if 'word' not in json:
-            raise RuntimeError('no id parameter in request')
+            raise RuntimeError('no word parameter in request')
 
-        word = json.get('word')
-        if not utils.is_base64(word):
-            logger.error('word is not base64 encoded: "%s"' % word)
-            raise RuntimeError('word is not base64 encoded: "%s"' % word)
+        return json
 
-        try:
-            word = utils.b64d(word)
-        except Exception as e:
-            logger.error('could not decode base64 word "%s": %s' % (str(word), str(e)))
-            raise RuntimeError('could not decode base64 word "%s": %s' % (str(word), str(e)))
+    @timeit(logger, 'on_rest_blacklist_add')
+    def do_post(self):
+        json = self.validate_and_get_word()
+        logger.debug('POST request: %s' % str(json))
+        word = self.decode_or_throw(json.get('word'))
 
         try:
             environ.env.db.add_words_to_blacklist([word])
         except Exception as e:
             logger.error('could not add word "%s" to blacklist: %s' % (str(word), str(e)))
             logger.exception(traceback.format_exc())
-            raise RuntimeError('could not add word "%s" to blacklist: %s' % (str(word), str(e)))
+            raise RuntimeError('could not add word "%s" to blacklist: %s' % (str(word), str(e)))on =
 
     @timeit(logger, 'on_rest_blacklist_delete')
     def do_delete(self):
-        is_valid, msg, json = self.validate_json()
-        if not is_valid:
-            logger.error('invalid json: %s' % msg)
-            raise RuntimeError('invalid json')
-
-        if json is None:
-            raise RuntimeError('no json in request')
-        if not isinstance(json, dict):
-            raise RuntimeError('need a dict')
+        json = self.validate_and_get_word()
         logger.debug('DELETE request: %s' % str(json))
-
-        if 'word' not in json:
-            raise RuntimeError('no id parameter in request')
-
-        word = json.get('word')
-        if not utils.is_base64(word):
-            logger.error('word is not base64 encoded: "%s"' % word)
-            raise RuntimeError('word is not base64 encoded: "%s"' % word)
-
-        try:
-            word = utils.b64d(word)
-        except Exception as e:
-            logger.error('could not decode base64 word "%s": %s' % (str(word), str(e)))
-            raise RuntimeError('could not decode base64 word "%s": %s' % (str(word), str(e)))
+        word = self.decode_or_throw(json.get('word'))
 
         try:
             environ.env.db.remove_matching_word_from_blacklist(word)
