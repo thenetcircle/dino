@@ -12,57 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from flask import redirect
-from flask import jsonify
-from flask import request
-from flask import send_from_directory
-from flask import render_template
-from flask import flash
+import logging
+import os
+import traceback
+from typing import List
+from typing import Union
 from uuid import uuid4 as uuid
 
-import logging
-import traceback
-
+from flask import jsonify
+from flask import render_template
+from flask import request
+from flask import send_from_directory
 from git.cmd import Git
 
 from dino import environ
-from dino.config import ConfigKeys
-from dino.config import ApiTargets
 from dino import utils
-
-from dino.web import app
+from dino.admin.orm import acl_manager
+from dino.admin.orm import blacklist_manager
+from dino.admin.orm import broadcast_manager
 from dino.admin.orm import channel_manager
 from dino.admin.orm import room_manager
-from dino.admin.orm import acl_manager
-from dino.admin.orm import broadcast_manager
-from dino.admin.orm import user_manager
 from dino.admin.orm import storage_manager
-from dino.admin.orm import blacklist_manager
-
-from dino.exceptions import InvalidAclValueException
-from dino.exceptions import InvalidAclTypeException
-from dino.exceptions import RoomNameExistsForChannelException
+from dino.admin.orm import user_manager
+from dino.config import ApiTargets
+from dino.config import ConfigKeys
 from dino.exceptions import ChannelNameExistsException
 from dino.exceptions import EmptyChannelNameException
-from dino.exceptions import EmptyRoomNameException
+from dino.exceptions import InvalidAclTypeException
+from dino.exceptions import InvalidAclValueException
+from dino.exceptions import NoSuchUserException
 from dino.exceptions import UnknownBanTypeException
 from dino.exceptions import ValidationException
-from dino.exceptions import NoSuchUserException
-
-from dino.admin.forms import CreateChannelForm
-from dino.admin.forms import CreateRoomForm
-from dino.admin.forms import CreateUserForm
-from dino.admin.forms import CreateChannelAclForm
-from dino.admin.forms import CreateRoomAclForm
-from dino.admin.forms import AddBlackListForm
-from dino.admin.forms import SearchHistoryForm
-from dino.admin.forms import AddModeratorForm
-from dino.admin.forms import BroadcastForm
-from dino.admin.forms import AddOwnerForm
-from dino.admin.forms import AddAdminForm
-from dino.admin.forms import BanForm
-
-import os
+from dino.web import app
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -82,31 +63,41 @@ tag_name = Git(home_dir).describe()
 def is_blank(s: str):
     return s is None or len(s.strip()) == 0
 
-def api_response(code, data = {}, message=''):
+
+def api_response(code, data: Union[dict, List[dict]]=None, message: Union[dict, str]=None):
+    if data is None:
+        data = dict()
+    if message is None:
+        message = ''
+
     return jsonify({
         'status_code': code,
         'data': data,
         'message': message
     })
 
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template(
-            'index.html',
-            environment=environment,
-            version=tag_name)
+        'index.html',
+        environment=environment,
+        config=environ.env.config,
+        version=tag_name)
+
 
 ####################################
 #             Channels             #
 ####################################
-''' Get all channels. '''
 @app.route('/api/channels', methods=['GET'])
 def channels():
+    """ Get all channels. """
     return api_response(200, channel_manager.get_channels())
 
-''' Create new channel '''
+
 @app.route('/api/channels', methods=['POST'])
 def create_channel():
+    """ Create new channel """
     form = request.get_json()
     channel_name = form['name']
     channel_uuid = str(uuid())
@@ -126,13 +117,13 @@ def create_channel():
         return api_response(400, message=result)
     return api_response(200, {'sort': 1, 'name': channel_name, 'uuid': channel_uuid})
 
-''' Delete channel '''
+
 @app.route('/api/channels/<channel_uuid>', methods=['DELETE'])
 def delete_channel(channel_uuid: str):
     channel_manager.remove_channel(channel_uuid)
     return api_response(200)
 
-''' Update channel name '''
+
 @app.route('/api/channels/<channel_uuid>/name', methods=['PUT'])
 def update_channel_name(channel_uuid: str):
     form = request.get_json()
@@ -147,7 +138,7 @@ def update_channel_name(channel_uuid: str):
 
     return api_response(200)
 
-''' Update channel order '''
+
 @app.route('/api/channels/<channel_uuid>/order', methods=['PUT'])
 def update_channel_order(channel_uuid: str):
     form = request.get_json()
@@ -156,9 +147,9 @@ def update_channel_order(channel_uuid: str):
     return api_response(200)
 
 
-''' Get channel owners/admins/acls '''
 @app.route('/api/channels/<channel_uuid>', methods=['GET'])
-def channel(channel_uuid: str):
+def get_channel(channel_uuid: str):
+    """ Get channel owners/admins/acls """
     acls = acl_manager.get_acls_channel(channel_uuid)
     acls_decoded = list()
     for acl in acls:
@@ -171,7 +162,7 @@ def channel(channel_uuid: str):
         'acls': acls_decoded,
     })
 
-''' Add channel owner '''
+
 @app.route('/api/channels/<channel_uuid>/owners', methods=['POST'])
 def add_channel_owner(channel_uuid: str):
     form = request.get_json()
@@ -189,13 +180,13 @@ def add_channel_owner(channel_uuid: str):
     user_manager.add_channel_owner(channel_uuid, user_uuid)
     return api_response(200, user)
 
-''' Delete channel owner '''
+
 @app.route('/api/channels/<channel_uuid>/owners/<user_uuid>', methods=['DELETE'])
 def remove_channel_owner(channel_uuid: str, user_uuid: str):
     user_manager.remove_channel_owner(channel_uuid, user_uuid)
     return api_response(200)
 
-''' Add channel admin '''
+
 @app.route('/api/channels/<channel_uuid>/admins', methods=['POST'])
 def add_channel_admin(channel_uuid: str):
     form = request.get_json()
@@ -211,13 +202,13 @@ def add_channel_admin(channel_uuid: str):
     user_manager.add_channel_admin(channel_uuid, user_uuid)
     return api_response(200, user)
 
-''' Delete channel admin '''
+
 @app.route('/api/channels/<channel_uuid>/admins/<user_uuid>', methods=['DELETE'])
 def remove_channel_admin(channel_uuid: str, user_uuid: str):
     user_manager.remove_channel_admin(channel_uuid, user_uuid)
     return api_response(200)
 
-''' Add channel ACL '''
+
 @app.route('/api/channels/<channel_uuid>/acls', methods=['POST'])
 def create_channel_acl(channel_uuid: str):
     form = request.get_json()
@@ -247,7 +238,7 @@ def create_channel_acl(channel_uuid: str):
     
     return api_response(200)
 
-''' Update channel ACL '''
+
 @app.route('/api/channels/<channel_uuid>/acls/<action>/<acl_type>', methods=['PUT'])
 def update_channel_acl(channel_uuid: str, action: str, acl_type: str):
     form = request.get_json()
@@ -267,7 +258,7 @@ def update_channel_acl(channel_uuid: str, action: str, acl_type: str):
     
     return api_response(200)
 
-''' Delete channel ACL '''
+
 @app.route('/api/channels/<channel_uuid>/acls/<action>/<acl_type>', methods=['DELETE'])
 def delete_channel_acl(channel_uuid: str, action: str, acl_type: str):
     acl_manager.delete_acl_channel(channel_uuid, action, acl_type)
@@ -277,12 +268,12 @@ def delete_channel_acl(channel_uuid: str, action: str, acl_type: str):
 ####################################
 #               Rooms              #
 ####################################
-''' Get rooms of channel '''
 @app.route('/api/channels/<channel_uuid>/rooms', methods=['GET'])
 def rooms_for_channel(channel_uuid: str):
+    """ Get rooms of channel """
     return api_response(200, room_manager.get_rooms(channel_uuid))
 
-''' Add new room '''
+
 @app.route('/api/channels/<channel_uuid>/rooms', methods=['POST'])
 def create_room(channel_uuid: str):
     form = request.get_json()
@@ -313,10 +304,10 @@ def create_room(channel_uuid: str):
         })
     except NoSuchUserException:
         return api_response(400, message={
-            'owner': 'No suce user',
+            'owner': 'No such user',
         })
 
-''' Update room order '''
+
 @app.route('/api/rooms/<room_uuid>/order', methods=['PUT'])
 def update_room_order(room_uuid: str):
     form = request.get_json()
@@ -324,7 +315,7 @@ def update_room_order(room_uuid: str):
     room_manager.update_sort(room_uuid, order)
     return api_response(200)
 
-''' Update room name '''
+
 @app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>/name', methods=['PUT'])
 def update_room_name(channel_uuid: str, room_uuid: str):
     form = request.get_json()
@@ -335,9 +326,9 @@ def update_room_name(channel_uuid: str, room_uuid: str):
         return api_response(400, message=result)
     return api_response(200)
 
-''' Get room info '''
+
 @app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>', methods=['GET'])
-def room(channel_uuid: str, room_uuid: str):
+def get_room(channel_uuid: str, room_uuid: str):
     acls = acl_manager.get_acls_room(room_uuid)
     acls_decoded = list()
     for acl in acls:
@@ -355,7 +346,6 @@ def room(channel_uuid: str, room_uuid: str):
     })
 
 
-''' Set as default room '''
 @app.route('/api/rooms/<room_uuid>/set-default', methods=['PUT'])
 def set_default_room(room_uuid: str):
     try:
@@ -364,8 +354,8 @@ def set_default_room(room_uuid: str):
         logger.error('Could not set room as default: %s' % str(e))
         return api_response(400, message='Could not set room as default: %s' % str(e))
     return api_response(200)
-        
-''' Unset default room '''
+
+
 @app.route('/api/rooms/<room_uuid>/unset-default', methods=['PUT'])
 def unset_default_room(room_uuid: str):
     try:
@@ -375,17 +365,18 @@ def unset_default_room(room_uuid: str):
         return api_response(400, message='Could not set room as default: %s' % str(e))
     return api_response(200)
 
-''' Set as ephemeral room '''
+
 @app.route('/api/rooms/<room_uuid>/set-ephemeral', methods=['PUT'])
 def set_ephemeral_room(room_uuid: str):
+    """ Set as ephemeral room """
     try:
         room_manager.set_ephemeral_room(room_uuid)
     except Exception as e:
         logger.error('Could not set room as ephemeral: %s' % str(e))
         return api_response(400, message='Could not set room as ephemeral: %s' % str(e))
     return api_response(200)
-        
-''' Unset ephemeral room '''
+
+
 @app.route('/api/rooms/<room_uuid>/unset-ephemeral', methods=['PUT'])
 def unset_ephemeral_room(room_uuid: str):
     try:
@@ -395,7 +386,7 @@ def unset_ephemeral_room(room_uuid: str):
         return api_response(400, message='Could not set room as ephemeral: %s' % str(e))
     return api_response(200)
 
-''' Set as admin room '''
+
 @app.route('/api/rooms/<room_uuid>/set-admin', methods=['PUT'])
 def set_admin_room(room_uuid: str):
     try:
@@ -404,8 +395,8 @@ def set_admin_room(room_uuid: str):
         logger.error('Could not set room as admin: %s' % str(e))
         return api_response(400, message='Could not set room as admin: %s' % str(e))
     return api_response(200)
-        
-''' Unset admin room '''
+
+
 @app.route('/api/rooms/<room_uuid>/unset-admin', methods=['PUT'])
 def unset_admin_room(room_uuid: str):
     try:
@@ -415,13 +406,13 @@ def unset_admin_room(room_uuid: str):
         return api_response(400, message='Could not set room as admin: %s' % str(e))
     return api_response(200)
 
-''' Delete room '''
+
 @app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>', methods=['DELETE'])
 def delete_room(channel_uuid: str, room_uuid: str):
     room_manager.remove_room(channel_uuid, room_uuid)
     return api_response(200)
 
-''' Add room owner '''
+
 @app.route('/api/rooms/<room_uuid>/owners', methods=['POST'])
 def add_room_owner(room_uuid: str):
     form = request.get_json()
@@ -439,13 +430,13 @@ def add_room_owner(room_uuid: str):
     user_manager.add_room_owner(room_uuid, user_uuid)
     return api_response(200, user)
 
-''' Delete room owner '''
+
 @app.route('/api/rooms/<room_uuid>/owners/<user_uuid>', methods=['DELETE'])
 def delete_room_owner(room_uuid: str, user_uuid: str):
     user_manager.remove_room_owner(room_uuid, user_uuid)
     return api_response(200)
 
-''' Add room moderator '''
+
 @app.route('/api/rooms/<room_uuid>/moderators', methods=['POST'])
 def add_room_moderator(room_uuid: str):
     form = request.get_json()
@@ -461,13 +452,13 @@ def add_room_moderator(room_uuid: str):
     user_manager.add_room_moderator(room_uuid, user_uuid)
     return api_response(200, user)
 
-''' Delete room moderator '''
+
 @app.route('/api/rooms/<room_uuid>/moderators/<user_uuid>', methods=['DELETE'])
 def delete_room_moderator(room_uuid: str, user_uuid: str):
     user_manager.remove_room_moderator(room_uuid, user_uuid)
     return api_response(200)
 
-''' Add Room ACL '''
+
 @app.route('/api/rooms/<room_uuid>/acls', methods=['POST'])
 def create_room_acl(room_uuid: str):
     form = request.get_json()
@@ -499,7 +490,7 @@ def create_room_acl(room_uuid: str):
     
     return api_response(200)
 
-''' Update room ACL '''
+
 @app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>/acls/<action>/<acl_type>', methods=['PUT'])
 def update_room_acl(channel_uuid: str, room_uuid: str, action: str, acl_type: str):
     form = request.get_json()
@@ -519,22 +510,23 @@ def update_room_acl(channel_uuid: str, room_uuid: str, action: str, acl_type: st
     
     return api_response(200)
 
-''' Delete room ACL '''
+
 @app.route('/api/rooms/<room_uuid>/acls/<action>/<acl_type>', methods=['DELETE'])
 def delete_room_acl(room_uuid: str, action: str, acl_type: str):
     acl_manager.delete_acl_room(room_uuid, action, acl_type)
     return api_response(200)
 
+
 ####################################
 #               Users              #
 ####################################
 
-''' Get users in a room '''
+
 @app.route('/api/rooms/<room_uuid>/users', methods=['GET'])
 def get_users_for_room(room_uuid: str):
     return api_response(200, user_manager.get_users_for_room(room_uuid))
 
-''' Get user '''
+
 @app.route('/api/users/<user_uuid>', methods=['GET'])
 def get_user(user_uuid: str):
     try:
@@ -543,7 +535,7 @@ def get_user(user_uuid: str):
         return api_response(400, message='No Such User.')
     return api_response(200, user)
 
-''' Kick user '''
+
 @app.route('/api/rooms/<room_uuid>/users/<user_uuid>/kick', methods=['POST'])
 def kick_user(room_uuid: str, user_uuid: str):
     try:
@@ -553,14 +545,15 @@ def kick_user(room_uuid: str, user_uuid: str):
         return api_response(400, message='Could not kick user %s' % str(e))
     return api_response(200)
 
+
 @app.route('/api/bans', methods=['GET'])
 def banned_users():
     bans = user_manager.get_banned_users()
-    result = { 'global': list(), 'channel': list(), 'room': list() }
+    result = {'global': list(), 'channel': list(), 'room': list()}
 
     channel_bans = bans['channels']
     for channel_id in channel_bans:
-        channel = { 'name': utils.b64d(channel_bans[channel_id]['name']), 'uuid': channel_id }
+        channel = {'name': utils.b64d(channel_bans[channel_id]['name']), 'uuid': channel_id}
         for user_id in channel_bans[channel_id]['users']:
             user = channel_bans[channel_id]['users'][user_id]
             user['uuid'] = user_id
@@ -570,7 +563,7 @@ def banned_users():
             
     room_bans = bans['rooms']
     for room_id in room_bans:
-        room = { 'name': utils.b64d(room_bans[room_id]['name']), 'uuid': room_id }
+        room = {'name': utils.b64d(room_bans[room_id]['name']), 'uuid': room_id}
         for user_id in room_bans[room_id]['users']:
             user = room_bans[room_id]['users'][user_id]
             user['uuid'] = user_id
@@ -586,7 +579,7 @@ def banned_users():
             result['global'].append(user)
     return api_response(200, result)
 
-''' Ban user '''
+
 @app.route('/api/bans', methods=['POST'])
 def ban_user():
     form = request.get_json()
@@ -611,13 +604,20 @@ def ban_user():
         user['duration'] = duration
     except NoSuchUserException:
         return api_response(400, message="No such user.")
+
     if target == 'channel':
-        user['channel'] = { 'uuid': target_uuid, 'name': channel_manager.name_for_uuid(target_uuid) }
+        user['channel'] = {
+            'uuid': target_uuid,
+            'name': channel_manager.name_for_uuid(target_uuid)
+        }
     elif target == 'room':
-        user['room'] = { 'uuid': target_uuid, 'name': room_manager.name_for_uuid(target_uuid) }
+        user['room'] = {
+            'uuid': target_uuid,
+            'name': room_manager.name_for_uuid(target_uuid)
+        }
     return api_response(200, user)
 
-''' Remove banned user '''
+
 @app.route('/api/bans/<user_uuid>/delete', methods=['POST'])
 def remove_ban(user_uuid: str):
     form = request.get_json()
@@ -631,15 +631,15 @@ def remove_ban(user_uuid: str):
 #           Super Users            #
 ####################################
 
-''' Super users '''
+
 @app.route('/api/super-users', methods=['GET'])
 def super_users():
     return api_response(200, user_manager.get_super_users())
 
-''' Create super user '''
+
 @app.route('/api/super-users', methods=['POST'])
 def create_super_user():
-    form = request.get_json();
+    form = request.get_json()
     user_name = str(form['name']).strip()
     user_uuid = str(form['uuid']).strip()
 
@@ -654,17 +654,18 @@ def create_super_user():
     user_manager.create_super_user(user_name, user_uuid)
     return api_response(200)
 
-''' Set as super user'''
+
 @app.route('/api/super-users/<user_uuid>', methods=['POST'])
 def set_super_user(user_uuid: str):
     user_manager.set_super_user(user_uuid)
     return api_response(200)
 
-''' Unset super user '''
+
 @app.route('/api/super-users/<user_uuid>', methods=['DELETE'])
 def remove_super_user(user_uuid: str):
     user_manager.del_super_user(user_uuid)
     return api_response(200)
+
 
 @app.route('/api/users/search/<query>', methods=['GET'])
 def search_user(query: str):
@@ -675,7 +676,7 @@ def search_user(query: str):
 #             History              #
 ####################################
 
-''' Search history '''
+
 @app.route('/api/history', methods=['POST'])
 def search_history():
     form = request.get_json()
@@ -684,14 +685,13 @@ def search_history():
     from_time = form['from']
     to_time = form['to']
 
-    msgs = list()
-    real_from_time, real_to_time = None, None
     try:
         msgs, real_from_time, real_to_time = storage_manager.find_history(room_uuid, user_uuid, from_time, to_time)
     except Exception as e:
         logger.error('Could not get messages: %s' % str(e))
         logger.exception(traceback.format_exc())
         return api_response(400, message='Could not get message: %s' % str(e))
+
     if real_from_time is not None:
         real_from_time = real_from_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
     if real_to_time is not None:
@@ -703,13 +703,13 @@ def search_history():
         'real_to_time': real_to_time,
     })
 
-''' Delete message '''
+
 @app.route('/api/history/<message_id>', methods=['DELETE'])
 def delete_message(message_id: str):
     storage_manager.delete_message(message_id)
     return api_response(200)
 
-''' Undo delete '''
+
 @app.route('/api/history/<message_id>/undelete', methods=['PUT'])
 def undo_delete_message(message_id: str):
     storage_manager.undelete_message(message_id)
@@ -720,12 +720,12 @@ def undo_delete_message(message_id: str):
 #            Blacklist             #
 ####################################
 
-''' Get all blocked words '''
+
 @app.route('/api/blacklist', methods=['GET'])
 def blacklist():
     return api_response(200, blacklist_manager.get_black_list())
 
-''' Add new blocked word '''
+
 @app.route('/api/blacklist', methods=['POST'])
 def add_to_blacklist():
     form = request.get_json()
@@ -737,7 +737,7 @@ def add_to_blacklist():
         return api_response(400, message='Could not add word to blacklist: %s' % str(e))
     return api_response(200)
 
-''' Delete word '''
+
 @app.route('/api/blacklist/<word_id>', methods=['DELETE'])
 def remove_from_blacklist(word_id: str):
     try:
@@ -773,9 +773,6 @@ def send_broadcast():
     return api_response(200)
 
 
-'''
-Get acl types of action
-'''
 @app.route('/api/acls/<target>/actions/<api_action>/types', methods=['GET'])
 def acl_types_for_target_and_action(target: str, api_action: str):
     if target not in [ApiTargets.CHANNEL, ApiTargets.ROOM]:
@@ -798,9 +795,11 @@ def acl_types_for_target_and_action(target: str, api_action: str):
         })
     return api_response(200, output)
 
+
 @app.route('/static/<path:path>')
 def send_static(path):
     return send_from_directory('admin/static/', path)
+
 
 @app.errorhandler(404)
 def page_not_found(e):
