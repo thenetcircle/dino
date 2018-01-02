@@ -460,7 +460,7 @@ class DatabaseRdbms(object):
     def set_user_invisible(self, user_id: str) -> None:
         @with_session
         def _set_user_invisible(session=None):
-            user_status = session.query(UserStatus).filter(Users.uuid == user_id).first()
+            user_status = session.query(UserStatus).filter(UserStatus.uuid == user_id).first()
             if user_status is None:
                 user_status = UserStatus()
                 user_status.uuid = user_id
@@ -469,8 +469,6 @@ class DatabaseRdbms(object):
             user_status.status = UserKeys.STATUS_INVISIBLE
             session.commit()
 
-        if self.env.cache.user_is_invisible(user_id):
-            return
         self.env.cache.set_user_invisible(user_id)
 
         try:
@@ -490,7 +488,7 @@ class DatabaseRdbms(object):
     def set_user_offline(self, user_id: str) -> None:
         @with_session
         def _set_user_offline(session=None):
-            status = session.query(UserStatus).filter(Users.uuid == user_id).first()
+            status = session.query(UserStatus).filter(UserStatus.uuid == user_id).first()
             if status is None:
                 logger.warning('no UserStatus found in db for user ID %s' % user_id)
                 return
@@ -517,7 +515,7 @@ class DatabaseRdbms(object):
     def set_user_online(self, user_id: str) -> None:
         @with_session
         def _set_user_online(session=None):
-            user_status = session.query(UserStatus).filter(Users.uuid == user_id).first()
+            user_status = session.query(UserStatus).filter(UserStatus.uuid == user_id).first()
             if user_status is None:
                 user_status = UserStatus()
                 user_status.uuid = user_id
@@ -526,8 +524,6 @@ class DatabaseRdbms(object):
             user_status.status = UserKeys.STATUS_AVAILABLE
             session.commit()
 
-        if self.env.cache.user_is_online(user_id):
-            return
         self.env.cache.set_user_online(user_id)
 
         try:
