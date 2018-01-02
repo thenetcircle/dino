@@ -54,7 +54,7 @@ class UserManager(BaseManager):
         output = list()
         for user in users:
             output.append({
-                'id': user['uuid'],
+                'uuid': user['uuid'],
                 'name': user['name']
             })
         return output
