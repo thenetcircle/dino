@@ -82,7 +82,9 @@ def index():
     return render_template(
         'index.html',
         environment=environment,
-        config=environ.env.config,
+        config={
+            'ROOT_URL': environ.env.config.get(ConfigKeys.ROOT_URL, domain=ConfigKeys.WEB)
+        },
         version=tag_name)
 
 
