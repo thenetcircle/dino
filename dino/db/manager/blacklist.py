@@ -30,7 +30,7 @@ class BlackListManager(BaseManager):
     def add_words(self, words):
         if words is None or len(words.split()) == 0:
             return
-        words = {a.trim().lower().replace('\r', '') for a in words.split('\n')}
+        words = {a.strip().lower().replace('\r', '') for a in words.split('\n')}
         self.env.db.add_words_to_blacklist(words)
 
     def remove_word(self, word_id):

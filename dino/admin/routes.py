@@ -47,6 +47,7 @@ from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import EmptyRoomNameException
 from dino.exceptions import UnknownBanTypeException
 from dino.exceptions import ValidationException
+from dino.exceptions import NoSuchUserException
 
 from dino.admin.forms import CreateChannelForm
 from dino.admin.forms import CreateRoomForm
@@ -81,30 +82,704 @@ tag_name = Git(home_dir).describe()
 def is_blank(s: str):
     return s is None or len(s.strip()) == 0
 
+def api_response(code, data = {}, message=''):
+    return jsonify({
+        'status_code': code,
+        'data': data,
+        'message': message
+    })
 
 @app.route('/', methods=['GET'])
 def index():
     return render_template(
-            'home.html',
+            'index.html',
             environment=environment,
             version=tag_name)
 
-
-@app.route('/channels', methods=['GET'])
+####################################
+#             Channels             #
+####################################
+''' Get all channels. '''
+@app.route('/api/channels', methods=['GET'])
 def channels():
-    form = CreateChannelForm(request.form)
-    return render_template(
-            'channels.html',
-            form=form,
-            channels=channel_manager.get_channels(),
-            environment=environment,
-            version=tag_name)
+    return api_response(200, channel_manager.get_channels())
+
+''' Create new channel '''
+@app.route('/api/channels', methods=['POST'])
+def create_channel():
+    form = request.get_json()
+    channel_name = form['name']
+    channel_uuid = str(uuid())
+    user_uuid = form['owner']
+    
+    message = {}
+    if is_blank(channel_name):
+        message['name'] = "Channel name can't be none."
+    if is_blank(user_uuid):
+        message['owner'] = "Owner can't be none."
+    
+    if len(message):
+        return api_response(400, message=message)
+    result = channel_manager.create_channel(channel_name, channel_uuid, user_uuid)
+
+    if result is not None:
+        return api_response(400, message=result)
+    return api_response(200, {'sort': 1, 'name': channel_name, 'uuid': channel_uuid})
+
+''' Delete channel '''
+@app.route('/api/channels/<channel_uuid>', methods=['DELETE'])
+def delete_channel(channel_uuid: str):
+    channel_manager.remove_channel(channel_uuid)
+    return api_response(200)
+
+''' Update channel name '''
+@app.route('/api/channels/<channel_uuid>/name', methods=['PUT'])
+def update_channel_name(channel_uuid: str):
+    form = request.get_json()
+    name = form['name']
+
+    try:
+        channel_manager.rename(channel_uuid, name)
+    except ChannelNameExistsException:
+        return api_response(400, message='A channel with that name already exists')
+    except EmptyChannelNameException:
+        return api_response(400, message='Blank channel name is not allowed')
+
+    return api_response(200)
+
+''' Update channel order '''
+@app.route('/api/channels/<channel_uuid>/order', methods=['PUT'])
+def update_channel_order(channel_uuid: str):
+    form = request.get_json()
+    order = form['order']
+    channel_manager.update_sort(channel_uuid, order)
+    return api_response(200)
 
 
-@app.route('/acl/<target>/action/<api_action>/types', methods=['GET'])
+''' Get channel owners/admins/acls '''
+@app.route('/api/channels/<channel_uuid>', methods=['GET'])
+def channel(channel_uuid: str):
+    acls = acl_manager.get_acls_channel(channel_uuid)
+    acls_decoded = list()
+    for acl in acls:
+        acl['value'] = utils.b64d(acl['value'])
+        acls_decoded.append(acl)
+
+    return api_response(200, {
+        'owners': channel_manager.get_owners(channel_uuid),
+        'admins': channel_manager.get_admins(channel_uuid),
+        'acls': acls_decoded,
+    })
+
+''' Add channel owner '''
+@app.route('/api/channels/<channel_uuid>/owners', methods=['POST'])
+def add_channel_owner(channel_uuid: str):
+    form = request.get_json()
+    user_uuid = form['owner']
+
+    if is_blank(user_uuid):
+        return api_response(400, message='Blank user id is not allowed')
+
+    try:
+        user = user_manager.get_user(user_uuid)
+        user['name'] = utils.b64d(user['name'])
+    except NoSuchUserException:
+        return api_response(400, message='No Such User.')
+
+    user_manager.add_channel_owner(channel_uuid, user_uuid)
+    return api_response(200, user)
+
+''' Delete channel owner '''
+@app.route('/api/channels/<channel_uuid>/owners/<user_uuid>', methods=['DELETE'])
+def remove_channel_owner(channel_uuid: str, user_uuid: str):
+    user_manager.remove_channel_owner(channel_uuid, user_uuid)
+    return api_response(200)
+
+''' Add channel admin '''
+@app.route('/api/channels/<channel_uuid>/admins', methods=['POST'])
+def add_channel_admin(channel_uuid: str):
+    form = request.get_json()
+    user_uuid = form['admin']
+
+    if is_blank(user_uuid):
+        return api_response(400, message='Blank user id is not allowed.')
+    try:
+        user = user_manager.get_user(user_uuid)
+        user['name'] = utils.b64d(user['name'])
+    except NoSuchUserException:
+        return api_response(400, message='No Such User.')
+    user_manager.add_channel_admin(channel_uuid, user_uuid)
+    return api_response(200, user)
+
+''' Delete channel admin '''
+@app.route('/api/channels/<channel_uuid>/admins/<user_uuid>', methods=['DELETE'])
+def remove_channel_admin(channel_uuid: str, user_uuid: str):
+    user_manager.remove_channel_admin(channel_uuid, user_uuid)
+    return api_response(200)
+
+''' Add channel ACL '''
+@app.route('/api/channels/<channel_uuid>/acls', methods=['POST'])
+def create_channel_acl(channel_uuid: str):
+    form = request.get_json()
+    action = form['action']
+    acl_type = form['type']
+    acl_value = form['value']
+
+    message = {}
+    if is_blank(acl_type):
+        message['type'] = 'Blank type is not allowed.'
+    if is_blank(acl_value):
+        message['value'] = 'Blank value is not allowed.'
+    if len(message):
+        return api_response(400, message=message)
+
+    try:
+        acl_manager.add_acl_channel(channel_uuid, action, acl_type, acl_value)
+    except InvalidAclValueException:
+        return api_response(400, message='Invalid ACL value %s' % acl_value)
+    except InvalidAclTypeException:
+        return api_response(400, message='Invalid ACL type %s' % acl_type)
+    except ValidationException as e:
+        return api_response(400, message='Invalid ACL: %s' % e.msg)
+    except Exception as e:
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='could not create acl for channel %s: %s' % (channel_uuid, str(e)))
+    
+    return api_response(200)
+
+''' Update channel ACL '''
+@app.route('/api/channels/<channel_uuid>/acls/<action>/<acl_type>', methods=['PUT'])
+def update_channel_acl(channel_uuid: str, action: str, acl_type: str):
+    form = request.get_json()
+    value = form['value']
+    
+    try:
+        acl_manager.update_channel_acl(channel_uuid, action, acl_type, value)
+    except InvalidAclValueException:
+        return api_response(400, message='Invalid ACL value %s' % value)
+    except InvalidAclTypeException:
+        return api_response(400, message='Invalid ACL type %s' % acl_type)
+    except ValidationException as e:
+        return api_response(400, message='Invalid ACL: %s' % e.msg)
+    except Exception as e:
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='could not update acl for channel %s: %s' % (channel_uuid, str(e)))
+    
+    return api_response(200)
+
+''' Delete channel ACL '''
+@app.route('/api/channels/<channel_uuid>/acls/<action>/<acl_type>', methods=['DELETE'])
+def delete_channel_acl(channel_uuid: str, action: str, acl_type: str):
+    acl_manager.delete_acl_channel(channel_uuid, action, acl_type)
+    return api_response(200)
+
+
+####################################
+#               Rooms              #
+####################################
+''' Get rooms of channel '''
+@app.route('/api/channels/<channel_uuid>/rooms', methods=['GET'])
+def rooms_for_channel(channel_uuid: str):
+    return api_response(200, room_manager.get_rooms(channel_uuid))
+
+''' Add new room '''
+@app.route('/api/channels/<channel_uuid>/rooms', methods=['POST'])
+def create_room(channel_uuid: str):
+    form = request.get_json()
+    room_name = form['name']
+    room_uuid = str(uuid())
+    user_uuid = form['owner']
+    
+    message = {}
+    if is_blank(room_name):
+        message['name'] = 'Blank room name is not allowed.'
+    if is_blank(user_uuid):
+        message['owner'] = 'Blank owner is not allowed.'
+    
+    if len(message):
+        return api_response(400, message=message)
+    try:
+        result = room_manager.create_room(room_name, room_uuid, channel_uuid, user_uuid)
+        if result is not None:
+            return api_response(400, message=result)
+        
+        return api_response(200, { 
+            'sort': 10, 
+            'name': room_name, 
+            'uuid': room_uuid,
+            'is_admin': False,
+            'is_default': False,
+            'is_ephemeral': False,
+        })
+    except NoSuchUserException:
+        return api_response(400, message={
+            'owner': 'No suce user',
+        })
+
+''' Update room order '''
+@app.route('/api/rooms/<room_uuid>/order', methods=['PUT'])
+def update_room_order(room_uuid: str):
+    form = request.get_json()
+    order = form['order']
+    room_manager.update_sort(room_uuid, order)
+    return api_response(200)
+
+''' Update room name '''
+@app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>/name', methods=['PUT'])
+def update_room_name(channel_uuid: str, room_uuid: str):
+    form = request.get_json()
+    name = form['name']
+
+    result = room_manager.rename(channel_uuid, room_uuid, name)
+    if result is not None:
+        return api_response(400, message=result)
+    return api_response(200)
+
+''' Get room info '''
+@app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>', methods=['GET'])
+def room(channel_uuid: str, room_uuid: str):
+    acls = acl_manager.get_acls_room(room_uuid)
+    acls_decoded = list()
+    for acl in acls:
+        acl['value'] = utils.b64d(acl['value'])
+        acls_decoded.append(acl)
+    
+    return api_response(200, {
+        'channel': {
+            'uuid': channel_uuid,
+            'name': channel_manager.name_for_uuid(channel_uuid)
+        },
+        'acls': acls_decoded,
+        'owners': room_manager.get_owners(room_uuid),
+        'moderators': room_manager.get_moderators(room_uuid)
+    })
+
+
+''' Set as default room '''
+@app.route('/api/rooms/<room_uuid>/set-default', methods=['PUT'])
+def set_default_room(room_uuid: str):
+    try:
+        room_manager.set_default_room(room_uuid)
+    except Exception as e:
+        logger.error('Could not set room as default: %s' % str(e))
+        return api_response(400, message='Could not set room as default: %s' % str(e))
+    return api_response(200)
+        
+''' Unset default room '''
+@app.route('/api/rooms/<room_uuid>/unset-default', methods=['PUT'])
+def unset_default_room(room_uuid: str):
+    try:
+        room_manager.unset_default_room(room_uuid)
+    except Exception as e:
+        logger.error('Could not set room as default: %s' % str(e))
+        return api_response(400, message='Could not set room as default: %s' % str(e))
+    return api_response(200)
+
+''' Set as ephemeral room '''
+@app.route('/api/rooms/<room_uuid>/set-ephemeral', methods=['PUT'])
+def set_ephemeral_room(room_uuid: str):
+    try:
+        room_manager.set_ephemeral_room(room_uuid)
+    except Exception as e:
+        logger.error('Could not set room as ephemeral: %s' % str(e))
+        return api_response(400, message='Could not set room as ephemeral: %s' % str(e))
+    return api_response(200)
+        
+''' Unset ephemeral room '''
+@app.route('/api/rooms/<room_uuid>/unset-ephemeral', methods=['PUT'])
+def unset_ephemeral_room(room_uuid: str):
+    try:
+        room_manager.unset_ephemeral_room(room_uuid)
+    except Exception as e:
+        logger.error('Could not set room as ephemeral: %s' % str(e))
+        return api_response(400, message='Could not set room as ephemeral: %s' % str(e))
+    return api_response(200)
+
+''' Set as admin room '''
+@app.route('/api/rooms/<room_uuid>/set-admin', methods=['PUT'])
+def set_admin_room(room_uuid: str):
+    try:
+        room_manager.set_admin_room(room_uuid)
+    except Exception as e:
+        logger.error('Could not set room as admin: %s' % str(e))
+        return api_response(400, message='Could not set room as admin: %s' % str(e))
+    return api_response(200)
+        
+''' Unset admin room '''
+@app.route('/api/rooms/<room_uuid>/unset-admin', methods=['PUT'])
+def unset_admin_room(room_uuid: str):
+    try:
+        room_manager.unset_admin_room(room_uuid)
+    except Exception as e:
+        logger.error('Could not set room as admin: %s' % str(e))
+        return api_response(400, message='Could not set room as admin: %s' % str(e))
+    return api_response(200)
+
+''' Delete room '''
+@app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>', methods=['DELETE'])
+def delete_room(channel_uuid: str, room_uuid: str):
+    room_manager.remove_room(channel_uuid, room_uuid)
+    return api_response(200)
+
+''' Add room owner '''
+@app.route('/api/rooms/<room_uuid>/owners', methods=['POST'])
+def add_room_owner(room_uuid: str):
+    form = request.get_json()
+    user_uuid = form['owner']
+
+    if is_blank(user_uuid):
+        return api_response(400, message='Blank user id is not allowed')
+
+    try:
+        user = user_manager.get_user(user_uuid)
+        user['name'] = utils.b64d(user['name'])
+    except NoSuchUserException:
+        return api_response(400, message='No Such User.')
+
+    user_manager.add_room_owner(room_uuid, user_uuid)
+    return api_response(200, user)
+
+''' Delete room owner '''
+@app.route('/api/rooms/<room_uuid>/owners/<user_uuid>', methods=['DELETE'])
+def delete_room_owner(room_uuid: str, user_uuid: str):
+    user_manager.remove_room_owner(room_uuid, user_uuid)
+    return api_response(200)
+
+''' Add room moderator '''
+@app.route('/api/rooms/<room_uuid>/moderators', methods=['POST'])
+def add_room_moderator(room_uuid: str):
+    form = request.get_json()
+    user_uuid = form['moderator']
+
+    if is_blank(user_uuid):
+        return api_response(400, message='Blank user id is not allowed.')
+    try:
+        user = user_manager.get_user(user_uuid)
+        user['name'] = utils.b64d(user['name'])
+    except NoSuchUserException:
+        return api_response(400, message='No Such User.')
+    user_manager.add_room_moderator(room_uuid, user_uuid)
+    return api_response(200, user)
+
+''' Delete room moderator '''
+@app.route('/api/rooms/<room_uuid>/moderators/<user_uuid>', methods=['DELETE'])
+def delete_room_moderator(room_uuid: str, user_uuid: str):
+    user_manager.remove_room_moderator(room_uuid, user_uuid)
+    return api_response(200)
+
+''' Add Room ACL '''
+@app.route('/api/rooms/<room_uuid>/acls', methods=['POST'])
+def create_room_acl(room_uuid: str):
+    form = request.get_json()
+    action = form['action']
+    acl_type = form['type']
+    acl_value = form['value']
+
+    message = {}
+    if is_blank(action):
+        message['action'] = 'Blank action is not allowed.'
+    if is_blank(acl_type):
+        message['type'] = 'Blank type is not allowed.'
+    if is_blank(acl_value):
+        message['value'] = 'Blank value is not allowed.'
+    if len(message):
+        return api_response(400, message=message)
+
+    try:
+        acl_manager.add_acl_room(room_uuid, action, acl_type, acl_value)
+    except InvalidAclValueException:
+        return api_response(400, message='Invalid ACL value %s' % acl_value)
+    except InvalidAclTypeException:
+        return api_response(400, message='Invalid ACL type %s' % acl_type)
+    except ValidationException as e:
+        return api_response(400, message='Invalid ACL: %s' % e.msg)
+    except Exception as e:
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='could not create acl for room %s: %s' % (room_uuid, str(e)))
+    
+    return api_response(200)
+
+''' Update room ACL '''
+@app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>/acls/<action>/<acl_type>', methods=['PUT'])
+def update_room_acl(channel_uuid: str, room_uuid: str, action: str, acl_type: str):
+    form = request.get_json()
+    value = form['value']
+    
+    try:
+        acl_manager.update_room_acl(channel_uuid, room_uuid, action, acl_type, value)
+    except InvalidAclValueException:
+        return api_response(400, message='Invalid ACL value %s' % value)
+    except InvalidAclTypeException:
+        return api_response(400, message='Invalid ACL type %s' % acl_type)
+    except ValidationException as e:
+        return api_response(400, message='Invalid ACL: %s' % e.msg)
+    except Exception as e:
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='could not update acl for room %s: %s' % (room_uuid, str(e)))
+    
+    return api_response(200)
+
+''' Delete room ACL '''
+@app.route('/api/rooms/<room_uuid>/acls/<action>/<acl_type>', methods=['DELETE'])
+def delete_room_acl(room_uuid: str, action: str, acl_type: str):
+    acl_manager.delete_acl_room(room_uuid, action, acl_type)
+    return api_response(200)
+
+####################################
+#               Users              #
+####################################
+
+''' Get users in a room '''
+@app.route('/api/rooms/<room_uuid>/users', methods=['GET'])
+def get_users_for_room(room_uuid: str):
+    return api_response(200, user_manager.get_users_for_room(room_uuid))
+
+''' Get user '''
+@app.route('/api/users/<user_uuid>', methods=['GET'])
+def get_user(user_uuid: str):
+    try:
+        user = user_manager.get_user(user_uuid)
+    except NoSuchUserException:
+        return api_response(400, message='No Such User.')
+    return api_response(200, user)
+
+''' Kick user '''
+@app.route('/api/rooms/<room_uuid>/users/<user_uuid>/kick', methods=['POST'])
+def kick_user(room_uuid: str, user_uuid: str):
+    try:
+        user_manager.kick_user(room_uuid, user_uuid)
+    except Exception as e:
+        logger.error('Could not kick user %s' % str(e))
+        return api_response(400, message='Could not kick user %s' % str(e))
+    return api_response(200)
+
+@app.route('/api/bans', methods=['GET'])
+def banned_users():
+    bans = user_manager.get_banned_users()
+    result = { 'global': list(), 'channel': list(), 'room': list() }
+
+    channel_bans = bans['channels']
+    for channel_id in channel_bans:
+        channel = { 'name': utils.b64d(channel_bans[channel_id]['name']), 'uuid': channel_id }
+        for user_id in channel_bans[channel_id]['users']:
+            user = channel_bans[channel_id]['users'][user_id]
+            user['uuid'] = user_id
+            user['name'] = utils.b64d(user['name'])
+            user['channel'] = channel
+            result['channel'].append(user)
+            
+    room_bans = bans['rooms']
+    for room_id in room_bans:
+        room = { 'name': utils.b64d(room_bans[room_id]['name']), 'uuid': room_id }
+        for user_id in room_bans[room_id]['users']:
+            user = room_bans[room_id]['users'][user_id]
+            user['uuid'] = user_id
+            user['name'] = utils.b64d(user['name'])
+            user['room'] = room
+            result['room'].append(user)
+            
+    global_bans = bans['global']
+    for user_id in global_bans:
+            user = global_bans[user_id]
+            user['uuid'] = user_id
+            user['name'] = utils.b64d(user['name'])
+            result['global'].append(user)
+    return api_response(200, result)
+
+''' Ban user '''
+@app.route('/api/bans', methods=['POST'])
+def ban_user():
+    form = request.get_json()
+    target = form['target']
+    target_uuid = form['target_uuid']
+    user_uuid = form['user_uuid']
+    duration = form['duration']
+
+    try:
+        user_manager.ban_user(user_uuid, target_uuid, duration, target)
+    except ValidationException as e:
+        return api_response(400, message='invalid duration: %s' % str(e))
+    except UnknownBanTypeException as e:
+        return api_response(400, message='could not ban user: %s' % str(e))
+    except Exception as e:
+        logger.exception(traceback.format_exc())
+        return api_response(400, message=str(e))
+
+    try:
+        user = user_manager.get_user(user_uuid)
+        user['name'] = utils.b64d(user['name'])
+        user['duration'] = duration
+    except NoSuchUserException:
+        return api_response(400, message="No such user.")
+    if target == 'channel':
+        user['channel'] = { 'uuid': target_uuid, 'name': channel_manager.name_for_uuid(target_uuid) }
+    elif target == 'room':
+        user['room'] = { 'uuid': target_uuid, 'name': room_manager.name_for_uuid(target_uuid) }
+    return api_response(200, user)
+
+''' Remove banned user '''
+@app.route('/api/bans/<user_uuid>/delete', methods=['POST'])
+def remove_ban(user_uuid: str):
+    form = request.get_json()
+    target = form['target']
+    target_uuid = form['target_uuid']
+    user_manager.remove_ban(user_uuid, target_uuid, target)
+    return api_response(200)
+
+
+####################################
+#           Super Users            #
+####################################
+
+''' Super users '''
+@app.route('/api/super-users', methods=['GET'])
+def super_users():
+    return api_response(200, user_manager.get_super_users())
+
+''' Create super user '''
+@app.route('/api/super-users', methods=['POST'])
+def create_super_user():
+    form = request.get_json();
+    user_name = str(form['name']).strip()
+    user_uuid = str(form['uuid']).strip()
+
+    message = {}
+    if is_blank(user_name):
+        message['name'] = 'Blank user name is not allowed.'
+    if is_blank(user_uuid):
+        message['uuid'] = 'Blank user id is not allowed.'
+
+    if len(message):
+        return api_response(400, message=message)
+    user_manager.create_super_user(user_name, user_uuid)
+    return api_response(200)
+
+''' Set as super user'''
+@app.route('/api/super-users/<user_uuid>', methods=['POST'])
+def set_super_user(user_uuid: str):
+    user_manager.set_super_user(user_uuid)
+    return api_response(200)
+
+''' Unset super user '''
+@app.route('/api/super-users/<user_uuid>', methods=['DELETE'])
+def remove_super_user(user_uuid: str):
+    user_manager.del_super_user(user_uuid)
+    return api_response(200)
+
+@app.route('/api/users/search/<query>', methods=['GET'])
+def search_user(query: str):
+    return api_response(200, user_manager.search_for(query))
+
+
+####################################
+#             History              #
+####################################
+
+''' Search history '''
+@app.route('/api/history', methods=['POST'])
+def search_history():
+    form = request.get_json()
+    user_uuid = form['user']
+    room_uuid = form['room']
+    from_time = form['from']
+    to_time = form['to']
+
+    msgs = list()
+    real_from_time, real_to_time = None, None
+    try:
+        msgs, real_from_time, real_to_time = storage_manager.find_history(room_uuid, user_uuid, from_time, to_time)
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+    if real_from_time is not None:
+        real_from_time = real_from_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+    if real_to_time is not None:
+        real_to_time = real_to_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+
+    return api_response(200, {
+        'message': msgs,
+        'real_from_time': real_from_time,
+        'real_to_time': real_to_time,
+    })
+
+''' Delete message '''
+@app.route('/api/history/<message_id>', methods=['DELETE'])
+def delete_message(message_id: str):
+    storage_manager.delete_message(message_id)
+    return api_response(200)
+
+''' Undo delete '''
+@app.route('/api/history/<message_id>/undelete', methods=['PUT'])
+def undo_delete_message(message_id: str):
+    storage_manager.undelete_message(message_id)
+    return api_response(200)
+
+
+####################################
+#            Blacklist             #
+####################################
+
+''' Get all blocked words '''
+@app.route('/api/blacklist', methods=['GET'])
+def blacklist():
+    return api_response(200, blacklist_manager.get_black_list())
+
+''' Add new blocked word '''
+@app.route('/api/blacklist', methods=['POST'])
+def add_to_blacklist():
+    form = request.get_json()
+    words = form['words']
+    try:
+        blacklist_manager.add_words(words)
+    except Exception as e:
+        logger.error('Could not add word to blacklist: %s' % str(e))
+        return api_response(400, message='Could not add word to blacklist: %s' % str(e))
+    return api_response(200)
+
+''' Delete word '''
+@app.route('/api/blacklist/<word_id>', methods=['DELETE'])
+def remove_from_blacklist(word_id: str):
+    try:
+        blacklist_manager.remove_word(word_id)
+    except Exception as e:
+        logger.error('Could not remove word from blacklist: %s' % str(e))
+        return api_response(400, message='Could not remove word from blacklist: %s' % str(e))
+    return api_response(200)
+
+
+@app.route('/api/broadcast', methods=['POST'])
+def send_broadcast():
+    form = request.get_json()
+    verb = form['verb']
+    content = form['content']
+
+    message = {}
+    if is_blank(verb):
+        message['verb'] = 'Verb may not be empty.'
+    if is_blank(content):
+        message['content'] = 'Content may not be empty.'
+
+    if len(message):
+        return api_response(400, message=message)
+
+    try:
+        content = utils.b64e(content)
+        broadcast_manager.send(content, verb)
+    except Exception as e:
+        logger.error('Could not send broadcast: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not send broadcast')
+    return api_response(200)
+
+
+'''
+Get acl types of action
+'''
+@app.route('/api/acls/<target>/actions/<api_action>/types', methods=['GET'])
 def acl_types_for_target_and_action(target: str, api_action: str):
     if target not in [ApiTargets.CHANNEL, ApiTargets.ROOM]:
-        return jsonify({'status_code': 400, 'message': 'unknown target type "%s"' % target})
+        return api_response(400, message='unknown target type "%s"' % target)
 
     config = acl_config[target][api_action]
     acls = set(config['acls'])
@@ -121,737 +796,13 @@ def acl_types_for_target_and_action(target: str, api_action: str):
             'acl_type': acl,
             'name': acl.capitalize()
         })
-    return jsonify(output)
-
-
-@app.route('/room/<room_uuid>/set-default', methods=['PUT'])
-def set_default_room_on(room_uuid: str):
-    try:
-        room_manager.set_default_room(room_uuid)
-    except Exception as e:
-        logger.error('could not set room as default: %s' % str(e))
-        return jsonify({'status_code': 500, 'message': str(e)})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/room/<room_uuid>/unset-default', methods=['PUT'])
-def set_default_room_off(room_uuid: str):
-    try:
-        room_manager.unset_default_room(room_uuid)
-    except Exception as e:
-        logger.error('could not unset room as default: %s' % str(e))
-        return jsonify({'status_code': 500, 'message': str(e)})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/room/<room_uuid>/set-ephemeral', methods=['PUT'])
-def set_ephemeral_room_on(room_uuid: str):
-    try:
-        room_manager.set_ephemeral_room(room_uuid)
-    except Exception as e:
-        logger.error('could not set room as ephemeral: %s' % str(e))
-        return jsonify({'status_code': 500, 'message': str(e)})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/room/<room_uuid>/unset-ephemeral', methods=['PUT'])
-def set_ephemeral_room_off(room_uuid: str):
-    try:
-        room_manager.unset_ephemeral_room(room_uuid)
-    except Exception as e:
-        logger.error('could not unset room as ephemeral: %s' % str(e))
-        return jsonify({'status_code': 500, 'message': str(e)})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/room/<room_uuid>/set-admin', methods=['PUT'])
-def set_admin_room_on(room_uuid: str):
-    try:
-        room_manager.set_admin_room(room_uuid)
-    except Exception as e:
-        logger.error('could not set room as ephemeral: %s' % str(e))
-        return jsonify({'status_code': 500, 'message': str(e)})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/room/<room_uuid>/unset-admin', methods=['PUT'])
-def set_admin_room_off(room_uuid: str):
-    try:
-        room_manager.unset_admin_room(room_uuid)
-    except Exception as e:
-        logger.error('could not unset room as ephemeral: %s' % str(e))
-        return jsonify({'status_code': 500, 'message': str(e)})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/user/<user_uuid>/kick', methods=['PUT'])
-def kick_user(channel_uuid: str, room_uuid: str, user_uuid: str):
-    try:
-        user_manager.kick_user(room_uuid, user_uuid)
-    except Exception as e:
-        logger.error('could not kick user: %s' % str(e))
-        return jsonify({'status_code': 500, 'message': str(e)})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/user/<user_uuid>/ban', methods=['PUT'])
-def ban_user_room(channel_uuid: str, room_uuid: str, user_uuid: str):
-    try:
-        json_data = request.get_json()
-        duration = json_data['duration']
-    except Exception as e:
-        logger.error('could not parse json: %s' % str(e))
-        return jsonify({'status_code': 400, 'data': 'invalid json'})
-
-    try:
-        user_manager.ban_user(user_uuid, room_uuid, duration, 'room')
-    except ValidationException as e:
-        return jsonify({'status_code': 400, 'data': 'invalid duration: %s' % str(e)})
-    except UnknownBanTypeException as e:
-        return jsonify({'status_code': 500, 'data': 'could not ban user: %s' % str(e)})
-    except Exception as e:
-        logger.exception(traceback.format_exc())
-        return jsonify({'status_code': 500, 'data': str(e)})
-    return jsonify({'status_code': 200})
-
-
-# TODO: currently no way in the cms to ban a user from a channel (or globally)
-@app.route('/channel/<channel_uuid>/user/<user_uuid>/ban', methods=['PUT'])
-def ban_user_channel(channel_uuid: str, user_uuid: str):
-    try:
-        json_data = request.get_json()
-        duration = json_data['duration']
-    except Exception as e:
-        logger.error('could not parse json: %s' % str(e))
-        return jsonify({'status_code': 400, 'data': 'invalid json'})
-
-    try:
-        user_manager.ban_user(user_uuid, channel_uuid, duration, 'channel')
-    except ValidationException as e:
-        return jsonify({'status_code': 400, 'data': 'invalid duration: %s' % str(e)})
-    except UnknownBanTypeException as e:
-        return jsonify({'status_code': 500, 'data': 'could not ban user: %s' % str(e)})
-    except Exception as e:
-        logger.exception(traceback.format_exc())
-        return jsonify({'status_code': 500, 'data': str(e)})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/banned/room/<room_uuid>/user/<user_uuid>', methods=['DELETE'])
-def remove_ban_room(room_uuid: str, user_uuid: str):
-    user_manager.remove_ban(user_uuid, room_uuid, 'room')
-    return jsonify({'status_code': 200})
-
-
-@app.route('/banned/channel/<channel_uuid>/user/<user_uuid>', methods=['DELETE'])
-def remove_ban_channel(channel_uuid: str, user_uuid: str):
-    user_manager.remove_ban(user_uuid, channel_uuid, 'channel')
-    return jsonify({'status_code': 200})
-
-
-@app.route('/banned/user/<user_uuid>', methods=['DELETE'])
-def remove_ban_global(user_uuid: str):
-    user_manager.remove_ban(user_uuid, None, 'global')
-    return jsonify({'status_code': 200})
-
-
-@app.route('/banned', methods=['GET', 'POST'])
-def banned():
-    ban_form = BanForm(request.form)
-
-    if request.method == 'POST' and ban_form.validate():
-        try:
-            user_manager.ban_user(
-                    ban_form.uuid.data,
-                    ban_form.target_id.data,
-                    ban_form.duration.data,
-                    ban_form.target_type.data)
-            return redirect(app.config['ROOT_URL'] + 'banned')
-        except ValidationException as e:
-            ban_form.target_type.errors.append('Ban not valid: "%s"' % e.msg)
-        except UnknownBanTypeException as e:
-            ban_form.target_type.errors.append('Unkonwn ban type "%s"' % e.ban_type)
-
-    bans = user_manager.get_banned_users()
-    channel_bans = bans['channels']
-    for channel_id in channel_bans:
-        channel_bans[channel_id]['name'] = utils.b64d(channel_bans[channel_id]['name'])
-        for user_id in channel_bans[channel_id]['users']:
-            channel_bans[channel_id]['users'][user_id]['name'] = \
-                utils.b64d(channel_bans[channel_id]['users'][user_id]['name'])
-            
-    room_bans = bans['rooms']
-    for room_id in room_bans:
-        room_bans[room_id]['name'] = utils.b64d(room_bans[room_id]['name'])
-        for user_id in room_bans[room_id]['users']:
-            room_bans[room_id]['users'][user_id]['name'] = \
-                utils.b64d(room_bans[room_id]['users'][user_id]['name'])
-            
-    global_bans = bans['global']
-    for user_id in global_bans:
-        global_bans[user_id]['name'] = \
-            utils.b64d(global_bans[user_id]['name'])
-
-    return render_template(
-            'banned.html',
-            form=ban_form,
-            globally=global_bans,
-            channels=channel_bans,
-            rooms=room_bans,
-            environment=environment,
-            version=tag_name)
-
-
-@app.route('/users', methods=['GET'])
-def users():
-    form = CreateUserForm(request.form)
-    return render_template(
-            'users.html',
-            form=form,
-            superusers=user_manager.get_super_users(),
-            environment=environment,
-            version=tag_name)
-
-
-@app.route('/user/<user_uuid>/set/superuser', methods=['GET'])
-def set_as_superuser(user_uuid):
-    user_manager.set_super_user(user_uuid)
-    return redirect(app.config['ROOT_URL'] + 'users')
-
-
-@app.route('/user/<user_uuid>/del/superuser', methods=['GET'])
-def del_as_superuser(user_uuid):
-    user_manager.del_super_user(user_uuid)
-    return redirect(app.config['ROOT_URL'] + 'users')
-
-
-@app.route('/users/search', methods=['POST'])
-def search_users():
-    data = request.get_json()
-    query = data['query']
-    return jsonify(user_manager.search_for(query))
-
-
-@app.route('/user/<user_uuid>', methods=['GET'])
-def user(user_uuid: str):
-    return render_template(
-            'user.html',
-            user=user_manager.get_user(user_uuid),
-            environment=environment,
-            version=tag_name)
-
-
-@app.route('/history', methods=['GET', 'POST'])
-def history():
-    form = SearchHistoryForm(request.form)
-    return render_template(
-            'history.html',
-            form=form,
-            messages=list(),
-            environment=environment,
-            version=tag_name)
-
-
-@app.route('/history/<message_id>/delete', methods=['PUT'])
-def delete_message(message_id: str):
-    storage_manager.delete_message(message_id)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/history/<message_id>/undelete', methods=['PUT'])
-def undelete_message(message_id: str):
-    storage_manager.undelete_message(message_id)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/history/search', methods=['POST'])
-def search_history():
-    form = SearchHistoryForm(request.form)
-    user_id = form.user_id.data
-    room_id = form.room_id.data
-    from_time = form.from_time.data
-    to_time = form.to_time.data
-
-    msgs = list()
-    real_from_time, real_to_time = None, None
-    try:
-        msgs, real_from_time, real_to_time = storage_manager.find_history(room_id, user_id, from_time, to_time)
-    except Exception as e:
-        logger.error('could not get messages: %s' % str(e))
-        logger.exception(traceback.format_exc())
-
-    if real_from_time is not None:
-        real_from_time = real_from_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-    if real_to_time is not None:
-        real_to_time = real_to_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-
-    return render_template(
-            'history.html',
-            form=form,
-            messages=msgs,
-            real_from_time=real_from_time,
-            real_to_time=real_to_time,
-            environment=environment,
-            version=tag_name)
-
-
-@app.route('/blacklist', methods=['GET', 'POST'])
-def blacklist():
-    form = AddBlackListForm()
-    words = blacklist_manager.get_black_list()
-    return render_template(
-            'blacklist.html',
-            form=form,
-            words=words,
-            environment=environment,
-            version=tag_name)
-
-
-@app.route('/blacklist/add', methods=['POST'])
-def add_to_blacklist():
-    form = AddBlackListForm(request.form)
-    try:
-        blacklist_manager.add_words(form.words.data)
-    except Exception as e:
-        logger.error('could not add word to blacklist: %s' % str(e))
-        return redirect(app.config['ROOT_URL'] + 'blacklist')
-    return redirect(app.config['ROOT_URL'] + 'blacklist')
-
-
-@app.route('/blacklist/<word_id>/delete', methods=['DELETE'])
-def remove_from_blacklist(word_id: str):
-    try:
-        blacklist_manager.remove_word(word_id)
-    except Exception as e:
-        logger.error('could not remove word from blacklist: %s' % str(e))
-        return jsonify({'status_code': 400, 'message': str(e)})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/rooms', methods=['GET'])
-def rooms_for_channel(channel_uuid):
-    form = CreateRoomForm(request.form)
-    acl_form = CreateChannelAclForm(request.form)
-    owner_form = AddOwnerForm(request.form)
-    admin_form = AddAdminForm(request.form)
-
-    acls = acl_manager.get_acls_channel(channel_uuid)
-    acls_decoded = list()
-    for acl in acls:
-        acl['value'] = utils.b64d(acl['value'])
-        acls_decoded.append(acl)
-
-    return render_template(
-            'rooms_in_channel.html',
-            form=form,
-            owner_form=owner_form,
-            admin_form=admin_form,
-            acl_form=acl_form,
-            owners=channel_manager.get_owners(channel_uuid),
-            admins=channel_manager.get_admins(channel_uuid),
-            acls=acls_decoded,
-            channel_uuid=channel_uuid,
-            channel_name=channel_manager.name_for_uuid(channel_uuid),
-            rooms=room_manager.get_rooms(channel_uuid),
-            environment=environment,
-            version=tag_name)
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>', methods=['GET'])
-def users_for_room(channel_uuid, room_uuid):
-    owner_form = AddOwnerForm(request.form)
-    mod_form = AddModeratorForm(request.form)
-    acl_form = CreateRoomAclForm(request.form)
-
-    acls = acl_manager.get_acls_room(room_uuid)
-    acls_decoded = list()
-    for acl in acls:
-        acl['value'] = utils.b64d(acl['value'])
-        acls_decoded.append(acl)
-
-    return render_template(
-            'users_in_room.html',
-            channel_uuid=channel_uuid,
-            room_uuid=room_uuid,
-            owner_form=owner_form,
-            mod_form=mod_form,
-            acl_form=acl_form,
-            acls=acls_decoded,
-            channel_name=channel_manager.name_for_uuid(channel_uuid),
-            room_name=room_manager.name_for_uuid(room_uuid),
-            owners=room_manager.get_owners(room_uuid),
-            moderators=room_manager.get_moderators(room_uuid),
-            users=user_manager.get_users_for_room(room_uuid),
-            environment=environment,
-            version=tag_name)
-
-
-@app.route('/channel/<channel_uuid>/sort', methods=['PUT'])
-def edit_channel_sort(channel_uuid: str) -> None:
-    try:
-        json_data = request.get_json()
-        sort_order = json_data['value']
-        channel_manager.update_sort(channel_uuid, sort_order)
-    except Exception as e:
-        logger.error('could not parse json: %s' % str(e))
-        return jsonify({'status_code': 400})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/sort', methods=['PUT'])
-def edit_room_sort(channel_uuid: str, room_uuid: str) -> None:
-    try:
-        json_data = request.get_json()
-        sort_order = json_data['value']
-        room_manager.update_sort(room_uuid, sort_order)
-    except Exception as e:
-        logger.error('could not parse json: %s' % str(e))
-        return jsonify({'status_code': 400})
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/rename', methods=['PUT'])
-def rename_channel(channel_uuid: str) -> None:
-    try:
-        json_data = request.get_json()
-        new_name = json_data['name']
-    except Exception as e:
-        logger.error('could not parse json: %s' % str(e))
-        return jsonify({'status_code': 400})
-
-    try:
-        channel_manager.rename(channel_uuid, new_name)
-    except ChannelNameExistsException:
-        return jsonify({'status_code': 400, 'message': 'A channel with that name already exists'})
-    except EmptyChannelNameException:
-        return jsonify({'status_code': 400, 'message': 'Blank channel name is not allowed'})
-
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/rename', methods=['PUT'])
-def rename_room(channel_uuid: str, room_uuid: str) -> None:
-    try:
-        json_data = request.get_json()
-        new_name = json_data['name']
-    except Exception as e:
-        logger.error('could not parse json: %s' % str(e))
-        return jsonify({'status_code': 400})
-
-    try:
-        room_manager.rename(channel_uuid, room_uuid, new_name)
-    except RoomNameExistsForChannelException:
-        return jsonify({'status_code': 400, 'message': 'A room with that name already exists for this channel'})
-    except EmptyRoomNameException:
-        return jsonify({'status_code': 400, 'message': 'Blank room name is not allowed'})
-
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<action>/type/<acl_type>', methods=['DELETE'])
-def delete_acl_room(channel_uuid, room_uuid, action, acl_type):
-    acl_manager.delete_acl_room(room_uuid, action, acl_type)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/acl/<action>/type/<acl_type>', methods=['PUT'])
-def update_acl_room(channel_uuid, room_uuid, action, acl_type):
-    try:
-        json_data = request.get_json()
-        new_value = json_data['value']
-    except Exception as e:
-        logger.error('could not parse json: %s' % str(e))
-        return jsonify({'status_code': 400})
-
-    try:
-        acl_manager.update_room_acl(channel_uuid, room_uuid, action, acl_type, new_value)
-    except InvalidAclValueException:
-        flash('Invalid ACL value: %s' % new_value)
-    except InvalidAclTypeException:
-        flash('Invalid ACL type: %s' % acl_type)
-    except ValidationException as e:
-        flash('Invalid ACL: %s' % e.msg)
-    except Exception as e:
-        flash('could not update acl for room %s: %s' % (room_uuid, str(e)))
-        logger.exception(traceback.format_exc())
-
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/acl/<action>/type/<acl_type>', methods=['PUT'])
-def update_acl_channel(channel_uuid, action, acl_type):
-    try:
-        json_data = request.get_json()
-        new_value = json_data['value']
-    except Exception as e:
-        logger.error('could not parse json: %s' % str(e))
-        return jsonify({'status_code': 400})
-
-    try:
-        acl_manager.update_channel_acl(channel_uuid, action, acl_type, new_value)
-    except InvalidAclValueException:
-        flash('Invalid ACL value: %s' % new_value)
-    except InvalidAclTypeException:
-        flash('Invalid ACL type: %s' % acl_type)
-    except ValidationException as e:
-        flash('Invalid ACL: %s' % e.msg)
-    except Exception as e:
-        flash('could not update acl for channel %s: %s' % (channel_uuid, str(e)))
-        logger.exception(traceback.format_exc())
-
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/acl/<action>/type/<acl_type>', methods=['DELETE'])
-def delete_acl_channel(channel_uuid, action, acl_type):
-    acl_manager.delete_acl_channel(channel_uuid, action, acl_type)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/create', methods=['POST'])
-def create_room(channel_uuid):
-    form = CreateRoomForm(request.form)
-    room_name = str(form.name.data)
-    room_uuid = str(uuid())
-    user_uuid = str(form.owner.data)
-
-    if is_blank(room_name) or is_blank(user_uuid):
-        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-    msg = room_manager.create_room(room_name, room_uuid, channel_uuid, user_uuid)
-    if msg is not None:
-        flash(msg)
-        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-    return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/remove', methods=['DELETE'])
-def delete_room(channel_uuid: str, room_uuid: str):
-    room_manager.remove_room(channel_uuid, room_uuid)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/remove', methods=['DELETE'])
-def delete_channel(channel_uuid: str):
-    channel_manager.remove_channel(channel_uuid)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/broadcast', methods=['GET'])
-def get_broadcast():
-    form = BroadcastForm(request.form)
-    return render_template('broadcast.html', form=form)
-
-
-@app.route('/send-broadcast', methods=['POST'])
-def post_broadcast():
-    form = BroadcastForm(request.form)
-
-    def sent_successfully():
-        body = form.body.data
-        verb = form.verb.data
-
-        if body is None or len(body.strip()) == 0:
-            flash('Body may not be empty')
-            return False
-        if verb is None or len(verb.strip()) == 0:
-            flash('Verb may not be empty')
-            return False
-
-        try:
-            body = utils.b64e(body)
-            broadcast_manager.send(body, verb)
-        except Exception as e:
-            logger.error('could not send broadcast: %s' % str(e))
-            logger.exception(traceback.format_exc())
-            flash(str(e))
-            return False
-        return True
-
-    if sent_successfully():
-        form.body.data = ''
-        form.verb.data = ''
-
-    return redirect(app.config['ROOT_URL'] + 'broadcast')
-
-
-@app.route('/channel/<channel_uuid>/create/acl', methods=['POST'])
-def create_acl_channel(channel_uuid: str):
-    form = CreateChannelAclForm(request.form)
-    action = form.api_action.data
-    acl_type = form.acl_type.data
-    acl_value = form.acl_value.data
-
-    if is_blank(acl_type) or is_blank(acl_value):
-        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-    try:
-        acl_manager.add_acl_channel(channel_uuid, action, acl_type, acl_value)
-    except InvalidAclValueException:
-        flash('Invalid ACL value: %s' % acl_value)
-    except InvalidAclTypeException:
-        flash('Invalid ACL type: %s' % acl_type)
-    except ValidationException as e:
-        flash('Invalid ACL: %s' % e.msg)
-    except Exception as e:
-        flash('could not update acl for channel %s: %s' % (channel_uuid, str(e)))
-        logger.exception(traceback.format_exc())
-
-    return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-
-@app.route('/channel/<channel_uuid>/add/admin', methods=['POST'])
-def create_channel_admin(channel_uuid: str):
-    form = AddAdminForm(request.form)
-    user_id = form.uuid.data
-
-    if is_blank(user_id):
-        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-    user_manager.add_channel_admin(channel_uuid, user_id)
-    return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-
-@app.route('/channel/<channel_uuid>/add/owner', methods=['POST'])
-def create_channel_owner(channel_uuid: str):
-    form = AddOwnerForm(request.form)
-    user_id = form.uuid.data
-
-    if is_blank(user_id):
-        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-    user_manager.add_channel_owner(channel_uuid, user_id)
-    return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/add/owner', methods=['POST'])
-def create_room_owner(channel_uuid: str, room_uuid: str):
-    form = AddOwnerForm(request.form)
-    user_id = form.uuid.data
-
-    if is_blank(user_id):
-        return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
-
-    user_manager.add_room_owner(room_uuid, user_id)
-    return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/add/moderator', methods=['POST'])
-def create_room_moderator(channel_uuid: str, room_uuid: str):
-    form = AddModeratorForm(request.form)
-    user_id = form.uuid.data
-
-    if is_blank(user_id):
-        return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
-
-    user_manager.add_room_moderator(room_uuid, user_id)
-    return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
-
-
-@app.route('/channel/<channel_uuid>/remove/admin/<user_id>', methods=['DELETE'])
-def remove_channel_admin(channel_uuid: str, user_id: str):
-    if is_blank(user_id):
-        return jsonify({'status_code': 200})
-
-    user_manager.remove_channel_admin(channel_uuid, user_id)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/remove/owner/<user_id>', methods=['DELETE'])
-def remove_channel_owner(channel_uuid: str, user_id: str):
-    if is_blank(user_id):
-        return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-    user_manager.remove_channel_owner(channel_uuid, user_id)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/remove/moderator/<user_id>', methods=['DELETE'])
-def remove_room_moderator(channel_uuid: str, room_uuid: str, user_id: str):
-    if is_blank(user_id):
-        return jsonify({'status_code': 200})
-
-    user_manager.remove_room_moderator(room_uuid, user_id)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/remove/owner/<user_id>', methods=['DELETE'])
-def remove_room_owner(channel_uuid: str, room_uuid: str, user_id: str):
-    if is_blank(user_id):
-        return jsonify({'status_code': 200})
-
-    user_manager.remove_room_owner(room_uuid, user_id)
-    return jsonify({'status_code': 200})
-
-
-@app.route('/channel/<channel_uuid>/room/<room_uuid>/create/acl', methods=['POST'])
-def create_acl_room(channel_uuid: str, room_uuid: str):
-    form = CreateRoomAclForm(request.form)
-    action = str(form.api_action.data).strip()
-    acl_type = str(form.acl_type.data).strip()
-    acl_value = str(form.acl_value.data).strip()
-
-    if is_blank(acl_type) or is_blank(acl_value):
-        return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
-
-    try:
-        acl_manager.add_acl_room(room_uuid, action, acl_type, acl_value)
-    except InvalidAclValueException:
-        flash('Invalid ACL value: %s' % acl_value)
-    except InvalidAclTypeException:
-        flash('Invalid ACL type: %s' % acl_type)
-    except ValidationException as e:
-        flash('Invalid ACL: %s' % e.msg)
-    except Exception as e:
-        flash('could not update acl for room %s: %s' % (room_uuid, str(e)))
-        logger.exception(traceback.format_exc())
-
-    return redirect(app.config['ROOT_URL'] + 'channel/%s/room/%s' % (channel_uuid, room_uuid))
-
-
-@app.route('/create/channel', methods=['POST'])
-def create_channel():
-    form = CreateChannelForm(request.form)
-    channel_name = str(form.name.data).strip()
-    channel_uuid = str(uuid())
-    user_uuid = str(form.owner.data).strip()
-
-    if is_blank(channel_name) or is_blank(user_uuid):
-        return redirect(app.config['ROOT_URL'] + 'channels')
-
-    channel_manager.create_channel(channel_name, channel_uuid, user_uuid)
-    return redirect(app.config['ROOT_URL'] + 'channel/%s/rooms' % channel_uuid)
-
-
-@app.route('/create/super-user', methods=['POST'])
-def create_super_user():
-    form = CreateUserForm(request.form)
-    user_name = str(form.name.data).strip()
-    user_id = str(form.uuid.data).strip()
-
-    if is_blank(user_name) or is_blank(user_id):
-        return redirect(app.config['ROOT_URL'] + 'users')
-
-    user_manager.create_super_user(user_name, user_id)
-    return redirect(app.config['ROOT_URL'] + 'user/%s' % user_id)
-
-
-@app.route('/static/custom/<path:path>')
-def send_custom(path):
-    return send_from_directory('admin/static/custom/', path)
-
-
-@app.route('/images/<path:path>')
-def send_images(path):
-    return send_from_directory('admin/static/vendor/images/', path)
-
+    return api_response(200, output)
 
 @app.route('/static/<path:path>')
 def send_static(path):
-    return send_from_directory('admin/static/vendor/', path)
+    return send_from_directory('admin/static/', path)
 
-
-@app.route('/fonts/<path:path>')
-def send_fonts(path):
-    return send_from_directory('admin/static/vendor/fonts/', path)
+@app.errorhandler(404)
+def page_not_found(e):
+    # your processing here
+    return index()
