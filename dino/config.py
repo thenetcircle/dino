@@ -209,6 +209,7 @@ class ConfigKeys(object):
 
     HISTORY_TYPE_UNREAD = 'unread'
     HISTORY_TYPE_TOP = 'top'
+    USE_FLOATING_MENU = 'use_floating_menu'
 
 
 class RedisKeys(object):

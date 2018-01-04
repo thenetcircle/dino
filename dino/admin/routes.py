@@ -87,13 +87,16 @@ def internal_url_for(url):
 #           SSO            #
 ############################
 oauth = OAuth(app)
-SERVICE_ID = 'ChatService'
-DOMAIN = 'http://services.ideawise.lab'
-UNAUTHORIZED_PAGE = DOMAIN + "/unauthorized"
-OAUTH_SERVER = DOMAIN + "/sso-oauth/rest/v1/oauth"
-AUTHORIZE_URL = OAUTH_SERVER + "/auth/authorize"
-TOKEN_URL = OAUTH_SERVER + "/access-tokens/issue"
-CALLBACK_URL = DOMAIN + app.config['ROOT_URL'] + '/login/callback'
+# OAUTH Configuration
+OAUTH_BASE = ""
+SERVICE_ID = ""
+SERVICE_SECRET = ""
+AUTHORIZE_URL = ""
+TOKEN_URL = ""
+
+CHECK_TOKEN_URL = OAUTH_BASE + ""
+CALLBACK_URL = ""
+UNAUTHORIZED_PAGE = ""
 
 # FOR DEV MODE (can use http to authenticate)
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = 'true'
@@ -102,7 +105,7 @@ chat = oauth.remote_app(
     SERVICE_ID,
     consumer_key=SERVICE_ID,
     consumer_secret=SERVICE_ID,
-    base_url=OAUTH_SERVER,
+    base_url=OAUTH_BASE,
     request_token_params={},
     request_token_url=None,
     access_token_method='POST',
@@ -117,7 +120,7 @@ def parse_services(services):
     return parsed
 
 def check(token):
-    resp = requests.post(OAUTH_SERVER + "/access-tokens/check?access_token=" + token)
+    resp = requests.post(CHECK_TOKEN_URL.format(token))
     if resp.status_code >= 200 and resp.status_code < 399:
         try:
             content = resp.json()
@@ -188,7 +191,8 @@ def index():
         'index.html',
         environment=environment,
         config={
-            'ROOT_URL': environ.env.config.get(ConfigKeys.ROOT_URL, domain=ConfigKeys.WEB)
+            'ROOT_URL': environ.env.config.get(ConfigKeys.ROOT_URL, domain=ConfigKeys.WEB),
+            'FLOATING_MENU': environ.env.config.get(ConfigKeys.USE_FLOATING_MENU, domain=ConfigKeys.WEB)
         },
         version=tag_name)
 
