@@ -15,15 +15,20 @@
 import logging
 import os
 import traceback
+import requests
 from typing import List
 from typing import Union
 from uuid import uuid4 as uuid
+from functools import wraps
 
 from flask import jsonify
 from flask import render_template
 from flask import request
+from flask import redirect
 from flask import send_from_directory
 from git.cmd import Git
+from flask_oauthlib.client import OAuth
+from werkzeug.wrappers import Response
 
 from dino import environ
 from dino import utils
@@ -59,7 +64,6 @@ if home_dir is None:
     home_dir = '.'
 tag_name = Git(home_dir).describe()
 
-
 def is_blank(s: str):
     return s is None or len(s.strip()) == 0
 
@@ -76,14 +80,119 @@ def api_response(code, data: Union[dict, List[dict]]=None, message: Union[dict, 
         'message': message
     })
 
+def internal_url_for(url):
+    return app.config['ROOT_URL'] + url
+
+############################
+#           SSO            #
+############################
+oauth = OAuth(app)
+# OAUTH Configuration
+OAUTH_BASE = ""
+SERVICE_ID = ""
+SERVICE_SECRET = ""
+AUTHORIZE_URL = ""
+TOKEN_URL = ""
+
+CHECK_TOKEN_URL = OAUTH_BASE + ""
+CALLBACK_URL = ""
+UNAUTHORIZED_PAGE = ""
+
+# FOR DEV MODE (can use http to authenticate)
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = 'true'
+
+chat = oauth.remote_app(
+    SERVICE_ID,
+    consumer_key=SERVICE_ID,
+    consumer_secret=SERVICE_ID,
+    base_url=OAUTH_BASE,
+    request_token_params={},
+    request_token_url=None,
+    access_token_method='POST',
+    access_token_url=TOKEN_URL,
+    authorize_url=AUTHORIZE_URL
+)
+
+def parse_services(services):
+    parsed = list()
+    for service in services:
+        parsed.append(service['name'].split(',')[0].split('=')[1])
+    return parsed
+
+def check(token):
+    resp = requests.post(CHECK_TOKEN_URL.format(token))
+    if resp.status_code >= 200 and resp.status_code < 399:
+        try:
+            content = resp.json()
+            services = parse_services(content['scopes'])
+            if SERVICE_ID not in services:
+                return redirect(UNAUTHORIZED_PAGE)
+        except Exception:
+            return False
+        return True
+    return False
+
+def is_authorized():
+    if 'token' not in request.cookies:
+        return False
+    return check(request.cookies.get('token'))
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        state = is_authorized()
+        # Invalid Access
+        if state is False:
+            # For api
+            if request.path.startswith('/api'):
+                return api_response(400, message="Invalid authentication.")
+            # For 
+            return redirect(internal_url_for('/login'))
+        # No accessibility to chat service
+        if isinstance(state, Response):
+            return state
+
+        return f(*args, **kwargs)
+    return decorated
+
+
+@app.route('/login')
+def login():
+    return chat.authorize(callback=CALLBACK_URL)
+
+
+@app.route('/logout')
+def logout():
+    request.cookies.pop('token', None)
+    return redirect(internal_url_for('/login'))
+
+@app.route('/login/callback')
+def authorized():
+    resp = chat.handle_oauth2_response()
+    if resp is None or resp.get('access_token') is None:
+        return 'Access denied: reason=%s error=%s resp=%s' % (
+            request.args['error'],
+            request.args['error_description'],
+            resp
+        )
+    response = redirect(internal_url_for('/index'))
+    response.set_cookie('token', resp['access_token'])
+    return response
+
+@chat.tokengetter
+def get_sso_token():
+    return request.cookies.get('token')
+
 
 @app.route('/', methods=['GET'])
+@requires_auth
 def index():
     return render_template(
         'index.html',
         environment=environment,
         config={
-            'ROOT_URL': environ.env.config.get(ConfigKeys.ROOT_URL, domain=ConfigKeys.WEB)
+            'ROOT_URL': environ.env.config.get(ConfigKeys.ROOT_URL, domain=ConfigKeys.WEB),
+            'FLOATING_MENU': environ.env.config.get(ConfigKeys.USE_FLOATING_MENU, domain=ConfigKeys.WEB)
         },
         version=tag_name)
 
@@ -92,12 +201,14 @@ def index():
 #             Channels             #
 ####################################
 @app.route('/api/channels', methods=['GET'])
+@requires_auth
 def channels():
     """ Get all channels. """
     return api_response(200, channel_manager.get_channels())
 
 
 @app.route('/api/channels', methods=['POST'])
+@requires_auth
 def create_channel():
     """ Create new channel """
     form = request.get_json()
@@ -121,12 +232,14 @@ def create_channel():
 
 
 @app.route('/api/channels/<channel_uuid>', methods=['DELETE'])
+@requires_auth
 def delete_channel(channel_uuid: str):
     channel_manager.remove_channel(channel_uuid)
     return api_response(200)
 
 
 @app.route('/api/channels/<channel_uuid>/name', methods=['PUT'])
+@requires_auth
 def update_channel_name(channel_uuid: str):
     form = request.get_json()
     name = form['name']
@@ -142,6 +255,7 @@ def update_channel_name(channel_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>/order', methods=['PUT'])
+@requires_auth
 def update_channel_order(channel_uuid: str):
     form = request.get_json()
     order = form['order']
@@ -150,6 +264,7 @@ def update_channel_order(channel_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>', methods=['GET'])
+@requires_auth
 def get_channel(channel_uuid: str):
     """ Get channel owners/admins/acls """
     acls = acl_manager.get_acls_channel(channel_uuid)
@@ -166,6 +281,7 @@ def get_channel(channel_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>/owners', methods=['POST'])
+@requires_auth
 def add_channel_owner(channel_uuid: str):
     form = request.get_json()
     user_uuid = form['owner']
@@ -184,12 +300,14 @@ def add_channel_owner(channel_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>/owners/<user_uuid>', methods=['DELETE'])
+@requires_auth
 def remove_channel_owner(channel_uuid: str, user_uuid: str):
     user_manager.remove_channel_owner(channel_uuid, user_uuid)
     return api_response(200)
 
 
 @app.route('/api/channels/<channel_uuid>/admins', methods=['POST'])
+@requires_auth
 def add_channel_admin(channel_uuid: str):
     form = request.get_json()
     user_uuid = form['admin']
@@ -206,12 +324,14 @@ def add_channel_admin(channel_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>/admins/<user_uuid>', methods=['DELETE'])
+@requires_auth
 def remove_channel_admin(channel_uuid: str, user_uuid: str):
     user_manager.remove_channel_admin(channel_uuid, user_uuid)
     return api_response(200)
 
 
 @app.route('/api/channels/<channel_uuid>/acls', methods=['POST'])
+@requires_auth
 def create_channel_acl(channel_uuid: str):
     form = request.get_json()
     action = form['action']
@@ -242,6 +362,7 @@ def create_channel_acl(channel_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>/acls/<action>/<acl_type>', methods=['PUT'])
+@requires_auth
 def update_channel_acl(channel_uuid: str, action: str, acl_type: str):
     form = request.get_json()
     value = form['value']
@@ -262,6 +383,7 @@ def update_channel_acl(channel_uuid: str, action: str, acl_type: str):
 
 
 @app.route('/api/channels/<channel_uuid>/acls/<action>/<acl_type>', methods=['DELETE'])
+@requires_auth
 def delete_channel_acl(channel_uuid: str, action: str, acl_type: str):
     acl_manager.delete_acl_channel(channel_uuid, action, acl_type)
     return api_response(200)
@@ -271,12 +393,14 @@ def delete_channel_acl(channel_uuid: str, action: str, acl_type: str):
 #               Rooms              #
 ####################################
 @app.route('/api/channels/<channel_uuid>/rooms', methods=['GET'])
+@requires_auth
 def rooms_for_channel(channel_uuid: str):
     """ Get rooms of channel """
     return api_response(200, room_manager.get_rooms(channel_uuid))
 
 
 @app.route('/api/channels/<channel_uuid>/rooms', methods=['POST'])
+@requires_auth
 def create_room(channel_uuid: str):
     form = request.get_json()
     room_name = form['name']
@@ -311,6 +435,7 @@ def create_room(channel_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/order', methods=['PUT'])
+@requires_auth
 def update_room_order(room_uuid: str):
     form = request.get_json()
     order = form['order']
@@ -319,6 +444,7 @@ def update_room_order(room_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>/name', methods=['PUT'])
+@requires_auth
 def update_room_name(channel_uuid: str, room_uuid: str):
     form = request.get_json()
     name = form['name']
@@ -330,6 +456,7 @@ def update_room_name(channel_uuid: str, room_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>', methods=['GET'])
+@requires_auth
 def get_room(channel_uuid: str, room_uuid: str):
     acls = acl_manager.get_acls_room(room_uuid)
     acls_decoded = list()
@@ -349,6 +476,7 @@ def get_room(channel_uuid: str, room_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/set-default', methods=['PUT'])
+@requires_auth
 def set_default_room(room_uuid: str):
     try:
         room_manager.set_default_room(room_uuid)
@@ -359,6 +487,7 @@ def set_default_room(room_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/unset-default', methods=['PUT'])
+@requires_auth
 def unset_default_room(room_uuid: str):
     try:
         room_manager.unset_default_room(room_uuid)
@@ -369,6 +498,7 @@ def unset_default_room(room_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/set-ephemeral', methods=['PUT'])
+@requires_auth
 def set_ephemeral_room(room_uuid: str):
     """ Set as ephemeral room """
     try:
@@ -380,6 +510,7 @@ def set_ephemeral_room(room_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/unset-ephemeral', methods=['PUT'])
+@requires_auth
 def unset_ephemeral_room(room_uuid: str):
     try:
         room_manager.unset_ephemeral_room(room_uuid)
@@ -390,6 +521,7 @@ def unset_ephemeral_room(room_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/set-admin', methods=['PUT'])
+@requires_auth
 def set_admin_room(room_uuid: str):
     try:
         room_manager.set_admin_room(room_uuid)
@@ -400,6 +532,7 @@ def set_admin_room(room_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/unset-admin', methods=['PUT'])
+@requires_auth
 def unset_admin_room(room_uuid: str):
     try:
         room_manager.unset_admin_room(room_uuid)
@@ -410,12 +543,14 @@ def unset_admin_room(room_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>', methods=['DELETE'])
+@requires_auth
 def delete_room(channel_uuid: str, room_uuid: str):
     room_manager.remove_room(channel_uuid, room_uuid)
     return api_response(200)
 
 
 @app.route('/api/rooms/<room_uuid>/owners', methods=['POST'])
+@requires_auth
 def add_room_owner(room_uuid: str):
     form = request.get_json()
     user_uuid = form['owner']
@@ -434,12 +569,14 @@ def add_room_owner(room_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/owners/<user_uuid>', methods=['DELETE'])
+@requires_auth
 def delete_room_owner(room_uuid: str, user_uuid: str):
     user_manager.remove_room_owner(room_uuid, user_uuid)
     return api_response(200)
 
 
 @app.route('/api/rooms/<room_uuid>/moderators', methods=['POST'])
+@requires_auth
 def add_room_moderator(room_uuid: str):
     form = request.get_json()
     user_uuid = form['moderator']
@@ -456,12 +593,14 @@ def add_room_moderator(room_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/moderators/<user_uuid>', methods=['DELETE'])
+@requires_auth
 def delete_room_moderator(room_uuid: str, user_uuid: str):
     user_manager.remove_room_moderator(room_uuid, user_uuid)
     return api_response(200)
 
 
 @app.route('/api/rooms/<room_uuid>/acls', methods=['POST'])
+@requires_auth
 def create_room_acl(room_uuid: str):
     form = request.get_json()
     action = form['action']
@@ -494,6 +633,7 @@ def create_room_acl(room_uuid: str):
 
 
 @app.route('/api/channels/<channel_uuid>/rooms/<room_uuid>/acls/<action>/<acl_type>', methods=['PUT'])
+@requires_auth
 def update_room_acl(channel_uuid: str, room_uuid: str, action: str, acl_type: str):
     form = request.get_json()
     value = form['value']
@@ -514,6 +654,7 @@ def update_room_acl(channel_uuid: str, room_uuid: str, action: str, acl_type: st
 
 
 @app.route('/api/rooms/<room_uuid>/acls/<action>/<acl_type>', methods=['DELETE'])
+@requires_auth
 def delete_room_acl(room_uuid: str, action: str, acl_type: str):
     acl_manager.delete_acl_room(room_uuid, action, acl_type)
     return api_response(200)
@@ -525,11 +666,13 @@ def delete_room_acl(room_uuid: str, action: str, acl_type: str):
 
 
 @app.route('/api/rooms/<room_uuid>/users', methods=['GET'])
+@requires_auth
 def get_users_for_room(room_uuid: str):
     return api_response(200, user_manager.get_users_for_room(room_uuid))
 
 
 @app.route('/api/users/<user_uuid>', methods=['GET'])
+@requires_auth
 def get_user(user_uuid: str):
     try:
         user = user_manager.get_user(user_uuid)
@@ -539,6 +682,7 @@ def get_user(user_uuid: str):
 
 
 @app.route('/api/rooms/<room_uuid>/users/<user_uuid>/kick', methods=['POST'])
+@requires_auth
 def kick_user(room_uuid: str, user_uuid: str):
     try:
         user_manager.kick_user(room_uuid, user_uuid)
@@ -549,6 +693,7 @@ def kick_user(room_uuid: str, user_uuid: str):
 
 
 @app.route('/api/bans', methods=['GET'])
+@requires_auth
 def banned_users():
     bans = user_manager.get_banned_users()
     result = {'global': list(), 'channel': list(), 'room': list()}
@@ -583,6 +728,7 @@ def banned_users():
 
 
 @app.route('/api/bans', methods=['POST'])
+@requires_auth
 def ban_user():
     form = request.get_json()
     target = form['target']
@@ -621,6 +767,7 @@ def ban_user():
 
 
 @app.route('/api/bans/<user_uuid>/delete', methods=['POST'])
+@requires_auth
 def remove_ban(user_uuid: str):
     form = request.get_json()
     target = form['target']
@@ -635,11 +782,13 @@ def remove_ban(user_uuid: str):
 
 
 @app.route('/api/super-users', methods=['GET'])
+@requires_auth
 def super_users():
     return api_response(200, user_manager.get_super_users())
 
 
 @app.route('/api/super-users', methods=['POST'])
+@requires_auth
 def create_super_user():
     form = request.get_json()
     user_name = str(form['name']).strip()
@@ -658,18 +807,21 @@ def create_super_user():
 
 
 @app.route('/api/super-users/<user_uuid>', methods=['POST'])
+@requires_auth
 def set_super_user(user_uuid: str):
     user_manager.set_super_user(user_uuid)
     return api_response(200)
 
 
 @app.route('/api/super-users/<user_uuid>', methods=['DELETE'])
+@requires_auth
 def remove_super_user(user_uuid: str):
     user_manager.del_super_user(user_uuid)
     return api_response(200)
 
 
 @app.route('/api/users/search/<query>', methods=['GET'])
+@requires_auth
 def search_user(query: str):
     return api_response(200, user_manager.search_for(query))
 
@@ -680,6 +832,7 @@ def search_user(query: str):
 
 
 @app.route('/api/history', methods=['POST'])
+@requires_auth
 def search_history():
     form = request.get_json()
     user_uuid = form['user']
@@ -707,12 +860,14 @@ def search_history():
 
 
 @app.route('/api/history/<message_id>', methods=['DELETE'])
+@requires_auth
 def delete_message(message_id: str):
     storage_manager.delete_message(message_id)
     return api_response(200)
 
 
 @app.route('/api/history/<message_id>/undelete', methods=['PUT'])
+@requires_auth
 def undo_delete_message(message_id: str):
     storage_manager.undelete_message(message_id)
     return api_response(200)
@@ -724,11 +879,13 @@ def undo_delete_message(message_id: str):
 
 
 @app.route('/api/blacklist', methods=['GET'])
+@requires_auth
 def blacklist():
     return api_response(200, blacklist_manager.get_black_list())
 
 
 @app.route('/api/blacklist', methods=['POST'])
+@requires_auth
 def add_to_blacklist():
     form = request.get_json()
     words = form['words']
@@ -741,6 +898,7 @@ def add_to_blacklist():
 
 
 @app.route('/api/blacklist/<word_id>', methods=['DELETE'])
+@requires_auth
 def remove_from_blacklist(word_id: str):
     try:
         blacklist_manager.remove_word(word_id)
@@ -751,6 +909,7 @@ def remove_from_blacklist(word_id: str):
 
 
 @app.route('/api/broadcast', methods=['POST'])
+@requires_auth
 def send_broadcast():
     form = request.get_json()
     verb = form['verb']
@@ -776,6 +935,7 @@ def send_broadcast():
 
 
 @app.route('/api/acls/<target>/actions/<api_action>/types', methods=['GET'])
+@requires_auth
 def acl_types_for_target_and_action(target: str, api_action: str):
     if target not in [ApiTargets.CHANNEL, ApiTargets.ROOM]:
         return api_response(400, message='unknown target type "%s"' % target)
@@ -806,4 +966,4 @@ def send_static(path):
 @app.errorhandler(404)
 def page_not_found(e):
     # your processing here
-    return index()
+    return redirect(internal_url_for('/'))
