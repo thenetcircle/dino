@@ -32,6 +32,7 @@ common_config: &common_config
         token_url: '$DINO_WEB_AUTH_TOKEN_URL'
         callback_url: '$DINO_WEB_AUTH_CALLBACK_URL'
         unauthorized_url: '$DINO_WEB_AUTH_UNAUTH_URL'
+        use_floating_menu: '$DINO_WEB_USE_FLOATING_MENU'
     stats:
         type: 'statsd'
         host: 'mock'
