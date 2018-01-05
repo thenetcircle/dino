@@ -115,12 +115,15 @@ def authorized():
 @app.route('/', methods=['GET'])
 @requires_auth
 def index():
+    floating_menu = str(environ.env.config.get(ConfigKeys.USE_FLOATING_MENU, domain=ConfigKeys.WEB))
+    floating_menu = floating_menu.strip().lower() in {'yes', 'y', 'true'}
+    logger.info('using floating menu? ""')
     return render_template(
         'index.html',
         environment=environment,
         config={
             'ROOT_URL': environ.env.config.get(ConfigKeys.ROOT_URL, domain=ConfigKeys.WEB),
-            'FLOATING_MENU': environ.env.config.get(ConfigKeys.USE_FLOATING_MENU, domain=ConfigKeys.WEB)
+            'FLOATING_MENU': floating_menu
         },
         version=tag_name)
 
