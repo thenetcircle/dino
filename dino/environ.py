@@ -231,6 +231,7 @@ class GNEnvironment(object):
         self.queue_connection = None
         self.queue = None
         self.exchange = None
+        self.web_auth = None
 
         self.pub_sub = None
         self.consume_worker = None
@@ -990,6 +991,28 @@ def init_logging(gn_env: GNEnvironment) -> None:
             logger.error('could not capture exception with sentry: %s' % str(e2))
 
     gn_env.capture_exception = capture_exception
+
+
+@timeit(logger, 'init web auth service')
+def init_web_auth(gn_env: GNEnvironment) -> None:
+    """
+    manually invoked after app initialized
+    """
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    web_auth_type = gn_env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.WEB, default=None)
+    if not web_auth_type or str(web_auth_type).strip().lower() in ['false', 'none', '']:
+        logger.info('auth type was "{}", not initializing web auth'.format(web_auth_type))
+        return
+
+    if web_auth_type not in {'oauth'}:
+        raise RuntimeError('unknown web auth type "{}", only "oauth" is available'.format(str(web_auth_type)))
+
+    from dino.admin.auth.oauth import OAuthService
+    gn_env.web_auth = OAuthService(gn_env)
+    logger.info('initialized OAuthService')
 
 
 def initialize_env(dino_env):

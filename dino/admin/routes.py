@@ -1,33 +1,18 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 import os
 import traceback
-import requests
+from functools import wraps
 from typing import List
 from typing import Union
 from uuid import uuid4 as uuid
-from functools import wraps
 
 from flask import jsonify
+from flask import redirect
 from flask import render_template
 from flask import request
-from flask import redirect
+from flask import url_for
 from flask import send_from_directory
 from git.cmd import Git
-from flask_oauthlib.client import OAuth
 from werkzeug.wrappers import Response
 
 from dino import environ
@@ -64,6 +49,7 @@ if home_dir is None:
     home_dir = '.'
 tag_name = Git(home_dir).describe()
 
+
 def is_blank(s: str):
     return s is None or len(s.strip()) == 0
 
@@ -80,85 +66,41 @@ def api_response(code, data: Union[dict, List[dict]]=None, message: Union[dict, 
         'message': message
     })
 
+
 def internal_url_for(url):
-    return app.config['ROOT_URL'] + url
+    logger.info('app root url: {}, config root url: {}'.format(
+        app.config['ROOT_URL'], environ.env.config.get(ConfigKeys.ROOT_URL, domain=ConfigKeys.WEB)))
+    return url_for(('{}/{}'.format(app.config['ROOT_URL'].rstrip('/'), url.lstrip('/'))).lstrip('/'))
 
-############################
-#           SSO            #
-############################
-oauth = OAuth(app)
-# OAUTH Configuration
-OAUTH_BASE = ""
-SERVICE_ID = ""
-SERVICE_SECRET = ""
-AUTHORIZE_URL = ""
-TOKEN_URL = ""
-
-CHECK_TOKEN_URL = OAUTH_BASE + ""
-CALLBACK_URL = ""
-UNAUTHORIZED_PAGE = ""
-
-# FOR DEV MODE (can use http to authenticate)
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = 'true'
-
-chat = oauth.remote_app(
-    SERVICE_ID,
-    consumer_key=SERVICE_ID,
-    consumer_secret=SERVICE_ID,
-    base_url=OAUTH_BASE,
-    request_token_params={},
-    request_token_url=None,
-    access_token_method='POST',
-    access_token_url=TOKEN_URL,
-    authorize_url=AUTHORIZE_URL
-)
-
-def parse_services(services):
-    parsed = list()
-    for service in services:
-        parsed.append(service['name'].split(',')[0].split('=')[1])
-    return parsed
-
-def check(token):
-    resp = requests.post(CHECK_TOKEN_URL.format(token))
-    if resp.status_code >= 200 and resp.status_code < 399:
-        try:
-            content = resp.json()
-            services = parse_services(content['scopes'])
-            if SERVICE_ID not in services:
-                return redirect(UNAUTHORIZED_PAGE)
-        except Exception:
-            return False
-        return True
-    return False
 
 def is_authorized():
+    logging.info(str(request.cookies))
     if 'token' not in request.cookies:
         return False
-    return check(request.cookies.get('token'))
+    return environ.env.web_auth.check(request.cookies.get('token'))
+
 
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         state = is_authorized()
-        # Invalid Access
+
         if state is False:
-            # For api
             if request.path.startswith('/api'):
                 return api_response(400, message="Invalid authentication.")
-            # For 
             return redirect(internal_url_for('/login'))
-        # No accessibility to chat service
+
         if isinstance(state, Response):
             return state
-
         return f(*args, **kwargs)
     return decorated
 
 
 @app.route('/login')
 def login():
-    return chat.authorize(callback=CALLBACK_URL)
+    root_url = environ.env.config.get(ConfigKeys.ROOT_URL, domain=ConfigKeys.WEB, default='/')
+    callback_url = environ.env.config.get(ConfigKeys.CALLBACK_URL, domain=ConfigKeys.WEB, default=root_url)
+    return environ.env.web_auth.auth.authorize(callback=callback_url)
 
 
 @app.route('/logout')
@@ -166,22 +108,10 @@ def logout():
     request.cookies.pop('token', None)
     return redirect(internal_url_for('/login'))
 
+
 @app.route('/login/callback')
 def authorized():
-    resp = chat.handle_oauth2_response()
-    if resp is None or resp.get('access_token') is None:
-        return 'Access denied: reason=%s error=%s resp=%s' % (
-            request.args['error'],
-            request.args['error_description'],
-            resp
-        )
-    response = redirect(internal_url_for('/index'))
-    response.set_cookie('token', resp['access_token'])
-    return response
-
-@chat.tokengetter
-def get_sso_token():
-    return request.cookies.get('token')
+    return environ.env.web_auth.authorized()
 
 
 @app.route('/', methods=['GET'])
@@ -964,6 +894,6 @@ def send_static(path):
 
 
 @app.errorhandler(404)
-def page_not_found(e):
+def page_not_found(_):
     # your processing here
     return redirect(internal_url_for('/'))

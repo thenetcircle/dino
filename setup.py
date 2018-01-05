@@ -27,6 +27,7 @@ setup(
         'sqlalchemy',
         'flask-restful',
         'flask-socketio',
+        'Flask-OAuthlib',
         'flask_wtf',
         'wtforms',
         'python-socketio',

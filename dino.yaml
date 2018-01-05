@@ -22,6 +22,16 @@ common_config: &common_config
         db: 7
     web:
         root_url: '/'
+        type: 'oauth'
+        insecure: '$DINO_WEB_AUTH_INSECURE'
+        base: '$DINO_WEB_AUTH_BASE'
+        path: '$DINO_WEB_AUTH_PATH'
+        service_id: '$DINO_WEB_AUTH_SERVICE_ID'
+        service_secret: '$DINO_WEB_AUTH_SERVICE_SECRET'
+        authorized_url: '$DINO_WEB_AUTH_URL'
+        token_url: '$DINO_WEB_AUTH_TOKEN_URL'
+        callback_url: '$DINO_WEB_AUTH_CALLBACK_URL'
+        unauthorized_url: '$DINO_WEB_AUTH_UNAUTH_URL'
     stats:
         type: 'statsd'
         host: 'mock'
