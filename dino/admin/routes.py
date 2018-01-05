@@ -68,9 +68,7 @@ def api_response(code, data: Union[dict, List[dict]]=None, message: Union[dict, 
 
 
 def internal_url_for(url):
-    logger.info('app root url: {}, config root url: {}'.format(
-        app.config['ROOT_URL'], environ.env.config.get(ConfigKeys.ROOT_URL, domain=ConfigKeys.WEB)))
-    return url_for(('{}/{}'.format(app.config['ROOT_URL'].rstrip('/'), url.lstrip('/'))).lstrip('/'))
+    return app.config['ROOT_URL'] + url
 
 
 def is_authorized():
