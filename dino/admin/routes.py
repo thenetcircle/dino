@@ -897,4 +897,4 @@ def send_static(path):
 @app.errorhandler(404)
 def page_not_found(_):
     # your processing here
-    return redirect(internal_url_for('/'))
+    return index()
