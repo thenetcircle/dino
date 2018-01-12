@@ -184,6 +184,7 @@ class ConfigKeys(object):
     MAX_USERS_LOW = 'max_users_low'
     MAX_USERS_HIGH = 'max_users_high'
     MAX_USERS_EXCEPTION = 'exception'
+    MAX_ROOMS = 'max_rooms'
     WEB = 'web'
     ROOT_URL = 'root_url'
     MIN_ROOM_NAME_LENGTH = 'min_length'

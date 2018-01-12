@@ -1,0 +1,8 @@
+[Core]
+Name = limit_amount
+Module = limit_amount
+
+[Documentation]
+Description = Checks that the amount of private rooms a user can create
+Author = Oscar Eriksson
+Version = 1.0.0
