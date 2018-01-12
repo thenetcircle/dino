@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class OnCreateCheckAmountOfPrivateRooms(IPlugin):
     def __init__(self):
-        super(OnCreateCheckNameLength, self).__init__()
+        super(OnCreateCheckAmountOfPrivateRooms, self).__init__()
         self.env = None
         self.enabled = False
         self.min_length = 3
