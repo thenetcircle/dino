@@ -14,7 +14,6 @@
 
 from typing import Union
 
-from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
 from flask import request
 
