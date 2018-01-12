@@ -138,6 +138,9 @@ for the conversation assiciated with the users `1` and `2`:
 ```javascript
 socket.emit('create', {
     verb: 'create'
+    object: {
+        url: '<channel uuid>'
+    },
     target: {
         displayName: '42',
         objectType: 'private',
