@@ -309,9 +309,11 @@ def on_create(data: dict, activity: Activity) -> (int, dict):
     """
     # generate a uuid for this room
     activity.target.id = str(uuid())
-    activity.target.object_type = 'room'
     data['target']['id'] = activity.target.id
-    data['target']['objectType'] = activity.target.object_type
+
+    if not hasattr(activity.target, 'object_type') or activity.target.object_type is None:
+        activity.target.object_type = 'room'
+        data['target']['objectType'] = activity.target.object_type
 
     environ.env.observer.emit('on_create', (data, activity))
 
