@@ -256,6 +256,8 @@ Request contains:
 }
 ```
 
+If the `target.id` is specified, the request will be relayed to online users in that room. E.g., user A sends message X to the room, user B then sends a `read` event after receiving it; this `read` event will then be sent to user A with the event name [`gn_message_read`](events.md#message-read).
+
 ## `list_rooms`
 
 Get a list of all rooms for a channel.

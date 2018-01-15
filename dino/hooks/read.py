@@ -30,7 +30,9 @@ class OnReadHooks(object):
             return
 
         target_room_id = activity.target.id
-        environ.env.send(data, json=True, room=target_room_id, broadcast=True, include_self=False)
+        environ.env.emit(
+            'gn_message_read', data, json=True, room=target_room_id,
+            broadcast=True, include_self=False, namespace='/ws')
 
 
 @environ.env.observer.on('on_read')
