@@ -293,6 +293,9 @@ generate an identifiable "name" for this combination, and create a room to group
 for the conversation assiciated with the users <code>1</code> and <code>2</code>:</p>
 <pre><code class="javascript">socket.emit('create', {
     verb: 'create'
+    object: {
+        url: '&lt;channel uuid&gt;'
+    },
     target: {
         displayName: '42',
         objectType: 'private',

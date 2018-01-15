@@ -460,6 +460,7 @@ that if multiple messages are being acknowledged at the same time, they all have
 }
 </code></pre>
 
+<p>If the <code>target.id</code> is specified, the request will be relayed to online users in that room. E.g., user A sends message X to the room, user B then sends a <code>read</code> event after receiving it; this <code>read</code> event will then be sent to user A with the event name <a href="../events/#message-read"><code>gn_message_read</code></a>.</p>
 <h2 id="list_rooms"><code>list_rooms</code></h2>
 <p>Get a list of all rooms for a channel.</p>
 <p>Responds with event name <code>gn_list_rooms</code>.</p>
