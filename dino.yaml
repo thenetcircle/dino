@@ -47,7 +47,7 @@ common_config: &common_config
               max_length: 120
               min_length: 3
             - name: limit_amount
-              max_rooms: 3
+              max_rooms: 300
         on_message:
             - name: no_empty
             - name: limit_msg_length

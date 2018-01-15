@@ -43,8 +43,8 @@ class OnCreateHooks(object):
         object_type = 'unknown'
         if hasattr(activity.target, 'object_type'):
             object_type = activity.target.object_type
-        is_ephemeral = object_type != 'private'
 
+        is_ephemeral = object_type != 'private'
         owners = OnCreateHooks._get_owners(activity)
 
         if utils.is_base64(room_name):
