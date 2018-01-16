@@ -18,19 +18,19 @@ class OnCreateCheckAmountOfPrivateRooms(IPlugin):
         self.enabled = False
         self.min_length = 3
         self.max_length = 120
+        self.max_rooms = 3
 
     def setup(self, env: GNEnvironment):
         self.env = env
         try:
             on_create_config = self.env.config.get(ConfigKeys.VALIDATION).get('on_create').get('limit_amount')
+            self.max_rooms = on_create_config.get(ConfigKeys.MAX_ROOMS, 3)
         except Exception:
             logger.info('no config enabled for plugin limit_amount, ignoring plugin')
             return
-
         self.enabled = True
-        self.max_rooms = on_create_config.get(ConfigKeys.MAX_ROOMS, 3)
 
-    def _process(self, data: dict, activity: Activity):
+    def _process(self, _: dict, activity: Activity):
         rooms = self.env.db.get_temp_rooms_user_is_owner_for(activity.actor.id)
         if len(rooms) >= self.max_rooms:
             return False, ErrorCodes.TOO_MANY_PRIVATE_ROOMS, 'too many private rooms for user'
