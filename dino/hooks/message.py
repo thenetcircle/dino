@@ -62,7 +62,7 @@ class OnMessageHooks(object):
                 return
 
             owners = environ.env.db.get_owners_room(activity.target.id)
-            environ.env.storage.mark_as_read(activity.id, activity.actor.id, activity.target.id)
+            environ.env.storage.mark_as_read({activity.id}, activity.actor.id, activity.target.id)
             if owners is None or len(owners) == 0:
                 return
 
