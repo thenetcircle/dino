@@ -99,10 +99,16 @@ class RequestValidator(BaseValidator):
                            'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
 
         elif object_type == 'private':
-            try:
-                utils.get_user_name_for(room_id)
-            except NoSuchUserException:
-                return False, ECodes.INVALID_TARGET_TYPE, 'target.id is not a known user id'
+            channel_id = None
+            if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
+                channel_id = activity.object.url
+            if channel_id is None or len(channel_id.strip()) == 0:
+                channel_id = utils.get_channel_for_room(room_id)
+
+            if not utils.channel_exists(channel_id):
+                return False, ECodes.NO_SUCH_CHANNEL, 'channel %s does not exists' % channel_id
+            if not utils.room_exists(channel_id, room_id):
+                return False, ECodes.NO_SUCH_ROOM, 'target room %s does not exist' % room_id
 
         return True, None, None
 
