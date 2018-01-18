@@ -853,7 +853,7 @@ Request contains:
 {
     verb: "send",
     target: {
-        id: "<room/user ID>",
+        id: "<room uuid>",
         objectType: "<room/private>"
     },
     object: {
@@ -862,7 +862,7 @@ Request contains:
 }
 ```
 
-If request is for conversation-based private messaging, used `objectType: 'private'`. In this case, the other user(s)
+If request is for conversation-based private messaging, use `objectType: 'private'`. In this case, the other user(s)
 in this conversation (`owner`s of the `room`) will initially have a `NOT_ACKED` status for the message. If they are
 online they will receive it and they can acknowledge the message. If they are offline they will receive it in `gn_login`
 then they come online (all non-acked messages for rooms they are `owner` for).
