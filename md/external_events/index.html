@@ -124,6 +124,12 @@
                 <li class="toctree-l3"><a href="#user-disconnected">User disconnected</a></li>
                 
             
+                <li class="toctree-l3"><a href="#user-becomes-invisible">User becomes invisible</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#user-becomes-visible-after-being-in-visible">User becomes visible after being in visible</a></li>
+                
+            
             </ul>
         
     </li>
@@ -420,6 +426,30 @@ level of users. Example activity: </p>
     },
     "verb": "disconnect",
     "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<h2 id="user-becomes-invisible">User becomes invisible</h2>
+<p>When a user changes the status to become invisible the following event is published to the external queue:</p>
+<pre><code>{
+    "id": "&lt;server-generated UUID&gt;",
+    "actor": {
+        "id": "635328",
+        "displayName": "amtia2prYmJrag=="
+    },
+    "verb": "invisible",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+}
+</code></pre>
+<h2 id="user-becomes-visible-after-being-in-visible">User becomes visible after being in visible</h2>
+<p>When a user changes his status to become visible again after being invisible the following event is sent to the external queue:</p>
+<pre><code>{   
+    "id": "&lt;server-generated UUID&gt;",
+    "actor": {
+        "id": "635328",
+        "displayName": "amtia2prYmJrag=="
+    },  
+    "verb": "online",
     "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
 }
 </code></pre>
