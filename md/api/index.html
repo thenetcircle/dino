@@ -965,7 +965,7 @@ restriction is that the date when the ban ends (<code>utcnow()+duration</code>) 
 <pre><code class="javascript">{
     verb: &quot;send&quot;,
     target: {
-        id: &quot;&lt;room/user ID&gt;&quot;,
+        id: &quot;&lt;room uuid&gt;&quot;,
         objectType: &quot;&lt;room/private&gt;&quot;
     },
     object: {
@@ -974,7 +974,7 @@ restriction is that the date when the ban ends (<code>utcnow()+duration</code>) 
 }
 </code></pre>
 
-<p>If request is for conversation-based private messaging, used <code>objectType: 'private'</code>. In this case, the other user(s)
+<p>If request is for conversation-based private messaging, use <code>objectType: 'private'</code>. In this case, the other user(s)
 in this conversation (<code>owner</code>s of the <code>room</code>) will initially have a <code>NOT_ACKED</code> status for the message. If they are
 online they will receive it and they can acknowledge the message. If they are offline they will receive it in <code>gn_login</code>
 then they come online (all non-acked messages for rooms they are <code>owner</code> for).</p>
