@@ -10,12 +10,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from activitystreams import Activity
 
 from dino import environ
 from dino import utils
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLogger(__name__)
 
 
 class OnCreateHooks(object):
@@ -51,6 +55,7 @@ class OnCreateHooks(object):
             room_name = utils.b64d(room_name)
         environ.env.db.create_room(room_name, room_id, channel_id, user_id, user_name, ephemeral=is_ephemeral)
 
+        logger.debug('settings "{}" as owners of room {}'.format(','.join(owners), room_id))
         for owner_id in owners:
             environ.env.db.set_owner(room_id, owner_id)
 

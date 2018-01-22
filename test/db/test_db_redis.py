@@ -27,6 +27,9 @@ class DatabaseRedisTest(BaseDatabaseTest):
         self.db.redis.flushall()
         self.env.cache._flushall()
 
+    def test_set_two_owners_on_room(self):
+        self._test_set_two_owners_on_room()
+
     def test_is_admin_before_create(self):
         self._test_is_admin_before_create()
 
