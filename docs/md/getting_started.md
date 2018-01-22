@@ -144,7 +144,7 @@ socket.emit('create', {
     target: {
         displayName: '42',
         objectType: 'private',
-        attatchments: [{
+        attachments: [{
             objectType: 'owners',
             summary: '1,2'
         }]
