@@ -45,7 +45,16 @@ class OnMessageHooks(object):
             room_id = activity.target.id
             if utils.user_is_invisible(user_id):
                 data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
-            send(data, _room=room_id)
+
+            if activity.target.object_type == 'private':
+                owners = environ.env.db.get_owners_room(activity.target.id)
+                if owners is None or len(owners) == 0:
+                    send(data, _room=room_id)
+                else:
+                    for owner in owners:
+                        send(data, _room=owner)
+            else:
+                send(data, _room=room_id)
 
         @timeit(logger, 'on_message_hooks_store')
         def store() -> None:
@@ -76,15 +85,9 @@ class OnMessageHooks(object):
         word = utils.used_blacklisted_word(activity)
 
         if word is None:
-            running_tests = environ.env.config.get(ConfigKeys.TESTING, False)
-            if running_tests:
-                store()
-                broadcast()
-                publish_activity()
-            else:
-                eventlet.spawn(store)
-                broadcast()
-                eventlet.spawn(publish_activity)
+            store()
+            broadcast()
+            publish_activity()
         else:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
             environ.env.publish(blacklist_activity)
