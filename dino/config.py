@@ -147,6 +147,7 @@ class AckStatus(object):
 
 
 class ConfigKeys(object):
+    INVISIBLE_UNRESTRICTED = 'invisible_unrestricted'
     REQ_LOG_LOC = 'request_log_location'
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'

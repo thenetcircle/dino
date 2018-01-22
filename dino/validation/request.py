@@ -534,6 +534,8 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def _can_be_invisible(self, user_id: str):
+        if environ.env.config.get(ConfigKeys.INVISIBLE_UNRESTRICTED, default=False):
+            return True
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             return True
         return False

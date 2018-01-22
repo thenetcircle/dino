@@ -5,6 +5,7 @@ common_config: &common_config
     disconnect_on_failed_login: True
     sender_can_delete: True
     delivery_guarantee: True
+    invisible_unrestricted: False
     request_log_location: '$DINO_REQ_LOG_LOC'
     auth:
         type: 'redis'

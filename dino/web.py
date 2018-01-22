@@ -26,6 +26,9 @@ __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
 logger = logging.getLogger(__name__)
 logging.getLogger('amqp').setLevel(logging.INFO)
+logging.getLogger('kafka.conn').setLevel(logging.INFO)
+logging.getLogger('kafka.client').setLevel(logging.INFO)
+logging.getLogger('kafka.metrics').setLevel(logging.INFO)
 
 
 class ReverseProxied(object):
