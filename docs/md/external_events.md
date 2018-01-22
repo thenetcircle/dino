@@ -248,3 +248,32 @@ Example of activity when a user disconnects:
         "id": "<server-generated UUID>",
         "published": "<server-generated timestamp, RFC3339 format>"
     }
+
+## User becomes invisible
+
+When a user changes the status to become invisible the following event is published to the external queue:
+
+    {
+        "id": "<server-generated UUID>",
+        "actor": {
+            "id": "635328",
+            "displayName": "amtia2prYmJrag=="
+        },
+        "verb": "invisible",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
+
+## User becomes visible after being in visible
+
+When a user changes his status to become visible again after being invisible the following event is sent to the external queue:
+
+    {   
+        "id": "<server-generated UUID>",
+        "actor": {
+            "id": "635328",
+            "displayName": "amtia2prYmJrag=="
+        },  
+        "verb": "online",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }   
+
