@@ -99,6 +99,8 @@ class OnStatusHooks(object):
                     'gn_user_disconnected', activity_json, room=room_id, broadcast=True,
                     include_self=False, namespace='/ws')
 
+        environ.env.publish(data, external=True)
+
 
 @environ.env.observer.on('on_status')
 def _on_status_set_status(arg: tuple) -> None:
