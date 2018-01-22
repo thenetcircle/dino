@@ -30,6 +30,7 @@ setup(
         'Flask-OAuthlib',
         'flask_wtf',
         'wtforms',
+        'kafka-python',
         'python-socketio',
         'mysqlclient',
         'gunicorn',

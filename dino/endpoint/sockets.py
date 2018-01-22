@@ -71,6 +71,7 @@ def consume():
         while True:
             with environ.env.queue_connection as conn:
                 try:
+                    logger.info('setting up consumer "{}"'.format(str(environ.env.queue_connection)))
                     environ.env.consume_worker = Worker(conn, interrupt_handler)
                     environ.env.consume_worker.run()
                 except KeyboardInterrupt:
