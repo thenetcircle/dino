@@ -68,6 +68,30 @@ will receive a `gn_message_read` event with the following content:
         }    
     }
 
+## Message has been delivered
+
+If user A sends a message to user B and user B invokes the `received` api to indicate the message has been received,
+user A will receive a `gn_message_received` event with the following content:
+
+    {   
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>",
+        "actor": {
+            "id": "<user id of the one sending the read receipt>"
+        },
+        "verb": "received",
+        "target": {
+            "id": "<uuid of the room the messages are all in>" 
+        },   
+        "object": {
+            "attachments": [
+                {"id": "<message1 uuid>"},
+                {"id": "<message2 uuid>"},
+                {"id": "<message3 uuid>"}
+            ]    
+        }    
+    }   
+
 ## User info updated
 
 When a user updates his/her user information (e.g. avatar, is streaming, age etc.), the event `gn_user_info_updated`
