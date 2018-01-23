@@ -96,6 +96,9 @@
                 <li class="toctree-l3"><a href="#message-has-been-read">Message has been read</a></li>
                 
             
+                <li class="toctree-l3"><a href="#message-has-been-delivered">Message has been delivered</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#user-info-updated">User info updated</a></li>
                 
             
@@ -256,6 +259,28 @@ will receive a <code>gn_message_read</code> event with the following content:</p
         "id": "&lt;user id of the one sending the read receipt&gt;"
     },
     "verb": "read",
+    "target": {
+        "id": "&lt;uuid of the room the messages are all in&gt;" 
+    },   
+    "object": {
+        "attachments": [
+            {"id": "&lt;message1 uuid&gt;"},
+            {"id": "&lt;message2 uuid&gt;"},
+            {"id": "&lt;message3 uuid&gt;"}
+        ]    
+    }    
+}
+</code></pre>
+<h2 id="message-has-been-delivered">Message has been delivered</h2>
+<p>If user A sends a message to user B and user B invokes the <code>received</code> api to indicate the message has been received,
+user A will receive a <code>gn_message_received</code> event with the following content:</p>
+<pre><code>{   
+    "id": "&lt;server-generated UUID&gt;",
+    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
+    "actor": {
+        "id": "&lt;user id of the one sending the read receipt&gt;"
+    },
+    "verb": "received",
     "target": {
         "id": "&lt;uuid of the room the messages are all in&gt;" 
     },   
