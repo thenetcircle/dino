@@ -44,4 +44,4 @@ def _on_receive_update_messages(arg: tuple) -> None:
 @environ.env.observer.on('on_received')
 def _on_receive_notify_sender(arg: tuple) -> None:
     data, activity = arg
-    eventlet.spawn(OnReceivedHooks.notify_sender, data, activity)
+    OnReceivedHooks.notify_sender(data, activity)
