@@ -94,6 +94,29 @@ def used_blacklisted_word(activity: Activity):
     return environ.env.blacklist.contains_blacklisted_word(activity)
 
 
+def activity_for_msg_status(activity: Activity, statuses: dict) -> dict:
+    act = {
+        'object': {
+            'objectType': 'statuses',
+            'attachments': list()
+        },
+        'target': {
+            'id': activity.target.id,
+        },
+        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+        'verb': 'check',
+        'id': str(uuid())
+    }
+
+    for msg_id, status in statuses.items():
+        act['object']['attachments'].append({
+            'id': msg_id,
+            'content': status
+        })
+
+    return act
+
+
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
     return {
         'actor': {

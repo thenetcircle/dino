@@ -31,6 +31,15 @@ class IStorage(Interface):
         :return: a dict describing the message
         """
 
+    def get_statuses(self, message_ids: set, receiver_id: str) -> dict:
+        """
+        get the ack statuses for a set of messages sent to one specific user
+
+        :param message_ids: set of message ids
+        :param receiver_id: the id of the receiver user/room
+        :return: a dict of {msg_id: ack_status} for this user
+        """
+
     def mark_as_received(self, message_ids: set, receiver_id: str) -> None:
         """
         mark messages as received by client

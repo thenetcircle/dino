@@ -297,6 +297,13 @@ def on_status(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_status(data, activity)
 
 
+@socketio.on('msg_status', namespace='/ws')
+@respond_with('gn_msg_status')
+@pre_process('on_msg_status')
+def on_msg_status(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
+    return api.on_msg_status(data, activity)
+
+
 @socketio.on('history', namespace='/ws')
 @respond_with('gn_history')
 @pre_process('on_history')

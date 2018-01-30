@@ -33,6 +33,14 @@
     ROOM_FULL = 707
     NOT_ONLINE = 708
     TOO_MANY_PRIVATE_ROOMS = 709
+    ROOM_NAME_TOO_LONG = 710
+    ROOM_NAME_TOO_SHORT = 711
+    INVALID_TOKEN = 712
+    INVALID_LOGIN = 713
+    MSG_TOO_LONG = 714
+    MULTIPLE_ROOMS_WITH_NAME = 715
+    TOO_MANY_ATTACHMENTS = 716
+    NOT_ENABLED = 717
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -148,49 +156,53 @@ Responds with event name `gn_list_channels`.
 
 Request contains:
 
-    {
-        "verb": "list"
-    }
+```json
+{
+    "verb": "list"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "object": {
-                "objectType": "channels",
-                "attachments": [
-                    {
-                        "id": "<channel UUID>",
-                        "displayName": "<channel name>",
-                        "url": 8,
-                        "objectType": "static",
-                        "attachments": [
-                            {
-                                "summary": "message",
-                                "objectType": "membership",
-                                "content": "1"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "<channel UUID>",
-                        "displayName": "<channel name>",
-                        "url": 20,
-                        "objectType": "temporary",
-                        "attachments": [
-                            {
-                                "summary": "join",
-                                "objectType": "gender",
-                                "content": "f"
-                            }
-                        ]
-                    }
-                ]
-            },
-            "verb": "list"
-        }
+```json
+{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "channels",
+            "attachments": [
+                {
+                    "id": "<channel UUID>",
+                    "displayName": "<channel name>",
+                    "url": 8,
+                    "objectType": "static",
+                    "attachments": [
+                        {
+                            "summary": "message",
+                            "objectType": "membership",
+                            "content": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "<channel UUID>",
+                    "displayName": "<channel name>",
+                    "url": 20,
+                    "objectType": "temporary",
+                    "attachments": [
+                        {
+                            "summary": "join",
+                            "objectType": "gender",
+                            "content": "f"
+                        }
+                    ]
+                }
+            ]
+        },
+        "verb": "list"
     }
+}
+```
 
 Each channel has a `url` field, which is the sort order defined in the admin interface, in ascending order (lower `url`
 means higher up in the list).
@@ -227,6 +239,60 @@ Request contains:
             {"id": "<message2 uuid>"},
             {"id": "<message3 uuid>"}
         ]
+    }
+}
+```
+
+## `msg_status`
+
+Check ack status of a set of messages sent to a single user. Request:
+
+```json
+{
+    "verb": "check",
+    "target": {
+        "id": "<uuid of the user to check ack status for>" 
+    },
+    "object": {
+        "attachments": [
+            {"id": "<message1 uuid>"},
+            {"id": "<message2 uuid>"},
+            {"id": "<message3 uuid>"}
+        ]
+    }
+}
+```
+
+Response:
+
+
+```json
+{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "statuses",
+            "attachments": [
+                {
+                    "id": "<msg UUID 1>",
+                    "content": "<ack status 1>"
+                },
+                {
+                    "id": "<msg UUID 2>",
+                    "content": "<ack status 2>"
+                },
+                {
+                    "id": "<msg UUID 3>",
+                    "content": "<ack status 3>"
+                }
+            ]
+        },
+        "target": {
+            "id": "<user ID the ack status are for>"
+        },
+        "verb": "check",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
     }
 }
 ```

@@ -368,6 +368,32 @@ def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict]):
     return ECodes.OK, utils.activity_for_get_acl(activity, acls)
 
 
+@timeit(logger, 'on_msg_status')
+def on_msg_status(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    get the delivery status of a message if delivery guarantee is enabled, or an error message otherwise
+
+    statuses are:
+
+        NOT_ACKED = 0
+        RECEIVED = 1
+        READ = 2
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<AS with statuses as object.attachments>'}
+    """
+    if not environ.env.config.get(ConfigKeys.DELIVERY_GUARANTEE, False):
+        return ECodes.NOT_ENABLED, 'delivery guarantee is not enabled, no status to return'
+
+    message_ids = {attachment.id for attachment in activity.object.attachments}
+    statuses = environ.env.storage.get_statuses(message_ids, activity.target.id)
+    status_act = utils.activity_for_msg_status(activity, statuses)
+    environ.env.emit('gn_msg_status', status_act, room=activity.actor.id, namespace='/ws')
+
+    return ECodes.OK, None
+
+
 @timeit(logger, 'on_status')
 def on_status(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
