@@ -263,8 +263,10 @@ Check ack status of a set of messages sent to a single user. Request:
 }
 ```
 
-Response:
+If message guarantee is not enabled on the server the `717` (`NOT_ENABLED`) error code will be retured as part of the 
+callback, and no `gn_msg_status` event will be sent back.
 
+Response will be sent as the `gn_msg_status` event with the following content:
 
 ```json
 {
