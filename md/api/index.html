@@ -95,6 +95,9 @@
                 <li class="toctree-l3"><a href="#received">received</a></li>
                 
             
+                <li class="toctree-l3"><a href="#msg_status">msg_status</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#read">read</a></li>
                 
             
@@ -265,6 +268,14 @@ VALIDATION_ERROR = 706
 ROOM_FULL = 707
 NOT_ONLINE = 708
 TOO_MANY_PRIVATE_ROOMS = 709
+ROOM_NAME_TOO_LONG = 710
+ROOM_NAME_TOO_SHORT = 711
+INVALID_TOKEN = 712
+INVALID_LOGIN = 713
+MSG_TOO_LONG = 714
+MULTIPLE_ROOMS_WITH_NAME = 715
+TOO_MANY_ATTACHMENTS = 716
+NOT_ENABLED = 717
 
 NO_SUCH_USER = 800
 NO_SUCH_CHANNEL = 801
@@ -366,49 +377,51 @@ room/channel/global.</p>
 <h2 id="list_channels"><code>list_channels</code></h2>
 <p>Responds with event name <code>gn_list_channels</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "verb": "list"
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;list&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "object": {
-            "objectType": "channels",
-            "attachments": [
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;object&quot;: {
+            &quot;objectType&quot;: &quot;channels&quot;,
+            &quot;attachments&quot;: [
                 {
-                    "id": "&lt;channel UUID&gt;",
-                    "displayName": "&lt;channel name&gt;",
-                    "url": 8,
-                    "objectType": "static",
-                    "attachments": [
+                    &quot;id&quot;: &quot;&lt;channel UUID&gt;&quot;,
+                    &quot;displayName&quot;: &quot;&lt;channel name&gt;&quot;,
+                    &quot;url&quot;: 8,
+                    &quot;objectType&quot;: &quot;static&quot;,
+                    &quot;attachments&quot;: [
                         {
-                            "summary": "message",
-                            "objectType": "membership",
-                            "content": "1"
+                            &quot;summary&quot;: &quot;message&quot;,
+                            &quot;objectType&quot;: &quot;membership&quot;,
+                            &quot;content&quot;: &quot;1&quot;
                         }
                     ]
                 },
                 {
-                    "id": "&lt;channel UUID&gt;",
-                    "displayName": "&lt;channel name&gt;",
-                    "url": 20,
-                    "objectType": "temporary",
-                    "attachments": [
+                    &quot;id&quot;: &quot;&lt;channel UUID&gt;&quot;,
+                    &quot;displayName&quot;: &quot;&lt;channel name&gt;&quot;,
+                    &quot;url&quot;: 20,
+                    &quot;objectType&quot;: &quot;temporary&quot;,
+                    &quot;attachments&quot;: [
                         {
-                            "summary": "join",
-                            "objectType": "gender",
-                            "content": "f"
+                            &quot;summary&quot;: &quot;join&quot;,
+                            &quot;objectType&quot;: &quot;gender&quot;,
+                            &quot;content&quot;: &quot;f&quot;
                         }
                     ]
                 }
             ]
         },
-        "verb": "list"
+        &quot;verb&quot;: &quot;list&quot;
     }
 }
 </code></pre>
+
 <p>Each channel has a <code>url</code> field, which is the sort order defined in the admin interface, in ascending order (lower <code>url</code>
 means higher up in the list).</p>
 <p>The <code>objectType</code> of a channel tells you if this channel only contains static rooms, only temporary rooms or a mix of 
@@ -436,6 +449,56 @@ that if multiple messages are being acknowledged at the same time, they all have
             {&quot;id&quot;: &quot;&lt;message2 uuid&gt;&quot;},
             {&quot;id&quot;: &quot;&lt;message3 uuid&gt;&quot;}
         ]
+    }
+}
+</code></pre>
+
+<h2 id="msg_status"><code>msg_status</code></h2>
+<p>Check ack status of a set of messages sent to a single user. Request:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;check&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;uuid of the user to check ack status for&gt;&quot; 
+    },
+    &quot;object&quot;: {
+        &quot;attachments&quot;: [
+            {&quot;id&quot;: &quot;&lt;message1 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message2 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message3 uuid&gt;&quot;}
+        ]
+    }
+}
+</code></pre>
+
+<p>If message guarantee is not enabled on the server the <code>717</code> (<code>NOT_ENABLED</code>) error code will be retured as part of the 
+callback, and no <code>gn_msg_status</code> event will be sent back.</p>
+<p>Response will be sent as the <code>gn_msg_status</code> event with the following content:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;object&quot;: {
+            &quot;objectType&quot;: &quot;statuses&quot;,
+            &quot;attachments&quot;: [
+                {
+                    &quot;id&quot;: &quot;&lt;msg UUID 1&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;ack status 1&gt;&quot;
+                },
+                {
+                    &quot;id&quot;: &quot;&lt;msg UUID 2&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;ack status 2&gt;&quot;
+                },
+                {
+                    &quot;id&quot;: &quot;&lt;msg UUID 3&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;ack status 3&gt;&quot;
+                }
+            ]
+        },
+        &quot;target&quot;: {
+            &quot;id&quot;: &quot;&lt;user ID the ack status are for&gt;&quot;
+        },
+        &quot;verb&quot;: &quot;check&quot;,
+        &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+        &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
     }
 }
 </code></pre>
