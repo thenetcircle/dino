@@ -18,6 +18,7 @@ import traceback
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
+from dino.config import UserKeys
 from dino.exceptions import NoSuchUserException
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,8 @@ class OnDisconnectHooks(object):
                     logger.debug('when setting user offline, found other sids: [%s]' % ','.join(all_sids))
                     return
 
-                environ.env.db.set_user_offline(user_id)
+                if utils.get_user_status(user_id) != UserKeys.STATUS_INVISIBLE:
+                    environ.env.db.set_user_offline(user_id)
             except Exception as e:
                 logger.error('could not set user offline: %s' % str(e))
                 logger.debug('request for failed set_user_offline(): %s' % str(data))
