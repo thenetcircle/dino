@@ -13,13 +13,13 @@ PATHS = [('/', 'root'), ('/data', 'data')]
 
 
 def connections():
-    c = statsd.StatsClient(STATSD_HOST, 8125, prefix=PREFIX + 'system.disk')
+    c = statsd.StatsClient(STATSD_HOST, 8125, prefix=PREFIX + 'system.network')
     while True:
         try:
-            process = subprocess.Popen(['ls', '-a'], stdout=subprocess.PIPE)
+            process = subprocess.Popen(['count_waiting_conn.sh'], stdout=subprocess.PIPE)
             out, _ = process.communicate()
             n_waiting = int(float(str(out, 'utf-8').strip()))
-            c.gauge('system.conn_wait', n_waiting)
+            c.gauge('conn_wait', n_waiting)
         except Exception as e:
             print('error: %s' % str(e))
         time.sleep(GRANULARITY * 3)

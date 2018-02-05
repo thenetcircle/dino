@@ -369,7 +369,7 @@ def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict]):
 
 
 @timeit(logger, 'on_msg_status')
-def on_msg_status(data: dict, activity: Activity) -> (int, Union[str, None]):
+def on_msg_status(data: dict, activity: Activity) -> (int, Union[str, dict]):
     """
     get the delivery status of a message if delivery guarantee is enabled, or an error message otherwise
 
@@ -389,9 +389,8 @@ def on_msg_status(data: dict, activity: Activity) -> (int, Union[str, None]):
     message_ids = {attachment.id for attachment in activity.object.attachments}
     statuses = environ.env.storage.get_statuses(message_ids, activity.target.id)
     status_act = utils.activity_for_msg_status(activity, statuses)
-    environ.env.emit('gn_msg_status', status_act, room=activity.actor.id, namespace='/ws')
 
-    return ECodes.OK, None
+    return ECodes.OK, status_act
 
 
 @timeit(logger, 'on_status')
