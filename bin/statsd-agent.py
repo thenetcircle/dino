@@ -4,11 +4,25 @@ import psutil
 import multiprocessing
 import socket
 import os
+import subprocess
 
 STATSD_HOST='10.20.2.108'
 PREFIX='%s.' % socket.gethostname()
 GRANULARITY = 10  # seconds
 PATHS = [('/', 'root'), ('/data', 'data')]
+
+
+def connections():
+    c = statsd.StatsClient(STATSD_HOST, 8125, prefix=PREFIX + 'system.disk')
+    while True:
+        try:
+            process = subprocess.Popen(['ls', '-a'], stdout=subprocess.PIPE)
+            out, _ = process.communicate()
+            n_waiting = int(float(str(out, 'utf-8').strip()))
+            c.gauge('system.conn_wait', n_waiting)
+        except Exception as e:
+            print('error: %s' % str(e))
+        time.sleep(GRANULARITY * 3)
 
 
 def disk():

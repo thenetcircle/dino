@@ -42,6 +42,9 @@ logger = logging.getLogger(__name__)
 
 
 class RequestValidator(BaseValidator):
+    def on_msg_status(self, _: Activity) -> (bool, int, str):
+        return True, None, None
+
     def on_message(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
         user_id = activity.actor.id
