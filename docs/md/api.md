@@ -299,6 +299,12 @@ Response will be sent as the `gn_msg_status` event with the following content:
 }
 ```
 
+The ack statuses are:
+
+* 0: not acknowledged (receiver has not acked it yet)
+* 1: received
+* 2: read
+
 ## `read`
 
 Acknowledge that one or more messages has been read. The status will change from `sent`/`delivered` to `read`.
