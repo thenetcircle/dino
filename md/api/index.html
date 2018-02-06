@@ -503,6 +503,12 @@ callback, and no <code>gn_msg_status</code> event will be sent back.</p>
 }
 </code></pre>
 
+<p>The ack statuses are:</p>
+<ul>
+<li>0: not acknowledged (receiver has not acked it yet)</li>
+<li>1: received</li>
+<li>2: read</li>
+</ul>
 <h2 id="read"><code>read</code></h2>
 <p>Acknowledge that one or more messages has been read. The status will change from <code>sent</code>/<code>delivered</code> to <code>read</code>.</p>
 <p>Does not emit a response, only invokes the callback with the <code>status_code</code> and potentially and <code>error_message</code>. Note 
