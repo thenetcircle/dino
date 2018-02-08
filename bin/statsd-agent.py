@@ -14,15 +14,27 @@ PATHS = [('/', 'root'), ('/data', 'data')]
 
 def connections():
     c = statsd.StatsClient(STATSD_HOST, 8125, prefix=PREFIX + 'system.network')
+    to_check = [
+        ('conn_established', 'count_established_conn.sh'),
+        ('pkts_collapsed', 'count_pkts_collapsed.sh'),
+        ('pkts_pruned', 'count_pkts_pruned.sh'),
+        ('pkts_pruned_overrun', 'count_pkts_pruned_overrun.sh'),
+        ('syn_recv', 'count_syn_recv.sh')
+    ]
+
     while True:
-        try:
-            process = subprocess.Popen(['count_waiting_conn.sh'], stdout=subprocess.PIPE)
-            out, _ = process.communicate()
-            n_waiting = int(float(str(out, 'utf-8').strip()))
-            c.gauge('conn_wait', n_waiting)
-        except Exception as e:
-            print('error: %s' % str(e))
-        time.sleep(GRANULARITY * 3)
+        for key, script in to_check:
+            try:
+                process = subprocess.Popen([script], stdout=subprocess.PIPE)
+                out, _ = process.communicate()
+                try:
+                    the_count = int(float(str(out, 'utf-8').strip()))
+                except:
+                    the_count = 0
+                c.gauge(key, the_count)
+            except Exception as e:
+                print('error: %s' % str(e))
+        time.sleep(GRANULARITY)
 
 
 def disk():

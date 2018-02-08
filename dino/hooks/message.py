@@ -67,7 +67,8 @@ class OnMessageHooks(object):
                 environ.env.capture_exception(sys.exc_info())
                 return
 
-            if environ.env.config.get(ConfigKeys.DELIVERY_GUARANTEE, False) or activity.target.object_type != 'private':
+            if not environ.env.config.get(ConfigKeys.DELIVERY_GUARANTEE, False) or \
+                    activity.target.object_type != 'private':
                 return
 
             owners = environ.env.db.get_owners_room(activity.target.id)
