@@ -19,7 +19,11 @@ def connections():
         ('pkts_collapsed', 'count_pkts_collapsed.sh'),
         ('pkts_pruned', 'count_pkts_pruned.sh'),
         ('pkts_pruned_overrun', 'count_pkts_pruned_overrun.sh'),
-        ('syn_recv', 'count_syn_recv.sh')
+        ('syn_recv', 'count_syn_recv.sh'),
+        ('tcp_in_errs', 'count_in_errs_snmp.sh'),
+        ('rx_discards', 'count_rx_discards.sh'),
+        ('pkts_recv_errs', 'count_pkts_recv_errors.sh'),
+        ('pkts_recv_buff_errs', 'count_pkts_recv_buffer_errors.sh'),
     ]
 
     while True:
