@@ -748,6 +748,7 @@ class CacheRedis(object):
         except Exception as e:
             logger.error('could not set_user_offline(): %s' % str(e))
             logger.exception(traceback.format_exc())
+            raise e  # force catch from caller
 
     def set_user_online(self, user_id: str) -> None:
         try:

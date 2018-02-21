@@ -391,6 +391,11 @@ class QueueHandler(object):
                 return
 
         banned_id = activity.object.id
+        if not utils.is_valid_id(banned_id):
+            logger.warning('got invalid id on ban activity: {}'.format(str(activity.id)))
+            # TODO: sentry
+            return
+
         banned_name = utils.get_user_name_for(banned_id)
         banned_sids = utils.get_sids_for_user_id(banned_id)
         namespace = activity.target.url or '/ws'

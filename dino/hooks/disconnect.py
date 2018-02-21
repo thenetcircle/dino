@@ -32,6 +32,11 @@ class OnDisconnectHooks(object):
         def set_user_offline():
             try:
                 user_id = activity.actor.id
+                if not utils.is_valid_id(user_id):
+                    logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
+                    # TODO: sentry
+                    return
+
                 current_sid = environ.env.request.sid
                 environ.env.db.remove_sid_for_user(user_id, current_sid)
 

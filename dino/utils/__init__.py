@@ -90,6 +90,18 @@ def is_base64(s):
     return True
 
 
+def is_valid_id(user_id: str):
+    try:
+        if user_id is None:
+            return False
+        if len(str(user_id).strip()) == 0:
+            return False
+        _ = int(user_id)
+    except Exception:
+        return False
+    return True
+
+
 def used_blacklisted_word(activity: Activity):
     return environ.env.blacklist.contains_blacklisted_word(activity)
 

@@ -10,11 +10,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+logger = logging.getLevelName(__name__)
 
 
 class OnStatusHooks(object):
@@ -91,6 +95,11 @@ class OnStatusHooks(object):
                         'gn_user_invisible', invisible_activity, room=admin_id, broadcast=False, namespace='/ws')
 
         elif status == 'offline':
+            if not utils.is_valid_id(user_id):
+                logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
+                # TODO: sentry
+                return
+
             environ.env.db.set_user_offline(user_id)
             activity_json = utils.activity_for_disconnect(user_id, user_name)
             rooms = utils.rooms_for_user(user_id)
