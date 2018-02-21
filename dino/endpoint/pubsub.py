@@ -21,6 +21,7 @@ from kombu import Queue
 from kombu import Connection
 from kombu.pools import producers
 
+import eventlet
 import traceback
 import logging
 import time
@@ -43,7 +44,7 @@ class PubSub(object):
     def __init__(self, env: environ.GNEnvironment):
         self._lock = Lock()
         self.env = env
-        self.executor = ThreadPoolExecutor(max_workers=2)
+        self.executor = ThreadPoolExecutor(max_workers=1)
         self.recently_sent_external_hash = set()
         self.recently_sent_external_list = list()
         self.external_queue_type = None
@@ -184,7 +185,8 @@ class PubSub(object):
             external = False
 
         # avoid hanging clients
-        self.executor.submit(self._do_publish_async, message, external)
+        eventlet.spawn(self._do_publish_async, message, external)
+        #self.executor.submit(self._do_publish_async, message, external)
 
     @locked_method
     def _recently_sent_has(self, msg_id: str) -> bool:
