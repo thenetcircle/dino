@@ -16,6 +16,9 @@ from threading import Lock
 from dino.config import ConfigKeys
 from dino import environ
 
+from kombu import pools
+pools.set_limit(512)  # default is 200
+
 from kombu import Exchange
 from kombu import Queue
 from kombu import Connection
@@ -259,7 +262,7 @@ class PubSub(object):
                     queue_connection.send(queue, message)
                 else:
                     logger.info('sending "{}" with "{}"'.format(message_type, str(queue_connection)))
-                    with producers[queue_connection].acquire(block=True) as producer:
+                    with producers[queue_connection].acquire(block=False) as producer:
                         amqp_publish = queue_connection.ensure(
                             producer, producer.publish, errback=PubSub.error_callback, max_retries=3)
                         amqp_publish(message, exchange=exchange, declare=[exchange, queue])
