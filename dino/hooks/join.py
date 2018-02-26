@@ -58,7 +58,7 @@ class OnJoinHooks(object):
 
         activity_json = utils.activity_for_user_joined(user_id, user_name, room_id, room_name, image)
         environ.env.out_of_scope_emit('gn_user_joined', activity_json, room=room_id, broadcast=True, namespace='/ws')
-        environ.env.publish(activity_json)
+        environ.env.publish(activity_json, external=True)
 
 
 @environ.env.observer.on('on_join')
