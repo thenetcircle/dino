@@ -1222,7 +1222,11 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
     environ.env.leave_room(room_id)
-    environ.env.db.leave_room(user_id, room_id)
+    try:
+        environ.env.db.leave_room(user_id, room_id)
+    except NoSuchRoomException:
+        # room already removed or doesn't exist
+        pass
 
 
 def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) -> None:
