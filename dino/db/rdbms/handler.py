@@ -2504,7 +2504,13 @@ class DatabaseRdbms(object):
         self.env.cache.set_room_ban_timestamp(
                 room_id, user_id, ban_duration, ban_timestamp, self.get_user_name(user_id))
 
-        _ban_user_room()
+        n_retries = 2
+        for i in range(n_retries):
+            try:
+                _ban_user_room()
+                break
+            except StaleDataError as e:
+                logger.error('stale data when banning user, attempt {}/{}: {}'.format(i, n_retries, str(e)))
 
     def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str, reason: str=None, banner_id: str=None):
         @with_session
