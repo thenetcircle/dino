@@ -1189,6 +1189,7 @@ class DatabaseRdbms(object):
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException()
 
+        logger.info('user {} just left room {}'.format(user_id, room_id))
         self.get_room_name(room_id)
         self.env.cache.leave_room_for_user(user_id, room_id)
 
