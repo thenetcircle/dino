@@ -189,7 +189,6 @@ class PubSub(object):
 
         # avoid hanging clients
         eventlet.spawn(self._do_publish_async, message, external)
-        #self.executor.submit(self._do_publish_async, message, external)
 
     @locked_method
     def _recently_sent_has(self, msg_id: str) -> bool:
@@ -198,8 +197,8 @@ class PubSub(object):
     def _do_publish_async(self, message: dict, external: bool):
         if external:
             # avoid publishing duplicate events by only letting the rest/wio nodes publish external events
-            #if self.env.node not in {'rest', 'wio'}:
-            #    return
+            if self.env.node not in {'rest', 'wio'}:
+                return
 
             if self._recently_sent_has(message['id']):
                 logger.debug('ignoring external event with verb %s and id %s, already sent' %
