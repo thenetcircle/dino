@@ -45,6 +45,58 @@ class ICache(Interface):
         :return: static, temporary or mix
         """
 
+    def get_rooms_for_user(self, user_id: str) -> dict:
+        """
+        get all rooms for this user in form of a dict {room_uuid: room_name}
+
+        :param user_id: the uuid of the user
+        :return: a dict {room_uuid: room_name}
+        """
+
+    def set_rooms_for_user(self, user_id: str, rooms: dict) -> None:
+        """
+        set the room uuids the user is in; ttl of 20-30 seconds (random)
+
+        :param user_id: the uuid of the user
+        :param rooms: a dict of rooms the user is in now {room_uuid: room_name}
+        :return: nothing
+        """
+
+    def leave_room_for_user(self, user_id: str, room_id: str) -> None:
+        """
+        remove this user form the dict of rooms this user is in
+        :param user_id:
+        :param room_id:
+        :return:
+        """
+
+    def is_user_in_room(self, user_id: str, room_id: str) -> bool:
+        """
+        check if this user is this room according to the cache
+
+        :param user_id: the uuid of the user
+        :param room_id: the room uuid
+        :return: True/False
+        """
+
+    def remove_rooms_for_user(self, user_id: str) -> None:
+        """
+        remove all rooms the cache thinks this user is in
+
+        :param user_id: the uuid of the user
+        :return: nothing
+        """
+
+    def set_user_in_room(self, user_id: str, room_id: str, room_name: str) -> None:
+        """
+        mark this user to be in this room
+
+        :param user_id: the uuid of the user
+        :param room_id: the room uuid
+        :param room_name: the name of the room
+        :return: nothing
+        """
+
     def clear_default_rooms(self) -> None:
         """
         clear the list of default room uuids from the cache

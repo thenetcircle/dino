@@ -540,16 +540,25 @@ class DatabaseRdbms(object):
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
 
-    @with_session
-    def rooms_for_user(self, user_id: str, session=None) -> dict:
-        rows = session.query(Rooms)\
-            .join(Rooms.users)\
-            .filter(Users.uuid == user_id)\
-            .all()
+    def rooms_for_user(self, user_id: str) -> dict:
+        @with_session
+        def _rooms_for_user(session=None) -> dict:
+            rows = session.query(Rooms)\
+                .join(Rooms.users)\
+                .filter(Users.uuid == user_id)\
+                .all()
 
-        rooms = dict()
-        for row in rows:
-            rooms[row.uuid] = row.name
+            clean_rooms = dict()
+            for row in rows:
+                clean_rooms[row.uuid] = row.name
+            return clean_rooms
+
+        rooms = self.env.cache.get_rooms_for_user(user_id)
+        if rooms is not None and len(rooms) > 0:
+            return rooms
+
+        rooms = _rooms_for_user()
+        self.env.cache.set_rooms_for_user(user_id, rooms)
         return rooms
 
     def type_of_rooms_in_channel(self, channel_id: str) -> str:
@@ -791,6 +800,8 @@ class DatabaseRdbms(object):
         except StaleDataError:
             # might have just been removed by another node
             session.rollback()
+
+        self.env.cache.remove_rooms_for_user(user_id)
 
     def get_channels(self) -> dict:
         @with_session
@@ -1179,6 +1190,8 @@ class DatabaseRdbms(object):
             raise EmptyUserIdException()
 
         self.get_room_name(room_id)
+        self.env.cache.leave_room_for_user(user_id, room_id)
+
         try:
             _leave()
         except ValueError as e:
@@ -1225,6 +1238,8 @@ class DatabaseRdbms(object):
             logger.warning('user "%s" (%s) tried to join room "%s" (%s) but it has been deleted: %s' %
                            (user_name, user_id, room_name, room_id, str(e)))
             raise NoSuchRoomException(room_id)
+
+        self.env.cache.set_user_in_room(user_id, room_id, room_name)
 
     def _add_global_role(self, user_id: str, role: str):
         @with_session
@@ -2501,6 +2516,7 @@ class DatabaseRdbms(object):
         except NoSuchUserException:
             pass
 
+        self.env.cache.leave_room_for_user(user_id, room_id)
         self.env.cache.set_room_ban_timestamp(
                 room_id, user_id, ban_duration, ban_timestamp, self.get_user_name(user_id))
 
