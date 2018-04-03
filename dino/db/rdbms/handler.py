@@ -2502,8 +2502,10 @@ class DatabaseRdbms(object):
                 .filter(Users.uuid == user_id)\
                 .first()
 
+            user = session.query(Users).filter(Users.uuid == user_id).first()
+
             if room is not None:
-                room.users.remove(room.users[0])
+                room.users.remove(user)
                 session.add(room)
 
         try:
