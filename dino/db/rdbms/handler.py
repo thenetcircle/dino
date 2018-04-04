@@ -110,6 +110,8 @@ class DatabaseRdbms(object):
         @with_session
         def is_ephemeral(session=None):
             room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
+            if room is None:
+                raise NoSuchRoomException(room_id)
             return room.ephemeral
 
         value = self.env.cache.is_room_ephemeral(room_id)

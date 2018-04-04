@@ -1049,7 +1049,6 @@ def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False) -
     :param user_id: if specified, will check if super user, and if so will also include invisible users
     :param skip_cache: if True, check db directly, used for gn_join to get correct user list when joining; when listing
     rooms it is not necessary to have exact list; cache is 10-20s (random) per room
-    :param this_user_id: the id of the user making the request; if admin the response included more information
     :return: a list of users in the room
     """
     return environ.env.db.users_in_room(room_id, this_user_id=user_id, skip_cache=skip_cache)
