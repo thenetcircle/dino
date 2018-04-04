@@ -907,10 +907,9 @@ def get_sids_for_user_id(user_id: str) -> Union[list, None]:
     return environ.env.db.get_sids_for_user(user_id)
 
 
-def create_or_update_user(user_id: str, user_name: str) -> bool:
+def create_or_update_user(user_id: str, user_name: str) -> None:
     try:
-        environ.env.db.create_user(user_id, user_name)
-        return
+        return environ.env.db.create_user(user_id, user_name)
     except UserExistsException:
         pass
     environ.env.db.set_user_name(user_id, user_name)
