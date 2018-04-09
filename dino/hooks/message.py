@@ -38,7 +38,7 @@ class OnMessageHooks(object):
                 user_name = utils.b64d(user_name)
 
             activity_json = utils.activity_for_message(user_id, user_name)
-            environ.env.publish(activity_json)
+            environ.env.publish(activity_json, external=True)
 
         @timeit(logger, 'on_message_hooks_broadcast')
         def broadcast():
@@ -91,7 +91,7 @@ class OnMessageHooks(object):
             publish_activity()
         else:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
-            environ.env.publish(blacklist_activity)
+            environ.env.publish(blacklist_activity, external=True)
             send(data, _room=user_id, _broadcast=False)
 
             admins_in_room = environ.env.db.get_admins_in_room(activity.target.id)
