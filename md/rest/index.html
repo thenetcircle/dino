@@ -111,6 +111,9 @@
                 <li class="toctree-l3"><a href="#get-history">GET /history</a></li>
                 
             
+                <li class="toctree-l3"><a href="#post-full-history">POST /full-history</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#post-broadcast">POST /broadcast</a></li>
                 
             
@@ -256,6 +259,32 @@
 <li>Either <code>user_id</code> or <code>room_id</code> is required (both can be specified at the same time),</li>
 <li><code>to_time</code> needs to be after <code>from_time</code>.</li>
 </ul>
+<h2 id="post-full-history">POST /full-history</h2>
+<p>To get all messages sent by a user, call this endpoint with the following data:</p>
+<pre><code class="json">{
+    &quot;user_id&quot;: 1971
+}
+</code></pre>
+
+<p>Response looks like this:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: [{
+        &quot;message_id&quot;: &quot;07bacdd8-42e6-4ace-acee-8d200dd14bfc&quot;,
+        &quot;from_user_id&quot;: &quot;1971&quot;,
+        &quot;from_user_name&quot;: &quot;Um9k=&quot;,
+        &quot;target_id&quot;: &quot;7935a673-da64-4419-818b-e6e0d1864b61&quot;,
+        &quot;target_name&quot;: &quot;TG9iYnk=&quot;,
+        &quot;body&quot;: &quot;eyJtYXNrIjoiMDAiLCJ6IjE2IiwidGV4dCI6ImkgYW0gaW52aXNpYmxlIn0=&quot;,
+        &quot;domain&quot;: &quot;room&quot;,
+        &quot;channel_id&quot;: &quot;84ec4b4f-7482-48ba-83a1-9c9b1c470903&quot;,
+        &quot;channel_name&quot;: &quot;UGVu&quot;,
+        &quot;timestamp&quot;: &quot;2017-05-23T07:32:07Z&quot;,
+        &quot;deleted&quot;: true
+    }, {...}]
+}
+</code></pre>
+
 <h2 id="post-broadcast">POST /broadcast</h2>
 <p>Broadcasts a message to everyone on the server. Request needs the <code>body</code> and <code>verb</code> keys:</p>
 <pre><code>{
