@@ -6,7 +6,7 @@ Request contains info on what time slice, target, origin to get history for:
         "from_time": "2016-12-26T08:39:54Z",
         "to_time": "2016-12-28T08:39:54Z",
         "user_id": "124352",
-        "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+        "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59" # optional
     }
 
 Response would be something similar to the following:
