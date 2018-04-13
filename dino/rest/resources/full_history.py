@@ -34,7 +34,7 @@ class FullHistoryResource(BaseResource):
         self.request = request
 
     def _get_lru_method(self):
-        return self.do_get_with_params
+        return self.do_post_with_params
 
     def _get_last_cleared(self):
         return self.last_cleared
@@ -43,18 +43,18 @@ class FullHistoryResource(BaseResource):
         self.last_cleared = last_cleared
 
     @lru_cache()
-    def do_get_with_params(self, user_id):
+    def do_post_with_params(self, user_id):
         return storage_manager.get_all_message_from_user(user_id)
 
     @timeit(logger, 'on_rest_full_history')
-    def do_get(self):
+    def do_post(self):
         the_json = self.validate_json()
         logger.debug('GET request: %s' % str(the_json))
 
         user_id = the_json.get('user_id')
 
         try:
-            messages = self.do_get_with_params(user_id)
+            messages = self.do_post_with_params(user_id)
             for message in messages:
                 message['from_user_name'] = b64e(message['from_user_name'])
                 message['body'] = b64e(message['body'])

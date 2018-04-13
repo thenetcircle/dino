@@ -58,6 +58,38 @@ Response would be something similar to the following:
 * Either `user_id` or `room_id` is required (both can be specified at the same time),
 * `to_time` needs to be after `from_time`.
 
+## POST /full-history
+
+To get all messages sent by a user, call this endpoint with the following data:
+
+```json
+{
+    "user_id": 1971
+}
+```
+
+Response looks like this:
+
+```json
+{
+    "status_code": 200,
+    "data": [{
+        "message_id": "07bacdd8-42e6-4ace-acee-8d200dd14bfc",
+        "from_user_id": "1971",
+        "from_user_name": "Um9k=",
+        "target_id": "7935a673-da64-4419-818b-e6e0d1864b61",
+        "target_name": "TG9iYnk=",
+        "body": "eyJtYXNrIjoiMDAiLCJ6IjE2IiwidGV4dCI6ImkgYW0gaW52aXNpYmxlIn0=",
+        "domain": "room",
+        "channel_id": "84ec4b4f-7482-48ba-83a1-9c9b1c470903",
+        "channel_name": "UGVu",
+        "timestamp": "2017-05-23T07:32:07Z",
+        "deleted": true
+    }, {...}]
+}
+```
+
+
 ## POST /broadcast
 
 Broadcasts a message to everyone on the server. Request needs the `body` and `verb` keys:
