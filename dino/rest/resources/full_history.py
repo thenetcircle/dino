@@ -43,18 +43,33 @@ class FullHistoryResource(BaseResource):
         self.last_cleared = last_cleared
 
     @lru_cache()
-    def do_post_with_params(self, user_id):
+    def do_post_with_params(self, user_id, from_time, to_time):
         return storage_manager.get_all_message_from_user(user_id)
 
     @timeit(logger, 'on_rest_full_history')
     def do_post(self):
         the_json = self.validate_json()
-        logger.debug('GET request: %s' % str(the_json))
+        logger.debug('POST request: %s' % str(the_json))
 
         user_id = the_json.get('user_id')
+        from_time = the_json.get('from_time', None)
+        to_time = the_json.get('to_time', None)
+
+        if from_time is None or to_time is None:
+            # both needed
+            from_time, to_time = None, None
+
+        if not is_blank(from_time):
+            try:
+                from_time = parser.parse(from_time).astimezone(tzutc())
+            except Exception as e:
+                logger.error('invalid from time "%s": %s' % (str(from_time), str(e)))
+                raise RuntimeError('invalid from time "%s": %s' % (str(to_time), str(e)))
+        else:
+            from_time = None
 
         try:
-            messages = self.do_post_with_params(user_id)
+            messages = self.do_post_with_params(user_id, from_time, to_time)
             for message in messages:
                 message['from_user_name'] = b64e(message['from_user_name'])
                 message['body'] = b64e(message['body'])

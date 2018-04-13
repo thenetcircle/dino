@@ -65,6 +65,8 @@ To get all messages sent by a user, call this endpoint with the following data:
 ```json
 {
     "user_id": 1971
+    "from_time": "2016-12-26T08:39:54Z", # optional (other needed if this one is specified)
+    "to_time": "2016-12-28T08:39:54Z" # optional  (other needed if this one is specified)
 }
 ```
 

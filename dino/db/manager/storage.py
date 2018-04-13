@@ -74,10 +74,6 @@ class StorageManager(BaseManager):
         if from_time is not None and to_time is None:
             to_time = from_time + datetime.timedelta(seconds=60*60)
 
-        if from_time is not None and to_time is not None:
-            if to_time - from_time > datetime.timedelta(days=7):
-                to_time = from_time + datetime.timedelta(days=7)
-
         if from_time is None or to_time is None:
             to_time = datetime.datetime.utcnow()
             from_time = to_time - datetime.timedelta(days=7)
