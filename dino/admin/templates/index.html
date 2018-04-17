@@ -1,1 +1,23 @@
-<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=X-UA-Compatible content="ie=edge">{% if config.FLOATING_MENU == True %} <meta name="rhum">{% endif %} <meta name=base content={{ config.ROOT_URL }}><meta name=environment content={{ environment}}><meta name=version content={{ version }}><title>Dino Admin</title><link href={{ config.ROOT_URL }}/static/css/app.ff9ec570e52f992c3ff5270f3d00bdc4.css rel=stylesheet></head><body><div id=app></div><script type=text/javascript src={{ config.ROOT_URL }}/static/js/manifest.f517e22e67c92e20316e.js></script><script type=text/javascript src={{ config.ROOT_URL }}/static/js/vendor.9adab04db46611ae9dc7.js></script><script type=text/javascript src={{ config.ROOT_URL }}/static/js/app.154135f959a0a3494f5a.js></script></body></html>
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset=utf-8>
+  <meta name=viewport content="width=device-width,initial-scale=1">
+  <meta http-equiv=X-UA-Compatible content="ie=edge">
+  <meta name=base content={{ config.ROOT_URL }}>
+  <meta name=environment content={{ environment}}>
+  <meta name=version content={{ version }}>
+  <title>Dino Admin</title>
+  <link href={{ config.ROOT_URL }}/static/css/app.ef49715dfa571cd78b6d8726d7b10a19.css rel=stylesheet>
+</head>
+
+<body>
+  <div id=app></div>
+  {% if config.FLOATING_MENU == True %}
+  <script src=/static/js/rhum.js></script>
+  {% endif %}
+  <script type=text/javascript src={{ config.ROOT_URL }}/static/js/manifest.db3cd5ac41dfb0bceb82.js></script>
+  <script type=text/javascript src={{ config.ROOT_URL }}/static/js/vendor.1fdad230fd10904444cf.js></script>
+  <script type=text/javascript src={{ config.ROOT_URL }}/static/js/app.317ccda9a6e81b928fa8.js></script>
+</body>
