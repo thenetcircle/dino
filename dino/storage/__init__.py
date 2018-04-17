@@ -31,6 +31,15 @@ class IStorage(Interface):
         :return: a dict describing the message
         """
 
+    def get_statuses(self, message_ids: set, receiver_id: str) -> dict:
+        """
+        get the ack statuses for a set of messages sent to one specific user
+
+        :param message_ids: set of message ids
+        :param receiver_id: the id of the receiver user/room
+        :return: a dict of {msg_id: ack_status} for this user
+        """
+
     def mark_as_received(self, message_ids: set, receiver_id: str) -> None:
         """
         mark messages as received by client
@@ -40,12 +49,13 @@ class IStorage(Interface):
         :return: nothing
         """
 
-    def mark_as_read(self, message_ids: set, receiver_id: str) -> None:
+    def mark_as_read(self, message_ids: set, receiver_id: str, target_id: str) -> None:
         """
         mark messages as read by client
 
         :param message_ids: a set of message uuids
         :param receiver_id: the uuid of the receiving user, must match for update to be done
+        :param target_id: the uuid of the room the message is in
         :return: nothing
         """
 

@@ -32,8 +32,9 @@ class StorageManager(BaseManager):
     def __init__(self, env: GNEnvironment):
         self.env = env
 
-    def get_undeleted_messages_for_user(self, user_id: str) -> list:
-        return self.env.storage.get_undeleted_message_ids_for_user(user_id)
+    def get_all_message_from_user(self, user_id: str) -> list:
+        msg_ids = self.env.storage.get_undeleted_message_ids_for_user(user_id)
+        return self.env.storage.get_messages(msg_ids)
 
     def undelete_message(self, message_id: str) -> None:
         self.env.storage.undelete_message(message_id)
@@ -72,10 +73,6 @@ class StorageManager(BaseManager):
             from_time = to_time - datetime.timedelta(seconds=60*60)
         if from_time is not None and to_time is None:
             to_time = from_time + datetime.timedelta(seconds=60*60)
-
-        if from_time is not None and to_time is not None:
-            if to_time - from_time > datetime.timedelta(days=7):
-                to_time = from_time + datetime.timedelta(days=7)
 
         if from_time is None or to_time is None:
             to_time = datetime.datetime.utcnow()

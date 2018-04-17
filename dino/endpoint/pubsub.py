@@ -16,11 +16,15 @@ from threading import Lock
 from dino.config import ConfigKeys
 from dino import environ
 
+from kombu import pools
+pools.set_limit(512)  # default is 200
+
 from kombu import Exchange
 from kombu import Queue
 from kombu import Connection
 from kombu.pools import producers
 
+import eventlet
 import traceback
 import logging
 import time
@@ -43,9 +47,10 @@ class PubSub(object):
     def __init__(self, env: environ.GNEnvironment):
         self._lock = Lock()
         self.env = env
-        self.executor = ThreadPoolExecutor(max_workers=2)
+        self.executor = ThreadPoolExecutor(max_workers=1)
         self.recently_sent_external_hash = set()
         self.recently_sent_external_list = list()
+        self.external_queue_type = None
 
         if len(self.env.config) == 0 or self.env.config.get(ConfigKeys.TESTING, False):
             self.env.publish = PubSub.mock_publish
@@ -80,11 +85,12 @@ class PubSub(object):
             return
 
         hostname = socket.gethostname()
+        logger.info('setting up pubsub for type {} and host {}'.format(queue_type, queue_host))
 
         if queue_host is not None:
             if queue_type == 'redis':
-                self.env.queue_connection = Connection(queue_host)
                 exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
+                queue_db = conf.get(ConfigKeys.DB, domain=ConfigKeys.QUEUE, default=0)
                 queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
                 if queue_name is None or len(queue_name.strip()) == 0:
                     queue_name = 'node_queue_%s_%s_%s' % (
@@ -93,6 +99,8 @@ class PubSub(object):
                         port
                     )
 
+                self.env.queue_connection = Connection(queue_host, transport_options={'db': queue_db})
+                logger.info('queue connection: {}'.format(str(self.env.queue_connection)))
                 self.env.queue_name = queue_name
                 self.env.exchange = Exchange(exchange, type='fanout')
                 self.env.queue = Queue(self.env.queue_name, self.env.exchange)
@@ -126,9 +134,14 @@ class PubSub(object):
         if self.env.queue_connection is None:
             raise RuntimeError('no message queue specified, need either redis or amqp')
 
-        ext_queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='')
-        self.env.external_queue_connection = None
-        if ext_queue_host is not None and len(ext_queue_host.strip()) > 0:
+        ext_queue_type = conf.get(ConfigKeys.TYPE, domain=ConfigKeys.EXTERNAL_QUEUE)
+
+        if ext_queue_type in {'redis', 'rabbitmq', 'amqp'}:
+            ext_queue_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default='')
+            self.env.external_queue_connection = None
+            if ext_queue_host is None or len(ext_queue_host.strip()) == 0:
+                return
+
             ext_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
             ext_vhost = conf.get(ConfigKeys.VHOST, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
             ext_user = conf.get(ConfigKeys.USER, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
@@ -140,6 +153,34 @@ class PubSub(object):
                 hostname=ext_queue_host, port=ext_port, virtual_host=ext_vhost, userid=ext_user, password=ext_pass)
             self.env.external_exchange = Exchange(ext_exchange, type='direct')
             self.env.external_queue = Queue(ext_queue, self.env.external_exchange)
+            self.external_queue_type = 'amqp'
+
+        elif ext_queue_type == 'kafka':
+            eq_host = conf.get(ConfigKeys.HOST, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
+            eq_queue = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.EXTERNAL_QUEUE, default=None)
+            if eq_host is None or len(eq_host) == 0 or (type(eq_host) == str and len(eq_host.strip()) == 0):
+                logging.warning('blank external host specified, not setting up external publishing')
+                return
+            if eq_queue is None or len(eq_queue.strip()) == 0:
+                logging.warning('blank external queue specified, not setting up external publishing')
+                return
+
+            if type(eq_host) == str:
+                eq_host = [eq_host]
+
+            from kafka import KafkaProducer
+            import json
+
+            self.external_queue_type = 'kafka'
+            self.env.external_queue = eq_queue
+            self.env.external_queue_connection = KafkaProducer(
+                bootstrap_servers=eq_host,
+                value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+        else:
+            raise RuntimeError(
+                'unknown external queue type "{}"; available types are [redis,rabbitmq,kafka]'.format(
+                    ext_queue_type)
+            )
 
     def do_publish(self, message: dict, external: bool=None):
         logger.debug('publish: verb %s id %s external? %s' % (message['verb'], message['id'], str(external or False)))
@@ -147,7 +188,7 @@ class PubSub(object):
             external = False
 
         # avoid hanging clients
-        self.executor.submit(self._do_publish_async, message, external)
+        eventlet.spawn(self._do_publish_async, message, external)
 
     @locked_method
     def _recently_sent_has(self, msg_id: str) -> bool:
@@ -155,9 +196,10 @@ class PubSub(object):
 
     def _do_publish_async(self, message: dict, external: bool):
         if external:
-            # avoid publishing duplicate events by only letting the rest node publish external events
-            if self.env.node != 'rest':
-                return
+            # TODO: try to make every node be able to publish, shouldn't have to aggregate millions of events to rest
+            # avoid publishing duplicate events by only letting the rest/wio nodes publish external events
+            # if self.env.node not in {'rest', 'wio'}:
+            #     return
 
             if self._recently_sent_has(message['id']):
                 logger.debug('ignoring external event with verb %s and id %s, already sent' %
@@ -213,27 +255,32 @@ class PubSub(object):
         current_try = 0
         failed = False
 
-        with producers[queue_connection].acquire(block=True) as producer:
-            amqp_publish = queue_connection.ensure(
-                producer, producer.publish, errback=PubSub.error_callback, max_retries=3)
+        for current_try in range(n_tries):
+            try:
+                if message_type == 'external' and self.external_queue_type == 'kafka':
+                    # for kafka, the queue_connection is the KafkaProducer and queue is the topic name
+                    queue_connection.send(queue, message)
+                else:
+                    logger.info('sending "{}" with "{}"'.format(message_type, str(queue_connection)))
+                    with producers[queue_connection].acquire(block=False) as producer:
+                        amqp_publish = queue_connection.ensure(
+                            producer, producer.publish, errback=PubSub.error_callback, max_retries=3)
+                        amqp_publish(message, exchange=exchange, declare=[exchange, queue])
 
-            for current_try in range(n_tries):
-                try:
-                    amqp_publish(message, exchange=exchange, declare=[exchange, queue])
-                    self.env.stats.incr('publish.%s.count' % message_type)
-                    self.env.stats.timing('publish.%s.time' % message_type, (time.time()-start)*1000)
-                    failed = False
-                    if message_type == 'external':
-                        self.update_recently_sent(message['id'])
-                    break
-                except Exception as pe:
-                    failed = True
-                    logger.error('[%s/%s tries] failed to publish %s: %s' % (
-                        str(current_try+1), str(n_tries), message_type, str(pe)))
-                    logger.exception(traceback.format_exc())
-                    self.env.stats.incr('publish.error')
-                    environ.env.capture_exception(pe)
-                    time.sleep(0.1)
+                self.env.stats.incr('publish.%s.count' % message_type)
+                self.env.stats.timing('publish.%s.time' % message_type, (time.time()-start)*1000)
+                failed = False
+                if message_type == 'external':
+                    self.update_recently_sent(message['id'])
+                break
+            except Exception as pe:
+                failed = True
+                logger.error('[%s/%s tries] failed to publish %s: %s' % (
+                    str(current_try+1), str(n_tries), message_type, str(pe)))
+                logger.exception(traceback.format_exc())
+                self.env.stats.incr('publish.error')
+                environ.env.capture_exception(pe)
+                time.sleep(0.1)
 
         if failed:
             logger.error(

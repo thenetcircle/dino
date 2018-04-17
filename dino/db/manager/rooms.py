@@ -107,7 +107,7 @@ class RoomManager(BaseManager):
         room_name = self.env.db.get_room_name(room_id)
         remove_activity = utils.activity_for_remove_room('0', 'admin', room_id, room_name)
         self.env.db.remove_room(channel_id, room_id)
-        self.env.publish(remove_activity)
+        self.env.publish(remove_activity, external=True)
 
     def rename(self, channel_id: str, room_id: str, room_name: str) -> Union[str, None]:
         try:

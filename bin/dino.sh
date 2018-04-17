@@ -78,7 +78,8 @@ DINO_ENVIRONMENT=$1 DINO_DEBUG=0 gunicorn \
     --workers 1 \
     --threads 1 \
     --keep-alive 5 \
-    --worker-connections 1000 \
+    --backlog 8192 \
+    --worker-connections 10000 \
     --statsd-host ${STATSD_HOST}:8125 \
     --statsd-prefix gunicorn-dino-${1}-${3}-${2} \
     --name dino-${1}-${3}-${2} \

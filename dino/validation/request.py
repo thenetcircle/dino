@@ -42,6 +42,9 @@ logger = logging.getLogger(__name__)
 
 
 class RequestValidator(BaseValidator):
+    def on_msg_status(self, _: Activity) -> (bool, int, str):
+        return True, None, None
+
     def on_message(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
         user_id = activity.actor.id
@@ -99,10 +102,16 @@ class RequestValidator(BaseValidator):
                            'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
 
         elif object_type == 'private':
-            try:
-                utils.get_user_name_for(room_id)
-            except NoSuchUserException:
-                return False, ECodes.INVALID_TARGET_TYPE, 'target.id is not a known user id'
+            channel_id = None
+            if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
+                channel_id = activity.object.url
+            if channel_id is None or len(channel_id.strip()) == 0:
+                channel_id = utils.get_channel_for_room(room_id)
+
+            if not utils.channel_exists(channel_id):
+                return False, ECodes.NO_SUCH_CHANNEL, 'channel %s does not exists' % channel_id
+            if not utils.room_exists(channel_id, room_id):
+                return False, ECodes.NO_SUCH_ROOM, 'target room %s does not exist' % room_id
 
         return True, None, None
 
@@ -528,6 +537,8 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def _can_be_invisible(self, user_id: str):
+        if environ.env.config.get(ConfigKeys.INVISIBLE_UNRESTRICTED, default=False):
+            return True
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             return True
         return False
@@ -670,10 +681,6 @@ class RequestValidator(BaseValidator):
         if not hasattr(activity, 'actor') or not hasattr(activity.actor, 'id'):
             return False, ECodes.MISSING_ACTOR_ID, 'need actor.id (user uuid)'
 
-        rooms = environ.env.db.get_temp_rooms_user_is_owner_for(activity.actor.id)
-        if len(rooms) >= 3:
-            return False, ECodes.TOO_MANY_PRIVATE_ROOMS, 'too many private rooms for user'
-
         try:
             activity.object.display_name = utils.get_channel_name(channel_id)
         except NoSuchChannelException:
@@ -695,7 +702,12 @@ class RequestValidator(BaseValidator):
         if environ.env.db.room_name_exists(channel_id, room_name):
             return False, ECodes.ROOM_ALREADY_EXISTS, 'a room with that name already exists'
 
-        activity.target.object_type = 'room'  # for acl validation to know we're trying to create a room
+        if not hasattr(activity.target, 'object_type') or \
+                activity.target.object_type is None or \
+                len(str(activity.target.object_type).strip()) == 0:
+            # for acl validation to know we're trying to create a room
+            activity.target.object_type = 'room'
+
         channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.CREATE)
         is_valid, msg = validation.acl.validate_acl_for_action(
             activity, ApiTargets.CHANNEL, ApiActions.CREATE, channel_acls)

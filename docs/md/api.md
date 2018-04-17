@@ -33,6 +33,14 @@
     ROOM_FULL = 707
     NOT_ONLINE = 708
     TOO_MANY_PRIVATE_ROOMS = 709
+    ROOM_NAME_TOO_LONG = 710
+    ROOM_NAME_TOO_SHORT = 711
+    INVALID_TOKEN = 712
+    INVALID_LOGIN = 713
+    MSG_TOO_LONG = 714
+    MULTIPLE_ROOMS_WITH_NAME = 715
+    TOO_MANY_ATTACHMENTS = 716
+    NOT_ENABLED = 717
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -148,49 +156,53 @@ Responds with event name `gn_list_channels`.
 
 Request contains:
 
-    {
-        "verb": "list"
-    }
+```json
+{
+    "verb": "list"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "object": {
-                "objectType": "channels",
-                "attachments": [
-                    {
-                        "id": "<channel UUID>",
-                        "displayName": "<channel name>",
-                        "url": 8,
-                        "objectType": "static",
-                        "attachments": [
-                            {
-                                "summary": "message",
-                                "objectType": "membership",
-                                "content": "1"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "<channel UUID>",
-                        "displayName": "<channel name>",
-                        "url": 20,
-                        "objectType": "temporary",
-                        "attachments": [
-                            {
-                                "summary": "join",
-                                "objectType": "gender",
-                                "content": "f"
-                            }
-                        ]
-                    }
-                ]
-            },
-            "verb": "list"
-        }
+```json
+{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "channels",
+            "attachments": [
+                {
+                    "id": "<channel UUID>",
+                    "displayName": "<channel name>",
+                    "url": 8,
+                    "objectType": "static",
+                    "attachments": [
+                        {
+                            "summary": "message",
+                            "objectType": "membership",
+                            "content": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "<channel UUID>",
+                    "displayName": "<channel name>",
+                    "url": 20,
+                    "objectType": "temporary",
+                    "attachments": [
+                        {
+                            "summary": "join",
+                            "objectType": "gender",
+                            "content": "f"
+                        }
+                    ]
+                }
+            ]
+        },
+        "verb": "list"
     }
+}
+```
 
 Each channel has a `url` field, which is the sort order defined in the admin interface, in ascending order (lower `url`
 means higher up in the list).
@@ -231,6 +243,68 @@ Request contains:
 }
 ```
 
+## `msg_status`
+
+Check ack status of a set of messages sent to a single user. Request:
+
+```json
+{
+    "verb": "check",
+    "target": {
+        "id": "<uuid of the user to check ack status for>" 
+    },
+    "object": {
+        "attachments": [
+            {"id": "<message1 uuid>"},
+            {"id": "<message2 uuid>"},
+            {"id": "<message3 uuid>"}
+        ]
+    }
+}
+```
+
+If message guarantee is not enabled on the server the `717` (`NOT_ENABLED`) error code will be retured as part of the 
+callback, and no `gn_msg_status` event will be sent back.
+
+Response will be sent as the `gn_msg_status` event with the following content:
+
+```json
+{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "statuses",
+            "attachments": [
+                {
+                    "id": "<msg UUID 1>",
+                    "content": "<ack status 1>"
+                },
+                {
+                    "id": "<msg UUID 2>",
+                    "content": "<ack status 2>"
+                },
+                {
+                    "id": "<msg UUID 3>",
+                    "content": "<ack status 3>"
+                }
+            ]
+        },
+        "target": {
+            "id": "<user ID the ack status are for>"
+        },
+        "verb": "check",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
+}
+```
+
+The ack statuses are:
+
+* 0: not acknowledged (receiver has not acked it yet)
+* 1: received
+* 2: read
+
 ## `read`
 
 Acknowledge that one or more messages has been read. The status will change from `sent`/`delivered` to `read`.
@@ -255,6 +329,8 @@ Request contains:
     }    
 }
 ```
+
+If the `target.id` is specified, the request will be relayed to online users in that room. E.g., user A sends message X to the room, user B then sends a `read` event after receiving it; this `read` event will then be sent to user A with the event name [`gn_message_read`](events.md#message-read).
 
 ## `list_rooms`
 
@@ -851,7 +927,7 @@ Request contains:
 {
     verb: "send",
     target: {
-        id: "<room/user ID>",
+        id: "<room uuid>",
         objectType: "<room/private>"
     },
     object: {
@@ -860,7 +936,7 @@ Request contains:
 }
 ```
 
-If request is for conversation-based private messaging, used `objectType: 'private'`. In this case, the other user(s)
+If request is for conversation-based private messaging, use `objectType: 'private'`. In this case, the other user(s)
 in this conversation (`owner`s of the `room`) will initially have a `NOT_ACKED` status for the message. If they are
 online they will receive it and they can acknowledge the message. If they are offline they will receive it in `gn_login`
 then they come online (all non-acked messages for rooms they are `owner` for).

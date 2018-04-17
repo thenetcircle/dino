@@ -4,11 +4,41 @@ import psutil
 import multiprocessing
 import socket
 import os
+import subprocess
 
 STATSD_HOST='10.20.2.108'
 PREFIX='%s.' % socket.gethostname()
 GRANULARITY = 10  # seconds
 PATHS = [('/', 'root'), ('/data', 'data')]
+
+
+def connections():
+    c = statsd.StatsClient(STATSD_HOST, 8125, prefix=PREFIX + 'system.network')
+    to_check = [
+        ('conn_established', 'count_established_conn.sh'),
+        ('pkts_collapsed', 'count_pkts_collapsed.sh'),
+        ('pkts_pruned', 'count_pkts_pruned.sh'),
+        ('pkts_pruned_overrun', 'count_pkts_pruned_overrun.sh'),
+        ('syn_recv', 'count_syn_recv.sh'),
+        ('tcp_in_errs', 'count_in_errs_snmp.sh'),
+        ('rx_discards', 'count_rx_discards.sh'),
+        ('pkts_recv_errs', 'count_pkts_recv_errors.sh'),
+        ('pkts_recv_buff_errs', 'count_pkts_recv_buffer_errors.sh'),
+    ]
+
+    while True:
+        for key, script in to_check:
+            try:
+                process = subprocess.Popen([script], stdout=subprocess.PIPE)
+                out, _ = process.communicate()
+                try:
+                    the_count = int(float(str(out, 'utf-8').strip()))
+                except:
+                    the_count = 0
+                c.gauge(key, the_count)
+            except Exception as e:
+                print('error: %s' % str(e))
+        time.sleep(GRANULARITY)
 
 
 def disk():

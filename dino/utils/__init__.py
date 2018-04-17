@@ -30,6 +30,7 @@ from dino.config import ApiTargets
 from dino.config import SessionKeys
 from dino.utils.decorators import timeit
 from dino.utils.blacklist import BlackListChecker
+from dino.utils.activity_helper import ActivityBuilder
 from datetime import timedelta
 from datetime import datetime
 from base64 import b64encode
@@ -90,12 +91,45 @@ def is_base64(s):
     return True
 
 
+def is_valid_id(user_id: str):
+    try:
+        if user_id is None:
+            return False
+        if len(str(user_id).strip()) == 0:
+            return False
+        _ = int(user_id)
+    except Exception:
+        return False
+    return True
+
+
 def used_blacklisted_word(activity: Activity):
     return environ.env.blacklist.contains_blacklisted_word(activity)
 
 
+def activity_for_msg_status(activity: Activity, statuses: dict) -> dict:
+    act = ActivityBuilder.enrich({
+        'object': {
+            'objectType': 'statuses',
+            'attachments': list()
+        },
+        'target': {
+            'id': activity.target.id,
+        },
+        'verb': 'check'
+    })
+
+    for msg_id, status in statuses.items():
+        act['object']['attachments'].append({
+            'id': msg_id,
+            'content': status
+        })
+
+    return act
+
+
 def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name)
@@ -104,10 +138,8 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
             'id': room_id,
             'displayName': b64e(room_name)
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'leave',
-        'id': str(uuid())
-    }
+        'verb': 'leave'
+    })
 
 
 def activity_for_user_joined_invisibly(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
@@ -117,30 +149,26 @@ def activity_for_user_joined_invisibly(user_id: str, user_name: str, room_id: st
 
 
 def activity_for_going_invisible(user_id: str) -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': user_id
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'invisible',
-        'id': str(uuid())
-    }
+        'verb': 'invisible'
+    })
 
 
 def activity_for_going_visible(user_id: str) -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': user_id
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'visible',
-        'id': str(uuid())
-    }
+        'verb': 'visible'
+    })
 
 
 def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
     user_roles = environ.env.db.get_user_roles_in_room(user_id, room_id)
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
@@ -154,14 +182,12 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
             'id': room_id,
             'displayName': b64e(room_name)
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'join',
-        'id': str(uuid())
-    }
+        'verb': 'join'
+    })
 
 
 def activity_for_already_banned(seconds_left: str, reason: str, scope: str='global', target_id: str=None, target_name: str=None) -> dict:
-    activity_json = {
+    activity_json = ActivityBuilder.enrich({
         'verb': 'ban',
         'object': {
             'content': '',
@@ -169,10 +195,8 @@ def activity_for_already_banned(seconds_left: str, reason: str, scope: str='glob
         },
         'target': {
             'objectType': scope
-        },
-        'id': str(uuid()),
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-    }
+        }
+    })
 
     if reason is not None and len(reason.strip()) > 0:
         activity_json['object']['content'] = b64e(reason)
@@ -186,7 +210,7 @@ def activity_for_already_banned(seconds_left: str, reason: str, scope: str='glob
 
 def activity_for_user_banned(
         banner_id: str, banner_name: str, banned_id: str, banned_name: str, room_id: str, room_name: str, reason=None) -> dict:
-    activity_json = {
+    activity_json = ActivityBuilder.enrich({
         'actor': {
             'id': banner_id,
             'displayName': b64e(banner_name)
@@ -199,23 +223,21 @@ def activity_for_user_banned(
             'id': room_id,
             'displayName': b64e(room_name)
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'ban',
-        'id': str(uuid())
-    }
+        'verb': 'ban'
+    })
 
     if reason is not None:
         if is_base64(reason):
             activity_json['object']['content'] = reason
         else:
-            logger.warn('ignoring reason for kick activity, not base64')
+            logger.warning('ignoring reason for kick activity, not base64')
             logger.debug('request with non-base64 reason: %s' % activity_json)
 
     return activity_json
 
 
 def activity_for_report(activity: Activity) -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': activity.actor.id,  # user id of the one reporting
             'displayName': b64e(activity.actor.display_name)
@@ -229,15 +251,13 @@ def activity_for_report(activity: Activity) -> dict:
             'id': activity.target.id,  # user id of user who sent to reported message
             'displayName': activity.target.display_name
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'report',
-        'id': str(uuid())
-    }
+        'verb': 'report'
+    })
 
 
 def activity_for_user_kicked(
         kicker_id: str, kicker_name: str, kicked_id: str, kicked_name: str, room_id: str, room_name: str, reason=None) -> dict:
-    activity = {
+    activity = ActivityBuilder.enrich({
         'actor': {
             'id': kicker_id,
             'displayName': b64e(kicker_name)
@@ -249,10 +269,8 @@ def activity_for_user_kicked(
             'id': room_id,
             'displayName': b64e(room_name)
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'kick',
-        'id': str(uuid())
-    }
+        'verb': 'kick'
+    })
 
     if not is_base64(kicked_name):
         kicked_name = b64e(kicked_name)
@@ -263,14 +281,14 @@ def activity_for_user_kicked(
         if is_base64(reason):
             activity['object']['content'] = reason
         else:
-            logger.warn('ignoring reason for kick activity, not base64')
+            logger.warning('ignoring reason for kick activity, not base64')
             logger.debug('request with non-base64 reason: %s' % activity)
 
     return activity
 
 
 def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_name: str, message: str, admin_room_id: str):
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
@@ -287,22 +305,18 @@ def activity_for_request_admin(user_id: str, user_name: str, room_id: str, room_
         'generator': {
             'id': room_id,
             'displayName': b64e(room_name)
-        },
-        'id': str(uuid()),
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-    }
+        }
+    })
 
 
 def activity_for_disconnect(user_id: str, user_name: str) -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name)
         },
-        'verb': 'disconnect',
-        'id': str(uuid()),
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-    }
+        'verb': 'disconnect'
+    })
 
 
 def activity_for_message(user_id: str, user_name: str) -> dict:
@@ -312,19 +326,17 @@ def activity_for_message(user_id: str, user_name: str) -> dict:
     :param user_name: the name of the user
     :return: an activity streams dict
     """
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name)
         },
-        'verb': 'send',
-        'id': str(uuid()),
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-    }
+        'verb': 'send'
+    })
 
 
 def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': activity.actor.id,
             'displayName': activity.actor.display_name
@@ -337,23 +349,19 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> 
             'id': activity.target.id,
             'displayName': b64e(activity.target.display_name)
         },
-        'verb': 'blacklisted',
-        'id': str(uuid()),
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-    }
+        'verb': 'blacklisted'
+    })
 
 
 def activity_for_login(user_id: str, user_name: str, include_unread_history: bool=False) -> dict:
-    response = {
+    response = ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
             'attachments': get_user_info_attachments_for(user_id)
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'login',
-        'id': str(uuid())
-    }
+        'verb': 'login'
+    })
 
     if include_unread_history:
         messages = get_unacked_messages(user_id)
@@ -372,20 +380,18 @@ def get_unacked_messages(user_id: str) -> list:
 
 
 def activity_for_connect(user_id: str, user_name: str) -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
             'attachments': get_user_info_attachments_for(user_id)
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'connect',
-        'id': str(uuid())
-    }
+        'verb': 'connect'
+    })
 
 
 def activity_for_create_room(data: dict, activity: Activity) -> dict:
-    response = {
+    response = ActivityBuilder.enrich({
         'actor': {
             'id': activity.actor.id,
             'displayName': b64e(activity.actor.display_name),
@@ -399,10 +405,8 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
             'displayName': activity.target.display_name,
             'objectType': 'temporary'  # all rooms created using the api are temporary
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'create',
-        'id': str(uuid())
-    }
+        'verb': 'create'
+    })
 
     if 'object' in data and 'attachments' in data['object']:
         response['object']['attachments'] = data['object']['attachments']
@@ -412,14 +416,12 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
 
 @timeit(logger, 'on_activity_for_history')
 def activity_for_history(activity: Activity, messages: list) -> dict:
-    response = {
+    response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'messages'
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'id': str(uuid()),
         'verb': 'history'
-    }
+    })
 
     if hasattr(activity, 'target') and hasattr(activity.target, 'id'):
         try:
@@ -448,19 +450,17 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
 
 
 def activity_for_join(activity: Activity, acls: dict, messages: list, owners: dict, users: dict) -> dict:
-    response = {
+    response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'room',
             'attachments': list()
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'join',
         'target': {
             'id': activity.target.id,
             'displayName': b64e(get_room_name(activity.target.id))
-        },
-        'id': str(uuid())
-    }
+        }
+    })
 
     acl_activity = activity_for_get_acl(activity, acls)
     response['object']['attachments'].append({
@@ -550,7 +550,7 @@ def check_if_remove_room_owner(activity: Activity):
             return
 
     for user_id_still_in_room, user_name_still_in_room in users_in_room.items():
-        kick_activity = {
+        kick_activity = ActivityBuilder.enrich({
             'actor': {
                 'id': user_id,
                 'displayName': b64e(user_name)
@@ -566,25 +566,23 @@ def check_if_remove_room_owner(activity: Activity):
                 'id': room_id,
                 'displayName': b64e(room_name)
             }
-        }
+        })
         environ.env.publish(kick_activity)
 
     remove_room(channel_id, room_id, user_id, user_name, room_name)
 
 
 def activity_for_owners(activity: Activity, owners: dict) -> dict:
-    response = {
+    response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'owner'
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'target': {
             'id': activity.target.id,
             'displayName': b64e(activity.target.display_name)
         },
-        'verb': 'list',
-        'id': str(uuid())
-    }
+        'verb': 'list'
+    })
 
     response['object']['attachments'] = list()
     for user_id, user_name in owners.items():
@@ -601,13 +599,12 @@ def is_channel_static_or_temporary_or_mix(channel_id: str) -> str:
 
 
 def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
-    response = {
+    response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'channels'
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'list'
-    }
+    })
 
     response['object']['attachments'] = list()
     for channel_id, (channel_name, sort_order) in channels.items():
@@ -627,13 +624,12 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
 def activity_for_invite(
         inviter_id: str, inviter_name: str, room_id: str, room_name: str,
         channel_id: str, channel_name: str) -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': inviter_id,
             'displayName': b64e(inviter_name),
             'attachments': get_user_info_attachments_for(inviter_id)
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'invite',
         'object': {
             'url': channel_id,
@@ -642,20 +638,18 @@ def activity_for_invite(
         'target': {
             'id': room_id,
             'displayName': b64e(room_name)
-        },
-        'id': str(uuid())
-    }
+        }
+    })
 
 
 def activity_for_whisper(
         message: str, whisperer_id: str, whisperer_name: str, room_id: str, room_name: str,
         channel_id: str, channel_name: str) -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'id': whisperer_id,
             'displayName': b64e(whisperer_name)
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
         'verb': 'whisper',
         'object': {
             'content': message,
@@ -665,34 +659,29 @@ def activity_for_whisper(
         'target': {
             'id': room_id,
             'displayName': b64e(room_name)
-        },
-        'id': str(uuid())
-    }
+        }
+    })
 
 
 def activity_for_broadcast(body: str, verb: str='broadcast') -> dict:
-    return {
+    return ActivityBuilder.enrich({
         'actor': {
             'displayName': ADMIN_B64,  # 'Admin' in base64
             'id': '0'
         },
         'content': body,
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': verb,
-        'id': str(uuid())
-    }
+        'verb': verb
+    })
 
 
 def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
-    response = {
+    response = ActivityBuilder.enrich({
         'object': {
             'url': activity.object.url,
             'objectType': 'rooms'
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'list',
-        'id': str(uuid())
-    }
+        'verb': 'list'
+    })
 
     response['object']['attachments'] = list()
     for room_id, room_details in rooms.items():
@@ -718,7 +707,7 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
 @timeit(logger, 'on_activity_for_users_in_room')
 def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
     users = users_orig.copy()
-    response = {
+    response = ActivityBuilder.enrich({
         'target': {
             'id': activity.target.id,
             'displayName': b64e(activity.target.display_name)
@@ -726,10 +715,8 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
         'object': {
             'objectType': 'users'
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'list',
-        'id': str(uuid())
-    }
+        'verb': 'list'
+    })
 
     response['object']['attachments'] = list()
     this_user_id = environ.env.session.get(SessionKeys.user_id.value)
@@ -773,16 +760,14 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
 
 
 def activity_for_room_removed(activity: Activity, room_name: str, reason: str=None) -> dict:
-    act = {
+    act = ActivityBuilder.enrich({
         'target': {
             'id': activity.target.id,
             'displayName': b64e(room_name),
             'objectType': 'room'
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'removed',
-        'id': str(uuid())
-    }
+        'verb': 'removed'
+    })
 
     if reason is not None and len(reason.strip()) > 0:
         act['object'] = {
@@ -793,7 +778,7 @@ def activity_for_room_removed(activity: Activity, room_name: str, reason: str=No
 
 
 def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_name: str, reason: str=None) -> dict:
-    act = {
+    act = ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name)
@@ -802,10 +787,8 @@ def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_na
             'id': room_id,
             'displayName': b64e(room_name)
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'remove',
-        'id': str(uuid())
-    }
+        'verb': 'remove'
+    })
 
     if reason is not None and len(reason.strip()) > 0:
         act['object'] = {
@@ -827,14 +810,12 @@ def get_user_info_attachments_for(user_id: str) -> list:
 
 
 def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
-    response = {
+    response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'acl'
         },
-        'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-        'verb': 'get',
-        'id': str(uuid())
-    }
+        'verb': 'get'
+    })
 
     if hasattr(activity, 'target') and hasattr(activity.target, 'id'):
         response['target'] = {'id': activity.target.id}
@@ -872,10 +853,9 @@ def get_sids_for_user_id(user_id: str) -> Union[list, None]:
     return environ.env.db.get_sids_for_user(user_id)
 
 
-def create_or_update_user(user_id: str, user_name: str) -> bool:
+def create_or_update_user(user_id: str, user_name: str) -> None:
     try:
-        environ.env.db.create_user(user_id, user_name)
-        return
+        return environ.env.db.create_user(user_id, user_name)
     except UserExistsException:
         pass
     environ.env.db.set_user_name(user_id, user_name)
@@ -1014,7 +994,6 @@ def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False) -
     :param user_id: if specified, will check if super user, and if so will also include invisible users
     :param skip_cache: if True, check db directly, used for gn_join to get correct user list when joining; when listing
     rooms it is not necessary to have exact list; cache is 10-20s (random) per room
-    :param this_user_id: the id of the user making the request; if admin the response included more information
     :return: a list of users in the room
     """
     return environ.env.db.users_in_room(room_id, this_user_id=user_id, skip_cache=skip_cache)
@@ -1187,7 +1166,11 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
     environ.env.leave_room(room_id)
-    environ.env.db.leave_room(user_id, room_id)
+    try:
+        environ.env.db.leave_room(user_id, room_id)
+    except NoSuchRoomException:
+        # room already removed or doesn't exist
+        pass
 
 
 def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) -> None:
@@ -1198,7 +1181,7 @@ def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str) ->
 
 def user_is_online(user_id: str) -> bool:
     if user_id is None or len(user_id.strip()) == 0:
-        logger.warn('can not check user online status, user_id was blank!')
+        logger.warning('can not check user online status, user_id was blank!')
         return False
 
     return get_user_status(user_id) in {
@@ -1210,7 +1193,7 @@ def user_is_online(user_id: str) -> bool:
 
 def user_is_invisible(user_id: str) -> bool:
     if user_id is None or len(user_id.strip()) == 0:
-        logger.warn('can not check user online status, user_id was blank!')
+        logger.warning('can not check user online status, user_id was blank!')
         return False
     return get_user_status(user_id) == UserKeys.STATUS_INVISIBLE
 

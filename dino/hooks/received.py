@@ -24,8 +24,24 @@ class OnReceivedHooks(object):
         message_ids = {attachment.id for attachment in activity.object.attachments}
         environ.env.storage.mark_as_received(message_ids, activity.actor.id, activity.target.id)
 
+    @staticmethod
+    def notify_sender(data: dict, activity: Activity) -> None:
+        if 'target' not in data or 'id' not in data['target']:
+            return
+
+        target_room_id = activity.target.id
+        environ.env.emit(
+            'gn_message_received', data, json=True, room=target_room_id,
+            broadcast=True, include_self=False, namespace='/ws')
+
 
 @environ.env.observer.on('on_received')
 def _on_receive_update_messages(arg: tuple) -> None:
     data, activity = arg
     eventlet.spawn(OnReceivedHooks.update_messages, activity)
+
+
+@environ.env.observer.on('on_received')
+def _on_receive_notify_sender(arg: tuple) -> None:
+    data, activity = arg
+    OnReceivedHooks.notify_sender(data, activity)

@@ -5,6 +5,7 @@ common_config: &common_config
     disconnect_on_failed_login: True
     sender_can_delete: True
     delivery_guarantee: True
+    invisible_unrestricted: False
     request_log_location: '$DINO_REQ_LOG_LOC'
     auth:
         type: 'redis'
@@ -18,10 +19,20 @@ common_config: &common_config
         type: 'redis'
         host: '$DINO_QUEUE_HOST'
         queue: 'node_queue'
-        port: 6379
         db: 7
     web:
         root_url: '/'
+        type: 'oauth'
+        insecure: '$DINO_WEB_AUTH_INSECURE'
+        base: '$DINO_WEB_AUTH_BASE'
+        path: '$DINO_WEB_AUTH_PATH'
+        service_id: '$DINO_WEB_AUTH_SERVICE_ID'
+        service_secret: '$DINO_WEB_AUTH_SERVICE_SECRET'
+        authorized_url: '$DINO_WEB_AUTH_URL'
+        token_url: '$DINO_WEB_AUTH_TOKEN_URL'
+        callback_url: '$DINO_WEB_AUTH_CALLBACK_URL'
+        unauthorized_url: '$DINO_WEB_AUTH_UNAUTH_URL'
+        use_floating_menu: '$DINO_WEB_USE_FLOATING_MENU'
     stats:
         type: 'statsd'
         host: 'mock'
@@ -35,6 +46,8 @@ common_config: &common_config
             - name: limit_length
               max_length: 120
               min_length: 3
+            - name: limit_amount
+              max_rooms: 300
         on_message:
             - name: no_empty
             - name: limit_msg_length
@@ -65,24 +78,43 @@ default:
         type: 'cassandra'
         host:
             - '$DINO_CASSANDRA_HOST_1'
+    #queue:
+    #    type: 'redis'
+    #    host: '$DINO_QUEUE_HOST'
+    #    queue: 'node_queue'
+    #    port: 6379
+    #    db: 7
     queue:
-        type: 'amqp'
+        type: 'redis'
         host: '$DINO_QUEUE_HOST'
-        port: 5672
-        user: '$DINO_QUEUE_USER'
-        password: '$DINO_QUEUE_PASS'
-        vhost: '$DINO_QUEUE_VHOST'
-        exchange: 'chat_exchange'
+        queue: 'node_queue'
+        port: 6379
+        db: 7
+    ext_queue:
+        type: 'kafka'
+        host:
+          - '$DINO_EXT_QUEUE_HOST_1'
+          - '$DINO_EXT_QUEUE_HOST_2'
+        queue: '$DINO_EXT_QUEUE_NAME'
+    #ext_queue:
+    #    type: 'amqp'
+    #    host: '$DINO_EXT_QUEUE_HOST'
+    #    port: 5672
+    #    user: '$DINO_EXT_QUEUE_USER'
+    #    password: '$DINO_EXT_QUEUE_PASS'
+    #    queue: 'chat'
+    #    vhost: '$DINO_EXT_QUEUE_VHOST'
+    #    exchange: 'chat_exchange'
+    #ext_queue:
+    #    type: 'redis'
+    #    host: '$DINO_EXT_QUEUE_HOST'
+    #    db: 8
     stats:
       type: 'statsd'
       host: '$DINO_STATSD_HOST'
       port: 8125
       prefix: 'dino'
       include_hostname: 'true'
-    ext_queue:
-        type: 'redis'
-        host: '$DINO_EXT_QUEUE_HOST'
-        db: 8
 
 dev:
     <<: *common_config
@@ -95,14 +127,20 @@ dev:
         user: '$DINO_DB_USER'
         password: '$DINO_DB_PASS'
     ext_queue:
-        type: 'amqp'
-        host: '$DINO_EXT_QUEUE_HOST'
-        port: 5672
-        user: '$DINO_EXT_QUEUE_USER'
-        password: '$DINO_EXT_QUEUE_PASS'
-        queue: 'chat'
-        vhost: '$DINO_EXT_QUEUE_VHOST'
-        exchange: 'chat_exchange'
+        type: 'kafka'
+        host:
+          - '$DINO_EXT_QUEUE_HOST_1'
+          - '$DINO_EXT_QUEUE_HOST_2'
+        queue: '$DINO_EXT_QUEUE_NAME'
+#    ext_queue:
+#        type: 'amqp'
+#        host: '$DINO_EXT_QUEUE_HOST'
+#        port: 5672
+#        user: '$DINO_EXT_QUEUE_USER'
+#        password: '$DINO_EXT_QUEUE_PASS'
+#        queue: 'chat'
+#        vhost: '$DINO_EXT_QUEUE_VHOST'
+#        exchange: 'chat_exchange'
     storage:
         type: 'cassandra'
         host:

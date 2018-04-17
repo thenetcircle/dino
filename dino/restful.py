@@ -27,6 +27,7 @@ from dino.rest.resources.history import HistoryResource
 from dino.rest.resources.clear_history import ClearHistoryResource
 from dino.rest.resources.blacklist import BlacklistResource
 from dino.rest.resources.send import SendResource
+from dino.rest.resources.full_history import FullHistoryResource
 from dino.hooks import *
 
 import os
@@ -40,6 +41,7 @@ __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
 logger = logging.getLogger(__name__)
 logging.getLogger('amqp').setLevel(logging.INFO)
+logging.getLogger('kafka.conn').setLevel(logging.INFO)
 
 
 def create_app():
@@ -88,3 +90,4 @@ api.add_resource(RemoveAdminResource, '/remove-admin')
 api.add_resource(BlacklistResource, '/blacklist')
 api.add_resource(BroadcastResource, '/broadcast')
 api.add_resource(SendResource, '/send')
+api.add_resource(FullHistoryResource, '/full-history')

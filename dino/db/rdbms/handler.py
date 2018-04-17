@@ -110,6 +110,8 @@ class DatabaseRdbms(object):
         @with_session
         def is_ephemeral(session=None):
             room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
+            if room is None:
+                raise NoSuchRoomException(room_id)
             return room.ephemeral
 
         value = self.env.cache.is_room_ephemeral(room_id)
@@ -540,16 +542,25 @@ class DatabaseRdbms(object):
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
 
-    @with_session
-    def rooms_for_user(self, user_id: str, session=None) -> dict:
-        rows = session.query(Rooms)\
-            .join(Rooms.users)\
-            .filter(Users.uuid == user_id)\
-            .all()
+    def rooms_for_user(self, user_id: str) -> dict:
+        @with_session
+        def _rooms_for_user(session=None) -> dict:
+            rows = session.query(Rooms)\
+                .join(Rooms.users)\
+                .filter(Users.uuid == user_id)\
+                .all()
 
-        rooms = dict()
-        for row in rows:
-            rooms[row.uuid] = row.name
+            clean_rooms = dict()
+            for row in rows:
+                clean_rooms[row.uuid] = row.name
+            return clean_rooms
+
+        rooms = self.env.cache.get_rooms_for_user(user_id)
+        if rooms is not None and len(rooms) > 0:
+            return rooms
+
+        rooms = _rooms_for_user()
+        self.env.cache.set_rooms_for_user(user_id, rooms)
         return rooms
 
     def type_of_rooms_in_channel(self, channel_id: str) -> str:
@@ -791,6 +802,8 @@ class DatabaseRdbms(object):
         except StaleDataError:
             # might have just been removed by another node
             session.rollback()
+
+        self.env.cache.remove_rooms_for_user(user_id)
 
     def get_channels(self) -> dict:
         @with_session
@@ -1170,15 +1183,18 @@ class DatabaseRdbms(object):
 
             try:
                 room.users.remove(user)
-            except ValueError as e:
-                logger.warning('user %s tried to leave room but already left, ignoring: %s' % (user_id, str(e)))
+            except ValueError as e2:
+                logger.warning('user %s tried to leave room but already left, ignoring: %s' % (user_id, str(e2)))
                 return
             session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException()
 
+        logger.info('user {} just left room {}'.format(user_id, room_id))
+        self.env.cache.leave_room_for_user(user_id, room_id)
         self.get_room_name(room_id)
+
         try:
             _leave()
         except ValueError as e:
@@ -1225,6 +1241,8 @@ class DatabaseRdbms(object):
             logger.warning('user "%s" (%s) tried to join room "%s" (%s) but it has been deleted: %s' %
                            (user_name, user_id, room_name, room_id, str(e)))
             raise NoSuchRoomException(room_id)
+
+        self.env.cache.set_user_in_room(user_id, room_id, room_name)
 
     def _add_global_role(self, user_id: str, role: str):
         @with_session
@@ -2486,8 +2504,10 @@ class DatabaseRdbms(object):
                 .filter(Users.uuid == user_id)\
                 .first()
 
+            user = session.query(Users).filter(Users.uuid == user_id).first()
+
             if room is not None:
-                room.users.remove(room.users[0])
+                room.users.remove(user)
                 session.add(room)
 
         try:
@@ -2501,10 +2521,17 @@ class DatabaseRdbms(object):
         except NoSuchUserException:
             pass
 
+        self.env.cache.leave_room_for_user(user_id, room_id)
         self.env.cache.set_room_ban_timestamp(
                 room_id, user_id, ban_duration, ban_timestamp, self.get_user_name(user_id))
 
-        _ban_user_room()
+        n_retries = 2
+        for i in range(n_retries):
+            try:
+                _ban_user_room()
+                break
+            except StaleDataError as e:
+                logger.error('stale data when banning user, attempt {}/{}: {}'.format(i, n_retries, str(e)))
 
     def ban_user_channel(self, user_id: str, ban_timestamp: str, ban_duration: str, channel_id: str, reason: str=None, banner_id: str=None):
         @with_session

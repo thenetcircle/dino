@@ -82,6 +82,17 @@ class RedisWrapper(object):
         """
         self.r_server = r_server
 
+    @timeit(logger, 'on_redis_hmset')
+    def hmset(self, *args):
+        return self.r_server.hmset(*args)
+
+    def expire(self, *args):
+        return self.r_server.expire(*args)
+
+    @timeit(logger, 'on_redis_hgetall')
+    def hgetall(self, *args):
+        return self.r_server.hgetall(*args)
+
     @timeit(logger, 'on_redis_get')
     def get(self, *args):
         return self.r_server.get(*args)
@@ -159,6 +170,48 @@ class CacheRedis(object):
 
     def _del(self, key) -> None:
         self.cache.delete(key)
+
+    def get_rooms_for_user(self, user_id: str):
+        clean_rooms = dict()
+
+        rooms = self.redis.hgetall(RedisKeys.rooms_for_user(user_id))
+        if rooms is None or len(rooms) == 0:
+            return clean_rooms
+
+        for room_id, room_name in rooms.items():
+            room_id, room_name = str(room_id, 'utf-8'), str(room_name, 'utf-8')
+            clean_rooms[room_id] = room_name
+        return clean_rooms
+
+    def set_rooms_for_user(self, user_id: str, rooms: dict):
+        """
+        set the room uuids the user is in
+
+        :param user_id: the uuid of the user
+        :param rooms: a dict of rooms the user is in now {room_uuid: room_name}
+        :return: nothing
+        """
+        redis_key = RedisKeys.rooms_for_user(user_id)
+
+        if rooms is None or len(rooms) == 0:
+            self.redis.delete(redis_key)
+        else:
+            self.redis.hmset(redis_key, rooms)
+            self.redis.expire(redis_key, 2*TEN_SECONDS + random.random()*TEN_SECONDS)
+
+    def remove_rooms_for_user(self, user_id: str) -> None:
+        redis_key = RedisKeys.rooms_for_user(user_id)
+        self.redis.delete(redis_key)
+
+    def leave_room_for_user(self, user_id: str, room_id: str) -> None:
+        redis_key = RedisKeys.rooms_for_user(user_id)
+        self.redis.hdel(redis_key, room_id)
+
+    def is_user_in_room(self, user_id: str, room_id: str):
+        return self.redis.hexists(RedisKeys.rooms_for_user(user_id), room_id)
+
+    def set_user_in_room(self, user_id: str, room_id: str, room_name: str):
+        return self.redis.hset(RedisKeys.rooms_for_user(user_id), room_id, room_name)
 
     def set_type_of_rooms_in_channel(self, channel_id: str, object_type: str) -> None:
         cache_key = RedisKeys.room_types_in_channel(channel_id)
@@ -279,7 +332,7 @@ class CacheRedis(object):
         self.redis.hdel(key, user_id)
         self.cache.delete(cache_key)
 
-    def get_admin_room(self) -> str:
+    def get_admin_room(self) -> Union[str, None]:
         key = RedisKeys.admin_room()
         value = self.cache.get(key)
         if value is not None:
@@ -303,7 +356,7 @@ class CacheRedis(object):
         self.redis.delete(key)
         self.cache.delete(key)
 
-    def _get_ban_timestamp(self, key: str, user_id: str) -> str:
+    def _get_ban_timestamp(self, key: str, user_id: str) -> (str, str, str):
         cache_key = '%s-%s' % (key, user_id)
         value = self.cache.get(cache_key)
         if value is not None:
@@ -748,6 +801,7 @@ class CacheRedis(object):
         except Exception as e:
             logger.error('could not set_user_offline(): %s' % str(e))
             logger.exception(traceback.format_exc())
+            raise e  # force catch from caller
 
     def set_user_online(self, user_id: str) -> None:
         try:

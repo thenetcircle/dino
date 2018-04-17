@@ -71,6 +71,12 @@ class CassandraStorage(object):
                 deleted=False
         )
 
+    def get_statuses(self, message_ids: set, receiver_id: str) -> dict:
+        rows = self.driver.get_acks_for(message_ids, receiver_id)
+        if rows is None or len(rows.current_rows) == 0:
+            return dict()
+        return {row.message_id: int(row.status) for row in rows}
+
     def _mark_as_status(self, message_ids: set, receiver_id: str, target_id: str, status: int):
         rows = self.driver.get_acks_for(message_ids, receiver_id)
 

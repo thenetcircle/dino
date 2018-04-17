@@ -14,7 +14,6 @@
 
 from typing import Union
 
-from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
 from flask import request
 
@@ -310,9 +309,11 @@ def on_create(data: dict, activity: Activity) -> (int, dict):
     """
     # generate a uuid for this room
     activity.target.id = str(uuid())
-    activity.target.object_type = 'room'
     data['target']['id'] = activity.target.id
-    data['target']['objectType'] = activity.target.object_type
+
+    if not hasattr(activity.target, 'object_type') or activity.target.object_type is None:
+        activity.target.object_type = 'room'
+        data['target']['objectType'] = activity.target.object_type
 
     environ.env.observer.emit('on_create', (data, activity))
 
@@ -365,6 +366,31 @@ def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict]):
 
     environ.env.observer.emit('on_get_acl', (data, activity))
     return ECodes.OK, utils.activity_for_get_acl(activity, acls)
+
+
+@timeit(logger, 'on_msg_status')
+def on_msg_status(data: dict, activity: Activity) -> (int, Union[str, dict]):
+    """
+    get the delivery status of a message if delivery guarantee is enabled, or an error message otherwise
+
+    statuses are:
+
+        NOT_ACKED = 0
+        RECEIVED = 1
+        READ = 2
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<AS with statuses as object.attachments>'}
+    """
+    if not environ.env.config.get(ConfigKeys.DELIVERY_GUARANTEE, False):
+        return ECodes.NOT_ENABLED, 'delivery guarantee is not enabled, no status to return'
+
+    message_ids = {attachment.id for attachment in activity.object.attachments}
+    statuses = environ.env.storage.get_statuses(message_ids, activity.target.id)
+    status_act = utils.activity_for_msg_status(activity, statuses)
+
+    return ECodes.OK, status_act
 
 
 @timeit(logger, 'on_status')

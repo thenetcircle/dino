@@ -39,7 +39,7 @@ class OnCreateCheckNameLength(IPlugin):
         try:
             on_create_config = self.env.config.get(ConfigKeys.VALIDATION).get('on_create').get('limit_length')
         except Exception:
-            logger.info('no config enabled for plugin not_full, ignoring plugin')
+            logger.info('no config enabled for plugin limit_length, ignoring plugin')
             return
 
         self.enabled = True

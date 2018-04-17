@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import logging
+import os
+
 from flask import Flask
 from flask_socketio import SocketIO
 from werkzeug.contrib.fixers import ProxyFix
@@ -25,10 +26,14 @@ __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
 logger = logging.getLogger(__name__)
 logging.getLogger('amqp').setLevel(logging.INFO)
+logging.getLogger('kafka.conn').setLevel(logging.INFO)
+logging.getLogger('kafka.client').setLevel(logging.INFO)
+logging.getLogger('kafka.metrics').setLevel(logging.INFO)
 
 
 class ReverseProxied(object):
-    '''Wrap the application in this middleware and configure the
+    """
+    Wrap the application in this middleware and configure the
     front-end server to add these headers, to let you quietly bind
     this to a URL other than / and to an HTTP scheme that is
     different than what is used locally.
@@ -43,7 +48,7 @@ class ReverseProxied(object):
         }
 
     :param app: the WSGI application
-    '''
+    """
     def __init__(self, app):
         self.app = app
 
@@ -92,8 +97,12 @@ def create_app():
     environ.env.out_of_scope_emit = _socketio.emit
 
     _app.wsgi_app = ReverseProxied(ProxyFix(_app.wsgi_app))
+
     return _app, _socketio
 
-app, socketio = create_app()
 
+app, socketio = create_app()
+environ.init_web_auth(environ.env)
+
+# keep this, otherwise flask won't find any routes
 import dino.admin.routes

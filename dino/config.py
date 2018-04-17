@@ -89,6 +89,7 @@ class ErrorCodes(object):
     MSG_TOO_LONG = 714
     MULTIPLE_ROOMS_WITH_NAME = 715
     TOO_MANY_ATTACHMENTS = 716
+    NOT_ENABLED = 717
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -147,6 +148,7 @@ class AckStatus(object):
 
 
 class ConfigKeys(object):
+    INVISIBLE_UNRESTRICTED = 'invisible_unrestricted'
     REQ_LOG_LOC = 'request_log_location'
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'
@@ -184,6 +186,7 @@ class ConfigKeys(object):
     MAX_USERS_LOW = 'max_users_low'
     MAX_USERS_HIGH = 'max_users_high'
     MAX_USERS_EXCEPTION = 'exception'
+    MAX_ROOMS = 'max_rooms'
     WEB = 'web'
     ROOT_URL = 'root_url'
     MIN_ROOM_NAME_LENGTH = 'min_length'
@@ -191,6 +194,16 @@ class ConfigKeys(object):
     DISCONNECT_ON_FAILED_LOGIN = 'disconnect_on_failed_login'
     SENDER_CAN_DELETE = 'sender_can_delete'
     DELIVERY_GUARANTEE = 'delivery_guarantee'
+
+    INSECURE = 'insecure'
+    OAUTH_BASE = 'base'
+    OAUTH_PATH = 'path'
+    SERVICE_ID = 'service_id'
+    SERVICE_SECRET = 'service_secret'
+    AUTH_URL = 'authorized_url'
+    TOKEN_URL = 'token_url'
+    CALLBACK_URL = 'callback_url'
+    UNAUTH_URL = 'unauthorized_url'
 
     # will be overwritten even if specified in config file
     ENVIRONMENT = '_environment'
@@ -209,6 +222,7 @@ class ConfigKeys(object):
 
     HISTORY_TYPE_UNREAD = 'unread'
     HISTORY_TYPE_TOP = 'top'
+    USE_FLOATING_MENU = 'use_floating_menu'
 
 
 class RedisKeys(object):

@@ -18,6 +18,7 @@ import traceback
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
+from dino.config import UserKeys
 from dino.exceptions import NoSuchUserException
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,11 @@ class OnDisconnectHooks(object):
         def set_user_offline():
             try:
                 user_id = activity.actor.id
+                if not utils.is_valid_id(user_id):
+                    logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
+                    # TODO: sentry
+                    return
+
                 current_sid = environ.env.request.sid
                 environ.env.db.remove_sid_for_user(user_id, current_sid)
 
@@ -40,7 +46,8 @@ class OnDisconnectHooks(object):
                     logger.debug('when setting user offline, found other sids: [%s]' % ','.join(all_sids))
                     return
 
-                environ.env.db.set_user_offline(user_id)
+                if utils.get_user_status(user_id) != UserKeys.STATUS_INVISIBLE:
+                    environ.env.db.set_user_offline(user_id)
             except Exception as e:
                 logger.error('could not set user offline: %s' % str(e))
                 logger.debug('request for failed set_user_offline(): %s' % str(data))
@@ -132,7 +139,7 @@ class OnDisconnectHooks(object):
                     return
 
                 activity_json = utils.activity_for_disconnect(user_id, user_name)
-                environ.env.publish(activity_json)
+                environ.env.publish(activity_json, external=True)
             except Exception as e:
                 logger.error('could not emit disconnect event: %s' % str(e))
                 logger.debug('request for failed emit_disconnect_event(): %s' % str(data))

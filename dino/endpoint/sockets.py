@@ -71,6 +71,7 @@ def consume():
         while True:
             with environ.env.queue_connection as conn:
                 try:
+                    logger.info('setting up consumer "{}"'.format(str(environ.env.queue_connection)))
                     environ.env.consume_worker = Worker(conn, interrupt_handler)
                     environ.env.consume_worker.run()
                 except KeyboardInterrupt:
@@ -294,6 +295,13 @@ def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
 @pre_process('on_status')
 def on_status(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_status(data, activity)
+
+
+@socketio.on('msg_status', namespace='/ws')
+@respond_with('gn_msg_status')
+@pre_process('on_msg_status')
+def on_msg_status(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
+    return api.on_msg_status(data, activity)
 
 
 @socketio.on('history', namespace='/ws')

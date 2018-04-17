@@ -1167,6 +1167,30 @@ class BaseDatabaseTest(BaseTest):
         self.db.remove_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID)
         self.assertFalse(self.db.is_owner_channel(BaseTest.CHANNEL_ID, BaseTest.USER_ID))
 
+    def _test_set_two_owners_on_room(self):
+        self._create_channel()
+        self._create_room()
+
+        try:
+            self.db.create_user(BaseTest.USER_ID, BaseTest.USER_NAME)
+        except UserExistsException as e:
+            pass
+        try:
+            self.db.create_user(BaseTest.OTHER_USER_ID, BaseTest.OTHER_USER_NAME)
+        except UserExistsException as e:
+            pass
+
+        for user_id in [BaseTest.USER_ID, BaseTest.OTHER_USER_ID]:
+            self.db.set_owner(BaseTest.ROOM_ID, user_id)
+
+        for user_id in [BaseTest.USER_ID, BaseTest.OTHER_USER_ID]:
+            self.assertTrue(self.db.is_owner(BaseTest.ROOM_ID, user_id))
+
+        owners = self.db.get_owners_room(BaseTest.ROOM_ID)
+        self.assertTrue(2, len(owners))
+        self.assertIn(BaseTest.USER_ID, owners)
+        self.assertIn(BaseTest.OTHER_USER_ID, owners)
+
     def _test_create_user_exists(self):
         user_id = str(uuid())
         self.db.create_user(user_id, BaseTest.USER_NAME)

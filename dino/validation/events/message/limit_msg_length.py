@@ -18,7 +18,6 @@ from activitystreams.models.activity import Activity
 from dino import utils
 from dino.config import ErrorCodes
 from dino.config import ConfigKeys
-from dino.config import SessionKeys
 from dino.environ import GNEnvironment
 
 logger = logging.getLogger(__name__)

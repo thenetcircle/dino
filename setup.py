@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.13.26'
+version = '0.14.11'
 
 setup(
     name='dino',
@@ -27,8 +27,10 @@ setup(
         'sqlalchemy',
         'flask-restful',
         'flask-socketio',
+        'Flask-OAuthlib',
         'flask_wtf',
         'wtforms',
+        'kafka-python',
         'python-socketio',
         'mysqlclient',
         'gunicorn',

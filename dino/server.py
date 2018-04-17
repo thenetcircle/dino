@@ -25,6 +25,7 @@ __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
 logger = logging.getLogger(__name__)
 logging.getLogger('amqp').setLevel(logging.INFO)
+logging.getLogger('kafka.conn').setLevel(logging.INFO)
 
 
 def create_app():

@@ -26,7 +26,7 @@ class RoomManagerTest(BaseDatabaseTest):
     _act = None
 
     @staticmethod
-    def _publish(activity: dict) -> None:
+    def _publish(activity: dict, external: bool=False) -> None:
         RoomManagerTest._act = activity
 
     def setUp(self):

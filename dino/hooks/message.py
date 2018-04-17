@@ -38,14 +38,23 @@ class OnMessageHooks(object):
                 user_name = utils.b64d(user_name)
 
             activity_json = utils.activity_for_message(user_id, user_name)
-            environ.env.publish(activity_json)
+            environ.env.publish(activity_json, external=True)
 
         @timeit(logger, 'on_message_hooks_broadcast')
         def broadcast():
             room_id = activity.target.id
             if utils.user_is_invisible(user_id):
                 data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
-            send(data, _room=room_id)
+
+            if activity.target.object_type == 'private':
+                owners = environ.env.db.get_owners_room(activity.target.id)
+                if owners is None or len(owners) == 0:
+                    send(data, _room=room_id)
+                else:
+                    for owner in owners:
+                        send(data, _room=owner)
+            else:
+                send(data, _room=room_id)
 
         @timeit(logger, 'on_message_hooks_store')
         def store() -> None:
@@ -58,11 +67,12 @@ class OnMessageHooks(object):
                 environ.env.capture_exception(sys.exc_info())
                 return
 
-            if environ.env.config.get(ConfigKeys.DELIVERY_GUARANTEE, False) or activity.target.object_type != 'private':
+            if not environ.env.config.get(ConfigKeys.DELIVERY_GUARANTEE, False) or \
+                    activity.target.object_type != 'private':
                 return
 
             owners = environ.env.db.get_owners_room(activity.target.id)
-            environ.env.storage.mark_as_read(activity.id, activity.actor.id, activity.target.id)
+            environ.env.storage.mark_as_read({activity.id}, activity.actor.id, activity.target.id)
             if owners is None or len(owners) == 0:
                 return
 
@@ -76,18 +86,12 @@ class OnMessageHooks(object):
         word = utils.used_blacklisted_word(activity)
 
         if word is None:
-            running_tests = environ.env.config.get(ConfigKeys.TESTING, False)
-            if running_tests:
-                store()
-                broadcast()
-                publish_activity()
-            else:
-                eventlet.spawn(store)
-                broadcast()
-                eventlet.spawn(publish_activity)
+            store()
+            broadcast()
+            publish_activity()
         else:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
-            environ.env.publish(blacklist_activity)
+            environ.env.publish(blacklist_activity, external=True)
             send(data, _room=user_id, _broadcast=False)
 
             admins_in_room = environ.env.db.get_admins_in_room(activity.target.id)

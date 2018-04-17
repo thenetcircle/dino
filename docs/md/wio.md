@@ -28,7 +28,7 @@ multicasting of notifications without showing up as `online`.
 
 One key for each user containing the status, which is a single character with the following meaning:
 
-* 0: available (online)
+* 1: available (online)
 * 2: chatting (not currently used)
 * 3: invisible
 * 4: unavailable (offline)
