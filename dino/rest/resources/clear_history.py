@@ -52,7 +52,7 @@ class ClearHistoryResource(BaseResource):
 
         user_id = json.get('id')
         before = time.time()
-        messages = self.storage_manager.get_undeleted_messages_for_user(user_id)
+        messages = self.storage_manager.get_all_message_from_user(user_id)
         logger.info('about to delete %s messages for user %s (fetching IDs took %.2fs)' % (len(messages), user_id, time.time()-before))
 
         before = time.time()
