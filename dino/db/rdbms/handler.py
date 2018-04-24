@@ -1122,6 +1122,9 @@ class DatabaseRdbms(object):
                 .filter(Channels.uuid == channel_id)\
                 .first()
 
+            if room is None:
+                raise NoSuchRoomException(room_id)
+
             roles = session.query(RoomRoles).join(RoomRoles.room).filter(Rooms.uuid == room_id).all()
             if roles is not None and len(roles) > 0:
                 for role in roles:
@@ -1159,6 +1162,9 @@ class DatabaseRdbms(object):
                     'other error when trying to remove room %s (%s) second try: %s' % (room_id, room_name, str(e)))
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
+        except NoSuchRoomException:
+            # might have been deleted already
+            pass
 
         self.env.cache.remove_room_exists(channel_id, room_id)
         self.env.cache.reset_rooms_for_channel(channel_id)
