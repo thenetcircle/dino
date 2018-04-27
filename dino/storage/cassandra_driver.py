@@ -49,6 +49,7 @@ class StatementKeys(Enum):
     msgs_select_from_user_to_target_time_slice = 'msg_select_from_user_to_target_time_slice'
     msg_select_one = 'msg_select_one'
     msg_select_msg_id_from_user_not_deleted = 'msg_select_msg_id_from_user_not_deleted'
+    msg_select_msgs_from_user_not_deleted_for_time = 'msg_select_msgs_from_user_not_deleted_for_time'
     msg_select_msg_id_from_user_and_room_not_deleted = 'msg_select_msg_id_from_user_and_room_not_deleted'
 
 
@@ -308,6 +309,19 @@ class Driver(object):
                     ALLOW FILTERING
                     """
             )
+            self.statements[StatementKeys.msg_select_msgs_from_user_not_deleted_for_time] = self.session.prepare(
+                    """
+                    SELECT
+                        * FROM messages_by_from_user_id
+                    WHERE
+                        from_user_id = ? AND
+                        deleted = False AND
+                        domain = 'room' AND
+                        time_stamp > ? AND
+                        time_stamp < ?
+                    ALLOW FILTERING
+                    """
+            )
             self.statements[StatementKeys.msg_select_msg_id_from_user_and_room_not_deleted] = self.session.prepare(
                     """
                     SELECT
@@ -384,6 +398,11 @@ class Driver(object):
 
     def msgs_select_non_deleted_for_user(self, from_user_id: str) -> ResultSet:
         return self._execute(StatementKeys.msg_select_msg_id_from_user_not_deleted, from_user_id)
+
+    def msgs_select_non_deleted_for_user_and_time(self, from_user_id: str, from_time: int, to_time: int) -> ResultSet:
+        return self._execute(
+            StatementKeys.msg_select_msgs_from_user_not_deleted_for_time,
+            from_user_id, from_time, to_time)
 
     def msgs_select_non_deleted_for_user_and_room(self, from_user_id: str, target_id: str) -> ResultSet:
         return self._execute(StatementKeys.msg_select_msg_id_from_user_and_room_not_deleted, from_user_id, target_id)
