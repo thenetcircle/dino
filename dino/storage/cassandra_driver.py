@@ -37,6 +37,7 @@ class StatementKeys(Enum):
     acks_get = 'acks_get'
     acks_get_for_status = 'acks_get_for_status'
     msg_insert = 'msg_insert'
+    msg_update = 'msg_update'
     msg_select = 'msg_select'
     msg_select_all = 'msg_select_all'
     msgs_select = 'msgs_select'
@@ -223,6 +224,17 @@ class Driver(object):
                     )
                     """
             )
+            self.statements[StatementKeys.msg_update] = self.session.prepare(
+                    """
+                    UPDATE messages SET body = ?, deleted = ? 
+                    WHERE 
+                      target_id = ? AND 
+                      from_user_id = ? AND
+                      sent_time = ? AND
+                      time_stamp = ?
+                    )
+                    """
+            )
             self.statements[StatementKeys.acks_update] = self.session.prepare(
                 """
                 UPDATE msg_acks SET status = ? where for_user_id = ? and message_id in ?
@@ -356,6 +368,12 @@ class Driver(object):
                 StatementKeys.msg_insert, msg_id, from_user_id, from_user_name, target_id, target_name,
                 body, domain, sent_time, time_stamp, channel_id, channel_name, deleted)
 
+    def msg_update(self, from_user_id, target_id, body, sent_time, deleted=False) -> None:
+        dt = datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT)
+        dt = pytz.timezone('utc').localize(dt, is_dst=None)
+        time_stamp = int(dt.astimezone(pytz.utc).strftime('%s'))
+        self._execute(StatementKeys.msg_update, body, deleted, target_id, from_user_id, sent_time, time_stamp)
+
     def get_acks_for(self, message_ids: set, receiver_id: str) -> ResultSet:
         return self._execute(StatementKeys.acks_get, receiver_id, message_ids)
 
@@ -440,17 +458,10 @@ class Driver(object):
                         (len(message_rows.current_rows), target_id, from_user_id, timestamp))
 
             for message_row in message_rows.current_rows:
-                body = ''
-                domain = message_row.domain
-                channel_id = message_row.channel_id
-                channel_name = message_row.channel_name
-                target_name = message_row.target_name
-                from_user_name = message_row.from_user_name
                 logger.debug('deleting row: %s' % str(message_row))
 
-                self.msg_insert(
-                        message_id, from_user_id, from_user_name, target_id, target_name, body,
-                        domain, timestamp, channel_id, channel_name, deleted=True)
+            body = ''
+            self.msg_update(from_user_id, target_id, body, timestamp, deleted)
 
     def _execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:
