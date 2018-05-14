@@ -232,7 +232,6 @@ class Driver(object):
                       from_user_id = ? AND
                       sent_time = ? AND
                       time_stamp = ?
-                    )
                     """
             )
             self.statements[StatementKeys.acks_update] = self.session.prepare(
