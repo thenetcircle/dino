@@ -440,7 +440,7 @@ class Driver(object):
                         (len(message_rows.current_rows), target_id, from_user_id, timestamp))
 
             for message_row in message_rows.current_rows:
-                body = '' if deleted else message_row.body
+                body = ''
                 domain = message_row.domain
                 channel_id = message_row.channel_id
                 channel_name = message_row.channel_name
@@ -450,7 +450,7 @@ class Driver(object):
 
                 self.msg_insert(
                         message_id, from_user_id, from_user_name, target_id, target_name, body,
-                        domain, timestamp, channel_id, channel_name, deleted=deleted)
+                        domain, timestamp, channel_id, channel_name, deleted=True)
 
     def _execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:
