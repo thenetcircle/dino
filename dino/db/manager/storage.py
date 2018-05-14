@@ -32,6 +32,9 @@ class StorageManager(BaseManager):
     def __init__(self, env: GNEnvironment):
         self.env = env
 
+    def get_all_message_ids_from_user(self, user_id: str) -> list:
+        return self.env.storage.get_undeleted_message_ids_for_user(user_id)
+
     def get_all_messages_from_user(self, user_id: str, from_time: str=None, to_time: str=None) -> list:
         from_time, to_time = self.format_time_range(from_time, to_time)
 
