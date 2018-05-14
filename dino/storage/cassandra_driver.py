@@ -440,7 +440,7 @@ class Driver(object):
                         (len(message_rows.current_rows), target_id, from_user_id, timestamp))
 
             for message_row in message_rows.current_rows:
-                body = message_row.body
+                body = '' if deleted else message_row.body
                 domain = message_row.domain
                 channel_id = message_row.channel_id
                 channel_name = message_row.channel_name
