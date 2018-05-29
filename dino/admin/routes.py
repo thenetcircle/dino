@@ -11,6 +11,7 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+import json
 from flask import send_from_directory
 from git.cmd import Git
 from werkzeug.wrappers import Response
@@ -778,8 +779,22 @@ def search_history():
         logger.exception(traceback.format_exc())
         return api_response(400, message='Could not get message: %s' % str(e))
 
+    try:
+        clean_msgs = list()
+        for message in msgs:
+            try:
+                json_msg = json.loads(message)
+                json_msg = json_msg.get('text')
+                clean_msgs.append(json_msg)
+            except Exception:
+                # ignore, use original
+                clean_msgs.append(message)
+    except Exception as e:
+        logger.error('Could not clean messages, will use original: %s' % str(e))
+        clean_msgs = msgs
+
     return api_response(200, {
-        'message': msgs,
+        'message': clean_msgs,
         'real_from_time': real_from_time,
         'real_to_time': real_to_time,
     })
