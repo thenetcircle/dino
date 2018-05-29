@@ -783,12 +783,13 @@ def search_history():
         clean_msgs = list()
         for message in msgs:
             try:
-                json_msg = json.loads(message)
-                json_msg = json_msg.get('text')
-                clean_msgs.append(json_msg)
+                json_body = message['body']
+                json_body = json.loads(json_body)
+                json_body = json_body.get('text')
+                message['body'] = json_body
             except Exception:
-                # ignore, use original
-                clean_msgs.append(message)
+                pass  # ignore, use original
+            clean_msgs.append(message)
     except Exception as e:
         logger.error('Could not clean messages, will use original: %s' % str(e))
         clean_msgs = msgs
