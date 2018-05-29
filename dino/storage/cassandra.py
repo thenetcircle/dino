@@ -179,6 +179,30 @@ class CassandraStorage(object):
             msgs.append(self._row_to_json(row))
         return msgs
 
+    @timeit(logger, 'on_get_history_for_user_no_limit')
+    def get_history_for_user_no_limit(self, room_id: str, from_user_id: str, from_time: int, to_time: int) -> list:
+        if room_id is not None and len(room_id.strip()) > 0:
+            if from_user_id is not None and len(from_user_id.strip()) > 0:
+                rows = self.driver.msgs_select_from_user_to_target_time_slice(from_user_id, room_id, from_time, to_time)
+            else:
+                rows = self.driver.msgs_select_time_slice(room_id, from_time, to_time)
+            if rows is None or len(rows.current_rows) == 0:
+                return list()
+        else:
+            all_rows = self.driver.msgs_select_from_user(from_user_id)
+            rows = list()
+            for row in all_rows:
+                if row.time_stamp < from_time or row.time_stamp > to_time:
+                    continue
+                rows.append(row)
+            if len(rows) == 0:
+                return list()
+
+        msgs = list()
+        for row in rows:
+            msgs.append(self._row_to_json(row))
+        return msgs
+
     @timeit(logger, 'on_cassandra_get_history_for_time_slice')
     def get_history_for_time_slice(self, room_id: str, from_user_id: str, from_time: int, to_time: int) -> list:
         if room_id is not None and len(room_id.strip()) > 0:
