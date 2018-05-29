@@ -778,11 +778,6 @@ def search_history():
         logger.exception(traceback.format_exc())
         return api_response(400, message='Could not get message: %s' % str(e))
 
-    if real_from_time is not None:
-        real_from_time = real_from_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-    if real_to_time is not None:
-        real_to_time = real_to_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-
     return api_response(200, {
         'message': msgs,
         'real_from_time': real_from_time,

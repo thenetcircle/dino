@@ -9,7 +9,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from dino.config import ConfigKeys
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 
@@ -56,6 +56,9 @@ class StorageManager(BaseManager):
             raise RuntimeError('need user ID and/or room ID')
 
         from_time_int, to_time_int = self.format_time_range(from_time, to_time)
+        from_time = datetime.datetime.fromtimestamp(from_time_int).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        to_time = datetime.datetime.fromtimestamp(to_time_int).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+
         return self.env.storage.get_history_for_time_slice(
             room_id, user_id, from_time_int, to_time_int), from_time, to_time
 
