@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import fakeredis
 from zope.interface import implementer
 from typing import Union
 
@@ -23,7 +24,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 @implementer(IAuth)
 class AllowAllAuth(object):
     def __init__(self):
-        pass
+        self.redis = fakeredis.FakeStrictRedis()
 
     def get_user_info(self, user_id: str) -> dict:
         return dict()
@@ -37,7 +38,7 @@ class AllowAllAuth(object):
 @implementer(IAuth)
 class DenyAllAuth(object):
     def __init__(self):
-        pass
+        self.redis = fakeredis.FakeStrictRedis()
 
     def get_user_info(self, user_id: str) -> dict:
         return dict()
