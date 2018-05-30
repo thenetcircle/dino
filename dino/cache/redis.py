@@ -750,22 +750,15 @@ class CacheRedis(object):
 
     def get_user_status(self, user_id: str):
         key = RedisKeys.user_status(user_id)
-        value = self.cache.get(key)
-        if value is not None:
-            return value
-
         status = self.redis.get(key)
         if status is None or status == '':
             return None
 
-        user_status = str(status, 'utf-8')
-        self.cache.set(key, user_status, ttl=ONE_HOUR)
-        return user_status
+        return str(status, 'utf-8')
 
     def set_user_status(self, user_id: str, status: str) -> None:
         key = RedisKeys.user_status(user_id)
         self.redis.set(key, status)
-        self.cache.set(key, status, ttl=ONE_HOUR)
 
     def get_user_info(self, user_id: str) -> dict:
         key = RedisKeys.auth_key(user_id)
