@@ -781,6 +781,10 @@ def stream_history():
 
     def generate_messages():
         batch = list()
+        n_messages = len(msgs)
+        n_batch = 0
+        batch_size = 100
+
         for message in msgs:
             try:
                 json_body = message['body']
@@ -791,12 +795,15 @@ def stream_history():
                 pass  # ignore, use original
 
             batch.append(message)
-            if len(batch) >= 100:
+            if len(batch) >= batch_size:
                 yield api_response(200, {
+                    'batch': n_batch,
+                    'total_batches': int(n_messages / batch_size),
                     'message': batch,
                     'real_from_time': real_from_time,
                     'real_to_time': real_to_time,
                 })
+                n_batch += 1
                 batch.clear()
 
     return Response(generate_messages(), mimetype='application/json')
