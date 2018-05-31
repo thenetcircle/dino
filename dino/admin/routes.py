@@ -763,6 +763,45 @@ def search_user(query: str):
 ####################################
 
 
+@app.route('/api/history/stream', methods=['POST'])
+@requires_auth
+def stream_history():
+    form = request.get_json()
+    user_uuid = form['user']
+    room_uuid = form['room']
+    from_time = form['from']
+    to_time = form['to']
+
+    try:
+        msgs, real_from_time, real_to_time = storage_manager.find_history(room_uuid, user_uuid, from_time, to_time)
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+
+    def generate_messages():
+        batch = list()
+        for message in msgs:
+            try:
+                json_body = message['body']
+                json_body = json.loads(json_body)
+                json_body = json_body.get('text')
+                message['body'] = json_body
+            except Exception:
+                pass  # ignore, use original
+
+            batch.append(message)
+            if len(batch) >= 100:
+                yield api_response(200, {
+                    'message': batch,
+                    'real_from_time': real_from_time,
+                    'real_to_time': real_to_time,
+                })
+                batch.clear()
+
+    return Response(generate_messages(), mimetype='application/json')
+
+
 @app.route('/api/history', methods=['POST'])
 @requires_auth
 def search_history():
