@@ -27,7 +27,7 @@ from dino.admin.orm import storage_manager
 from dino.admin.orm import user_manager
 from dino.config import ApiTargets
 from dino.config import ConfigKeys
-from dino.exceptions import ChannelNameExistsException
+from dino.exceptions import ChannelNameExistsException, NoSuchRoomException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
@@ -785,6 +785,9 @@ def stream_history():
         n_batch = 0
         batch_size = 100
 
+        user_name = get_user_name(user_uuid)
+        room_name = get_room_name(room_uuid)
+
         for message in msgs:
             try:
                 json_body = message['body']
@@ -802,11 +805,31 @@ def stream_history():
                     'message': batch,
                     'real_from_time': real_from_time,
                     'real_to_time': real_to_time,
+                    'username': user_name,
+                    'room': room_name,
                 })
                 n_batch += 1
                 batch.clear()
 
     return Response(generate_messages(), mimetype='application/json')
+
+
+def get_room_name(room_uuid: str) -> str:
+    if room_uuid is not None and len(room_uuid.strip()) > 0:
+        try:
+            return utils.get_room_name(room_uuid)
+        except NoSuchRoomException:
+            pass
+    return ''
+
+
+def get_user_name(user_id: str) -> str:
+    if user_id is not None and len(user_id.strip()) > 0:
+        try:
+            return utils.get_user_name_for(user_id)
+        except NoSuchUserException:
+            pass
+    return ''
 
 
 @app.route('/api/history', methods=['POST'])
@@ -817,6 +840,9 @@ def search_history():
     room_uuid = form['room']
     from_time = form['from']
     to_time = form['to']
+
+    user_name = get_user_name(user_uuid)
+    room_name = get_room_name(room_uuid)
 
     try:
         msgs, real_from_time, real_to_time = storage_manager.find_history(room_uuid, user_uuid, from_time, to_time)
@@ -844,6 +870,8 @@ def search_history():
         'message': clean_msgs,
         'real_from_time': real_from_time,
         'real_to_time': real_to_time,
+        'username': user_name,
+        'room': room_name,
     })
 
 
