@@ -37,9 +37,10 @@ class OnStatusHooks(object):
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             try:
                 info_message = \
-                    'op {} ({}) requested to change status to {};' + \
-                    'user status is currently set to {}'.format(
-                        user_id, status, utils.get_user_name_for(user_id),
+                    'op {} ({}) requested to change status to {}; user status is currently set to {}'.format(
+                        user_id,
+                        status,
+                        utils.get_user_name_for(user_id),
                         utils.get_user_status(user_id)
                     )
                 logger.info(info_message)

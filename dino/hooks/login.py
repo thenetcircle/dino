@@ -80,9 +80,10 @@ class OnLoginHooks(object):
                 info_message = \
                     'op {} ({}) signed in; ' \
                     'user status is currently set to {}; ' \
-                    'if not "3" (invisible), I will now change it to "1" (online)'.format(
-                        user_id, utils.get_user_name_for(user_id), user_status
-                    )
+                    'if not "3" (invisible), I will now change it to "1" (online)'
+                info_message = info_message.format(
+                    user_id, utils.get_user_name_for(user_id), user_status
+                )
                 logger.info(info_message)
             except NoSuchUserException:
                 logger.error('no username found for op user {}'.format(user_id))
