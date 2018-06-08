@@ -1,21 +1,15 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+import logging
+
+import sys
+from zlib import crc32
 
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
 from dino.config import UserKeys
+from dino.exceptions import NoSuchUserException
 
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+logger = logging.getLogger(__name__)
 
 
 class OnLoginHooks(object):
@@ -79,7 +73,26 @@ class OnLoginHooks(object):
     def set_user_online_if_not_previously_invisible(arg: tuple) -> None:
         data, activity = arg
         user_id = activity.actor.id
-        if utils.get_user_status(user_id) != UserKeys.STATUS_INVISIBLE:
+        user_status = utils.get_user_status(user_id)
+
+        if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
+            try:
+                info_message = \
+                    'op {} ({}) signed in; ' \
+                    'user status is currently set to {}; ' \
+                    'if not "3" (invisible), I will now change it to "1" (online)'.format(
+                        user_id, utils.get_user_name_for(user_id), user_status
+                    )
+                logger.info(info_message)
+            except NoSuchUserException:
+                logger.error('no username found for op user {}'.format(user_id))
+            except Exception as e:
+                logger.error('exception while getting username for op {}: {}'.format(user_id, str(e)))
+                logger.exception(e)
+                environ.env.capture_exception(sys.exc_info())
+
+        if user_status != UserKeys.STATUS_INVISIBLE:
+            logger.info('setting user {} to online'.format(user_id))
             environ.env.db.set_user_online(user_id)
 
 

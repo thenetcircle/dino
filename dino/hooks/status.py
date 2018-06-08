@@ -12,9 +12,12 @@
 
 import logging
 
+import sys
+
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
+from dino.exceptions import NoSuchUserException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -30,6 +33,22 @@ class OnStatusHooks(object):
         user_name = environ.env.session.get(SessionKeys.user_name.value, None)
         image = environ.env.session.get(SessionKeys.image.value, '')
         status = activity.verb
+
+        if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
+            try:
+                info_message = \
+                    'op {} ({}) requested to change status to {};' + \
+                    'user status is currently set to {}'.format(
+                        user_id, status, utils.get_user_name_for(user_id),
+                        utils.get_user_status(user_id)
+                    )
+                logger.info(info_message)
+            except NoSuchUserException:
+                logger.error('no username found for op user {}'.format(user_id))
+            except Exception as e:
+                logger.error('exception while getting username for op {}: {}'.format(user_id, str(e)))
+                logger.exception(e)
+                environ.env.capture_exception(sys.exc_info())
 
         if status == 'online':
             was_invisible = utils.user_is_invisible(user_id)
