@@ -39,8 +39,8 @@ class OnStatusHooks(object):
                 info_message = \
                     'op {} ({}) requested to change status to {}; user status is currently set to {}'.format(
                         user_id,
-                        status,
                         utils.get_user_name_for(user_id),
+                        status,
                         utils.get_user_status(user_id)
                     )
                 logger.info(info_message)
@@ -53,6 +53,9 @@ class OnStatusHooks(object):
 
         if status == 'online':
             was_invisible = utils.user_is_invisible(user_id)
+            logger.info('setting user {} ({}) online (was invisible before? {})'.format(
+                user_id, user_name, was_invisible
+            ))
             environ.env.db.set_user_online(user_id)
             rooms = utils.rooms_for_user(user_id)
 
@@ -90,6 +93,9 @@ class OnStatusHooks(object):
                         'gn_user_visible', visible_activity, room=admin_id, broadcast=False, namespace='/ws')
 
         elif status == 'invisible':
+            logger.info('setting user {} ({}) to invisible'.format(
+                user_id, user_name,
+            ))
             environ.env.db.set_user_invisible(user_id)
             disconnect_activity = utils.activity_for_disconnect(user_id, user_name)
 
@@ -120,6 +126,9 @@ class OnStatusHooks(object):
                 # TODO: sentry
                 return
 
+            logger.info('setting user {} ({}) to offline'.format(
+                user_id, user_name,
+            ))
             environ.env.db.set_user_offline(user_id)
             activity_json = utils.activity_for_disconnect(user_id, user_name)
             rooms = utils.rooms_for_user(user_id)
