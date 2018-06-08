@@ -21,7 +21,7 @@ from dino.exceptions import NoSuchUserException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-logger = logging.getLevelName(__name__)
+logger = logging.getLogger(__name__)
 
 
 class OnStatusHooks(object):
