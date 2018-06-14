@@ -446,7 +446,7 @@ class DatabaseRdbms(object):
     def get_user_status(self, user_id: str) -> str:
         @with_session
         def _get_user_status(session=None):
-            status = session.query(UserStatus).filter(Users.uuid == user_id).first()
+            status = session.query(UserStatus).filter_by(uuid=user_id).first()
             if status is None:
                 return UserKeys.STATUS_UNAVAILABLE
             return status.status
