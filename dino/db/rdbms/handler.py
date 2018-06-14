@@ -466,9 +466,9 @@ class DatabaseRdbms(object):
             if user_status is None:
                 user_status = UserStatus()
                 user_status.uuid = user_id
-                session.add(user_status)
 
             user_status.status = UserKeys.STATUS_INVISIBLE
+            session.add(user_status)
             session.commit()
 
         self.env.cache.set_user_invisible(user_id)
