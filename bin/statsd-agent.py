@@ -5,11 +5,47 @@ import multiprocessing
 import socket
 import os
 import subprocess
+import pyudev
 
 STATSD_HOST='10.20.2.108'
 PREFIX='%s.' % socket.gethostname()
 GRANULARITY = 10  # seconds
 PATHS = [('/', 'root'), ('/data', 'data')]
+
+
+def smart():
+    c = statsd.StatsClient(STATSD_HOST, 8125, prefix=PREFIX + 'system.smart')
+    context = pyudev.Context()
+    devices = list()
+
+    for device in context.list_devices(MAJOR='8'):
+        if device.device_type == 'disk':
+            devices.append(device.device_node)
+
+    while True:
+        for device in devices:
+            try:
+                process = subprocess.Popen([
+                    'sudo', 'smartctl', '--attributes',
+                    '-d', 'sat+megaraid,0', device
+                ], stdout=subprocess.PIPE)
+
+                out, _ = process.communicate()
+                out = str(out, 'utf-8').strip()
+                out = out.split('\n')
+                out = out[7:-2]
+
+                for line in out:
+                    try:
+                        line = line.split()[0:10]
+                        key = '{}.{}_{}'.format(device.split('/')[-1], line[1], line[0])
+                        value = int(float(line[-1]))
+                        c.gauge(key, value)
+                    except Exception as inner_e:
+                        print('could not parse line: {}\n{}'.format(str(inner_e), line))
+            except Exception as e:
+                print('error: %s' % str(e))
+        time.sleep(GRANULARITY * 6)
 
 
 def connections():
@@ -153,4 +189,5 @@ if __name__ == '__main__':
     multiprocessing.Process(target=cpu_times).start()
     multiprocessing.Process(target=cpu_times_percent).start()
     multiprocessing.Process(target=memory).start()
+    multiprocessing.Process(target=smart).start()
     multiprocessing.Process(target=network).start()
