@@ -27,6 +27,10 @@ class AclManager(BaseManager):
     def __init__(self, env: GNEnvironment):
         self.env = env
 
+    def get_acls(self):
+        acls = self.env.config.get(ConfigKeys.ACL)
+        return { 'channel': acls.get('channel', []), 'room': acls.get('room', []) }
+
     def get_acl_actions(self, channel_or_room):
         acl = self.env.config.get(ConfigKeys.ACL)
         return [action for action in acl.get(channel_or_room, [])]
