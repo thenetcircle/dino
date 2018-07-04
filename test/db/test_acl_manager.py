@@ -15,6 +15,7 @@
 from dino.db.manager.acls import AclManager
 from dino.config import ApiActions
 from dino.utils import b64d
+from dino import validation
 
 from test.db import BaseDatabaseTest
 
@@ -38,6 +39,66 @@ class AclManagerTest(BaseDatabaseTest):
     def tearDown(self):
         self.db.redis.flushall()
         self.env.cache._flushall()
+
+    """
+    def get_acl_actions(self, channel_or_room):
+        acl = self.env.config.get(ConfigKeys.ACL)
+        return [action for action in acl.get(channel_or_room, [])]
+
+    def get_acl_types_for_action(self, channel_or_room, action):
+        acl = self.env.config.get(ConfigKeys.ACL)
+        return [
+            acl_type for acl_type in
+            acl.get(channel_or_room, dict()).get(action, dict()).get('acls', [])
+        ]
+    """
+
+    def test_get_acl_actions_room(self):
+        actual = self.manager.get_acl_actions('room')
+        expected = ['join', 'message', 'history', 'crossroom']
+
+        actual.sort()
+        expected.sort()
+        self.assertEqual(actual, expected)
+
+    def test_get_acl_actions_channel(self):
+        actual = self.manager.get_acl_actions('channel')
+        expected = ['message', 'list', 'crossroom']
+
+        actual.sort()
+        expected.sort()
+        self.assertEqual(actual, expected)
+
+    def test_get_acl_actions_invalid(self):
+        self.assertEqual(len(self.manager.get_acl_actions('invalid')), 0)
+
+    def test_get_acl_types_for_action(self):
+        actual = self.manager.get_acl_types_for_action('room', 'join')
+        expected = [
+            'age', 'gender', 'membership', 'group', 'country',
+            'city', 'image', 'has_webcam', 'fake_checked',
+            'owner', 'admin', 'moderator', 'superuser', 'crossroom',
+            'samechannel', 'sameroom', 'disallow'
+        ]
+
+        actual.sort()
+        expected.sort()
+        self.assertEqual(actual, expected)
+
+    def test_get_acl_validation(self):
+        expected = 'str_in_csv'
+        self.assertEqual(self.manager.get_validation_for_type('gender'), expected)
+
+    def test_validate_correct_gender(self):
+        is_valid, _ = validation.acl.is_acl_valid('gender', 'm')
+        self.assertTrue(is_valid)
+
+    def test_validate_incorrect_gender(self):
+        is_valid, _ = validation.acl.is_acl_valid('gender', '9')
+        self.assertFalse(is_valid)
+
+    def test_get_acl_types_for_invalid_action(self):
+        self.assertEqual(len(self.manager.get_acl_types_for_action('room', 'invalid')), 0)
 
     def test_get_acls_channel_empty(self):
         self._create_channel()

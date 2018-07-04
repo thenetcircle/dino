@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from dino.config import ConfigKeys
 from dino.db.manager.base import BaseManager
 from dino.environ import GNEnvironment
 from dino.utils import b64e
@@ -26,6 +26,22 @@ logger = logging.getLogger(__name__)
 class AclManager(BaseManager):
     def __init__(self, env: GNEnvironment):
         self.env = env
+
+    def get_acl_actions(self, channel_or_room):
+        acl = self.env.config.get(ConfigKeys.ACL)
+        return [action for action in acl.get(channel_or_room, [])]
+
+    def get_validation_for_type(self, acl_type):
+        acl = self.env.config.get(ConfigKeys.ACL)
+        validations = acl.get('validation').get(acl_type, {})
+        return validations.get('type', '')
+
+    def get_acl_types_for_action(self, channel_or_room, action):
+        acl = self.env.config.get(ConfigKeys.ACL)
+        return [
+            acl_type for acl_type in
+            acl.get(channel_or_room, dict()).get(action, dict()).get('acls', [])
+        ]
 
     def get_acls_channel(self, channel_id: str) -> list:
         acls = self.env.db.get_all_acls_channel(channel_id)

@@ -10,7 +10,6 @@ from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
-from flask import url_for
 import json
 from flask import send_from_directory
 from git.cmd import Git
@@ -18,6 +17,7 @@ from werkzeug.wrappers import Response
 
 from dino import environ
 from dino import utils
+from dino import validation
 from dino.admin.orm import acl_manager
 from dino.admin.orm import blacklist_manager
 from dino.admin.orm import broadcast_manager
@@ -127,6 +127,32 @@ def index():
             'FLOATING_MENU': floating_menu
         },
         version=tag_name)
+
+
+@app.route('/api/acl/actions/<channel_or_room>', methods=['GET'])
+def acl_list_actions(channel_or_room):
+    return api_response(200, data=[action for action in acl_manager.get_acl_actions(channel_or_room)])
+
+
+@app.route('/api/acl/validation/<acl_type>', methods=['GET'])
+def acl_validation_for_type(acl_type):
+    return api_response(200, data={'validation': acl_manager.get_validation_for_type(acl_type)})
+
+
+@app.route('/api/acl/types/<channel_or_room>/<action>', methods=['GET'])
+def acl_list_types_for_action(channel_or_room, action):
+    return api_response(200, data=[
+        action for action in
+        acl_manager.get_acl_types_for_action(channel_or_room, action)
+    ])
+
+
+@app.route('/api/acl/validate/<acl_type>/<acl_value>')
+def acl_validate_type_and_value(acl_type, acl_value):
+    is_valid, message = validation.acl.is_acl_valid(acl_type, acl_value)
+    if is_valid:
+        return api_response(200)
+    return api_response(400, message=message)
 
 
 ####################################
