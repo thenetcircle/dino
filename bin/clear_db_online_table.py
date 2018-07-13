@@ -14,6 +14,7 @@ import yaml
 import os
 import psycopg2
 import sys
+import redis
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -50,17 +51,25 @@ def load_secrets_file(config_dict: dict) -> dict:
 config = yaml.load(open(dino_home + '/dino.yaml'))[dino_env]
 config = load_secrets_file(config)
 
-dbname = config['database']['db']
-dbhost = config['database']['host']
-dbport = config['database']['port']
-dbuser = config['database']['user']
-dbpass = config['database']['password']
+dbtype = config['database']['type']
 
-try:
-    conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (dbname, dbuser, dbhost, dbpass))
-except:
-    raise RuntimeError('could not connect to db')
+if dbtype == 'redis':
+    r_host, r_port = config['cache']['host'].split(':')
+    r_db = config['cache']['db']
+    r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
+    r_server.flushdb()
+else:
+    dbname = config['database']['db']
+    dbhost = config['database']['host']
+    dbport = config['database']['port']
+    dbuser = config['database']['user']
+    dbpass = config['database']['password']
 
-cur = conn.cursor()
-cur.execute("""delete from rooms_users_association_table""")
-conn.commit()
+    try:
+        conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (dbname, dbuser, dbhost, dbpass))
+    except:
+        raise RuntimeError('could not connect to db')
+
+    cur = conn.cursor()
+    cur.execute("""delete from rooms_users_association_table""")
+    conn.commit()
