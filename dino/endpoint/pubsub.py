@@ -176,9 +176,14 @@ class PubSub(object):
             self.env.external_queue_connection = KafkaProducer(
                 bootstrap_servers=eq_host,
                 value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+
+        elif ext_queue_type == 'mock':
+            self.external_queue_type = 'mock'
+            self.env.external_queue_connection = None
+
         else:
             raise RuntimeError(
-                'unknown external queue type "{}"; available types are [redis,rabbitmq,kafka]'.format(
+                'unknown external queue type "{}"; available types are [mock,redis,rabbitmq,kafka]'.format(
                     ext_queue_type)
             )
 
