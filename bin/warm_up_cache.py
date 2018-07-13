@@ -19,9 +19,12 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 logger = logging.getLogger('warm_up_cache.py')
 
 logger.info('getting all user ids...')
-all_users = env.db.get_all_user_ids()
 
-logger.info('caching all user roles...')
-env.db.get_users_roles(all_users)
+try:
+    all_users = env.db.get_all_user_ids()
+    logger.info('caching all user roles...')
+    env.db.get_users_roles(all_users)
+except NotImplementedError:
+    pass
 
 logger.info('done! cache warmed up')
