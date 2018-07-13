@@ -687,10 +687,17 @@ def init_database(gn_env: GNEnvironment):
             db_host, db_port = db_host.split(':', 1)
 
         db_number = db_engine.get(ConfigKeys.DB, 0)
-        gn_env.db = DatabaseRedis(gn_env, host=db_host, port=int(db_port), db=int(db_number))
+        if db_port is not None:
+            db_port = int(db_port)
+        if db_number is not None:
+            db_number = int(db_number)
+
+        gn_env.db = DatabaseRedis(gn_env, host=db_host, port=db_port, db=db_number)
+
     elif db_type == 'rdbms':
         from dino.db.rdbms.handler import DatabaseRdbms
         gn_env.db = DatabaseRdbms(gn_env)
+
     else:
         raise RuntimeError('unknown db type "%s", use one of [mock, redis, rdbms]' % db_type)
 
