@@ -687,7 +687,7 @@ def init_database(gn_env: GNEnvironment):
             db_host, db_port = db_host.split(':', 1)
 
         db_number = db_engine.get(ConfigKeys.DB, 0)
-        gn_env.db = DatabaseRedis(gn_env, host=db_host, port=db_port, db=db_number)
+        gn_env.db = DatabaseRedis(gn_env, host=db_host, port=int(db_port), db=int(db_number))
     elif db_type == 'rdbms':
         from dino.db.rdbms.handler import DatabaseRdbms
         gn_env.db = DatabaseRdbms(gn_env)
