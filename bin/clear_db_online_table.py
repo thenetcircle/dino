@@ -54,8 +54,8 @@ config = load_secrets_file(config)
 dbtype = config['database']['type']
 
 if dbtype == 'redis':
-    r_host, r_port = config['cache']['host'].split(':')
-    r_db = config['cache']['db']
+    r_host, r_port = config['database']['host'].split(':')
+    r_db = config['database']['db']
     r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
     r_server.flushdb()
 else:
