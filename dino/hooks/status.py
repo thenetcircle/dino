@@ -21,10 +21,10 @@ from dino.exceptions import NoSuchUserException
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-logger = logging.getLogger(__name__)
-
 
 class OnStatusHooks(object):
+    logger = logging.getLogger(__name__)
+
     @staticmethod
     def set_status(arg: tuple) -> None:
         data, activity = arg
@@ -43,17 +43,17 @@ class OnStatusHooks(object):
                         status,
                         utils.get_user_status(user_id)
                     )
-                logger.info(info_message)
+                OnStatusHooks.logger.info(info_message)
             except NoSuchUserException:
-                logger.error('no username found for op user {}'.format(user_id))
+                OnStatusHooks.logger.error('no username found for op user {}'.format(user_id))
             except Exception as e:
-                logger.error('exception while getting username for op {}: {}'.format(user_id, str(e)))
-                logger.exception(e)
+                OnStatusHooks.logger.error('exception while getting username for op {}: {}'.format(user_id, str(e)))
+                OnStatusHooks.logger.exception(e)
                 environ.env.capture_exception(sys.exc_info())
 
         if status == 'online':
             was_invisible = utils.user_is_invisible(user_id)
-            logger.info('setting user {} ({}) online (was invisible before? {})'.format(
+            OnStatusHooks.logger.info('setting user {} ({}) online (was invisible before? {})'.format(
                 user_id, user_name, was_invisible
             ))
             environ.env.db.set_user_online(user_id)
@@ -93,7 +93,7 @@ class OnStatusHooks(object):
                         'gn_user_visible', visible_activity, room=admin_id, broadcast=False, namespace='/ws')
 
         elif status == 'invisible':
-            logger.info('setting user {} ({}) to invisible'.format(
+            OnStatusHooks.logger.info('setting user {} ({}) to invisible'.format(
                 user_id, user_name,
             ))
             environ.env.db.set_user_invisible(user_id)
@@ -122,11 +122,11 @@ class OnStatusHooks(object):
 
         elif status == 'offline':
             if not utils.is_valid_id(user_id):
-                logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
+                OnStatusHooks.logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
                 # TODO: sentry
                 return
 
-            logger.info('setting user {} ({}) to offline'.format(
+            OnStatusHooks.logger.info('setting user {} ({}) to offline'.format(
                 user_id, user_name,
             ))
             environ.env.db.set_user_offline(user_id)
