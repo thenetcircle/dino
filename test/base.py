@@ -137,6 +137,12 @@ class BaseTest(unittest.TestCase):
         if len(kwargs) > 0:
             BaseTest.emit_args.extend(kwargs)
 
+        if 'room' not in kwargs:
+            return
+        if kwargs['room'] not in BaseTest.msgs_sent:
+            BaseTest.msgs_sent[kwargs['room']] = list()
+        BaseTest.msgs_sent[kwargs['room']].append(args[0])
+
     @staticmethod
     def _disconnect():
         pass
