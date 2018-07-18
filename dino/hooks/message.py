@@ -29,7 +29,7 @@ class OnMessageHooks(object):
     @staticmethod
     def do_process(arg: tuple) -> None:
         def send(_data: dict, _room: str, _json: bool=True, _broadcast: bool=True) -> None:
-            environ.env.send(_data, json=_json, room=_room, broadcast=_broadcast)
+            environ.env.emit('message', _data, json=_json, room=_room, broadcast=_broadcast)
 
         @timeit(logger, 'on_message_hooks_publish_activity')
         def publish_activity() -> None:
