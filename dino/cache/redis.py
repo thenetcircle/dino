@@ -197,7 +197,7 @@ class CacheRedis(object):
             self.redis.delete(redis_key)
         else:
             self.redis.hmset(redis_key, rooms)
-            self.redis.expire(redis_key, 2*TEN_SECONDS + random.random()*TEN_SECONDS)
+            self.redis.expire(redis_key, int(2*TEN_SECONDS + random.random()*TEN_SECONDS))
 
     def remove_rooms_for_user(self, user_id: str) -> None:
         redis_key = RedisKeys.rooms_for_user(user_id)
