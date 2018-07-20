@@ -43,7 +43,7 @@ setup(
         'cassandra-driver',
         'kombu',
         'typing',
-        'nose-parameterized',
+        'parameterized',
         'python-dateutil',
         'psycogreen',
         'statsd',

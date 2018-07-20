@@ -1036,7 +1036,7 @@ def initialize_env(dino_env):
     init_response_formatter(dino_env)
 
     # not needed for wio
-    if dino_env.config.get(ConfigKeys.ENVIRONMENT).startswith('wio'):
+    if dino_env.config.get(ConfigKeys.ENVIRONMENT, 'default').startswith('wio'):
         return
 
     init_blacklist_service(dino_env)

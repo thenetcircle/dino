@@ -11,7 +11,7 @@
 # limitations under the License.
 
 import unittest
-from nose_parameterized import parameterized
+from parameterized import parameterized
 from activitystreams import parse as as_parser
 from fakeredis import FakeRedis
 from uuid import uuid4 as uuid

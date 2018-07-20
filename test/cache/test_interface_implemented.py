@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import unittest
-from nose_parameterized import parameterized
+from parameterized import parameterized
 
 from dino.cache import ICache
 from dino.cache.redis import CacheRedis
