@@ -850,6 +850,7 @@ def init_admin_and_admin_room(gn_env: GNEnvironment):
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
+
     # will create the admin user and room if not already existing
     gn_env.db.create_admin_room()
 
@@ -1024,19 +1025,24 @@ def init_web_auth(gn_env: GNEnvironment) -> None:
 
 def initialize_env(dino_env):
     init_logging(dino_env)
-    init_storage_engine(dino_env)
     init_database(dino_env)
     init_auth_service(dino_env)
     init_cache_service(dino_env)
     init_pub_sub(dino_env)
     init_process_pool(dino_env)
-    init_acl_validators(dino_env)
     init_stats_service(dino_env)
     init_observer(dino_env)
     init_request_validators(dino_env)
+    init_response_formatter(dino_env)
+
+    # not needed for wio
+    if dino_env.config.get(ConfigKeys.ENVIRONMENT).startswith('wio'):
+        return
+
     init_blacklist_service(dino_env)
     init_admin_and_admin_room(dino_env)
-    init_response_formatter(dino_env)
+    init_acl_validators(dino_env)
+    init_storage_engine(dino_env)
     delete_ephemeral_rooms(dino_env)
 
 
