@@ -233,6 +233,13 @@ class GNEnvironment(object):
         self.exchange = None
         self.web_auth = None
 
+        # self.enrichment_manager: IEnrichmentManager = None
+        # self.enrichers: List[Tuple[str, IEnricher]] = list()
+
+        self.enrich = lambda d: d
+        self.enrichment_manager = None
+        self.enrichers = list()
+
         self.pub_sub = None
         self.consume_worker = None
         self.pool_executor = None
@@ -1001,6 +1008,22 @@ def init_logging(gn_env: GNEnvironment) -> None:
     gn_env.capture_exception = capture_exception
 
 
+@timeit(logger, 'init enrichment service')
+def init_enrichment_service(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    from dino.enrich.manager import EnrichmentManager
+    from dino.enrich.topic import TopicEnrichment
+
+    gn_env.enrichment_manager = EnrichmentManager(gn_env)
+    gn_env.enrichers = [
+        ('topic', TopicEnrichment(gn_env)),
+    ]
+    gn_env.enrich = lambda d: gn_env.enrichment_manager.handle(d)
+
+
 @timeit(logger, 'init web auth service')
 def init_web_auth(gn_env: GNEnvironment) -> None:
     """
@@ -1035,15 +1058,14 @@ def initialize_env(dino_env):
     init_request_validators(dino_env)
     init_response_formatter(dino_env)
 
-    # not needed for wio
     if dino_env.config.get(ConfigKeys.ENVIRONMENT, 'default').startswith('wio'):
-        return
-
-    init_blacklist_service(dino_env)
-    init_admin_and_admin_room(dino_env)
-    init_acl_validators(dino_env)
-    init_storage_engine(dino_env)
-    delete_ephemeral_rooms(dino_env)
+        init_enrichment_service(dino_env)
+    else:
+        init_blacklist_service(dino_env)
+        init_admin_and_admin_room(dino_env)
+        init_acl_validators(dino_env)
+        init_storage_engine(dino_env)
+        delete_ephemeral_rooms(dino_env)
 
 
 _config_paths = None

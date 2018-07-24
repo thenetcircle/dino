@@ -263,6 +263,8 @@ class PubSub(object):
         for current_try in range(n_tries):
             try:
                 if message_type == 'external' and self.external_queue_type == 'kafka':
+                    message = self.env.enrichment_manager.handle(message)
+
                     # for kafka, the queue_connection is the KafkaProducer and queue is the topic name
                     queue_connection.send(queue, message)
                 else:

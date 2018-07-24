@@ -195,6 +195,10 @@ class ConfigKeys(object):
     SENDER_CAN_DELETE = 'sender_can_delete'
     DELIVERY_GUARANTEE = 'delivery_guarantee'
 
+    ENRICH = 'enrich'
+    TOPIC = 'topic'
+    VERB = 'verb'
+
     INSECURE = 'insecure'
     OAUTH_BASE = 'base'
     OAUTH_PATH = 'path'
