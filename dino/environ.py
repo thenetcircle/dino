@@ -1058,7 +1058,7 @@ def initialize_env(dino_env):
     init_request_validators(dino_env)
     init_response_formatter(dino_env)
 
-    if dino_env.config.get(ConfigKeys.ENVIRONMENT, 'default').startswith('wio'):
+    if 'wio' in dino_env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
         init_enrichment_service(dino_env)
     else:
         init_blacklist_service(dino_env)
