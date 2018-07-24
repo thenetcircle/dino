@@ -196,7 +196,7 @@ class ConfigKeys(object):
     DELIVERY_GUARANTEE = 'delivery_guarantee'
 
     ENRICH = 'enrich'
-    TOPIC = 'topic'
+    TITLE = 'title'
     VERB = 'verb'
 
     INSECURE = 'insecure'

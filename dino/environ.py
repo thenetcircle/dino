@@ -1015,11 +1015,11 @@ def init_enrichment_service(gn_env: GNEnvironment):
         return
 
     from dino.enrich.manager import EnrichmentManager
-    from dino.enrich.topic import TopicEnrichment
+    from dino.enrich.title import TitleEnrichment
 
     gn_env.enrichment_manager = EnrichmentManager(gn_env)
     gn_env.enrichers = [
-        ('topic', TopicEnrichment(gn_env)),
+        ('title', TitleEnrichment(gn_env)),
     ]
     gn_env.enrich = lambda d: gn_env.enrichment_manager.handle(d)
 
