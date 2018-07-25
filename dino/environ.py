@@ -183,7 +183,7 @@ class ConfigDict:
 
 
 class GNEnvironment(object):
-    def __init__(self, root_path: Union[str, None], config: ConfigDict, skip_init=False):
+    def __init__(self, root_path: Union[str, None]=None, config: ConfigDict=None, skip_init=False):
         """
         Initialize the environment
         """
