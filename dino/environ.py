@@ -41,8 +41,10 @@ from flask import send_from_directory as _flask_send_from_directory
 from flask import render_template as _flask_render_template
 from flask import session as _flask_session
 from flask_socketio import disconnect as _flask_disconnect
+from zope.interface import implementer
 
 from dino.config import ConfigKeys
+from dino.storage import IStorage
 from dino.utils.decorators import timeit
 from dino.exceptions import AclValueNotFoundException
 from dino.exceptions import NoSuchRoomException
@@ -635,6 +637,14 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
     gn_env.config.set(ConfigKeys.ACL, MappingProxyType(acl_config))
 
 
+def init_fake_storage_engine(gn_env: GNEnvironment) -> None:
+    class FakeStorage(object):
+        def __getattr__(self, item):
+            return list()
+
+    gn_env.storage = FakeStorage()
+
+
 @timeit(logger, 'init storage service')
 def init_storage_engine(gn_env: GNEnvironment) -> None:
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
@@ -1060,6 +1070,7 @@ def initialize_env(dino_env):
 
     if 'wio' in dino_env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
         init_enrichment_service(dino_env)
+        init_fake_storage_engine(dino_env)
     else:
         init_blacklist_service(dino_env)
         init_admin_and_admin_room(dino_env)

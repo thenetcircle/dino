@@ -40,7 +40,7 @@ class QueueHandler(object):
         self.recently_handled_events_set = set()
 
     def user_is_on_this_node(self, activity: Activity) -> bool:
-        if self.env.node != 'app':
+        if self.env.node not in {'app', 'wio'}:
             return False
 
         room_id = activity.target.id
