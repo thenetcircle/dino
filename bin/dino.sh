@@ -20,8 +20,8 @@ if [[ $2 -lt 1 || $2 -gt 65536 ]]; then
     exit 1
 fi
 
-if ! [[ "$3" =~ ^(app|rest|web)$ ]]; then
-    echo "error: invalid module '$3', not one of app/rest/web"
+if ! [[ "$3" =~ ^(app|rest|web|wio)$ ]]; then
+    echo "error: invalid module '$3', not one of [app, rest, web, wio]"
     exit 1
 fi
 
