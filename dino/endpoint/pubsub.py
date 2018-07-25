@@ -13,8 +13,11 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 
+from typing import Union
+
 from dino.config import ConfigKeys
 from dino import environ
+from dino.wio import environ as wio_environ
 
 from kombu import pools
 pools.set_limit(512)  # default is 200
@@ -44,7 +47,7 @@ def locked_method(method):
 
 
 class PubSub(object):
-    def __init__(self, env: environ.GNEnvironment):
+    def __init__(self, env: Union[environ.GNEnvironment, wio_environ.WioEnvironment]):
         self._lock = Lock()
         self.env = env
         self.executor = ThreadPoolExecutor(max_workers=1)
