@@ -10,55 +10,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
 import json
-import os
-import pkg_resources
 import logging
-
-from redis import Redis
-from typing import Union
-from types import MappingProxyType
+import os
 from base64 import b64encode
-from concurrent.futures import ThreadPoolExecutor
+from typing import Union
 
-from flask_socketio import emit as _flask_emit
-from flask_socketio import send as _flask_send
-from flask_socketio import join_room as _flask_join_room
-from flask_socketio import leave_room as _flask_leave_room
-
-from flask_wtf import FlaskForm as _flask_Form
-from wtforms.fields import StringField as _wtf_StringField
-from wtforms.fields import SubmitField as _wtf_SubmitField
-from wtforms.fields import SelectField as _wtf_SelectField
-from wtforms.fields import HiddenField as _wtf_HiddenField
-from wtforms.validators import DataRequired as _wtf_DataRequired
-
-from flask import redirect as _flask_redirect
-from flask import url_for as _flask_url_for
+import pkg_resources
+import yaml
 from flask import request as _flask_request
-from flask import send_from_directory as _flask_send_from_directory
-from flask import render_template as _flask_render_template
 from flask import session as _flask_session
 from flask_socketio import disconnect as _flask_disconnect
-from zope.interface import implementer
+from flask_socketio import emit as _flask_emit
 
 from dino.config import ConfigKeys
-from dino.storage import IStorage
 from dino.utils.decorators import timeit
-from dino.exceptions import AclValueNotFoundException
-from dino.exceptions import NoSuchRoomException
-
-from dino.validation.acl import AclConfigValidator
-from dino.validation.acl import AclRangeValidator
-from dino.validation.acl import AclStrInCsvValidator
-from dino.validation.acl import AclSameChannelValidator
-from dino.validation.acl import AclSameRoomValidator
-from dino.validation.acl import AclDisallowValidator
-from dino.validation.acl import AclIsAdminValidator
-from dino.validation.acl import AclIsSuperUserValidator
-from dino.validation.acl import AclPatternValidator
-from dino.validation.acl import AclIsRoomOwnerValidator
 
 ENV_KEY_ENVIRONMENT = 'DINO_ENVIRONMENT'
 ENV_KEY_SECRETS = 'DINO_SECRETS'
@@ -390,7 +356,7 @@ def init_auth_service(wio_env: WioEnvironment):
             auth_host, auth_port = auth_host.split(':', 1)
 
         auth_db = auth_engine.get(ConfigKeys.DB, 0)
-        wio_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db)
+        wio_env.auth = AuthRedis(wio_env, host=auth_host, port=auth_port, db=auth_db)
     elif auth_type == 'allowall':
         from dino.auth.simple import AllowAllAuth
         wio_env.auth = AllowAllAuth()
@@ -437,7 +403,7 @@ def init_cache_service(wio_env: WioEnvironment):
 
 @timeit(logger, 'init pub/sub service')
 def init_pub_sub(wio_env: WioEnvironment) -> None:
-    from dino.wio.endpoint.pubsub import PubSub
+    from dino.endpoint.pubsub import PubSub
     wio_env.pub_sub = PubSub(wio_env)
 
 

@@ -1,25 +1,33 @@
-import traceback
 import logging
-import time
 import sys
-import activitystreams as as_parser
-
-from functools import wraps
+import time
+import traceback
 from datetime import datetime
+from functools import wraps
 from uuid import uuid4 as uuid
 
-from dino.wio import validation
+import activitystreams as as_parser
+import eventlet
+
+from dino.config import ConfigKeys
+from dino.config import ErrorCodes
+from dino.config import SessionKeys
+from dino.exceptions import NoSuchUserException
 from dino.wio import environ
 from dino.wio import utils
-from dino.exceptions import NoSuchUserException
-from dino.config import ConfigKeys
-from dino.config import SessionKeys
-from dino.config import ErrorCodes
+from dino.wio import validation
 
 logger = logging.getLogger()
 
 
-def wio_pre_process(validation_name, should_validate_request=True):
+def overrides(interface_class):
+    def overrider(method):
+        assert(method.__name__ in dir(interface_class))
+        return method
+    return overrider
+
+
+def pre_process(validation_name, should_validate_request=True):
     def factory(view_func):
         @wraps(view_func)
         def decorator(*a, **k):
@@ -102,5 +110,89 @@ def wio_pre_process(validation_name, should_validate_request=True):
             finally:
                 if not exception_occurred:
                     environ.env.stats.timing('event.' + validation_name, (time.time()-start)*1000)
+        return decorator
+    return factory
+
+
+def timeit(_logger, tag: str):
+    def factory(view_func):
+        @wraps(view_func)
+        def decorator(*args, **kwargs):
+            failed = False
+            before = time.time()
+            try:
+                return view_func(*args, **kwargs)
+            except Exception as e:
+                failed = True
+                _logger.exception(traceback.format_exc())
+                _logger.error(tag + '... FAILED')
+                environ.env.capture_exception(sys.exc_info())
+                raise e
+            finally:
+                if not failed:
+                    the_time = (time.time()-before)*1000
+                    if tag.startswith('on_') and environ.env.stats is not None:
+                        environ.env.stats.timing('api.' + tag, the_time)
+                    else:
+                        _logger.debug(tag + '... %.2fms' % the_time)
+        return decorator
+    return factory
+
+
+def _delayed_disconnect(sid: str):
+    environ.env.disconnect_by_sid(sid)
+
+
+def respond_with(gn_event_name=None, should_disconnect=False, emit_response=True):
+    def factory(view_func):
+        @wraps(view_func)
+        def decorator(*args, **kwargs):
+            tb = None
+            try:
+                status_code, data = view_func(*args, **kwargs)
+            except Exception as e:
+                environ.env.stats.incr(gn_event_name + '.exception')
+                tb = traceback.format_exc()
+                logger.error('%s: %s' % (gn_event_name, str(e)))
+                environ.env.capture_exception(sys.exc_info())
+
+                if should_disconnect and environ.env.config.get(ConfigKeys.DISCONNECT_ON_FAILED_LOGIN, False):
+                    eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
+                return 500, str(e)
+            finally:
+                if tb is not None:
+                    logger.exception(tb)
+
+            if status_code != 200:
+                logger.warning('in decorator, status_code: %s, data: %s' % (status_code, str(data)))
+                if should_disconnect and environ.env.config.get(ConfigKeys.DISCONNECT_ON_FAILED_LOGIN, False):
+                    eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
+
+            # in some cases the callback is enough
+            if emit_response:
+                response_message = environ.env.response_formatter(status_code, data)
+                environ.env.emit(gn_event_name, response_message)
+
+            return status_code, None
+        return decorator
+    return factory
+
+
+def count_connections(connect_type=None):
+    def factory(view_func):
+        @wraps(view_func)
+        def decorator(*args, **kwargs):
+            try:
+                if connect_type == 'connect':
+                    environ.env.stats.incr('connections')
+                elif connect_type == 'disconnect':
+                    environ.env.stats.decr('connections')
+                else:
+                    logger.warning('unknown connect type "%s"' % connect_type)
+            except Exception as e:
+                logger.error('could not record statistics: %s' % str(e))
+                environ.env.capture_exception(sys.exc_info())
+
+            return view_func(*args, **kwargs)
         return decorator
     return factory

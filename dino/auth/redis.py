@@ -18,7 +18,6 @@ import traceback
 from typing import Union
 from zope.interface import implementer
 
-from dino import environ
 from dino.config import SessionKeys
 from dino.config import ConfigKeys
 from dino.config import RedisKeys
@@ -31,17 +30,18 @@ logger = logging.getLogger()
 
 @implementer(IAuth)
 class AuthRedis(object):
-    def __init__(self, host: str, port: int = 6379, db: int = 0):
-        if environ.env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
+    def __init__(self, env, host: str, port: int = 6379, db: int = 0):
+        if env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
 
+        self.env = env
         self.redis = Redis(host=host, port=port, db=db)
 
     def get_user_info(self, user_id: str) -> dict:
         key = RedisKeys.auth_key(user_id)
-        session = environ.env.cache.get_user_info(user_id)
+        session = self.env.cache.get_user_info(user_id)
         if session is not None:
             return session
 
@@ -58,7 +58,7 @@ class AuthRedis(object):
                 continue
             stored_session[key] = val
 
-        environ.env.cache.set_user_info(user_id, stored_session)
+        self.env.cache.set_user_info(user_id, stored_session)
         return stored_session
 
     def update_session_for_key(self, user_id: str, session_key: str, session_value: str) -> None:

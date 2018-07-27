@@ -14,7 +14,7 @@
 
 from activitystreams.models.activity import Activity
 
-from dino import environ
+from dino.wio import environ
 from dino.config import SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'

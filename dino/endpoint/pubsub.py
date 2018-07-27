@@ -18,8 +18,6 @@ from dino import environ
 
 from kombu import pools
 
-from dino.environ import GNEnvironment
-
 pools.set_limit(512)  # default is 200
 
 from kombu import Exchange
@@ -47,7 +45,7 @@ def locked_method(method):
 
 
 class PubSub(object):
-    def __init__(self, env: GNEnvironment):
+    def __init__(self, env):
         self._lock = Lock()
         self.env = env
         self.executor = ThreadPoolExecutor(max_workers=1)
@@ -74,7 +72,6 @@ class PubSub(object):
         import socket
 
         args = sys.argv
-        bind_arg_pos = None
         for a in ['--bind', '-b']:
             bind_arg_pos = [i for i, x in enumerate(args) if x == a]
             if len(bind_arg_pos) > 0:
