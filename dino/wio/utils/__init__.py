@@ -5,6 +5,7 @@ from base64 import b64encode
 from datetime import datetime, timedelta
 from typing import Union
 
+from dino.exceptions import UserExistsException
 from dino.utils.activity_helper import ActivityBuilder
 from dino.validation.duration import DurationValidator
 from dino.validation.generic import GenericValidator
@@ -91,6 +92,45 @@ def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
     return True, (end - now).seconds
 
 
+def get_sids_for_user_id(user_id: str) -> Union[list, None]:
+    return environ.env.db.get_sids_for_user(user_id)
+
+
+def add_sid_for_user_id(user_id: str, sid: str) -> None:
+    if sid is None or len(sid.strip()) == 0:
+        logger.error('empty sid when adding sid')
+        return
+    environ.env.db.add_sid_for_user(user_id, sid)
+
+
+def is_valid_id(user_id: str):
+    try:
+        if user_id is None:
+            return False
+        if len(str(user_id).strip()) == 0:
+            return False
+        _ = int(user_id)
+    except Exception:
+        return False
+    return True
+
+
+def create_or_update_user(user_id: str, user_name: str) -> None:
+    try:
+        return environ.env.db.create_user(user_id, user_name)
+    except UserExistsException:
+        pass
+    environ.env.db.set_user_name(user_id, user_name)
+
+
+def get_user_name_for(user_id: str) -> str:
+    return environ.env.db.get_user_name(user_id)
+
+
+def get_user_status(user_id: str) -> str:
+    return environ.env.db.get_user_status(user_id)
+
+
 def activity_for_login(user_id: str, user_name: str) -> dict:
     return ActivityBuilder.enrich({
         'actor': {
@@ -98,6 +138,16 @@ def activity_for_login(user_id: str, user_name: str) -> dict:
             'displayName': b64e(user_name),
         },
         'verb': 'login'
+    })
+
+
+def activity_for_disconnect(user_id: str, user_name: str) -> dict:
+    return ActivityBuilder.enrich({
+        'actor': {
+            'id': user_id,
+            'displayName': b64e(user_name)
+        },
+        'verb': 'disconnect'
     })
 
 

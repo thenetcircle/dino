@@ -1,0 +1,2 @@
+class OnConnectHooks(object):
+    pass
