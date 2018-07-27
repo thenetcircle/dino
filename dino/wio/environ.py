@@ -561,11 +561,30 @@ def init_enrichment_service(wio_env: WioEnvironment):
     wio_env.enrich = lambda d: wio_env.enrichment_manager.handle(d)
 
 
+@timeit(logger, 'init db service')
+def init_database(wio_env: WioEnvironment):
+    if len(wio_env.config) == 0 or wio_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    db_engine = wio_env.config.get(ConfigKeys.DATABASE, None)
+    if db_engine is None:
+        raise RuntimeError('no db service specified')
+
+    db_type = db_engine.get(ConfigKeys.TYPE, None)
+    if db_type == 'rdbms':
+        from dino.wio.db.rdbms.handler import DatabaseRdbms2
+        wio_env.db = DatabaseRdbms2(wio_env)
+    else:
+        raise RuntimeError('unknown db type "%s", use one of [rdbms]' % db_type)
+
+
 def initialize_env(dino_env):
     init_logging(dino_env)
     init_auth_service(dino_env)
     init_cache_service(dino_env)
     init_pub_sub(dino_env)
+    init_database(dino_env)
     init_stats_service(dino_env)
     init_response_formatter(dino_env)
     init_enrichment_service(dino_env)
