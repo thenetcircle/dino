@@ -15,8 +15,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
-from dino.db.rdbms import DeclarativeBase
-from dino.db.rdbms import rooms_users_association_table
+from dino.wio.db.rdbms import DeclarativeBase
+from dino.wio.db.rdbms import rooms_users_association_table
 from dino.config import UserKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -69,13 +69,6 @@ class Rooms(DeclarativeBase):
         back_populates='rooms')
 
 
-class DefaultRooms(DeclarativeBase):
-    __tablename__ = 'defaultrooms'
-
-    id = Column(Integer, primary_key=True)
-    uuid = Column('uuid', String(128), nullable=False, index=True)
-
-
 class Bans(DeclarativeBase):
     __tablename__ = 'bans'
 
@@ -121,84 +114,9 @@ class Sids(DeclarativeBase):
     sid = Column('session_id', String(128), nullable=False, index=True, primary_key=True)
 
 
-class LastReads(DeclarativeBase):
-    __tablename__ = 'lastreads'
-
-    id = Column(Integer, primary_key=True)
-
-    room_uuid = Column('room_uuid', String(128), nullable=False, index=True)
-    user_id = Column('user_id', String(128), nullable=False, index=True)
-    time_stamp = Column('time_stamp', Integer, nullable=False)
-
-
-class Acls(DeclarativeBase):
-    __tablename__ = 'acls'
-
-    id = Column(Integer, primary_key=True)
-
-    room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=True)
-    room = relationship('Rooms', back_populates='acls')
-
-    channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=True)
-    channel = relationship('Channels', back_populates='acls')
-
-    # action: join/create/kick etc.
-    action = Column('action', String(128), nullable=False)
-
-    # acl_type: gender/age/city etc.
-    acl_type = Column('acl_type', String(128), nullable=False)
-    acl_value = Column('acl_value', String(128), nullable=False)
-
-
-class AclConfigs(DeclarativeBase):
-    __tablename__ = 'aclconfigs'
-
-    id = Column(Integer, primary_key=True)
-
-    # method: str_in_csv/range etc.
-    method = Column('method', String(128), nullable=False)
-
-    # acl_type: gender/age/city etc.
-    acl_type = Column('acl_type', String(128), nullable=False)
-
-    # acl_value: the configured value, e.g. 'm,f' for an acl_type 'gender'
-    acl_value = Column('acl_value', String(128), nullable=False)
-
-
-class BlackList(DeclarativeBase):
-    __tablename__ = 'blacklist'
-
-    id = Column(Integer, primary_key=True)
-    word = Column('word', String(128), nullable=False)
-
-
-class RoomRoles(DeclarativeBase):
-    __tablename__ = 'room_roles'
-
-    id = Column(Integer, primary_key=True)
-
-    room_id = Column('room_id', Integer, ForeignKey('rooms.id'), nullable=False)
-    room = relationship('Rooms', back_populates='roles')
-
-    user_id = Column('user_id', String(128), nullable=False, index=True)
-    roles = Column('roles', String(256), nullable=False)
-
-
 class GlobalRoles(DeclarativeBase):
     __tablename__ = 'global_roles'
 
     id = Column(Integer, primary_key=True)
-    user_id = Column('user_id', String(128), nullable=False, index=True)
-    roles = Column('roles', String(256), nullable=False)
-
-
-class ChannelRoles(DeclarativeBase):
-    __tablename__ = 'channel_roles'
-
-    id = Column(Integer, primary_key=True)
-
-    channel_id = Column('channel_id', Integer, ForeignKey('channels.id'), nullable=False)
-    channel = relationship('Channels', back_populates='roles')
-
     user_id = Column('user_id', String(128), nullable=False, index=True)
     roles = Column('roles', String(256), nullable=False)

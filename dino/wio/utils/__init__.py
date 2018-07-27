@@ -6,10 +6,10 @@ from datetime import datetime, timedelta
 from typing import Union
 
 from dino.exceptions import UserExistsException
-from dino.utils.activity_helper import ActivityBuilder
-from dino.validation.duration import DurationValidator
-from dino.validation.generic import GenericValidator
 from dino.wio import environ
+from dino.wio.utils.activity_helper import ActivityBuilder
+from dino.wio.validation.duration import DurationValidator
+from dino.wio.validation.generic import GenericValidator
 
 logger = logging.getLogger(__name__)
 
