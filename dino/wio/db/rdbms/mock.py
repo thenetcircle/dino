@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
-
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-# need to monkey patch some standard functions in python since they don't natively support async mode
-eventlet.monkey_patch()
 
-# keep this import; even though unused, gunicorn needs it, otherwise it will not start
-from dino.wio.server import socketio, app
+class MockDatabase(object):
+    def __init__(self):
+        self.Session = FakeSession()
 
-from dino.wio import environ
-environ.env.node = 'wio'
+
+class FakeSession(object):
+    pass

@@ -1,9 +1,8 @@
-from dino.environ import GNEnvironment
 from dino.enrich import IEnrichmentManager
 
 
 class EnrichmentManager(IEnrichmentManager):
-    def __init__(self, env: GNEnvironment):
+    def __init__(self, env):
         self.env = env
 
     def handle(self, data: dict) -> dict:

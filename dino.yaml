@@ -74,28 +74,36 @@ default:
         pool_size: 150
     storage:
         #type: 'redis'
-        #host: 'localhost:6379'
+        #host: '127.0.0.1:6379'
         type: 'cassandra'
         host:
             - '$DINO_CASSANDRA_HOST_1'
+    queue:
+        type: 'amqp'
+        host: '$DINO_QUEUE_HOST'
+        port: 5672
+        user: '$DINO_QUEUE_USER'
+        password: '$DINO_QUEUE_PASS'
+        vhost: '$DINO_QUEUE_VHOST'
+        exchange: 'chat_exchange'
     #queue:
-    #    type: 'redis'
+    #    type: 'mock'
     #    host: '$DINO_QUEUE_HOST'
     #    queue: 'node_queue'
     #    port: 6379
     #    db: 7
-    queue:
-        type: 'redis'
-        host: '$DINO_QUEUE_HOST'
-        queue: 'node_queue'
-        port: 6379
-        db: 7
-    ext_queue:
-        type: 'kafka'
-        host:
-          - '$DINO_EXT_QUEUE_HOST_1'
-          - '$DINO_EXT_QUEUE_HOST_2'
-        queue: '$DINO_EXT_QUEUE_NAME'
+    #queue:
+    #    type: 'redis'
+    #    host: 'localhost'
+    #    queue: 'node_queue'
+    #    port: 6379
+    #    db: 7
+    #ext_queue:
+    #    type: 'kafka'
+    #    host:
+    #      - '$DINO_EXT_QUEUE_HOST_1'
+    #      - '$DINO_EXT_QUEUE_HOST_2'
+    #    queue: '$DINO_EXT_QUEUE_NAME'
     #ext_queue:
     #    type: 'amqp'
     #    host: '$DINO_EXT_QUEUE_HOST'
@@ -105,10 +113,10 @@ default:
     #    queue: 'chat'
     #    vhost: '$DINO_EXT_QUEUE_VHOST'
     #    exchange: 'chat_exchange'
-    #ext_queue:
-    #    type: 'redis'
-    #    host: '$DINO_EXT_QUEUE_HOST'
-    #    db: 8
+    ext_queue:
+        type: 'redis'
+        host: '$DINO_EXT_QUEUE_HOST'
+        db: 8
     stats:
       type: 'statsd'
       host: '$DINO_STATSD_HOST'

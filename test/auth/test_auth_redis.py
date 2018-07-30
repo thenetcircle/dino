@@ -46,7 +46,7 @@ class TestAuthRedis(TestCase):
         environ.env.session[ConfigKeys.TESTING] = True
         environ.env.logger = TestAuthRedis.Logger()
 
-        self.auth = AuthRedis(host='mock')
+        self.auth = AuthRedis(env=environ.env, host='mock')
         self.session = {
             SessionKeys.user_id.value: TestAuthRedis.USER_ID,
             SessionKeys.user_name.value: TestAuthRedis.USER_NAME,

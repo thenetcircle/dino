@@ -183,7 +183,7 @@ class ConfigDict:
 
 
 class GNEnvironment(object):
-    def __init__(self, root_path: Union[str, None], config: ConfigDict, skip_init=False):
+    def __init__(self, root_path: Union[str, None]=None, config: ConfigDict=None, skip_init=False):
         """
         Initialize the environment
         """
@@ -744,7 +744,7 @@ def init_auth_service(gn_env: GNEnvironment):
             auth_host, auth_port = auth_host.split(':', 1)
 
         auth_db = auth_engine.get(ConfigKeys.DB, 0)
-        gn_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db)
+        gn_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db, env=gn_env)
     elif auth_type == 'allowall':
         from dino.auth.simple import AllowAllAuth
         gn_env.auth = AllowAllAuth()

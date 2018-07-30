@@ -435,7 +435,7 @@ class RequestSetAclTest(TestCase):
             RequestSetAclTest.OTHER_ROOM_ID: {}
         }
 
-        self.auth = AuthRedis(host='mock')
+        self.auth = AuthRedis(host='mock', env=environ.env)
         environ.env.session = {
             SessionKeys.user_id.value: RequestSetAclTest.USER_ID,
             SessionKeys.user_name.value: RequestSetAclTest.USER_NAME,

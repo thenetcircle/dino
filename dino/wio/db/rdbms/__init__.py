@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Table, Integer, Column, ForeignKey, UniqueConstraint
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-# need to monkey patch some standard functions in python since they don't natively support async mode
-eventlet.monkey_patch()
+DeclarativeBase = declarative_base()
 
-# keep this import; even though unused, gunicorn needs it, otherwise it will not start
-from dino.wio.server import socketio, app
-
-from dino.wio import environ
-environ.env.node = 'wio'
+rooms_users_association_table = Table(
+        'rooms_users_association_table',
+        DeclarativeBase.metadata,
+        Column('room_id', Integer, ForeignKey('rooms.id')),
+        Column('user_id', Integer, ForeignKey('users.id')),
+        UniqueConstraint('room_id', 'user_id', name='UC_room_id_user_id')
+)

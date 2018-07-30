@@ -17,6 +17,7 @@ from dino.config import ConfigKeys
 from dino import environ
 
 from kombu import pools
+
 pools.set_limit(512)  # default is 200
 
 from kombu import Exchange
@@ -44,7 +45,7 @@ def locked_method(method):
 
 
 class PubSub(object):
-    def __init__(self, env: environ.GNEnvironment):
+    def __init__(self, env):
         self._lock = Lock()
         self.env = env
         self.executor = ThreadPoolExecutor(max_workers=1)
@@ -71,7 +72,6 @@ class PubSub(object):
         import socket
 
         args = sys.argv
-        bind_arg_pos = None
         for a in ['--bind', '-b']:
             bind_arg_pos = [i for i, x in enumerate(args) if x == a]
             if len(bind_arg_pos) > 0:
@@ -201,10 +201,10 @@ class PubSub(object):
 
     def _do_publish_async(self, message: dict, external: bool):
         if external:
-            # TODO: try to make every node be able to publish, shouldn't have to aggregate millions of events to rest
-            # avoid publishing duplicate events by only letting the rest/wio nodes publish external events
-            # if self.env.node not in {'rest', 'wio'}:
-            #     return
+            # avoid publishing duplicate events by only letting the rest nodes publish external events
+            if self.env.node not in {'rest'}:
+                logger.debug('this is not the rest node, skipping external: {}'.format(message))
+                return
 
             if self._recently_sent_has(message['id']):
                 logger.debug('ignoring external event with verb %s and id %s, already sent' %

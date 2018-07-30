@@ -325,7 +325,7 @@ class BaseTest(unittest.TestCase):
             }
         )
 
-        environ.env.auth = AuthRedis('mock')
+        environ.env.auth = AuthRedis('mock', env=environ.env)
         environ.env.storage = StorageRedis('mock')
         environ.env.db = DatabaseRedis(environ.env, 'mock')
         environ.env.storage.redis = environ.env.auth.redis

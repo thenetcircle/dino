@@ -20,7 +20,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 eventlet.monkey_patch()
 
 # keep this import; even though unused, gunicorn needs it, otherwise it will not start
-from dino.wio.server import socketio, app
+from dino.server import socketio, app
 
-from dino.wio import environ
+from dino import environ
 environ.env.node = 'wio'

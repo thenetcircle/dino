@@ -1,10 +1,9 @@
 from dino.config import ConfigKeys
 from dino.enrich import IEnricher
-from dino.environ import GNEnvironment
 
 
 class TitleEnrichment(IEnricher):
-    def __init__(self, env: GNEnvironment):
+    def __init__(self, env):
         self.env = env
         enrich_config = env.config.get(ConfigKeys.ENRICH, dict())
         title_config = enrich_config.get(ConfigKeys.TITLE, dict())
