@@ -201,10 +201,10 @@ class PubSub(object):
 
     def _do_publish_async(self, message: dict, external: bool):
         if external:
-            # TODO: try to make every node be able to publish, shouldn't have to aggregate millions of events to rest
-            # avoid publishing duplicate events by only letting the rest/wio nodes publish external events
-            # if self.env.node not in {'rest', 'wio'}:
-            #     return
+            # avoid publishing duplicate events by only letting the rest nodes publish external events
+            if self.env.node not in {'rest'}:
+                logger.debug('this is not the rest node, skipping external: {}'.format(message))
+                return
 
             if self._recently_sent_has(message['id']):
                 logger.debug('ignoring external event with verb %s and id %s, already sent' %
