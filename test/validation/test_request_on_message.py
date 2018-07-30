@@ -263,7 +263,7 @@ class RequestMessageTest(TestCase):
             RequestMessageTest.OTHER_ROOM_ID: RequestMessageTest.OTHER_CHANNEL_ID,
         }
 
-        self.auth = AuthRedis(host='mock')
+        self.auth = AuthRedis(host='mock', env=environ.env)
         environ.env.session = {
             SessionKeys.user_id.value: RequestMessageTest.USER_ID,
             SessionKeys.user_name.value: RequestMessageTest.USER_NAME,

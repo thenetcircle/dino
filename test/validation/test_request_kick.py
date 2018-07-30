@@ -266,7 +266,7 @@ class RequestKickTest(TestCase):
             RequestKickTest.OTHER_ROOM_ID: {}
         }
 
-        self.auth = AuthRedis(host='mock')
+        self.auth = AuthRedis(host='mock', env=environ.env)
         environ.env.session = {
             SessionKeys.user_id.value: RequestKickTest.USER_ID,
             SessionKeys.user_name.value: RequestKickTest.USER_NAME,

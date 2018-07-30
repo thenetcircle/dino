@@ -344,7 +344,7 @@ def init_auth_service(wio_env: WioEnvironment):
             auth_host, auth_port = auth_host.split(':', 1)
 
         auth_db = auth_engine.get(ConfigKeys.DB, 0)
-        wio_env.auth = AuthRedis(wio_env, host=auth_host, port=auth_port, db=auth_db)
+        wio_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db, env=wio_env)
     elif auth_type == 'allowall':
         from dino.auth.simple import AllowAllAuth
         wio_env.auth = AllowAllAuth()

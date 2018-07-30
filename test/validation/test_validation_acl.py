@@ -132,7 +132,7 @@ class BaseAclTestValidator(TestCase):
 
     def setUp(self):
         environ.env.db = FakeDb()
-        self.auth = AuthRedis(host='mock')
+        self.auth = AuthRedis(host='mock', env=environ.env)
         environ.env.session = {
             SessionKeys.user_id.value: BaseAclTestValidator.USER_ID,
             SessionKeys.user_name.value: BaseAclTestValidator.USER_NAME,

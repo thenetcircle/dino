@@ -14,13 +14,18 @@ logger = logging.getLogger()
 
 @implementer(IAuth)
 class AuthRedis(object):
-    def __init__(self, env, host: str, port: int = 6379, db: int = 0):
+    def __init__(self, host: str, port: int = 6379, db: int = 0, env=None):
         if env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
             from fakeredis import FakeStrictRedis as Redis
         else:
             from redis import Redis
 
-        self.env = env
+        if env is None:
+            from dino import environ
+            self.env = environ.env
+        else:
+            self.env = env
+
         self.redis = Redis(host=host, port=port, db=db)
 
     def get_user_info(self, user_id: str) -> dict:
