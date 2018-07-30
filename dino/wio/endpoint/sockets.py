@@ -17,11 +17,11 @@ from dino.utils.decorators import respond_with
 from dino.utils.handlers import GracefulInterruptHandler
 from dino.wio import api
 from dino.wio import environ
-from dino.wio.endpoint.queue import QueueHandler
+from dino.wio.endpoint.queue import WioQueueHandler
 from dino.wio.server import socketio
 
 logger = logging.getLogger(__name__)
-queue_handler = QueueHandler(socketio, environ.env)
+queue_handler = WioQueueHandler(socketio, environ.env)
 
 
 class Worker(ConsumerMixin):
