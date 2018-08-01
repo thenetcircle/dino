@@ -18,7 +18,7 @@ from dino import environ
 
 from kombu import pools
 
-pools.set_limit(512)  # default is 200
+pools.set_limit(2048)  # default is 200
 
 from kombu import Exchange
 from kombu import Queue
