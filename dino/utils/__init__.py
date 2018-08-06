@@ -1199,7 +1199,7 @@ def user_is_invisible(user_id: str) -> bool:
 
 
 def get_user_status(user_id: str) -> str:
-    return environ.env.db.get_user_status(user_id)
+    return str(environ.env.db.get_user_status(user_id))
 
 
 def get_last_read_for(room_id: str, user_id: str) -> str:
