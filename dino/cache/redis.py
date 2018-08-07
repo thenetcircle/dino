@@ -82,7 +82,7 @@ class CacheRedis(object):
             self.redis_pool = None
             self.redis_instance = FakeStrictRedis(host=host, port=port, db=db)
         else:
-            self.redis_pool = redis.ConnectionPool(redis.Redis(host=host, port=port, db=db))
+            self.redis_pool = redis.ConnectionPool(host=host, port=port, db=db)
             self.redis_instance = None
 
         self.cache = MemoryCache()
