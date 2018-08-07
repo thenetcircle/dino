@@ -28,6 +28,7 @@ from dino.cache import ICache
 from dino.utils.decorators import timeit
 from datetime import datetime
 from datetime import timedelta
+from redis import Redis
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -73,87 +74,29 @@ class MemoryCache(object):
         self.vals = dict()
 
 
-class RedisWrapper(object):
-    def __init__(self, r_server):
-        """
-        RedisInterface here is the FakeStrictRedis imported at the top (which is required by the project, while regular
-        redis package is NOT, so we can't import that). Here we only want to reference the "interface" to get IDE code
-        completion and warnings of misspelled method names.
-        """
-        self.r_server = r_server
-
-    @timeit(logger, 'on_redis_hmset')
-    def hmset(self, *args):
-        return self.r_server.hmset(*args)
-
-    def expire(self, *args):
-        return self.r_server.expire(*args)
-
-    @timeit(logger, 'on_redis_hgetall')
-    def hgetall(self, *args):
-        return self.r_server.hgetall(*args)
-
-    @timeit(logger, 'on_redis_get')
-    def get(self, *args):
-        return self.r_server.get(*args)
-
-    @timeit(logger, 'on_redis_set')
-    def set(self, *args):
-        return self.r_server.set(*args)
-
-    @timeit(logger, 'on_redis_delete')
-    def delete(self, *args):
-        return self.r_server.delete(*args)
-
-    @timeit(logger, 'on_redis_flushdb')
-    def flushdb(self):
-        return self.r_server.flushdb()
-
-    @timeit(logger, 'on_redis_hdel')
-    def hdel(self, *args):
-        return self.r_server.hdel(*args)
-
-    @timeit(logger, 'on_redis_hexists')
-    def hexists(self, *args):
-        return self.r_server.hexists(*args)
-
-    @timeit(logger, 'on_redis_hget')
-    def hget(self, *args):
-        return self.r_server.hget(*args)
-
-    @timeit(logger, 'on_redis_hset')
-    def hset(self, *args):
-        return self.r_server.hset(*args)
-
-    @timeit(logger, 'on_redis_sadd')
-    def sadd(self, *args):
-        return self.r_server.sadd(*args)
-
-    @timeit(logger, 'on_redis_setbit')
-    def setbit(self, *args):
-        return self.r_server.setbit(*args)
-
-    @timeit(logger, 'on_redis_smembers')
-    def smembers(self, *args):
-        return self.r_server.smembers(*args)
-
-    @timeit(logger, 'on_redis_srem')
-    def srem(self, *args):
-        return self.r_server.srem(*args)
-
-
 @implementer(ICache)
 class CacheRedis(object):
-    redis = None
-
     def __init__(self, env, host: str, port: int = 6379, db: int = 0):
-        if env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
-            from fakeredis import FakeStrictRedis as Redis
-        else:
-            from redis import Redis
+        self._redis = None
 
-        self.redis = RedisWrapper(Redis(host=host, port=port, db=db))
+        if env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
+            from fakeredis import FakeStrictRedis
+
+            self.redis_pool = None
+            self.redis_instance = FakeStrictRedis(host=host, port=port, db=db)
+        else:
+            import redis
+
+            self.redis_pool = redis.ConnectionPool(Redis(host=host, port=port, db=db))
+            self.redis_instance = None
+
         self.cache = MemoryCache()
+
+    @property
+    def redis(self):
+        if self.redis_pool is None:
+            return self.redis
+        return Redis(connection_pool=self.redis_pool)
 
     def _flushall(self) -> None:
         self.redis.flushdb()
