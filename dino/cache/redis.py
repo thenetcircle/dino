@@ -25,10 +25,9 @@ from dino.config import ConfigKeys
 from dino.config import UserKeys
 from dino.config import RoleKeys
 from dino.cache import ICache
-from dino.utils.decorators import timeit
 from datetime import datetime
 from datetime import timedelta
-from redis import Redis
+import redis
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -77,17 +76,13 @@ class MemoryCache(object):
 @implementer(ICache)
 class CacheRedis(object):
     def __init__(self, env, host: str, port: int = 6379, db: int = 0):
-        self._redis = None
-
         if env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
             from fakeredis import FakeStrictRedis
 
             self.redis_pool = None
             self.redis_instance = FakeStrictRedis(host=host, port=port, db=db)
         else:
-            import redis
-
-            self.redis_pool = redis.ConnectionPool(Redis(host=host, port=port, db=db))
+            self.redis_pool = redis.ConnectionPool(redis.Redis(host=host, port=port, db=db))
             self.redis_instance = None
 
         self.cache = MemoryCache()
@@ -96,7 +91,7 @@ class CacheRedis(object):
     def redis(self):
         if self.redis_pool is None:
             return self.redis_instance
-        return Redis(connection_pool=self.redis_pool)
+        return redis.Redis(connection_pool=self.redis_pool)
 
     def _flushall(self) -> None:
         self.redis.flushdb()
