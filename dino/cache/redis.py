@@ -95,7 +95,7 @@ class CacheRedis(object):
     @property
     def redis(self):
         if self.redis_pool is None:
-            return self.redis
+            return self.redis_instance
         return Redis(connection_pool=self.redis_pool)
 
     def _flushall(self) -> None:
