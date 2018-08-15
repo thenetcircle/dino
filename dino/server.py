@@ -38,9 +38,22 @@ def create_app():
     if message_queue_type is None and not (len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING)):
         raise RuntimeError('no message queue type specified')
 
-    message_queue = 'redis://%s' % environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
-    message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT, default='test')
+    if message_queue_type == 'redis':
+        message_queue = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
+    elif message_queue_type == 'amqp':
+        queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
+        message_queue = ';'.join(['amqp://%s:%s@%s:%s%s' % (
+            environ.env.config.get(ConfigKeys.USER, domain=ConfigKeys.QUEUE, default=''),
+            environ.env.config.get(ConfigKeys.PASSWORD, domain=ConfigKeys.QUEUE, default=''),
+            host,
+            environ.env.config.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=''),
+            environ.env.config.get(ConfigKeys.VHOST, domain=ConfigKeys.QUEUE, default=''),
+        ) for host in queue_host.split(';')])
 
+    else:
+        raise RuntimeError('unknown message queue type specified')
+
+    message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT, default='test')
     logger.info('message_queue: %s' % message_queue)
 
     _socketio = SocketIO(
