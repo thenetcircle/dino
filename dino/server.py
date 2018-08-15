@@ -38,7 +38,7 @@ def create_app():
     if message_queue_type is None and not (len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING)):
         raise RuntimeError('no message queue type specified')
 
-    message_queue = 'redis://%s' % environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.CACHE_SERVICE, default='')
+    message_queue = 'redis://%s' % environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
     message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT, default='test')
 
     logger.info('message_queue: %s' % message_queue)
