@@ -34,24 +34,24 @@ def create_app():
     # used for encrypting cookies for handling sessions
     _app.config['SECRET_KEY'] = 'abc492ee-9739-11e6-a174-07f6b92d4a4b'
 
-    message_queue_type = environ.env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.QUEUE, default=None)
+    message_queue_type = environ.env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.COORDINATOR, default=None)
     if message_queue_type is None and not (len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING)):
         raise RuntimeError('no message queue type specified')
 
-    queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.QUEUE, default='')
+    queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.COORDINATOR, default='')
 
     if message_queue_type == 'redis':
-        message_channel = environ.env.config.get(ConfigKeys.DB, domain=ConfigKeys.QUEUE, default=0)
+        message_channel = environ.env.config.get(ConfigKeys.DB, domain=ConfigKeys.COORDINATOR, default=0)
         message_queue = 'redis://{}'.format(queue_host)
 
     elif message_queue_type == 'amqp':
         message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT, default='test')
         message_queue = ';'.join(['amqp://%s:%s@%s:%s%s' % (
-            environ.env.config.get(ConfigKeys.USER, domain=ConfigKeys.QUEUE, default=''),
-            environ.env.config.get(ConfigKeys.PASSWORD, domain=ConfigKeys.QUEUE, default=''),
+            environ.env.config.get(ConfigKeys.USER, domain=ConfigKeys.COORDINATOR, default=''),
+            environ.env.config.get(ConfigKeys.PASSWORD, domain=ConfigKeys.COORDINATOR, default=''),
             host,
-            environ.env.config.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=''),
-            environ.env.config.get(ConfigKeys.VHOST, domain=ConfigKeys.QUEUE, default=''),
+            environ.env.config.get(ConfigKeys.PORT, domain=ConfigKeys.COORDINATOR, default=''),
+            environ.env.config.get(ConfigKeys.VHOST, domain=ConfigKeys.COORDINATOR, default=''),
         ) for host in queue_host.split(';')])
 
     else:

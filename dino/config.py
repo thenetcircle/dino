@@ -167,6 +167,7 @@ class ConfigKeys(object):
     HOST = 'host'
     TYPE = 'type'
     DRIVER = 'driver'
+    COORDINATOR = 'coordinator'
     STRATEGY = 'strategy'
     REPLICATION = 'replication'
     DSN = 'dsn'
