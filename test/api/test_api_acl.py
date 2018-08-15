@@ -14,7 +14,7 @@
 
 from activitystreams import parse as as_parser
 
-from dino import api
+import dino
 from dino.config import ApiActions
 
 from test.base import BaseTest
@@ -32,7 +32,7 @@ class ApiAclTest(BaseTest):
         self.set_acl({ApiActions.JOIN: {acl_type: acl_value}})
 
         act = self.activity_for_get_acl()
-        response_data = api.on_get_acl(act, as_parser(act))
+        response_data = dino.api.on_get_acl(act, as_parser(act))
         self.assertEqual(response_data[0], 200)
 
         activity = as_parser(response_data[1])  # 0 is the status_code, 1 is the data (activity stream)
@@ -106,7 +106,7 @@ class ApiAclTest(BaseTest):
             'summary': ApiActions.JOIN
         }])
 
-        response_data = api.on_set_acl(activity, as_parser(activity))
+        response_data = dino.api.on_set_acl(activity, as_parser(activity))
         self.assertEqual(response_data[0], 200)
 
         acls = self.get_acls_for_join()
@@ -119,7 +119,7 @@ class ApiAclTest(BaseTest):
             'summary': ApiActions.JOIN
         }])
 
-        response_data = api.on_set_acl(activity, as_parser(activity))
+        response_data = dino.api.on_set_acl(activity, as_parser(activity))
         self.assertEqual(response_data[0], 200)
 
         acls = self.get_acls()
@@ -128,6 +128,6 @@ class ApiAclTest(BaseTest):
     def get_acl_after_set(self, attachments):
         activity = self.activity_for_set_acl(attachments)
 
-        response_data = api.on_set_acl(activity, as_parser(activity))
+        response_data = dino.api.on_set_acl(activity, as_parser(activity))
         self.assertEqual(response_data[0], 200)
         return self.get_acls().get(ApiActions.JOIN)

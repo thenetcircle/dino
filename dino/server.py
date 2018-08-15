@@ -39,6 +39,8 @@ def create_app():
         raise RuntimeError('no message queue type specified')
 
     queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.COORDINATOR, default='')
+    message_channel = ''
+    message_queue = None
 
     if message_queue_type == 'redis':
         message_db = environ.env.config.get(ConfigKeys.DB, domain=ConfigKeys.COORDINATOR, default=0)
@@ -56,8 +58,8 @@ def create_app():
             environ.env.config.get(ConfigKeys.VHOST, domain=ConfigKeys.COORDINATOR, default=''),
         ) for host in queue_host.split(';')])
 
-    else:
-        raise RuntimeError('unknown message queue type specified')
+    elif not environ.env.config.get(ConfigKeys.TESTING, False):
+        raise RuntimeError('unknown message queue type {} specified: {}'.format(message_queue_type, environ.env.config.params))
 
     logger.info('message_queue: %s' % message_queue)
 

@@ -15,6 +15,10 @@ common_config: &common_config
         type: 'redis'
         host: '$DINO_CACHE_HOST'
         db: 9
+    coordinator:
+        type: 'redis'
+        host: '$DINO_CACHE_HOST'
+        db: 9
     queue:
         type: 'redis'
         host: '$DINO_QUEUE_HOST'
@@ -196,5 +200,9 @@ test:
         host: 'localhost:6379'
         db: 0
         max_history: 200
+    coordinator:
+        type: 'redis'
+        host: '$DINO_CACHE_HOST'
+        db: 9
     auth:
         type: 'allowall'
