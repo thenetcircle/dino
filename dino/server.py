@@ -41,7 +41,9 @@ def create_app():
     queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.COORDINATOR, default='')
 
     if message_queue_type == 'redis':
-        message_channel = environ.env.config.get(ConfigKeys.DB, domain=ConfigKeys.COORDINATOR, default=0)
+        message_db = environ.env.config.get(ConfigKeys.DB, domain=ConfigKeys.COORDINATOR, default=0)
+        message_env = environ.env.config.get(ConfigKeys.ENVIRONMENT, default='test')
+        message_channel = 'dino_{}_{}'.format(message_env, message_db)
         message_queue = 'redis://{}'.format(queue_host)
 
     elif message_queue_type == 'amqp':
