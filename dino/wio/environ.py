@@ -322,21 +322,21 @@ def create_env(config_paths: list = None) -> WioEnvironment:
 
 
 @timeit(logger, 'init auth service')
-def init_auth_service(wio_env: WioEnvironment):
-    if len(wio_env.config) == 0 or wio_env.config.get(ConfigKeys.TESTING, False):
+def init_auth_service(gn_env: WioEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
 
-    auth_engine = wio_env.config.get(ConfigKeys.AUTH_SERVICE, None)
+    auth_engine = gn_env.config.get(ConfigKeys.AUTH_SERVICE, None)
 
     if auth_engine is None:
         raise RuntimeError('no auth service specified')
 
     auth_type = auth_engine.get(ConfigKeys.TYPE, None)
     if auth_type is None:
-        raise RuntimeError('no auth type specified, use one of [redis, allowall, denyall]')
+        raise RuntimeError('no auth type specified, use one of [redis, nutcracker, allowall, denyall]')
 
-    if auth_type == 'redis':
+    if auth_type == 'redis' or auth_type == 'nutcracker':
         from dino.auth.redis import AuthRedis
 
         auth_host, auth_port = auth_engine.get(ConfigKeys.HOST), None
@@ -344,33 +344,37 @@ def init_auth_service(wio_env: WioEnvironment):
             auth_host, auth_port = auth_host.split(':', 1)
 
         auth_db = auth_engine.get(ConfigKeys.DB, 0)
-        wio_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db, env=wio_env)
+        gn_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db, env=gn_env)
+
     elif auth_type == 'allowall':
         from dino.auth.simple import AllowAllAuth
-        wio_env.auth = AllowAllAuth()
+        gn_env.auth = AllowAllAuth()
+
     elif auth_type == 'denyall':
         from dino.auth.simple import DenyAllAuth
-        wio_env.auth = DenyAllAuth()
+        gn_env.auth = DenyAllAuth()
+
     else:
-        raise RuntimeError('unknown auth type, use one of [redis, allowall, denyall]')
+        raise RuntimeError(
+            'unknown auth type "{}", use one of [redis, nutcracker, allowall, denyall]'.format(auth_type))
 
 
 @timeit(logger, 'init cache service')
-def init_cache_service(wio_env: WioEnvironment):
-    if len(wio_env.config) == 0 or wio_env.config.get(ConfigKeys.TESTING, False):
+def init_cache_service(gn_env: WioEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
         # assume we're testing
         return
 
-    cache_engine = wio_env.config.get(ConfigKeys.CACHE_SERVICE, None)
+    cache_engine = gn_env.config.get(ConfigKeys.CACHE_SERVICE, None)
 
     if cache_engine is None:
         raise RuntimeError('no cache service specified')
 
     cache_type = cache_engine.get(ConfigKeys.TYPE, None)
     if cache_type is None:
-        raise RuntimeError('no cache type specified, use one of [redis, mock, missall]')
+        raise RuntimeError('no cache type specified, use one of [redis, nutcracker, memory, missall]')
 
-    if cache_type == 'redis':
+    if cache_type == 'redis' or cache_type == 'nutcracker':
         from dino.cache.redis import CacheRedis
 
         cache_host, cache_port = cache_engine.get(ConfigKeys.HOST), None
@@ -378,15 +382,18 @@ def init_cache_service(wio_env: WioEnvironment):
             cache_host, cache_port = cache_host.split(':', 1)
 
         cache_db = cache_engine.get(ConfigKeys.DB, 0)
-        wio_env.cache = CacheRedis(wio_env, host=cache_host, port=cache_port, db=cache_db)
+        gn_env.cache = CacheRedis(gn_env, host=cache_host, port=cache_port, db=cache_db)
+
     elif cache_type == 'memory':
         from dino.cache.redis import CacheRedis
-        wio_env.cache = CacheRedis(wio_env, host='mock')
+        gn_env.cache = CacheRedis(gn_env, host='mock')
+
     elif cache_type == 'missall':
         from dino.cache.miss import CacheAllMiss
-        wio_env.cache = CacheAllMiss()
+        gn_env.cache = CacheAllMiss()
+
     else:
-        raise RuntimeError('unknown cache type %s, use one of [redis, mock, missall]' % cache_type)
+        raise RuntimeError('unknown cache type %s, use one of [redis, nutcracker, memory, missall]' % cache_type)
 
 
 @timeit(logger, 'init pub/sub service')
