@@ -37,7 +37,6 @@ class TestEnvironment(unittest.TestCase):
         env = create_env()
         self.assertTrue(ConfigKeys.LOG_FORMAT in env.config.keys())
         self.assertTrue(ConfigKeys.LOG_LEVEL in env.config.keys())
-        self.assertTrue(ConfigKeys.REDIS in env.config.keys())
         self.assertTrue(ConfigKeys.SESSION in env.config.keys())
 
     def test_init_cache_service(self):

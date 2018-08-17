@@ -253,9 +253,6 @@ class GNEnvironment(object):
         self.event_validators = dict()
         self.connected_user_ids = dict()
 
-        # TODO: remove this, go through storage interface
-        self.redis = config.get(ConfigKeys.REDIS, None)
-
 
 def b64e(s: str) -> str:
     if s is None:
@@ -337,32 +334,6 @@ def find_config_acl(acl_paths: list) -> (dict, str):
         raise RuntimeError('No acl configuration found: {0}\n'.format(', '.join(acl_paths)))
 
     return acl_dict, acl_path
-
-
-def choose_queue_instance(config_dict: dict) -> object:
-    if len(config_dict) == 0 or ConfigKeys.CACHE_SERVICE not in config_dict:
-        # assume we're testing
-        from fakeredis import FakeStrictRedis
-        return FakeStrictRedis()
-
-    queue_type = config_dict.get(ConfigKeys.CACHE_SERVICE).get(ConfigKeys.TYPE, 'mock')
-
-    if queue_type == 'mock':
-        from fakeredis import FakeStrictRedis
-        return FakeStrictRedis()
-    elif queue_type == 'redis':
-        redis_host = config_dict.get(ConfigKeys.CACHE_SERVICE).get(ConfigKeys.HOST, 'localhost')
-        redis_port = 6379
-
-        if redis_host.startswith('redis://'):
-            redis_host = redis_host.replace('redis://', '')
-
-        if ':' in redis_host:
-            redis_host, redis_port = redis_host.split(':', 1)
-
-        return Redis(redis_host, port=redis_port)
-
-    raise RuntimeError('unknown queue type "%s"' % queue_type)
 
 
 def load_secrets_file(config_dict: dict) -> dict:
@@ -456,8 +427,6 @@ def create_env(config_paths: list = None) -> GNEnvironment:
 
     if ConfigKeys.STORAGE not in config_dict:
         raise RuntimeError('no storage configured for environment %s' % gn_environment)
-
-    config_dict[ConfigKeys.REDIS] = choose_queue_instance(config_dict)
 
     try:
         config_dict[ConfigKeys.VERSION] = pkg_resources.require('dino')[0].version
@@ -736,7 +705,7 @@ def init_auth_service(gn_env: GNEnvironment):
     if auth_type is None:
         raise RuntimeError('no auth type specified, use one of [redis, allowall, denyall]')
 
-    if auth_type == 'redis':
+    if auth_type in {'redis', 'nutcracker'}:
         from dino.auth.redis import AuthRedis
 
         auth_host, auth_port = auth_engine.get(ConfigKeys.HOST), None
@@ -745,12 +714,15 @@ def init_auth_service(gn_env: GNEnvironment):
 
         auth_db = auth_engine.get(ConfigKeys.DB, 0)
         gn_env.auth = AuthRedis(host=auth_host, port=auth_port, db=auth_db, env=gn_env)
+
     elif auth_type == 'allowall':
         from dino.auth.simple import AllowAllAuth
         gn_env.auth = AllowAllAuth()
+
     elif auth_type == 'denyall':
         from dino.auth.simple import DenyAllAuth
         gn_env.auth = DenyAllAuth()
+
     else:
         raise RuntimeError('unknown auth type, use one of [redis, allowall, denyall]')
 
@@ -770,7 +742,7 @@ def init_cache_service(gn_env: GNEnvironment):
     if cache_type is None:
         raise RuntimeError('no cache type specified, use one of [redis, mock, missall]')
 
-    if cache_type == 'redis':
+    if cache_type in {'redis', 'nutcracker'}:
         from dino.cache.redis import CacheRedis
 
         cache_host, cache_port = cache_engine.get(ConfigKeys.HOST), None
@@ -779,14 +751,17 @@ def init_cache_service(gn_env: GNEnvironment):
 
         cache_db = cache_engine.get(ConfigKeys.DB, 0)
         gn_env.cache = CacheRedis(gn_env, host=cache_host, port=cache_port, db=cache_db)
+
     elif cache_type == 'memory':
         from dino.cache.redis import CacheRedis
         gn_env.cache = CacheRedis(gn_env, host='mock')
+
     elif cache_type == 'missall':
         from dino.cache.miss import CacheAllMiss
         gn_env.cache = CacheAllMiss()
+
     else:
-        raise RuntimeError('unknown cache type %s, use one of [redis, mock, missall]' % cache_type)
+        raise RuntimeError('unknown cache type %s, use one of [redis, nutcracker, memory, missall]' % cache_type)
 
 
 @timeit(logger, 'init pub/sub service')
