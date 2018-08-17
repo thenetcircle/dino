@@ -703,9 +703,9 @@ def init_auth_service(gn_env: GNEnvironment):
 
     auth_type = auth_engine.get(ConfigKeys.TYPE, None)
     if auth_type is None:
-        raise RuntimeError('no auth type specified, use one of [redis, allowall, denyall]')
+        raise RuntimeError('no auth type specified, use one of [redis, nutcracker, allowall, denyall]')
 
-    if auth_type in {'redis', 'nutcracker'}:
+    if auth_type == 'redis' or auth_type == 'nutcracker':
         from dino.auth.redis import AuthRedis
 
         auth_host, auth_port = auth_engine.get(ConfigKeys.HOST), None
@@ -724,7 +724,8 @@ def init_auth_service(gn_env: GNEnvironment):
         gn_env.auth = DenyAllAuth()
 
     else:
-        raise RuntimeError('unknown auth type, use one of [redis, allowall, denyall]')
+        raise RuntimeError(
+            'unknown auth type "{}", use one of [redis, nutcracker, allowall, denyall]'.format(auth_type))
 
 
 @timeit(logger, 'init cache service')
@@ -740,9 +741,9 @@ def init_cache_service(gn_env: GNEnvironment):
 
     cache_type = cache_engine.get(ConfigKeys.TYPE, None)
     if cache_type is None:
-        raise RuntimeError('no cache type specified, use one of [redis, mock, missall]')
+        raise RuntimeError('no cache type specified, use one of [redis, nutcracker, memory, missall]')
 
-    if cache_type in {'redis', 'nutcracker'}:
+    if cache_type == 'redis' or cache_type == 'nutcracker':
         from dino.cache.redis import CacheRedis
 
         cache_host, cache_port = cache_engine.get(ConfigKeys.HOST), None
