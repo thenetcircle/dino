@@ -8,13 +8,13 @@ common_config: &common_config
     invisible_unrestricted: False
     request_log_location: '$DINO_REQ_LOG_LOC'
     auth:
-        type: 'redis'
+        type: 'nutcracker'
         host: '$DINO_AUTH_HOST'
-        db: 8
+        backend_hosts: '$DINO_NUTCRACKER_AUTH_HOSTS'
     cache:
-        type: 'redis'
+        type: 'nutcracker'
         host: '$DINO_CACHE_HOST'
-        db: 9
+        backend_hosts: '$DINO_NUTCRACKER_CACHE_HOSTS'
     coordinator:
         type: 'redis'
         host: '$DINO_CACHE_HOST'

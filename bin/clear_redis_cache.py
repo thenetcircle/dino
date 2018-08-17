@@ -51,6 +51,15 @@ config = yaml.load(open(dino_home + '/dino.yaml'))[dino_env]
 config = load_secrets_file(config)
 
 r_host, r_port = config['cache']['host'].split(':')
-r_db = config['cache']['db']
-r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
-r_server.flushdb()
+r_type = config['cache']['type']
+
+if r_type == 'redis':
+    r_db = config['cache']['db']
+    r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
+    r_server.flushdb()
+
+elif r_type == 'nutcracker':
+    for each_host in config['cache']['backend_hosts'].split(','):
+        r_host, r_port, r_db = each_host.split(':')
+        r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
+        r_server.flushdb()
