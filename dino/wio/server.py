@@ -34,12 +34,32 @@ def create_app():
     # used for encrypting cookies for handling sessions
     _app.config['SECRET_KEY'] = 'abc492ee-9739-11e6-a174-07f6b92d4a4b'
 
-    message_queue_type = environ.env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.QUEUE, default=None)
+    message_queue_type = environ.env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.COORDINATOR, default=None)
     if message_queue_type is None and not (len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING)):
         raise RuntimeError('no message queue type specified')
 
-    message_queue = 'redis://%s' % environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.CACHE_SERVICE, default='')
-    message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT, default='test')
+    queue_host = environ.env.config.get(ConfigKeys.HOST, domain=ConfigKeys.COORDINATOR, default='')
+    message_channel = ''
+    message_queue = None
+
+    if message_queue_type == 'redis':
+        message_db = environ.env.config.get(ConfigKeys.DB, domain=ConfigKeys.COORDINATOR, default=0)
+        message_env = environ.env.config.get(ConfigKeys.ENVIRONMENT, default='test')
+        message_channel = 'dino_{}_{}'.format(message_env, message_db)
+        message_queue = 'redis://{}'.format(queue_host)
+
+    elif message_queue_type == 'amqp':
+        message_channel = 'dino_%s' % environ.env.config.get(ConfigKeys.ENVIRONMENT, default='test')
+        message_queue = ';'.join(['amqp://%s:%s@%s:%s%s' % (
+            environ.env.config.get(ConfigKeys.USER, domain=ConfigKeys.COORDINATOR, default=''),
+            environ.env.config.get(ConfigKeys.PASSWORD, domain=ConfigKeys.COORDINATOR, default=''),
+            host,
+            environ.env.config.get(ConfigKeys.PORT, domain=ConfigKeys.COORDINATOR, default=''),
+            environ.env.config.get(ConfigKeys.VHOST, domain=ConfigKeys.COORDINATOR, default=''),
+        ) for host in queue_host.split(';')])
+
+    elif not environ.env.config.get(ConfigKeys.TESTING, False):
+        raise RuntimeError('unknown message queue type {} specified: {}'.format(message_queue_type, environ.env.config.params))
 
     logger.info('message_queue: %s' % message_queue)
 
