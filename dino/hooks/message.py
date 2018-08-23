@@ -85,6 +85,18 @@ class OnMessageHooks(object):
         user_id = activity.actor.id
         word = utils.used_blacklisted_word(activity)
 
+        # don't check for spam if blacklist already matched it
+        # TODO
+        """
+        if word is None and utils.is_spam(activity):
+            try:
+                error_msg = 'the message looks to be spam: {}'.format(utils.b64d(message))
+            except Exception as e:
+                error_msg = 'the message looks to be spam'
+
+            utils.save_spam_prediction()
+        """
+
         if word is None:
             store()
             broadcast()
