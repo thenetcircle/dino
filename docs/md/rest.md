@@ -436,6 +436,52 @@ are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the roo
 it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
 keys.
 
+## POST /send
+
+Request contains:
+
+
+```json
+{   
+    "id": "<user ID>",
+    "user_name": "<username, in base64>",
+    "object_type": "<room/private>",
+    "target_id": "<user ID to send to or UUID of room to send to>",
+    "target_name": "<the name of the user/room to send to, in base64>"
+    "content": "<the body to send, in base64>"
+}   
+```
+
+Example response:
+
+```json
+{
+    "status_code": 200
+}
+```
+
+User/room will get something similar to this in a `message` event:
+
+```json
+{
+    "id": "1d805e18-a773-11e8-a65f-8b33c55c9e1b",
+    "published": "2017-01-26T04:58:31Z",
+    "actor": {
+        "id": "<user ID>",
+        "displayName": "<username, in base64>"
+    },
+    "verb": "send",
+    "target": {
+        "objectType": "<room/private>",
+        "id": "<user ID to send to or UUID of room to send to>",
+        "displayName": "<the name of the user/room to send to, in base64>"
+    },
+    "object": {
+        "content": "<the body to send, in base64>"
+    }
+}
+```
+
 ## User ID parameter
 
 The `/banned` endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:
