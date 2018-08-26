@@ -20,6 +20,7 @@ from functools import wraps
 from typing import Union
 from uuid import uuid4 as uuid
 
+from activitystreams import Activity
 from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy.orm.exc import StaleDataError
@@ -35,7 +36,7 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs
+from dino.db.rdbms.models import AclConfigs, Spams
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import Bans
 from dino.db.rdbms.models import BlackList
@@ -1778,6 +1779,20 @@ class DatabaseRdbms(object):
         value = _acls()
         self.env.cache.set_acls_in_channel_for_action(channel_id, action, value)
         return value
+
+    @with_session
+    def save_spam_prediction(self, activity: Activity, y_hats: tuple, session=None):
+        spam = Spams()
+        spam.time_stamp = int(datetime.utcnow().strftime('%s'))
+        spam.from_name = activity.actor.display_name
+        spam.from_uid = activity.actor.id
+        spam.to_name = activity.target.display_name
+        spam.to_uid = activity.target.id
+        spam.message = b64d(activity.object.content)
+        spam.probability = ','.join([str(y_hat) for y_hat in y_hats])
+
+        session.add(spam)
+        session.commit()
 
     @with_session
     def update_last_read_for(self, users: set, room_id: str, time_stamp: int, session=None) -> None:

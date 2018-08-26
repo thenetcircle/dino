@@ -13,7 +13,6 @@
 from activitystreams import Activity
 from activitystreams import parse as as_parser
 from typing import Union
-from uuid import uuid4 as uuid
 
 import logging
 import traceback
@@ -103,8 +102,9 @@ def is_valid_id(user_id: str):
     return True
 
 
-def used_blacklisted_word(activity: Activity):
-    return environ.env.blacklist.contains_blacklisted_word(activity)
+def used_blacklisted_word(activity: Activity) -> (bool, Union[str, None]):
+    word_used_if_any = environ.env.blacklist.contains_blacklisted_word(activity)
+    return word_used_if_any is not None, word_used_if_any
 
 
 def activity_for_msg_status(activity: Activity, statuses: dict) -> dict:

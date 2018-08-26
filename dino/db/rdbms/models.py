@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.orm import relationship
 
 from dino.db.rdbms import DeclarativeBase
@@ -128,6 +128,22 @@ class LastReads(DeclarativeBase):
 
     room_uuid = Column('room_uuid', String(128), nullable=False, index=True)
     user_id = Column('user_id', String(128), nullable=False, index=True)
+    time_stamp = Column('time_stamp', Integer, nullable=False)
+
+
+class Spams(DeclarativeBase):
+    __tablename__ = 'spams'
+
+    id = Column(Integer, primary_key=True)
+
+    message = Column('message', Text, nullable=False)
+    from_uid = Column('from_uid', String(128), nullable=False, index=True)
+    from_name = Column('from_name', String(128), nullable=False, index=True)
+    to_uid = Column('to_uid', String(128), nullable=False)
+    to_name = Column('to_name', String(128), nullable=False)
+    object_type = Column('object_type', String(128), nullable=False)
+    probability = Column('probability', String(128), nullable=False)
+    correct = Column('is_global', Boolean, nullable=False, default=True)
     time_stamp = Column('time_stamp', Integer, nullable=False)
 
 

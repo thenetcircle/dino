@@ -83,17 +83,10 @@ class OnMessageHooks(object):
 
         data, activity = arg
         user_id = activity.actor.id
-        word = utils.used_blacklisted_word(activity)
+        user_used_blacklisted_word, word_used_if_any = utils.used_blacklisted_word(activity)
 
-        if word is None:
-            if environ.env.spam.is_spam(activity):
-                environ.env.spam.save_spam_prediction(activity)
-            else:
-                store()
-                broadcast()
-                publish_activity()
-        else:
-            blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
+        if user_used_blacklisted_word:
+            blacklist_activity = utils.activity_for_blacklisted_word(activity, word_used_if_any)
             environ.env.publish(blacklist_activity, external=True)
             send(data, _room=user_id, _broadcast=False)
 
@@ -101,6 +94,20 @@ class OnMessageHooks(object):
             if len(admins_in_room) > 0:
                 for admin_user_id in admins_in_room:
                     send(data, _room=admin_user_id, _broadcast=False)
+        else:
+            try:
+                message = utils.b64d(activity.object.content)
+                is_spam, y_hats = environ.env.spam.is_spam(message)
+                if is_spam:
+                    environ.env.db.save_spam_prediction(activity, y_hats)
+            except Exception as e:
+                logger.error('could not predict spam: %s'.format(str(e)))
+                logger.exception(e)
+                environ.env.capture_exception(sys.exc_info())
+
+            store()
+            broadcast()
+            publish_activity()
 
 
 @environ.env.observer.on('on_message')

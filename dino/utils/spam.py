@@ -1,15 +1,10 @@
 import logging
-import traceback
-import time
-import glob
-import os
-from dino.environ import GNEnvironment
+
 from scipy import sparse
 from sklearn.externals import joblib
 
-from activitystreams.models.activity import Activity
-
-from dino import utils
+from dino.environ import GNEnvironment
+from dino.utils.decorators import timeit
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -30,10 +25,12 @@ class SpamClassifier(object):
 
         self.env = env
 
+    @timeit(logger, 'on_transform')
     def transform(self, x):
         x = sparse.hstack((self.tfidf_char.fit_transform(x), self.tfidf_word.fit_transform(x))).A
         return self.pca.transform(x)
 
+    @timeit(logger, 'on_predict')
     def predict(self, x):
         y_hat = (
             self.xgb.predict_proba(x),
@@ -42,11 +39,8 @@ class SpamClassifier(object):
         )
 
         # if 2 out of 3 classifiers are at least 66% certain it's spam, classify it as such
-        return 1 if sum(1 for e in y_hat if e > 0.66) >= 2 else 0
+        return 1 if sum(1 for e in y_hat if e > 0.66) >= 2 else 0, y_hat
 
-    def is_spam(self, message):
+    def is_spam(self, message) -> (bool, tuple):
         x = self.transform([message])
         return self.predict(x)
-    def save_spam_prediction(self, message):
-        if self.env.db is not None:
-            pass
