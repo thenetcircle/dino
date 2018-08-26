@@ -24,10 +24,12 @@ from dino.admin.orm import broadcast_manager
 from dino.admin.orm import channel_manager
 from dino.admin.orm import room_manager
 from dino.admin.orm import storage_manager
+from dino.admin.orm import spam_manager
 from dino.admin.orm import user_manager
 from dino.config import ApiTargets
 from dino.config import ConfigKeys
-from dino.exceptions import ChannelNameExistsException, NoSuchRoomException
+from dino.exceptions import ChannelNameExistsException
+from dino.exceptions import NoSuchRoomException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
@@ -794,6 +796,79 @@ def remove_super_user(user_uuid: str):
 @requires_auth
 def search_user(query: str):
     return api_response(200, user_manager.search_for(query))
+
+
+####################################
+#             Spam                 #
+####################################
+
+@app.route('/api/spam', methods=['POST'])
+@requires_auth
+def search_spam():
+    form = request.get_json()
+    user_uuid = form['user']
+    room_uuid = form['room']
+    from_time = form['from']
+    to_time = form['to']
+
+    user_name = get_user_name(user_uuid)
+    room_name = get_room_name(room_uuid)
+
+    try:
+        msgs, real_from_time, real_to_time = spam_manager.find(room_uuid, user_uuid, from_time, to_time)
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+
+    try:
+        clean_msgs = list()
+        for message in msgs:
+            try:
+                json_body = message['body']
+                json_body = json.loads(json_body)
+                json_body = json_body.get('text')
+                message['body'] = json_body
+            except Exception:
+                pass  # ignore, use original
+            clean_msgs.append(message)
+    except Exception as e:
+        logger.error('Could not clean messages, will use original: %s' % str(e))
+        clean_msgs = msgs
+
+    return api_response(200, {
+        'message': clean_msgs,
+        'real_from_time': real_from_time,
+        'real_to_time': real_to_time,
+        'username': user_name,
+        'room': room_name,
+    })
+
+
+@app.route('/api/spam/<spam_id>/correct', methods=['POST'])
+@requires_auth
+def set_spam_correct(spam_id):
+    try:
+        spam_manager.set_correct_or_not(spam_id, True)
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+
+    return api_response(200)
+
+
+@app.route('/api/spam/<spam_id>/incorrect', methods=['POST'])
+@requires_auth
+def set_spam_incorrect(spam_id):
+    try:
+        spam_manager.set_correct_or_not(spam_id, False)
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+
+    return api_response(200)
 
 
 ####################################

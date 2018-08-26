@@ -137,6 +137,9 @@ class Spams(DeclarativeBase):
     id = Column(Integer, primary_key=True)
 
     message = Column('message', Text, nullable=False)
+    message_id = Column('message_id', String(128), nullable=True)
+    message_deleted = Column('message_deleted', Boolean, nullable=False, default=False)
+
     from_uid = Column('from_uid', String(128), nullable=False, index=True)
     from_name = Column('from_name', String(128), nullable=False, index=True)
     to_uid = Column('to_uid', String(128), nullable=False)

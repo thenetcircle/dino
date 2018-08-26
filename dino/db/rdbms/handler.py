@@ -1780,6 +1780,57 @@ class DatabaseRdbms(object):
         self.env.cache.set_acls_in_channel_for_action(channel_id, action, value)
         return value
 
+    def _format_spam(self, spam: Spams) -> dict:
+        return {
+            'id': spam.id,
+            'from_id': spam.from_uid,
+            'from_name': spam.from_name,
+            'to_id': spam.from_uid,
+            'to_name': spam.to_name,
+            'time_stamp': spam.time_stamp,
+            'message': spam.message,
+            'message_id': spam.message_id,
+            'message_deleted': spam.message_deleted,
+            'object_type': spam.object_type,
+            'probability': spam.probability,
+            'correct': spam.correct
+        }
+
+    @with_session
+    def get_spam_for_time_slice(self, room_id, user_id, from_time_int, to_time_int, session=None) -> list:
+        if room_id is not None:
+            spams = session.query(Spams)\
+                .filter(from_time_int <= Spams.time_stamp <= to_time_int)\
+                .filter(Spams.to_uid == room_id)\
+                .all()
+
+        elif user_id is not None:
+            spams = session.query(Spams)\
+                .filter(from_time_int <= Spams.time_stamp <= to_time_int)\
+                .filter(Spams.to_uid == user_id)\
+                .all()
+
+        else:
+            spams = session.query(Spams)\
+                .filter(from_time_int <= Spams.time_stamp <= to_time_int)\
+                .all()
+
+        return [self._format_spam(spam) for spam in spams]
+
+    @with_session
+    def get_spam_from(self, user_id: str, session=None) -> list:
+        return [
+            self._format_spam(spam)
+            for spam in session.query(Spams).filter(Spams.from_uid == user_id).all()
+        ]
+
+    @with_session
+    def set_spam_correct_or_not(self, spam_id: int, correct: bool, session=None):
+        spam = session.query(Spams).filter(Spams.id == spam_id).first()
+        spam.correct = correct
+        session.add(spam)
+        session.commit()
+
     @with_session
     def save_spam_prediction(self, activity: Activity, y_hats: tuple, session=None):
         spam = Spams()
@@ -1789,6 +1840,8 @@ class DatabaseRdbms(object):
         spam.to_name = activity.target.display_name
         spam.to_uid = activity.target.id
         spam.message = b64d(activity.object.content)
+        spam.message_deleted = False
+        spam.message_id = activity.id
         spam.probability = ','.join([str(y_hat) for y_hat in y_hats])
 
         session.add(spam)
