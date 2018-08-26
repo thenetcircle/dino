@@ -996,6 +996,19 @@ def init_logging(gn_env: GNEnvironment) -> None:
     gn_env.capture_exception = capture_exception
 
 
+@timeit(logger, 'init spam service')
+def init_spam_service(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    if not gn_env.config.get(ConfigKeys.SPAM_CLASSIFIER, default=False):
+        return
+
+    from dino.utils.spam import SpamClassifier
+    gn_env.spam = SpamClassifier(gn_env)
+
+
 @timeit(logger, 'init enrichment service')
 def init_enrichment_service(gn_env: GNEnvironment):
     if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):

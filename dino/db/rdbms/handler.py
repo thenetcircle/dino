@@ -1794,6 +1794,8 @@ class DatabaseRdbms(object):
         session.add(spam)
         session.commit()
 
+        logger.info('saved spam prediction to db with ID {}'.format(spam.id))
+
     @with_session
     def update_last_read_for(self, users: set, room_id: str, time_stamp: int, session=None) -> None:
         for user_id in users:

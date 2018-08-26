@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from activitystreams import Activity
 from zope.interface import implementer
 from datetime import datetime
 from typing import Union
@@ -68,6 +68,9 @@ class DatabaseRedis(object):
         self.env = env
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
+
+    def save_spam_prediction(self, activity: Activity, y_hats: tuple):
+        pass  # not supported
 
     def set_ephemeral_room(self, room_id: str):
         self.redis.srem(RedisKeys.non_ephemeral_rooms(), room_id)

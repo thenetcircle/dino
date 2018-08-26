@@ -13,12 +13,23 @@
 # limitations under the License.
 
 from typing import Union
+
+from activitystreams import Activity
 from zope.interface import Interface
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class IDatabase(Interface):
+    def save_spam_prediction(self, activity: Activity, y_hats: tuple):
+        """
+        save a spam prediction to the db
+
+        :param activity: the activity containing the message
+        :param y_hats: the classifier predictions
+        :return: nothing
+        """
+
     def create_admin_room(self) -> str:
         """
         create the special admin room

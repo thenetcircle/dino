@@ -199,6 +199,7 @@ class ConfigKeys(object):
     ENRICH = 'enrich'
     TITLE = 'title'
     VERB = 'verb'
+    SPAM_CLASSIFIER = 'spam_classifier'
 
     INSECURE = 'insecure'
     OAUTH_BASE = 'base'
