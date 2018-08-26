@@ -57,11 +57,12 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def save_spam_prediction(self, activity: Activity, y_hats: tuple):
+    def save_spam_prediction(self, activity: Activity, message, y_hats: tuple):
         """
         save a spam prediction to the db
 
         :param activity: the activity containing the message
+        :param message: the message extracted from the json body
         :param y_hats: the classifier predictions
         :return: nothing
         """

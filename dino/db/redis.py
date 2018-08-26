@@ -81,7 +81,7 @@ class DatabaseRedis(object):
     def set_spam_correct_or_not(self, spam_id: int, correct: bool):
         pass  # not supported
 
-    def save_spam_prediction(self, activity: Activity, y_hats: tuple):
+    def save_spam_prediction(self, activity: Activity, message, y_hats: tuple):
         pass  # not supported
 
     def set_ephemeral_room(self, room_id: str):

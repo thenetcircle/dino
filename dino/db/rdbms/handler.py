@@ -1839,14 +1839,14 @@ class DatabaseRdbms(object):
         session.commit()
 
     @with_session
-    def save_spam_prediction(self, activity: Activity, y_hats: tuple, session=None):
+    def save_spam_prediction(self, activity: Activity, message, y_hats: tuple, session=None):
         spam = Spams()
         spam.time_stamp = int(datetime.utcnow().strftime('%s'))
         spam.from_name = activity.actor.display_name
         spam.from_uid = activity.actor.id
         spam.to_name = activity.target.display_name
         spam.to_uid = activity.target.id
-        spam.message = b64d(activity.object.content)
+        spam.message = message
         spam.message_deleted = False
         spam.message_id = activity.id
         spam.probability = ','.join([str(y_hat) for y_hat in y_hats])

@@ -18,7 +18,7 @@ from dino.utils.decorators import timeit
 
 import logging
 import traceback
-import eventlet
+import json
 import sys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -90,9 +90,15 @@ class OnMessageHooks(object):
 
             try:
                 _message = utils.b64d(activity.object.content)
+                try:
+                    json_body = json.loads(_message)
+                    _message = json_body.get('text')
+                except Exception:
+                    pass  # ignore, use original
+
                 _is_spam, _y_hats = environ.env.spam.is_spam(_message)
                 if is_spam:
-                    _spam_id = environ.env.db.save_spam_prediction(activity, _y_hats)
+                    _spam_id = environ.env.db.save_spam_prediction(activity, _message, _y_hats)
             except Exception as e:
                 logger.error('could not predict spam: %s'.format(str(e)))
                 logger.exception(e)
