@@ -802,7 +802,20 @@ def search_user(query: str):
 #             Spam                 #
 ####################################
 
-@app.route('/api/spam', methods=['POST'])
+@app.route('/api/spam', methods=['GET'])
+@requires_auth
+def search_spam():
+    try:
+        msgs = spam_manager.get_latest_spam()
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+
+    return api_response(200, {'message': msgs})
+
+
+@app.route('/api/spam/search', methods=['POST'])
 @requires_auth
 def search_spam():
     form = request.get_json()
@@ -821,23 +834,8 @@ def search_spam():
         logger.exception(traceback.format_exc())
         return api_response(400, message='Could not get message: %s' % str(e))
 
-    try:
-        clean_msgs = list()
-        for message in msgs:
-            try:
-                json_body = message['body']
-                json_body = json.loads(json_body)
-                json_body = json_body.get('text')
-                message['body'] = json_body
-            except Exception:
-                pass  # ignore, use original
-            clean_msgs.append(message)
-    except Exception as e:
-        logger.error('Could not clean messages, will use original: %s' % str(e))
-        clean_msgs = msgs
-
     return api_response(200, {
-        'message': clean_msgs,
+        'message': msgs,
         'real_from_time': real_from_time,
         'real_to_time': real_to_time,
         'username': user_name,

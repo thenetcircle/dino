@@ -1797,6 +1797,13 @@ class DatabaseRdbms(object):
         }
 
     @with_session
+    def get_latest_spam(self, limit: int, session=None):
+        return [
+            self._format_spam(spam)
+            for spam in session.query(Spams).order_by(Spams.time_stamp.desc()).limit(limit).all()
+        ]
+
+    @with_session
     def get_spam_for_time_slice(self, room_id, user_id, from_time_int, to_time_int, session=None) -> list:
         if room_id is not None:
             spams = session.query(Spams)\

@@ -19,6 +19,9 @@ class SpamManager(StorageManager):
     def get_all_spam_from_user(self, user_id: str) -> list:
         return self.env.db.get_spam_from(user_id)
 
+    def get_latest_spam(self, limit=500):
+        self.env.db.get_latest_spam(limit)
+
     def find(self, room_id, user_id, from_time, to_time) -> (list, datetime, datetime):
         if is_blank(user_id) and is_blank(room_id):
             raise RuntimeError('need user ID and/or room ID')
