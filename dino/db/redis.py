@@ -69,6 +69,18 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def get_latest_spam(self, limit: int) -> list:
+        return list()
+
+    def get_spam_for_time_slice(self, room_id, user_id, from_time_int, to_time_int) -> list:
+        return list()
+
+    def get_spam_from(self, user_id: str) -> list:
+        return list()
+
+    def set_spam_correct_or_not(self, spam_id: int, correct: bool):
+        pass  # not supported
+
     def save_spam_prediction(self, activity: Activity, y_hats: tuple):
         pass  # not supported
 

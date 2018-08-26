@@ -21,6 +21,42 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class IDatabase(Interface):
+    def get_latest_spam(self, limit: int) -> list:
+        """
+        get the latest spam messages recorded
+
+        :param limit: limit the results
+        :return: list of dicts for the messages
+        """
+
+    def get_spam_for_time_slice(self, room_id, user_id, from_time_int, to_time_int) -> list:
+        """
+        get spam message for a time slice, optionally to a certain room or to a certain user
+
+        :param room_id: room uuid to search for spams in (optional)
+        :param user_id: receiver user id (optional)
+        :param from_time_int: timestamp as int
+        :param to_time_int: timestamp as int
+        :return: list of dicts for the messages
+        """
+
+    def get_spam_from(self, user_id: str) -> list:
+        """
+        get all spam message for a certain user
+
+        :param user_id: id of the user
+        :return: list of dicts for the messages
+        """
+
+    def set_spam_correct_or_not(self, spam_id: int, correct: bool):
+        """
+        set the 'correct' flag on a spam message
+
+        :param spam_id: id of the spam
+        :param correct: correct or not
+        :return: nothing
+        """
+
     def save_spam_prediction(self, activity: Activity, y_hats: tuple):
         """
         save a spam prediction to the db

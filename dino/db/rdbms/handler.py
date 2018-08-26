@@ -1797,7 +1797,7 @@ class DatabaseRdbms(object):
         }
 
     @with_session
-    def get_latest_spam(self, limit: int, session=None):
+    def get_latest_spam(self, limit: int, session=None) -> list:
         return [
             self._format_spam(spam)
             for spam in session.query(Spams).order_by(Spams.time_stamp.desc()).limit(limit).all()
