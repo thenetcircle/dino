@@ -1080,7 +1080,7 @@ def initialize_env(dino_env):
         init_admin_and_admin_room(dino_env)
         init_acl_validators(dino_env)
         init_storage_engine(dino_env)
-        #init_spam_service(dino_env)
+        init_spam_service(dino_env)
         init_service_config(dino_env)
         delete_ephemeral_rooms(dino_env)
 

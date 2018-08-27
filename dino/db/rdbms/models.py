@@ -135,7 +135,7 @@ class Config(DeclarativeBase):
     __tablename__ = 'service_config'
 
     id = Column(Integer, primary_key=True)
-    spam = Column('spam', Boolean, nullable=False, default=True)
+    spam = Column('spam', Boolean, nullable=False, default=False)
 
 
 class Spams(DeclarativeBase):
