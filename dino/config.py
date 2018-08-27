@@ -215,6 +215,7 @@ class ConfigKeys(object):
     SPAM_CLASSIFIER = 'spam_classifier'
 
     INSECURE = 'insecure'
+    OAUTH_ENABLED = 'oauth_enabled'
     OAUTH_BASE = 'base'
     OAUTH_PATH = 'path'
     SERVICE_ID = 'service_id'

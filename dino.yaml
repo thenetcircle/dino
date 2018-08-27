@@ -31,6 +31,7 @@ common_config: &common_config
         insecure: '$DINO_WEB_AUTH_INSECURE'
         base: '$DINO_WEB_AUTH_BASE'
         path: '$DINO_WEB_AUTH_PATH'
+        oauth_enabled: False
         service_id: '$DINO_WEB_AUTH_SERVICE_ID'
         service_secret: '$DINO_WEB_AUTH_SERVICE_SECRET'
         authorized_url: '$DINO_WEB_AUTH_URL'
