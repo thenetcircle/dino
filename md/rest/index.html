@@ -131,9 +131,6 @@
     <li class="toctree-l2"><a href="#get-banned">GET /banned</a></li>
     
 
-    <li class="toctree-l2"><a href="#post-send">POST /send</a></li>
-    
-
     <li class="toctree-l2"><a href="#user-id-parameter">User ID parameter</a></li>
     
 
@@ -562,44 +559,6 @@ rooms.</p>
 are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the rooms, same for channels, while for users
 it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
 keys.</p>
-<h2 id="post-send">POST /send</h2>
-<p>Request contains:</p>
-<pre><code class="json">{   
-    &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
-    &quot;user_name&quot;: &quot;&lt;username, in base64&gt;&quot;,
-    &quot;object_type&quot;: &quot;&lt;room/private&gt;&quot;,
-    &quot;target_id&quot;: &quot;&lt;user ID to send to or UUID of room to send to&gt;&quot;,
-    &quot;target_name&quot;: &quot;&lt;the name of the user/room to send to, in base64&gt;&quot;
-    &quot;content&quot;: &quot;&lt;the body to send, in base64&gt;&quot;
-}   
-</code></pre>
-
-<p>Example response:</p>
-<pre><code class="json">{
-    &quot;status_code&quot;: 200
-}
-</code></pre>
-
-<p>User/room will get something similar to this in a <code>message</code> event:</p>
-<pre><code class="json">{
-    &quot;id&quot;: &quot;1d805e18-a773-11e8-a65f-8b33c55c9e1b&quot;,
-    &quot;published&quot;: &quot;2017-01-26T04:58:31Z&quot;,
-    &quot;actor&quot;: {
-        &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
-        &quot;displayName&quot;: &quot;&lt;username, in base64&gt;&quot;
-    },
-    &quot;verb&quot;: &quot;send&quot;,
-    &quot;target&quot;: {
-        &quot;objectType&quot;: &quot;&lt;room/private&gt;&quot;,
-        &quot;id&quot;: &quot;&lt;user ID to send to or UUID of room to send to&gt;&quot;,
-        &quot;displayName&quot;: &quot;&lt;the name of the user/room to send to, in base64&gt;&quot;
-    },
-    &quot;object&quot;: {
-        &quot;content&quot;: &quot;&lt;the body to send, in base64&gt;&quot;
-    }
-}
-</code></pre>
-
 <h2 id="user-id-parameter">User ID parameter</h2>
 <p>The <code>/banned</code> endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:</p>
 <pre><code>curl localhost:5400/banned -d '{"users":["110464"]}' -X GET -H "Content-Type: application/json"
