@@ -1,3 +1,4 @@
+import os
 import logging
 
 from scipy import sparse
@@ -14,16 +15,26 @@ logger = logging.getLogger(__name__)
 class SpamClassifier(object):
     def __init__(self, env: GNEnvironment):
         logger.info('loading TF-IDF and PCA transformers...')
-        self.tfidf_char = joblib.load('transformer_1a.pkl')
-        self.tfidf_word = joblib.load('transformer_1b.pkl')
-        self.pca = joblib.load('transformer_2.pkl')
+        self.tfidf_char = joblib.load('models/transformer_1a.pkl')
+        self.tfidf_word = joblib.load('models/transformer_1b.pkl')
+        self.pca = joblib.load('models/transformer_2.pkl')
 
         logger.info('loading models...')
-        self.xgb = joblib.load('classifier_1.pkl')
-        self.rfc = joblib.load('classifier_2.pkl')
-        self.svc = joblib.load('classifier_3.pkl')
+        self.xgb = joblib.load('models/classifier_1.pkl')
+        self.rfc = joblib.load('models/classifier_2.pkl')
+        self.svc = joblib.load('models/classifier_3.pkl')
 
         self.env = env
+
+        size = (
+            os.path.getsize('models/transformer_1a.pkl') +
+            os.path.getsize('models/transformer_1b.pkl') +
+            os.path.getsize('models/transformer_2.pkl') +
+            os.path.getsize('models/classifier_1.pkl') +
+            os.path.getsize('models/classifier_2.pkl') +
+            os.path.getsize('models/classifier_3.pkl')
+        )
+        logger.info('done loading, memory size: {} MB'.format('%.2f' % (size / 1024 / 1024)))
 
     @timeit(logger, 'on_transform')
     def transform(self, x):
