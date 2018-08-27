@@ -87,6 +87,7 @@ class OnMessageHooks(object):
         def check_spam():
             _is_spam = False
             _spam_id = None
+            _message = None
 
             try:
                 _message = utils.b64d(activity.object.content)
@@ -95,7 +96,17 @@ class OnMessageHooks(object):
                     _message = json_body.get('text')
                 except Exception:
                     pass  # ignore, use original
+            except Exception as e:
+                logger.error('could not decode message: {}'.format(str(e)))
+                logger.exception(e)
+                environ.env.capture_exception(sys.exc_info())
+                return False, None
+            
+            # short or overly long messages are usually not spam, and the models weren't trained on it
+            if len(_message) < 15 or len(_message) > 250:
+                return False, None
 
+            try:
                 _is_spam, _y_hats = environ.env.spam.is_spam(_message)
                 if _is_spam:
                     _spam_id = environ.env.db.save_spam_prediction(activity, _message, _y_hats)
@@ -103,6 +114,7 @@ class OnMessageHooks(object):
                 logger.error('could not predict spam: {}'.format(str(e)))
                 logger.exception(e)
                 environ.env.capture_exception(sys.exc_info())
+                return False, None
 
             return _is_spam, _spam_id
 
