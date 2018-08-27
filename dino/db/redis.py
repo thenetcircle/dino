@@ -78,6 +78,15 @@ class DatabaseRedis(object):
     def get_spam_from(self, user_id: str) -> list:
         return list()
 
+    def init_config(self) -> None:
+        return
+
+    def enable_spam_classifier(self) -> None:
+        return
+
+    def disable_spam_classifier(self) -> None:
+        return
+
     def set_spam_correct_or_not(self, spam_id: int, correct: bool):
         pass  # not supported
 

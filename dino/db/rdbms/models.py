@@ -131,6 +131,13 @@ class LastReads(DeclarativeBase):
     time_stamp = Column('time_stamp', Integer, nullable=False)
 
 
+class Config(DeclarativeBase):
+    __tablename__ = 'service_config'
+
+    id = Column(Integer, primary_key=True)
+    spam = Column('spam', Boolean, nullable=False, default=True)
+
+
 class Spams(DeclarativeBase):
     __tablename__ = 'spams'
 

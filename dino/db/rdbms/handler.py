@@ -36,7 +36,7 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs, Spams
+from dino.db.rdbms.models import AclConfigs, Spams, Config
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import Bans
 from dino.db.rdbms.models import BlackList
@@ -107,6 +107,16 @@ class DatabaseRdbms(object):
     @with_session
     def _session(self, session):
         return session
+
+    @with_session
+    def init_config(self, session=None):
+        config = session.query(Config).first()
+        if config is not None:
+            return
+
+        config = Config()
+        session.add(config)
+        session.commit()
 
     def is_room_ephemeral(self, room_id: str) -> bool:
         @with_session
@@ -1831,6 +1841,20 @@ class DatabaseRdbms(object):
             self._format_spam(spam)
             for spam in session.query(Spams).filter(Spams.from_uid == user_id).all()
         ]
+
+    @with_session
+    def disable_spam_classifier(self, session=None) -> None:
+        config = session.query(Config).first()
+        config.spam = False
+        session.add(config)
+        session.commit()
+
+    @with_session
+    def enable_spam_classifier(self, session=None) -> None:
+        config = session.query(Config).first()
+        config.spam = True
+        session.add(config)
+        session.commit()
 
     @with_session
     def set_spam_correct_or_not(self, spam_id: int, correct: bool, session=None):

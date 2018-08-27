@@ -685,6 +685,7 @@ def init_database(gn_env: GNEnvironment):
     elif db_type == 'rdbms':
         from dino.db.rdbms.handler import DatabaseRdbms
         gn_env.db = DatabaseRdbms(gn_env)
+        gn_env.db.init_config()
 
     else:
         raise RuntimeError('unknown db type "%s", use one of [mock, redis, rdbms]' % db_type)

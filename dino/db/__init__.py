@@ -21,6 +21,27 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class IDatabase(Interface):
+    def init_config(self) -> None:
+        """
+        initialize the config table
+
+        :return: nothing
+        """
+
+    def disable_spam_classifier(self) -> None:
+        """
+        disable the spam classifier
+
+        :return: nothing
+        """
+
+    def enable_spam_classifier(self) -> None:
+        """
+        enable the spam classifier
+
+        :return: nothing
+        """
+
     def get_latest_spam(self, limit: int) -> list:
         """
         get the latest spam messages recorded
