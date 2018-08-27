@@ -1,53 +1,55 @@
 ## Error Codes
 
-    OK = 200
-    UNKNOWN_ERROR = 250
+```ini
+OK = 200
+UNKNOWN_ERROR = 250
 
-    MISSING_ACTOR_ID = 500
-    MISSING_OBJECT_ID = 501
-    MISSING_TARGET_ID = 502
-    MISSING_OBJECT_URL = 503
-    MISSING_TARGET_DISPLAY_NAME = 504
-    MISSING_ACTOR_URL = 505
-    MISSING_OBJECT_CONTENT = 506
-    MISSING_OBJECT = 507
-    MISSING_OBJECT_ATTACHMENTS = 508
-    MISSING_ATTACHMENT_TYPE = 509
-    MISSING_ATTACHMENT_CONTENT = 510
+MISSING_ACTOR_ID = 500
+MISSING_OBJECT_ID = 501
+MISSING_TARGET_ID = 502
+MISSING_OBJECT_URL = 503
+MISSING_TARGET_DISPLAY_NAME = 504
+MISSING_ACTOR_URL = 505
+MISSING_OBJECT_CONTENT = 506
+MISSING_OBJECT = 507
+MISSING_OBJECT_ATTACHMENTS = 508
+MISSING_ATTACHMENT_TYPE = 509
+MISSING_ATTACHMENT_CONTENT = 510
 
-    INVALID_TARGET_TYPE = 600
-    INVALID_ACL_TYPE = 601
-    INVALID_ACL_ACTION = 602
-    INVALID_ACL_VALUE = 603
-    INVALID_STATUS = 604
-    INVALID_OBJECT_TYPE = 605
-    INVALID_BAN_DURATION = 606
+INVALID_TARGET_TYPE = 600
+INVALID_ACL_TYPE = 601
+INVALID_ACL_ACTION = 602
+INVALID_ACL_VALUE = 603
+INVALID_STATUS = 604
+INVALID_OBJECT_TYPE = 605
+INVALID_BAN_DURATION = 606
 
-    EMPTY_MESSAGE = 700
-    NOT_BASE64 = 701
-    USER_NOT_IN_ROOM = 702
-    USER_IS_BANNED = 703
-    ROOM_ALREADY_EXISTS = 704
-    NOT_ALLOWED = 705
-    VALIDATION_ERROR = 706
-    ROOM_FULL = 707
-    NOT_ONLINE = 708
-    TOO_MANY_PRIVATE_ROOMS = 709
-    ROOM_NAME_TOO_LONG = 710
-    ROOM_NAME_TOO_SHORT = 711
-    INVALID_TOKEN = 712
-    INVALID_LOGIN = 713
-    MSG_TOO_LONG = 714
-    MULTIPLE_ROOMS_WITH_NAME = 715
-    TOO_MANY_ATTACHMENTS = 716
-    NOT_ENABLED = 717
+EMPTY_MESSAGE = 700
+NOT_BASE64 = 701
+USER_NOT_IN_ROOM = 702
+USER_IS_BANNED = 703
+ROOM_ALREADY_EXISTS = 704
+NOT_ALLOWED = 705
+VALIDATION_ERROR = 706
+ROOM_FULL = 707
+NOT_ONLINE = 708
+TOO_MANY_PRIVATE_ROOMS = 709
+ROOM_NAME_TOO_LONG = 710
+ROOM_NAME_TOO_SHORT = 711
+INVALID_TOKEN = 712
+INVALID_LOGIN = 713
+MSG_TOO_LONG = 714
+MULTIPLE_ROOMS_WITH_NAME = 715
+TOO_MANY_ATTACHMENTS = 716
+NOT_ENABLED = 717
 
-    NO_SUCH_USER = 800
-    NO_SUCH_CHANNEL = 801
-    NO_SUCH_ROOM = 802
-    NO_ADMIN_ROOM_FOUND = 803
-    NO_USER_IN_SESSION = 804
-    NO_ADMIN_ONLINE = 805
+NO_SUCH_USER = 800
+NO_SUCH_CHANNEL = 801
+NO_SUCH_ROOM = 802
+NO_ADMIN_ROOM_FOUND = 803
+NO_USER_IN_SESSION = 804
+NO_ADMIN_ONLINE = 805
+```
 
 ## `connect`
 
@@ -57,9 +59,11 @@ Request contains no data.
 
 Response data if successful:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
     
 ## `login`
 
@@ -67,69 +71,73 @@ Responds with event name `gn_login`.
 
 Request contains:
 
-    {
-        verb: "login",
-        actor: {
-            "id": "<user ID>",
-            "displayName": "<user name>",
-            "attachments": [
-                {
-                    "objectType": "token",
-                    "content": "<user token>"
-                }
-            ]
-        }
+```json
+{
+    "verb": "login",
+    "actor": {
+        "id": "<user ID>",
+        "displayName": "<user name>",
+        "attachments": [
+            {
+                "objectType": "token",
+                "content": "<user token>"
+            }
+        ]
     }
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "id": "<server-generated UUID>",
-            "published": "<server-generated timestamp, RFC3339 format>",
-            "actor": {
-                "id": "<user id>",
-                "displayName": "<user name in base64>",
-                "attachments": [
-                    {
-                        "objectType": "room_role",
-                        "id": "<room UUID>",
-                        "content": "moderator,owner"
-                    },
-                    {
-                        "objectType": "room_role",
-                        "id": "<room UUID>",
-                        "content": "owner"
-                    },
-                    {
-                        "objectType": "channel_role",
-                        "id": "<channel UUID>",
-                        "content": "admin,owner"
-                    },
-                    {
-                        "objectType": "global_roles",
-                        "content": "superuser,globalmod"
-                    }
-                ]
-            },
-            "object": {
-                "objectType": "history",
-                "attachments": [{
-                    "author": {
-                        "id": "<sender id>", 
-                        "displayName": "<sender name in base64>"
-                    },
-                    "content": "<message in base64>",
-                    "id": "84421980-d84a-4f6f-9ad7-0357d15d99f8",
-                    "published": "2017-11-17T07:19:12Z",
-                    "summary": "9fa5b40a-f0a6-44ea-93c1-acf2947e5f09",
-                    "objectType": "history"
-                }]
-            },
-            "verb": "login"
-        }
+```json
+{
+    "status_code": 200,
+    "data": {
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>",
+        "actor": {
+            "id": "<user id>",
+            "displayName": "<user name in base64>",
+            "attachments": [
+                {
+                    "objectType": "room_role",
+                    "id": "<room UUID>",
+                    "content": "moderator,owner"
+                },
+                {
+                    "objectType": "room_role",
+                    "id": "<room UUID>",
+                    "content": "owner"
+                },
+                {
+                    "objectType": "channel_role",
+                    "id": "<channel UUID>",
+                    "content": "admin,owner"
+                },
+                {
+                    "objectType": "global_roles",
+                    "content": "superuser,globalmod"
+                }
+            ]
+        },
+        "object": {
+            "objectType": "history",
+            "attachments": [{
+                "author": {
+                    "id": "<sender id>", 
+                    "displayName": "<sender name in base64>"
+                },
+                "content": "<message in base64>",
+                "id": "84421980-d84a-4f6f-9ad7-0357d15d99f8",
+                "published": "2017-11-17T07:19:12Z",
+                "summary": "9fa5b40a-f0a6-44ea-93c1-acf2947e5f09",
+                "objectType": "history"
+            }]
+        },
+        "verb": "login"
     }
+}
+```
 
 The object attachments are non-acked messages sent to any `private` `room`s (i.e. conversation based private 
 messaging). The `object.attachments[0].id` is the message UUID, while the `object.attachments[0].summary` is the 
@@ -340,57 +348,61 @@ Responds with event name `gn_list_rooms`.
 
 Request contains:
 
-    {
-        "object": {
-            "url": "<channel UUID>"
-        },
-        "verb": "list"
-    }
+```json
+{
+    "object": {
+        "url": "<channel UUID>"
+    },
+    "verb": "list"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "object": {
-                "objectType": "rooms",
-                "url": "<channel UUID>",
-                "attachments": [
-                    {
-                        "id": "<room UUID>",
-                        "displayName": "<room name>",
-                        "url": 8,
-                        "summary": <number of users in this room (integer)>,
-                        "objectType": "static",
-                        "content": "moderator,owner",
-                        "attachments": [
-                            {
-                                "summary": "join",
-                                "objectType": "gender",
-                                "content": "f"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "<room UUID>",
-                        "displayName": "<room name>",
-                        "url": 20,
-                        "summary": <number of users in this room (integer)>,
-                        "objectType": "temporary",
-                        "content": "",
-                        "attachments": [
-                            {
-                                "summary": "join",
-                                "objectType": "gender",
-                                "content": "f"
-                            }
-                        ]
-                    }
-                ]
-            },
-            "verb": "list"
-        }
+```json
+{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "rooms",
+            "url": "<channel UUID>",
+            "attachments": [
+                {
+                    "id": "<room UUID>",
+                    "displayName": "<room name>",
+                    "url": 8,
+                    "summary": <number of users in this room (integer)>,
+                    "objectType": "static",
+                    "content": "moderator,owner",
+                    "attachments": [
+                        {
+                            "summary": "join",
+                            "objectType": "gender",
+                            "content": "f"
+                        }
+                    ]
+                },
+                {
+                    "id": "<room UUID>",
+                    "displayName": "<room name>",
+                    "url": 20,
+                    "summary": <number of users in this room (integer)>,
+                    "objectType": "temporary",
+                    "content": "",
+                    "attachments": [
+                        {
+                            "summary": "join",
+                            "objectType": "gender",
+                            "content": "f"
+                        }
+                    ]
+                }
+            ]
+        },
+        "verb": "list"
     }
+}
+```
 
 The `url` field for `object` is the `UUID` of the channel that these rooms are for.  
 
@@ -417,20 +429,22 @@ when empty, while temporary rooms are removed when the owner leaves (usually onl
 If a user e.g. changes his/her avatar, the change can be broadcasted to users in the same rooms as this user is in. To
 e.g. let other users know this user is currently streaming video, the `objectType` `is_streaming` might be used:
 
-    {
-        "object": {
-            "attachments": [
-                {
-                    "content": "MA==",
-                    "objectType": "is_streaming"
-                }
-            ],
-            "objectType": "userInfo"
-        },
-        "verb": "update",
-        "id": "<server-generated UUID>",
-        "published": "<server-generated timestamp, RFC3339 format>"
-    }
+```json
+{
+    "object": {
+        "attachments": [
+            {
+                "content": "MA==",
+                "objectType": "is_streaming"
+            }
+        ],
+        "objectType": "userInfo"
+    },
+    "verb": "update",
+    "id": "<server-generated UUID>",
+    "published": "<server-generated timestamp, RFC3339 format>"
+}
+```
 
 The `content` of the attachments needs to be base64 encoded.
 
@@ -442,16 +456,20 @@ with name [`gn_user_info_updated`](events.md#user-info-updated).
 
 Response data if successful:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 Or if missing data, e.g.:
 
-    {
-        "status_code": 509,
-        "message": "no objectType on attachment for object"
-    }
+```json
+{
+    "status_code": 509,
+    "message": "no objectType on attachment for object"
+}
+```
 
 ## `request_admin`
 
@@ -468,28 +486,34 @@ Responds with event name `gn_request_admin`.
 
 Request contains:
 
-    {
-        "target": {
-            "id": "<room UUID to request help for>"
-        },
-        "object": {
-            "content": "<base64 encoded message that will be delivered to the admin room>"
-        },
-        "verb": "help"
-    }
+```json
+{
+    "target": {
+        "id": "<room UUID to request help for>"
+    },
+    "object": {
+        "content": "<base64 encoded message that will be delivered to the admin room>"
+    },
+    "verb": "help"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 If no admin is online, the response will be:
 
-    {
-        "status_code": 805,
-        "message": "no admin is online"
-    }
+```json
+{
+    "status_code": 805,
+    "message": "no admin is online"
+}
+```
 
 The `object.content` could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
 reason text etc. 
@@ -505,18 +529,22 @@ Responds with event name `gn_leave`.
 
 Request contains:
 
-    {
-        "target": {
-            "id": "<room UUID>"
-        },
-        verb: "leave"
-    }
+```json
+{
+    "target": {
+        "id": "<room UUID>"
+    },
+    "verb": "leave"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 ## `users_in_room`
 
@@ -526,56 +554,60 @@ Responds with event name `gn_users_in_room`.
 
 Request contains:
 
-    {
-        "target": {
-            "id": "<room UUID>"
-        },
-        verb: "list"
-    }
+```json
+{
+    "target": {
+        "id": "<room UUID>"
+    },
+    "verb": "list"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "object": {
-                "objectType": "users",
-                "attachments": [
-                    {
-                        "id": "<user UUID>",
-                        "displayName": "<user name>",
-                        "content": "globalmod,moderator"
-                        "attachments": [
-                            {
-                                "content": "NDA=",
-                                "objectType": "age"
-                            },
-                            {
-                                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                                "objectType": "avatar"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "<user UUID>",
-                        "displayName": "<user name>",
-                        "content": "moderator"
-                        "attachments": [
-                            {
-                                "content": "NDA=",
-                                "objectType": "age"
-                            },
-                            {
-                                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                                "objectType": "avatar"
-                            }
-                        ]
-                    }
-                ]
-            },
-            "verb": "list"
-        }
+```json
+{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "users",
+            "attachments": [
+                {
+                    "id": "<user UUID>",
+                    "displayName": "<user name>",
+                    "content": "globalmod,moderator"
+                    "attachments": [
+                        {
+                            "content": "NDA=",
+                            "objectType": "age"
+                        },
+                        {
+                            "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                            "objectType": "avatar"
+                        }
+                    ]
+                },
+                {
+                    "id": "<user UUID>",
+                    "displayName": "<user name>",
+                    "content": "moderator"
+                    "attachments": [
+                        {
+                            "content": "NDA=",
+                            "objectType": "age"
+                        },
+                        {
+                            "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                            "objectType": "avatar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "verb": "list"
     }
+}
+```
 
 The `content` of the user attachment describes the roles this user has in this room, plus any global roles. Examples:
 
@@ -597,48 +629,52 @@ Responds with event name `gn_history`.
 
 Request contains:
 
-    {
-        "target": {
-            "id": "<room UUID>"
-        },
-        "updated": "<last read timestamp, if configured in server will return messages since this time>",
-        "verb": "list"
-    }
+```json
+{
+    "target": {
+        "id": "<room UUID>"
+    },
+    "updated": "<last read timestamp, if configured in server will return messages since this time>",
+    "verb": "list"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "object": {
-                "objectType": "messages",
-                "attachments": [
-                    {
-                        "author": {
-                            "id": "<the user id of the sender>",
-                            "displayName": "<the user name of the sender>"
-                        },
-                        "id": "<message ID>",
-                        "content": "<the message content>",
-                        "published": "<the time it was sent, RFC3339>"
+```json
+{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "messages",
+            "attachments": [
+                {
+                    "author": {
+                        "id": "<the user id of the sender>",
+                        "displayName": "<the user name of the sender>"
                     },
-                    {
-                        "author": {
-                            "id": "<the user id of the sender>",
-                            "displayName": "<the user name of the sender>"
-                        },
-                        "id": "<message ID>",
-                        "content": "<the message content>",
-                        "published": "<the time it was sent, RFC3339>"
-                    }
-                ]
-            },
-            "target": {
-                "id": "<room UUID>"
-            },
-            "verb": "history"
-        }
+                    "id": "<message ID>",
+                    "content": "<the message content>",
+                    "published": "<the time it was sent, RFC3339>"
+                },
+                {
+                    "author": {
+                        "id": "<the user id of the sender>",
+                        "displayName": "<the user name of the sender>"
+                    },
+                    "id": "<message ID>",
+                    "content": "<the message content>",
+                    "published": "<the time it was sent, RFC3339>"
+                }
+            ]
+        },
+        "target": {
+            "id": "<room UUID>"
+        },
+        "verb": "history"
     }
+}
+```
 
 ## `status`
 
@@ -648,15 +684,19 @@ Responds with `gn_status`.
 
 Request contains:
 
-    {
-        "verb": "<one of online/offline/invisible>"
-    }
+```json
+{
+    "verb": "<one of online/offline/invisible>"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 ## `get_acl`
 
@@ -666,6 +706,7 @@ Responds with `gn_get_acl`.
 
 Request contains:
 
+```json
     {
         "target": {
             "id": "<room UUID>",
@@ -673,46 +714,14 @@ Request contains:
         },
         "verb": "get"
     }
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "target": {
-                "id": "<room/channel UUID>",
-                "objectType": "<room/channel>"
-            },
-            "object": {
-                "objectType": "acl",
-                "attachments": [
-                    {
-                        "objectType": "<ACL type name>",
-                        "content": "<ACL value>",
-                        "summary": "<API action, e.g. join/kick/etc>"
-                    },
-                    {
-                        "objectType": "<ACL type name>",
-                        "content": "<ACL value>",
-                        "summary": "<API action, e.g. join/kick/etc>"
-                    }
-                ]
-            },
-            "verb": "get"
-        }
-    }
-
-## `set_acl`
-
-Update the permissions of a room/channel. If the "content" is blank, the ACL with that type for the specified action
-will be removed. Example "API actions" are "join", "create", "message", "kick". Example "permission types" are "age",
-"gender", "membership".
-
-Responds with `gn_set_acl`.
-
-Request contains:
-
-    {
+```json
+{
+    "status_code": 200,
+    "data": {
         "target": {
             "id": "<room/channel UUID>",
             "objectType": "<room/channel>"
@@ -732,14 +741,53 @@ Request contains:
                 }
             ]
         },
-        "verb": "set"
+        "verb": "get"
     }
+}
+```
+
+## `set_acl`
+
+Update the permissions of a room/channel. If the "content" is blank, the ACL with that type for the specified action
+will be removed. Example "API actions" are "join", "create", "message", "kick". Example "permission types" are "age",
+"gender", "membership".
+
+Responds with `gn_set_acl`.
+
+Request contains:
+
+```json
+{
+    "target": {
+        "id": "<room/channel UUID>",
+        "objectType": "<room/channel>"
+    },
+    "object": {
+        "objectType": "acl",
+        "attachments": [
+            {
+                "objectType": "<ACL type name>",
+                "content": "<ACL value>",
+                "summary": "<API action, e.g. join/kick/etc>"
+            },
+            {
+                "objectType": "<ACL type name>",
+                "content": "<ACL value>",
+                "summary": "<API action, e.g. join/kick/etc>"
+            }
+        ]
+    },
+    "verb": "set"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 ## `create`
 
@@ -749,32 +797,36 @@ Responds with `gn_create`.
 
 Request contains:
 
-    {
+```json
+{
+    "target": {
+        "displayName": "<name of the new room>"
+    },
+    "object": {
+        "url": "<channel UUID>"
+    },
+    "verb": "create"
+}
+```
+
+Response data if successful:
+
+```json
+{
+    "status_code": 200,
+    "data": {
         "target": {
-            "displayName": "<name of the new room>"
+            "id": "<the generated UUID for this room>",
+            "displayName": "<name of the new room>",
+            "objectType": "temporary"
         },
         "object": {
             "url": "<channel UUID>"
         },
         "verb": "create"
     }
-
-Response data if successful:
-
-    {
-        "status_code": 200,
-        "data": {
-            "target": {
-                "id": "<the generated UUID for this room>",
-                "displayName": "<name of the new room>",
-                "objectType": "temporary"
-            },
-            "object": {
-                "url": "<channel UUID>"
-            },
-            "verb": "create"
-        }
-    }
+}
+``` 
 
 If the amount of private rooms already exceed 2, the error code `709` (`TOO_MANY_PRIVATE_ROOMS`) will be returned.
     
@@ -784,28 +836,30 @@ they will be automatically removed when the owner leaves.
 It is also possible to specify ACLs for a room while creating it, but adding `object.attachments` as in the `set_acl` 
 event:
 
-    {
-        "target": {
-            "displayName": "<name of the new room>"
-        },
-        "object": {
-            "url": "<channel UUID>",
-            "objectType": "acl",
-            "attachments": [
-                {
-                    "objectType": "<ACL type name>",
-                    "content": "<ACL value>",
-                    "summary": "<API action, e.g. join/kick/etc>"
-                },
-                {
-                    "objectType": "<ACL type name>",
-                    "content": "<ACL value>",
-                    "summary": "<API action, e.g. join/kick/etc>"
-                }
-            ]
-        },
-        "verb": "create"
-    }
+```json
+{
+    "target": {
+        "displayName": "<name of the new room>"
+    },
+    "object": {
+        "url": "<channel UUID>",
+        "objectType": "acl",
+        "attachments": [
+            {
+                "objectType": "<ACL type name>",
+                "content": "<ACL value>",
+                "summary": "<API action, e.g. join/kick/etc>"
+            },
+            {
+                "objectType": "<ACL type name>",
+                "content": "<ACL value>",
+                "summary": "<API action, e.g. join/kick/etc>"
+            }
+        ]
+    },
+    "verb": "create"
+}
+```
 
 ## `invite`
 
@@ -815,21 +869,25 @@ Responds with `gn_invite`.
 
 Request contains:
 
-    {
-        "target": {
-            "id": "<UUID of the user to invite>"
-        },
-        "actor": {
-            "url": "<the room UUID the invitation is for>"
-        },
-        "verb": "invite"
-    }
+```json
+{
+    "target": {
+        "id": "<UUID of the user to invite>"
+    },
+    "actor": {
+        "url": "<the room UUID the invitation is for>"
+    },
+    "verb": "invite"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 ## `delete`
 
@@ -840,15 +898,17 @@ Responds with `gn_delete`.
 
 Request contains:
 
-    {
-        "target": {
-            "id": "<UUID of the room to delete from>"
-        },
-        "object": {
-            "id": "<UUID of the message to delete>"
-        },
-        "verb": "delete"
-    }
+```json
+{
+    "target": {
+        "id": "<UUID of the room to delete from>"
+    },
+    "object": {
+        "id": "<UUID of the message to delete>"
+    },
+    "verb": "delete"
+}
+```
 
 ## `kick`
 
@@ -858,21 +918,25 @@ Responds with `gn_kick`.
 
 Request contains:
 
-    {
-        "target": {
-            "id": "<UUID of the room to kick from>"
-        },
-        "object": {
-            "id": "<UUID of the user to kick>"
-        },
-        "verb": "kick"
-    }
+```json
+{
+    "target": {
+        "id": "<UUID of the room to kick from>"
+    },
+    "object": {
+        "id": "<UUID of the user to kick>"
+    },
+    "verb": "kick"
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 ## `ban`
 
@@ -882,18 +946,20 @@ Responds with `gn_ban`.
 
 Request contains:
 
-    {
-        "target": {
-            "id": "<UUID of the room/channel to ban from>",
-            "objectType": "<room/channel/global>"
-        },
-        "object": {
-            "id": "<UUID of the user to ban>",
-            "summary": "<ban duration, an integer suffixed with one of [d, h, m, s]>",
-            "content": "<optional reason field, base64>"
-        },
-        "verb": "ban"
-    }
+```json
+{
+    "target": {
+        "id": "<UUID of the room/channel to ban from>",
+        "objectType": "<room/channel/global>"
+    },
+    "object": {
+        "id": "<UUID of the user to ban>",
+        "summary": "<ban duration, an integer suffixed with one of [d, h, m, s]>",
+        "content": "<optional reason field, base64>"
+    },
+    "verb": "ban"
+}
+```
 
 If banning a used in a room, set objectType to `room` and `target.id` to the uuid of the room. If banning from a channel,
 set `objectType` to `channel` and `target.id` to the uuid of the channel. If banning globally, set objectType to `global`
@@ -911,9 +977,11 @@ restriction is that the date when the ban ends (`utcnow()+duration`) must be bef
 
 Response data if successful:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 ## `message`
 
@@ -923,15 +991,15 @@ Responds with event name `gn_message`.
 
 Request contains:
 
-```javascript
+```json 
 {
-    verb: "send",
-    target: {
-        id: "<room uuid>",
-        objectType: "<room/private>"
+    "verb": "send",
+    "target": {
+        "id": "<room uuid>",
+        "objectType": "<room/private>"
     },
-    object: {
-        content: "<the message, base64 encoded>",
+    "object": {
+        "content": "<the message, base64 encoded>",
     }
 }
 ```
@@ -943,7 +1011,7 @@ then they come online (all non-acked messages for rooms they are `owner` for).
 
 Response data if successful:
 
-```javascript
+```json
 {
     "status_code": 200,
     "data": {
@@ -977,28 +1045,32 @@ Response with the event name `gn_remove_room`.
 
 Request contains:
 
-    {
-        "verb": "remove",
-        "target": {
-            "id": "<room ID>"
-        }
+```json
+{
+    "verb": "remove",
+    "target": {
+        "id": "<room ID>"
     }
+}
+```
 
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "target": {
-                "id": "<room uuid>",
-                "displayName": "<room name in base64>",
-                "objectType": "room"
-            },
-            "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
-            "published": "2016-10-07T10:45:34Z",
-            "verb": "removed"
-        }
+```json
+{
+    "status_code": 200,
+    "data": {
+        "target": {
+            "id": "<room uuid>",
+            "displayName": "<room name in base64>",
+            "objectType": "room"
+        },
+        "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+        "published": "2016-10-07T10:45:34Z",
+        "verb": "removed"
     }
+}
+```
 
 ## `report`
 
@@ -1006,17 +1078,19 @@ No response.
 
 Request contains:
 
-    {
-        "verb": "report",
-        "object": {
-            "id": "<uuid of message>",
-            "content": "<the actual message to report, base64>",
-            "summary": "<optional reason text, base64>"
-        },
-        "target": {
-            "id": "<user ID to report>"
-        }
+```json
+{
+    "verb": "report",
+    "object": {
+        "id": "<uuid of message>",
+        "content": "<the actual message to report, base64>",
+        "summary": "<optional reason text, base64>"
+    },
+    "target": {
+        "id": "<user ID to report>"
     }
+}
+```
 
 A report will be sent to both the admin room and as an external event published on the MQ.
 
@@ -1037,112 +1111,116 @@ Currently only the `superuser` and `globalmod` role is considered when the `requ
 
 Request contains:
 
-    {
-        "verb": "join",
-        "target": {
-            "id": "<room ID>"
-        }
+```json
+{
+    "verb": "join",
+    "target": {
+        "id": "<room ID>"
     }
+}
+```
     
 Response data if successful:
 
-    {
-        "status_code": 200,
-        "data": {
-            "object": {
-                "objectType": "room",
-                "attachments": [
-                    {
-                        "objectType": "history",
-                        "attachments": [
-                            {
-                                "author": {
-                                    "id": "<the user id of the sender>",
-                                    "displayName": "<the user name of the sender>"
+```json
+{
+    "status_code": 200,
+    "data": {
+        "object": {
+            "objectType": "room",
+            "attachments": [
+                {
+                    "objectType": "history",
+                    "attachments": [
+                        {
+                            "author": {
+                                "id": "<the user id of the sender>",
+                                "displayName": "<the user name of the sender>"
+                            },
+                            "id": "<message ID>",
+                            "content": "<the message content>",
+                            "published": "<the time it was sent, RFC3339>"
+                        },
+                        {
+                            "author": {
+                                "id": "<the user id of the sender>",
+                                "displayName": "<the user name of the sender>"
+                            },
+                            "id": "<message ID>",
+                            "content": "<the message content>",
+                            "published": "<the time it was sent, RFC3339>"
+                        }
+                    ]
+                },
+                {
+                    "objectType": "owner",
+                    "attachments": [
+                        {
+                            "id": "<owner's user ID>",
+                            "displayName": "<owner's user name>",
+                        },
+                        {
+                            "id": "<owner's user ID>",
+                            "displayName": "<owner's user name>",
+                        }
+                    ]
+                },
+                {
+                    "objectType": "acl",
+                    "attachments": [
+                        {
+                            "objectType": "<ACL type name>",
+                            "content": "<ACL value>",
+                        },
+                        {
+                            "objectType": "<ACL type name>",
+                            "content": "<ACL value>",
+                        }
+                    ]
+                },
+                {
+                    "objectType": "user",
+                    "attachments": [
+                        {
+                            "id": "<user ID of a user in the room>",
+                            "displayName": "<user name of a user in the room>",
+                            "content": "moderator,owner",
+                            "attachments": [
+                                {
+                                    "content": "NDA=",
+                                    "objectType": "age"
                                 },
-                                "id": "<message ID>",
-                                "content": "<the message content>",
-                                "published": "<the time it was sent, RFC3339>"
-                            },
-                            {
-                                "author": {
-                                    "id": "<the user id of the sender>",
-                                    "displayName": "<the user name of the sender>"
+                                {
+                                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                                    "objectType": "avatar"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "<user ID of a user in the room>",
+                            "displayName": "<user name of a user in the room>",
+                            "content": "superuser",
+                            "attachments": [
+                                {
+                                    "content": "NDA=",
+                                    "objectType": "age"
                                 },
-                                "id": "<message ID>",
-                                "content": "<the message content>",
-                                "published": "<the time it was sent, RFC3339>"
-                            }
-                        ]
-                    },
-                    {
-                        "objectType": "owner",
-                        "attachments": [
-                            {
-                                "id": "<owner's user ID>",
-                                "displayName": "<owner's user name>",
-                            },
-                            {
-                                "id": "<owner's user ID>",
-                                "displayName": "<owner's user name>",
-                            }
-                        ]
-                    },
-                    {
-                        "objectType": "acl",
-                        "attachments": [
-                            {
-                                "objectType": "<ACL type name>",
-                                "content": "<ACL value>",
-                            },
-                            {
-                                "objectType": "<ACL type name>",
-                                "content": "<ACL value>",
-                            }
-                        ]
-                    },
-                    {
-                        "objectType": "user",
-                        "attachments": [
-                            {
-                                "id": "<user ID of a user in the room>",
-                                "displayName": "<user name of a user in the room>",
-                                "content": "moderator,owner",
-                                "attachments": [
-                                    {
-                                        "content": "NDA=",
-                                        "objectType": "age"
-                                    },
-                                    {
-                                        "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                                        "objectType": "avatar"
-                                    }
-                                ]
-                            },
-                            {
-                                "id": "<user ID of a user in the room>",
-                                "displayName": "<user name of a user in the room>",
-                                "content": "superuser",
-                                "attachments": [
-                                    {
-                                        "content": "NDA=",
-                                        "objectType": "age"
-                                    },
-                                    {
-                                        "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                                        "objectType": "avatar"
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                ]
-            },
-            "verb": "join",
-            "target": {
-                "id": "<the room ID that the user joined>"
-            }
+                                {
+                                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
+                                    "objectType": "avatar"
+                                }
+                            ]
+                        }
+                    ]
+                },
+            ]
+        },
+        "verb": "join",
+        "target": {
+            "id": "<the room ID that the user joined>"
         }
     }
+}
+```
 
 Attachments for each user contains the user data, e.g. user name, age, city etc.
