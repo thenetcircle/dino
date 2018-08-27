@@ -193,231 +193,240 @@
                 <h2 id="message-deleted">Message deleted</h2>
 <p>When an admin/mod/etc. deletes a message from a room, everyone on that room will receive an event with the name 
 <code>gn_message_deleted</code> so they can remove it locally as well.</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "object": {
-        "id": "&lt;UUID of the message that was deleted&gt;"
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the message that was deleted&gt;&quot;
     },
-    "target": {
-        "id": "&lt;UUID of the room the message was deleted in&gt;"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the room the message was deleted in&gt;&quot;
     },
-    "verb": "delete",
-    "actor": {
-        "id": "&lt;ID fo the user who deleted the message&gt;",
-        "displayName": "&lt;name of the user, base64&gt;"
+    &quot;verb&quot;: &quot;delete&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;ID of the user who deleted the message&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the user, base64&gt;&quot;
     }
 }
 </code></pre>
+
 <h2 id="message-received">Message received</h2>
 <p>When user A receives a private message, or a message from a room that user A is in, the event <code>message</code> will be sent
 to user A with the following content:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;UUID of the sender&gt;",
-        "displayName": "&lt;name of the sender&gt;"
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the sender&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the sender&gt;&quot;
     },
-    "verb": "send",
-    "target": {
-        "id": "&lt;UUID of the room, or this user's UUID if private msg&gt;",
-        "displayName": "&lt;name of the room, or target user name if private msg&gt;",
-        "objectType": "&lt;room/private&gt;"
+    &quot;verb&quot;: &quot;send&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the room, or this user's UUID if private msg&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the room, or target user name if private msg&gt;&quot;,
+        &quot;objectType&quot;: &quot;&lt;room/private&gt;&quot;
     },
-    "object": {
-        "content": "&lt;the message body&gt;",
-        "displayName": "&lt;the name of the channel, or empty if private msg&gt;",
-        "url": "&lt;UUID of the channel for this room, or empty if private msg&gt;"
+    &quot;object&quot;: {
+        &quot;content&quot;: &quot;&lt;the message body&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;the name of the channel, or empty if private msg&gt;&quot;,
+        &quot;url&quot;: &quot;&lt;UUID of the channel for this room, or empty if private msg&gt;&quot;
     }
 }
 </code></pre>
+
 <h2 id="message-has-been-read">Message has been read</h2>
 <p>If user A sends a message to user B and user B invokes the <code>read</code> api to indicate the message has been read, user A
 will receive a <code>gn_message_read</code> event with the following content:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;user id of the one sending the read receipt&gt;"
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user id of the one sending the read receipt&gt;&quot;
     },
-    "verb": "read",
-    "target": {
-        "id": "&lt;uuid of the room the messages are all in&gt;" 
+    &quot;verb&quot;: &quot;read&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;uuid of the room the messages are all in&gt;&quot; 
     },   
-    "object": {
-        "attachments": [
-            {"id": "&lt;message1 uuid&gt;"},
-            {"id": "&lt;message2 uuid&gt;"},
-            {"id": "&lt;message3 uuid&gt;"}
+    &quot;object&quot;: {
+        &quot;attachments&quot;: [
+            {&quot;id&quot;: &quot;&lt;message1 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message2 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message3 uuid&gt;&quot;}
         ]    
     }    
 }
 </code></pre>
+
 <h2 id="message-has-been-delivered">Message has been delivered</h2>
 <p>If user A sends a message to user B and user B invokes the <code>received</code> api to indicate the message has been received,
 user A will receive a <code>gn_message_received</code> event with the following content:</p>
-<pre><code>{   
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;user id of the one sending the read receipt&gt;"
+<pre><code class="json">{   
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user id of the one sending the read receipt&gt;&quot;
     },
-    "verb": "received",
-    "target": {
-        "id": "&lt;uuid of the room the messages are all in&gt;" 
+    &quot;verb&quot;: &quot;received&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;uuid of the room the messages are all in&gt;&quot; 
     },   
-    "object": {
-        "attachments": [
-            {"id": "&lt;message1 uuid&gt;"},
-            {"id": "&lt;message2 uuid&gt;"},
-            {"id": "&lt;message3 uuid&gt;"}
+    &quot;object&quot;: {
+        &quot;attachments&quot;: [
+            {&quot;id&quot;: &quot;&lt;message1 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message2 uuid&gt;&quot;},
+            {&quot;id&quot;: &quot;&lt;message3 uuid&gt;&quot;}
         ]    
     }    
-}
+}   
 </code></pre>
+
 <h2 id="user-info-updated">User info updated</h2>
 <p>When a user updates his/her user information (e.g. avatar, is streaming, age etc.), the event <code>gn_user_info_updated</code>
 will be sent to either all rooms that the user is in, or a specific room that user chose to send to. The event looks 
 like this:</p>
-<pre><code>{
-    "actor": {
-        "id": "997110",
-        "displayName": "YmF0bWFu"
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;997110&quot;,
+        &quot;displayName&quot;: &quot;YmF0bWFu&quot;
     },
-    "object": {
-        "attachments": [{
-            "content": "MA==",
-            "objectType": "streaming"
+    &quot;object&quot;: {
+        &quot;attachments&quot;: [{
+            &quot;content&quot;: &quot;MA==&quot;,
+            &quot;objectType&quot;: &quot;streaming&quot;
         },{
-            "content": "MzU=",
-            "objectType": "age"
+            &quot;content&quot;: &quot;MzU=&quot;,
+            &quot;objectType&quot;: &quot;age&quot;
         }],
-        "objectType": "userInfo"
+        &quot;objectType&quot;: &quot;userInfo&quot;
     },
-    "verb": "update",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;update&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <p>The <code>content</code> on each attachment is always base64 encoded. The <code>objectType</code> tells which field has been updated. Possible
 values depends on implementation, but is usually same as what's returned for user info when joining a room (<code>gn_join</code>).</p>
 <h2 id="admin-presence-requested">Admin presence requested</h2>
 <p>When someone requests the presence of an admin in a room all users in the Admin room for that channel will receive an
 event called <code>gn_admin_requested</code> containing the following:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;UUID of user requesting&gt;",
-        "displayName": "&lt;name of the user requesting&gt;",,
-        "attachments": [
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of user requesting&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the user requesting&gt;&quot;,,
+        &quot;attachments&quot;: [
             {
-                "content": "NDA=",
-                "objectType": "age"
+                &quot;content&quot;: &quot;NDA=&quot;,
+                &quot;objectType&quot;: &quot;age&quot;
             },
             {
-                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                "objectType": "avatar"
+                &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                &quot;objectType&quot;: &quot;avatar&quot;
             }
         ]
     },
-    "verb": "help",
-    "object": {
-        "content": "&lt;base64 encoded message&gt;"
+    &quot;verb&quot;: &quot;help&quot;,
+    &quot;object&quot;: {
+        &quot;content&quot;: &quot;&lt;base64 encoded message&gt;&quot;
     },
-    "generator": {
-        "id": "&lt;UUID of the room the help was requested for&gt;",
-        "displayName": "&lt;name of the room&gt;"
+    &quot;generator&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the room the help was requested for&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the room&gt;&quot;
     },
-    "target": {
-        "id": "&lt;UUID of the admin room&gt;",
-        "displayName": "&lt;base64 of the admin room name&gt;"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the admin room&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;base64 of the admin room name&gt;&quot;
     }
 }
 </code></pre>
+
 <h2 id="a-room-was-removed">A room was removed</h2>
 <p>When a room is removed by an admin/owner an event called <code>gn_room_removed</code> will be sent to everyone on the server (to
 keep the room list in sync on client side):</p>
-<pre><code>{
-    "actor": {
-        "id": "&lt;user ID who removed the room&gt;",
-        "displayName": "&lt;name of the user who removed the room, in base64&gt;"
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID who removed the room&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the user who removed the room, in base64&gt;&quot;
     },
-    "target": {
-        "id": "&lt;room uuid&gt;",
-        "displayName": "&lt;room name in base64&gt;",
-        "objectType": "room"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room uuid&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;room name in base64&gt;&quot;,
+        &quot;objectType&quot;: &quot;room&quot;
     },
-    "object": {
-        "content": "&lt;an optional reason, in base64&gt;"
+    &quot;object&quot;: {
+        &quot;content&quot;: &quot;&lt;an optional reason, in base64&gt;&quot;
     },
-    "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
-    "published": "2016-10-07T10:45:34Z",
-    "verb": "removed"
+    &quot;id&quot;: &quot;c42ebf01-3d50-4f27-a345-4ed213be045d&quot;,
+    &quot;published&quot;: &quot;2016-10-07T10:45:34Z&quot;,
+    &quot;verb&quot;: &quot;removed&quot;
 }
 </code></pre>
+
 <h2 id="invitation-received">Invitation received</h2>
 <p>When user B invites user A to join room X, the event <code>gn_invitation</code> will be sent to user A with the following content:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;UUID of user B&gt;",
-        "displayName": "&lt;name of user B&gt;",,
-        "attachments": [
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of user B&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of user B&gt;&quot;,,
+        &quot;attachments&quot;: [
             {
-                "content": "NDA=",
-                "objectType": "age"
+                &quot;content&quot;: &quot;NDA=&quot;,
+                &quot;objectType&quot;: &quot;age&quot;
             },
             {
-                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                "objectType": "avatar"
+                &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                &quot;objectType&quot;: &quot;avatar&quot;
             }
         ]
     },
-    "verb": "invite",
-    "object": {
-        "url": "&lt;UUID of the channel for room X&gt;",
-        "displayName": "&lt;name of the channel for room X&gt;"
+    &quot;verb&quot;: &quot;invite&quot;,
+    &quot;object&quot;: {
+        &quot;url&quot;: &quot;&lt;UUID of the channel for room X&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the channel for room X&gt;&quot;
     },
-    "target": {
-        "id": "&lt;UUID of the room&gt;",
-        "displayName": "&lt;name of the room&gt;"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the room&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the room&gt;&quot;
     }
 }
 </code></pre>
+
 <h2 id="another-user-joins-the-room">Another user joins the room</h2>
 <p>If user A is in room X, and another user B joins room X, the server will send an event called <code>gn_user_joined</code> to user A
 with the following content:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;user B's UUID&gt;",
-        "displayName": "&lt;name of user B&gt;",
-        "content": "globalmod,moderator"
-        "image": {
-            "url": "&lt;user B's image url&gt;"
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user B's UUID&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of user B&gt;&quot;,
+        &quot;content&quot;: &quot;globalmod,moderator&quot;
+        &quot;image&quot;: {
+            &quot;url&quot;: &quot;&lt;user B's image url&gt;&quot;
         },
-        "attachments": [
+        &quot;attachments&quot;: [
             {
-                "content": "NDA=",
-                "objectType": "age"
+                &quot;content&quot;: &quot;NDA=&quot;,
+                &quot;objectType&quot;: &quot;age&quot;
             },
             {
-                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                "objectType": "avatar"
+                &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                &quot;objectType&quot;: &quot;avatar&quot;
             }
         ]
     },
-    "target": {
-        "id": "&lt;uuid of the room&gt;",
-        "displayName": "&lt;name of the room&gt;"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;uuid of the room&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the room&gt;&quot;
     },
-    "verb": "join"
+    &quot;verb&quot;: &quot;join&quot;
 }
 </code></pre>
+
 <p>The <code>actor.content</code> describes the roles this user has in this room, plus any global roles. Examples:</p>
 <ul>
 <li><code>globalmod,moderator</code></li>
@@ -428,79 +437,83 @@ with the following content:</p>
 <h2 id="another-user-leaves-room">Another user leaves room</h2>
 <p>When user A is in room X, and another user B leaves room X, the sever will send an event called <code>gn_user_left</code> to user A
 with the following content:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;user B's UUID&gt;",
-        "displayName": "&lt;name of user B&gt;",
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user B's UUID&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of user B&gt;&quot;,
     },
-    "target": {
-        "id": "&lt;uuid of the room&gt;",
-        "displayName": "&lt;name of the room&gt;"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;uuid of the room&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the room&gt;&quot;
     },
-    "verb": "leave"
+    &quot;verb&quot;: &quot;leave&quot;
 }
 </code></pre>
+
 <h2 id="another-user-connects">Another user connects</h2>
 <p>When a user connects (or stops being invisible), the <code>gn_user_connected</code> event will be sent.</p>
-<pre><code>{
-    "actor": {
-        "id": "&lt;user B's UUID&gt;",
-        "displayName": "&lt;name of user B&gt;",
-        "attachments": [
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user B's UUID&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of user B&gt;&quot;,
+        &quot;attachments&quot;: [
             {
-                "content": "NDA=",
-                "objectType": "age"
+                &quot;content&quot;: &quot;NDA=&quot;,
+                &quot;objectType&quot;: &quot;age&quot;
             },
             {
-                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                "objectType": "avatar"
+                &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                &quot;objectType&quot;: &quot;avatar&quot;
             }
         ]
     },
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "verb": "connect"
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;verb&quot;: &quot;connect&quot;
 }
 </code></pre>
+
 <h2 id="another-user-disconnects">Another user disconnects</h2>
 <p>If user A is in any room that user B is in, and user B disconnects from the chat server, an event called
 <code>gn_user_disconnected</code> will be sent to user A with the following content:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;user B's UUID&gt;",
-        "displayName": "&lt;name of user B&gt;",
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user B's UUID&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of user B&gt;&quot;,
     },
-    "verb": 'disconnect'
+    &quot;verb&quot;: &quot;disconnect&quot;
 }
 </code></pre>
+
 <h2 id="you-were-banned">You were banned</h2>
 <p>If you are banned, either in a room, a channel or globally, you will receive the following event named <code>gn_banned</code>:</p>
-<pre><code>{
-    "actor": {
-        "id": "&lt;ID of the one who banned you&gt;",
-        "displayName": "&lt;username of the one who banned you, in base64&gt;"
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;ID of the one who banned you&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;username of the one who banned you, in base64&gt;&quot;
     },
-    "object": {
-        "id": "&lt;your user ID&gt;",
-        "displayName": "&lt;your username in base64&gt;",
-        "summary": "30s",
-        "updated": "2017-02-15T09:11:52Z",
-        "content": "&lt;the reason for the ban&gt;"
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;&lt;your user ID&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;your username in base64&gt;&quot;,
+        &quot;summary&quot;: &quot;30s&quot;,
+        &quot;updated&quot;: &quot;2017-02-15T09:11:52Z&quot;,
+        &quot;content&quot;: &quot;&lt;the reason for the ban&gt;&quot;
     },
-    "target": {
-        "id": "&lt;room/channel uuid&gt;",
-        "displayName": "&lt;room/channel name, in base64&gt;",
-        "objectType": "&lt;room/channel/global&gt;"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room/channel uuid&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;room/channel name, in base64&gt;&quot;,
+        &quot;objectType&quot;: &quot;&lt;room/channel/global&gt;&quot;
     },
-    "verb": "ban",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;ban&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <ul>
 <li>target.id and target.displayName will not be present if target.objectType is "global",</li>
 <li>object.summary is the duration of the ban, e.g. 30s, 2h, 7d etc.,</li>
@@ -510,77 +523,79 @@ with the following content:</p>
 <h2 id="a-new-room-is-created">A new room is created</h2>
 <p>When a new room is created in a channel that user A is in, an event called <code>gn_room_created</code> will be sent to user A with
 the following content:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;UUID of user who created the room&gt;",
-        "displayName": "&lt;name of the user who created the room&gt;",,
-        "attachments": [
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of user who created the room&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the user who created the room&gt;&quot;,,
+        &quot;attachments&quot;: [
             {
-                "content": "NDA=",
-                "objectType": "age"
+                &quot;content&quot;: &quot;NDA=&quot;,
+                &quot;objectType&quot;: &quot;age&quot;
             },
             {
-                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                "objectType": "avatar"
+                &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                &quot;objectType&quot;: &quot;avatar&quot;
             }
         ]
     },
-    "object": {
-        "url": "&lt;UUID of the channel for this room&gt;"
+    &quot;object&quot;: {
+        &quot;url&quot;: &quot;&lt;UUID of the channel for this room&gt;&quot;
     },
-    "target": {
-        "id": "&lt;UUID of the new room&gt;",
-        "displayName": "&lt;name of the new room&gt;",
-        "objectType": "temporary"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the new room&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the new room&gt;&quot;,
+        &quot;objectType&quot;: &quot;temporary&quot;
     },
-    "verb": "create"
+    &quot;verb&quot;: &quot;create&quot;
 }
 </code></pre>
+
 <p>The <code>target.objectType</code> will always be <code>temporary</code> since all rooms created using the API are user created rooms, meaning
 they will be automatically removed when the owner leaves.</p>
 <h2 id="a-user-is-kicked-from-a-room">A user is kicked from a room</h2>
 <p>When a user is kicked from a room, an event will be sent to all users in that room (except the kicked user), called 
 <code>gn_user_kicked</code>, with the following content:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-    "actor": {
-        "id": "&lt;UUID of the kicker&gt;",
-        "displayName": "&lt;name of the kicker&gt;",,
-        "attachments": [
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the kicker&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the kicker&gt;&quot;,,
+        &quot;attachments&quot;: [
             {
-                "content": "NDA=",
-                "objectType": "age"
+                &quot;content&quot;: &quot;NDA=&quot;,
+                &quot;objectType&quot;: &quot;age&quot;
             },
             {
-                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                "objectType": "avatar"
+                &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                &quot;objectType&quot;: &quot;avatar&quot;
             }
         ]
     },
-    "object": {
-        "id": "&lt;UUID of the kicked user&gt;",
-        "displayName": "&lt;name of the kicked user&gt;",,
-        "attachments": [
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the kicked user&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the kicked user&gt;&quot;,,
+        &quot;attachments&quot;: [
             {
-                "content": "NDA=",
-                "objectType": "age"
+                &quot;content&quot;: &quot;NDA=&quot;,
+                &quot;objectType&quot;: &quot;age&quot;
             },
             {
-                "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                "objectType": "avatar"
+                &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                &quot;objectType&quot;: &quot;avatar&quot;
             }
         ]
     },
-    "target": {
-        "id": "&lt;UUID of the room the user was kicked from&gt;",
-        "displayName": "&lt;name of the room the user was kicked from&gt;"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the room the user was kicked from&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the room the user was kicked from&gt;&quot;
     },
-    "verb": "kick"
+    &quot;verb&quot;: &quot;kick&quot;
 }
 </code></pre>
+
 <h2 id="a-user-is-banned">A user is banned</h2>
 <p>TODO: currently the user will be banned, but the "kicked" event will be broadcasted to relevant users. There's currently
 no "banned" event for this.</p>

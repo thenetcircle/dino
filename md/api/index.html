@@ -218,7 +218,7 @@
             <div class="section">
               
                 <h2 id="error-codes">Error Codes</h2>
-<pre><code>OK = 200
+<pre><code class="ini">OK = 200
 UNKNOWN_ERROR = 250
 
 MISSING_ACTOR_ID = 500
@@ -267,80 +267,84 @@ NO_ADMIN_ROOM_FOUND = 803
 NO_USER_IN_SESSION = 804
 NO_ADMIN_ONLINE = 805
 </code></pre>
+
 <h2 id="connect"><code>connect</code></h2>
 <p>Responds with event name <code>gn_connect</code>.</p>
 <p>Request contains no data.</p>
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <h2 id="login"><code>login</code></h2>
 <p>Responds with event name <code>gn_login</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    verb: "login",
-    actor: {
-        "id": "&lt;user ID&gt;",
-        "displayName": "&lt;user name&gt;",
-        "attachments": [
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;login&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;user name&gt;&quot;,
+        &quot;attachments&quot;: [
             {
-                "objectType": "token",
-                "content": "&lt;user token&gt;"
+                &quot;objectType&quot;: &quot;token&quot;,
+                &quot;content&quot;: &quot;&lt;user token&gt;&quot;
             }
         ]
     }
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "id": "&lt;server-generated UUID&gt;",
-        "published": "&lt;server-generated timestamp, RFC3339 format&gt;",
-        "actor": {
-            "id": "&lt;user id&gt;",
-            "displayName": "&lt;user name in base64&gt;",
-            "attachments": [
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+        &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+        &quot;actor&quot;: {
+            &quot;id&quot;: &quot;&lt;user id&gt;&quot;,
+            &quot;displayName&quot;: &quot;&lt;user name in base64&gt;&quot;,
+            &quot;attachments&quot;: [
                 {
-                    "objectType": "room_role",
-                    "id": "&lt;room UUID&gt;",
-                    "content": "moderator,owner"
+                    &quot;objectType&quot;: &quot;room_role&quot;,
+                    &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;,
+                    &quot;content&quot;: &quot;moderator,owner&quot;
                 },
                 {
-                    "objectType": "room_role",
-                    "id": "&lt;room UUID&gt;",
-                    "content": "owner"
+                    &quot;objectType&quot;: &quot;room_role&quot;,
+                    &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;,
+                    &quot;content&quot;: &quot;owner&quot;
                 },
                 {
-                    "objectType": "channel_role",
-                    "id": "&lt;channel UUID&gt;",
-                    "content": "admin,owner"
+                    &quot;objectType&quot;: &quot;channel_role&quot;,
+                    &quot;id&quot;: &quot;&lt;channel UUID&gt;&quot;,
+                    &quot;content&quot;: &quot;admin,owner&quot;
                 },
                 {
-                    "objectType": "global_roles",
-                    "content": "superuser,globalmod"
+                    &quot;objectType&quot;: &quot;global_roles&quot;,
+                    &quot;content&quot;: &quot;superuser,globalmod&quot;
                 }
             ]
         },
-        "object": {
-            "objectType": "history",
-            "attachments": [{
-                "author": {
-                    "id": "&lt;sender id&gt;", 
-                    "displayName": "&lt;sender name in base64&gt;"
+        &quot;object&quot;: {
+            &quot;objectType&quot;: &quot;history&quot;,
+            &quot;attachments&quot;: [{
+                &quot;author&quot;: {
+                    &quot;id&quot;: &quot;&lt;sender id&gt;&quot;, 
+                    &quot;displayName&quot;: &quot;&lt;sender name in base64&gt;&quot;
                 },
-                "content": "&lt;message in base64&gt;",
-                "id": "84421980-d84a-4f6f-9ad7-0357d15d99f8",
-                "published": "2017-11-17T07:19:12Z",
-                "summary": "9fa5b40a-f0a6-44ea-93c1-acf2947e5f09",
-                "objectType": "history"
+                &quot;content&quot;: &quot;&lt;message in base64&gt;&quot;,
+                &quot;id&quot;: &quot;84421980-d84a-4f6f-9ad7-0357d15d99f8&quot;,
+                &quot;published&quot;: &quot;2017-11-17T07:19:12Z&quot;,
+                &quot;summary&quot;: &quot;9fa5b40a-f0a6-44ea-93c1-acf2947e5f09&quot;,
+                &quot;objectType&quot;: &quot;history&quot;
             }]
         },
-        "verb": "login"
+        &quot;verb&quot;: &quot;login&quot;
     }
 }
 </code></pre>
+
 <p>The object attachments are non-acked messages sent to any <code>private</code> <code>room</code>s (i.e. conversation based private 
 messaging). The <code>object.attachments[0].id</code> is the message UUID, while the <code>object.attachments[0].summary</code> is the 
 room UUID. Multiple attachments will be listed if more than one un-acked message was found during login.</p>
@@ -517,57 +521,59 @@ that if multiple messages are being acknowledged at the same time, they all have
 <p>Get a list of all rooms for a channel.</p>
 <p>Responds with event name <code>gn_list_rooms</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "object": {
-        "url": "&lt;channel UUID&gt;"
+<pre><code class="json">{
+    &quot;object&quot;: {
+        &quot;url&quot;: &quot;&lt;channel UUID&gt;&quot;
     },
-    "verb": "list"
+    &quot;verb&quot;: &quot;list&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "object": {
-            "objectType": "rooms",
-            "url": "&lt;channel UUID&gt;",
-            "attachments": [
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;object&quot;: {
+            &quot;objectType&quot;: &quot;rooms&quot;,
+            &quot;url&quot;: &quot;&lt;channel UUID&gt;&quot;,
+            &quot;attachments&quot;: [
                 {
-                    "id": "&lt;room UUID&gt;",
-                    "displayName": "&lt;room name&gt;",
-                    "url": 8,
-                    "summary": &lt;number of users in this room (integer)&gt;,
-                    "objectType": "static",
-                    "content": "moderator,owner",
-                    "attachments": [
+                    &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;,
+                    &quot;displayName&quot;: &quot;&lt;room name&gt;&quot;,
+                    &quot;url&quot;: 8,
+                    &quot;summary&quot;: &lt;number of users in this room (integer)&gt;,
+                    &quot;objectType&quot;: &quot;static&quot;,
+                    &quot;content&quot;: &quot;moderator,owner&quot;,
+                    &quot;attachments&quot;: [
                         {
-                            "summary": "join",
-                            "objectType": "gender",
-                            "content": "f"
+                            &quot;summary&quot;: &quot;join&quot;,
+                            &quot;objectType&quot;: &quot;gender&quot;,
+                            &quot;content&quot;: &quot;f&quot;
                         }
                     ]
                 },
                 {
-                    "id": "&lt;room UUID&gt;",
-                    "displayName": "&lt;room name&gt;",
-                    "url": 20,
-                    "summary": &lt;number of users in this room (integer)&gt;,
-                    "objectType": "temporary",
-                    "content": "",
-                    "attachments": [
+                    &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;,
+                    &quot;displayName&quot;: &quot;&lt;room name&gt;&quot;,
+                    &quot;url&quot;: 20,
+                    &quot;summary&quot;: &lt;number of users in this room (integer)&gt;,
+                    &quot;objectType&quot;: &quot;temporary&quot;,
+                    &quot;content&quot;: &quot;&quot;,
+                    &quot;attachments&quot;: [
                         {
-                            "summary": "join",
-                            "objectType": "gender",
-                            "content": "f"
+                            &quot;summary&quot;: &quot;join&quot;,
+                            &quot;objectType&quot;: &quot;gender&quot;,
+                            &quot;content&quot;: &quot;f&quot;
                         }
                     ]
                 }
             ]
         },
-        "verb": "list"
+        &quot;verb&quot;: &quot;list&quot;
     }
 }
 </code></pre>
+
 <p>The <code>url</code> field for <code>object</code> is the <code>UUID</code> of the channel that these rooms are for.  </p>
 <p>Each room has a <code>url</code> field, which is the sort order defined in the admin interface, in ascending order (lower <code>url</code>
 means higher up in the list).</p>
@@ -586,37 +592,40 @@ when empty, while temporary rooms are removed when the owner leaves (usually onl
 <h2 id="update_user_info"><code>update_user_info</code></h2>
 <p>If a user e.g. changes his/her avatar, the change can be broadcasted to users in the same rooms as this user is in. To
 e.g. let other users know this user is currently streaming video, the <code>objectType</code> <code>is_streaming</code> might be used:</p>
-<pre><code>{
-    "object": {
-        "attachments": [
+<pre><code class="json">{
+    &quot;object&quot;: {
+        &quot;attachments&quot;: [
             {
-                "content": "MA==",
-                "objectType": "is_streaming"
+                &quot;content&quot;: &quot;MA==&quot;,
+                &quot;objectType&quot;: &quot;is_streaming&quot;
             }
         ],
-        "objectType": "userInfo"
+        &quot;objectType&quot;: &quot;userInfo&quot;
     },
-    "verb": "update",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;update&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <p>The <code>content</code> of the attachments needs to be base64 encoded.</p>
 <p>Updates are saved in redis and thus will be included in the user info returned in <a href="./#join"><code>gn_join</code></a> and 
 <a href="./#join"><code>gn_users_in_room</code></a>.</p>
 <p>Responds with event name <code>gn_update_user_info</code>. When the update is sent to other users it will be received as an event
 with name <a href="../events/#user-info-updated"><code>gn_user_info_updated</code></a>.</p>
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <p>Or if missing data, e.g.:</p>
-<pre><code>{
-    "status_code": 509,
-    "message": "no objectType on attachment for object"
+<pre><code class="json">{
+    &quot;status_code&quot;: 509,
+    &quot;message&quot;: &quot;no objectType on attachment for object&quot;
 }
 </code></pre>
+
 <h2 id="request_admin"><code>request_admin</code></h2>
 <p>When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
 which only admins can see when listing rooms and only admins can join. When a <code>request_admin</code> event is sent to the server
@@ -628,27 +637,30 @@ online").</li>
 </ul>
 <p>Responds with event name <code>gn_request_admin</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;room UUID to request help for&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room UUID to request help for&gt;&quot;
     },
-    "object": {
-        "content": "&lt;base64 encoded message that will be delivered to the admin room&gt;"
+    &quot;object&quot;: {
+        &quot;content&quot;: &quot;&lt;base64 encoded message that will be delivered to the admin room&gt;&quot;
     },
-    "verb": "help"
+    &quot;verb&quot;: &quot;help&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <p>If no admin is online, the response will be:</p>
-<pre><code>{
-    "status_code": 805,
-    "message": "no admin is online"
+<pre><code class="json">{
+    &quot;status_code&quot;: 805,
+    &quot;message&quot;: &quot;no admin is online&quot;
 }
 </code></pre>
+
 <p>The <code>object.content</code> could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
 reason text etc. </p>
 <p>The event generated to be sent to the admin room is called <code>gn_admin_requested</code> (see 
@@ -657,72 +669,76 @@ reason text etc. </p>
 <p>Leave a room.</p>
 <p>Responds with event name <code>gn_leave</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;room UUID&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;
     },
-    verb: "leave"
+    &quot;verb&quot;: &quot;leave&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <h2 id="users_in_room"><code>users_in_room</code></h2>
 <p>List all users in a room.</p>
 <p>Responds with event name <code>gn_users_in_room</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;room UUID&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;
     },
-    verb: "list"
+    &quot;verb&quot;: &quot;list&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "object": {
-            "objectType": "users",
-            "attachments": [
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;object&quot;: {
+            &quot;objectType&quot;: &quot;users&quot;,
+            &quot;attachments&quot;: [
                 {
-                    "id": "&lt;user UUID&gt;",
-                    "displayName": "&lt;user name&gt;",
-                    "content": "globalmod,moderator"
-                    "attachments": [
+                    &quot;id&quot;: &quot;&lt;user UUID&gt;&quot;,
+                    &quot;displayName&quot;: &quot;&lt;user name&gt;&quot;,
+                    &quot;content&quot;: &quot;globalmod,moderator&quot;
+                    &quot;attachments&quot;: [
                         {
-                            "content": "NDA=",
-                            "objectType": "age"
+                            &quot;content&quot;: &quot;NDA=&quot;,
+                            &quot;objectType&quot;: &quot;age&quot;
                         },
                         {
-                            "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                            "objectType": "avatar"
+                            &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                            &quot;objectType&quot;: &quot;avatar&quot;
                         }
                     ]
                 },
                 {
-                    "id": "&lt;user UUID&gt;",
-                    "displayName": "&lt;user name&gt;",
-                    "content": "moderator"
-                    "attachments": [
+                    &quot;id&quot;: &quot;&lt;user UUID&gt;&quot;,
+                    &quot;displayName&quot;: &quot;&lt;user name&gt;&quot;,
+                    &quot;content&quot;: &quot;moderator&quot;
+                    &quot;attachments&quot;: [
                         {
-                            "content": "NDA=",
-                            "objectType": "age"
+                            &quot;content&quot;: &quot;NDA=&quot;,
+                            &quot;objectType&quot;: &quot;age&quot;
                         },
                         {
-                            "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                            "objectType": "avatar"
+                            &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                            &quot;objectType&quot;: &quot;avatar&quot;
                         }
                     ]
                 }
             ]
         },
-        "verb": "list"
+        &quot;verb&quot;: &quot;list&quot;
     }
 }
 </code></pre>
+
 <p>The <code>content</code> of the user attachment describes the roles this user has in this room, plus any global roles. Examples:</p>
 <ul>
 <li><code>globalmod,moderator</code></li>
@@ -737,262 +753,279 @@ reason than the <code>history</code> event can be used. Can also be used to get 
 "target.id" is set to the user UUID instead of the room UUID.</p>
 <p>Responds with event name <code>gn_history</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;room UUID&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;
     },
-    "updated": "&lt;last read timestamp, if configured in server will return messages since this time&gt;",
-    "verb": "list"
+    &quot;updated&quot;: &quot;&lt;last read timestamp, if configured in server will return messages since this time&gt;&quot;,
+    &quot;verb&quot;: &quot;list&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "object": {
-            "objectType": "messages",
-            "attachments": [
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;object&quot;: {
+            &quot;objectType&quot;: &quot;messages&quot;,
+            &quot;attachments&quot;: [
                 {
-                    "author": {
-                        "id": "&lt;the user id of the sender&gt;",
-                        "displayName": "&lt;the user name of the sender&gt;"
+                    &quot;author&quot;: {
+                        &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
+                        &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
                     },
-                    "id": "&lt;message ID&gt;",
-                    "content": "&lt;the message content&gt;",
-                    "published": "&lt;the time it was sent, RFC3339&gt;"
+                    &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
+                    &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
                 },
                 {
-                    "author": {
-                        "id": "&lt;the user id of the sender&gt;",
-                        "displayName": "&lt;the user name of the sender&gt;"
+                    &quot;author&quot;: {
+                        &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
+                        &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
                     },
-                    "id": "&lt;message ID&gt;",
-                    "content": "&lt;the message content&gt;",
-                    "published": "&lt;the time it was sent, RFC3339&gt;"
+                    &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
+                    &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
                 }
             ]
         },
-        "target": {
-            "id": "&lt;room UUID&gt;"
+        &quot;target&quot;: {
+            &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;
         },
-        "verb": "history"
+        &quot;verb&quot;: &quot;history&quot;
     }
 }
 </code></pre>
+
 <h2 id="status"><code>status</code></h2>
 <p>Change the online status for this user.</p>
 <p>Responds with <code>gn_status</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "verb": "&lt;one of online/offline/invisible&gt;"
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;&lt;one of online/offline/invisible&gt;&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <h2 id="get_acl"><code>get_acl</code></h2>
 <p>Get the permissions (ACL) for a channel or room.</p>
 <p>Responds with <code>gn_get_acl</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;room UUID&gt;",
-        "objectType": "&lt;room/channel&gt;"
-    },
-    "verb": "get"
-}
-</code></pre>
-<p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "target": {
-            "id": "&lt;room/channel UUID&gt;",
-            "objectType": "&lt;room/channel&gt;"
+<pre><code class="json">    {
+        &quot;target&quot;: {
+            &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;,
+            &quot;objectType&quot;: &quot;&lt;room/channel&gt;&quot;
         },
-        "object": {
-            "objectType": "acl",
-            "attachments": [
+        &quot;verb&quot;: &quot;get&quot;
+    }
+</code></pre>
+
+<p>Response data if successful:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;target&quot;: {
+            &quot;id&quot;: &quot;&lt;room/channel UUID&gt;&quot;,
+            &quot;objectType&quot;: &quot;&lt;room/channel&gt;&quot;
+        },
+        &quot;object&quot;: {
+            &quot;objectType&quot;: &quot;acl&quot;,
+            &quot;attachments&quot;: [
                 {
-                    "objectType": "&lt;ACL type name&gt;",
-                    "content": "&lt;ACL value&gt;",
-                    "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+                    &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
+                    &quot;summary&quot;: &quot;&lt;API action, e.g. join/kick/etc&gt;&quot;
                 },
                 {
-                    "objectType": "&lt;ACL type name&gt;",
-                    "content": "&lt;ACL value&gt;",
-                    "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+                    &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
+                    &quot;summary&quot;: &quot;&lt;API action, e.g. join/kick/etc&gt;&quot;
                 }
             ]
         },
-        "verb": "get"
+        &quot;verb&quot;: &quot;get&quot;
     }
 }
 </code></pre>
+
 <h2 id="set_acl"><code>set_acl</code></h2>
 <p>Update the permissions of a room/channel. If the "content" is blank, the ACL with that type for the specified action
 will be removed. Example "API actions" are "join", "create", "message", "kick". Example "permission types" are "age",
 "gender", "membership".</p>
 <p>Responds with <code>gn_set_acl</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;room/channel UUID&gt;",
-        "objectType": "&lt;room/channel&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room/channel UUID&gt;&quot;,
+        &quot;objectType&quot;: &quot;&lt;room/channel&gt;&quot;
     },
-    "object": {
-        "objectType": "acl",
-        "attachments": [
+    &quot;object&quot;: {
+        &quot;objectType&quot;: &quot;acl&quot;,
+        &quot;attachments&quot;: [
             {
-                "objectType": "&lt;ACL type name&gt;",
-                "content": "&lt;ACL value&gt;",
-                "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+                &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
+                &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
+                &quot;summary&quot;: &quot;&lt;API action, e.g. join/kick/etc&gt;&quot;
             },
             {
-                "objectType": "&lt;ACL type name&gt;",
-                "content": "&lt;ACL value&gt;",
-                "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+                &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
+                &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
+                &quot;summary&quot;: &quot;&lt;API action, e.g. join/kick/etc&gt;&quot;
             }
         ]
     },
-    "verb": "set"
+    &quot;verb&quot;: &quot;set&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <h2 id="create"><code>create</code></h2>
 <p>Create a new room under a channel. The sender of the event will be set as the first owner of the new room.</p>
 <p>Responds with <code>gn_create</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "displayName": "&lt;name of the new room&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;displayName&quot;: &quot;&lt;name of the new room&gt;&quot;
     },
-    "object": {
-        "url": "&lt;channel UUID&gt;"
+    &quot;object&quot;: {
+        &quot;url&quot;: &quot;&lt;channel UUID&gt;&quot;
     },
-    "verb": "create"
+    &quot;verb&quot;: &quot;create&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "target": {
-            "id": "&lt;the generated UUID for this room&gt;",
-            "displayName": "&lt;name of the new room&gt;",
-            "objectType": "temporary"
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;target&quot;: {
+            &quot;id&quot;: &quot;&lt;the generated UUID for this room&gt;&quot;,
+            &quot;displayName&quot;: &quot;&lt;name of the new room&gt;&quot;,
+            &quot;objectType&quot;: &quot;temporary&quot;
         },
-        "object": {
-            "url": "&lt;channel UUID&gt;"
+        &quot;object&quot;: {
+            &quot;url&quot;: &quot;&lt;channel UUID&gt;&quot;
         },
-        "verb": "create"
+        &quot;verb&quot;: &quot;create&quot;
     }
 }
 </code></pre>
+
 <p>If the amount of private rooms already exceed 2, the error code <code>709</code> (<code>TOO_MANY_PRIVATE_ROOMS</code>) will be returned.</p>
 <p>The <code>target.objectType</code> will always be <code>temporary</code> since all rooms created using the API are user created rooms, meaning
 they will be automatically removed when the owner leaves.</p>
 <p>It is also possible to specify ACLs for a room while creating it, but adding <code>object.attachments</code> as in the <code>set_acl</code> 
 event:</p>
-<pre><code>{
-    "target": {
-        "displayName": "&lt;name of the new room&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;displayName&quot;: &quot;&lt;name of the new room&gt;&quot;
     },
-    "object": {
-        "url": "&lt;channel UUID&gt;",
-        "objectType": "acl",
-        "attachments": [
+    &quot;object&quot;: {
+        &quot;url&quot;: &quot;&lt;channel UUID&gt;&quot;,
+        &quot;objectType&quot;: &quot;acl&quot;,
+        &quot;attachments&quot;: [
             {
-                "objectType": "&lt;ACL type name&gt;",
-                "content": "&lt;ACL value&gt;",
-                "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+                &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
+                &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
+                &quot;summary&quot;: &quot;&lt;API action, e.g. join/kick/etc&gt;&quot;
             },
             {
-                "objectType": "&lt;ACL type name&gt;",
-                "content": "&lt;ACL value&gt;",
-                "summary": "&lt;API action, e.g. join/kick/etc&gt;"
+                &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
+                &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
+                &quot;summary&quot;: &quot;&lt;API action, e.g. join/kick/etc&gt;&quot;
             }
         ]
     },
-    "verb": "create"
+    &quot;verb&quot;: &quot;create&quot;
 }
 </code></pre>
+
 <h2 id="invite"><code>invite</code></h2>
 <p>Invite another user to a room the current user is already in.</p>
 <p>Responds with <code>gn_invite</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;UUID of the user to invite&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the user to invite&gt;&quot;
     },
-    "actor": {
-        "url": "&lt;the room UUID the invitation is for&gt;"
+    &quot;actor&quot;: {
+        &quot;url&quot;: &quot;&lt;the room UUID the invitation is for&gt;&quot;
     },
-    "verb": "invite"
+    &quot;verb&quot;: &quot;invite&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <h2 id="delete"><code>delete</code></h2>
 <p>Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator of the room, owner 
 of room or (configurable) sender of the message).</p>
 <p>Responds with <code>gn_delete</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;UUID of the room to delete from&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the room to delete from&gt;&quot;
     },
-    "object": {
-        "id": "&lt;UUID of the message to delete&gt;"
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the message to delete&gt;&quot;
     },
-    "verb": "delete"
+    &quot;verb&quot;: &quot;delete&quot;
 }
 </code></pre>
+
 <h2 id="kick"><code>kick</code></h2>
 <p>Kick a user from a room.</p>
 <p>Responds with <code>gn_kick</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;UUID of the room to kick from&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the room to kick from&gt;&quot;
     },
-    "object": {
-        "id": "&lt;UUID of the user to kick&gt;"
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the user to kick&gt;&quot;
     },
-    "verb": "kick"
+    &quot;verb&quot;: &quot;kick&quot;
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <h2 id="ban"><code>ban</code></h2>
 <p>Ban a user from a room for a given amount of time.</p>
 <p>Responds with <code>gn_ban</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "target": {
-        "id": "&lt;UUID of the room/channel to ban from&gt;",
-        "objectType": "&lt;room/channel/global&gt;"
+<pre><code class="json">{
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the room/channel to ban from&gt;&quot;,
+        &quot;objectType&quot;: &quot;&lt;room/channel/global&gt;&quot;
     },
-    "object": {
-        "id": "&lt;UUID of the user to ban&gt;",
-        "summary": "&lt;ban duration, an integer suffixed with one of [d, h, m, s]&gt;",
-        "content": "&lt;optional reason field, base64&gt;"
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;&lt;UUID of the user to ban&gt;&quot;,
+        &quot;summary&quot;: &quot;&lt;ban duration, an integer suffixed with one of [d, h, m, s]&gt;&quot;,
+        &quot;content&quot;: &quot;&lt;optional reason field, base64&gt;&quot;
     },
-    "verb": "ban"
+    &quot;verb&quot;: &quot;ban&quot;
 }
 </code></pre>
+
 <p>If banning a used in a room, set objectType to <code>room</code> and <code>target.id</code> to the uuid of the room. If banning from a channel,
 set <code>objectType</code> to <code>channel</code> and <code>target.id</code> to the uuid of the channel. If banning globally, set objectType to <code>global</code>
 and skip <code>target.id</code>.</p>
@@ -1006,22 +1039,23 @@ Only one suffix can be used. E.g.:</p>
 <p>It's not possible to permanently ban a user, but you can set a very large duration for the same effect. The only
 restriction is that the date when the ban ends (<code>utcnow()+duration</code>) must be before the year 10000 (date lib restriction).</p>
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <h2 id="message"><code>message</code></h2>
 <p>Send a message to a <code>room</code> UUID (can be the user UUID or an actual room UUID).</p>
 <p>Responds with event name <code>gn_message</code>.</p>
 <p>Request contains:</p>
-<pre><code class="javascript">{
-    verb: &quot;send&quot;,
-    target: {
-        id: &quot;&lt;room uuid&gt;&quot;,
-        objectType: &quot;&lt;room/private&gt;&quot;
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;send&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room uuid&gt;&quot;,
+        &quot;objectType&quot;: &quot;&lt;room/private&gt;&quot;
     },
-    object: {
-        content: &quot;&lt;the message, base64 encoded&gt;&quot;,
+    &quot;object&quot;: {
+        &quot;content&quot;: &quot;&lt;the message, base64 encoded&gt;&quot;,
     }
 }
 </code></pre>
@@ -1031,7 +1065,7 @@ in this conversation (<code>owner</code>s of the <code>room</code>) will initial
 online they will receive it and they can acknowledge the message. If they are offline they will receive it in <code>gn_login</code>
 then they come online (all non-acked messages for rooms they are <code>owner</code> for).</p>
 <p>Response data if successful:</p>
-<pre><code class="javascript">{
+<pre><code class="json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;id&quot;: &quot;c42ebf01-3d50-4f27-a345-4ed213be045d&quot;,
@@ -1060,43 +1094,46 @@ and the <code>published</code> field set to the time the server received the req
 <h2 id="remove_room"><code>remove_room</code></h2>
 <p>Response with the event name <code>gn_remove_room</code>.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "verb": "remove",
-    "target": {
-        "id": "&lt;room ID&gt;"
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;remove&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room ID&gt;&quot;
     }
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "target": {
-            "id": "&lt;room uuid&gt;",
-            "displayName": "&lt;room name in base64&gt;",
-            "objectType": "room"
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;target&quot;: {
+            &quot;id&quot;: &quot;&lt;room uuid&gt;&quot;,
+            &quot;displayName&quot;: &quot;&lt;room name in base64&gt;&quot;,
+            &quot;objectType&quot;: &quot;room&quot;
         },
-        "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
-        "published": "2016-10-07T10:45:34Z",
-        "verb": "removed"
+        &quot;id&quot;: &quot;c42ebf01-3d50-4f27-a345-4ed213be045d&quot;,
+        &quot;published&quot;: &quot;2016-10-07T10:45:34Z&quot;,
+        &quot;verb&quot;: &quot;removed&quot;
     }
 }
 </code></pre>
+
 <h2 id="report"><code>report</code></h2>
 <p>No response.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "verb": "report",
-    "object": {
-        "id": "&lt;uuid of message&gt;",
-        "content": "&lt;the actual message to report, base64&gt;",
-        "summary": "&lt;optional reason text, base64&gt;"
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;report&quot;,
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;&lt;uuid of message&gt;&quot;,
+        &quot;content&quot;: &quot;&lt;the actual message to report, base64&gt;&quot;,
+        &quot;summary&quot;: &quot;&lt;optional reason text, base64&gt;&quot;
     },
-    "target": {
-        "id": "&lt;user ID to report&gt;"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID to report&gt;&quot;
     }
 }
 </code></pre>
+
 <p>A report will be sent to both the admin room and as an external event published on the MQ.</p>
 <h2 id="join"><code>join</code></h2>
 <p>Responds with the event name <code>gn_join</code>.</p>
@@ -1111,99 +1148,100 @@ separated value), plus any global roles. Possible roles are:</p>
 </ul>
 <p>Currently only the <code>superuser</code> and <code>globalmod</code> role is considered when the <code>request_admin</code> api is used.</p>
 <p>Request contains:</p>
-<pre><code>{
-    "verb": "join",
-    "target": {
-        "id": "&lt;room ID&gt;"
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;join&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room ID&gt;&quot;
     }
 }
 </code></pre>
+
 <p>Response data if successful:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": {
-        "object": {
-            "objectType": "room",
-            "attachments": [
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;object&quot;: {
+            &quot;objectType&quot;: &quot;room&quot;,
+            &quot;attachments&quot;: [
                 {
-                    "objectType": "history",
-                    "attachments": [
+                    &quot;objectType&quot;: &quot;history&quot;,
+                    &quot;attachments&quot;: [
                         {
-                            "author": {
-                                "id": "&lt;the user id of the sender&gt;",
-                                "displayName": "&lt;the user name of the sender&gt;"
+                            &quot;author&quot;: {
+                                &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
+                                &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
                             },
-                            "id": "&lt;message ID&gt;",
-                            "content": "&lt;the message content&gt;",
-                            "published": "&lt;the time it was sent, RFC3339&gt;"
+                            &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
+                            &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
+                            &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
                         },
                         {
-                            "author": {
-                                "id": "&lt;the user id of the sender&gt;",
-                                "displayName": "&lt;the user name of the sender&gt;"
+                            &quot;author&quot;: {
+                                &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
+                                &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
                             },
-                            "id": "&lt;message ID&gt;",
-                            "content": "&lt;the message content&gt;",
-                            "published": "&lt;the time it was sent, RFC3339&gt;"
+                            &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
+                            &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
+                            &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
                         }
                     ]
                 },
                 {
-                    "objectType": "owner",
-                    "attachments": [
+                    &quot;objectType&quot;: &quot;owner&quot;,
+                    &quot;attachments&quot;: [
                         {
-                            "id": "&lt;owner's user ID&gt;",
-                            "displayName": "&lt;owner's user name&gt;",
+                            &quot;id&quot;: &quot;&lt;owner's user ID&gt;&quot;,
+                            &quot;displayName&quot;: &quot;&lt;owner's user name&gt;&quot;,
                         },
                         {
-                            "id": "&lt;owner's user ID&gt;",
-                            "displayName": "&lt;owner's user name&gt;",
+                            &quot;id&quot;: &quot;&lt;owner's user ID&gt;&quot;,
+                            &quot;displayName&quot;: &quot;&lt;owner's user name&gt;&quot;,
                         }
                     ]
                 },
                 {
-                    "objectType": "acl",
-                    "attachments": [
+                    &quot;objectType&quot;: &quot;acl&quot;,
+                    &quot;attachments&quot;: [
                         {
-                            "objectType": "&lt;ACL type name&gt;",
-                            "content": "&lt;ACL value&gt;",
+                            &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
+                            &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
                         },
                         {
-                            "objectType": "&lt;ACL type name&gt;",
-                            "content": "&lt;ACL value&gt;",
+                            &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
+                            &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
                         }
                     ]
                 },
                 {
-                    "objectType": "user",
-                    "attachments": [
+                    &quot;objectType&quot;: &quot;user&quot;,
+                    &quot;attachments&quot;: [
                         {
-                            "id": "&lt;user ID of a user in the room&gt;",
-                            "displayName": "&lt;user name of a user in the room&gt;",
-                            "content": "moderator,owner",
-                            "attachments": [
+                            &quot;id&quot;: &quot;&lt;user ID of a user in the room&gt;&quot;,
+                            &quot;displayName&quot;: &quot;&lt;user name of a user in the room&gt;&quot;,
+                            &quot;content&quot;: &quot;moderator,owner&quot;,
+                            &quot;attachments&quot;: [
                                 {
-                                    "content": "NDA=",
-                                    "objectType": "age"
+                                    &quot;content&quot;: &quot;NDA=&quot;,
+                                    &quot;objectType&quot;: &quot;age&quot;
                                 },
                                 {
-                                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                                    "objectType": "avatar"
+                                    &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                                    &quot;objectType&quot;: &quot;avatar&quot;
                                 }
                             ]
                         },
                         {
-                            "id": "&lt;user ID of a user in the room&gt;",
-                            "displayName": "&lt;user name of a user in the room&gt;",
-                            "content": "superuser",
-                            "attachments": [
+                            &quot;id&quot;: &quot;&lt;user ID of a user in the room&gt;&quot;,
+                            &quot;displayName&quot;: &quot;&lt;user name of a user in the room&gt;&quot;,
+                            &quot;content&quot;: &quot;superuser&quot;,
+                            &quot;attachments&quot;: [
                                 {
-                                    "content": "NDA=",
-                                    "objectType": "age"
+                                    &quot;content&quot;: &quot;NDA=&quot;,
+                                    &quot;objectType&quot;: &quot;age&quot;
                                 },
                                 {
-                                    "content": "aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn",
-                                    "objectType": "avatar"
+                                    &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
+                                    &quot;objectType&quot;: &quot;avatar&quot;
                                 }
                             ]
                         }
@@ -1211,13 +1249,14 @@ separated value), plus any global roles. Possible roles are:</p>
                 },
             ]
         },
-        "verb": "join",
-        "target": {
-            "id": "&lt;the room ID that the user joined&gt;"
+        &quot;verb&quot;: &quot;join&quot;,
+        &quot;target&quot;: {
+            &quot;id&quot;: &quot;&lt;the room ID that the user joined&gt;&quot;
         }
     }
 }
 </code></pre>
+
 <p>Attachments for each user contains the user data, e.g. user name, age, city etc.</p>
               
             </div>
