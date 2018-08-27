@@ -803,7 +803,7 @@ def search_user(query: str):
 ####################################
 
 @app.route('/api/spam', methods=['GET'])
-#@requires_auth
+@requires_auth
 def latest_spam():
     try:
         msgs = spam_manager.get_latest_spam()
@@ -815,7 +815,7 @@ def latest_spam():
 
 
 @app.route('/api/spam/<spam_id>', methods=['GET'])
-#@requires_auth
+@requires_auth
 def get_one_spam(spam_id):
     try:
         msgs = spam_manager.get_spam(spam_id)
@@ -827,7 +827,7 @@ def get_one_spam(spam_id):
 
 
 @app.route('/api/spam/search', methods=['POST'])
-#@requires_auth
+@requires_auth
 def search_spam():
     form = request.get_json()
 
@@ -859,7 +859,7 @@ def search_spam():
 
 
 @app.route('/api/spam/<spam_id>/correct', methods=['POST'])
-#@requires_auth
+@requires_auth
 def set_spam_correct(spam_id):
     try:
         spam_manager.set_correct_or_not(spam_id, True)
@@ -872,7 +872,7 @@ def set_spam_correct(spam_id):
 
 
 @app.route('/api/spam/<spam_id>/incorrect', methods=['POST'])
-#@requires_auth
+@requires_auth
 def set_spam_incorrect(spam_id):
     try:
         spam_manager.set_correct_or_not(spam_id, False)
@@ -885,7 +885,7 @@ def set_spam_incorrect(spam_id):
 
 
 @app.route('/api/spam/enable', methods=['POST'])
-#@requires_auth
+@requires_auth
 def enable_spam_classifier():
     try:
         spam_manager.enable()
@@ -898,7 +898,7 @@ def enable_spam_classifier():
 
 
 @app.route('/api/spam/disable', methods=['POST'])
-#@requires_auth
+@requires_auth
 def disable_spam_classifier():
     try:
         spam_manager.disable()
@@ -911,7 +911,7 @@ def disable_spam_classifier():
 
 
 @app.route('/api/spam/isenabled', methods=['GET'])
-#@requires_auth
+@requires_auth
 def check_if_spam_classifier_is_enabled():
     try:
         is_enabled = spam_manager.is_enabled()
@@ -1043,7 +1043,7 @@ def search_history():
 
 
 @app.route('/api/history/<message_id>', methods=['DELETE'])
-#@requires_auth
+@requires_auth
 def delete_message(message_id: str):
     storage_manager.delete_message(message_id)
     return api_response(200)
