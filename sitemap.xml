@@ -26,6 +26,11 @@
      <changefreq>daily</changefreq>
     </url>
     <url>
+     <loc>/md/web/</loc>
+     <lastmod>2018-08-27</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
      <loc>/md/events/</loc>
      <lastmod>2018-08-27</lastmod>
      <changefreq>daily</changefreq>

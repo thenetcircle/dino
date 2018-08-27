@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Web UI API - Dino</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Web UI API";
+    var mkdocs_page_input_path = "md/web.md";
+    var mkdocs_page_url = "/md/web/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Dino</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../installation/">Installation</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../getting_started/">Getting Started</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../usage/">Usage</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../api/">API</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Web UI API</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#get-apispam">GET /api/spam</a></li>
+    
+
+    <li class="toctree-l2"><a href="#post-apispamsearch">POST /api/spam/search</a></li>
+    
+
+    <li class="toctree-l2"><a href="#get-apispam_1">GET /api/spam/</a></li>
+    
+
+    <li class="toctree-l2"><a href="#post-apispamincorrect">POST /api/spam//incorrect</a></li>
+    
+
+    <li class="toctree-l2"><a href="#post-apispamcorrect">POST /api/spam//correct</a></li>
+    
+
+    <li class="toctree-l2"><a href="#post-apispamenable">POST /api/spam/enable</a></li>
+    
+
+    <li class="toctree-l2"><a href="#post-apispamdisable">POST /api/spam/disable</a></li>
+    
+
+    <li class="toctree-l2"><a href="#get-apispamisenabled">GET /api/spam/isenabled</a></li>
+    
+
+    <li class="toctree-l2"><a href="#deleting-a-message-classified-as-spam">Deleting a message classified as spam</a></li>
+    
+
+    <li class="toctree-l2"><a href="#probability">Probability</a></li>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../events/">Events</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../external_events/">External Events</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../acl/">ACL</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../rest/">REST API</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../wio/">Who Is Online?</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../storage/">Storage</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Dino</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Web UI API</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="get-apispam">GET /api/spam</h2>
+<p>Get the latest messages classified as spam.</p>
+<pre><code class="bash">user@box:~$ curl -X GET localhost:4556/api/spam
+</code></pre>
+
+<p>Response would be something similar to the following:</p>
+<pre><code class="json">{
+    &quot;data&quot;: [{
+        &quot;correct&quot;: true,
+        &quot;from_id&quot;: &quot;126144&quot;,
+        &quot;from_name&quot;: &quot;fuyfuyf&quot;,
+        &quot;id&quot;: 8,
+        &quot;message&quot;: &quot;\ud835\udd4e\ud835\udd3c\ud835\udd4e\ud835\udd5a\ud835\udd43\ud835\udd43\ud835\udd4a\ud835\udd4b\ud835\udd3b\ud835\udd4c&quot;,
+        &quot;message_deleted&quot;: true,
+        &quot;message_id&quot;: &quot;42957c6c-6290-4744-8e79-8c6e3fe7319b&quot;,
+        &quot;object_type&quot;: &quot;room&quot;,
+        &quot;probability&quot;: &quot;0.932408,0.98,1&quot;,
+        &quot;time_stamp&quot;: 1535312965,
+        &quot;to_id&quot;: &quot;126144&quot;,
+        &quot;to_name&quot;: &quot;fdsa&quot;
+    }, {
+        &quot;correct&quot;: true,
+        &quot;from_id&quot;: &quot;126144&quot;,
+        &quot;from_name&quot;: &quot;fuyfuyf&quot;,
+        &quot;id&quot;: 7,
+        &quot;message&quot;: &quot;gfdhgdf&quot;,
+        &quot;message_deleted&quot;: true,
+        &quot;message_id&quot;: &quot;75550bd5-faa8-4393-b8da-65141f46898c&quot;,
+        &quot;object_type&quot;: &quot;room&quot;,
+        &quot;probability&quot;: &quot;0.81171554,0.99,1&quot;,
+        &quot;time_stamp&quot;: 1535312962,
+        &quot;to_id&quot;: &quot;126144&quot;,
+        &quot;to_name&quot;: &quot;fdsa&quot;
+    }],
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="post-apispamsearch">POST /api/spam/search</h2>
+<p>Search for spam messages given a time range and either a room uuid or user ID of a sender.</p>
+<pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/search -H 'Content-Type: application/json' -d '{&quot;room&quot;:&quot;9fa5b40a-f0a6-44ea-93c1-acf2947e5f09&quot;,&quot;from&quot;:&quot;2018-08-26T04:00:00Z&quot;,&quot;to&quot;:&quot;2018-08-27T04:00:00Z&quot;}'
+</code></pre>
+
+<p>Response would be something similar to the following:</p>
+<pre><code class="json">{
+    &quot;data&quot;: [{
+        &quot;correct&quot;: true,
+        &quot;from_id&quot;: &quot;126144&quot;,
+        &quot;from_name&quot;: &quot;fuyfuyf&quot;,
+        &quot;id&quot;: 8,
+        &quot;message&quot;: &quot;\ud835\udd4e\ud835\udd3c\ud835\udd4e\ud835\udd5a\ud835\udd43\ud835\udd43\ud835\udd4a\ud835\udd4b\ud835\udd3b\ud835\udd4c&quot;,
+        &quot;message_deleted&quot;: true,
+        &quot;message_id&quot;: &quot;42957c6c-6290-4744-8e79-8c6e3fe7319b&quot;,
+        &quot;object_type&quot;: &quot;room&quot;,
+        &quot;probability&quot;: &quot;0.932408,0.98,1&quot;,
+        &quot;time_stamp&quot;: 1535312965,
+        &quot;to_id&quot;: &quot;126144&quot;,
+        &quot;to_name&quot;: &quot;fdsa&quot;
+    }, {
+        &quot;correct&quot;: true,
+        &quot;from_id&quot;: &quot;126144&quot;,
+        &quot;from_name&quot;: &quot;fuyfuyf&quot;,
+        &quot;id&quot;: 7,
+        &quot;message&quot;: &quot;gfdhgdf&quot;,
+        &quot;message_deleted&quot;: true,
+        &quot;message_id&quot;: &quot;75550bd5-faa8-4393-b8da-65141f46898c&quot;,
+        &quot;object_type&quot;: &quot;room&quot;,
+        &quot;probability&quot;: &quot;0.81171554,0.99,1&quot;,
+        &quot;time_stamp&quot;: 1535312962,
+        &quot;to_id&quot;: &quot;126144&quot;,
+        &quot;to_name&quot;: &quot;fdsa&quot;
+    }],
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="get-apispam_1">GET /api/spam/<spam_id></h2>
+<p>Get one spam message.</p>
+<p>Request:</p>
+<pre><code class="bash">user@box:~$ curl -X GET localhost:4556/api/spam/3
+</code></pre>
+
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {
+        &quot;correct&quot;: true,
+        &quot;from_id&quot;: &quot;115584&quot;,
+        &quot;from_name&quot;: &quot;&quot;,
+        &quot;id&quot;: 3,
+        &quot;message&quot;: &quot;\ud835\udd4e\ud835\udd3c\ud835\udd4e\ud835\udd5a\ud835\udd43\ud835\udd43\ud835\udd4a\ud835\udd4b\ud835\udd3b\ud835\udd4c&quot;,
+        &quot;message_deleted&quot;: false,
+        &quot;message_id&quot;: &quot;21aa49f3-3dc5-4bef-a08d-84f7a516bf49&quot;,
+        &quot;object_type&quot;: &quot;room&quot;,
+        &quot;probability&quot;: &quot;0.932408,0.98,1&quot;,
+        &quot;time_stamp&quot;: 1535309860,
+        &quot;to_id&quot;: &quot;115584&quot;,
+        &quot;to_name&quot;: &quot;jkvkjvh&quot;
+    },
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="post-apispamincorrect">POST /api/spam/<spam_id>/incorrect</h2>
+<p>Set a spam message as incorrectly classified. The <code>correct</code> flag on this spam messages will be <code>false</code> after this.</p>
+<p>Request:</p>
+<pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/3/incorrect
+</code></pre>
+
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="post-apispamcorrect">POST /api/spam/<spam_id>/correct</h2>
+<p>Set a spam message as correctly classified. The <code>correct</code> flag on this spam messages will be <code>true</code> after this.</p>
+<p>Request:</p>
+<pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/3/correct
+</code></pre>
+
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="post-apispamenable">POST /api/spam/enable</h2>
+<p>Enable the spam classifier. </p>
+<p>When enabled, the classifier will prevent messages being broadcasted that has been classified as spam. If disabled, it will still classify them, but it won't prevent them from being broadcasted.</p>
+<p>Request:</p>
+<pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/enable
+</code></pre>
+
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="post-apispamdisable">POST /api/spam/disable</h2>
+<p>Disable the spam classifier. </p>
+<p>When enabled, the classifier will prevent messages being broadcasted that has been classified as spam. If disabled, it will still classify them, but it won't prevent them from being broadcasted.</p>
+<p>Request:</p>
+<pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/disable
+</code></pre>
+
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="get-apispamisenabled">GET /api/spam/isenabled</h2>
+<p>Check if the spam classifier is enabled or not. </p>
+<p>When enabled, the classifier will prevent messages being broadcasted that has been classified as spam. If disabled, it will still classify them, but it won't prevent them from being broadcasted.</p>
+<p>Request:</p>
+<pre><code class="bash">user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
+</code></pre>
+
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;enabled&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<p>Example:</p>
+<pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/disable
+{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
+{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;disabled&quot;,
+    &quot;status_code&quot;: 200
+}
+user@box:~$ curl -X POST localhost:4556/api/spam/enable
+{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
+{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;enabled&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="deleting-a-message-classified-as-spam">Deleting a message classified as spam</h2>
+<p>The <code>message_id</code> field describes the ID of the message stored in the message store. It can be deleted by using the history web API:</p>
+<pre><code class="bash">user@box:~$ curl -X GET localhost:4556/api/spam/3
+{
+    &quot;data&quot;: {
+        &quot;correct&quot;: true,
+        &quot;from_id&quot;: &quot;115584&quot;,
+        &quot;from_name&quot;: &quot;&quot;,
+        &quot;id&quot;: 3,
+        &quot;message&quot;: &quot;\ud835\udd4e\ud835\udd3c\ud835\udd4e\ud835\udd5a\ud835\udd43\ud835\udd43\ud835\udd4a\ud835\udd4b\ud835\udd3b\ud835\udd4c&quot;,
+        &quot;message_deleted&quot;: false,
+        &quot;message_id&quot;: &quot;21aa49f3-3dc5-4bef-a08d-84f7a516bf49&quot;,
+        &quot;object_type&quot;: &quot;room&quot;,
+        &quot;probability&quot;: &quot;0.932408,0.98,1&quot;,
+        &quot;time_stamp&quot;: 1535309860,
+        &quot;to_id&quot;: &quot;115584&quot;,
+        &quot;to_name&quot;: &quot;jkvkjvh&quot;
+    },
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+user@box:~$ curl -X DELETE localhost:4556/api/history/21aa49f3-3dc5-4bef-a08d-84f7a516bf49
+{
+    &quot;data&quot;: {},
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+user@box:~$ curl -X GET localhost:4556/api/spam/3
+{
+    &quot;data&quot;: {
+        &quot;correct&quot;: true,
+        &quot;from_id&quot;: &quot;115584&quot;,
+        &quot;from_name&quot;: &quot;&quot;,
+        &quot;id&quot;: 3,
+        &quot;message&quot;: &quot;\ud835\udd4e\ud835\udd3c\ud835\udd4e\ud835\udd5a\ud835\udd43\ud835\udd43\ud835\udd4a\ud835\udd4b\ud835\udd3b\ud835\udd4c&quot;,
+        &quot;message_deleted&quot;: true,
+        &quot;message_id&quot;: &quot;21aa49f3-3dc5-4bef-a08d-84f7a516bf49&quot;,
+        &quot;object_type&quot;: &quot;room&quot;,
+        &quot;probability&quot;: &quot;0.932408,0.98,1&quot;,
+        &quot;time_stamp&quot;: 1535309860,
+        &quot;to_id&quot;: &quot;115584&quot;,
+        &quot;to_name&quot;: &quot;jkvkjvh&quot;
+    },
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h1 id="probability">Probability</h1>
+<p>The field <code>probability</code> are percentages from three different classifiers. If at least two of them predict with a percentage of at least 66% that a message is spam, then it will be labeled as such.</p>
+<p>The first number is from XGBoost, the second from a Random Forest, and the third SVC with a polynomial kernel. The third number is always either <code>0</code> or <code>1</code>, and never a fraction.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../events/" class="btn btn-neutral float-right" title="Events">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../api/" class="btn btn-neutral" title="API"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../api/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../events/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/require.js"></script>
+      <script src="../../search/search.js"></script>
+
+</body>
+</html>
