@@ -24,10 +24,12 @@ from dino.admin.orm import broadcast_manager
 from dino.admin.orm import channel_manager
 from dino.admin.orm import room_manager
 from dino.admin.orm import storage_manager
+from dino.admin.orm import spam_manager
 from dino.admin.orm import user_manager
 from dino.config import ApiTargets
 from dino.config import ConfigKeys
-from dino.exceptions import ChannelNameExistsException, NoSuchRoomException
+from dino.exceptions import ChannelNameExistsException
+from dino.exceptions import NoSuchRoomException
 from dino.exceptions import EmptyChannelNameException
 from dino.exceptions import InvalidAclTypeException
 from dino.exceptions import InvalidAclValueException
@@ -797,6 +799,133 @@ def search_user(query: str):
 
 
 ####################################
+#             Spam                 #
+####################################
+
+@app.route('/api/spam', methods=['GET'])
+#@requires_auth
+def latest_spam():
+    try:
+        msgs = spam_manager.get_latest_spam()
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+    return api_response(200, msgs)
+
+
+@app.route('/api/spam/<spam_id>', methods=['GET'])
+#@requires_auth
+def get_one_spam(spam_id):
+    try:
+        msgs = spam_manager.get_spam(spam_id)
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+    return api_response(200, msgs)
+
+
+@app.route('/api/spam/search', methods=['POST'])
+#@requires_auth
+def search_spam():
+    form = request.get_json()
+
+    if form is None:
+        return api_response(400, message='no json data in request')
+
+    user_uuid = form.get('user', None)
+    room_uuid = form.get('room', None)
+    from_time = form.get('from', None)
+    to_time = form.get('to', None)
+
+    user_name = get_user_name(user_uuid)
+    room_name = get_room_name(room_uuid)
+
+    try:
+        msgs, real_from_time, real_to_time = spam_manager.find(room_uuid, user_uuid, from_time, to_time)
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+
+    return api_response(200, {
+        'message': msgs,
+        'real_from_time': real_from_time,
+        'real_to_time': real_to_time,
+        'user_name': user_name,
+        'room_name': room_name,
+    })
+
+
+@app.route('/api/spam/<spam_id>/correct', methods=['POST'])
+#@requires_auth
+def set_spam_correct(spam_id):
+    try:
+        spam_manager.set_correct_or_not(spam_id, True)
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+
+    return api_response(200)
+
+
+@app.route('/api/spam/<spam_id>/incorrect', methods=['POST'])
+#@requires_auth
+def set_spam_incorrect(spam_id):
+    try:
+        spam_manager.set_correct_or_not(spam_id, False)
+    except Exception as e:
+        logger.error('Could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not get message: %s' % str(e))
+
+    return api_response(200)
+
+
+@app.route('/api/spam/enable', methods=['POST'])
+#@requires_auth
+def enable_spam_classifier():
+    try:
+        spam_manager.enable()
+    except Exception as e:
+        logger.error('Could not enable spam classifier: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not enable spam classifier: %s' % str(e))
+
+    return api_response(200)
+
+
+@app.route('/api/spam/disable', methods=['POST'])
+#@requires_auth
+def disable_spam_classifier():
+    try:
+        spam_manager.disable()
+    except Exception as e:
+        logger.error('Could not enable spam classifier: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not enable spam classifier: %s' % str(e))
+
+    return api_response(200)
+
+
+@app.route('/api/spam/isenabled', methods=['GET'])
+#@requires_auth
+def check_if_spam_classifier_is_enabled():
+    try:
+        is_enabled = spam_manager.is_enabled()
+    except Exception as e:
+        logger.error('Could not check if spam classifier is enabled: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        return api_response(400, message='Could not check if spam classifier is enabled: %s' % str(e))
+
+    if is_enabled:
+        return api_response(200, message='enabled')
+    return api_response(200, message='disabled')
+
+
+####################################
 #             History              #
 ####################################
 
@@ -914,7 +1043,7 @@ def search_history():
 
 
 @app.route('/api/history/<message_id>', methods=['DELETE'])
-@requires_auth
+#@requires_auth
 def delete_message(message_id: str):
     storage_manager.delete_message(message_id)
     return api_response(200)

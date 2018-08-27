@@ -18,6 +18,19 @@ import base64
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
+class ConfigService(object):
+    def __init__(self, env):
+        self.env = env
+        self.config = dict()
+        self.reload()
+
+    def is_spam_classifier_enabled(self):
+        return self.config.get('spam')
+
+    def reload(self):
+        self.config = self.env.db.get_service_config()
+
+
 # TODO: session keys should be configurable, and config should also contain whether or not they're required
 class SessionKeys(Enum):
     user_id = 'user_id'
@@ -199,6 +212,7 @@ class ConfigKeys(object):
     ENRICH = 'enrich'
     TITLE = 'title'
     VERB = 'verb'
+    SPAM_CLASSIFIER = 'spam_classifier'
 
     INSECURE = 'insecure'
     OAUTH_BASE = 'base'

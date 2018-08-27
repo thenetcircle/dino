@@ -19,5 +19,6 @@ from dino.db.manager.acls import AclManager
 from dino.db.manager.storage import StorageManager
 from dino.db.manager.blacklist import BlackListManager
 from dino.db.manager.broadcast import BroadcastManager
+from dino.db.manager.spam import SpamManager
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'

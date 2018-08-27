@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from activitystreams import Activity
 from zope.interface import implementer
 from datetime import datetime
 from typing import Union
@@ -68,6 +68,42 @@ class DatabaseRedis(object):
         self.env = env
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
+
+    def mark_spam_deleted_if_exists(self, message_id: str) -> None:
+        return
+
+    def mark_spam_not_deleted_if_exists(self, message_id: str) -> None:
+        return
+
+    def get_latest_spam(self, limit: int) -> list:
+        return list()
+
+    def get_spam(self, spam_id: int) -> dict:
+        return dict()
+
+    def get_spam_for_time_slice(self, room_id, user_id, from_time_int, to_time_int) -> list:
+        return list()
+
+    def get_spam_from(self, user_id: str) -> list:
+        return list()
+
+    def init_config(self) -> None:
+        return
+
+    def get_service_config(self, session=None) -> dict:
+        return dict()
+
+    def enable_spam_classifier(self) -> None:
+        return
+
+    def disable_spam_classifier(self) -> None:
+        return
+
+    def set_spam_correct_or_not(self, spam_id: int, correct: bool):
+        pass  # not supported
+
+    def save_spam_prediction(self, activity: Activity, message, y_hats: tuple):
+        pass  # not supported
 
     def set_ephemeral_room(self, room_id: str):
         self.redis.srem(RedisKeys.non_ephemeral_rooms(), room_id)

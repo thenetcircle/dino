@@ -13,12 +13,112 @@
 # limitations under the License.
 
 from typing import Union
+
+from activitystreams import Activity
 from zope.interface import Interface
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class IDatabase(Interface):
+    def init_config(self) -> None:
+        """
+        initialize the config table
+
+        :return: nothing
+        """
+
+    def get_service_config(self) -> dict:
+        """
+        get the service config
+
+        :return: a dict of the configs
+        """
+
+    def mark_spam_deleted_if_exists(self, message_id: str) -> None:
+        """
+        mark as deleted
+
+        :param message_id: the uuid of the message stored in the message store
+        :return: nothing
+        """
+
+    def mark_spam_not_deleted_if_exists(self, message_id: str) -> None:
+        """
+        mark as not deleted
+
+        :param message_id: the uuid of the message stored in the message store
+        :return: nothing
+        """
+
+    def get_spam(self, spam_id: int) -> dict:
+        """
+        get one spam message
+
+        :param spam_id: the id of the spam message
+        :return: a dict describing the message
+        """
+
+    def disable_spam_classifier(self) -> None:
+        """
+        disable the spam classifier
+
+        :return: nothing
+        """
+
+    def enable_spam_classifier(self) -> None:
+        """
+        enable the spam classifier
+
+        :return: nothing
+        """
+
+    def get_latest_spam(self, limit: int) -> list:
+        """
+        get the latest spam messages recorded
+
+        :param limit: limit the results
+        :return: list of dicts for the messages
+        """
+
+    def get_spam_for_time_slice(self, room_id, user_id, from_time_int, to_time_int) -> list:
+        """
+        get spam message for a time slice, optionally to a certain room or to a certain user
+
+        :param room_id: room uuid to search for spams in (optional)
+        :param user_id: receiver user id (optional)
+        :param from_time_int: timestamp as int
+        :param to_time_int: timestamp as int
+        :return: list of dicts for the messages
+        """
+
+    def get_spam_from(self, user_id: str) -> list:
+        """
+        get all spam message for a certain user
+
+        :param user_id: id of the user
+        :return: list of dicts for the messages
+        """
+
+    def set_spam_correct_or_not(self, spam_id: int, correct: bool):
+        """
+        set the 'correct' flag on a spam message
+
+        :param spam_id: id of the spam
+        :param correct: correct or not
+        :return: nothing
+        """
+
+    def save_spam_prediction(self, activity: Activity, message, y_hats: tuple):
+        """
+        save a spam prediction to the db
+
+        :param activity: the activity containing the message
+        :param message: the message extracted from the json body
+        :param y_hats: the classifier predictions
+        :return: nothing
+        """
+
     def create_admin_room(self) -> str:
         """
         create the special admin room

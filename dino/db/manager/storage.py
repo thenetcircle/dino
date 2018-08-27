@@ -47,9 +47,11 @@ class StorageManager(BaseManager):
 
     def undelete_message(self, message_id: str) -> None:
         self.env.storage.undelete_message(message_id)
+        self.env.db.mark_spam_not_deleted_if_exists(message_id)
 
     def delete_message(self, message_id: str) -> None:
         self.env.storage.delete_message(message_id)
+        self.env.db.mark_spam_deleted_if_exists(message_id)
 
     def find_history(self, room_id, user_id, from_time, to_time) -> (list, datetime, datetime):
         if is_blank(user_id) and is_blank(room_id):

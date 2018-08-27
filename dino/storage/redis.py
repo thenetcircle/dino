@@ -40,7 +40,7 @@ class StorageRedis(object):
 
         self.redis = Redis(host=host, port=port, db=db)
 
-    def store_message(self, activity: Activity) -> None:
+    def store_message(self, activity: Activity, deleted=False) -> None:
         target_id = activity.target.id
         target_name = b64e(activity.target.display_name)
         user_id = environ.env.session.get(SessionKeys.user_id.value)

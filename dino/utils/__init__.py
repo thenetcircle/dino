@@ -13,7 +13,6 @@
 from activitystreams import Activity
 from activitystreams import parse as as_parser
 from typing import Union
-from uuid import uuid4 as uuid
 
 import logging
 import traceback
@@ -85,8 +84,6 @@ def is_base64(s):
     try:
         str(b64decode(bytes(s, 'utf-8')), 'utf-8')
     except Exception as e:
-        logger.warning('invalid message content, could not decode base64: %s' % str(e))
-        logger.exception(traceback.format_exc())
         return False
     return True
 
@@ -103,8 +100,9 @@ def is_valid_id(user_id: str):
     return True
 
 
-def used_blacklisted_word(activity: Activity):
-    return environ.env.blacklist.contains_blacklisted_word(activity)
+def used_blacklisted_word(activity: Activity) -> (bool, Union[str, None]):
+    word_used_if_any = environ.env.blacklist.contains_blacklisted_word(activity)
+    return word_used_if_any is not None, word_used_if_any
 
 
 def activity_for_msg_status(activity: Activity, statuses: dict) -> dict:
@@ -335,7 +333,16 @@ def activity_for_message(user_id: str, user_name: str) -> dict:
     })
 
 
-def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> dict:
+def activity_for_spam_word(activity: Activity) -> dict:
+    spam_activity = activity_for_blacklisted_word(activity)
+    spam_activity['verb'] = 'spam'
+    return spam_activity
+
+
+def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str=None) -> dict:
+    if blacklisted_word is not None:
+        blacklisted_word = b64e(blacklisted_word)
+
     return ActivityBuilder.enrich({
         'actor': {
             'id': activity.actor.id,
@@ -343,7 +350,7 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> 
         },
         'object': {
             'content': activity.object.content,
-            'summary': b64e(blacklisted_word)
+            'summary': blacklisted_word
         },
         'target': {
             'id': activity.target.id,

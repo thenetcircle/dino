@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.orm import relationship
 
 from dino.db.rdbms import DeclarativeBase
@@ -131,6 +131,32 @@ class LastReads(DeclarativeBase):
     time_stamp = Column('time_stamp', Integer, nullable=False)
 
 
+class Config(DeclarativeBase):
+    __tablename__ = 'service_config'
+
+    id = Column(Integer, primary_key=True)
+    spam = Column('spam', Boolean, nullable=False, default=False)
+
+
+class Spams(DeclarativeBase):
+    __tablename__ = 'spams'
+
+    id = Column(Integer, primary_key=True)
+
+    message = Column('message', Text, nullable=False)
+    message_id = Column('message_id', String(128), nullable=True)
+    message_deleted = Column('message_deleted', Boolean, nullable=False, default=False)
+
+    from_uid = Column('from_uid', String(128), nullable=False, index=True)
+    from_name = Column('from_name', String(128), nullable=False, index=True)
+    to_uid = Column('to_uid', String(128), nullable=False)
+    to_name = Column('to_name', String(128), nullable=False)
+    object_type = Column('object_type', String(128), nullable=False)
+    probability = Column('probability', String(128), nullable=False)
+    correct = Column('is_correct', Boolean, nullable=False, default=True)
+    time_stamp = Column('time_stamp', Integer, nullable=False)
+
+
 class Acls(DeclarativeBase):
     __tablename__ = 'acls'
 
@@ -147,6 +173,21 @@ class Acls(DeclarativeBase):
 
     # acl_type: gender/age/city etc.
     acl_type = Column('acl_type', String(128), nullable=False)
+    acl_value = Column('acl_value', String(128), nullable=False)
+
+
+class Configs(DeclarativeBase):
+    __tablename__ = 'config'
+
+    id = Column(Integer, primary_key=True)
+
+    # method: str_in_csv/range etc.
+    method = Column('method', String(128), nullable=False)
+
+    # acl_type: gender/age/city etc.
+    acl_type = Column('acl_type', String(128), nullable=False)
+
+    # acl_value: the configured value, e.g. 'm,f' for an acl_type 'gender'
     acl_value = Column('acl_value', String(128), nullable=False)
 
 

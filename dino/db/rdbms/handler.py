@@ -20,6 +20,7 @@ from functools import wraps
 from typing import Union
 from uuid import uuid4 as uuid
 
+from activitystreams import Activity
 from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy.orm.exc import StaleDataError
@@ -35,7 +36,7 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs
+from dino.db.rdbms.models import AclConfigs, Spams, Config
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import Bans
 from dino.db.rdbms.models import BlackList
@@ -71,6 +72,7 @@ from dino.exceptions import UserExistsException
 from dino.exceptions import ValidationException
 from dino.utils import b64d
 from dino.utils import b64e
+from dino.utils import is_base64
 from dino.utils.decorators import timeit
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -105,6 +107,23 @@ class DatabaseRdbms(object):
     @with_session
     def _session(self, session):
         return session
+
+    @with_session
+    def init_config(self, session=None):
+        config = session.query(Config).first()
+        if config is not None:
+            return
+
+        config = Config()
+        session.add(config)
+        session.commit()
+
+    @with_session
+    def get_service_config(self, session=None) -> dict:
+        config = session.query(Config).first()
+        return {
+            'spam': config.spam
+        }
 
     def is_room_ephemeral(self, room_id: str) -> bool:
         @with_session
@@ -1778,6 +1797,136 @@ class DatabaseRdbms(object):
         value = _acls()
         self.env.cache.set_acls_in_channel_for_action(channel_id, action, value)
         return value
+
+    def _format_spam(self, spam: Spams) -> dict:
+        if spam is None:
+            return dict()
+
+        return {
+            'id': spam.id,
+            'from_id': spam.from_uid,
+            'from_name': spam.from_name,
+            'to_id': spam.from_uid,
+            'to_name': spam.to_name,
+            'time_stamp': spam.time_stamp,
+            'message': spam.message,
+            'message_id': spam.message_id,
+            'message_deleted': spam.message_deleted,
+            'object_type': spam.object_type,
+            'probability': spam.probability,
+            'correct': spam.correct
+        }
+
+    @with_session
+    def mark_spam_deleted_if_exists(self, message_id: str, session=None) -> None:
+        spam = session.query(Spams).filter(Spams.message_id == message_id).first()
+        if spam is not None:
+            spam.message_deleted = True
+            session.add(spam)
+            session.commit()
+
+    @with_session
+    def mark_spam_not_deleted_if_exists(self, message_id: str, session=None) -> None:
+        spam = session.query(Spams).filter(Spams.message_id == message_id).first()
+        if spam is not None:
+            spam.message_deleted = False
+            session.add(spam)
+            session.commit()
+
+    @with_session
+    def get_spam(self, spam_id: int, session=None) -> dict:
+        spam = session.query(Spams).filter(Spams.id == spam_id).first()
+        return self._format_spam(spam)
+
+    @with_session
+    def get_latest_spam(self, limit: int, session=None) -> list:
+        return [
+            self._format_spam(spam)
+            for spam in session.query(Spams).order_by(Spams.time_stamp.desc()).limit(limit).all()
+        ]
+
+    @with_session
+    def get_spam_for_time_slice(self, room_id, user_id, from_time_int, to_time_int, session=None) -> list:
+        if room_id is not None:
+            spams = session.query(Spams)\
+                .filter(from_time_int <= Spams.time_stamp)\
+                .filter(Spams.time_stamp <= to_time_int)\
+                .filter(Spams.to_uid == room_id)\
+                .all()
+
+        elif user_id is not None:
+            spams = session.query(Spams)\
+                .filter(from_time_int <= Spams.time_stamp <= to_time_int)\
+                .filter(Spams.to_uid == user_id)\
+                .all()
+
+        else:
+            spams = session.query(Spams)\
+                .filter(from_time_int <= Spams.time_stamp <= to_time_int)\
+                .all()
+
+        return [self._format_spam(spam) for spam in spams]
+
+    @with_session
+    def get_spam_from(self, user_id: str, session=None) -> list:
+        return [
+            self._format_spam(spam)
+            for spam in session.query(Spams).filter(Spams.from_uid == user_id).all()
+        ]
+
+    @with_session
+    def disable_spam_classifier(self, session=None) -> None:
+        config = session.query(Config).first()
+        config.spam = False
+        session.add(config)
+        session.commit()
+
+    @with_session
+    def enable_spam_classifier(self, session=None) -> None:
+        config = session.query(Config).first()
+        config.spam = True
+        session.add(config)
+        session.commit()
+
+    @with_session
+    def set_spam_correct_or_not(self, spam_id: int, correct: bool, session=None):
+        spam = session.query(Spams).filter(Spams.id == spam_id).first()
+        spam.correct = correct
+        session.add(spam)
+        session.commit()
+
+    @with_session
+    def save_spam_prediction(self, activity: Activity, message, y_hats: tuple, session=None):
+        to_name = activity.target.display_name
+        from_name = activity.actor.display_name
+
+        if is_base64(to_name):
+            try:
+                to_name = b64d(to_name)
+            except Exception:
+                pass
+        if is_base64(from_name):
+            try:
+                from_name = b64d(from_name)
+            except Exception:
+                pass
+
+        spam = Spams()
+        spam.time_stamp = int(datetime.utcnow().strftime('%s'))
+        spam.from_name = from_name
+        spam.from_uid = activity.actor.id
+        spam.to_name = to_name
+        spam.to_uid = activity.target.id
+        spam.object_type = activity.target.object_type
+        spam.message = message
+        spam.message_deleted = self.env.service_config.is_spam_classifier_enabled()
+        spam.message_id = activity.id
+        spam.probability = ','.join([str(y_hat) for y_hat in y_hats])
+
+        session.add(spam)
+        session.commit()
+
+        logger.info('saved spam prediction to db with ID {}'.format(spam.id))
 
     @with_session
     def update_last_read_for(self, users: set, room_id: str, time_stamp: int, session=None) -> None:

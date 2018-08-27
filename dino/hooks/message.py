@@ -9,6 +9,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Union
 
 from dino import environ
 from dino import utils
@@ -17,7 +18,7 @@ from dino.utils.decorators import timeit
 
 import logging
 import traceback
-import eventlet
+import json
 import sys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -57,9 +58,9 @@ class OnMessageHooks(object):
                 send(data, _room=room_id)
 
         @timeit(logger, 'on_message_hooks_store')
-        def store() -> None:
+        def store(deleted=False) -> Union[str, None]:
             try:
-                environ.env.storage.store_message(activity)
+                message_id = environ.env.storage.store_message(activity, deleted=deleted)
             except Exception as e:
                 logger.error('could not store message %s because: %s' % (activity.id, str(e)))
                 logger.error(str(data))
@@ -81,16 +82,36 @@ class OnMessageHooks(object):
                     continue
                 environ.env.storage.mark_as_unacked(activity.id, receiver_id, activity.target.id)
 
+            return message_id
+
+        def check_spam():
+            _is_spam = False
+            _spam_id = None
+
+            try:
+                _message = utils.b64d(activity.object.content)
+                try:
+                    json_body = json.loads(_message)
+                    _message = json_body.get('text')
+                except Exception:
+                    pass  # ignore, use original
+
+                _is_spam, _y_hats = environ.env.spam.is_spam(_message)
+                if _is_spam:
+                    _spam_id = environ.env.db.save_spam_prediction(activity, _message, _y_hats)
+            except Exception as e:
+                logger.error('could not predict spam: {}'.format(str(e)))
+                logger.exception(e)
+                environ.env.capture_exception(sys.exc_info())
+
+            return _is_spam, _spam_id
+
         data, activity = arg
         user_id = activity.actor.id
-        word = utils.used_blacklisted_word(activity)
+        user_used_blacklisted_word, word_used_if_any = utils.used_blacklisted_word(activity)
 
-        if word is None:
-            store()
-            broadcast()
-            publish_activity()
-        else:
-            blacklist_activity = utils.activity_for_blacklisted_word(activity, word)
+        if user_used_blacklisted_word:
+            blacklist_activity = utils.activity_for_blacklisted_word(activity, word_used_if_any)
             environ.env.publish(blacklist_activity, external=True)
             send(data, _room=user_id, _broadcast=False)
 
@@ -98,6 +119,18 @@ class OnMessageHooks(object):
             if len(admins_in_room) > 0:
                 for admin_user_id in admins_in_room:
                     send(data, _room=admin_user_id, _broadcast=False)
+        else:
+            is_spam, spam_id = check_spam()
+
+            if is_spam and environ.env.service_config.is_spam_classifier_enabled():
+                spam_activity = utils.activity_for_spam_word(activity)
+                environ.env.publish(spam_activity, external=True)
+                store(deleted=True)
+
+            else:
+                store(deleted=False)
+                broadcast()
+                publish_activity()
 
 
 @environ.env.observer.on('on_message')
