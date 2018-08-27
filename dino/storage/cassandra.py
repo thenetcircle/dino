@@ -54,7 +54,7 @@ class CassandraStorage(object):
         self.driver.init()
 
     @timeit(logger, 'on_message_hooks_store')
-    def store_message(self, activity: Activity) -> None:
+    def store_message(self, activity: Activity, deleted=False) -> None:
         message = b64d(activity.object.content)
         actor_name = b64d(activity.actor.display_name)
         self.driver.msg_insert(
@@ -68,7 +68,7 @@ class CassandraStorage(object):
                 sent_time=activity.published,
                 channel_id=activity.object.url,
                 channel_name=activity.object.display_name,
-                deleted=False
+                deleted=deleted
         )
 
     def get_statuses(self, message_ids: set, receiver_id: str) -> dict:

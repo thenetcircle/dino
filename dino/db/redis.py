@@ -69,8 +69,17 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def mark_spam_deleted_if_exists(self, message_id: str) -> None:
+        return
+
+    def mark_spam_not_deleted_if_exists(self, message_id: str) -> None:
+        return
+
     def get_latest_spam(self, limit: int) -> list:
         return list()
+
+    def get_spam(self, spam_id: int) -> dict:
+        return dict()
 
     def get_spam_for_time_slice(self, room_id, user_id, from_time_int, to_time_int) -> list:
         return list()
@@ -80,6 +89,9 @@ class DatabaseRedis(object):
 
     def init_config(self) -> None:
         return
+
+    def get_service_config(self, session=None) -> dict:
+        return dict()
 
     def enable_spam_classifier(self) -> None:
         return

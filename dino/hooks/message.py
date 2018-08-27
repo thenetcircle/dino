@@ -58,9 +58,9 @@ class OnMessageHooks(object):
                 send(data, _room=room_id)
 
         @timeit(logger, 'on_message_hooks_store')
-        def store() -> Union[str, None]:
+        def store(deleted=False) -> Union[str, None]:
             try:
-                message_id = environ.env.storage.store_message(activity)
+                message_id = environ.env.storage.store_message(activity, deleted=deleted)
             except Exception as e:
                 logger.error('could not store message %s because: %s' % (activity.id, str(e)))
                 logger.error(str(data))
@@ -121,9 +121,16 @@ class OnMessageHooks(object):
                     send(data, _room=admin_user_id, _broadcast=False)
         else:
             is_spam, spam_id = check_spam()
-            store()
-            broadcast()
-            publish_activity()
+
+            if is_spam and environ.env.service_config.is_spam_classifier_enabled():
+                spam_activity = utils.activity_for_spam_word(activity)
+                environ.env.publish(spam_activity, external=True)
+                store(deleted=True)
+
+            else:
+                store(deleted=False)
+                broadcast()
+                publish_activity()
 
 
 @environ.env.observer.on('on_message')

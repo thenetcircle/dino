@@ -248,6 +248,8 @@ class GNEnvironment(object):
         self.start_consumer = None
         self.blacklist = None
         self.node = None
+        self.service_config = None
+        self.spam = None
 
         self.event_validator_map = dict()
         self.event_validators = dict()
@@ -1048,6 +1050,16 @@ def init_web_auth(gn_env: GNEnvironment) -> None:
     logger.info('initialized OAuthService')
 
 
+@timeit(logger, 'init config service')
+def init_service_config(gn_env: GNEnvironment) -> None:
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    from dino.config import ConfigService
+    gn_env.service_config = ConfigService(gn_env)
+
+
 def initialize_env(dino_env):
     init_logging(dino_env)
     init_database(dino_env)
@@ -1068,7 +1080,8 @@ def initialize_env(dino_env):
         init_admin_and_admin_room(dino_env)
         init_acl_validators(dino_env)
         init_storage_engine(dino_env)
-        init_spam_service(dino_env)
+        #init_spam_service(dino_env)
+        init_service_config(dino_env)
         delete_ephemeral_rooms(dino_env)
 
 

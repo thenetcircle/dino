@@ -333,7 +333,16 @@ def activity_for_message(user_id: str, user_name: str) -> dict:
     })
 
 
-def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> dict:
+def activity_for_spam_word(activity: Activity) -> dict:
+    spam_activity = activity_for_blacklisted_word(activity)
+    spam_activity['verb'] = 'spam'
+    return spam_activity
+
+
+def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str=None) -> dict:
+    if blacklisted_word is not None:
+        blacklisted_word = b64e(blacklisted_word)
+
     return ActivityBuilder.enrich({
         'actor': {
             'id': activity.actor.id,
@@ -341,7 +350,7 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str) -> 
         },
         'object': {
             'content': activity.object.content,
-            'summary': b64e(blacklisted_word)
+            'summary': blacklisted_word
         },
         'target': {
             'id': activity.target.id,

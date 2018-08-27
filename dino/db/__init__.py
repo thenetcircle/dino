@@ -28,6 +28,37 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_service_config(self) -> dict:
+        """
+        get the service config
+
+        :return: a dict of the configs
+        """
+
+    def mark_spam_deleted_if_exists(self, message_id: str) -> None:
+        """
+        mark as deleted
+
+        :param message_id: the uuid of the message stored in the message store
+        :return: nothing
+        """
+
+    def mark_spam_not_deleted_if_exists(self, message_id: str) -> None:
+        """
+        mark as not deleted
+
+        :param message_id: the uuid of the message stored in the message store
+        :return: nothing
+        """
+
+    def get_spam(self, spam_id: int) -> dict:
+        """
+        get one spam message
+
+        :param spam_id: the id of the spam message
+        :return: a dict describing the message
+        """
+
     def disable_spam_classifier(self) -> None:
         """
         disable the spam classifier

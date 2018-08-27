@@ -118,6 +118,13 @@ class DatabaseRdbms(object):
         session.add(config)
         session.commit()
 
+    @with_session
+    def get_service_config(self, session=None) -> dict:
+        config = session.query(Config).first()
+        return {
+            'spam': config.spam
+        }
+
     def is_room_ephemeral(self, room_id: str) -> bool:
         @with_session
         def is_ephemeral(session=None):
@@ -1792,6 +1799,9 @@ class DatabaseRdbms(object):
         return value
 
     def _format_spam(self, spam: Spams) -> dict:
+        if spam is None:
+            return dict()
+
         return {
             'id': spam.id,
             'from_id': spam.from_uid,
@@ -1808,6 +1818,27 @@ class DatabaseRdbms(object):
         }
 
     @with_session
+    def mark_spam_deleted_if_exists(self, message_id: str, session=None) -> None:
+        spam = session.query(Spams).filter(Spams.message_id == message_id).first()
+        if spam is not None:
+            spam.message_deleted = True
+            session.add(spam)
+            session.commit()
+
+    @with_session
+    def mark_spam_not_deleted_if_exists(self, message_id: str, session=None) -> None:
+        spam = session.query(Spams).filter(Spams.message_id == message_id).first()
+        if spam is not None:
+            spam.message_deleted = False
+            session.add(spam)
+            session.commit()
+
+    @with_session
+    def get_spam(self, spam_id: int, session=None) -> dict:
+        spam = session.query(Spams).filter(Spams.id == spam_id).first()
+        return self._format_spam(spam)
+
+    @with_session
     def get_latest_spam(self, limit: int, session=None) -> list:
         return [
             self._format_spam(spam)
@@ -1818,7 +1849,8 @@ class DatabaseRdbms(object):
     def get_spam_for_time_slice(self, room_id, user_id, from_time_int, to_time_int, session=None) -> list:
         if room_id is not None:
             spams = session.query(Spams)\
-                .filter(from_time_int <= Spams.time_stamp <= to_time_int)\
+                .filter(from_time_int <= Spams.time_stamp)\
+                .filter(Spams.time_stamp <= to_time_int)\
                 .filter(Spams.to_uid == room_id)\
                 .all()
 
@@ -1887,7 +1919,7 @@ class DatabaseRdbms(object):
         spam.to_uid = activity.target.id
         spam.object_type = activity.target.object_type
         spam.message = message
-        spam.message_deleted = False
+        spam.message_deleted = self.env.service_config.is_spam_classifier_enabled()
         spam.message_id = activity.id
         spam.probability = ','.join([str(y_hat) for y_hat in y_hats])
 

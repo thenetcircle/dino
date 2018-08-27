@@ -64,6 +64,11 @@ class MockStats(object):
         pass
 
 
+class MockSpam(object):
+    def is_spam(self, _):
+        return False, ()
+
+
 class Form(object):
     data = None
 
@@ -334,6 +339,7 @@ class BaseTest(unittest.TestCase):
         environ.env.publish = BaseTest._mock_publish
         environ.env.disconnect = BaseTest._disconnect
         environ.env.stats = MockStats()
+        environ.env.spam = MockSpam()
         environ.env.cache = CacheAllMiss()
 
         environ.env.auth.redis.flushall()

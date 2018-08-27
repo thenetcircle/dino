@@ -14,19 +14,27 @@ def is_blank(s: str):
 
 class SpamManager(StorageManager):
     def __init__(self, env: GNEnvironment):
-        super(StorageManager).__init__(env)
+        super().__init__(env)
 
     def get_all_spam_from_user(self, user_id: str) -> list:
         return self.env.db.get_spam_from(user_id)
 
-    def get_latest_spam(self, limit=500):
-        self.env.db.get_latest_spam(limit)
+    def get_latest_spam(self, limit=500) -> list:
+        return self.env.db.get_latest_spam(limit)
+
+    def get_spam(self, spam_id: int) -> dict:
+        return self.env.db.get_spam(spam_id)
+
+    def is_enabled(self) -> bool:
+        return self.env.service_config.is_spam_classifier_enabled()
 
     def disable(self):
         self.env.db.disable_spam_classifier()
+        self.env.service_config.reload()
 
     def enable(self):
         self.env.db.enable_spam_classifier()
+        self.env.service_config.reload()
 
     def find(self, room_id, user_id, from_time, to_time) -> (list, datetime, datetime):
         if is_blank(user_id) and is_blank(room_id):
