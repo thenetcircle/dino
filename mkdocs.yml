@@ -5,6 +5,7 @@ pages:
     - Getting Started: md/getting_started.md
     - Usage: md/usage.md
     - API: md/api.md
+    - Web UI API: md/web.md
     - Events: md/events.md
     - External Events: md/external_events.md
     - ACL: md/acl.md
