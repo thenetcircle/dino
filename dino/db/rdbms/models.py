@@ -146,7 +146,7 @@ class Spams(DeclarativeBase):
     to_name = Column('to_name', String(128), nullable=False)
     object_type = Column('object_type', String(128), nullable=False)
     probability = Column('probability', String(128), nullable=False)
-    correct = Column('is_global', Boolean, nullable=False, default=True)
+    correct = Column('is_correct', Boolean, nullable=False, default=True)
     time_stamp = Column('time_stamp', Integer, nullable=False)
 
 

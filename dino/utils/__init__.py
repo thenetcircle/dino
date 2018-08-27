@@ -84,8 +84,6 @@ def is_base64(s):
     try:
         str(b64decode(bytes(s, 'utf-8')), 'utf-8')
     except Exception as e:
-        logger.warning('invalid message content, could not decode base64: %s' % str(e))
-        logger.exception(traceback.format_exc())
         return False
     return True
 

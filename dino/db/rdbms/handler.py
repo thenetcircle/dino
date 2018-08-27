@@ -72,6 +72,7 @@ from dino.exceptions import UserExistsException
 from dino.exceptions import ValidationException
 from dino.utils import b64d
 from dino.utils import b64e
+from dino.utils import is_base64
 from dino.utils.decorators import timeit
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -1840,12 +1841,27 @@ class DatabaseRdbms(object):
 
     @with_session
     def save_spam_prediction(self, activity: Activity, message, y_hats: tuple, session=None):
+        to_name = activity.target.display_name
+        from_name = activity.actor.display_name
+
+        if is_base64(to_name):
+            try:
+                to_name = b64d(to_name)
+            except Exception:
+                pass
+        if is_base64(from_name):
+            try:
+                from_name = b64d(from_name)
+            except Exception:
+                pass
+
         spam = Spams()
         spam.time_stamp = int(datetime.utcnow().strftime('%s'))
-        spam.from_name = activity.actor.display_name
+        spam.from_name = from_name
         spam.from_uid = activity.actor.id
-        spam.to_name = activity.target.display_name
+        spam.to_name = to_name
         spam.to_uid = activity.target.id
+        spam.object_type = activity.target.object_type
         spam.message = message
         spam.message_deleted = False
         spam.message_id = activity.id

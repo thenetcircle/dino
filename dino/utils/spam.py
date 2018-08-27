@@ -38,20 +38,22 @@ class SpamClassifier(object):
 
     @timeit(logger, 'on_transform')
     def transform(self, x):
-        x = sparse.hstack((self.tfidf_char.fit_transform(x), self.tfidf_word.fit_transform(x))).A
+        x = sparse.hstack((self.tfidf_char.transform(x), self.tfidf_word.transform(x))).A
         return self.pca.transform(x)
 
     @timeit(logger, 'on_predict')
     def predict(self, x):
         y_hat = (
-            self.xgb.predict_proba(x),
-            self.rfc.predict_proba(x),
-            self.svc.predict(x)
+            self.xgb.predict_proba(x)[0][1],
+            self.rfc.predict_proba(x)[0][1],
+            self.svc.predict(x)[0]
         )
+        logger.info('y_hat: {}'.format(y_hat))
 
         # if 2 out of 3 classifiers are at least 66% certain it's spam, classify it as such
         return 1 if sum(1 for e in y_hat if e > 0.66) >= 2 else 0, y_hat
 
     def is_spam(self, message) -> (bool, tuple):
+        logger.info('prediction message: {}'.format(message))
         x = self.transform([message])
         return self.predict(x)
