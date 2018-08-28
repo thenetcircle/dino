@@ -25,7 +25,16 @@ class ConfigService(object):
         self.reload()
 
     def is_spam_classifier_enabled(self):
-        return self.config.get('spam')
+        return self.config.get('spam_enabled', False)
+
+    def get_spam_min_length(self):
+        return self.config.get('spam_min_length', 10)
+
+    def get_spam_max_length(self):
+        return self.config.get('spam_max_length', 250)
+
+    def should_delete_spam(self):
+        return self.config.get('spam_should_delete', False)
 
     def reload(self):
         self.config = self.env.db.get_service_config()
