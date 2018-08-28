@@ -104,7 +104,7 @@ class OnMessageHooks(object):
 
             try:
                 _is_spam, _y_hats = environ.env.spam.is_spam(_message)
-                if _is_spam:
+                if _is_spam and environ.env.service_config.should_save_spam():
                     _spam_id = environ.env.db.save_spam_prediction(activity, _message, _y_hats)
             except Exception as e:
                 logger.error('could not predict spam: {}'.format(str(e)))

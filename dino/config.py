@@ -36,6 +36,9 @@ class ConfigService(object):
     def should_delete_spam(self):
         return self.config.get('spam_should_delete', False)
 
+    def should_save_spam(self):
+        return self.config.get('spam_should_save', False)
+
     def reload(self):
         self.config = self.env.db.get_service_config()
 

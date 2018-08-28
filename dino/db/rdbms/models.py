@@ -135,10 +135,11 @@ class Config(DeclarativeBase):
     __tablename__ = 'service_config'
 
     id = Column(Integer, primary_key=True)
-    spam_enabled = Column('spam_enabled', Boolean, nullable=False, default=False)
+    spam_enabled = Column('spam_enabled', Boolean, nullable=False, default=True)
     spam_should_delete = Column('spam_should_delete', Boolean, nullable=False, default=False)
-    spam_min_length = Column('spam_min_length', Integer, nullable=False, default=False)
-    spam_max_length = Column('spam_max_length', Integer, nullable=False, default=False)
+    spam_should_save = Column('spam_should_save', Boolean, nullable=False, default=False)
+    spam_min_length = Column('spam_min_length', Integer, nullable=False, default=10)
+    spam_max_length = Column('spam_max_length', Integer, nullable=False, default=250)
 
 
 class Spams(DeclarativeBase):
