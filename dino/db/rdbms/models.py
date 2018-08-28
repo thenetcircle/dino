@@ -143,6 +143,7 @@ class Config(DeclarativeBase):
 
 class Spams(DeclarativeBase):
     __tablename__ = 'spams'
+    __table_args__ = {'mysql_collate': 'utf8_general_ci'}
 
     id = Column(Integer, primary_key=True)
 
