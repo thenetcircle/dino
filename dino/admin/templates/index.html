@@ -3,21 +3,28 @@
 
 <head>
   <meta charset=utf-8>
+  <meta http-equiv=X-UA-Compatible content="IE=edge">
   <meta name=viewport content="width=device-width,initial-scale=1">
-  <meta http-equiv=X-UA-Compatible content="ie=edge">
-  <meta name=base content={{ config.ROOT_URL }}>
-  <meta name=environment content={{ environment}}>
-  <meta name=version content={{ version }}>
-  <title>Dino Admin</title>
-  <link href={{ config.ROOT_URL }}/static/css/app.7f19e55583a5b356cb70638df2999a47.css rel=stylesheet>
+  <meta name=base content="{{ config.ROOT_URL }}">
+  <meta name=environment content="{{ environment }}">
+  <meta name=version content="{{ version }}">
+  <meta name=floatingmenu content="{{ config.FLOATING_MENU }}">
+  <link rel=icon href={{ config.ROOT_URL }}/static/favicon.ico>
+  <link href={{ config.ROOT_URL }}/static/css/font-awesome.css rel=preload as=style>
+  <link rel=stylesheet href={{ config.ROOT_URL }}/static/css/font-awesome.css rel=preload as=style>
+  <title>{{ environment }} - Dino Admin</title>
+  <link href={{ config.ROOT_URL }}/static/css/app.9b38d185.css rel=preload as=style>
+  <link href={{ config.ROOT_URL }}/static/css/chunk-vendors.f0995c74.css rel=preload as=style>
+  <link href={{ config.ROOT_URL }}/static/js/app.fa1f7147.js rel=preload as=script>
+  <link href={{ config.ROOT_URL }}/static/js/chunk-vendors.2c94d360.js rel=preload as=script>
+  <link href={{ config.ROOT_URL }}/static/css/chunk-vendors.f0995c74.css rel=stylesheet>
+  <link href={{ config.ROOT_URL }}/static/css/app.9b38d185.css rel=stylesheet>
 </head>
 
-<body>
-  <div id=app></div>
-  {% if config.FLOATING_MENU == True %}
-  <script src=/static/js/rhum.js></script>
-  {% endif %}
-  <script type=text/javascript src={{ config.ROOT_URL }}/static/js/manifest.6a2140992e51db822be0.js></script>
-  <script type=text/javascript src={{ config.ROOT_URL }}/static/js/vendor.8c8de91f251b5edbee4e.js></script>
-  <script type=text/javascript src={{ config.ROOT_URL }}/static/js/app.58fdce83e1a5db3de17e.js></script>
+<body><noscript><strong>We're sorry but client doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div
+    id=app></div>
+  <script src={{ config.ROOT_URL }}/static/js/chunk-vendors.2c94d360.js></script>
+  <script src={{ config.ROOT_URL }}/static/js/app.fa1f7147.js></script>
 </body>
+
+</html>
