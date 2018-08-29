@@ -122,7 +122,11 @@ class DatabaseRdbms(object):
     def get_service_config(self, session=None) -> dict:
         config = session.query(Config).first()
         return {
-            'spam': config.spam
+            'spam_enabled': config.spam_enabled,
+            'spam_min_length': config.spam_min_length,
+            'spam_max_length': config.spam_max_length,
+            'spam_should_delete': config.spam_should_delete,
+            'spam_should_save': config.spam_should_save
         }
 
     def is_room_ephemeral(self, room_id: str) -> bool:
@@ -1806,7 +1810,7 @@ class DatabaseRdbms(object):
             'id': spam.id,
             'from_id': spam.from_uid,
             'from_name': spam.from_name,
-            'to_id': spam.from_uid,
+            'to_id': spam.to_uid,
             'to_name': spam.to_name,
             'time_stamp': spam.time_stamp,
             'message': spam.message,

@@ -54,6 +54,16 @@ class SpamClassifier(object):
         return 1 if sum(1 for e in y_hat if e > 0.66) >= 2 else 0, y_hat
 
     def is_spam(self, message) -> (bool, tuple):
+        if self.too_long_or_too_short(message):
+            return False, None
+
         logger.info('prediction message: {}'.format(message))
         x = self.transform([message])
         return self.predict(x)
+
+    def too_long_or_too_short(self, message) -> bool:
+        min_len = self.env.service_config.get_spam_min_length()
+        max_len = self.env.service_config.get_spam_max_length()
+
+        # short or overly long messages are usually not spam, and the models weren't trained on it
+        return len(message) < min_len or len(message) > max_len

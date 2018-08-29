@@ -87,6 +87,7 @@ class OnMessageHooks(object):
         def check_spam():
             _is_spam = False
             _spam_id = None
+            _message = None
 
             try:
                 _message = utils.b64d(activity.object.content)
@@ -95,14 +96,21 @@ class OnMessageHooks(object):
                     _message = json_body.get('text')
                 except Exception:
                     pass  # ignore, use original
+            except Exception as e:
+                logger.error('could not decode message: {}'.format(str(e)))
+                logger.exception(e)
+                environ.env.capture_exception(sys.exc_info())
+                return False, None
 
+            try:
                 _is_spam, _y_hats = environ.env.spam.is_spam(_message)
-                if _is_spam:
+                if _is_spam and environ.env.service_config.should_save_spam():
                     _spam_id = environ.env.db.save_spam_prediction(activity, _message, _y_hats)
             except Exception as e:
                 logger.error('could not predict spam: {}'.format(str(e)))
                 logger.exception(e)
                 environ.env.capture_exception(sys.exc_info())
+                return False, None
 
             return _is_spam, _spam_id
 
@@ -122,10 +130,15 @@ class OnMessageHooks(object):
         else:
             is_spam, spam_id = check_spam()
 
-            if is_spam and environ.env.service_config.is_spam_classifier_enabled():
-                spam_activity = utils.activity_for_spam_word(activity)
-                environ.env.publish(spam_activity, external=True)
-                store(deleted=True)
+            if is_spam:
+                if environ.env.service_config.is_spam_classifier_enabled():
+                    spam_activity = utils.activity_for_spam_word(activity)
+                    environ.env.publish(spam_activity, external=True)
+
+                    if environ.env.service_config.should_delete_spam():
+                        store(deleted=True)
+                    else:
+                        store(deleted=False)
 
             else:
                 store(deleted=False)

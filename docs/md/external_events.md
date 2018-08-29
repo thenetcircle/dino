@@ -58,6 +58,31 @@ Example of activity posted to the external queue:
 * object.content: the full message that was sent,
 * object.summary: the forbidden word that was used.
 
+## User sent a message classified as spam
+    
+    {
+        "actor": {
+            "displayName": "YmF0bWFu",
+            "id": "997110"
+        },
+        "object": {
+            "content": "aGVsbG8gZnVjayB5b3U="
+        },
+        "target": {
+            "displayName": "Y29vbCBndXlz",
+            "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+        },
+        "verb": "spam",
+        "id": "<server-generated UUID>",
+        "published": "<server-generated timestamp, RFC3339 format>"
+    }
+
+* target.displayName: name of the room the message was sent in,
+* target.id: uuid of the room the message was sent in,
+* actor.id: id of the user who sent the message,
+* actor.displayName: username of the user who sent the message,
+* object.content: the full message that was sent.
+
 ## User was banned
 
 Example of activity posted to the external queue:

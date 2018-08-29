@@ -135,11 +135,16 @@ class Config(DeclarativeBase):
     __tablename__ = 'service_config'
 
     id = Column(Integer, primary_key=True)
-    spam = Column('spam', Boolean, nullable=False, default=False)
+    spam_enabled = Column('spam_enabled', Boolean, nullable=False, default=True)
+    spam_should_delete = Column('spam_should_delete', Boolean, nullable=False, default=False)
+    spam_should_save = Column('spam_should_save', Boolean, nullable=False, default=False)
+    spam_min_length = Column('spam_min_length', Integer, nullable=False, default=10)
+    spam_max_length = Column('spam_max_length', Integer, nullable=False, default=250)
 
 
 class Spams(DeclarativeBase):
     __tablename__ = 'spams'
+    __table_args__ = {'mysql_collate': 'utf8_general_ci'}
 
     id = Column(Integer, primary_key=True)
 
@@ -173,21 +178,6 @@ class Acls(DeclarativeBase):
 
     # acl_type: gender/age/city etc.
     acl_type = Column('acl_type', String(128), nullable=False)
-    acl_value = Column('acl_value', String(128), nullable=False)
-
-
-class Configs(DeclarativeBase):
-    __tablename__ = 'config'
-
-    id = Column(Integer, primary_key=True)
-
-    # method: str_in_csv/range etc.
-    method = Column('method', String(128), nullable=False)
-
-    # acl_type: gender/age/city etc.
-    acl_type = Column('acl_type', String(128), nullable=False)
-
-    # acl_value: the configured value, e.g. 'm,f' for an acl_type 'gender'
     acl_value = Column('acl_value', String(128), nullable=False)
 
 
