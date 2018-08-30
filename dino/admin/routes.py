@@ -75,9 +75,12 @@ def internal_url_for(url):
 
 
 def is_authorized():
-    logging.info(str(request.cookies))
+    if not environ.env.config.get(ConfigKeys.OAUTH_ENABLED, default=False, domain=ConfigKeys.WEB):
+        return True
     if 'token' not in request.cookies:
         return False
+
+    logging.info(str(request.cookies))
     return environ.env.web_auth.check(request.cookies.get('token'))
 
 
