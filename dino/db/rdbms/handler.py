@@ -1879,6 +1879,32 @@ class DatabaseRdbms(object):
         ]
 
     @with_session
+    def update_spam_config(self, enabled, max_length, min_length, should_delete, should_save, session=None) -> None:
+        config = session.query(Config).first()
+
+        if enabled is not None:
+            config.spam_enabled = enabled
+
+        if max_length is not None:
+            if max_length <= 0:
+                raise ValueError('max length needs to be >0')
+            config.spam_spam_max_length = max_length
+
+        if min_length is not None:
+            if min_length < 0:
+                raise ValueError('min length needs to be positive')
+            config.spam_min_length = min_length
+
+        if should_delete is not None:
+            config.spam_should_delete = should_delete
+
+        if should_save is not None:
+            config.spam_should_save = should_save
+
+        session.add(config)
+        session.commit()
+
+    @with_session
     def disable_spam_classifier(self, session=None) -> None:
         config = session.query(Config).first()
         config.spam = False

@@ -274,6 +274,26 @@ Response:
 }
 ```
 
+## POST `/api/spam/settings`
+
+Set the current settings for the spam classifier. One or more settings can be specified in the dictionary.
+
+Request:
+
+```bash
+user@box:~$ curl -X POST localhost:4556/api/spam/settings -H 'Content-Type: application/json' -d '{"spam_enabled": true,"spam_max_length": 250,"spam_min_length": 10,"spam_should_delete": false,"spam_should_save": false}'
+```
+
+Response:
+
+```json
+{
+	"data": {},
+	"message": "",
+	"status_code": 200
+}
+```
+
 ## PUT `/api/spam/set/minlen/<min_length>`
 
 set min length of message that should be checked for spam.

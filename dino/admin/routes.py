@@ -892,9 +892,35 @@ def set_spam_incorrect(spam_id):
 @requires_auth
 def spam_get_settings():
     try:
+        form = request.get_json()
+
+        if form is None:
+            return api_response(400, message='no json data in request')
+
+        enabled = form.get('enabled', None)
+        max_length = form.get('max_length', None)
+        min_length = form.get('min_length', None)
+        should_delete = form.get('should_delete', None)
+        should_save = form.get('should_save', None)
+
+        settings = spam_manager.set_settings(enabled, max_length, min_length, should_delete, should_save)
+    except Exception as e:
+        msg = 'Could not get settigns: {}'.format(str(e))
+        logger.error(msg)
+        logger.exception(traceback.format_exc())
+        environ.env.capture_exception(sys.exc_info())
+        return api_response(400, message=msg)
+
+    return api_response(200, settings)
+
+
+@app.route('/api/spam/settings', methods=['GET'])
+@requires_auth
+def spam_get_settings():
+    try:
         settings = spam_manager.get_settings()
     except Exception as e:
-        msg = 'Could not  get settigns: {}'.format(str(e))
+        msg = 'Could not set settigns: {}'.format(str(e))
         logger.error(msg)
         logger.exception(traceback.format_exc())
         environ.env.capture_exception(sys.exc_info())
