@@ -263,11 +263,11 @@ Response:
 ```json
 {
 	"data": {
-		"spam_enabled": true,
-		"spam_max_length": 250,
-		"spam_min_length": 10,
-		"spam_should_delete": false,
-		"spam_should_save": false
+		"enabled": true,
+		"max_length": 250,
+		"min_length": 10,
+		"should_delete": false,
+		"should_save": false
 	},
 	"message": "",
 	"status_code": 200
@@ -281,7 +281,7 @@ Set the current settings for the spam classifier. One or more settings can be sp
 Request:
 
 ```bash
-user@box:~$ curl -X POST localhost:4556/api/spam/settings -H 'Content-Type: application/json' -d '{"spam_enabled": true,"spam_max_length": 250,"spam_min_length": 10,"spam_should_delete": false,"spam_should_save": false}'
+user@box:~$ curl -X POST localhost:4556/api/spam/settings -H 'Content-Type: application/json' -d '{"enabled":true,"max_length":250,"min_length":10,"should_delete":false,"should_save":false}'
 ```
 
 Response:

@@ -918,9 +918,12 @@ def spam_get_settings():
 @requires_auth
 def spam_get_settings():
     try:
-        settings = spam_manager.get_settings()
+        settings = {
+            setting.replace('spam_', ''): val
+            for setting, val in spam_manager.get_settings().items()
+        }
     except Exception as e:
-        msg = 'Could not set settigns: {}'.format(str(e))
+        msg = 'Could not set settings: {}'.format(str(e))
         logger.error(msg)
         logger.exception(traceback.format_exc())
         environ.env.capture_exception(sys.exc_info())
