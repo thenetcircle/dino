@@ -28,6 +28,18 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def update_spam_config(self, enabled, max_length, min_length, should_delete, should_save) -> None:
+        """
+        update the config for the spam classifier
+
+        :param enabled: whether to enable sending external events (bool)
+        :param max_length: max length to classify (int)
+        :param min_length: min length to classify (int)
+        :param should_delete: enable/disable deletion of spam messages from storage backend (bool)
+        :param should_save: enable/disable saving of spam messages to separate 'spams' table (bool)
+        :return: nothing
+        """
+
     def set_spam_min_length(self, min_length: int) -> None:
         """
         set min length of message that should be checked for spam
