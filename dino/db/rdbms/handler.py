@@ -1893,6 +1893,54 @@ class DatabaseRdbms(object):
         session.commit()
 
     @with_session
+    def set_spam_min_length(self, min_length: int, session=None) -> None:
+        if min_length < 0:
+            raise ValueError('min length needs to be positive')
+
+        config = session.query(Config).first()
+        config.spam_min_length = min_length
+        session.add(config)
+        session.commit()
+
+    @with_session
+    def set_spam_max_length(self, max_length: int, session=None) -> None:
+        if max_length <= 0:
+            raise ValueError('max length needs to be >0')
+
+        config = session.query(Config).first()
+        config.spam_max_length = max_length
+        session.add(config)
+        session.commit()
+
+    @with_session
+    def enable_spam_delete(self, session=None) -> None:
+        config = session.query(Config).first()
+        config.spam_should_delete = True
+        session.add(config)
+        session.commit()
+
+    @with_session
+    def disable_spam_delete(self, session=None) -> None:
+        config = session.query(Config).first()
+        config.spam_should_delete = False
+        session.add(config)
+        session.commit()
+
+    @with_session
+    def enable_spam_save(self, session=None) -> None:
+        config = session.query(Config).first()
+        config.spam_should_save = True
+        session.add(config)
+        session.commit()
+
+    @with_session
+    def disable_spam_save(self, session=None) -> None:
+        config = session.query(Config).first()
+        config.spam_should_save = False
+        session.add(config)
+        session.commit()
+
+    @with_session
     def set_spam_correct_or_not(self, spam_id: int, correct: bool, session=None):
         spam = session.query(Spams).filter(Spams.id == spam_id).first()
         spam.correct = correct

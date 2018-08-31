@@ -42,6 +42,9 @@ class ConfigService(object):
     def reload(self):
         self.config = self.env.db.get_service_config()
 
+    def get_config(self):
+        return self.config.copy()
+
 
 # TODO: session keys should be configurable, and config should also contain whether or not they're required
 class SessionKeys(Enum):

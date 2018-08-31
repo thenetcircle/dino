@@ -28,6 +28,50 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def set_spam_min_length(self, min_length: int) -> None:
+        """
+        set min length of message that should be checked for spam
+
+        :param min_length: the length as an int
+        :return: nothing
+        """
+
+    def set_spam_max_length(self, max_length: int) -> None:
+        """
+        set max length of message that should be checked for spam
+
+        :param max_length: the length as an int
+        :return: nothing
+        """
+
+    def enable_spam_delete(self) -> None:
+        """
+        enable deletion of spam messages from storage backend
+
+        :return: nothing
+        """
+
+    def disable_spam_delete(self) -> None:
+        """
+        disable deletion of spam messages from storage backend
+
+        :return: nothing
+        """
+
+    def enable_spam_save(self) -> None:
+        """
+        enable saving of spam messages to separate 'spams' table
+
+        :return: nothing
+        """
+
+    def disable_spam_save(self) -> None:
+        """
+        disable saving of spam messages to separate 'spams' table
+
+        :return: nothing
+        """
+
     def get_service_config(self) -> dict:
         """
         get the service config

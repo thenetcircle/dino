@@ -69,6 +69,24 @@ class DatabaseRedis(object):
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
 
+    def set_spam_min_length(self, min_length: int) -> None:
+        return
+
+    def set_spam_max_length(self, max_length: int) -> None:
+        return
+
+    def enable_spam_delete(self) -> None:
+        return
+
+    def disable_spam_delete(self) -> None:
+        return
+
+    def enable_spam_save(self) -> None:
+        return
+
+    def disable_spam_save(self) -> None:
+        return
+
     def mark_spam_deleted_if_exists(self, message_id: str) -> None:
         return
 

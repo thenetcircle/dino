@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 import traceback
 from functools import wraps
 from typing import List
@@ -887,45 +888,91 @@ def set_spam_incorrect(spam_id):
     return api_response(200)
 
 
+@app.route('/api/spam/settings', methods=['GET'])
+@requires_auth
+def spam_get_settings():
+    try:
+        settings = spam_manager.get_settings()
+    except Exception as e:
+        msg = 'Could not  get settigns: {}'.format(str(e))
+        logger.error(msg)
+        logger.exception(traceback.format_exc())
+        environ.env.capture_exception(sys.exc_info())
+        return api_response(400, message=msg)
+
+    return api_response(200, settings)
+
+
+@app.route('/api/spam/set/minlen/<min_length>', methods=['PUT'])
+@requires_auth
+def spam_set_min_length(min_length: int):
+    return _spam_set_setting(spam_manager.set_min_length, min_length, 'set min length')
+
+
+@app.route('/api/spam/set/maxlen/<max_length>', methods=['PUT'])
+@requires_auth
+def spam_set_max_length(max_length: int):
+    return _spam_set_setting(spam_manager.set_max_length, max_length, 'set max length')
+
+
+@app.route('/api/spam/disable/save', methods=['POST'])
+@requires_auth
+def spam_disable_save():
+    return _enable_disable(spam_manager.disable_save, 'disable spam classifier')
+
+
+@app.route('/api/spam/disable/delete', methods=['POST'])
+@requires_auth
+def spam_disable_delete():
+    return _enable_disable(spam_manager.disable_delete, 'disable spam classifier')
+
+
+@app.route('/api/spam/enable/save', methods=['POST'])
+@requires_auth
+def spam_enable_save():
+    return _enable_disable(spam_manager.enable_save, 'enable spam classifier')
+
+
+@app.route('/api/spam/enable/delete', methods=['POST'])
+@requires_auth
+def spam_enable_delete():
+    return _enable_disable(spam_manager.enable_delete, 'enable spam classifier')
+
+
 @app.route('/api/spam/enable', methods=['POST'])
 @requires_auth
 def enable_spam_classifier():
-    try:
-        spam_manager.enable()
-    except Exception as e:
-        logger.error('Could not enable spam classifier: %s' % str(e))
-        logger.exception(traceback.format_exc())
-        return api_response(400, message='Could not enable spam classifier: %s' % str(e))
-
-    return api_response(200)
+    return _enable_disable(spam_manager.enable, 'enable spam classifier')
 
 
 @app.route('/api/spam/disable', methods=['POST'])
 @requires_auth
 def disable_spam_classifier():
-    try:
-        spam_manager.disable()
-    except Exception as e:
-        logger.error('Could not enable spam classifier: %s' % str(e))
-        logger.exception(traceback.format_exc())
-        return api_response(400, message='Could not enable spam classifier: %s' % str(e))
+    return _enable_disable(spam_manager.disable, 'disable spam classifier')
 
+
+def _spam_set_setting(func, value, msg):
+    try:
+        func(value)
+    except Exception as e:
+        msg = 'Could not {}: {}'.format(msg, str(e))
+        logger.error(msg)
+        logger.exception(traceback.format_exc())
+        environ.env.capture_exception(sys.exc_info())
+        return api_response(400, message=msg)
     return api_response(200)
 
 
-@app.route('/api/spam/isenabled', methods=['GET'])
-@requires_auth
-def check_if_spam_classifier_is_enabled():
+def _enable_disable(func, msg):
     try:
-        is_enabled = spam_manager.is_enabled()
+        func()
     except Exception as e:
-        logger.error('Could not check if spam classifier is enabled: %s' % str(e))
+        msg = 'Could not  {}: {}'.format(msg, str(e))
+        logger.error(msg)
         logger.exception(traceback.format_exc())
-        return api_response(400, message='Could not check if spam classifier is enabled: %s' % str(e))
-
-    if is_enabled:
-        return api_response(200, message='enabled')
-    return api_response(200, message='disabled')
+        environ.env.capture_exception(sys.exc_info())
+        return api_response(400, message=msg)
+    return api_response(200)
 
 
 ####################################

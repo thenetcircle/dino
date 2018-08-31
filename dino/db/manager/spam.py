@@ -32,8 +32,15 @@ class SpamManager(StorageManager):
         self.env.db.disable_spam_classifier()
         self.env.service_config.reload()
 
+    def get_settings(self):
+        return self.env.service_config.get_config()
+
     def enable(self):
         self.env.db.enable_spam_classifier()
+        self.env.service_config.reload()
+
+    def set_min_length(self, min_length):
+        self.env.db.set_spam_min_length(min_length)
         self.env.service_config.reload()
 
     def find(self, room_id, user_id, from_time, to_time) -> (list, datetime, datetime):
