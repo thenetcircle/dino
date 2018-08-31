@@ -7,6 +7,7 @@ appdirs==1.4.3
 Babel==2.6.0
 basho-erlastic==2.1.1
 cassandra-driver==3.14.0
+certifi==2018.4.16
 chardet==3.0.4
 click==6.7
 codecov==2.0.15
@@ -30,6 +31,7 @@ idna==2.7
 imagesize==1.0.0
 itsdangerous==0.24
 Jinja2==2.10
+joblib==0.12.2
 kafka-python==1.4.3
 kombu==4.2.1
 livereload==2.5.2
@@ -38,9 +40,11 @@ MarkupSafe==1.0
 mkdocs==0.17.5
 mysqlclient==1.3.13
 nose==1.3.7
+nose-parameterized==0.6.0
+numpy==1.15.1
 oauthlib==2.1.0
 packaging==17.1
-parameterized==0.6.1
+pandas==0.23.4
 pip-review==1.0
 psutil==5.4.6
 psycogreen==1.0
@@ -62,7 +66,10 @@ redis==2.10.6
 requests==2.19.1
 requests-oauthlib==1.0.0
 riak==2.7.0
+scikit-learn==0.19.2
+scipy==1.1.0
 six==1.11.0
+sklearn==0.0
 smartypants==2.0.1
 smmap2==2.0.4
 snowballstemmer==1.2.1
@@ -78,5 +85,6 @@ urllib3==1.23
 vine==1.1.4
 Werkzeug==0.14.1
 WTForms==2.2.1
+xgboost==0.80
 Yapsy==1.11.223
 zope.interface==4.5.0
