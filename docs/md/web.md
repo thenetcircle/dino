@@ -254,10 +254,113 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 }
 ```
 
+## GET /api/spam/settings
+
+Get the current settings for the spam classifier.
+
+Response:
+
+```json
+{
+	"data": {
+		"spam_enabled": true,
+		"spam_max_length": 250,
+		"spam_min_length": 10,
+		"spam_should_delete": false,
+		"spam_should_save": false
+	},
+	"message": "",
+	"status_code": 200
+}
+```
+
+## PUT /api/spam/set/minlen/<min_length>
+
+set min length of message that should be checked for spam.
+
+Response:
+
+```json
+{
+	"data": {},
+	"message": "",
+	"status_code": 200
+}
+```
+
+## PUT /api/spam/set/maxlen/<min_length>
+
+set max length of message that should be checked for spam.
+
+Response:
+
+```json
+{
+	"data": {},
+	"message": "",
+	"status_code": 200
+}
+```
+
+## POST /api/spam/disable/save
+
+Disable saving of spam messages to separate 'spams' table.
+
+Response:
+
+```json
+{
+	"data": {},
+	"message": "",
+	"status_code": 200
+}
+```
+
+## POST /api/spam/disable/delete
+
+Disable deletion of spam messages from storage backend.
+
+Response:
+
+```json
+{
+	"data": {},
+	"message": "",
+	"status_code": 200
+}
+```
+
+## POST /api/spam/enable/save
+
+Enable saving of spam messages to separate 'spams' table.
+
+Response:
+
+```json
+{
+	"data": {},
+	"message": "",
+	"status_code": 200
+}
+```
+
+## POST /api/spam/enable/delete
+
+Enable deletion of spam messages from storage backend.
+
+Response:
+
+```json
+{
+	"data": {},
+	"message": "",
+	"status_code": 200
+}
+```
+
 ## Deleting a message classified as spam
 
 The `message_id` field describes the ID of the message stored in the message store. It can be deleted by using the history web API:
-
 
 ```bash
 user@box:~$ curl -X GET localhost:4556/api/spam/3
