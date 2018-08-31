@@ -83,13 +83,13 @@
     <li class="toctree-l2"><a href="#post-apispamsearch">POST /api/spam/search</a></li>
     
 
-    <li class="toctree-l2"><a href="#get-apispam_1">GET /api/spam/</a></li>
+    <li class="toctree-l2"><a href="#get-apispamspam_id">GET /api/spam/&lt;spam_id&gt;</a></li>
     
 
-    <li class="toctree-l2"><a href="#post-apispamincorrect">POST /api/spam//incorrect</a></li>
+    <li class="toctree-l2"><a href="#post-apispamspam_idincorrect">POST /api/spam/&lt;spam_id&gt;/incorrect</a></li>
     
 
-    <li class="toctree-l2"><a href="#post-apispamcorrect">POST /api/spam//correct</a></li>
+    <li class="toctree-l2"><a href="#post-apispamspam_idcorrect">POST /api/spam/&lt;spam_id&gt;/correct</a></li>
     
 
     <li class="toctree-l2"><a href="#post-apispamenable">POST /api/spam/enable</a></li>
@@ -104,10 +104,10 @@
     <li class="toctree-l2"><a href="#get-apispamsettings">GET /api/spam/settings</a></li>
     
 
-    <li class="toctree-l2"><a href="#put-apispamsetminlen">PUT /api/spam/set/minlen/</a></li>
+    <li class="toctree-l2"><a href="#put-apispamsetminlenmin_length">PUT /api/spam/set/minlen/&lt;min_length&gt;</a></li>
     
 
-    <li class="toctree-l2"><a href="#put-apispamsetmaxlen">PUT /api/spam/set/maxlen/</a></li>
+    <li class="toctree-l2"><a href="#put-apispamsetmaxlenmin_length">PUT /api/spam/set/maxlen/&lt;min_length&gt;</a></li>
     
 
     <li class="toctree-l2"><a href="#post-apispamdisablesave">POST /api/spam/disable/save</a></li>
@@ -193,7 +193,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="get-apispam">GET /api/spam</h2>
+                <h2 id="get-apispam">GET <code>/api/spam</code></h2>
 <p>Get the latest messages classified as spam.</p>
 <pre><code class="bash">user@box:~$ curl -X GET localhost:4556/api/spam
 </code></pre>
@@ -232,7 +232,7 @@
 }
 </code></pre>
 
-<h2 id="post-apispamsearch">POST /api/spam/search</h2>
+<h2 id="post-apispamsearch">POST <code>/api/spam/search</code></h2>
 <p>Search for spam messages given a time range and either a room uuid or user ID of a sender.</p>
 <pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/search -H 'Content-Type: application/json' -d '{&quot;room&quot;:&quot;9fa5b40a-f0a6-44ea-93c1-acf2947e5f09&quot;,&quot;from&quot;:&quot;2018-08-26T04:00:00Z&quot;,&quot;to&quot;:&quot;2018-08-27T04:00:00Z&quot;}'
 </code></pre>
@@ -271,7 +271,7 @@
 }
 </code></pre>
 
-<h2 id="get-apispam_1">GET /api/spam/<spam_id></h2>
+<h2 id="get-apispamspam_id">GET <code>/api/spam/&lt;spam_id&gt;</code></h2>
 <p>Get one spam message.</p>
 <p>Request:</p>
 <pre><code class="bash">user@box:~$ curl -X GET localhost:4556/api/spam/3
@@ -298,7 +298,7 @@
 }
 </code></pre>
 
-<h2 id="post-apispamincorrect">POST /api/spam/<spam_id>/incorrect</h2>
+<h2 id="post-apispamspam_idincorrect">POST <code>/api/spam/&lt;spam_id&gt;/incorrect</code></h2>
 <p>Set a spam message as incorrectly classified. The <code>correct</code> flag on this spam messages will be <code>false</code> after this.</p>
 <p>Request:</p>
 <pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/3/incorrect
@@ -312,7 +312,7 @@
 }
 </code></pre>
 
-<h2 id="post-apispamcorrect">POST /api/spam/<spam_id>/correct</h2>
+<h2 id="post-apispamspam_idcorrect">POST <code>/api/spam/&lt;spam_id&gt;/correct</code></h2>
 <p>Set a spam message as correctly classified. The <code>correct</code> flag on this spam messages will be <code>true</code> after this.</p>
 <p>Request:</p>
 <pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/3/correct
@@ -326,7 +326,7 @@
 }
 </code></pre>
 
-<h2 id="post-apispamenable">POST /api/spam/enable</h2>
+<h2 id="post-apispamenable">POST <code>/api/spam/enable</code></h2>
 <p>Enable the spam classifier. </p>
 <p>When enabled, the classifier will prevent messages being broadcasted that has been classified as spam. If disabled, it will still classify them, but it won't prevent them from being broadcasted.</p>
 <p>Request:</p>
@@ -341,7 +341,7 @@
 }
 </code></pre>
 
-<h2 id="post-apispamdisable">POST /api/spam/disable</h2>
+<h2 id="post-apispamdisable">POST <code>/api/spam/disable</code></h2>
 <p>Disable the spam classifier. </p>
 <p>When enabled, the classifier will prevent messages being broadcasted that has been classified as spam. If disabled, it will still classify them, but it won't prevent them from being broadcasted.</p>
 <p>Request:</p>
@@ -356,7 +356,7 @@
 }
 </code></pre>
 
-<h2 id="get-apispamisenabled">GET /api/spam/isenabled</h2>
+<h2 id="get-apispamisenabled">GET <code>/api/spam/isenabled</code></h2>
 <p>Check if the spam classifier is enabled or not. </p>
 <p>When enabled, the classifier will prevent messages being broadcasted that has been classified as spam. If disabled, it will still classify them, but it won't prevent them from being broadcasted.</p>
 <p>Request:</p>
@@ -398,7 +398,7 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 }
 </code></pre>
 
-<h2 id="get-apispamsettings">GET /api/spam/settings</h2>
+<h2 id="get-apispamsettings">GET <code>/api/spam/settings</code></h2>
 <p>Get the current settings for the spam classifier.</p>
 <p>Response:</p>
 <pre><code class="json">{
@@ -414,7 +414,7 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 }
 </code></pre>
 
-<h2 id="put-apispamsetminlen">PUT /api/spam/set/minlen/<min_length></h2>
+<h2 id="put-apispamsetminlenmin_length">PUT <code>/api/spam/set/minlen/&lt;min_length&gt;</code></h2>
 <p>set min length of message that should be checked for spam.</p>
 <p>Response:</p>
 <pre><code class="json">{
@@ -424,7 +424,7 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 }
 </code></pre>
 
-<h2 id="put-apispamsetmaxlen">PUT /api/spam/set/maxlen/<min_length></h2>
+<h2 id="put-apispamsetmaxlenmin_length">PUT <code>/api/spam/set/maxlen/&lt;min_length&gt;</code></h2>
 <p>set max length of message that should be checked for spam.</p>
 <p>Response:</p>
 <pre><code class="json">{
@@ -434,7 +434,7 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 }
 </code></pre>
 
-<h2 id="post-apispamdisablesave">POST /api/spam/disable/save</h2>
+<h2 id="post-apispamdisablesave">POST <code>/api/spam/disable/save</code></h2>
 <p>Disable saving of spam messages to separate 'spams' table.</p>
 <p>Response:</p>
 <pre><code class="json">{
@@ -444,7 +444,7 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 }
 </code></pre>
 
-<h2 id="post-apispamdisabledelete">POST /api/spam/disable/delete</h2>
+<h2 id="post-apispamdisabledelete">POST <code>/api/spam/disable/delete</code></h2>
 <p>Disable deletion of spam messages from storage backend.</p>
 <p>Response:</p>
 <pre><code class="json">{
@@ -454,7 +454,7 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 }
 </code></pre>
 
-<h2 id="post-apispamenablesave">POST /api/spam/enable/save</h2>
+<h2 id="post-apispamenablesave">POST <code>/api/spam/enable/save</code></h2>
 <p>Enable saving of spam messages to separate 'spams' table.</p>
 <p>Response:</p>
 <pre><code class="json">{
@@ -464,7 +464,7 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 }
 </code></pre>
 
-<h2 id="post-apispamenabledelete">POST /api/spam/enable/delete</h2>
+<h2 id="post-apispamenabledelete">POST <code>/api/spam/enable/delete</code></h2>
 <p>Enable deletion of spam messages from storage backend.</p>
 <p>Response:</p>
 <pre><code class="json">{
