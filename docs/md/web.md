@@ -1,4 +1,4 @@
-## GET /api/spam
+## GET `/api/spam`
 
 Get the latest messages classified as spam.
 
@@ -42,7 +42,7 @@ Response would be something similar to the following:
 }
 ```
 
-## POST /api/spam/search
+## POST `/api/spam/search`
 
 Search for spam messages given a time range and either a room uuid or user ID of a sender.
 
@@ -86,7 +86,7 @@ Response would be something similar to the following:
 }
 ```
 
-## GET /api/spam/<spam_id>
+## GET `/api/spam/<spam_id>`
 
 Get one spam message.
 
@@ -119,7 +119,7 @@ Response:
 }
 ```
 
-## POST /api/spam/<spam_id>/incorrect
+## POST `/api/spam/<spam_id>/incorrect`
 
 Set a spam message as incorrectly classified. The `correct` flag on this spam messages will be `false` after this.
 
@@ -139,7 +139,7 @@ Response:
 }
 ```
 
-## POST /api/spam/<spam_id>/correct
+## POST `/api/spam/<spam_id>/correct`
 
 Set a spam message as correctly classified. The `correct` flag on this spam messages will be `true` after this.
 
@@ -159,7 +159,7 @@ Response:
 }
 ```
 
-## POST /api/spam/enable
+## POST `/api/spam/enable`
 
 Enable the spam classifier. 
 
@@ -181,7 +181,7 @@ Response:
 }
 ```
 
-## POST /api/spam/disable
+## POST `/api/spam/disable`
 
 Disable the spam classifier. 
 
@@ -203,7 +203,7 @@ Response:
 }
 ```
 
-## GET /api/spam/isenabled
+## GET `/api/spam/isenabled`
 
 Check if the spam classifier is enabled or not. 
 
@@ -254,7 +254,7 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 }
 ```
 
-## GET /api/spam/settings
+## GET `/api/spam/settings`
 
 Get the current settings for the spam classifier.
 
@@ -274,7 +274,7 @@ Response:
 }
 ```
 
-## PUT /api/spam/set/minlen/<min_length>
+## PUT `/api/spam/set/minlen/<min_length>`
 
 set min length of message that should be checked for spam.
 
@@ -288,7 +288,7 @@ Response:
 }
 ```
 
-## PUT /api/spam/set/maxlen/<min_length>
+## PUT `/api/spam/set/maxlen/<min_length>`
 
 set max length of message that should be checked for spam.
 
@@ -302,7 +302,7 @@ Response:
 }
 ```
 
-## POST /api/spam/disable/save
+## POST `/api/spam/disable/save`
 
 Disable saving of spam messages to separate 'spams' table.
 
@@ -316,7 +316,7 @@ Response:
 }
 ```
 
-## POST /api/spam/disable/delete
+## POST `/api/spam/disable/delete`
 
 Disable deletion of spam messages from storage backend.
 
@@ -330,7 +330,7 @@ Response:
 }
 ```
 
-## POST /api/spam/enable/save
+## POST `/api/spam/enable/save`
 
 Enable saving of spam messages to separate 'spams' table.
 
@@ -344,7 +344,7 @@ Response:
 }
 ```
 
-## POST /api/spam/enable/delete
+## POST ` /api/spam/enable/delete`
 
 Enable deletion of spam messages from storage backend.
 
