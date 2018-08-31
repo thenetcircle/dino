@@ -104,6 +104,9 @@
     <li class="toctree-l2"><a href="#get-apispamsettings">GET /api/spam/settings</a></li>
     
 
+    <li class="toctree-l2"><a href="#post-apispamsettings">POST /api/spam/settings</a></li>
+    
+
     <li class="toctree-l2"><a href="#put-apispamsetminlenmin_length">PUT /api/spam/set/minlen/&lt;min_length&gt;</a></li>
     
 
@@ -409,6 +412,20 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
         &quot;spam_should_delete&quot;: false,
         &quot;spam_should_save&quot;: false
     },
+    &quot;message&quot;: &quot;&quot;,
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="post-apispamsettings">POST <code>/api/spam/settings</code></h2>
+<p>Set the current settings for the spam classifier. One or more settings can be specified in the dictionary.</p>
+<p>Request:</p>
+<pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/settings -H 'Content-Type: application/json' -d '{&quot;spam_enabled&quot;: true,&quot;spam_max_length&quot;: 250,&quot;spam_min_length&quot;: 10,&quot;spam_should_delete&quot;: false,&quot;spam_should_save&quot;: false}'
+</code></pre>
+
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {},
     &quot;message&quot;: &quot;&quot;,
     &quot;status_code&quot;: 200
 }
