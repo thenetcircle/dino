@@ -66,7 +66,9 @@ else:
     dbpass = config['database']['password']
 
     try:
-        conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (dbname, dbuser, dbhost, dbpass))
+        conn = psycopg2.connect("dbname='%s' user='%s' host='%s' port='%s' password='%s'" % (
+            dbname, dbuser, dbhost, dbport, dbpass)
+        )
     except:
         raise RuntimeError('could not connect to db')
 
