@@ -70,7 +70,7 @@ class DatabaseRedis(object):
         self.acl_validator = AclValidator()
 
     def update_spam_config(self, enabled, max_length, min_length, should_delete, should_save) -> None:
-        return 
+        return
 
     def set_spam_min_length(self, min_length: int) -> None:
         return

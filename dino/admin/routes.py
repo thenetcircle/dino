@@ -888,9 +888,9 @@ def set_spam_incorrect(spam_id):
     return api_response(200)
 
 
-@app.route('/api/spam/settings', methods=['GET'])
+@app.route('/api/spam/settings', methods=['POST'])
 @requires_auth
-def spam_get_settings():
+def spam_set_settings():
     try:
         form = request.get_json()
 
@@ -905,7 +905,7 @@ def spam_get_settings():
 
         settings = spam_manager.set_settings(enabled, max_length, min_length, should_delete, should_save)
     except Exception as e:
-        msg = 'Could not get settigns: {}'.format(str(e))
+        msg = 'Could not set settings: {}'.format(str(e))
         logger.error(msg)
         logger.exception(traceback.format_exc())
         environ.env.capture_exception(sys.exc_info())
@@ -923,7 +923,7 @@ def spam_get_settings():
             for setting, val in spam_manager.get_settings().items()
         }
     except Exception as e:
-        msg = 'Could not set settings: {}'.format(str(e))
+        msg = 'Could not fet settings: {}'.format(str(e))
         logger.error(msg)
         logger.exception(traceback.format_exc())
         environ.env.capture_exception(sys.exc_info())
