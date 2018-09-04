@@ -722,13 +722,33 @@ class CacheRedis(object):
     def user_is_invisible(self, user_id):
         return self.user_check_status(user_id, UserKeys.STATUS_INVISIBLE)
 
+    def remove_from_multicast_on_disconnect(self, user_id: str) -> None:
+        try:
+            user_id_str = str(user_id).strip()
+            self.redis.srem(RedisKeys.users_multi_cast(), user_id_str)
+        except Exception as e:
+            logger.error('could remove user form multicast: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            raise e  # force catch from caller
+
+    def add_to_multicast_on_login(self, user_id: str) -> None:
+        try:
+            user_id_str = str(user_id).strip()
+            self.redis.sadd(RedisKeys.users_multi_cast(), user_id_str)
+        except Exception as e:
+            logger.error('could remove user form multicast: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            raise e  # force catch from caller
+
     def set_user_offline(self, user_id: str) -> None:
         try:
-            self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_UNAVAILABLE)
-            self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
-            self.redis.srem(RedisKeys.online_set(), int(user_id))
-            self.redis.srem(RedisKeys.users_multi_cast(), user_id)
-            self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_UNAVAILABLE)
+            user_id_str = str(user_id).strip()
+            user_id_int = int(float(user_id))
+            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
+            self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
+            self.redis.srem(RedisKeys.online_set(), user_id_str)
+            self.redis.srem(RedisKeys.users_multi_cast(), user_id_str)
+            self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
         except Exception as e:
             logger.error('could not set_user_offline(): %s' % str(e))
             logger.exception(traceback.format_exc())
@@ -736,22 +756,26 @@ class CacheRedis(object):
 
     def set_user_online(self, user_id: str) -> None:
         try:
-            self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
-            self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 1)
-            self.redis.sadd(RedisKeys.online_set(), int(user_id))
-            self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-            self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
+            user_id_str = str(user_id).strip()
+            user_id_int = int(float(user_id))
+            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_AVAILABLE)
+            self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 1)
+            self.redis.sadd(RedisKeys.online_set(), user_id_str)
+            self.redis.sadd(RedisKeys.users_multi_cast(), user_id_str)
+            self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_AVAILABLE)
         except Exception as e:
             logger.error('could not set_user_online(): %s' % str(e))
             logger.exception(traceback.format_exc())
 
     def set_user_invisible(self, user_id: str) -> None:
         try:
-            self.cache.set(RedisKeys.user_status(user_id), UserKeys.STATUS_INVISIBLE)
-            self.redis.setbit(RedisKeys.online_bitmap(), int(user_id), 0)
-            self.redis.srem(RedisKeys.online_set(), int(user_id))
-            self.redis.sadd(RedisKeys.users_multi_cast(), user_id)
-            self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_INVISIBLE)
+            user_id_str = str(user_id).strip()
+            user_id_int = int(float(user_id))
+            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
+            self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
+            self.redis.srem(RedisKeys.online_set(), user_id_str)
+            self.redis.sadd(RedisKeys.users_multi_cast(), user_id_str)
+            self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
         except Exception as e:
             logger.error('could not set_user_invisible(): %s' % str(e))
             logger.exception(traceback.format_exc())
