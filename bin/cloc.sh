@@ -1,2 +1,2 @@
 #!/bin/bash
-cloc --exclude-dir dino/admin/static/vendor,__pycache__,env,.idea,.git,docs,site,dino.egg-info,dist,env36 .
+cloc --fullpath --not-match-d "site|dino/admin/static|docs|dist|\.git|\.idea|__pycache__|dino\.egg-info" .

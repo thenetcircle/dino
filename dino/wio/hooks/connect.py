@@ -1,2 +1,0 @@
-class OnConnectHooks(object):
-    pass
