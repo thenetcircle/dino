@@ -75,7 +75,7 @@ class OnLoginHooks(object):
             logger.info('setting user {} to online'.format(user_id))
             environ.env.db.set_user_online(user_id)
         else:
-            environ.env.db.add_to_multicast_on_login(user_id)
+            environ.env.cache.add_to_multicast_on_login(user_id)
 
 
 @environ.env.observer.on('on_login')
