@@ -731,15 +731,6 @@ class CacheRedis(object):
             logger.exception(traceback.format_exc())
             raise e  # force catch from caller
 
-    def add_to_multicast_on_login(self, user_id: str) -> None:
-        try:
-            user_id_str = str(user_id).strip()
-            self.redis.sadd(RedisKeys.users_multi_cast(), user_id_str)
-        except Exception as e:
-            logger.error('could remove user form multicast: %s' % str(e))
-            logger.exception(traceback.format_exc())
-            raise e  # force catch from caller
-
     def set_user_offline(self, user_id: str) -> None:
         try:
             user_id_str = str(user_id).strip()

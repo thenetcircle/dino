@@ -75,7 +75,8 @@ class OnLoginHooks(object):
             logger.info('setting user {} to online'.format(user_id))
             environ.env.db.set_user_online(user_id)
         else:
-            environ.env.cache.add_to_multicast_on_login(user_id)
+            # if login after server restart the cache value user:status:<user id> is non-existent, set to invisible
+            environ.env.cache.set_user_invisible(user_id)
 
 
 @environ.env.observer.on('on_login')
