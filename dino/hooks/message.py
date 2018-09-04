@@ -89,6 +89,10 @@ class OnMessageHooks(object):
             _spam_id = None
             _message = None
 
+            spam_enabled = environ.env.config.get(ConfigKeys.SPAM_CLASSIFIER, False)
+            if not spam_enabled:
+                return False, None
+
             try:
                 _message = utils.b64d(activity.object.content)
                 try:
