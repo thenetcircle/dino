@@ -98,6 +98,14 @@ class OnMessageHooks(object):
                 text = re.sub(r',{2,}', ',', text)
                 return text
 
+            def remove_special_chars(text):
+                text = text.strip().lstrip('-')
+                text = text.replace('*', '')
+                text = text.replace('"', '')
+                text = text.replace('_', '')
+                text = text.replace('\'', '')
+                return text
+
             _is_spam = False
             _spam_id = None
             _message = None
@@ -130,7 +138,7 @@ class OnMessageHooks(object):
 
             try:
                 _message = remove_multiple_dots_commas(_message)
-                _message = _message.strip().lstrip('-')
+                _message = remove_special_chars(_message)
 
                 _is_spam, _y_hats = environ.env.spam.is_spam(_message)
                 if _is_spam and environ.env.service_config.should_save_spam():
