@@ -134,15 +134,16 @@ class OnMessageHooks(object):
         else:
             is_spam, spam_id = check_spam()
 
-            if is_spam:
-                if environ.env.service_config.is_spam_classifier_enabled():
-                    spam_activity = utils.activity_for_spam_word(activity)
-                    environ.env.publish(spam_activity, external=True)
+            if is_spam and environ.env.service_config.is_spam_classifier_enabled():
+                spam_activity = utils.activity_for_spam_word(activity)
+                environ.env.publish(spam_activity, external=True)
 
-                    if environ.env.service_config.should_delete_spam():
-                        store(deleted=True)
-                    else:
-                        store(deleted=False)
+                if environ.env.service_config.should_delete_spam():
+                    store(deleted=True)
+                else:
+                    store(deleted=False)
+                    broadcast()
+                    publish_activity()
 
             else:
                 store(deleted=False)
