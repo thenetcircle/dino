@@ -106,6 +106,12 @@ class OnMessageHooks(object):
                 text = text.replace('\'', '')
                 return text
 
+            def replace_umlauts(text):
+                text = text.replace('å', 'a')
+                text = text.replace('ä', 'a')
+                text = text.replace('ö', 'o')
+                return text
+
             _is_spam = False
             _spam_id = None
             _message = None
@@ -139,6 +145,7 @@ class OnMessageHooks(object):
             try:
                 _message = remove_multiple_dots_commas(_message)
                 _message = remove_special_chars(_message)
+                _message = replace_umlauts(_message)
 
                 _is_spam, _y_hats = environ.env.spam.is_spam(_message)
                 if _is_spam and environ.env.service_config.should_save_spam():
