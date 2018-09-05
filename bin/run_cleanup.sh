@@ -47,3 +47,9 @@ if ! python bin/clear_db_sessions_table.py ${DINO_ENV} ${DINO_HOME}; then
     echo "error: could not clear db tables"
     exit 1
 fi
+
+echo "warming up cache... "
+if ! DINO_ENVIRONMENT=${DINO_ENV} DINO_HOME=${DINO_HOME} python bin/warm_up_cache.py; then
+    echo "error: could not warm up cache"
+    exit 1
+fi
