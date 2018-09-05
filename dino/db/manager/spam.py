@@ -32,12 +32,17 @@ class SpamManager(StorageManager):
         self.env.db.disable_spam_classifier()
         self.env.service_config.reload()
 
-    def set_settings(self, enabled, max_length, min_length, should_delete, should_save):
+    def set_settings(self, enabled, max_length, min_length, should_delete, should_save, threshold):
         if should_save is not None:
             max_length = int(max_length)
 
         if should_save is not None:
             min_length = int(min_length)
+
+        if threshold is not None:
+            threshold = int(threshold)
+            if threshold < 50 or threshold > 99:
+                raise ValueError('threshold needs to be between 50 and 99 (inclusive)')
 
         if enabled is not None:
             enabled = True if enabled in {True, '1', 'true', 'True', 'yes'} else False

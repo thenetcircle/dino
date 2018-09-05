@@ -125,6 +125,7 @@ class DatabaseRdbms(object):
             'spam_enabled': config.spam_enabled,
             'spam_min_length': config.spam_min_length,
             'spam_max_length': config.spam_max_length,
+            'spam_threshold': config.spam_threshold,
             'spam_should_delete': config.spam_should_delete,
             'spam_should_save': config.spam_should_save
         }

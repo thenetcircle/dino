@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from enum import Enum
-import base64
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -21,14 +20,26 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class ConfigService(object):
     def __init__(self, env):
         self.env = env
-        self.config = dict()
+        self.counter = 0
+        self._config = dict()
         self.reload()
+
+    @property
+    def config(self):
+        self.counter += 1
+        if self.counter > 1000:
+            self.counter = 0
+            self.reload()
+        return self._config
 
     def is_spam_classifier_enabled(self):
         return self.config.get('spam_enabled', False)
 
     def get_spam_min_length(self):
         return self.config.get('spam_min_length', 10)
+
+    def get_spam_threshold(self):
+        return self.config.get('spam_threshold', 80)
 
     def get_spam_max_length(self):
         return self.config.get('spam_max_length', 250)
@@ -40,7 +51,7 @@ class ConfigService(object):
         return self.config.get('spam_should_save', False)
 
     def reload(self):
-        self.config = self.env.db.get_service_config()
+        self._config = self.env.db.get_service_config()
 
     def get_config(self):
         return self.config.copy()

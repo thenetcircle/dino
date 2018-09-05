@@ -49,9 +49,10 @@ class SpamClassifier(object):
             self.svc.predict(x)[0]
         )
         logger.info('y_hat: {}'.format(y_hat))
+        threshold = float(self.env.service_config.get_spam_threshold()) / 100
 
-        # if 2 out of 3 classifiers are at least 66% certain it's spam, classify it as such
-        return 1 if sum(1 for e in y_hat if e > 0.66) >= 2 else 0, y_hat
+        # if 2 out of 3 classifiers are at least 'threshold' % certain it's spam, classify it as such
+        return 1 if sum(1 for e in y_hat if e > threshold) >= 2 else 0, y_hat
 
     def is_spam(self, message) -> (bool, tuple):
         if self.too_long_or_too_short(message):
