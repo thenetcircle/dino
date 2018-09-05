@@ -87,11 +87,16 @@ class OnMessageHooks(object):
             return message_id
 
         def check_spam():
-            def text_without_emoji(text):
+            def remove_emojis(text):
                 return ''.join([character for character in text if character not in emoji.UNICODE_EMOJI])
 
             def remove_custom_emojis(text):
                 return re.sub(r':[a-z]*:', '', text)
+
+            def remove_multiple_dots_commas(text):
+                text = re.sub(r'\.{2,}', '.', text)
+                text = re.sub(r',{2,}', ',', text)
+                return text
 
             _is_spam = False
             _spam_id = None
@@ -116,7 +121,7 @@ class OnMessageHooks(object):
 
             if environ.env.service_config.ignore_emoji():
                 try:
-                    _message = text_without_emoji(_message)
+                    _message = remove_emojis(_message)
                     _message = remove_custom_emojis(_message)
                 except Exception as e:
                     logger.error('could not check if text has emojis: {}'.format(str(e)))
@@ -124,7 +129,9 @@ class OnMessageHooks(object):
                     environ.env.capture_exception(sys.exc_info())
 
             try:
+                _message = remove_multiple_dots_commas(_message)
                 _message = _message.strip().lstrip('-')
+
                 _is_spam, _y_hats = environ.env.spam.is_spam(_message)
                 if _is_spam and environ.env.service_config.should_save_spam():
                     _spam_id = environ.env.db.save_spam_prediction(activity, _message, _y_hats)
