@@ -32,7 +32,7 @@ class SpamManager(StorageManager):
         self.env.db.disable_spam_classifier()
         self.env.service_config.reload()
 
-    def set_settings(self, enabled, max_length, min_length, should_delete, should_save, threshold):
+    def set_settings(self, enabled, max_length, min_length, should_delete, should_save, threshold, ignore_emoji):
         if should_save is not None:
             max_length = int(max_length)
 
@@ -44,6 +44,9 @@ class SpamManager(StorageManager):
             if threshold < 50 or threshold > 99:
                 raise ValueError('threshold needs to be between 50 and 99 (inclusive)')
 
+        if ignore_emoji is not None:
+            ignore_emoji = True if ignore_emoji in {True, '1', 'true', 'True', 'yes'} else False
+
         if enabled is not None:
             enabled = True if enabled in {True, '1', 'true', 'True', 'yes'} else False
 
@@ -53,7 +56,10 @@ class SpamManager(StorageManager):
         if should_delete is not None:
             should_delete = True if should_delete in {True, '1', 'true', 'True', 'yes'} else False
 
-        self.env.db.update_spam_config(enabled, max_length, min_length, should_delete, should_save)
+        self.env.db.update_spam_config(
+            enabled, max_length, min_length,
+            should_delete, should_save, threshold, ignore_emoji
+        )
         self.env.service_config.reload()
 
     def get_settings(self):

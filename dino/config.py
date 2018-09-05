@@ -50,6 +50,9 @@ class ConfigService(object):
     def should_save_spam(self):
         return self.config.get('spam_should_save', False)
 
+    def ignore_emoji(self):
+        return self.config.get('spam_ignore_emoji', False)
+
     def reload(self):
         self._config = self.env.db.get_service_config()
 

@@ -126,6 +126,7 @@ class DatabaseRdbms(object):
             'spam_min_length': config.spam_min_length,
             'spam_max_length': config.spam_max_length,
             'spam_threshold': config.spam_threshold,
+            'spam_ignore_emoji': config.spam_ignore_emoji,
             'spam_should_delete': config.spam_should_delete,
             'spam_should_save': config.spam_should_save
         }
@@ -1880,7 +1881,10 @@ class DatabaseRdbms(object):
         ]
 
     @with_session
-    def update_spam_config(self, enabled, max_length, min_length, should_delete, should_save, session=None) -> None:
+    def update_spam_config(
+            self, enabled, max_length, min_length, should_delete,
+            should_save, threshold, ignore_emoji, session=None
+    ) -> None:
         config = session.query(Config).first()
 
         if enabled is not None:
@@ -1895,6 +1899,12 @@ class DatabaseRdbms(object):
             if min_length < 0:
                 raise ValueError('min length needs to be positive')
             config.spam_min_length = min_length
+
+        if ignore_emoji is not None:
+            config.spam_ignore_emoji = ignore_emoji
+
+        if threshold is not None:
+            config.spam_threshold = threshold
 
         if should_delete is not None:
             config.spam_should_delete = should_delete

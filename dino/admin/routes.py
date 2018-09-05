@@ -902,9 +902,13 @@ def spam_set_settings():
         min_length = form.get('min_length', None)
         threshold = form.get('threshold', None)
         should_delete = form.get('should_delete', None)
+        ignore_emoji = form.get('ignore_emoji', None)
         should_save = form.get('should_save', None)
 
-        settings = spam_manager.set_settings(enabled, max_length, min_length, should_delete, should_save, threshold)
+        settings = spam_manager.set_settings(
+            enabled, max_length, min_length,
+            should_delete, should_save, threshold, ignore_emoji
+        )
     except Exception as e:
         msg = 'Could not set settings: {}'.format(str(e))
         logger.error(msg)

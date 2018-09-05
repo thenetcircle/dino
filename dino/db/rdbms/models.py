@@ -141,6 +141,7 @@ class Config(DeclarativeBase):
     spam_min_length = Column('spam_min_length', Integer, nullable=False, default=10)
     spam_max_length = Column('spam_max_length', Integer, nullable=False, default=250)
     spam_threshold = Column('spam_threshold', Integer, nullable=False, default=80)
+    spam_ignore_emoji = Column('spam_ignore_emoji', Boolean, nullable=False, default=True)
 
 
 class Spams(DeclarativeBase):
