@@ -1,18 +1,3 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from concurrent.futures import ThreadPoolExecutor
-from threading import Lock
-
 from dino.config import ConfigKeys
 from dino import environ
 
@@ -24,6 +9,7 @@ from kombu import Exchange
 from kombu import Queue
 from kombu import Connection
 from kombu.pools import producers
+from eventlet.semaphore import Semaphore
 
 import eventlet
 import traceback
@@ -46,9 +32,8 @@ def locked_method(method):
 
 class PubSub(object):
     def __init__(self, env):
-        self._lock = Lock()
+        self._lock = Semaphore(value=1)
         self.env = env
-        self.executor = ThreadPoolExecutor(max_workers=1)
         self.recently_sent_external_hash = set()
         self.recently_sent_external_list = list()
         self.external_queue_type = None

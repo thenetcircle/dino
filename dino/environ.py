@@ -16,11 +16,9 @@ import os
 import pkg_resources
 import logging
 
-from redis import Redis
 from typing import Union
 from types import MappingProxyType
 from base64 import b64encode
-from concurrent.futures import ThreadPoolExecutor
 
 from flask_socketio import emit as _flask_emit
 from flask_socketio import send as _flask_send
@@ -41,10 +39,8 @@ from flask import send_from_directory as _flask_send_from_directory
 from flask import render_template as _flask_render_template
 from flask import session as _flask_session
 from flask_socketio import disconnect as _flask_disconnect
-from zope.interface import implementer
 
 from dino.config import ConfigKeys
-from dino.storage import IStorage
 from dino.utils.decorators import timeit
 from dino.exceptions import AclValueNotFoundException
 from dino.exceptions import NoSuchRoomException
@@ -243,9 +239,6 @@ class GNEnvironment(object):
         self.enrichers = list()
 
         self.pub_sub = None
-        self.consume_worker = None
-        self.pool_executor = None
-        self.start_consumer = None
         self.blacklist = None
         self.node = None
         self.service_config = None
@@ -893,20 +886,6 @@ def init_response_formatter(gn_env: GNEnvironment):
     logger.info('configured response formatting as %s' % str(gn_env.response_formatter))
 
 
-@timeit(logger, 'creating process pool')
-def init_process_pool(gn_env: GNEnvironment):
-    class FakeExecutor(object):
-        def submit(self, method, *args):
-            method(*args)
-
-    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
-        # assume we're testing
-        gn_env.pool_executor = FakeExecutor()
-        return
-
-    gn_env.pool_executor = ThreadPoolExecutor(max_workers=4)
-
-
 @timeit(logger, 'deleting ephemeral rooms')
 def delete_ephemeral_rooms(gn_env: GNEnvironment):
     from activitystreams import parse as as_parser
@@ -1066,7 +1045,6 @@ def initialize_env(dino_env):
     init_auth_service(dino_env)
     init_cache_service(dino_env)
     init_pub_sub(dino_env)
-    init_process_pool(dino_env)
     init_stats_service(dino_env)
     init_observer(dino_env)
     init_request_validators(dino_env)

@@ -1,22 +1,6 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 import traceback
 import sys
-
-from concurrent.futures import ThreadPoolExecutor
 
 from dino import environ
 from dino import utils
@@ -27,6 +11,7 @@ from dino.exceptions import UnknownBanTypeException
 from dino.exceptions import NoSuchUserException
 
 from flask import request
+from eventlet.greenpool import GreenPool
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +35,7 @@ class BanResource(BaseResource):
     def __init__(self):
         super(BanResource, self).__init__()
         self.user_manager = UserManager(environ.env)
-        self.executor = ThreadPoolExecutor(max_workers=1)
+        self.executor = GreenPool()
         self.request = request
         self.env = environ.env
 
@@ -68,7 +53,7 @@ class BanResource(BaseResource):
     def schedule_execution(self, json: dict):
         try:
             # avoid hanging clients
-            self.executor.submit(self._do_post, json)
+            self.executor.spawn_n(self._do_post, json)
         except Exception as e:
             logger.error('could not schedule ban request: %s' % str(e))
             logger.exception(e)

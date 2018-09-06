@@ -1,20 +1,8 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import threading
 import time
 import traceback
 import logging
 import sys
+import eventlet
 
 import activitystreams as as_parser
 
@@ -91,8 +79,7 @@ if not environ.env.config.get(ConfigKeys.TESTING, False):
 
     environ.env._force_disconnect_by_sid = socketio.server.disconnect
     environ.env.disconnect_by_sid = disconnect_by_sid
-    environ.env.consume_thread = threading.Thread(target=consume)
-    environ.env.consume_thread.start()
+    eventlet.spawn_n(consume)
 
 
 @app.route('/', methods=['GET', 'POST'])
