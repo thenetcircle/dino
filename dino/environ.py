@@ -15,6 +15,7 @@ import json
 import os
 import pkg_resources
 import logging
+import eventlet
 
 from typing import Union
 from types import MappingProxyType
@@ -931,7 +932,6 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
                     'gn_room_removed', activity, broadcast=True, include_self=True, namespace='/ws')
                 gn_env.observer.emit('on_remove_room', (activity, as_parser(activity)))
 
-    import eventlet
     eventlet.spawn_after(seconds=5*60, func=delete)
 
 
