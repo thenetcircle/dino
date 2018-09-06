@@ -102,11 +102,11 @@ class BanResource(BaseResource):
                 logger.error('could not ban user %s: %s' % (user_id, str(e)))
 
     def ban_user(self, user_id: str, ban_info: dict):
-        target_type = ban_info['type']
+        target_type = ban_info.get('type', '')
         target_id = ban_info.get('target', '')
         duration = ban_info.get('duration', '')
-        reason = ban_info.get('reason')
-        banner_id = ban_info.get('admin_id')
+        reason = ban_info.get('reason', '')
+        banner_id = ban_info.get('admin_id', '')
 
         try:
             user_name = ban_info['name']
