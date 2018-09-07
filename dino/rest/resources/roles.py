@@ -10,7 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import lru_cache
 from datetime import datetime
 from flask import request
 
@@ -41,7 +40,6 @@ class RolesResource(BaseResource):
     def _set_last_cleared(self, last_cleared):
         self.last_cleared = last_cleared
 
-    @lru_cache()
     def do_get_with_params(self, user_id):
         return environ.env.db.get_user_roles(user_id)
 
