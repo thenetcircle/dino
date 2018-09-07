@@ -63,7 +63,6 @@ class RoomsForUsersResource(BaseResource):
 
         return output
 
-    @lru_cache()
     def do_get_with_params(self, user_id):
         return self._do_get(user_id)
 
