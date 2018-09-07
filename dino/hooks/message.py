@@ -93,17 +93,22 @@ class OnMessageHooks(object):
             def remove_custom_emojis(text):
                 return re.sub(r':[a-z]*:', '', text)
 
-            def remove_multiple_dots_commas(text):
-                text = re.sub(r'\.{2,}', '.', text)
-                text = re.sub(r',{2,}', ',', text)
-                return text
+            def remove_multiple_consecutive_chars(text):
+                return re.sub(r'(.)\1+', r'\1', text)
 
             def remove_special_chars(text):
-                text = text.strip().lstrip('-')
+                text = text.strip()
                 text = text.replace('*', '')
                 text = text.replace('"', '')
                 text = text.replace('_', '')
                 text = text.replace('\'', '')
+                text = text.replace('!', '')
+                text = text.replace('-', '')
+                text = text.replace('/', '')
+                text = text.replace('<', '')
+                text = text.replace('>', '')
+                text = text.replace('(', '')
+                text = text.replace(')', '')
                 return text
 
             def replace_umlauts(text):
@@ -143,7 +148,7 @@ class OnMessageHooks(object):
                     environ.env.capture_exception(sys.exc_info())
 
             try:
-                _message = remove_multiple_dots_commas(_message)
+                _message = remove_multiple_consecutive_chars(_message)
                 _message = remove_special_chars(_message)
                 _message = replace_umlauts(_message)
 
