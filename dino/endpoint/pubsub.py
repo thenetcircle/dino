@@ -3,6 +3,8 @@ from dino import environ
 
 from kombu import pools
 
+from dino.endpoint.redis import RedisPubSub
+
 pools.set_limit(4096)  # default is 200
 
 from kombu import Exchange
@@ -74,21 +76,7 @@ class PubSub(object):
 
         if queue_host is not None:
             if queue_type == 'redis':
-                exchange = conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default='node_exchange')
-                queue_db = conf.get(ConfigKeys.DB, domain=ConfigKeys.QUEUE, default=0)
-                queue_name = conf.get(ConfigKeys.QUEUE, domain=ConfigKeys.QUEUE, default=None)
-                if queue_name is None or len(queue_name.strip()) == 0:
-                    queue_name = 'node_queue_%s_%s_%s' % (
-                        conf.get(ConfigKeys.ENVIRONMENT),
-                        hostname,
-                        port
-                    )
-
-                self.env.queue_connection = Connection(queue_host, transport_options={'db': queue_db})
-                logger.info('queue connection: {}'.format(str(self.env.queue_connection)))
-                self.env.queue_name = queue_name
-                self.env.exchange = Exchange(exchange, type='fanout')
-                self.env.queue = Queue(self.env.queue_name, self.env.exchange)
+                self.env.pubsub = RedisPubSub(env)
 
             elif queue_type == 'amqp':
                 queue_port = conf.get(ConfigKeys.PORT, domain=ConfigKeys.QUEUE, default=None)
@@ -243,15 +231,25 @@ class PubSub(object):
         start = time.time()
         n_tries = 3
         current_try = 0
+        n_partitions = 3  # todo: ask kafka client how many partitions we have available
         failed = False
 
         for current_try in range(n_tries):
             try:
                 if message_type == 'external' and self.external_queue_type == 'kafka':
                     message = self.env.enrichment_manager.handle(message)
+                    partition = 0
+
+                    # try to get some consistency
+                    try:
+                        partition = message.get('actor', dict()).get('id', 0) % n_partitions
+                    except Exception as partition_e:
+                        logger.exception(traceback.format_exc())
+                        environ.env.capture_exception(partition_e)
 
                     # for kafka, the queue_connection is the KafkaProducer and queue is the topic name
-                    queue_connection.send(queue, message)
+                    queue_connection.send(topic=queue, value=message, partition=partition)
+
                 else:
                     logger.info('sending "{}" with "{}"'.format(message_type, str(queue_connection)))
                     with producers[queue_connection].acquire(block=False) as producer:
