@@ -91,10 +91,13 @@ class OnMessageHooks(object):
                 return ''.join([character for character in text if character not in emoji.UNICODE_EMOJI])
 
             def remove_custom_emojis(text):
-                return re.sub(r':[a-z]*:', '', text)
+                return re.sub(r':[a-z0-9]*:', '', text)
 
             def remove_multiple_consecutive_chars(text):
                 return re.sub(r'(.)\1+', r'\1', text)
+
+            def remove_numbers(text):
+                return re.sub(r'\d', r'', text)
 
             def remove_special_chars(text):
                 text = text.strip()
@@ -153,6 +156,7 @@ class OnMessageHooks(object):
             try:
                 _message = remove_multiple_consecutive_chars(_message)
                 _message = remove_special_chars(_message)
+                _message = remove_numbers(_message)
                 _message = replace_umlauts(_message)
 
                 _is_spam, _y_hats = environ.env.spam.is_spam(_message)
