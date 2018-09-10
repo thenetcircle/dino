@@ -242,7 +242,7 @@ class PubSub(object):
 
                     # try to get some consistency
                     try:
-                        partition = message.get('actor', dict()).get('id', 0) % n_partitions
+                        partition = int(float(message.get('actor', dict()).get('id', 0))) % n_partitions
                     except Exception as partition_e:
                         logger.exception(traceback.format_exc())
                         environ.env.capture_exception(partition_e)
