@@ -932,7 +932,7 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
                     'gn_room_removed', activity, broadcast=True, include_self=True, namespace='/ws')
                 gn_env.observer.emit('on_remove_room', (activity, as_parser(activity)))
 
-    eventlet.spawn_after(seconds=5*60, func=delete)
+    eventlet.spawn_after(seconds=30*60, func=delete)
 
 
 @timeit(logger, 'init logging service')

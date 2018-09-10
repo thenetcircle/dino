@@ -99,6 +99,7 @@ class OnMessageHooks(object):
             def remove_special_chars(text):
                 text = text.strip()
                 text = text.replace('*', '')
+                text = text.replace('+', '')
                 text = text.replace('"', '')
                 text = text.replace('_', '')
                 text = text.replace('\'', '')
@@ -115,6 +116,8 @@ class OnMessageHooks(object):
                 text = text.replace('å', 'a')
                 text = text.replace('ä', 'a')
                 text = text.replace('ö', 'o')
+                text = text.replace('ß', 's')
+                text = text.replace('ü', 'u')
                 return text
 
             _is_spam = False
