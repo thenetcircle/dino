@@ -1863,7 +1863,7 @@ class DatabaseRdbms(object):
         elif user_id is not None:
             spams = session.query(Spams)\
                 .filter(from_time_int <= Spams.time_stamp <= to_time_int)\
-                .filter(Spams.to_uid == user_id)\
+                .filter(Spams.from_uid == user_id)\
                 .all()
 
         else:
