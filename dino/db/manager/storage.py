@@ -57,12 +57,17 @@ class StorageManager(BaseManager):
         if is_blank(user_id) and is_blank(room_id):
             raise RuntimeError('need user ID and/or room ID')
 
-        from_time_int, to_time_int = self.format_time_range(from_time, to_time)
-        from_time = datetime.datetime.fromtimestamp(from_time_int).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-        to_time = datetime.datetime.fromtimestamp(to_time_int).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        from_time, to_time = self.format_time_range(from_time, to_time)
+        from_time_int = int(from_time.strftime('%s'))
+        to_time_int = int(to_time.strftime('%s'))
 
-        return self.env.storage.get_history_for_time_slice(
-            room_id, user_id, from_time_int, to_time_int), from_time, to_time
+        from_time = from_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        to_time = to_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+
+        history = self.env.storage.get_history_for_time_slice(
+            room_id, user_id, from_time_int, to_time_int)
+
+        return history, from_time, to_time
 
     def format_time_range(self, from_time: str=None, to_time: str=None):
         if not is_blank(from_time):
@@ -97,4 +102,4 @@ class StorageManager(BaseManager):
             to_time = datetime.datetime.utcnow()
             from_time = to_time - datetime.timedelta(days=7)
 
-        return int(from_time.strftime('%s')), int(to_time.strftime('%s'))
+        return from_time, to_time
