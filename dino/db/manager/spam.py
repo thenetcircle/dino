@@ -77,12 +77,17 @@ class SpamManager(StorageManager):
         if is_blank(user_id) and is_blank(room_id):
             raise RuntimeError('need user ID and/or room ID')
 
-        from_time_int, to_time_int = self.format_time_range(from_time, to_time)
-        from_time = datetime.datetime.fromtimestamp(from_time_int).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-        to_time = datetime.datetime.fromtimestamp(to_time_int).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        from_time, to_time = self.format_time_range(from_time, to_time)
+        from_time_int = int(from_time.strftime('%s'))
+        to_time_int = int(to_time.strftime('%s'))
 
-        return self.env.db.get_spam_for_time_slice(
-            room_id, user_id, from_time_int, to_time_int), from_time, to_time
+        from_time = from_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        to_time = to_time.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+
+        history = self.env.db.get_spam_for_time_slice(
+            room_id, user_id, from_time_int, to_time_int)
+
+        return history, from_time, to_time
 
     def set_correct_or_not(self, spam_id: int, correct_or_not: bool):
         self.env.db.set_spam_correct_or_not(spam_id, correct_or_not)
