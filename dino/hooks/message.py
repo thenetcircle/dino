@@ -109,6 +109,8 @@ class OnMessageHooks(object):
                 text = text.replace('!', '')
                 text = text.replace('-', '')
                 text = text.replace('/', '')
+                text = text.replace(';', '')
+                text = text.replace(':', '')
                 text = text.replace('<', '')
                 text = text.replace('>', '')
                 text = text.replace('(', '')
