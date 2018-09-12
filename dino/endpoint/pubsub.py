@@ -16,6 +16,7 @@ from eventlet.semaphore import Semaphore
 import eventlet
 import traceback
 import logging
+import random
 import time
 import sys
 
@@ -243,9 +244,14 @@ class PubSub(object):
                     # try to get some consistency
                     try:
                         actor = message.get('actor', dict())
-                        actor_id = actor.get('id', 0)
-                        actor_id = int(float(actor_id))
-                        partition = actor_id % n_partitions
+                        actor_id = actor.get('id', None)
+
+                        if actor_id is None:
+                            partition = random.choice(range(n_partitions))
+                        else:
+                            actor_id = int(float(actor_id))
+                            partition = actor_id % n_partitions
+
                     except Exception as partition_e:
                         logger.exception(traceback.format_exc())
                         environ.env.capture_exception(partition_e)
