@@ -243,14 +243,19 @@ class PubSub(object):
 
                     # try to get some consistency
                     try:
-                        actor = message.get('actor', dict())
-                        actor_id = actor.get('id', None)
+                        target = message.get('target', dict())
+                        partition_id = target.get('id', None)
 
-                        if actor_id is None:
+                        if partition_id is None:
+                            actor = message.get('actor', dict())
+                            partition_id = actor.get('id', None)
+
+                        # system/admin events don't have an actor id and not necessarily a target id either
+                        if partition_id is None:
                             partition = random.choice(range(n_partitions))
                         else:
-                            actor_id = int(float(actor_id))
-                            partition = actor_id % n_partitions
+                            partition_id = int(float(partition_id))
+                            partition = partition_id % n_partitions
 
                     except Exception as partition_e:
                         logger.exception(traceback.format_exc())
