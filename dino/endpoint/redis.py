@@ -40,7 +40,12 @@ class RedisPublisher(BasePublisher):
             )
 
         self.queue_connection = Connection(queue_host, transport_options={'db': queue_db})
-        logger.info('queue connection: {}'.format(str(self.env.queue_connection)))
+        logger.info('queue connection: {}'.format(str(self.queue_connection)))
         self.queue_name = queue_name
-        self.exchange = Exchange(exchange, type='fanout')
-        self.queue = Queue(self.env.queue_name, self.env.exchange)
+
+        if self.is_external_queue:
+            self.exchange = Exchange(exchange, type='direct')
+        else:
+            self.exchange = Exchange(exchange, type='fanout')
+
+        self.queue = Queue(self.queue_name, self.exchange)

@@ -29,7 +29,7 @@ class AmqpPublisher(BasePublisher):
 
         queue_host = ';'.join(['amqp://%s' % host for host in queue_host.split(';')])
         queue_exchange = '%s_%s' % (
-            conf.get(ConfigKeys.EXCHANGE, domain=ConfigKeys.QUEUE, default=None),
+            conf.get(ConfigKeys.EXCHANGE, domain=self.domain_key, default=None),
             conf.get(ConfigKeys.ENVIRONMENT)
         )
 
