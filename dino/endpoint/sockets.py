@@ -36,7 +36,7 @@ class Worker(ConsumerMixin):
         self.signal_handler = signal_handler
 
     def get_consumers(self, consumer, channel):
-        return [consumer(queues=[environ.env.queue], callbacks=[self.process_task])]
+        return [consumer(queues=[environ.env.internal_publisher.queue], callbacks=[self.process_task])]
 
     def on_iteration(self):
         if self.signal_handler.interrupted:
@@ -57,9 +57,11 @@ def consume():
 
     with GracefulInterruptHandler() as interrupt_handler:
         while True:
-            with environ.env.queue_connection as conn:
+            with environ.env.internal_publisher.queue_connection as conn:
                 try:
-                    logger.info('setting up consumer "{}"'.format(str(environ.env.queue_connection)))
+                    logger.info('setting up consumer "{}"'.format(
+                        str(environ.env.internal_publisher.queue_connection)))
+
                     environ.env.consume_worker = Worker(conn, interrupt_handler)
                     environ.env.consume_worker.run()
                 except KeyboardInterrupt:

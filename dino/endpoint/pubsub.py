@@ -21,8 +21,6 @@ class PubSub(object):
 
         conf = self.env.config
         self.env.publish = self.do_publish
-        self.internal_publisher = None
-        self.external_publisher = None
 
         self._setup_internal_queue(conf, env)
         self._setup_external_queue(conf, env)
@@ -34,15 +32,15 @@ class PubSub(object):
 
         if queue_type == 'redis':
             from dino.endpoint.redis import RedisPublisher
-            self.internal_publisher = RedisPublisher(env, is_external_queue=False)
+            self.env.internal_publisher = RedisPublisher(env, is_external_queue=False)
 
         elif queue_type == 'amqp':
             from dino.endpoint.amqp import AmqpPublisher
-            self.internal_publisher = AmqpPublisher(env, is_external_queue=False)
+            self.env.internal_publisher = AmqpPublisher(env, is_external_queue=False)
 
         elif queue_type == 'mock':
             from dino.endpoint.mock import MockPublisher
-            self.internal_publisher = MockPublisher(env, is_external_queue=False)
+            self.env.internal_publisher = MockPublisher(env, is_external_queue=False)
 
         else:
             raise RuntimeError('unknown message queue type "{}"'.format(queue_type))
@@ -51,24 +49,24 @@ class PubSub(object):
         ext_queue_type = conf.get(ConfigKeys.TYPE, domain=ConfigKeys.EXTERNAL_QUEUE)
         if ext_queue_type is None:
             # external queue not required
-            self.external_publisher = PubSub.mock_publish
+            self.env.external_publisher = PubSub.mock_publish
             return
 
         if ext_queue_type in {'rabbitmq', 'amqp'}:
             from dino.endpoint.amqp import AmqpPublisher
-            self.external_publisher = AmqpPublisher(env, is_external_queue=True)
+            self.env.external_publisher = AmqpPublisher(env, is_external_queue=True)
 
         elif ext_queue_type == 'redis':
             from dino.endpoint.redis import RedisPublisher
-            self.external_publisher = RedisPublisher(env, is_external_queue=True)
+            self.env.external_publisher = RedisPublisher(env, is_external_queue=True)
 
         elif ext_queue_type == 'kafka':
             from dino.endpoint.kafka import KafkaPublisher
-            self.external_publisher = KafkaPublisher(env, is_external_queue=True)
+            self.env.external_publisher = KafkaPublisher(env, is_external_queue=True)
 
         elif ext_queue_type == 'mock':
             from dino.endpoint.mock import MockPublisher
-            self.external_publisher = MockPublisher(env, is_external_queue=True)
+            self.env.external_publisher = MockPublisher(env, is_external_queue=True)
 
         else:
             raise RuntimeError(
@@ -92,10 +90,10 @@ class PubSub(object):
 
     def _do_publish_external(self, message: dict):
         try:
-            return self.external_publisher.publish(message)
+            return self.env.external_publisher.publish(message)
         except PublishException:
             logger.error('failed to publish external event multiple times! Republishing to internal queue')
-            return self.internal_publisher.publish(message)
+            return self.env.internal_publisher.publish(message)
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())
@@ -105,7 +103,7 @@ class PubSub(object):
 
     def _do_publish_internal(self, message: dict):
         try:
-            return self.internal_publisher.publish(message)
+            return self.env.internal_publisher.publish(message)
         except Exception as e:
             logger.error('could not publish message "%s", because: %s' % (str(message), str(e)))
             logger.exception(traceback.format_exc())

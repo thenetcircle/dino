@@ -221,15 +221,8 @@ class GNEnvironment(object):
         self.session = config.get(ConfigKeys.SESSION, None)
         self.auth = config.get(ConfigKeys.AUTH_SERVICE, None)
         self.db = None
-        self.publish = lambda message, external: None
         self.capture_exception = lambda e: False
 
-        self.external_queue_connection = None
-        self.external_queue = None
-        self.external_exchange = None
-        self.queue_connection = None
-        self.queue = None
-        self.exchange = None
         self.web_auth = None
 
         # self.enrichment_manager: IEnrichmentManager = None
@@ -240,6 +233,11 @@ class GNEnvironment(object):
         self.enrichers = list()
 
         self.pub_sub = None
+        self.publish = lambda message, external: None
+        self.internal_publisher = None
+        self.external_publisher = None
+        self.consume_worker = None
+
         self.blacklist = None
         self.node = None
         self.service_config = None
@@ -373,7 +371,6 @@ def configure_request_log(gn_environment: str, config_dict: dict):
     if log_level == 'DEBUG' or debug_enabled:
         import sys
         args = sys.argv
-        bind_arg_pos = None
         for a in ['--bind', '-b']:
             bind_arg_pos = [i for i, x in enumerate(args) if x == a]
             if len(bind_arg_pos) > 0:
