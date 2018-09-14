@@ -16,8 +16,8 @@ class KafkaPublisher(BasePublisher):
         # todo: ask kafka client how many partitions we have available
         self.n_partitions = 3
 
-        eq_host = env.conf.get(ConfigKeys.HOST, domain=self.domain_key, default=None)
-        eq_queue = env.conf.get(ConfigKeys.QUEUE, domain=self.domain_key, default=None)
+        eq_host = env.config.get(ConfigKeys.HOST, domain=self.domain_key, default=None)
+        eq_queue = env.config.get(ConfigKeys.QUEUE, domain=self.domain_key, default=None)
 
         if eq_host is None or len(eq_host) == 0 or (type(eq_host) == str and len(eq_host.strip()) == 0):
             logging.warning('blank external host specified, not setting up external publishing')

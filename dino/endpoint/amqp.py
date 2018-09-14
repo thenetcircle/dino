@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class AmqpPublisher(BasePublisher):
     def __init__(self, env, is_external_queue: bool):
         super().__init__(env, is_external_queue, queue_type='amqp', logger=logger)
-        conf = env.conf
+        conf = env.config
 
         queue_host = conf.get(ConfigKeys.HOST, domain=self.domain_key, default='')
         if queue_host is None or len(queue_host.strip()) == 0:
