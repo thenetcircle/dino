@@ -39,13 +39,12 @@ class RedisPublisher(BasePublisher):
                 bind_port
             )
 
-        self.queue_connection = Connection(queue_host, transport_options={'db': queue_db})
-        logger.info('queue connection: {}'.format(str(self.queue_connection)))
-        self.queue_name = queue_name
-
         if self.is_external_queue:
             self.exchange = Exchange(exchange, type='direct')
         else:
             self.exchange = Exchange(exchange, type='fanout')
 
+        self.queue_connection = Connection(queue_host, transport_options={'db': queue_db})
+        logger.info('queue connection: {}'.format(str(self.queue_connection)))
+        self.queue_name = queue_name
         self.queue = Queue(self.queue_name, self.exchange)

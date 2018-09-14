@@ -46,6 +46,11 @@ class AmqpPublisher(BasePublisher):
                 bind_port
             )
 
+        if self.is_external_queue:
+            self.exchange = Exchange(queue_exchange, type='direct')
+        else:
+            self.exchange = Exchange(queue_exchange, type='fanout')
+
         self.queue_connection = Connection(
             hostname=queue_host,
             port=queue_port,
@@ -53,6 +58,5 @@ class AmqpPublisher(BasePublisher):
             userid=queue_user,
             password=queue_pass
         )
-        self.exchange = Exchange(queue_exchange, type='direct')
         self.queue = Queue(queue_name, self.exchange)
         self.logger.info('setting up pubsub for type "{}: and host(s) "{}"'.format(self.queue_type, queue_host))
