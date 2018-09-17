@@ -28,6 +28,14 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_user_for_sid(self, sid: str) -> str:
+        """
+        get the user id associated with this session id
+
+        :param sid: the session id
+        :return: the user id
+        """
+
     def update_spam_config(self, enabled, max_length, min_length, should_delete, should_save) -> None:
         """
         update the config for the spam classifier
