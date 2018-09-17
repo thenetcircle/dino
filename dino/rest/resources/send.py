@@ -54,20 +54,19 @@ class SendResource(BaseResource):
 
         logger.debug('POST request: %s' % str(json))
 
-        if 'body' not in json:
-            raise RuntimeError('no key [body] in json message')
+        if 'content' not in json:
+            raise RuntimeError('no key [content] in json message')
 
-        body = json.get('body')
-        if body is None or len(body.strip()) == 0:
-            raise RuntimeError('body may not be blank')
-        if not utils.is_base64(body):
-            raise RuntimeError('body in json message must be base64')
+        msg_content = json.get('content')
+        if msg_content is None or len(msg_content.strip()) == 0:
+            raise RuntimeError('content may not be blank')
+        if not utils.is_base64(msg_content):
+            raise RuntimeError('content in json message must be base64')
 
         user_id = json.get('user_id')
         user_name = utils.b64d(json.get('user_name'))
         object_type = json.get('object_type')
         target_id = json.get('target_id')
-        msg_content = json.get('content')
         target_name = json.get('target_name')
 
         data = utils.activity_for_message(user_id, user_name)

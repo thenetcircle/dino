@@ -447,7 +447,7 @@ Request contains:
     "user_name": "<username, in base64>",
     "object_type": "<room/private>",
     "target_id": "<user ID to send to or UUID of room to send to>",
-    "target_name": "<the name of the user/room to send to, in base64>"
+    "target_name": "<the name of the user/room to send to, in base64>",
     "content": "<the body to send, in base64>"
 }   
 ```
