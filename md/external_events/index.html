@@ -93,7 +93,7 @@
     <li class="toctree-l2"><a href="#user-used-a-blacklisted-word">User used a blacklisted word</a></li>
     
 
-    <li class="toctree-l2"><a href="#user-sent-a-message-classified-as-spam">User sent a message classified as spam</a></li>
+    <li class="toctree-l2"><a href="#user-send-a-message-that-got-classified-as-a-spam-message">User send a message that got classified as a spam message</a></li>
     
 
     <li class="toctree-l2"><a href="#user-was-banned">User was banned</a></li>
@@ -184,25 +184,26 @@
                 <p>External events are activity streams send to the configured external queue (e.g. RabbitMQ).</p>
 <h2 id="user-was-kicked-from-a-room">User was kicked from a room</h2>
 <p>Example of activity posted to the external queue:</p>
-<pre><code>{
-    "actor": {
-        "displayName": "admin",
-        "id": "0"
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;displayName&quot;: &quot;admin&quot;,
+        &quot;id&quot;: &quot;0&quot;
     },
-    "object": {
-        "displayName": "YXNkZg==",
-        "content": "dGhpcyBpcyBhIHJlYXNvbg==",
-        "id": "197114"
+    &quot;object&quot;: {
+        &quot;displayName&quot;: &quot;YXNkZg==&quot;,
+        &quot;content&quot;: &quot;dGhpcyBpcyBhIHJlYXNvbg==&quot;,
+        &quot;id&quot;: &quot;197114&quot;
     },
-    "target": {
-        "displayName": "Y29vbCBndXlz",
-        "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+    &quot;target&quot;: {
+        &quot;displayName&quot;: &quot;Y29vbCBndXlz&quot;,
+        &quot;id&quot;: &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;
     },
-    "verb": "kick",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;kick&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <ul>
 <li>actor.id: ID of the user who kicked, or 0 if from admin interface,</li>
 <li>actor.displayName: name of the user who kicked, or admin if from admin interface,</li>
@@ -213,24 +214,25 @@
 <li>target.displayName: base64 encoded name of the room.</li>
 </ul>
 <h2 id="user-used-a-blacklisted-word">User used a blacklisted word</h2>
-<pre><code>{
-    "actor": {
-        "displayName": "YmF0bWFu",
-        "id": "997110"
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;displayName&quot;: &quot;YmF0bWFu&quot;,
+        &quot;id&quot;: &quot;997110&quot;
     },
-    "object": {
-        "content": "aGVsbG8gZnVjayB5b3U=",
-        "summary": "ZnVjaw=="
+    &quot;object&quot;: {
+        &quot;content&quot;: &quot;aGVsbG8gZnVjayB5b3U=&quot;,
+        &quot;summary&quot;: &quot;ZnVjaw==&quot;
     },
-    "target": {
-        "displayName": "Y29vbCBndXlz",
-        "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+    &quot;target&quot;: {
+        &quot;displayName&quot;: &quot;Y29vbCBndXlz&quot;,
+        &quot;id&quot;: &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;
     },
-    "verb": "blacklisted",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;blacklisted&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <ul>
 <li>target.displayName: name of the room the message was sent in,</li>
 <li>target.id: uuid of the room the message was sent in,</li>
@@ -239,55 +241,57 @@
 <li>object.content: the full message that was sent,</li>
 <li>object.summary: the forbidden word that was used.</li>
 </ul>
-<h2 id="user-sent-a-message-classified-as-spam">User sent a message classified as spam</h2>
-<pre><code>{
-    "actor": {
-        "displayName": "YmF0bWFu",
-        "id": "997110"
+<h2 id="user-send-a-message-that-got-classified-as-a-spam-message">User send a message that got classified as a spam message</h2>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;displayName&quot;: &quot;YmF0bWFu&quot;,
+        &quot;id&quot;: &quot;997110&quot;
     },
-    "object": {
-        "content": "aGVsbG8gZnVjayB5b3U="
+    &quot;object&quot;: {
+        &quot;content&quot;: &quot;aGVsbG8gZnVjayB5b3U=&quot;
     },
-    "target": {
-        "displayName": "Y29vbCBndXlz",
-        "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+    &quot;target&quot;: {
+        &quot;displayName&quot;: &quot;Y29vbCBndXlz&quot;,
+        &quot;id&quot;: &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;
     },
-    "verb": "spam",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;spam&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <ul>
 <li>target.displayName: name of the room the message was sent in,</li>
 <li>target.id: uuid of the room the message was sent in,</li>
 <li>actor.id: id of the user who sent the message,</li>
 <li>actor.displayName: username of the user who sent the message,</li>
-<li>object.content: the full message that was sent.</li>
+<li>object.content: the full message that was sent,</li>
 </ul>
 <h2 id="user-was-banned">User was banned</h2>
 <p>Example of activity posted to the external queue:</p>
-<pre><code>{
-    "actor": {
-        "displayName": "admin",
-        "id": "0"
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;displayName&quot;: &quot;admin&quot;,
+        &quot;id&quot;: &quot;0&quot;
     },
-    "object": {
-        "displayName": "YXNkZg==",
-        "id": "1234",
-        "summary": "5m",
-        "content": "dGhpcyBpcyBhIHJlYXNvbg==",
-        "updated": "2016-12-22T07:13:09Z"
+    &quot;object&quot;: {
+        &quot;displayName&quot;: &quot;YXNkZg==&quot;,
+        &quot;id&quot;: &quot;1234&quot;,
+        &quot;summary&quot;: &quot;5m&quot;,
+        &quot;content&quot;: &quot;dGhpcyBpcyBhIHJlYXNvbg==&quot;,
+        &quot;updated&quot;: &quot;2016-12-22T07:13:09Z&quot;
     },
-    "target": {
-        "displayName": "Y29vbCBndXlz",
-        "objectType": "room",
-        "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+    &quot;target&quot;: {
+        &quot;displayName&quot;: &quot;Y29vbCBndXlz&quot;,
+        &quot;objectType&quot;: &quot;room&quot;,
+        &quot;id&quot;: &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;
     },
-    "verb": "ban",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;ban&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <ul>
 <li>actor.id: ID of the user who banned, or 0 if from admin interface,</li>
 <li>actor.displayName: name of the user who banned, or admin if from admin interface,</li>
@@ -302,79 +306,82 @@
 </ul>
 <h2 id="server-restarted">Server restarted</h2>
 <p>When the server REST node starts up it will sent a <code>restart</code> event in this format: </p>
-<pre><code>{
-    "verb": "restart",
-    "id": "c694ddc3-1b2b-4d43-ae5a-a843c2dce8aa",
-    "published": "2017-06-09T07:26:26Z"
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;restart&quot;,
+    &quot;id&quot;: &quot;c694ddc3-1b2b-4d43-ae5a-a843c2dce8aa&quot;,
+    &quot;published&quot;: &quot;2017-06-09T07:26:26Z&quot;
 }
 </code></pre>
+
 <h2 id="user-joins-room">User joins room</h2>
 <p>When a user joins a room the following activity is published to rabbitmq:</p>
-<pre><code>{
-    "object": {
-        "attachments": [{
-            "content": "MA==",
-            "objectType": "membership"
+<pre><code class="json">{
+    &quot;object&quot;: {
+        &quot;attachments&quot;: [{
+            &quot;content&quot;: &quot;MA==&quot;,
+            &quot;objectType&quot;: &quot;membership&quot;
         }, {
-            "content": "eQ==",
-            "objectType": "image"
+            &quot;content&quot;: &quot;eQ==&quot;,
+            &quot;objectType&quot;: &quot;image&quot;
         }, {
-            "content": "bQ==",
-            "objectType": "gender"
+            &quot;content&quot;: &quot;bQ==&quot;,
+            &quot;objectType&quot;: &quot;gender&quot;
         }, {
-            "content": "NzA=",
-            "objectType": "age"
+            &quot;content&quot;: &quot;NzA=&quot;,
+            &quot;objectType&quot;: &quot;age&quot;
         }, {
-            "content": "c2hhbmdoYWk=",
-            "objectType": "city"
+            &quot;content&quot;: &quot;c2hhbmdoYWk=&quot;,
+            &quot;objectType&quot;: &quot;city&quot;
         }, {
-            "content": "Y24=",
-            "objectType": "country"
+            &quot;content&quot;: &quot;Y24=&quot;,
+            &quot;objectType&quot;: &quot;country&quot;
         }, {
-            "content": "eQ==",
-            "objectType": "fake_checked"
+            &quot;content&quot;: &quot;eQ==&quot;,
+            &quot;objectType&quot;: &quot;fake_checked&quot;
         }, {
-            "content": "eQ==",
-            "objectType": "has_webcam"
+            &quot;content&quot;: &quot;eQ==&quot;,
+            &quot;objectType&quot;: &quot;has_webcam&quot;
         }]
     },
-    "target": {
-        "displayName": "YmFkIGtpZHo=",
-        "id": "675eb2a5-17c6-45e4-bc0f-674241573f22"
+    &quot;target&quot;: {
+        &quot;displayName&quot;: &quot;YmFkIGtpZHo=&quot;,
+        &quot;id&quot;: &quot;675eb2a5-17c6-45e4-bc0f-674241573f22&quot;
     },
-    "id": "bfa26b43-492f-4ec9-a83e-32e64ba2bc51",
-    "actor": {
-        "displayName": "YXNvZGZpaGFzZG9maWg=",
-        "id": "385280",
-        "image": {
-            "url": "n"
+    &quot;id&quot;: &quot;bfa26b43-492f-4ec9-a83e-32e64ba2bc51&quot;,
+    &quot;actor&quot;: {
+        &quot;displayName&quot;: &quot;YXNvZGZpaGFzZG9maWg=&quot;,
+        &quot;id&quot;: &quot;385280&quot;,
+        &quot;image&quot;: {
+            &quot;url&quot;: &quot;n&quot;
         }
     },
-    "published": "2017-01-04T09:58:37Z",
-    "verb": "join"
+    &quot;published&quot;: &quot;2017-01-04T09:58:37Z&quot;,
+    &quot;verb&quot;: &quot;join&quot;
 }
 </code></pre>
+
 <h2 id="user-ban-was-removed">User ban was removed</h2>
 <p>Example of activity when a user's ban was manually removed in the admin interface:</p>
-<pre><code>{
-    "actor": {
-        "id": "0",
-        "displayName": "YWRtaW4="
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;displayName&quot;: &quot;YWRtaW4=&quot;
     },
-    "target": {
-        "id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
-        "displayName": "YmFkIGtpZHo=",
-        "objectType": "room"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;675eb2a5-17c6-45e4-bc0f-674241573f22&quot;,
+        &quot;displayName&quot;: &quot;YmFkIGtpZHo=&quot;,
+        &quot;objectType&quot;: &quot;room&quot;
     },
-    "published": "2017-01-03T05:50:11Z",
-    "verb": "unban",
-    "id": "49b067bb-79fe-48bd-9c03-dc4fd8f60192",
-    "object": {
-        "id": "124352",
-        "displayName": "Zm9vYmFyenoyMw=="
+    &quot;published&quot;: &quot;2017-01-03T05:50:11Z&quot;,
+    &quot;verb&quot;: &quot;unban&quot;,
+    &quot;id&quot;: &quot;49b067bb-79fe-48bd-9c03-dc4fd8f60192&quot;,
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;124352&quot;,
+        &quot;displayName&quot;: &quot;Zm9vYmFyenoyMw==&quot;
     }
 }
 </code></pre>
+
 <ul>
 <li>target.id: room ID or channel ID</li>
 <li>target.objectType: "room", "channel" or "global"</li>
@@ -385,84 +392,130 @@
 <h2 id="user-sends-a-message-to-a-roomuser">User sends a message to a room/user</h2>
 <p>Whenever a user sends a message an event will be published to the configured MQ, so another system can analyze activity
 level of users. Example activity: </p>
-<pre><code>{
-    "actor": {
-        "id": "&lt;user ID"&gt;,
-        "displayName": "&lt;base64 encoded username&gt;"
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;base64 encoded username&gt;&quot;
     },
-    "verb": "send",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;send&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <h2 id="user-successfully-logged-in">User successfully logged in</h2>
 <p>Example of activity when a user successfully logs in:</p>
-<pre><code>{
-    "actor": {
-        "id": "&lt;user ID&gt;",
-        "displayName": "&lt;base64 encoded username&gt;"
+<pre><code class="json">{
+    &quot;published&quot;: &quot;2018-09-17T03:14:00Z&quot;,
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;wiofetc&quot;
     },
-    "verb": "login",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;title&quot;: &quot;dino.wio.login&quot;,
+    &quot;actor&quot;: {
+        &quot;attachments&quot;: [{
+            &quot;objectType&quot;: &quot;fakecheck&quot;,
+            &quot;content&quot;: &quot;&quot;
+        }, {
+            &quot;objectType&quot;: &quot;age&quot;,
+            &quot;content&quot;: &quot;MA==&quot;
+        }, {
+            &quot;objectType&quot;: &quot;search_gender&quot;,
+            &quot;content&quot;: &quot;dw==&quot;
+        }, {
+            &quot;objectType&quot;: &quot;membership&quot;,
+            &quot;content&quot;: &quot;cHJlbWl1bQ==&quot;
+        }, {
+            &quot;objectType&quot;: &quot;avatar&quot;,
+            &quot;content&quot;: &quot;aHR0cDovLzQuYmlsZC5mZXRpc2NoLmRlLmxhYi9tL2F2YXRhci8xMjE4NDcvMS9jaGVjay80LzQvNi8xMjE4NDctNDQ2MkEyNTRBMzhBMDk4MEFEQ0I2QjUwMUYxMjQ5NTJfMzAwX3NxLmpwZz8xNTM3MTU0MDQw&quot;
+        }, {
+            &quot;objectType&quot;: &quot;lat&quot;,
+            &quot;content&quot;: &quot;NTQuODQ1NTg=&quot;
+        }, {
+            &quot;objectType&quot;: &quot;region&quot;,
+            &quot;content&quot;: &quot;U2NobGVzd2lnLUhvbHN0ZWlu&quot;
+        }, {
+            &quot;objectType&quot;: &quot;city&quot;,
+            &quot;content&quot;: &quot;U3lsdC1Pc3Q=&quot;
+        }, {
+            &quot;objectType&quot;: &quot;user_agent&quot;,
+            &quot;content&quot;: &quot;TW96aWxsYS81LjAgKFgxMTsgTGludXggeDg2XzY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvNjMuMC4zMjM5LjEwOCBTYWZhcmkvNTM3LjM2&quot;
+        }, {
+            &quot;objectType&quot;: &quot;gender&quot;,
+            &quot;content&quot;: &quot;bQ==&quot;
+        }, {
+            &quot;objectType&quot;: &quot;lon&quot;,
+            &quot;content&quot;: &quot;OC4yOTM=&quot;
+        }, {
+            &quot;objectType&quot;: &quot;country&quot;,
+            &quot;content&quot;: &quot;R2VybWFueQ==&quot;
+        }],
+        &quot;displayName&quot;: &quot;dmlweGlhb3l1&quot;,
+        &quot;id&quot;: &quot;121847&quot;
+    },
+    &quot;verb&quot;: &quot;login&quot;,
+    &quot;id&quot;: &quot;5a7aae0b-f472-49ca-a4f5-c7b39c26841b&quot;
 }
 </code></pre>
+
 <h2 id="a-user-was-reported-for-a-message-heshe-sent">A user was reported for a message he/she sent</h2>
 <p>A message may be reported in the front-end, and a report will be published to the MQ. The event looks like this:</p>
-<pre><code>{
-    "actor": {
-        "id": "&lt;user ID that reported the message&gt;",
-        "displayName": "&lt;the user name who reported the message&gt;"
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID that reported the message&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;the user name who reported the message&gt;&quot;
     },
-    "object": {
-        "id": "&lt;uuid of message&gt;",
-        "content": "&lt;the actual message to report, base64&gt;",
-        "summary": "&lt;optional reason text, base64&gt;"
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;&lt;uuid of message&gt;&quot;,
+        &quot;content&quot;: &quot;&lt;the actual message to report, base64&gt;&quot;,
+        &quot;summary&quot;: &quot;&lt;optional reason text, base64&gt;&quot;
     },
-    "target": {
-        "id": "&lt;user ID to report&gt;",
-        "displayName": "&lt;the user name of the reported user&gt;"
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID to report&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;the user name of the reported user&gt;&quot;
     },
-    "verb": "report",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;report&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <h2 id="user-disconnected">User disconnected</h2>
 <p>Example of activity when a user disconnects:</p>
-<pre><code>{
-    "actor": {
-        "id": "&lt;user ID&gt;",
-        "displayName": "&lt;base64 encoded username&gt;"
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;base64 encoded username&gt;&quot;
     },
-    "verb": "disconnect",
-    "id": "&lt;server-generated UUID&gt;",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;disconnect&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <h2 id="user-becomes-invisible">User becomes invisible</h2>
 <p>When a user changes the status to become invisible the following event is published to the external queue:</p>
-<pre><code>{
-    "id": "&lt;server-generated UUID&gt;",
-    "actor": {
-        "id": "635328",
-        "displayName": "amtia2prYmJrag=="
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;635328&quot;,
+        &quot;displayName&quot;: &quot;amtia2prYmJrag==&quot;
     },
-    "verb": "invisible",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
+    &quot;verb&quot;: &quot;invisible&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
+
 <h2 id="user-becomes-visible-after-being-in-visible">User becomes visible after being in visible</h2>
 <p>When a user changes his status to become visible again after being invisible the following event is sent to the external queue:</p>
-<pre><code>{   
-    "id": "&lt;server-generated UUID&gt;",
-    "actor": {
-        "id": "635328",
-        "displayName": "amtia2prYmJrag=="
+<pre><code class="json">{   
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;635328&quot;,
+        &quot;displayName&quot;: &quot;amtia2prYmJrag==&quot;
     },  
-    "verb": "online",
-    "published": "&lt;server-generated timestamp, RFC3339 format&gt;"
-}
+    &quot;verb&quot;: &quot;online&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
+}   
 </code></pre>
               
             </div>

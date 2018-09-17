@@ -409,6 +409,8 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
         &quot;enabled&quot;: true,
         &quot;max_length&quot;: 250,
         &quot;min_length&quot;: 10,
+        &quot;threshold&quot;: 80,
+        &quot;ignore_emoji&quot;: true,
         &quot;should_delete&quot;: false,
         &quot;should_save&quot;: false
     },
@@ -420,7 +422,7 @@ user@box:~$ curl -X GET localhost:4556/api/spam/isenabled
 <h2 id="post-apispamsettings">POST <code>/api/spam/settings</code></h2>
 <p>Set the current settings for the spam classifier. One or more settings can be specified in the dictionary.</p>
 <p>Request:</p>
-<pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/settings -H 'Content-Type: application/json' -d '{&quot;enabled&quot;:true,&quot;max_length&quot;:250,&quot;min_length&quot;:10,&quot;should_delete&quot;:false,&quot;should_save&quot;:false}'
+<pre><code class="bash">user@box:~$ curl -X POST localhost:4556/api/spam/settings -H 'Content-Type: application/json' -d '{&quot;enabled&quot;:true,&quot;max_length&quot;:250,&quot;min_length&quot;:10,&quot;should_delete&quot;:false,&quot;should_save&quot;:false,&quot;ignore_emoji&quot;:true,&quot;threshold&quot;:80}'
 </code></pre>
 
 <p>Response:</p>
