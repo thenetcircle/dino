@@ -847,7 +847,7 @@ def get_user_info_attachments_for(user_id: str, encode_attachments: bool=True) -
         })
 
     for key in SessionKeys.user_agent_keys.value:
-        agent_value = environ.env.session.get(key.value)
+        agent_value = environ.env.session.get(key)
         attachments.append({
             'objectType': key,
             'content': b64e(agent_value) if encode_attachments else agent_value
