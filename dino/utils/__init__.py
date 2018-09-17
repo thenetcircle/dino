@@ -379,7 +379,11 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str=None
     })
 
 
-def activity_for_login(user_id: str, user_name: str, include_unread_history: bool=False) -> dict:
+def activity_for_login(
+        user_id: str, user_name: str,
+        include_unread_history: bool=False,
+        encode_attachments: bool=True
+) -> dict:
     try:
         sid = environ.env.request.sid
     except Exception as e:
@@ -393,7 +397,7 @@ def activity_for_login(user_id: str, user_name: str, include_unread_history: boo
             'id': user_id,
             'displayName': b64e(user_name),
             'content': sid,
-            'attachments': get_user_info_attachments_for(user_id)
+            'attachments': get_user_info_attachments_for(user_id, encode_attachments)
         },
         'verb': 'login'
     })
@@ -834,12 +838,19 @@ def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_na
     return act
 
 
-def get_user_info_attachments_for(user_id: str) -> list:
+def get_user_info_attachments_for(user_id: str, encode_attachments: bool=True) -> list:
     attachments = list()
     for info_key, info_val in environ.env.auth.get_user_info(user_id).items():
         attachments.append({
             'objectType': info_key,
             'content': b64e(info_val)
+        })
+
+    for key in SessionKeys.user_agent_keys.value:
+        agent_value = environ.env.session.get(key.value)
+        attachments.append({
+            'objectType': key,
+            'content': b64e(agent_value) if encode_attachments else agent_value
         })
 
     return attachments
