@@ -843,7 +843,7 @@ def get_user_info_attachments_for(user_id: str, encode_attachments: bool=True) -
     for info_key, info_val in environ.env.auth.get_user_info(user_id).items():
         attachments.append({
             'objectType': info_key,
-            'content': b64e(info_val)
+            'content': b64e(info_val) if encode_attachments else info_val
         })
 
     for key in SessionKeys.user_agent_keys.value:
