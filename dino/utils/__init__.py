@@ -398,6 +398,7 @@ def activity_for_login(user_id: str, user_name: str, include_unread_history: boo
         'verb': 'login'
     })
 
+
     if include_unread_history:
         messages = get_unacked_messages(user_id)
         if len(messages) > 0:

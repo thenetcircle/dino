@@ -1,5 +1,6 @@
 import logging
 import sys
+import traceback
 
 from dino import environ
 from dino import utils
@@ -15,10 +16,17 @@ class OnLoginHooks(object):
     def update_session_and_join_private_room(arg: tuple) -> None:
         data, activity = arg
         user_id = activity.actor.id
-        user_agent = activity.actor.content or ''
         user_name = utils.b64d(activity.actor.display_name)
         environ.env.session[SessionKeys.user_id.value] = user_id
         environ.env.session[SessionKeys.user_name.value] = user_name
+
+        try:
+            user_agent = environ.env.request.user_agent.string
+        except Exception as e:
+            logger.error('could not get user agent for user "{}": {}'.format(user_id, str(e)))
+            logger.exception(traceback.format_exc())
+            environ.env.capture_exception(sys.exc_info())
+            user_agent = ''
         environ.env.session[SessionKeys.user_agent.value] = user_agent
 
         if activity.actor.image is None:
