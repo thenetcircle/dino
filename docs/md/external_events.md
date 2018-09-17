@@ -322,7 +322,7 @@ Example of activity when a user successfully logs in:
 			"content": "63.0.3239.108"
 		}],
 		"displayName": "Um9iYnk=",
-		"content": "d9031ac5a75d41fd804f575b4ad5e119"
+		"content": "<session UUID>"
 	},
 	"provider": {
 		"id": "wioenv"
