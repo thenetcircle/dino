@@ -239,6 +239,23 @@ level of users. Example activity:
 }
 ```
 
+## One session has ended
+
+Multiple session can exist for a single user. A disconnect event is only sent when the last session has been closed, but a "session closed" event is sent for each session that is closed. Example activity:
+
+```json
+{
+    "actor": {
+        "id": "<user ID>",
+        "displayName": "<base64 encoded username>",
+        "content": "<session UUID>"
+    },
+    "verb": "ended",
+    "id": "<server-generated UUID>",
+    "published": "<server-generated timestamp, RFC3339 format>"
+}
+```
+
 ## User successfully logged in
 
 Example of activity when a user successfully logs in:
@@ -276,9 +293,6 @@ Example of activity when a user successfully logs in:
 			"objectType": "city",
 			"content": "U3lsdC1Pc3Q="
 		}, {
-			"objectType": "user_agent",
-			"content": "TW96aWxsYS81LjAgKFgxMTsgTGludXggeDg2XzY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvNjMuMC4zMjM5LjEwOCBTYWZhcmkvNTM3LjM2"
-		}, {
 			"objectType": "gender",
 			"content": "bQ=="
 		}, {
@@ -289,6 +303,7 @@ Example of activity when a user successfully logs in:
 			"content": "R2VybWFueQ=="
 		}],
 		"displayName": "dmlweGlhb3l1",
+        "content": "<session UUID>",
 		"id": "121847"
 	},
 	"verb": "login",

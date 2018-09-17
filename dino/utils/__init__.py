@@ -317,6 +317,25 @@ def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     })
 
 
+def activity_for_sid_disconnect(user_id: str, user_name: str) -> dict:
+    try:
+        sid = environ.env.request.sid
+    except Exception as e:
+        logger.error('could not get sid for user "{}": {}'.format(user_id, str(e)))
+        logger.exception(traceback.format_exc())
+        environ.env.capture_exception(sys.exc_info())
+        sid = ''
+
+    return ActivityBuilder.enrich({
+        'actor': {
+            'id': user_id,
+            'displayName': b64e(user_name),
+            'content': sid,
+        },
+        'verb': 'ended'
+    })
+
+
 def activity_for_message(user_id: str, user_name: str) -> dict:
     """
     user for sending event to other system to do statistics for how active a user is
@@ -361,10 +380,19 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str=None
 
 
 def activity_for_login(user_id: str, user_name: str, include_unread_history: bool=False) -> dict:
+    try:
+        sid = environ.env.request.sid
+    except Exception as e:
+        logger.error('could not get sid for user "{}": {}'.format(user_id, str(e)))
+        logger.exception(traceback.format_exc())
+        environ.env.capture_exception(sys.exc_info())
+        sid = ''
+
     response = ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
+            'content': sid,
             'attachments': get_user_info_attachments_for(user_id)
         },
         'verb': 'login'
