@@ -245,13 +245,54 @@ Example of activity when a user successfully logs in:
 
 ```json
 {
-    "actor": {
-        "id": "<user ID>",
-        "displayName": "<base64 encoded username>"
-    },
-    "verb": "login",
-    "id": "<server-generated UUID>",
-    "published": "<server-generated timestamp, RFC3339 format>"
+	"published": "2018-09-17T03:14:00Z",
+	"provider": {
+		"id": "wiofetc"
+	},
+	"title": "dino.wio.login",
+	"actor": {
+		"attachments": [{
+			"objectType": "fakecheck",
+			"content": ""
+		}, {
+			"objectType": "age",
+			"content": "MA=="
+		}, {
+			"objectType": "search_gender",
+			"content": "dw=="
+		}, {
+			"objectType": "membership",
+			"content": "cHJlbWl1bQ=="
+		}, {
+			"objectType": "avatar",
+			"content": "aHR0cDovLzQuYmlsZC5mZXRpc2NoLmRlLmxhYi9tL2F2YXRhci8xMjE4NDcvMS9jaGVjay80LzQvNi8xMjE4NDctNDQ2MkEyNTRBMzhBMDk4MEFEQ0I2QjUwMUYxMjQ5NTJfMzAwX3NxLmpwZz8xNTM3MTU0MDQw"
+		}, {
+			"objectType": "lat",
+			"content": "NTQuODQ1NTg="
+		}, {
+			"objectType": "region",
+			"content": "U2NobGVzd2lnLUhvbHN0ZWlu"
+		}, {
+			"objectType": "city",
+			"content": "U3lsdC1Pc3Q="
+		}, {
+			"objectType": "user_agent",
+			"content": "TW96aWxsYS81LjAgKFgxMTsgTGludXggeDg2XzY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvNjMuMC4zMjM5LjEwOCBTYWZhcmkvNTM3LjM2"
+		}, {
+			"objectType": "gender",
+			"content": "bQ=="
+		}, {
+			"objectType": "lon",
+			"content": "OC4yOTM="
+		}, {
+			"objectType": "country",
+			"content": "R2VybWFueQ=="
+		}],
+		"displayName": "dmlweGlhb3l1",
+		"id": "121847"
+	},
+	"verb": "login",
+	"id": "5a7aae0b-f472-49ca-a4f5-c7b39c26841b"
 }
 ```
 
