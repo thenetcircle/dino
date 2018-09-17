@@ -36,11 +36,11 @@ class OnLoginHooks(object):
             user_agent_version = ''
             user_agent_language = ''
 
-        environ.env.session[SessionKeys.user_agent.value] = user_agent_string
-        environ.env.session[SessionKeys.user_agent_browser.value] = user_agent_browser
-        environ.env.session[SessionKeys.user_agent_version.value] = user_agent_version
-        environ.env.session[SessionKeys.user_agent_platform.value] = user_agent_platform
-        environ.env.session[SessionKeys.user_agent_language.value] = user_agent_language
+        environ.env.session[SessionKeys.user_agent.value] = user_agent_string or ''
+        environ.env.session[SessionKeys.user_agent_browser.value] = user_agent_browser or ''
+        environ.env.session[SessionKeys.user_agent_version.value] = user_agent_version or ''
+        environ.env.session[SessionKeys.user_agent_platform.value] = user_agent_platform or ''
+        environ.env.session[SessionKeys.user_agent_language.value] = user_agent_language or ''
 
         if activity.actor.image is None:
             environ.env.session['image_url'] = ''

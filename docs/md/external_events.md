@@ -262,55 +262,73 @@ Example of activity when a user successfully logs in:
 
 ```json
 {
-	"published": "2018-09-17T03:14:00Z",
-	"provider": {
-		"id": "wiofetc"
-	},
+	"id": "2190e4b9-6b80-4d86-992f-e107ae19be96",
 	"title": "dino.wio.login",
 	"actor": {
+		"id": "1971",
 		"attachments": [{
-			"objectType": "fakecheck",
-			"content": ""
-		}, {
-			"objectType": "age",
-			"content": "MA=="
-		}, {
-			"objectType": "search_gender",
-			"content": "dw=="
-		}, {
-			"objectType": "membership",
-			"content": "cHJlbWl1bQ=="
-		}, {
-			"objectType": "avatar",
-			"content": "aHR0cDovLzQuYmlsZC5mZXRpc2NoLmRlLmxhYi9tL2F2YXRhci8xMjE4NDcvMS9jaGVjay80LzQvNi8xMjE4NDctNDQ2MkEyNTRBMzhBMDk4MEFEQ0I2QjUwMUYxMjQ5NTJfMzAwX3NxLmpwZz8xNTM3MTU0MDQw"
+			"objectType": "lon",
+			"content": "11.11667"
 		}, {
 			"objectType": "lat",
-			"content": "NTQuODQ1NTg="
-		}, {
-            "objectType": "user_agent",
-            "content": "TW96aWxsYS81LjAgKFgxMTsgTGludXggeDg2XzY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvNjMuMC4zMjM5LjEwOCBTYWZhcmkvNTM3LjM2"
-        }, {
-			"objectType": "region",
-			"content": "U2NobGVzd2lnLUhvbHN0ZWlu"
+			"content": "59.23891"
 		}, {
 			"objectType": "city",
-			"content": "U3lsdC1Pc3Q="
+			"content": "Berlin"
 		}, {
-			"objectType": "gender",
-			"content": "bQ=="
+			"objectType": "membership",
+			"content": "vip"
 		}, {
-			"objectType": "lon",
-			"content": "OC4yOTM="
+			"objectType": "is_streaming",
+			"content": "False"
+		}, {
+			"objectType": "fakecheck",
+			"content": "1"
 		}, {
 			"objectType": "country",
-			"content": "R2VybWFueQ=="
+			"content": "Germany"
+		}, {
+			"objectType": "gender",
+			"content": "m"
+		}, {
+			"objectType": "user_agent",
+			"content": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36"
+		}, {
+			"objectType": "age",
+			"content": "65"
+		}, {
+			"objectType": "search_gender",
+			"content": "a,b"
+		}, {
+			"objectType": "avatar",
+			"content": "http://img.example.com/m/avatar/19/1/f6/3/71-B833EE35D296C9BE_300_sq.jpg"
+		}, {
+			"objectType": "region",
+			"content": "Berlin"
+		}, {
+			"objectType": "user_agent_platform",
+			"content": "linux"
+		}, {
+			"objectType": "user_agent",
+			"content": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36"
+		}, {
+			"objectType": "user_agent_browser",
+			"content": "chrome"
+		}, {
+			"objectType": "user_agent_language",
+			"content": ""
+		}, {
+			"objectType": "user_agent_version",
+			"content": "63.0.3239.108"
 		}],
-		"displayName": "dmlweGlhb3l1",
-        "content": "<session UUID>",
-		"id": "121847"
+		"displayName": "Um9iYnk=",
+		"content": "d9031ac5a75d41fd804f575b4ad5e119"
+	},
+	"provider": {
+		"id": "wioenv"
 	},
 	"verb": "login",
-	"id": "5a7aae0b-f472-49ca-a4f5-c7b39c26841b"
+	"published": "2018-09-17T05:25:38Z"
 }
 ```
 
