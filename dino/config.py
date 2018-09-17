@@ -75,6 +75,7 @@ class SessionKeys(Enum):
     has_webcam = 'has_webcam'
     fake_checked = 'fake_checked'
     token = 'token'
+    user_agent = 'user_agent'
     is_streaming = 'is_streaming'
 
     temporary_keys = {

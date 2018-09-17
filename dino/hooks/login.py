@@ -1,7 +1,5 @@
 import logging
-
 import sys
-from zlib import crc32
 
 from dino import environ
 from dino import utils
@@ -17,9 +15,11 @@ class OnLoginHooks(object):
     def update_session_and_join_private_room(arg: tuple) -> None:
         data, activity = arg
         user_id = activity.actor.id
+        user_agent = activity.actor.content or ''
         user_name = utils.b64d(activity.actor.display_name)
         environ.env.session[SessionKeys.user_id.value] = user_id
         environ.env.session[SessionKeys.user_name.value] = user_name
+        environ.env.session[SessionKeys.user_agent.value] = user_agent
 
         if activity.actor.image is None:
             environ.env.session['image_url'] = ''

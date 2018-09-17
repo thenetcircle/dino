@@ -287,6 +287,9 @@ Example of activity when a user successfully logs in:
 			"objectType": "lat",
 			"content": "NTQuODQ1NTg="
 		}, {
+            "objectType": "user_agent",
+            "content": "TW96aWxsYS81LjAgKFgxMTsgTGludXggeDg2XzY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvNjMuMC4zMjM5LjEwOCBTYWZhcmkvNTM3LjM2"
+        }, {
 			"objectType": "region",
 			"content": "U2NobGVzd2lnLUhvbHN0ZWlu"
 		}, {
