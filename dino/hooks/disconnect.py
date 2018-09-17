@@ -1,19 +1,8 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+import logging
+import sys
+import traceback
 
 from activitystreams.models.target import Target
-
-import logging
-import traceback
 
 from dino import environ
 from dino import utils
@@ -22,8 +11,6 @@ from dino.config import UserKeys
 from dino.exceptions import NoSuchUserException
 
 logger = logging.getLogger(__name__)
-
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class OnDisconnectHooks(object):
@@ -130,7 +117,18 @@ class OnDisconnectHooks(object):
                     if sid is None or sid == 'None' or sid == '':
                         logger.error('blank sid as well as blank user id, ignoring disconnect event')
                         return
-                    user_id = utils.get_user_for_sid(sid)
+
+                    try:
+                        user_id = utils.get_user_for_sid(sid)
+                    except Exception as e:
+                        logger.error('could not get user id from sid "{}": {}'.format(sid, str(e)))
+                        logger.exception(traceback.format_exc())
+                        environ.env.capture_exception(sys.exc_info())
+                        return
+
+                    if user_id is None or len(user_id.strip()) == 0:
+                        logger.error('blank user id for sid "{}", ignoring disconnect event'.format(sid))
+                        return
 
                 all_sids = utils.get_sids_for_user_id(user_id)
                 if all_sids is None:
