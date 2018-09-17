@@ -610,14 +610,24 @@ def on_disconnect() -> (int, None):
     :return json if ok, {'status_code': 200}
     """
     user_id = str(environ.env.session.get(SessionKeys.user_id.value))
+    try:
+        sid = request.sid
+    except Exception as e:
+        logger.error('coud not get sid from request: {}'.format(str(e)))
+        logger.exception(traceback.format_exc())
+        environ.env.capture_exception(sys.exc_info())
+        sid = ''
+
     data = {
         'verb': 'disconnect',
         'actor': {
-            'id': user_id
+            'id': user_id,
+            'content': sid
         }
     }
     if not environ.env.config.get(ConfigKeys.TESTING):
-        if environ.env.connected_user_ids.get(user_id) == request.sid:
+        # only used for single-session restrictions
+        if environ.env.connected_user_ids.get(user_id) == sid:
             del environ.env.connected_user_ids[user_id]
 
     activity = as_parser(data)

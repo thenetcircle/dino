@@ -117,6 +117,7 @@ class OnDisconnectHooks(object):
         def emit_disconnect_event() -> None:
             try:
                 user_id = activity.actor.id
+                sid = activity.actor.content
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 if user_name is None or len(user_name.strip()) == 0:
                     try:
@@ -125,8 +126,11 @@ class OnDisconnectHooks(object):
                         user_name = '<unknown>'
 
                 if user_id is None or user_id == 'None':
-                    logger.warning('blank user_id, ignoring disconnect event')
-                    return
+                    logger.warning('blank user_id on disconnect event, trying sid instead')
+                    if sid is None or sid == 'None' or sid == '':
+                        logger.error('blank sid as well as blank user id, ignoring disconnect event')
+                        return
+                    user_id = utils.get_user_for_sid(sid)
 
                 all_sids = utils.get_sids_for_user_id(user_id)
                 if all_sids is None:

@@ -900,6 +900,10 @@ def get_sids_for_user_id(user_id: str) -> Union[list, None]:
     return environ.env.db.get_sids_for_user(user_id)
 
 
+def get_user_for_sid(sid: str) -> Union[list, None]:
+    return environ.env.db.get_user_for_sid(sid)
+
+
 def create_or_update_user(user_id: str, user_name: str) -> None:
     try:
         return environ.env.db.create_user(user_id, user_name)

@@ -348,13 +348,17 @@ class CacheRedis(object):
     def remove_sid_for_user(self, user_id: str, sid: str) -> None:
         all_sids = self.get_sids_for_user(user_id)
         if all_sids is None:
-            all_sids = list()
+            all_sids = set()
 
         if sid not in all_sids:
             return
 
         key = RedisKeys.sid_for_user_id()
         cache_key = '%s-%s' % (key, user_id)
+
+        sid_key = RedisKeys.user_id_for_sid()
+        for sid in all_sids:
+            self.redis.hdel(sid_key, sid)
 
         all_sids.remove(sid)
         self.cache.set(cache_key, all_sids)
@@ -363,8 +367,13 @@ class CacheRedis(object):
 
     def set_sids_for_user(self, user_id: str, all_sids: list) -> None:
         key = RedisKeys.sid_for_user_id()
+
         cache_key = '%s-%s' % (key, user_id)
-        all_sids = all_sids.copy()
+        all_sids = set(all_sids.copy())
+
+        sid_key = RedisKeys.user_id_for_sid()
+        for sid in all_sids:
+            self.redis.hset(sid_key, sid, user_id)
 
         self.cache.set(cache_key, all_sids)
         all_sids = ','.join(list(set(all_sids)))
@@ -373,12 +382,18 @@ class CacheRedis(object):
     def add_sid_for_user(self, user_id: str, sid: str) -> None:
         all_sids = self.get_sids_for_user(user_id)
         if all_sids is None:
-            all_sids = list()
+            all_sids = set()
+        else:
+            all_sids = set(all_sids)
 
-        all_sids.append(sid)
+        all_sids.add(sid)
 
         key = RedisKeys.sid_for_user_id()
         cache_key = '%s-%s' % (key, user_id)
+
+        sid_key = RedisKeys.user_id_for_sid()
+        for sid in all_sids:
+            self.redis.hset(sid_key, sid, user_id)
 
         self.cache.set(cache_key, all_sids)
         all_sids = ','.join(list(set(all_sids)))

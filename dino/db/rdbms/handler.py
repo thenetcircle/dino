@@ -2662,6 +2662,24 @@ class DatabaseRdbms(object):
         self.env.cache.add_sid_for_user(user_id, sid)
         update_sid()
 
+    def get_user_for_sid(self, sid: str) -> str:
+        @with_session
+        def _get_user_for_sid():
+            pass
+
+        if sid is None or len(sid.strip()) == 0:
+            raise EmptyUserIdException(sid)
+
+        user_id = self.env.cache.get_user_for_sid(sid)
+        if user_id is not None and len(sid) > 0:
+            return user_id
+
+        user_id = _get_user_for_sid(sid)
+        if user_id is not None and len(user_id) > 0:
+            self.env.cache.add_sid_for_user(user_id, sid)
+
+        return user_id
+
     def get_sids_for_user(self, user_id: str) -> list:
         @with_session
         def get_sids(session=None) -> Union[list, None]:
@@ -2678,7 +2696,7 @@ class DatabaseRdbms(object):
 
         all_sids = self.env.cache.get_sids_for_user(user_id)
         if all_sids is None:
-            return list()
+            all_sids = list()
 
         all_sids = [sid for sid in all_sids if sid is not None and len(sid) > 0]
         if len(all_sids) > 0:
