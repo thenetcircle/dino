@@ -423,6 +423,10 @@ class QueueHandler(object):
                 banner_id, banner_name, banned_id, banned_name, target_id, target_name, reason)
 
         try:
+            ban_activity = self.get_ban_activity(activity, target_type)
+            self.env.out_of_scope_emit(
+                    'gn_banned', ban_activity, json=True, namespace=namespace, room=banned_id)
+
             if target_id is None or target_id == '':
                 rooms_for_user = self.env.db.rooms_for_user(banned_id)
                 logger.info('user %s is in these rooms (will ban from all): %s' % (banned_id, str(rooms_for_user)))
@@ -436,10 +440,6 @@ class QueueHandler(object):
                 self.ban_channel(activity_json, activity, rooms_in_channel, target_id, banned_id, banned_sids, namespace)
             else:
                 self.ban_room(activity_json, activity, target_id, banned_id, banned_sids, namespace)
-
-            ban_activity = self.get_ban_activity(activity, target_type)
-            self.env.out_of_scope_emit(
-                    'gn_banned', ban_activity, json=True, namespace=namespace, room=banned_id)
 
         except KeyError as ke:
             logger.error('could not ban: %s' % str(ke))
