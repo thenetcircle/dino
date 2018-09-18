@@ -380,7 +380,8 @@ class QueueHandler(object):
 
     def handle_ban(self, activity: Activity):
         banner_id = activity.actor.id
-        if banner_id == '0':
+        if banner_id == '0' or banner_id is None:
+            banner_id = '0'
             banner_name = 'admin'
         else:
             try:
