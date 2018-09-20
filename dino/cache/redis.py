@@ -399,6 +399,13 @@ class CacheRedis(object):
         all_sids = ','.join(list(set(all_sids)))
         self.redis.hset(key, user_id, all_sids)
 
+    def get_user_for_sid(self, sid: str):
+        sid_key = RedisKeys.user_id_for_sid()
+        user_id = self.redis.hget(sid_key, sid)
+        if user_id is not None:
+            user_id = str(user_id, 'utf-8')
+        return user_id
+
     def get_sids_for_user(self, user_id: str) -> Union[None, list]:
         key = RedisKeys.sid_for_user_id()
         cache_key = '%s-%s' % (key, user_id)

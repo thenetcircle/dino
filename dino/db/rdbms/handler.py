@@ -2664,8 +2664,11 @@ class DatabaseRdbms(object):
 
     def get_user_for_sid(self, sid: str) -> str:
         @with_session
-        def _get_user_for_sid():
-            pass
+        def _get_user_for_sid(session=None):
+            sid_entity = session.query(Sids).filter(Sids.sid == sid).first()
+            if sid_entity is None:
+                return None
+            return sid_entity.user_id
 
         if sid is None or len(sid.strip()) == 0:
             raise EmptyUserIdException(sid)
@@ -2674,7 +2677,7 @@ class DatabaseRdbms(object):
         if user_id is not None and len(sid) > 0:
             return user_id
 
-        user_id = _get_user_for_sid(sid)
+        user_id = _get_user_for_sid()
         if user_id is not None and len(user_id) > 0:
             self.env.cache.add_sid_for_user(user_id, sid)
 

@@ -19,6 +19,14 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ICache(Interface):
+    def get_user_for_sid(self, sid: str):
+        """
+        get the user id for a sig
+
+        :param sid: the s session id
+        :return: the user id or none
+        """
+
     def set_is_room_ephemeral(self, room_id: str, is_ephemeral: bool) -> None:
         """
         set whether aroom is ephemeral (temporary) or not
