@@ -63,8 +63,8 @@ class SendResource(BaseResource):
         if not utils.is_base64(msg_content):
             raise RuntimeError('content in json message must be base64')
 
-        user_id = json.get('user_id')
-        user_name = utils.b64d(json.get('user_name'))
+        user_id = json.get('user_id', 0)
+        user_name = utils.b64d(json.get('user_name', 'admin'))
         object_type = json.get('object_type')
         target_id = json.get('target_id')
         target_name = json.get('target_name')
@@ -72,7 +72,7 @@ class SendResource(BaseResource):
         data = utils.activity_for_message(user_id, user_name)
         data['target'] = {
             'objectType': object_type,
-            'id': target_id,
+            'id': str(target_id),
             'displayName': target_name
         }
         data['object'] = {
