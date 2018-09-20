@@ -132,6 +132,13 @@ class QueueHandler(object):
             self.recently_handled_events_set.remove(self.recently_handled_events[0])
             del self.recently_handled_events[0]
 
+    def handle_send_event(self, data: dict, activity: Activity):
+        if not self.user_is_on_this_node(activity):
+            return
+
+        target_id = activity.target.id
+        environ.env.out_of_scope_emit('message', data, room=target_id, json=True, namespace='/ws', broadcast=True)
+
     def handle_local_node_events(self, data: dict, activity: Activity):
         # do this first, since ban might occur even if user is not connected
         if activity.verb == 'ban':
@@ -190,6 +197,8 @@ class QueueHandler(object):
 
         if activity.verb in ['ban', 'kick', 'remove']:
             self.handle_local_node_events(data, activity)
+        elif activity.verb == 'send':
+            self.handle_send_event(data, activity)
         else:
             # otherwise it's external events for possible analysis
             environ.env.publish(data, external=True)

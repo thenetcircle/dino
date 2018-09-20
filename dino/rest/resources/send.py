@@ -79,4 +79,4 @@ class SendResource(BaseResource):
             'content': msg_content
         }
 
-        environ.env.out_of_scope_emit('message', data, room=target_id, json=True, namespace='/ws', broadcast=True)
+        environ.env.internal_publisher.publish(data)
