@@ -63,7 +63,7 @@ class SendResource(BaseResource):
         if not utils.is_base64(msg_content):
             raise RuntimeError('content in json message must be base64')
 
-        user_id = json.get('user_id', 0)
+        user_id = json.get('user_id', '0')
         user_name = utils.b64d(json.get('user_name', 'admin'))
         object_type = json.get('object_type')
         target_id = json.get('target_id')
