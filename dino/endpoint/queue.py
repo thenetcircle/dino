@@ -45,7 +45,7 @@ class QueueHandler(object):
 
         room_id = activity.target.id
         namespace = activity.target.url or '/ws'
-        user_id = activity.object.id
+        user_id = activity.object.id or activity.target.id
         user_sids = utils.get_sids_for_user_id(user_id)
         users = list()
 
