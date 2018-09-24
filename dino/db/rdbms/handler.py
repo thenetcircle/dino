@@ -820,7 +820,11 @@ class DatabaseRdbms(object):
             return
 
         for room in rooms:
-            room.users.remove(user)
+            try:
+                room.users.remove(user)
+            except ValueError:
+                # happens if the user already left a room
+                pass
 
         try:
             session.commit()
@@ -2766,7 +2770,11 @@ class DatabaseRdbms(object):
             ban.timestamp = datetime.fromtimestamp(int(ban_timestamp))
             ban.duration = ban_duration
 
-            _remove_user_from_room(session)
+            try:
+                _remove_user_from_room(session)
+            except ValueError:
+                # happens if the user already left the room
+                pass
 
             session.add(ban)
             session.commit()
@@ -2781,7 +2789,11 @@ class DatabaseRdbms(object):
             user = session.query(Users).filter(Users.uuid == user_id).first()
 
             if room is not None:
-                room.users.remove(user)
+                try:
+                    room.users.remove(user)
+                except ValueError:
+                    # happens if the user already left a room
+                    pass
                 session.add(room)
 
         try:
@@ -2847,7 +2859,11 @@ class DatabaseRdbms(object):
                         if room.users is not None and len(room.users) > 0:
                             for user in room.users:
                                 if user.uuid == user_id:
-                                    room.users.remove(user)
+                                    try:
+                                        room.users.remove(user)
+                                    except ValueError:
+                                        # happens if the user already left a room
+                                        pass
                         session.add(room)
 
         if not self.channel_exists(channel_id):
