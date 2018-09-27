@@ -13,9 +13,6 @@ class KafkaPublisher(BasePublisher):
     def __init__(self, env, is_external_queue: bool):
         super().__init__(env, is_external_queue, queue_type='kafka', logger=logger)
 
-        # todo: ask kafka client how many partitions we have available
-        self.n_partitions = 3
-
         eq_host = env.config.get(ConfigKeys.HOST, domain=self.domain_key, default=None)
         eq_queue = env.config.get(ConfigKeys.QUEUE, domain=self.domain_key, default=None)
 
@@ -41,23 +38,16 @@ class KafkaPublisher(BasePublisher):
 
     def try_publish(self, message):
         message = self.env.enrichment_manager.handle(message)
-        partition = 0
+        topic_key = None
 
         # try to get some consistency
         try:
             target = message.get('target', dict())
-            partition_id = target.get('id', None)
+            topic_key = target.get('id', None)
 
-            if partition_id is None:
+            if topic_key is None:
                 actor = message.get('actor', dict())
-                partition_id = actor.get('id', None)
-
-            # system/admin events don't have an actor id and not necessarily a target id either
-            if partition_id is None:
-                partition = random.choice(range(self.n_partitions))
-            else:
-                partition_id = int(float(partition_id))
-                partition = partition_id % self.n_partitions
+                topic_key = actor.get('id', None)
 
         except Exception as partition_e:
             logger.exception(traceback.format_exc())
@@ -65,4 +55,4 @@ class KafkaPublisher(BasePublisher):
 
         # for kafka, the queue_connection is the KafkaProducer and queue is the topic name
         self.queue_connection.send(
-            topic=self.queue, value=message, partition=partition)
+            topic=self.queue, value=message, key=topic_key)
