@@ -56,7 +56,7 @@ class QueueHandler(object):
                     if user_sid in self.socketio.server.manager.rooms[namespace]:
                         logger.debug('found user %s on this node' % user_id)
                         return True
-                logger.info('no user %s for namespace [%s] (or user not on this node)' % (room_id, namespace))
+                logger.info('no user %s for namespace [%s] (or user not on this node)' % (user_id, namespace))
                 return False
 
             else:
