@@ -139,6 +139,17 @@ class QueueHandler(object):
         target_id = activity.target.id
         environ.env.out_of_scope_emit('message', data, room=target_id, json=True, namespace='/ws', broadcast=True)
 
+    def send_event_to_other_node(self, data: dict) -> None:
+        logger.info('user is not on this node, will publish on queue for other nodes to try')
+        self.update_recently_delegated_events(data['id'])
+
+        if 'revision' not in data:
+            data['revision'] = 0
+        else:
+            data['revision'] += 1
+
+        environ.env.publish(data)
+
     def handle_local_node_events(self, data: dict, activity: Activity):
         # do this first, since ban might occur even if user is not connected
         if activity.verb == 'ban':
@@ -146,9 +157,7 @@ class QueueHandler(object):
 
             # delegate so we don't end up re-reading this event before adding to ignore list
             if not self.user_is_on_this_node(activity):
-                logger.info('user is not on this node, will publish on queue for other nodes to try')
-                self.update_recently_delegated_events(activity.id)
-                environ.env.publish(data)
+                self.send_event_to_other_node(data)
                 user_is_on_node = False
 
             self.create_ban_even_if_not_on_this_node(activity)
@@ -190,6 +199,13 @@ class QueueHandler(object):
             return
         if activity.id in self.recently_handled_events_set:
             logger.info('ignoring event with id %s since we already handled it on this node' % activity.id)
+            return
+        if 'revision' in data:
+            if data['revision'] > 3:
+                logger.warning('dropping event {} ({}) since it has revision {}; being sent around too much'.format(
+                    activity.verb, activity.id, data['revision']
+                ))
+                logger.warning('event was : {}'.format(str(data)))
             return
 
         logger.debug('got internally published event with verb %s id %s' % (activity.verb, activity.id))
