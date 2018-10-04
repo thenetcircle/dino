@@ -75,6 +75,7 @@ fi
 
 DINO_ENVIRONMENT=$1 DINO_DEBUG=0 gunicorn \
     --worker-class eventlet \
+    --timeout 60 \
     --workers 1 \
     --threads 1 \
     --keep-alive 5 \
