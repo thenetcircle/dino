@@ -397,11 +397,10 @@ def activity_for_login(
             'id': user_id,
             'displayName': b64e(user_name),
             'content': sid,
-            'attachments': get_user_info_attachments_for(user_id, encode_attachments)
+            'attachments': get_user_info_attachments_for(user_id, encode_attachments, include_user_agent=True)
         },
         'verb': 'login'
     })
-
 
     if include_unread_history:
         messages = get_unacked_messages(user_id)
@@ -424,7 +423,7 @@ def activity_for_connect(user_id: str, user_name: str) -> dict:
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
-            'attachments': get_user_info_attachments_for(user_id)
+            'attachments': get_user_info_attachments_for(user_id, include_user_agent=True)
         },
         'verb': 'connect'
     })
@@ -838,7 +837,7 @@ def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_na
     return act
 
 
-def get_user_info_attachments_for(user_id: str, encode_attachments: bool=True) -> list:
+def get_user_info_attachments_for(user_id: str, encode_attachments: bool=True, include_user_agent: bool=False) -> list:
     attachments = list()
     for info_key, info_val in environ.env.auth.get_user_info(user_id).items():
         attachments.append({
@@ -846,12 +845,13 @@ def get_user_info_attachments_for(user_id: str, encode_attachments: bool=True) -
             'content': b64e(info_val) if encode_attachments else info_val
         })
 
-    for key in SessionKeys.user_agent_keys.value:
-        agent_value = environ.env.session.get(key)
-        attachments.append({
-            'objectType': key,
-            'content': b64e(agent_value) if encode_attachments else agent_value
-        })
+    if include_user_agent:
+        for key in SessionKeys.user_agent_keys.value:
+            agent_value = environ.env.session.get(key)
+            attachments.append({
+                'objectType': key,
+                'content': b64e(agent_value) if encode_attachments else agent_value
+            })
 
     return attachments
 
