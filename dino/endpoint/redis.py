@@ -1,5 +1,5 @@
 from kombu import pools
-pools.set_limit(200)  # default is 200
+pools.set_limit(1024)  # default is 200
 
 from dino.config import ConfigKeys
 from dino.endpoint.base import BasePublisher
