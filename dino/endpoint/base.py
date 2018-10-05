@@ -96,9 +96,13 @@ class BasePublisher(ABC):
         if failed:
             raise PublishException()
         elif current_try > 0:
-            self.logger.info('published external event on attempt %s/%s' % (str(current_try+1), str(n_tries)))
+            self.logger.info('published {} event on attempt {}/{}'.format(
+                self.message_type, str(current_try+1), str(n_tries))
+            )
         else:
-            self.logger.debug('published external event with verb %s id %s' % (message['verb'], message['id']))
+            self.logger.debug('published {} event with verb {} id {}'.format(
+                self.message_type, message['verb'], message['id'])
+            )
 
     def get_port(self):
         args = sys.argv
