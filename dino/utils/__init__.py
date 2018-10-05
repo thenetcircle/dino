@@ -35,7 +35,7 @@ from datetime import datetime
 from base64 import b64encode
 from base64 import b64decode
 
-from dino.exceptions import NoOriginRoomException
+from dino.exceptions import NoOriginRoomException, RoomExistsException, ChannelExistsException
 from dino.exceptions import NoTargetRoomException
 from dino.exceptions import UserExistsException
 from dino.exceptions import NoSuchUserException
@@ -906,9 +906,38 @@ def get_user_for_sid(sid: str) -> Union[str, None]:
 
 def create_or_update_user(user_id: str, user_name: str) -> None:
     try:
-        return environ.env.db.create_user(user_id, user_name)
+        environ.env.db.create_user(user_id, user_name)
     except UserExistsException:
         pass
+
+    if 'wio' in environ.env.node:
+        channel_id = str(int(user_id) % 1000)
+
+        try:
+            environ.env.db.create_channel(channel_id, channel_id, '0')
+        except ChannelExistsException:
+            pass
+
+        try:
+            environ.env.db.create_room(
+                room_name=user_id, room_id=user_id, user_id=user_id,
+                channel_id=channel_id, user_name=user_name,
+                ephemeral=True
+            )
+        except RoomExistsException:
+            pass
+
+        try:
+            sid = str(environ.env.request.sid)
+            environ.env.db.create_room(
+                room_name=sid, room_id=sid, user_id=user_id,
+                channel_id=channel_id, user_name=user_name,
+                ephemeral=True
+            )
+            environ.env.db.create_room(sid, sid, ephemeral=True)
+        except RoomExistsException:
+            pass
+
     environ.env.db.set_user_name(user_id, user_name)
 
 
