@@ -12,7 +12,7 @@
 
 from dino import environ
 from dino import utils
-from dino.config import SessionKeys
+from dino.config import SessionKeys, UserKeys
 
 import eventlet
 
@@ -31,6 +31,18 @@ class OnLeaveHooks(object):
         room_name = utils.get_room_name(room_id)
 
         utils.remove_user_from_room(user_id, user_name, room_id)
+
+        # if invisible, only send 'invisible' leave to admins in the room
+        if utils.get_user_status(user_id) == UserKeys.STATUS_INVISIBLE:
+            admins_in_room = environ.env.db.get_admins_in_room(room_id, user_id)
+            if admins_in_room is None or len(admins_in_room) == 0:
+                return
+
+            activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
+            for admin_id in admins_in_room:
+                environ.env.out_of_scope_emit(
+                    'gn_user_left', activity_left, room=admin_id, broadcast=False, namespace='/ws')
+            return
 
         activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
         environ.env.emit(
