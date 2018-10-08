@@ -130,11 +130,11 @@ def activity_for_leave(user_id: str, user_name: str, room_id: str, room_name: st
     return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
-            'displayName': b64e(user_name)
+            'displayName': user_name if is_base64(user_name) else b64e(user_name)
         },
         'target': {
             'id': room_id,
-            'displayName': b64e(room_name)
+            'displayName': room_name if is_base64(room_name) else b64e(room_name)
         },
         'verb': 'leave'
     })
