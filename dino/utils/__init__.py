@@ -530,7 +530,13 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
 
 def check_if_should_remove_room(data, activity):
     room_id = activity.target.id
-    room_name = get_room_name(room_id)
+
+    # could be the session room, might not have a name
+    try:
+        room_name = get_room_name(room_id)
+    except NoSuchRoomException:
+        # session rooms are not persisted
+        return
 
     logger.info('checking whether to remove room "%s" (%s) or not' % (room_name, room_id))
 
@@ -548,8 +554,14 @@ def check_if_remove_room_empty(activity: Activity):
     user_id = activity.actor.id
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     room_id = activity.target.id
-    room_name = get_room_name(room_id)
-    channel_id = get_channel_for_room(room_id)
+
+    # could be the session room, might not have a name
+    try:
+        room_name = get_room_name(room_id)
+        channel_id = get_channel_for_room(room_id)
+    except NoSuchRoomException:
+        # session rooms are not persisted
+        return
 
     if not environ.env.db.is_room_ephemeral(room_id):
         logger.info('room %s (%s) is not ephemeral, not considering removal' % (room_name, room_id))
