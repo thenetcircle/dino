@@ -910,7 +910,8 @@ def create_or_update_user(user_id: str, user_name: str) -> None:
     except UserExistsException:
         pass
 
-    if 'wio' in environ.env.node:
+    # is none when running tests
+    if environ.env.node is not None and 'wio' in environ.env.node:
         channel_id = str(int(user_id) % 1000)
 
         try:
