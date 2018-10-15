@@ -59,14 +59,14 @@ class OAuthService(OAuthBase):
         return self.root_url + url
 
     def authorized(self):
-        resp = self.auth.handle_oauth2_response()
+        resp = self.auth.authorized_response()
         if resp is None or resp.get('access_token') is None:
             return 'Access denied: reason=%s error=%s resp=%s' % (
                 request.args['error'],
                 request.args['error_description'],
                 resp
             )
-        response = redirect(self.internal_url_for('/index'))
+        response = redirect(self.internal_url_for('/'))
         response.set_cookie('token', resp['access_token'])
         return response
 
@@ -74,6 +74,7 @@ class OAuthService(OAuthBase):
         parsed = set()
         for service in services:
             parsed.add(service['name'].split(',')[0].split('=')[1])
+            parsed = parsed.union(self.parse_services(service['children']))
         return parsed
 
     def check(self, token: str) -> bool:
@@ -86,7 +87,7 @@ class OAuthService(OAuthBase):
             content = response.json()
             services = self.parse_services(content['scopes'])
             if self.service_id not in services:
-                return False
+                return redirect('/unauthorized')
         except Exception as e:
             self.logger.error('could not parse services: {}'.format(str(e)))
             self.logger.exception(traceback.format_exc())
