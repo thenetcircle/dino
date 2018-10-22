@@ -372,7 +372,7 @@ class CacheRedis(object):
             try:
                 _try_to_remove_sid(sid)
             except RuntimeError as e:
-                logger.error('could not remove sid {} for user {}, tried 2 times'.format(sid, user_id))
+                logger.error('could not remove sid {} for user {}, tried 2 times: {}'.format(sid, user_id, str(e)))
                 logger.exception(traceback.format_exc())
 
     def set_sids_for_user(self, user_id: str, all_sids: list) -> None:
