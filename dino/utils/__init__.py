@@ -947,7 +947,6 @@ def create_or_update_user(user_id: str, user_name: str) -> None:
                 channel_id=channel_id, user_name=user_name,
                 ephemeral=True
             )
-            environ.env.db.create_room(sid, sid, ephemeral=True)
         except RoomExistsException:
             pass
 
