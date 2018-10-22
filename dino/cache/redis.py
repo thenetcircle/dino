@@ -346,24 +346,34 @@ class CacheRedis(object):
         self.redis.hdel(key, user_id)
 
     def remove_sid_for_user(self, user_id: str, sid: str) -> None:
-        all_sids = self.get_sids_for_user(user_id)
-        if all_sids is None:
-            all_sids = set()
+        def _try_to_remove_sid(sid_to_remove):
+            all_sids = self.get_sids_for_user(user_id)
+            if all_sids is None:
+                all_sids = set()
 
-        if sid not in all_sids:
-            return
+            if sid_to_remove not in all_sids:
+                return
 
-        key = RedisKeys.sid_for_user_id()
-        cache_key = '%s-%s' % (key, user_id)
+            key = RedisKeys.sid_for_user_id()
+            cache_key = '%s-%s' % (key, user_id)
 
-        sid_key = RedisKeys.user_id_for_sid()
-        for sid in all_sids:
-            self.redis.hdel(sid_key, sid)
+            sid_key = RedisKeys.user_id_for_sid()
+            for one_sid in all_sids:
+                self.redis.hdel(sid_key, one_sid)
 
-        all_sids.remove(sid)
-        self.cache.set(cache_key, all_sids)
-        all_sids = ','.join(list(set(all_sids)))
-        self.redis.hset(key, user_id, all_sids)
+            all_sids.remove(sid_to_remove)
+            self.cache.set(cache_key, all_sids)
+            all_sids = ','.join(list(set(all_sids)))
+            self.redis.hset(key, user_id, all_sids)
+
+        try:
+            _try_to_remove_sid(sid)
+        except RuntimeError:
+            try:
+                _try_to_remove_sid(sid)
+            except RuntimeError as e:
+                logger.error('could not remove sid {} for user {}, tried 2 times'.format(sid, user_id))
+                logger.exception(traceback.format_exc())
 
     def set_sids_for_user(self, user_id: str, all_sids: list) -> None:
         key = RedisKeys.sid_for_user_id()
@@ -418,7 +428,7 @@ class CacheRedis(object):
             return None
         all_sids = list(set(str(all_sids, 'utf-8').split(',')))
         self.cache.set(cache_key, all_sids)
-        return all_sids
+        return all_sids.copy()
 
     def get_users_in_room(self, room_id: str, is_super_user: bool) -> dict:
         if is_super_user:
