@@ -49,6 +49,9 @@ class KafkaPublisher(BasePublisher):
                 actor = message.get('actor', dict())
                 topic_key = actor.get('id', None)
 
+            # kafka publisher can't handle string keys
+            topic_key = bytes(topic_key)
+
         except Exception as partition_e:
             logger.exception(traceback.format_exc())
             environ.env.capture_exception(partition_e)
