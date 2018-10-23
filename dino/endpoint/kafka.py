@@ -50,7 +50,7 @@ class KafkaPublisher(BasePublisher):
                 topic_key = actor.get('id', None)
 
             # kafka publisher can't handle string keys
-            topic_key = bytes(topic_key, encoding='utf-8')
+            topic_key = bytes(str(topic_key), encoding='utf-8')
 
         except Exception as partition_e:
             logger.exception(traceback.format_exc())
