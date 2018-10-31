@@ -1050,6 +1050,7 @@ def initialize_env(dino_env):
     if 'wio' in dino_env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
         init_enrichment_service(dino_env)
         init_fake_storage_engine(dino_env)
+        delete_ephemeral_rooms(dino_env)
     else:
         init_blacklist_service(dino_env)
         init_admin_and_admin_room(dino_env)
@@ -1057,7 +1058,6 @@ def initialize_env(dino_env):
         init_storage_engine(dino_env)
         init_spam_service(dino_env)
         init_service_config(dino_env)
-        delete_ephemeral_rooms(dino_env)
 
 
 _config_paths = None

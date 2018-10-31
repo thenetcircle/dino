@@ -1009,6 +1009,12 @@ class DatabaseRdbms(object):
             raise ChannelExistsException(channel_id)
 
         _create_channel()
+
+        # is none when running tests
+        if self.env.node is None or 'wio' in self.env.node:
+            # no need to rest sorting, not shown in wio
+            return
+
         self.env.cache.reset_channels_with_sort()
 
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True, sort_order: int=999) -> None:
