@@ -68,6 +68,7 @@ class BaseDatabaseTest(BaseTest):
             self.config = ConfigDict()
             self.cache = CacheRedis(self, 'mock')
             self.session = dict()
+            self.node = 'test'
             self.request = BaseDatabaseTest.FakeRequest()
 
     MESSAGE_ID = str(uuid())

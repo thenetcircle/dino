@@ -21,6 +21,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 class FakeEnv(object):
     def __init__(self):
+        self.node = 'test'
         self.config = ConfigDict({
             ConfigKeys.STATS_SERVICE: {
                 ConfigKeys.HOST: 'mock'

@@ -49,10 +49,22 @@ class OnLoginHooks(object):
             environ.env.session['image_url'] = activity.actor.image.url
             environ.env.session[SessionKeys.image.value] = 'y'
 
+        sid = environ.env.request.sid
         utils.create_or_update_user(user_id, user_name)
-        utils.add_sid_for_user_id(user_id, environ.env.request.sid)
-        environ.env.join_room(user_id)
-        environ.env.join_room(environ.env.request.sid)
+        utils.add_sid_for_user_id(user_id, sid)
+
+        utils.join_the_room(
+            user_id=user_id,
+            user_name=user_name,
+            room_id=user_id,
+            room_name=user_id
+        )
+        utils.join_the_room(
+            user_id=user_id,
+            user_name=user_name,
+            room_id=sid,
+            room_name=sid
+        )
 
     @staticmethod
     def publish_activity(arg: tuple) -> None:

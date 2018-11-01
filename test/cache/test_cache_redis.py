@@ -30,6 +30,7 @@ class CacheRedisTest(TestCase):
             self.config = ConfigDict()
             self.config.set(ConfigKeys.TESTING, True)
             self.cache = CacheRedis(self, 'mock')
+            self.node = 'test'
             self.session = dict()
 
     USER_ID = '8888'
