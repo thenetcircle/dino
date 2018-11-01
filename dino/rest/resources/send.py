@@ -64,7 +64,7 @@ class SendResource(BaseResource):
             raise RuntimeError('content in json message must be base64')
 
         user_id = str(json.get('user_id', 0))
-        user_name = utils.b64d(json.get('user_name', 'admin'))
+        user_name = utils.b64d(json.get('user_name', utils.b64e('admin')))
         object_type = json.get('object_type')
         target_id = str(json.get('target_id'))
         namespace = json.get('namespace', '/ws')
