@@ -63,7 +63,8 @@ class OnLoginHooks(object):
             user_id=user_id,
             user_name=user_name,
             room_id=sid,
-            room_name=sid
+            room_name=sid,
+            is_sid_room=True
         )
 
     @staticmethod
