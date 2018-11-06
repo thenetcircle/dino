@@ -134,6 +134,9 @@ class OnDisconnectHooks(object):
                 if all_sids is None:
                     all_sids = list()
 
+                # race condition might lead to db cache saying it's still there or similar
+                make_sure_current_sid_removed(all_sids, user_id)
+
                 logger.debug(
                     'sid %s disconnected, all_sids: [%s] for user %s (%s)' % (
                         environ.env.request.sid, ','.join(all_sids), user_id, user_name))
@@ -151,6 +154,17 @@ class OnDisconnectHooks(object):
                 logger.error('could not emit disconnect event: %s' % str(e))
                 logger.debug('request for failed emit_disconnect_event(): %s' % str(data))
                 logger.exception(traceback.format_exc())
+
+        def make_sure_current_sid_removed(all_sids, user_id):
+            if environ.env.request.sid in all_sids:
+                try:
+                    current_sid = environ.env.request.sid
+                    all_sids.remove(current_sid)
+                    environ.env.db.remove_sid_for_user(user_id, current_sid)
+                except Exception as e:
+                    logger.warning('could not remove current sid: {}'.format(str(e)))
+                    logger.exception(traceback.format_exc())
+                    environ.env.capture_exception(sys.exc_info())
 
         data, activity = arg
 
