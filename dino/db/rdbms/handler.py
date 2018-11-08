@@ -2229,7 +2229,12 @@ class DatabaseRdbms(object):
         value = self.env.cache.get_room_name(room_id)
         if value is not None:
             return value
-        value = _get_room_name()
+
+        try:
+            value = _get_room_name()
+        except NoSuchRoomException as e:
+            raise e
+
         self.env.cache.set_room_name(room_id, value)
         return value
 
