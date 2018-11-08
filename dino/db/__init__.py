@@ -28,6 +28,14 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def rooms_for_channel_without_info(self, channel_id: str) -> dict:
+        """
+        get rooms for channel, similar to #rooms_for_channel but without user information
+
+        :param channel_id: channel uuid
+        :return: dict in the form {room_uuid: {'name': room_name, 'ephemeral': is_ephemeral}}
+        """
+
     def get_user_for_sid(self, sid: str) -> str:
         """
         get the user id associated with this session id

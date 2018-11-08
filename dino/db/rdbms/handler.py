@@ -612,6 +612,30 @@ class DatabaseRdbms(object):
         self.env.cache.set_type_of_rooms_in_channel(channel_id, object_type)
         return object_type
 
+    def rooms_for_channel_without_info(self, channel_id: str) -> dict:
+        @with_session
+        @timeit(logger, 'on_rooms_for_channel_user_ids')
+        def _rooms_for_channel(session=None):
+            all_rooms = session.query(Rooms)\
+                .join(Rooms.channel)\
+                .filter(Channels.uuid == channel_id)\
+                .all()
+
+            return {
+                room.uuid: {
+                    'ephemeral': room.ephemeral,
+                    'name': room.name
+                } for room in all_rooms
+            }
+
+        try:
+            return _rooms_for_channel()
+        except Exception as e:
+            logger.error('could not get rooms: {}'.format(str(e)))
+            logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
+        return dict()
+
     def rooms_for_channel(self, channel_id) -> dict:
         @timeit(logger, 'on_rooms_for_channel')
         def _rooms():
@@ -1017,7 +1041,10 @@ class DatabaseRdbms(object):
 
         self.env.cache.reset_channels_with_sort()
 
-    def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True, sort_order: int=999) -> None:
+    def create_room(
+            self, room_name: str, room_id: str, channel_id: str, user_id: str,
+            user_name: str, ephemeral: bool=True, sort_order: int=999, is_sid_room=False
+    ) -> None:
         @with_session
         def _create_room(session=None):
             channel = session.query(Channels).filter(Channels.uuid == channel_id).first()
@@ -1057,8 +1084,10 @@ class DatabaseRdbms(object):
         if self.room_name_exists(channel_id, room_name):
             raise RoomNameExistsForChannelException(channel_id, room_name)
         _create_room()
-        self.env.cache.reset_rooms_for_channel(channel_id)
-        self.set_owner(room_id, user_id)
+
+        if not is_sid_room:
+            self.env.cache.reset_rooms_for_channel(channel_id)
+            self.set_owner(room_id, user_id)
 
     def update_channel_sort_order(self, channel_uuid: str, sort_order: int) -> None:
         @with_session

@@ -455,6 +455,15 @@ class DatabaseRedis(object):
         # not supported in redis db
         pass
 
+    def rooms_for_channel_without_info(self, channel_id: str) -> dict:
+        rooms = rooms_for_channel(channel_id)
+        return {
+            room_id: {
+                'name': room['name'],
+                'ephemeral': room['ephemeral']
+            } for room_id, room in rooms.items()
+        }
+
     def rooms_for_channel(self, channel_id) -> dict:
         all_rooms = self.redis.hgetall(RedisKeys.rooms(channel_id))
         clean = dict()
