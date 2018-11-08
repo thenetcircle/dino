@@ -456,7 +456,7 @@ class DatabaseRedis(object):
         pass
 
     def rooms_for_channel_without_info(self, channel_id: str) -> dict:
-        rooms = rooms_for_channel(channel_id)
+        rooms = self.rooms_for_channel(channel_id)
         return {
             room_id: {
                 'name': room['name'],
