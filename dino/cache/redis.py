@@ -341,8 +341,6 @@ class CacheRedis(object):
 
     def reset_sids_for_user(self, user_id: str) -> None:
         key = RedisKeys.sid_for_user_id()
-        cache_key = '%s-%s' % (key, user_id)
-        self.cache.delete(cache_key)
         self.redis.hdel(key, user_id)
 
     def remove_sid_for_user(self, user_id: str, sid: str) -> None:
@@ -355,14 +353,12 @@ class CacheRedis(object):
                 return
 
             key = RedisKeys.sid_for_user_id()
-            cache_key = '%s-%s' % (key, user_id)
 
             sid_key = RedisKeys.user_id_for_sid()
             for one_sid in all_sids:
                 self.redis.hdel(sid_key, one_sid)
 
             all_sids.remove(sid_to_remove)
-            self.cache.set(cache_key, all_sids)
             all_sids = ','.join(list(set(all_sids)))
             self.redis.hset(key, user_id, all_sids)
 
@@ -377,15 +373,12 @@ class CacheRedis(object):
 
     def set_sids_for_user(self, user_id: str, all_sids: list) -> None:
         key = RedisKeys.sid_for_user_id()
-
-        cache_key = '%s-%s' % (key, user_id)
         all_sids = set(all_sids.copy())
 
         sid_key = RedisKeys.user_id_for_sid()
         for sid in all_sids:
             self.redis.hset(sid_key, sid, user_id)
 
-        self.cache.set(cache_key, all_sids)
         all_sids = ','.join(list(set(all_sids)))
         self.redis.hset(key, user_id, all_sids)
 
@@ -399,13 +392,10 @@ class CacheRedis(object):
         all_sids.add(sid)
 
         key = RedisKeys.sid_for_user_id()
-        cache_key = '%s-%s' % (key, user_id)
-
         sid_key = RedisKeys.user_id_for_sid()
         for sid in all_sids:
             self.redis.hset(sid_key, sid, user_id)
 
-        self.cache.set(cache_key, all_sids)
         all_sids = ','.join(list(set(all_sids)))
         self.redis.hset(key, user_id, all_sids)
 
@@ -418,16 +408,11 @@ class CacheRedis(object):
 
     def get_sids_for_user(self, user_id: str) -> Union[None, list]:
         key = RedisKeys.sid_for_user_id()
-        cache_key = '%s-%s' % (key, user_id)
-        all_sids = self.cache.get(cache_key)
-        if all_sids is not None:
-            return all_sids
-
         all_sids = self.redis.hget(key, user_id)
         if all_sids is None:
             return None
+
         all_sids = list(set(str(all_sids, 'utf-8').split(',')))
-        self.cache.set(cache_key, all_sids)
         return all_sids.copy()
 
     def get_users_in_room(self, room_id: str, is_super_user: bool) -> dict:
