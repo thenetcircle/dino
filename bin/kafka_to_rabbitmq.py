@@ -139,7 +139,7 @@ class KafkaReader(object):
         bootstrap_servers = kafka_conf.get(ConfigKeys.HOST)
         logger.info('bootstrapping from servers: %s' % (str(bootstrap_servers)))
 
-        topic_name = self.conf.event
+        topic_name = self.conf.get(ConfigKeys.QUEUE)
         logger.info('consuming from topic {}'.format(topic_name))
 
         group_id = 'dino-kafka-to-rabbitmq'
