@@ -37,7 +37,9 @@ class KafkaPublisher(BasePublisher):
         logger.info('setting up pubsub for type "{}: and host(s) "{}"'.format(self.queue_type, ','.join(eq_host)))
 
     def try_publish(self, message):
-        message = self.env.enrichment_manager.handle(message)
+        if self.env.enrichment_manager is not None:
+            message = self.env.enrichment_manager.handle(message)
+
         topic_key = None
 
         # try to get some consistency
