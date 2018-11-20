@@ -39,8 +39,10 @@ class StorageManager(BaseManager):
         from_time, to_time = self.format_time_range(from_time, to_time)
 
         if from_time is not None and to_time is not None:
+            from_time_int = int(from_time.strftime('%s'))
+            to_time_int = int(to_time.strftime('%s'))
             return self.env.storage.get_undeleted_messages_for_user_and_time(
-                user_id, from_time, to_time)
+                user_id, from_time_int, to_time_int)
 
         msg_ids = self.env.storage.get_undeleted_message_ids_for_user(user_id)
         return self.env.storage.get_messages(msg_ids)
