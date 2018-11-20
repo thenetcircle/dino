@@ -7,6 +7,9 @@ eventlet.monkey_patch()
 import time
 time.sleep(5)
 
+import logging
+logging.getLogger('kafka').setLevel(logging.INFO)
+
 # keep this import; even though unused, gunicorn needs it, otherwise it will not start
 from dino.server import socketio, app
 
