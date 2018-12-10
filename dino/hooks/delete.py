@@ -9,6 +9,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from activitystreams import Activity
 
 from dino import environ
 
@@ -19,8 +20,16 @@ class OnDeleteHooks(object):
     @staticmethod
     def remove_from_storage(arg: tuple) -> None:
         data, activity = arg
-        message_id = activity.object.id
-        environ.env.storage.delete_message(message_id)
+        is_room_id = False
+        if hasattr(activity.object, 'object_type'):
+            is_room_id = activity.object.object_type == 'room'
+
+        if is_room_id:
+            room_id = activity.object.id
+            environ.env.storage.delete_messages_in_room(room_id, clear_body=False)
+        else:
+            message_id = activity.object.id
+            environ.env.storage.delete_message(message_id, clear_body=False)
 
     @staticmethod
     def broadcast_deletion(arg: tuple) -> None:

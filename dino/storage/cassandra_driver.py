@@ -427,10 +427,10 @@ class Driver(object):
     def msg_undelete(self, message_id: str) -> None:
         self._msg_delete(message_id, deleted=False)
 
-    def msg_delete(self, message_id: str) -> None:
-        self._msg_delete(message_id, deleted=True)
+    def msg_delete(self, message_id: str, clear_body=True) -> None:
+        self._msg_delete(message_id, deleted=True, clear_body=clear_body)
 
-    def _msg_delete(self, message_id: str, deleted: bool) -> None:
+    def _msg_delete(self, message_id: str, deleted: bool, clear_body: bool=True) -> None:
         """
         We're doing three queries here, one to get primary index of messages table from message_id, then getting the
         complete row from messages table, and finally updating that row. This could be lowered to two queries by
@@ -459,7 +459,11 @@ class Driver(object):
             for message_row in message_rows.current_rows:
                 logger.debug('deleting row: %s' % str(message_row))
 
-            body = ''
+            if clear_body:
+                body = ''
+            else:
+                body = key.body
+
             self.msg_update(from_user_id, target_id, body, timestamp, deleted)
 
     def _execute(self, statement_key, *params) -> ResultSet:

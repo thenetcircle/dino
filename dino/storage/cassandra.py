@@ -143,8 +143,18 @@ class CassandraStorage(object):
         return [row.message_id for row in rows]
 
     @timeit(logger, 'on_cassandra_delete_message')
-    def delete_message(self, message_id: str, room_id: str=None) -> None:
-        self.driver.msg_delete(message_id)
+    def delete_message(self, message_id: str, room_id: str=None, clear_body: bool=True) -> None:
+        self.driver.msg_delete(message_id, clear_body=clear_body)
+
+    @timeit(logger, 'on_cassandra_delete_message')
+    def delete_messages_in_room(self, room_id: str=None, clear_body: bool=False) -> None:
+        rows = self.driver.msgs_select(room_id, limit=500)
+        if rows is None or len(rows.current_rows) == 0:
+            return
+
+        msg_ids = [row.message_id for row in rows]
+        for msg_id in msg_ids:
+            self.driver.msg_delete(msg_id, clear_body=clear_body)
 
     @timeit(logger, 'on_cassandra_undelete_message')
     def undelete_message(self, message_id: str) -> None:
