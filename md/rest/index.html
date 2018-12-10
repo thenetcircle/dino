@@ -136,6 +136,9 @@
     <li class="toctree-l2"><a href="#get-banned">GET /banned</a></li>
     
 
+    <li class="toctree-l2"><a href="#post-status">POST /status</a></li>
+    
+
     <li class="toctree-l2"><a href="#post-send">POST /send</a></li>
     
 
@@ -540,33 +543,49 @@ rooms.</p>
 <h2 id="get-banned">GET /banned</h2>
 <p>No data required in request.</p>
 <p>Response is all banned users, separated by channel, room and globally. Example response:</p>
-<pre><code>{
-    "channels": {},
-    "global": {
-        "185626": {
-            "name": "bHVlbA==",
-            "duration": "1h",
-            "timestamp": "2016-12-05T03:50:24Z"
-        }
-    },
-    "rooms": {
-        "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
-            "name": "Y29vbCBndXlz",
-            "users": {
-                "101108": {
-                    "name": "bHVlbA==",
-                    "duration": "30m",
-                    "timestamp": "2016-12-05T03:20:24Z"
+<pre><code class="json">    {
+        &quot;channels&quot;: {},
+        &quot;global&quot;: {
+            &quot;185626&quot;: {
+                &quot;name&quot;: &quot;bHVlbA==&quot;,
+                &quot;duration&quot;: &quot;1h&quot;,
+                &quot;timestamp&quot;: &quot;2016-12-05T03:50:24Z&quot;
+            }
+        },
+        &quot;rooms&quot;: {
+            &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;: {
+                &quot;name&quot;: &quot;Y29vbCBndXlz&quot;,
+                &quot;users&quot;: {
+                    &quot;101108&quot;: {
+                        &quot;name&quot;: &quot;bHVlbA==&quot;,
+                        &quot;duration&quot;: &quot;30m&quot;,
+                        &quot;timestamp&quot;: &quot;2016-12-05T03:20:24Z&quot;
+                    }
                 }
             }
         }
     }
-}
 </code></pre>
+
 <p>The "timestamp" in the response is the UTC timestamp for when the ban will expire. Names or channels, rooms and users
 are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the rooms, same for channels, while for users
 it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
 keys.</p>
+<h2 id="post-status">POST /status</h2>
+<p>Set the online status of a user.</p>
+<p>Request contains:</p>
+<pre><code class="json">{   
+    &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
+    &quot;status&quot;: &quot;&lt;one of online/offline/invisible&gt;&quot;
+}   
+</code></pre>
+
+<p>Example response:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
 <h2 id="post-send">POST /send</h2>
 <p>Request contains:</p>
 <pre><code class="json">{   
