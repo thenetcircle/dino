@@ -36,6 +36,7 @@ from flask import Flask
 from flask_socketio import SocketIO
 from werkzeug.contrib.fixers import ProxyFix
 
+from dino.rest.resources.status import SetStatusResource
 
 __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
@@ -90,4 +91,5 @@ api.add_resource(RemoveAdminResource, '/remove-admin')
 api.add_resource(BlacklistResource, '/blacklist')
 api.add_resource(BroadcastResource, '/broadcast')
 api.add_resource(SendResource, '/send')
+api.add_resource(SetStatusResource, '/status')
 api.add_resource(FullHistoryResource, '/full-history')

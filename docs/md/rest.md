@@ -408,6 +408,7 @@ No data required in request.
 
 Response is all banned users, separated by channel, room and globally. Example response:
 
+```json
     {
         "channels": {},
         "global": {
@@ -430,11 +431,34 @@ Response is all banned users, separated by channel, room and globally. Example r
             }
         }
     }
+```
 
 The "timestamp" in the response is the UTC timestamp for when the ban will expire. Names or channels, rooms and users
 are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the rooms, same for channels, while for users
 it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
 keys.
+
+## POST /status
+
+Set the online status of a user.
+
+Request contains:
+
+
+```json
+{   
+    "id": "<user ID>",
+    "status": "<one of online/offline/invisible>"
+}   
+```
+
+Example response:
+
+```json
+{
+    "status_code": 200
+}
+```
 
 ## POST /send
 
