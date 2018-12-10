@@ -894,6 +894,10 @@ Response data if successful:
 Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator of the room, owner 
 of room or (configurable) sender of the message).
 
+If `object_type` is set to `room` the `object.id` should be the UUID of a room. All messages in that room will then be
+deleted. If `object_type` is set to anything else, or not specified at all, then `object.id` is assumed to be the UUID
+of a single message.
+
 Responds with `gn_delete`.
 
 Request contains:
@@ -904,7 +908,8 @@ Request contains:
         "id": "<UUID of the room to delete from>"
     },
     "object": {
-        "id": "<UUID of the message to delete>"
+        "id": "<UUID of the message to delete OR the UUID of the room to clear>",
+        "object_type": "<optional; if set to 'room' the object.id is assumed to be the room id>"
     },
     "verb": "delete"
 }
