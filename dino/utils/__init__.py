@@ -1129,7 +1129,31 @@ def room_exists(channel_id: str, room_id: str) -> bool:
 
 
 def room_name_restricted(room_name: str):
-    return room_name.strip().lower() in ['admins', 'admin']
+    if room_name.strip().lower() in {'admin', 'admins'}:
+        return True
+
+    restricted_room_names = environ.env.db.get_black_list()
+    if restricted_room_names is None or len(restricted_room_names) == 0:
+        return False
+
+    if room_name is not None and len(room_name) > 0:
+        room_name = room_name.strip().lower()
+
+    contains_forbidden_word = any(
+        word in room_name
+        for word in restricted_room_names
+    )
+
+    if not contains_forbidden_word:
+        return False
+
+    # go through the words again to find which one matched
+    for word in restricted_room_names:
+        if word in room_name:
+            logger.warning('room name "%s" contains a blacklisted word "%s"' % (room_name, word))
+            break
+
+    return True
 
 
 def get_user_roles(user_id: str):
