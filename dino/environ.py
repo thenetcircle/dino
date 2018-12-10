@@ -279,7 +279,7 @@ def find_config(config_paths: list) -> tuple:
 
         try:
             if conf.endswith(".yaml"):
-                config_dict = yaml.load(open(path))
+                config_dict = yaml.safe_load(open(path))
             elif conf.endswith(".json"):
                 config_dict = json.load(open(path))
             else:
@@ -313,7 +313,7 @@ def find_config_acl(acl_paths: list) -> (dict, str):
 
         try:
             if conf.endswith(".yaml"):
-                acl_dict = yaml.load(open(path))
+                acl_dict = yaml.safe_load(open(path))
             elif conf.endswith(".json"):
                 acl_dict = json.load(open(path))
             else:
@@ -347,7 +347,7 @@ def load_secrets_file(config_dict: dict) -> dict:
 
     if os.path.isfile(secrets_path):
         try:
-            secrets = yaml.load(open(secrets_path))
+            secrets = yaml.safe_load(open(secrets_path))
         except Exception as e:
             raise RuntimeError("Failed to open secrets configuration {0}: {1}".format(secrets_path, str(e)))
         template = Template(template)

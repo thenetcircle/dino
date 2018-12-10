@@ -12,7 +12,7 @@ PREFIX = '%s.' % socket.gethostname()
 GRANULARITY = 2  # seconds
 
 
-hosts = yaml.load(open('statsd-online-count.yaml'))
+hosts = yaml.safe_load(open('statsd-online-count.yaml'))
 
 r_servers = dict()
 for host, db in hosts.items():

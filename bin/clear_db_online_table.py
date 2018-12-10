@@ -39,7 +39,7 @@ def load_secrets_file(config_dict: dict) -> dict:
 
     if os.path.isfile(secrets_path):
         try:
-            secrets = yaml.load(open(secrets_path))
+            secrets = yaml.safe_load(open(secrets_path))
         except Exception as e:
             raise RuntimeError("Failed to open secrets configuration {0}: {1}".format(secrets_path, str(e)))
         template = Template(template)
@@ -48,7 +48,7 @@ def load_secrets_file(config_dict: dict) -> dict:
     return ast.literal_eval(template)
 
 
-config = yaml.load(open(dino_home + '/dino.yaml'))[dino_env]
+config = yaml.safe_load(open(dino_home + '/dino.yaml'))[dino_env]
 config = load_secrets_file(config)
 
 dbtype = config['database']['type']
