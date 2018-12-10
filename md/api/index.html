@@ -974,6 +974,9 @@ event:</p>
 <h2 id="delete"><code>delete</code></h2>
 <p>Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator of the room, owner 
 of room or (configurable) sender of the message).</p>
+<p>If <code>object_type</code> is set to <code>room</code> the <code>object.id</code> should be the UUID of a room. All messages in that room will then be
+deleted. If <code>object_type</code> is set to anything else, or not specified at all, then <code>object.id</code> is assumed to be the UUID
+of a single message.</p>
 <p>Responds with <code>gn_delete</code>.</p>
 <p>Request contains:</p>
 <pre><code class="json">{
@@ -981,7 +984,8 @@ of room or (configurable) sender of the message).</p>
         &quot;id&quot;: &quot;&lt;UUID of the room to delete from&gt;&quot;
     },
     &quot;object&quot;: {
-        &quot;id&quot;: &quot;&lt;UUID of the message to delete&gt;&quot;
+        &quot;id&quot;: &quot;&lt;UUID of the message to delete OR the UUID of the room to clear&gt;&quot;,
+        &quot;object_type&quot;: &quot;&lt;optional; if set to 'room' the object.id is assumed to be the room id&gt;&quot;
     },
     &quot;verb&quot;: &quot;delete&quot;
 }
