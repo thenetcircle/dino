@@ -60,7 +60,7 @@ class SetStatusResource(BaseResource):
             raise RuntimeError('unknown status [{}], need one of [{}]'.format(status, ','.join(all_statuses)))
 
         try:
-            environ.env.db.create_user(user_id, user_id)
+            environ.env.db.create_user(user_id, str(user_id))
         except UserExistsException:
             pass
 
