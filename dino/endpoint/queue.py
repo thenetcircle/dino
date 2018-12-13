@@ -103,7 +103,9 @@ class QueueHandler(object):
                 .strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             banner_id = activity.actor.id
 
-            self.send_ban_event_to_external_queue(activity, target_type)
+            # don't duplicate the ban notification to external queue
+            if environ.env.node == 'rest':
+                self.send_ban_event_to_external_queue(activity, target_type)
 
             if target_type == 'global':
                 logger.info('banning user %s globally for %s' % (banned_id, ban_duration))
