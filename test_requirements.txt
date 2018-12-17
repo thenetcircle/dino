@@ -62,5 +62,6 @@ typing==3.5.2.2
 vine==1.1.3
 Werkzeug==0.12.2
 WTForms==2.1
+xgboost==0.80
 Yapsy==1.11.223
 zope.interface==4.3.2
