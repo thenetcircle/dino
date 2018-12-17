@@ -770,7 +770,15 @@ class DatabaseRdbms(object):
 
     @with_session
     def remove_current_rooms_for_user(self, user_id: str, session=None) -> None:
-        self._remove_current_rooms_for_user(user_id, session)
+        for i in range(3):
+            try:
+                self._remove_current_rooms_for_user(user_id, session)
+                return
+            except StaleDataError as e:
+                logger.warning('stale data when removing current rooms for user, attempt {}/2: {}'.format(
+                    str(i), str(e)
+                ))
+        logger.error('got stale data after 3 retries, giving up')
 
     def set_ephemeral_room(self, room_id: str):
         self._set_ephemeral_on_room_to(room_id, is_ephemeral=True)
