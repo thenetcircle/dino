@@ -184,12 +184,13 @@ class GNEnvironment(object):
         """
         Initialize the environment
         """
-        # can skip when testing
-        if skip_init:
-            return
 
         self.root_path = root_path
         self.config = config
+
+        # can skip when testing
+        if skip_init:
+            return
         self.storage = None
         self.cache = None
         self.stats = None

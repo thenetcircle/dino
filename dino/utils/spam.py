@@ -4,6 +4,7 @@ import logging
 from scipy import sparse
 from sklearn.externals import joblib
 
+from dino.config import ConfigKeys
 from dino.environ import GNEnvironment
 from dino.utils.decorators import timeit
 
@@ -13,26 +14,29 @@ logger = logging.getLogger(__name__)
 
 
 class SpamClassifier(object):
-    def __init__(self, env: GNEnvironment):
-        logger.info('loading TF-IDF and PCA transformers...')
-        self.tfidf_char = joblib.load('models/transformer_1a.pkl')
-        self.tfidf_word = joblib.load('models/transformer_1b.pkl')
-        self.pca = joblib.load('models/transformer_2.pkl')
-
-        logger.info('loading models...')
-        self.xgb = joblib.load('models/classifier_1.pkl')
-        self.rfc = joblib.load('models/classifier_2.pkl')
-        self.svc = joblib.load('models/classifier_3.pkl')
-
+    def __init__(self, env: GNEnvironment, skip_loading: bool=False):
         self.env = env
 
+        if skip_loading:
+            return
+
+        logger.info('loading TF-IDF and PCA transformers...')
+        self.tfidf_char = joblib.load(env.root_path + '/models/transformer_1a.pkl')
+        self.tfidf_word = joblib.load(env.root_path + '/models/transformer_1b.pkl')
+        self.pca = joblib.load(env.root_path + '/models/transformer_2.pkl')
+
+        logger.info('loading models...')
+        self.xgb = joblib.load(env.root_path + '/models/classifier_1.pkl')
+        self.rfc = joblib.load(env.root_path + '/models/classifier_2.pkl')
+        self.svc = joblib.load(env.root_path + '/models/classifier_3.pkl')
+
         size = (
-            os.path.getsize('models/transformer_1a.pkl') +
-            os.path.getsize('models/transformer_1b.pkl') +
-            os.path.getsize('models/transformer_2.pkl') +
-            os.path.getsize('models/classifier_1.pkl') +
-            os.path.getsize('models/classifier_2.pkl') +
-            os.path.getsize('models/classifier_3.pkl')
+            os.path.getsize(env.root_path + '/models/transformer_1a.pkl') +
+            os.path.getsize(env.root_path + '/models/transformer_1b.pkl') +
+            os.path.getsize(env.root_path + '/models/transformer_2.pkl') +
+            os.path.getsize(env.root_path + '/models/classifier_1.pkl') +
+            os.path.getsize(env.root_path + '/models/classifier_2.pkl') +
+            os.path.getsize(env.root_path + '/models/classifier_3.pkl')
         )
         logger.info('done loading, memory size: {} MB'.format('%.2f' % (size / 1024 / 1024)))
 
