@@ -22,7 +22,7 @@ class FakeServiceConfig(object):
 
 class FakeEnv(GNEnvironment):
     def __init__(self, threshold, min_length, max_length):
-        super().__init__('../..', ConfigDict(), skip_init=True)
+        super().__init__('.', ConfigDict(), skip_init=True)
         self.service_config = FakeServiceConfig(threshold, min_length, max_length)
 
 
