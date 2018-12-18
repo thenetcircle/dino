@@ -59,7 +59,7 @@ class RequestCreateTest(BaseTest):
         activity['target']['displayName'] = b64e('admins')
         is_valid, code, msg = request.on_create(as_parser(activity))
         self.assertFalse(is_valid)
-        self.assertEqual(code, ErrorCodes.NOT_ALLOWED)
+        self.assertEqual(code, ErrorCodes.ROOM_NAME_RESTRICTED)
 
     def test_create_blank_name(self):
         activity = self.activity_for_create()
