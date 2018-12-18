@@ -697,7 +697,7 @@ class RequestValidator(BaseValidator):
             return False, ECodes.NO_SUCH_CHANNEL, 'channel does not exist'
 
         if utils.room_name_restricted(room_name):
-            return False, ECodes.NOT_ALLOWED, 'restricted room name'
+            return False, ECodes.ROOM_NAME_RESTRICTED, 'restricted room name'
 
         if environ.env.db.room_name_exists(channel_id, room_name):
             return False, ECodes.ROOM_ALREADY_EXISTS, 'a room with that name already exists'
