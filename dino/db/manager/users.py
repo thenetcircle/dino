@@ -32,6 +32,10 @@ class UserManager(BaseManager):
     def __init__(self, env: GNEnvironment):
         self.env = env
 
+    def auth_user(self, user_id, auth_info):
+        # todo: add to redis as authed somehow, on_heartbeat ws api will need it
+        pass
+
     def get_users_for_room(self, room_id: str) -> list:
         users = self.env.db.users_in_room(room_id, skip_cache=True)
         output = list()
