@@ -104,7 +104,7 @@ class CacheRedis(object):
         redis_key = RedisKeys.heartbeat_user(user_id)
         exists = self.redis.exists(redis_key)
         if exists:
-            self.add_heartbeat(user_id)
+            self.add_heartbeat(user_id)  # will reset the ttl
         return exists
 
     def get_rooms_for_user(self, user_id: str):

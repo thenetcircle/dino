@@ -176,4 +176,6 @@ class OnDisconnectHooks(object):
 
 @environ.env.observer.on('on_disconnect')
 def _on_disconnect_handle_disconnect(arg: tuple) -> None:
+    # TODO: when online because of heartbeat api, need to handle this differently
+    # TODO: what if online on a normal ws session but just now went offline from the heartbeat session?
     OnDisconnectHooks.handle_disconnect(arg)
