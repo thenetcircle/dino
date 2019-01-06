@@ -1,21 +1,5 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from zope.interface import Interface
 from typing import Union
-
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class ICache(Interface):
@@ -25,6 +9,22 @@ class ICache(Interface):
 
         :param sid: the s session id
         :return: the user id or none
+        """
+
+    def add_heartbeat(self, user_id: str) -> None:
+        """
+        add a new heartbeat when a user has authenticated through the rest api
+
+        :param user_id: the uuid of the user
+        :return: nothing
+        """
+
+    def check_heartbeat(self, user_id: str) -> None:
+        """
+        check if a user's heartbeat has expired or not, and if it hasn't, update the ttl
+
+        :param user_id: the uuid of th user
+        :return: true if still online, false otherwise
         """
 
     def set_is_room_ephemeral(self, room_id: str, is_ephemeral: bool) -> None:

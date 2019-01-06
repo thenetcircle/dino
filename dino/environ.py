@@ -243,6 +243,7 @@ class GNEnvironment(object):
         self.node = None
         self.service_config = None
         self.spam = None
+        self.heartbeat = None
 
         self.event_validator_map = dict()
         self.event_validators = dict()
@@ -1009,6 +1010,16 @@ def init_enrichment_service(gn_env: GNEnvironment):
     gn_env.enrich = lambda d: gn_env.enrichment_manager.handle(d)
 
 
+@timeit(logger, 'init heartbeat service')
+def init_heartbeat_service(gn_env: GNEnvironment):
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    from dino.heartbeat.manager import HeartbeatManager
+    gn_env.heartbeat = HeartbeatManager(gn_env)
+
+
 @timeit(logger, 'init web auth service')
 def init_web_auth(gn_env: GNEnvironment) -> None:
     """
@@ -1055,6 +1066,7 @@ def initialize_env(dino_env):
     if 'wio' in dino_env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
         init_enrichment_service(dino_env)
         init_fake_storage_engine(dino_env)
+        init_heartbeat_service(dino_env)
         delete_ephemeral_rooms(dino_env)
     else:
         init_blacklist_service(dino_env)

@@ -337,6 +337,12 @@ class RedisKeys(object):
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
 
+    RKEY_HEARTBEAT = 'heartbeat:{}'
+
+    @staticmethod
+    def heartbeat_user(user_id: str) -> str:
+        return RedisKeys.RKEY_HEARTBEAT.format(user_id)
+
     @staticmethod
     def ack_for_user(user_id: str) -> str:
         return RedisKeys.RKEY_ACKS_USER % user_id

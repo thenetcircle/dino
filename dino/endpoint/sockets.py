@@ -188,6 +188,13 @@ def on_login(data: dict, activity: Activity) -> (int, str):
         return 500, str(e)
 
 
+@socketio.on('heartbeat', namespace='/ws')
+@respond_with('gn_heartbeat', emit_response=False)  # the callback with status_code is enough for this api so don't emit
+@pre_process('on_heartbeat', should_validate_request=False)
+def on_heartbeat(data: dict, activity: Activity) -> (int, Union[str, None]):
+    return api.on_heartbeat(data, activity)
+
+
 @socketio.on('received', namespace='/ws')
 @respond_with('gn_received', emit_response=False)  # the callback with status_code is enough for this api so don't emit
 @pre_process('on_received')

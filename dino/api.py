@@ -1,19 +1,3 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from typing import Union
-
 from activitystreams.models.defobject import DefObject
 from flask import request
 
@@ -181,6 +165,19 @@ def on_update_user_info(data: dict, activity: Activity) -> (int, Union[str, None
     data['actor']['displayName'] = activity.actor.display_name
     environ.env.observer.emit('on_update_user_info', (data, activity))
     return ECodes.OK, data
+
+
+@timeit(logger, 'on_heartbeat')
+def on_heartbeat(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    used for long-lived connections that can be broken, but keeps the user 'online'
+
+    :param data: activity streams format
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<error message>'}
+    """
+    environ.env.observer.emit('on_heartbeat', (data, activity))
+    return ECodes.OK, None
 
 
 @timeit(logger, 'on_read')
@@ -609,6 +606,8 @@ def on_disconnect() -> (int, None):
 
     :return json if ok, {'status_code': 200}
     """
+    # TODO: might not have this in the session for heartbeat auths
+
     user_id = str(environ.env.session.get(SessionKeys.user_id.value))
     try:
         sid = request.sid

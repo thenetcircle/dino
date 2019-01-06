@@ -9,14 +9,7 @@ from kombu.pools import producers
 
 from dino import environ
 from dino.config import ConfigKeys
-
-
-def locked_method(method):
-    """Method decorator. Requires a lock object at self._lock"""
-    def newmethod(self, *args, **kwargs):
-        with self._lock:
-            return method(self, *args, **kwargs)
-    return newmethod
+from dino.utils.decorators import locked_method
 
 
 class PublishException(Exception):
