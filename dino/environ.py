@@ -603,7 +603,7 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
 def init_fake_storage_engine(gn_env: GNEnvironment) -> None:
     class FakeStorage(object):
         def __getattr__(self, item):
-            def method(*args):
+            def method(*args, **kwargs):
                 return list()
             return method
 
