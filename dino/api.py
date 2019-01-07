@@ -619,7 +619,7 @@ def on_disconnect() -> (int, None):
         sid = ''
 
     # socket disconnects for heartbeat sessions are ignored
-    if sid != '' and environ.env.heartbeat.is_heartbeat_sid(user_id, sid):
+    if sid != '' and environ.env.heartbeat.is_heartbeat_sid(sid):
         environ.env.heartbeat.remove_heartbeat_sid(sid)
         return
 
