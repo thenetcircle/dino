@@ -39,6 +39,7 @@ class HeartbeatManager(IHeartbeatManager):
                 logger.error('could not check heartbeat: {}'.format(str(e)))
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
+                time.sleep(1)
 
     def check_heartbeats(self, user_ids: list) -> None:
         for user_id in user_ids:
@@ -79,7 +80,7 @@ class HeartbeatManager(IHeartbeatManager):
         not_yet_expired = dict()
         now_time = dt.utcnow() + timedelta(seconds=100)
 
-        for add_time, user_id in self.to_check:
+        for add_time, user_id in self.to_check.items():
             if add_time > now_time:
                 expired.append(user_id)
             else:
