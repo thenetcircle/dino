@@ -152,7 +152,7 @@ class OnDisconnectHooks(object):
                     'sid %s disconnected, all_sids: [%s] for user %s (%s)' % (
                         current_sid, ','.join(all_sids), user_id, user_name))
 
-                sid_ended_event = utils.activity_for_sid_disconnect(user_id, current_sid)
+                sid_ended_event = utils.activity_for_sid_disconnect(user_id, user_name, current_sid)
                 environ.env.publish(sid_ended_event, external=True)
 
                 # if the user still has another session up we don't send disconnect event

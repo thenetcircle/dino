@@ -350,20 +350,12 @@ def activity_for_disconnect(user_id: str, user_name: str) -> dict:
     })
 
 
-def activity_for_sid_disconnect(user_id: str, user_name: str) -> dict:
-    try:
-        sid = environ.env.request.sid
-    except Exception as e:
-        logger.error('could not get sid for user "{}": {}'.format(user_id, str(e)))
-        logger.exception(traceback.format_exc())
-        environ.env.capture_exception(sys.exc_info())
-        sid = ''
-
+def activity_for_sid_disconnect(user_id: str, user_name: str, current_sid: str) -> dict:
     return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
-            'content': sid,
+            'content': current_sid,
         },
         'verb': 'ended'
     })
