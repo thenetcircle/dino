@@ -110,9 +110,14 @@ class OnDisconnectHooks(object):
 
         def emit_disconnect_event(user_id, current_sid) -> None:
             try:
-                sid = activity.actor.content
-                user_name = environ.env.session.get(SessionKeys.user_name.value)
-                if user_name is None or len(user_name.strip()) == 0:
+                if is_socket_disconnect:
+                    user_name = environ.env.session.get(SessionKeys.user_name.value)
+                    if user_name is None or len(user_name.strip()) == 0:
+                        try:
+                            user_name = utils.get_user_name_for(user_id)
+                        except NoSuchUserException:
+                            user_name = '<unknown>'
+                else:
                     try:
                         user_name = utils.get_user_name_for(user_id)
                     except NoSuchUserException:
@@ -120,20 +125,20 @@ class OnDisconnectHooks(object):
 
                 if user_id is None or user_id == 'None':
                     logger.warning('blank user_id on disconnect event, trying sid instead')
-                    if sid is None or sid == 'None' or sid == '':
+                    if current_sid is None or current_sid == 'None' or current_sid == '':
                         logger.error('blank sid as well as blank user id, ignoring disconnect event')
                         return
 
                     try:
-                        user_id = utils.get_user_for_sid(sid)
+                        user_id = utils.get_user_for_sid(current_sid)
                     except Exception as e:
-                        logger.error('could not get user id from sid "{}": {}'.format(sid, str(e)))
+                        logger.error('could not get user id from sid "{}": {}'.format(current_sid, str(e)))
                         logger.exception(traceback.format_exc())
                         environ.env.capture_exception(sys.exc_info())
                         return
 
                     if user_id is None or len(user_id.strip()) == 0:
-                        logger.error('blank user id for sid "{}", ignoring disconnect event'.format(sid))
+                        logger.error('blank user id for sid "{}", ignoring disconnect event'.format(current_sid))
                         return
 
                 all_sids = utils.get_sids_for_user_id(user_id)
