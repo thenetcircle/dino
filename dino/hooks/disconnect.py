@@ -15,19 +15,25 @@ logger = logging.getLogger(__name__)
 
 class OnDisconnectHooks(object):
     @staticmethod
-    def handle_disconnect(arg: tuple):
-        def set_user_offline():
+    def handle_disconnect(arg: tuple, is_socket_disconnect: bool=False) -> None:
+        """
+        when a client disconnects this hook will handle the related logic
+
+        :param arg: tuple of (data, parsed_activity)
+        :param is_socket_disconnect: true if normal websocket connection, false if long-lives heartbeat session
+        :return: nothing
+        """
+
+        def set_user_offline(user_id, current_sid):
             try:
-                user_id = activity.actor.id
                 if not utils.is_valid_id(user_id):
                     logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
                     # TODO: sentry
                     return
 
-                current_sid = environ.env.request.sid
                 environ.env.db.remove_sid_for_user(user_id, current_sid)
-
                 all_sids = utils.get_sids_for_user_id(user_id)
+
                 # if the user still has another session up we don't set the user as offline
                 if all_sids is not None and len(all_sids) > 0:
                     logger.debug('when setting user offline, found other sids: [%s]' % ','.join(all_sids))
@@ -42,12 +48,10 @@ class OnDisconnectHooks(object):
                 logger.debug('request for failed set_user_offline(): %s' % str(data))
                 logger.exception(traceback.format_exc())
 
-        def leave_private_room():
+        def leave_private_room(user_id, current_sid):
             try:
-                # todo: only broadcast 'offline' status if current status is 'online' (i.e. don't broadcast if e.g. 'invisible')
-                user_id = activity.actor.id
+                # todo: only broadcast 'offline' status if currently 'online' (i.e. don't broadcast if e.g. 'invisible')
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
-                current_sid = environ.env.request.sid
                 logger.debug('a user disconnected [id: "%s", name: "%s", sid: "%s"]' % (user_id, user_name, current_sid))
 
                 if user_id is None or len(user_id.strip()) == 0:
@@ -71,9 +75,8 @@ class OnDisconnectHooks(object):
                 logger.debug('request for failed leave_private_room(): %s' % str(data))
                 logger.exception(traceback.format_exc())
 
-        def leave_all_public_rooms_and_emit_leave_events():
+        def leave_all_public_rooms_and_emit_leave_events(user_id):
             try:
-                user_id = activity.actor.id
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 rooms = environ.env.db.rooms_for_user(user_id)
 
@@ -91,8 +94,12 @@ class OnDisconnectHooks(object):
                         activity.target.id = room_id
 
                     utils.remove_user_from_room(user_id, user_name, room_id)
-                    environ.env.emit('gn_user_left', utils.activity_for_leave(user_id, user_name, room_id, room_name),
-                                     room=room_id, namespace='/ws')
+                    environ.env.emit(
+                        'gn_user_left',
+                        utils.activity_for_leave(user_id, user_name, room_id, room_name),
+                        room=room_id,
+                        namespace='/ws'
+                    )
                     utils.check_if_should_remove_room(data, activity)
 
                 environ.env.db.remove_current_rooms_for_user(user_id)
@@ -101,9 +108,8 @@ class OnDisconnectHooks(object):
                 logger.debug('request for failed leave_all_public_rooms_and_emit_leave_events(): %s' % str(data))
                 logger.exception(traceback.format_exc())
 
-        def emit_disconnect_event() -> None:
+        def emit_disconnect_event(user_id, current_sid) -> None:
             try:
-                user_id = activity.actor.id
                 sid = activity.actor.content
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 if user_name is None or len(user_name.strip()) == 0:
@@ -135,13 +141,13 @@ class OnDisconnectHooks(object):
                     all_sids = list()
 
                 # race condition might lead to db cache saying it's still there or similar
-                make_sure_current_sid_removed(all_sids, user_id)
+                make_sure_current_sid_removed(all_sids, user_id, current_sid)
 
                 logger.debug(
                     'sid %s disconnected, all_sids: [%s] for user %s (%s)' % (
-                        environ.env.request.sid, ','.join(all_sids), user_id, user_name))
+                        current_sid, ','.join(all_sids), user_id, user_name))
 
-                sid_ended_event = utils.activity_for_sid_disconnect(user_id, environ.env.request.sid)
+                sid_ended_event = utils.activity_for_sid_disconnect(user_id, current_sid)
                 environ.env.publish(sid_ended_event, external=True)
 
                 # if the user still has another session up we don't send disconnect event
@@ -155,10 +161,9 @@ class OnDisconnectHooks(object):
                 logger.debug('request for failed emit_disconnect_event(): %s' % str(data))
                 logger.exception(traceback.format_exc())
 
-        def make_sure_current_sid_removed(all_sids, user_id):
-            if environ.env.request.sid in all_sids:
+        def make_sure_current_sid_removed(all_sids, user_id, current_sid):
+            if current_sid in all_sids:
                 try:
-                    current_sid = environ.env.request.sid
                     all_sids.remove(current_sid)
                     environ.env.db.remove_sid_for_user(user_id, current_sid)
                 except Exception as e:
@@ -167,15 +172,24 @@ class OnDisconnectHooks(object):
                     environ.env.capture_exception(sys.exc_info())
 
         data, activity = arg
+        _user_id = activity.actor.id
 
-        leave_private_room()
-        leave_all_public_rooms_and_emit_leave_events()
-        emit_disconnect_event()
-        set_user_offline()
+        if is_socket_disconnect:
+            _current_sid = environ.env.request.sid
+            leave_private_room(_user_id, _current_sid)
+            leave_all_public_rooms_and_emit_leave_events(_user_id)
+        else:
+            _current_sid = 'hb-{}'.format(_user_id)
+
+        emit_disconnect_event(_user_id, _current_sid)
+        set_user_offline(_user_id, _current_sid)
 
 
 @environ.env.observer.on('on_disconnect')
 def _on_disconnect_handle_disconnect(arg: tuple) -> None:
-    # TODO: when online because of heartbeat api, need to handle this differently
-    # TODO: what if online on a normal ws session but just now went offline from the heartbeat session?
-    OnDisconnectHooks.handle_disconnect(arg)
+    OnDisconnectHooks.handle_disconnect(arg, is_socket_disconnect=True)
+
+
+@environ.env.observer.on('on_heartbeat_disconnect')
+def _on_disconnect_handle_disconnect(arg: tuple) -> None:
+    OnDisconnectHooks.handle_disconnect(arg, is_socket_disconnect=False)

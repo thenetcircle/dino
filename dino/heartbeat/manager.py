@@ -23,7 +23,7 @@ class HeartbeatManager(IHeartbeatManager):
     def __init__(self, env: GNEnvironment):
         self._lock = Semaphore(value=1)
         self.env = env
-        self.to_check = list()
+        self.to_check = dict()
         eventlet.spawn_after(func=self.loop, seconds=10)
 
     def loop(self):
@@ -63,23 +63,27 @@ class HeartbeatManager(IHeartbeatManager):
                     del self.env.connected_user_ids[user_id]
 
             activity = parse_to_as(data)
-            self.env.observer.emit('on_disconnect', (data, activity))
+            self.env.observer.emit('on_heartbeat_disconnect', (data, activity))
+
+    @locked_method
+    def has_heartbeat(self, user_id: str) -> bool:
+        return user_id in self.to_check.keys()
 
     @locked_method
     def add_heartbeat(self, user_id: str) -> None:
-        self.to_check.append((dt.utcnow(), user_id))
+        self.to_check[user_id] = dt.utcnow()
 
     @locked_method
     def get_all_expired_user_ids(self):
         expired = list()
-        not_yet_expired = list()
+        not_yet_expired = dict()
         now_time = dt.utcnow() + timedelta(seconds=100)
 
         for add_time, user_id in self.to_check:
             if add_time > now_time:
                 expired.append(user_id)
             else:
-                not_yet_expired.append((add_time, user_id))
+                not_yet_expired[user_id] = add_time
 
         self.to_check = not_yet_expired.copy()
         return expired.copy()

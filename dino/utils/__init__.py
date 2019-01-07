@@ -415,15 +415,19 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str=None
 def activity_for_login(
         user_id: str, user_name: str,
         include_unread_history: bool=False,
-        encode_attachments: bool=True
+        encode_attachments: bool=True,
+        heartbeat_sid=False
 ) -> dict:
-    try:
-        sid = environ.env.request.sid
-    except Exception as e:
-        logger.error('could not get sid for user "{}": {}'.format(user_id, str(e)))
-        logger.exception(traceback.format_exc())
-        environ.env.capture_exception(sys.exc_info())
-        sid = ''
+    if heartbeat_sid:
+        sid = 'hb-{}'.format(user_id)
+    else:
+        try:
+            sid = environ.env.request.sid
+        except Exception as e:
+            logger.error('could not get sid for user "{}": {}'.format(user_id, str(e)))
+            logger.exception(traceback.format_exc())
+            environ.env.capture_exception(sys.exc_info())
+            sid = ''
 
     response = ActivityBuilder.enrich({
         'actor': {
