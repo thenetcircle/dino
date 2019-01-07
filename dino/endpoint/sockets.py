@@ -127,7 +127,7 @@ def index():
 def heartbeat():
     user_id = '18181'
     user_name = 'test'
-    return environ.env.render_template('hearbeat.html', user_id=user_id, user_name=user_name)
+    return environ.env.render_template('heartbeat.html', user_id=user_id, user_name=user_name)
 
 
 @app.route('/ws')

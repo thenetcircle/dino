@@ -147,6 +147,7 @@ def acl_list():
 
     return api_response(200, data=result)
 
+
 @app.route('/api/acl/actions/<channel_or_room>', methods=['GET'])
 def acl_list_actions(channel_or_room):
     return api_response(200, data=[action for action in acl_manager.get_acl_actions(channel_or_room)])
