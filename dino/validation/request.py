@@ -33,8 +33,9 @@ class RequestValidator(BaseValidator):
     def on_msg_status(self, _: Activity) -> (bool, int, str):
         return True, None, None
 
-    def on_heartbeat(self, _: Activity) -> (bool, int, str):
-        # TODO: check if authed in redis already, and if so, update online status with ttl?
+    def on_heartbeat(self, activity: Activity) -> (bool, int, str):
+        if not environ.env.cache.has_heartbeat(activity.actor.id):
+            return False, ECodes.INVALID_LOGIN, 'not yet authenticated'
         return True, None, None
 
     def on_message(self, activity: Activity) -> (bool, int, str):

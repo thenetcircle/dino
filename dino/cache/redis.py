@@ -100,12 +100,15 @@ class CacheRedis(object):
         self.redis.set(redis_key, user_id)
         self.redis.expire(redis_key, ONE_MINUTE)
 
-    def check_heartbeat(self, user_id: str) -> None:
-        redis_key = RedisKeys.heartbeat_user(user_id)
-        exists = self.redis.exists(redis_key)
+    def check_heartbeat(self, user_id: str) -> bool:
+        exists = self.has_heartbeat(user_id)
         if exists:
             self.add_heartbeat(user_id)  # will reset the ttl
         return exists
+
+    def has_heartbeat(self, user_id: str) -> bool:
+        redis_key = RedisKeys.heartbeat_user(user_id)
+        return self.redis.exists(redis_key)
 
     def get_rooms_for_user(self, user_id: str):
         clean_rooms = dict()
