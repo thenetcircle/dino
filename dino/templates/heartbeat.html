@@ -1,0 +1,55 @@
+<html>
+    <head>
+        <title>Grid Notify v{{ version }}</title>
+        <link rel="stylesheet" href="css/base-min.css">
+        <link rel="stylesheet" href="css/pure-min.css">
+        <link rel="stylesheet" href="css/grids-responsive-min.css">
+        <link rel="stylesheet" href="css/main.css">
+
+        <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+        <script type="text/javascript" src="js/socket.io-1.4.5.js"></script>
+        <script type="text/javascript">
+            function b64e(str) {
+                return window.btoa(unescape(encodeURIComponent(str)));
+            }
+
+            var socket;
+            $(document).ready(function() {
+                //socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {path: '/ws', transports:['websocket']});
+                socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {transports:['websocket']});
+
+                socket.on('connect', function() {
+                    socket.emit('heartbeat', {
+                        verb: 'heartbeat',
+                        actor: {
+                            id: '{{ user_id }}',
+                            displayName: b64e('{{ user_name }}')
+                        }
+                    }, function(data) {
+                        console.log(data);
+                    });
+                });
+
+                $('button#heartbeat').click(function() {
+                    socket.emit('heartbeat', {
+                        verb: 'heartbeat',
+                        actor: {
+                            id: '{{ user_id }}',
+                            displayName: b64e('{{ user_name }}')
+                        }
+                    }, function(data) {
+                        console.log(data);
+                    });
+                });
+
+                socket.on('message', function(data) {
+                    console.log(data);
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <h1>Grid Notify <small>v{{ version }}</small></h1>
+        <button id="heartbeat">Heartbeat</button>
+    </body>
+</html>

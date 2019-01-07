@@ -123,6 +123,13 @@ def index():
     return environ.env.render_template('index.html', form=form)
 
 
+@app.route('/hb')
+def heartbeat():
+    user_id = '18181'
+    user_name = 'test'
+    return environ.env.render_template('hearbeat.html', user_id=user_id, user_name=user_name)
+
+
 @app.route('/ws')
 def chat():
     user_id = environ.env.session.get('user_id', '')
