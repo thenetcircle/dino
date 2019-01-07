@@ -178,6 +178,14 @@ class OnMessageHooks(object):
 
         data, activity = arg
         user_id = activity.actor.id
+
+        # for wio we don't check for spam or blacklist
+        if 'wio' in environ.env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
+            store(deleted=False)
+            broadcast()
+            publish_activity()
+            return
+
         user_used_blacklisted_word, word_used_if_any = utils.used_blacklisted_word(activity)
 
         if user_used_blacklisted_word:
