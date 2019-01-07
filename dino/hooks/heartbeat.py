@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class OnHeartbeatHooks(object):
     @staticmethod
-    def update_session_and_join_private_room(arg: tuple) -> None:
+    def update_session(arg: tuple) -> None:
         data, activity = arg
         user_id = activity.actor.id
         user_name = utils.b64d(activity.actor.display_name)
@@ -99,15 +99,10 @@ class OnHeartbeatHooks(object):
 
 
 @environ.env.observer.on('on_heartbeat')
-def _on_heartbeat_set_user_online(arg: tuple) -> None:
-    OnHeartbeatHooks.set_user_online_if_not_previously_invisible(arg)
-
-
-@environ.env.observer.on('on_heartbeat')
-def _on_heartbeat_update_session(arg: tuple) -> None:
-    OnHeartbeatHooks.update_session_and_join_private_room(arg)
-
-
-@environ.env.observer.on('on_heartbeat')
 def _on_heartbeat_publish_activity(arg: tuple) -> None:
+    OnHeartbeatHooks.update_session(arg)
+
+    # need to publish before setting as online, as we won't publish if already online
     OnHeartbeatHooks.publish_activity(arg)
+
+    OnHeartbeatHooks.set_user_online_if_not_previously_invisible(arg)
