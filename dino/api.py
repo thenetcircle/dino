@@ -9,6 +9,7 @@ from dino.config import ApiActions
 from dino.utils.decorators import timeit
 from dino import validation
 
+from typing import Union
 import logging
 
 __author__ = 'Oscar Eriksson <oscar@gmail.com>'
