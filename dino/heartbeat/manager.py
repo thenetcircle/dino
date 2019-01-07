@@ -72,8 +72,10 @@ class HeartbeatManager(IHeartbeatManager):
         return user_id in self.to_check.keys()
 
     @locked_method
-    def add_heartbeat(self, user_id: str, sid: str) -> None:
-        self.heartbeat_sids.add(sid)
+    def add_heartbeat(self, user_id: str, sid: str=None) -> None:
+        if sid is not None:
+            self.heartbeat_sids.add(sid)
+
         self.to_check[user_id] = dt.utcnow()
 
     @locked_method
@@ -88,10 +90,10 @@ class HeartbeatManager(IHeartbeatManager):
     def get_all_expired_user_ids(self):
         expired = list()
         not_yet_expired = dict()
-        now_time = dt.utcnow() + timedelta(seconds=100)
+        now_time = dt.utcnow() - timedelta(seconds=100)
 
         for user_id, add_time in self.to_check.items():
-            if add_time > now_time:
+            if add_time < now_time:
                 expired.append(user_id)
             else:
                 not_yet_expired[user_id] = add_time
