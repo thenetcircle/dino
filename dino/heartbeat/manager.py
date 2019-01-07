@@ -80,7 +80,7 @@ class HeartbeatManager(IHeartbeatManager):
         not_yet_expired = dict()
         now_time = dt.utcnow() + timedelta(seconds=100)
 
-        for add_time, user_id in self.to_check.items():
+        for user_id, add_time in self.to_check.items():
             if add_time > now_time:
                 expired.append(user_id)
             else:
