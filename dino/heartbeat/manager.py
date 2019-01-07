@@ -24,6 +24,7 @@ class HeartbeatManager(IHeartbeatManager):
         self._lock = Semaphore(value=1)
         self.env = env
         self.to_check = dict()
+        self.heartbeat_sids = set()
         eventlet.spawn_after(func=self.loop, seconds=10)
 
     def loop(self):
@@ -71,8 +72,17 @@ class HeartbeatManager(IHeartbeatManager):
         return user_id in self.to_check.keys()
 
     @locked_method
-    def add_heartbeat(self, user_id: str) -> None:
+    def add_heartbeat(self, user_id: str, sid: str) -> None:
+        self.heartbeat_sids.add(sid)
         self.to_check[user_id] = dt.utcnow()
+
+    @locked_method
+    def is_heartbeat_sid(self, sid: str) -> bool:
+        return sid in self.heartbeat_sids
+
+    @locked_method
+    def remove_heartbeat_sid(self, sid: str) -> None:
+        self.heartbeat_sids.remove(sid)
 
     @locked_method
     def get_all_expired_user_ids(self):

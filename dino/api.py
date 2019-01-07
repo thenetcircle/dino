@@ -613,10 +613,15 @@ def on_disconnect() -> (int, None):
     try:
         sid = request.sid
     except Exception as e:
-        logger.error('coud not get sid from request: {}'.format(str(e)))
+        logger.error('could not get sid from request: {}'.format(str(e)))
         logger.exception(traceback.format_exc())
         environ.env.capture_exception(sys.exc_info())
         sid = ''
+
+    # socket disconnects for heartbeat sessions are ignored
+    if sid != '' and environ.env.heartbeat.is_heartbeat_sid(user_id, sid):
+        environ.env.heartbeat.remove_heartbeat_sid(sid)
+        return
 
     data = {
         'verb': 'disconnect',

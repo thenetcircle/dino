@@ -72,7 +72,7 @@ class OnHeartbeatHooks(object):
         user_id = activity.actor.id
         user_status = utils.get_user_status(user_id)
 
-        environ.env.heartbeat.add_heartbeat(user_id)
+        environ.env.heartbeat.add_heartbeat(user_id, environ.env.request.sid)
 
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             try:
