@@ -23,8 +23,16 @@ class ICache(Interface):
         """
         check if a user's heartbeat has expired or not, and if it hasn't, update the ttl
 
-        :param user_id: the uuid of th user
+        :param user_id: the uuid of the user
         :return: true if still online, false otherwise
+        """
+
+    def has_heartbeat(self, user_id: str) -> bool:
+        """
+        check if user has been authenticated to get a heartbeat
+
+        :param user_id: the uuid of the user
+        :return: true if existing, false otherwise
         """
 
     def set_is_room_ephemeral(self, room_id: str, is_ephemeral: bool) -> None:
