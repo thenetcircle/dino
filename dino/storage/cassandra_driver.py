@@ -458,13 +458,12 @@ class Driver(object):
 
             for message_row in message_rows.current_rows:
                 logger.debug('deleting row: %s' % str(message_row))
+                body = message_row.body
 
-            if clear_body:
-                body = ''
-            else:
-                body = key.body
+                if clear_body:
+                    body = ''
 
-            self.msg_update(from_user_id, target_id, body, timestamp, deleted)
+                self.msg_update(from_user_id, target_id, body, timestamp, deleted)
 
     def _execute(self, statement_key, *params) -> ResultSet:
         if params is not None and len(params) > 0:
