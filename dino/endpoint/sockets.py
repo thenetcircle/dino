@@ -195,16 +195,6 @@ def on_login(data: dict, activity: Activity) -> (int, str):
         return 500, str(e)
 
 
-@socketio.on('heartbeat', namespace='/ws')
-@respond_with('gn_heartbeat', emit_response=False)  # the callback with status_code is enough for this api so don't emit
-@pre_process('on_heartbeat', should_validate_request=False)
-def on_heartbeat(data: dict, activity: Activity) -> (int, Union[str, None]):
-    # avoid errors when disconnecting from heartbeat session
-    environ.env.heartbeat.add_heartbeat(activity.actor.id, environ.env.request.sid)
-
-    return api.on_heartbeat(data, activity)
-
-
 @socketio.on('received', namespace='/ws')
 @respond_with('gn_received', emit_response=False)  # the callback with status_code is enough for this api so don't emit
 @pre_process('on_received')
@@ -301,18 +291,6 @@ def on_get_acl(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
 @pre_process('on_status')
 def on_status(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_status(data, activity)
-
-
-@socketio.on('hb_status', namespace='/ws')
-@respond_with('gn_hb_status')
-@pre_process('on_hb_status', should_validate_request=False)
-def on_hb_status(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
-    """
-    uses the same api as normal 'on_status', with the exception of not validating the flask session (doesn't exist)
-    """
-    # avoid errors when disconnecting from heartbeat session
-    environ.env.heartbeat.add_heartbeat(activity.actor.id, environ.env.request.sid)
-    return api.on_hb_status(data, activity)
 
 
 @socketio.on('msg_status', namespace='/ws')

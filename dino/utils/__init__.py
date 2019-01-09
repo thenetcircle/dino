@@ -421,12 +421,20 @@ def activity_for_login(
             environ.env.capture_exception(sys.exc_info())
             sid = ''
 
+    include_user_agent = True
+    if heartbeat_sid:
+        include_user_agent = False
+
     response = ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name),
             'content': sid,
-            'attachments': get_user_info_attachments_for(user_id, encode_attachments, include_user_agent=True)
+            'attachments': get_user_info_attachments_for(
+                user_id,
+                encode_attachments,
+                include_user_agent=include_user_agent
+            )
         },
         'verb': 'login'
     })

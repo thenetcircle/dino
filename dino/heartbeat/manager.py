@@ -72,19 +72,8 @@ class HeartbeatManager(IHeartbeatManager):
         return user_id in self.to_check.keys()
 
     @locked_method
-    def add_heartbeat(self, user_id: str, sid: str=None) -> None:
-        if sid is not None:
-            self.heartbeat_sids.add(sid)
-
+    def add_heartbeat(self, user_id: str) -> None:
         self.to_check[user_id] = dt.utcnow()
-
-    @locked_method
-    def is_heartbeat_sid(self, sid: str) -> bool:
-        return sid in self.heartbeat_sids
-
-    @locked_method
-    def remove_heartbeat_sid(self, sid: str) -> None:
-        self.heartbeat_sids.remove(sid)
 
     @locked_method
     def get_all_expired_user_ids(self):

@@ -15,7 +15,7 @@
 from flask import Flask
 from flask_restful import Api
 
-from dino.rest.resources.authenticate import AuthenticateResource
+from dino.rest.resources.heartbeat import HeartbeatResource
 from dino.rest.resources.banned import BannedResource
 from dino.rest.resources.ban import BanResource
 from dino.rest.resources.kick import KickResource
@@ -94,4 +94,4 @@ api.add_resource(BroadcastResource, '/broadcast')
 api.add_resource(SendResource, '/send')
 api.add_resource(SetStatusResource, '/status')
 api.add_resource(FullHistoryResource, '/full-history')
-api.add_resource(AuthenticateResource, '/auth')
+api.add_resource(HeartbeatResource, '/heartbeat')
