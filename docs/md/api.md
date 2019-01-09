@@ -481,7 +481,7 @@ instead.
 With regular `connect`, `heartbeat`, `disconnect` calls, a user will not be marked as offline until no more heartbeats
 are being received.
 
-The user needs to have been authenticated using the REST API [/auth](rest.md#auth) before the heartbeat API can be used.
+The user needs to have been authenticated using the REST API [/auth](rest.md#post-auth) before the heartbeat API can be used.
 
 No response.
 
