@@ -16,11 +16,42 @@
             var socket;
             $(document).ready(function() {
                 $('button#heartbeat').click(function() {
-                    //socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {path: '/ws', transports:['websocket']});
                     socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {transports:['websocket']});
                     socket.on('connect', function() {
                         socket.emit('heartbeat', {
                             verb: 'heartbeat',
+                            actor: {
+                                id: '{{ user_id }}',
+                                displayName: b64e('{{ user_name }}')
+                            }
+                        }, function(data) {
+                            console.log(data);
+                            socket.close();
+                        });
+                    });
+                });
+
+                $('button#invisible').click(function() {
+                    socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {transports:['websocket']});
+                    socket.on('connect', function() {
+                        socket.emit('status', {
+                            verb: 'invisible',
+                            actor: {
+                                id: '{{ user_id }}',
+                                displayName: b64e('{{ user_name }}')
+                            }
+                        }, function(data) {
+                            console.log(data);
+                            socket.close();
+                        });
+                    });
+                });
+
+                $('button#online').click(function() {
+                    socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {transports:['websocket']});
+                    socket.on('connect', function() {
+                        socket.emit('status', {
+                            verb: 'online',
                             actor: {
                                 id: '{{ user_id }}',
                                 displayName: b64e('{{ user_name }}')
@@ -37,5 +68,7 @@
     <body>
         <h1>Grid Notify <small>v{{ version }}</small></h1>
         <button id="heartbeat">Heartbeat</button>
+        <button id="invisible">Invisible</button>
+        <button id="online">Online</button>
     </body>
 </html>
