@@ -100,7 +100,7 @@
     <li class="toctree-l2"><a href="#get-history">GET /history</a></li>
     
 
-    <li class="toctree-l2"><a href="#post-auth">POST /auth</a></li>
+    <li class="toctree-l2"><a href="#post-heartbeat">POST /heartbeat</a></li>
     
 
     <li class="toctree-l2"><a href="#post-full-history">POST /full-history</a></li>
@@ -251,14 +251,18 @@
 <li>Either <code>user_id</code> or <code>room_id</code> is required (both can be specified at the same time),</li>
 <li><code>to_time</code> needs to be after <code>from_time</code>.</li>
 </ul>
-<h2 id="post-auth">POST /auth</h2>
-<p>Authenticate a user so the heartbeat API can be used. This api is not used for any other 
-purpose than to allow the heartbeat functionality for mobile users.</p>
-<pre><code class="json">{
-    &quot;&lt;user ID 1&gt;&quot;: &quot;&lt;token 1&gt;&quot;,
-    &quot;&lt;user ID 2&gt;&quot;: &quot;&lt;token 2&gt;&quot;,
-    &quot;&lt;user ID n&gt;&quot;: &quot;&lt;token n&gt;&quot;
-}
+<h2 id="post-heartbeat">POST /heartbeat</h2>
+<p>For mobile clients, it is sometimes tricky to maintain a constant connection due to fluctuations in network quality 
+and data loss. To keep a user in an online state without keeping a connection open, the <code>/heartbeat</code> api can be used
+instead.</p>
+<p>With regular <code>/heartbeat</code> calls, a user will not be marked as offline until no more heartbeats are being received.</p>
+<p>Multiple user IDs can be batched together into a single <code>/heartbeat</code> call.</p>
+<p>Request:</p>
+<pre><code class="json">[
+    &quot;&lt;user ID 1&gt;&quot;,
+    &quot;&lt;user ID 2&gt;&quot;,
+    &quot;&lt;user ID n&gt;&quot;
+]
 </code></pre>
 
 <p>Response:</p>
