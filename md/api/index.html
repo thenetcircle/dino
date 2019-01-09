@@ -651,7 +651,24 @@ are being received.</p>
 </code></pre>
 
 <h2 id="hb_status"><code>hb_status</code></h2>
-<p>For mobile clients using the <code>heartbeat</code> api to stay online. Identical to the <a href="./#status">status</a> API call.</p>
+<p>For mobile clients using the <code>heartbeat</code> api to stay online.</p>
+<p>The <code>hb_status</code> API requires the <code>actor.id</code> user ID to work (normal <code>status</code> API does not require it). This is because when 
+using heartbeat the user information is not kept in a session.</p>
+<p>Request contains:</p>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID&gt;&quot;
+    },
+    &quot;verb&quot;: &quot;&lt;one of online/offline/invisible&gt;&quot;
+}
+</code></pre>
+
+<p>Response data if successful:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
 <h2 id="request_admin"><code>request_admin</code></h2>
 <p>When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
 which only admins can see when listing rooms and only admins can join. When a <code>request_admin</code> event is sent to the server
