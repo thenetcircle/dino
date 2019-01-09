@@ -307,11 +307,12 @@ def on_status(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
 @respond_with('gn_hb_status')
 @pre_process('on_hb_status', should_validate_request=False)
 def on_hb_status(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
+    """
+    uses the same api as normal 'on_status', with the exception of not validating the flask session (doesn't exist)
+    """
     # avoid errors when disconnecting from heartbeat session
     environ.env.heartbeat.add_heartbeat(activity.actor.id, environ.env.request.sid)
-
-    # uses the same api as normal 'on_status', with the exception of not validating the flask session (doesn't exist)
-    return api.on_status(data, activity)
+    return api.on_hb_status(data, activity)
 
 
 @socketio.on('msg_status', namespace='/ws')

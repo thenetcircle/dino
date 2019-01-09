@@ -405,6 +405,22 @@ def on_status(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, None
 
 
+@timeit(logger, 'on_hb_status')
+def on_hb_status(data: dict, activity: Activity) -> (int, Union[str, None]):
+    """
+    change online status when using heartbeats
+
+    :param data: activity streams format, needs actor.id (user id), actor.summary (user name) and verb
+    (online/invisible/offline)
+    :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
+    :return: if ok: {'status_code': 200}, else: {'status_code': 400, 'data': '<some error message>'}
+    """
+
+    # using the same hook as normal on_status
+    environ.env.observer.emit('on_status', (data, activity))
+    return ECodes.OK, None
+
+
 @timeit(logger, 'on_history')
 def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
     """
