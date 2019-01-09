@@ -34,7 +34,7 @@
                 $('button#invisible').click(function() {
                     socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {transports:['websocket']});
                     socket.on('connect', function() {
-                        socket.emit('status', {
+                        socket.emit('hb_status', {
                             verb: 'invisible',
                             actor: {
                                 id: '{{ user_id }}',
@@ -50,7 +50,7 @@
                 $('button#online').click(function() {
                     socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {transports:['websocket']});
                     socket.on('connect', function() {
-                        socket.emit('status', {
+                        socket.emit('hb_status', {
                             verb: 'online',
                             actor: {
                                 id: '{{ user_id }}',
