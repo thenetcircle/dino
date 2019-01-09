@@ -58,17 +58,24 @@ Response would be something similar to the following:
 * Either `user_id` or `room_id` is required (both can be specified at the same time),
 * `to_time` needs to be after `from_time`.
 
-## POST /auth
+## POST /heartbeat
 
-Authenticate a user so the heartbeat API can be used. This api is not used for any other 
-purpose than to allow the heartbeat functionality for mobile users.
+For mobile clients, it is sometimes tricky to maintain a constant connection due to fluctuations in network quality 
+and data loss. To keep a user in an online state without keeping a connection open, the `/heartbeat` api can be used
+instead.
+
+With regular `/heartbeat` calls, a user will not be marked as offline until no more heartbeats are being received.
+
+Multiple user IDs can be batched together into a single `/heartbeat` call.
+
+Request:
 
 ```json
-{
-    "<user ID 1>": "<token 1>",
-    "<user ID 2>": "<token 2>",
-    "<user ID n>": "<token n>"
-}
+[
+    "<user ID 1>",
+    "<user ID 2>",
+    "<user ID n>"
+]
 ```
 
 Response:
@@ -114,7 +121,6 @@ Response looks like this:
     }, {...}]
 }
 ```
-
 
 ## POST /broadcast
 

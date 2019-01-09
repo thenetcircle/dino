@@ -51,7 +51,7 @@ class SetStatusResource(BaseResource):
         if 'id' not in json:
             raise RuntimeError('no id parameter in request')
         if 'status' not in json:
-            raise RuntimeError('no name parameter in request')
+            raise RuntimeError('no status parameter in request')
 
         user_id = json.get('id')
         status = json.get('status')
