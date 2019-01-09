@@ -472,6 +472,34 @@ Or if missing data, e.g.:
 }
 ```
 
+## `heartbeat`
+
+For mobile clients, it is sometimes tricky to maintain a constant connection due to fluctuations in network quality 
+and data loss. To keep a user in an online state without keeping a connection open, the `heartbeat` api can be used
+instead.
+
+With regular `connect`, `heartbeat`, `disconnect` calls, a user will not be marked as offline until no more heartbeats
+are being received.
+
+The user needs to have been authenticated using the REST API [/auth](rest.md#auth) before the heartbeat API can be used.
+
+No response.
+
+Request contains:
+
+```json
+{
+    "actor": {
+        "id": "<user UUID>"
+    },
+    "verb": "heartbeat"
+}
+```
+
+## `hb_status`
+
+For mobile clients using the `heartbeat` api to stay online. Identical to the [status](api.md#status) API call.
+
 ## `request_admin`
 
 When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,

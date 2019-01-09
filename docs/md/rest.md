@@ -58,6 +58,30 @@ Response would be something similar to the following:
 * Either `user_id` or `room_id` is required (both can be specified at the same time),
 * `to_time` needs to be after `from_time`.
 
+## POST /auth
+
+Authenticate a user so the heartbeat API can be used. This api is not used for any other 
+purpose than to allow the heartbeat functionality for mobile users.
+
+```json
+{
+    "<user ID 1>": "<token 1>",
+    "<user ID 2>": "<token 2>",
+    "<user ID n>": "<token n>"
+}
+```
+
+Response:
+
+```json
+{
+    "data": {
+        "status": "OK"
+    }, 
+    "status_code": 200
+}
+```
+
 ## POST /full-history
 
 To get all messages sent by a user, call this endpoint with the following data:
