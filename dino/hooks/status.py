@@ -19,38 +19,45 @@ class OnStatusHooks(object):
         image = environ.env.session.get(SessionKeys.image.value, '')
         status = activity.verb
 
+        if user_name is None:
+            try:
+                user_name = utils.get_user_name_for(user_id)
+            except NoSuchUserException:
+                user_name = str(user_id)
+
         if not utils.is_valid_id(user_id):
-            OnStatusHooks.logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
-            # TODO: sentry
+            OnStatusHooks.logger.warning('got invalid user id for activity: {}'.format(str(data)))
             return
 
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
-            try:
-                info_message = \
-                    'op {} ({}) requested to change status to {}; user status is currently set to {}'.format(
-                        user_id,
-                        utils.get_user_name_for(user_id),
-                        status,
-                        utils.get_user_status(user_id)
-                    )
-                OnStatusHooks.logger.info(info_message)
-            except NoSuchUserException:
-                OnStatusHooks.logger.error('no username found for op user {}'.format(user_id))
-            except Exception as e:
-                OnStatusHooks.logger.error('exception while getting username for op {}: {}'.format(user_id, str(e)))
-                OnStatusHooks.logger.exception(e)
-                environ.env.capture_exception(sys.exc_info())
+            OnStatusHooks.log_admin_activity(user_id, user_name, status)
 
         if status == 'online':
             OnStatusHooks.set_online(user_id, user_name, image)
-
         elif status == 'invisible':
             OnStatusHooks.set_invisible(user_id, user_name)
-
         elif status == 'offline':
             OnStatusHooks.set_offline(user_id, user_name)
 
         environ.env.publish(data, external=True)
+
+    @staticmethod
+    def log_admin_activity(user_id, user_name, status):
+        try:
+            info_message = \
+                'op {} ({}) requested to change status to {}; user status is currently set to {}'.format(
+                    user_id,
+                    user_name,
+                    status,
+                    utils.get_user_status(user_id)
+                )
+            OnStatusHooks.logger.info(info_message)
+        except NoSuchUserException:
+            OnStatusHooks.logger.error('no username found for op user {}'.format(user_id))
+        except Exception as e:
+            OnStatusHooks.logger.error('exception while getting username for op {}: {}'.format(user_id, str(e)))
+            OnStatusHooks.logger.exception(e)
+            environ.env.capture_exception(sys.exc_info())
 
     @staticmethod
     def set_offline(user_id: str, user_name: str) -> None:

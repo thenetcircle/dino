@@ -537,9 +537,22 @@ class RequestValidator(BaseValidator):
         return False
 
     def on_status(self, activity: Activity) -> (bool, int, str):
+        def _check_status(_user_id, _status: str) -> (bool, int, str):
+            if status not in ['online', 'offline', 'invisible']:
+                return False, ECodes.INVALID_STATUS, 'invalid status {}'.format(str(_status))
+            if status == 'invisible' and not self._can_be_invisible(_user_id):
+                return False, ECodes.NOT_ALLOWED, 'only ops can be invisible'
+            return True, None, None
+
+        status = activity.verb
+
+        # when using heartbeat to stay online, we don't have a flask session
+        if environ.env.cache.has_heartbeat(activity.actor.id):
+            # TODO: verify a token first
+            return _check_status(activity.actor.id, status)
+
         user_name = environ.env.session.get(SessionKeys.user_name.value, None)
         user_id = environ.env.session.get(SessionKeys.user_id.value, None)
-        status = activity.verb
 
         if user_name is None:
             return False, ECodes.NO_USER_IN_SESSION, 'no user name in session'
