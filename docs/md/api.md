@@ -498,7 +498,29 @@ Request contains:
 
 ## `hb_status`
 
-For mobile clients using the `heartbeat` api to stay online. Identical to the [status](api.md#status) API call.
+For mobile clients using the `heartbeat` api to stay online.
+
+The `hb_status` API requires the `actor.id` user ID to work (normal `status` API does not require it). This is because when 
+using heartbeat the user information is not kept in a session.
+
+Request contains:
+
+```json
+{
+    "actor": {
+        "id": "<user ID>"
+    },
+    "verb": "<one of online/offline/invisible>"
+}
+```
+
+Response data if successful:
+
+```json
+{
+    "status_code": 200
+}
+```
 
 ## `request_admin`
 
