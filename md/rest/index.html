@@ -100,6 +100,9 @@
     <li class="toctree-l2"><a href="#get-history">GET /history</a></li>
     
 
+    <li class="toctree-l2"><a href="#post-auth">POST /auth</a></li>
+    
+
     <li class="toctree-l2"><a href="#post-full-history">POST /full-history</a></li>
     
 
@@ -248,6 +251,25 @@
 <li>Either <code>user_id</code> or <code>room_id</code> is required (both can be specified at the same time),</li>
 <li><code>to_time</code> needs to be after <code>from_time</code>.</li>
 </ul>
+<h2 id="post-auth">POST /auth</h2>
+<p>Authenticate a user so the heartbeat API can be used. This api is not used for any other 
+purpose than to allow the heartbeat functionality for mobile users.</p>
+<pre><code class="json">{
+    &quot;&lt;user ID 1&gt;&quot;: &quot;&lt;token 1&gt;&quot;,
+    &quot;&lt;user ID 2&gt;&quot;: &quot;&lt;token 2&gt;&quot;,
+    &quot;&lt;user ID n&gt;&quot;: &quot;&lt;token n&gt;&quot;
+}
+</code></pre>
+
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {
+        &quot;status&quot;: &quot;OK&quot;
+    }, 
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
 <h2 id="post-full-history">POST /full-history</h2>
 <p>To get all messages sent by a user, call this endpoint with the following data:</p>
 <pre><code class="json">{
