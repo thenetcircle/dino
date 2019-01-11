@@ -25,6 +25,7 @@ if ! [[ "$3" =~ ^(app|rest|web|wio)$ ]]; then
     exit 1
 fi
 
+N_WORKERS="1"
 if [[ "$3" = "rest" ]]; then
     N_WORKERS="4"
 fi
