@@ -739,6 +739,9 @@ class CacheRedis(object):
     def user_is_invisible(self, user_id):
         return self.user_check_status(user_id, UserKeys.STATUS_INVISIBLE)
 
+    def user_is_in_multicast(self, user_id):
+        return self.redis.sismember(RedisKeys.users_multi_cast(), str(user_id))
+
     def remove_from_multicast_on_disconnect(self, user_id: str) -> None:
         try:
             user_id_str = str(user_id).strip()
