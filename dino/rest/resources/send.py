@@ -81,4 +81,8 @@ class SendResource(BaseResource):
             'content': msg_content
         }
 
+        if environ.env.cache.user_is_offline(target_id):
+            logger.info('user {} is offline, dropping message: {}'.format(target_id, str(json)))
+            return
+
         environ.env.internal_publisher.publish(data)

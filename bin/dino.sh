@@ -25,6 +25,10 @@ if ! [[ "$3" =~ ^(app|rest|web|wio)$ ]]; then
     exit 1
 fi
 
+if [[ "$3" = 'rest']]; then
+    N_WORKERS="4"
+fi
+
 if [ ! -d $DINO_HOME ]; then
     echo "error: home directory '$DINO_HOME' not found"
     exit 1
@@ -76,7 +80,7 @@ fi
 DINO_ENVIRONMENT=$1 DINO_DEBUG=0 gunicorn \
     --worker-class eventlet \
     --timeout 60 \
-    --workers 1 \
+    --workers ${N_WORKERS} \
     --threads 1 \
     --keep-alive 5 \
     --backlog 8192 \
