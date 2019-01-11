@@ -790,6 +790,13 @@ class ICache(Interface):
         :return:
         """
 
+    def user_is_in_multicast(self, user_id):
+        """
+
+        :param user_id:
+        :return:
+        """
+
     def remove_from_multicast_on_disconnect(self, user_id: str) -> None:
         """
 
