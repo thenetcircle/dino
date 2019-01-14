@@ -1,18 +1,7 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
+import traceback
+
+import sys
 
 from dino import environ
 from dino import utils
@@ -23,8 +12,6 @@ from dino.rest.resources.base import BaseResource
 from flask import request
 
 logger = logging.getLogger(__name__)
-
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 def fail(error_message):
@@ -85,4 +72,9 @@ class SendResource(BaseResource):
             logger.info('user {} is offline, dropping message: {}'.format(target_id, str(json)))
             return
 
-        environ.env.internal_publisher.publish(data)
+        try:
+            environ.env.out_of_scope_emit('message', data, room=target_id, json=True, namespace='/ws', broadcast=True)
+        except Exception as e:
+            logger.error('could not /send message to target {}: {}'.format(target_id, str(e)))
+            logger.exception(traceback.format_exc())
+            environ.env.capture_exception(sys.exc_info())
