@@ -127,6 +127,9 @@
     <li class="toctree-l2"><a href="#a-user-is-kicked-from-a-room">A user is kicked from a room</a></li>
     
 
+    <li class="toctree-l2"><a href="#broadcast-received">Broadcast received</a></li>
+    
+
     <li class="toctree-l2"><a href="#a-user-is-banned">A user is banned</a></li>
     
 
@@ -593,6 +596,23 @@ they will be automatically removed when the owner leaves.</p>
         &quot;displayName&quot;: &quot;&lt;name of the room the user was kicked from&gt;&quot;
     },
     &quot;verb&quot;: &quot;kick&quot;
+}
+</code></pre>
+
+<h2 id="broadcast-received">Broadcast received</h2>
+<p>When a message is broadcasted to every user on the server, a <code>gn_broadcast</code> event is received:</p>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;displayName&quot;: &quot;&lt;admin in base64&gt;&quot;,
+        &quot;id&quot;: &quot;0&quot; 
+    },  
+    &quot;content&quot;: &quot;&lt;base64&gt;&quot;,
+    &quot;verb&quot;: &quot;broadcast&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;,
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;popp&quot;
+    }
 }
 </code></pre>
 
