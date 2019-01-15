@@ -451,6 +451,26 @@ When a user is kicked from a room, an event will be sent to all users in that ro
 }
 ```
 
+## Broadcast received
+
+When a message is broadcasted to every user on the server, a `gn_broadcast` event is received:
+
+```json
+{
+    "actor": {
+        "displayName": "<admin in base64>",
+        "id": "0" 
+    },  
+    "content": "<base64>",
+    "verb": "broadcast",
+    "id": "<server-generated UUID>",
+    "published": "<server-generated timestamp, RFC3339 format>",
+    "provider": {
+        "id": "popp"
+    }
+}
+```
+
 ## A user is banned
 
 TODO: currently the user will be banned, but the "kicked" event will be broadcasted to relevant users. There's currently
