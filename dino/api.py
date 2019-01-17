@@ -594,8 +594,6 @@ def on_disconnect() -> (int, None):
 
     :return json if ok, {'status_code': 200}
     """
-    # TODO: might not have this in the session for heartbeat auths
-
     user_id = str(environ.env.session.get(SessionKeys.user_id.value))
     try:
         sid = request.sid
@@ -604,11 +602,6 @@ def on_disconnect() -> (int, None):
         logger.exception(traceback.format_exc())
         environ.env.capture_exception(sys.exc_info())
         sid = ''
-
-    # socket disconnects for heartbeat sessions are ignored
-    if sid != '' and environ.env.heartbeat.is_heartbeat_sid(sid):
-        environ.env.heartbeat.remove_heartbeat_sid(sid)
-        return
 
     data = {
         'verb': 'disconnect',
