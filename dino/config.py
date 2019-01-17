@@ -257,6 +257,9 @@ class ConfigKeys(object):
     TITLE = 'title'
     VERB = 'verb'
     SPAM_CLASSIFIER = 'spam_classifier'
+    HEARTBEAT = 'heartbeat'
+    TIMEOUT = 'timeout'
+    INTERVAL = 'interval'
 
     INSECURE = 'insecure'
     OAUTH_ENABLED = 'oauth_enabled'

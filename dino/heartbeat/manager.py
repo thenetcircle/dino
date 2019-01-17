@@ -25,6 +25,10 @@ class HeartbeatManager(IHeartbeatManager):
         self.env = env
         self.to_check = dict()
         self.heartbeat_sids = set()
+
+        self.expire_second = env.config.get(ConfigKeys.TIMEOUT, domain=ConfigKeys.HEARTBEAT, default=300)
+        self.sleep_time = env.config.get(ConfigKeys.INTERVAL, domain=ConfigKeys.HEARTBEAT, default=20)
+
         eventlet.spawn_after(func=self.loop, seconds=10)
 
     def loop(self):
@@ -32,7 +36,7 @@ class HeartbeatManager(IHeartbeatManager):
             try:
                 expired = self.get_all_expired_user_ids()
                 self.check_heartbeats(expired)
-                time.sleep(20)
+                time.sleep(self.sleep_time)
             except InterruptedError:
                 logger.info('interrupted, exiting loop')
                 break
@@ -79,7 +83,7 @@ class HeartbeatManager(IHeartbeatManager):
     def get_all_expired_user_ids(self):
         expired = list()
         not_yet_expired = dict()
-        now_time = dt.utcnow() - timedelta(seconds=100)
+        now_time = dt.utcnow() - timedelta(seconds=self.expire_second)
 
         for user_id, add_time in self.to_check.items():
             if add_time < now_time:
