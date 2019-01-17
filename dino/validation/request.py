@@ -33,11 +33,6 @@ class RequestValidator(BaseValidator):
     def on_msg_status(self, _: Activity) -> (bool, int, str):
         return True, None, None
 
-    def on_heartbeat(self, activity: Activity) -> (bool, int, str):
-        if not environ.env.cache.has_heartbeat(activity.actor.id):
-            return False, ECodes.INVALID_LOGIN, 'not yet authenticated'
-        return True, None, None
-
     def on_message(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
         user_id = activity.actor.id
@@ -542,16 +537,6 @@ class RequestValidator(BaseValidator):
         if status == 'invisible' and not self._can_be_invisible(user_id):
             return False, ECodes.NOT_ALLOWED, 'only ops can be invisible'
         return True, None, None
-
-    def on_hb_status(self, activity: Activity) -> (bool, int, str):
-        # TODO: verify a token first
-        status = activity.verb
-
-        if not environ.env.cache.has_heartbeat(activity.actor.id):
-            return False, ECodes.INVALID_LOGIN, 'not yet authenticated'
-
-        # when using heartbeat to stay online, we don't have a flask session
-        return self._check_status(activity.actor.id, status)
 
     def on_status(self, activity: Activity) -> (bool, int, str):
         status = activity.verb
