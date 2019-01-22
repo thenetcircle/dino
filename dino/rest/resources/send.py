@@ -1,5 +1,6 @@
 import logging
 import traceback
+import eventlet
 
 import sys
 
@@ -20,25 +21,13 @@ def fail(error_message):
         'message': error_message
     }
 
-
 class SendResource(BaseResource):
     def __init__(self):
         super(SendResource, self).__init__()
         self.user_manager = UserManager(environ.env)
         self.request = request
 
-    @timeit(logger, 'on_rest_send')
-    def do_post(self):
-        is_valid, msg, json = self.validate_json(self.request, silent=False)
-        if not is_valid:
-            logger.error('invalid json: %s' % msg)
-            raise RuntimeError('invalid json')
-
-        if json is None:
-            raise RuntimeError('no json in request')
-        if not isinstance(json, dict):
-            raise RuntimeError('need a dict')
-
+    def async_post(self, json):
         logger.debug('POST request: %s' % str(json))
 
         if 'content' not in json:
@@ -78,3 +67,17 @@ class SendResource(BaseResource):
             logger.error('could not /send message to target {}: {}'.format(target_id, str(e)))
             logger.exception(traceback.format_exc())
             environ.env.capture_exception(sys.exc_info())
+
+    @timeit(logger, 'on_rest_send')
+    def do_post(self):
+        is_valid, msg, json = self.validate_json(self.request, silent=False)
+        if not is_valid:
+            logger.error('invalid json: %s' % msg)
+            raise RuntimeError('invalid json')
+
+        if json is None:
+            raise RuntimeError('no json in request')
+        if not isinstance(json, dict):
+            raise RuntimeError('need a dict')
+
+        eventlet.spawn_n(self.async_post, dict(json))
