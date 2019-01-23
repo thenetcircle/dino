@@ -21,6 +21,7 @@ def fail(error_message):
         'message': error_message
     }
 
+
 class SendResource(BaseResource):
     def __init__(self):
         super(SendResource, self).__init__()
