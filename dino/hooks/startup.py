@@ -27,8 +27,8 @@ class OnStartupDoneHooks(object):
             # assume we're testing
             return
 
-        if environ.env.node != 'rest':
-            # avoid publishing duplicate events by only letting the rest node publish external events
+        if environ.env.node != 'web':
+            # avoid publishing duplicate events by only letting the web node publish external events
             return
 
         from uuid import uuid4 as uuid
