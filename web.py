@@ -8,3 +8,5 @@ from dino.web import app
 
 from dino import environ
 environ.env.node = 'web'
+
+environ.env.observer.emit('on_startup_done', (None, None))
