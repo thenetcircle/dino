@@ -408,7 +408,8 @@ def activity_for_login(
         user_id: str, user_name: str,
         include_unread_history: bool=False,
         encode_attachments: bool=True,
-        heartbeat_sid=False
+        heartbeat_sid=False,
+        user_status=UserKeys.STATUS_AVAILABLE
 ) -> dict:
     if heartbeat_sid:
         sid = 'hb-{}'.format(user_id)
@@ -428,6 +429,7 @@ def activity_for_login(
     response = ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
+            'summary': str(user_status),
             'displayName': b64e(user_name),
             'content': sid,
             'attachments': get_user_info_attachments_for(

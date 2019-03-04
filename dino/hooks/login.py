@@ -62,7 +62,10 @@ class OnLoginHooks(object):
         user_id = activity.actor.id
         user_name = environ.env.session.get(SessionKeys.user_name.value)
 
-        activity_json = utils.activity_for_login(user_id, user_name, encode_attachments=False)
+        user_status = utils.get_user_status(user_id)
+        activity_json = utils.activity_for_login(
+            user_id, user_name, encode_attachments=False, user_status=user_status)
+
         environ.env.publish(activity_json, external=True)
 
     @staticmethod
