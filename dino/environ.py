@@ -1000,6 +1000,10 @@ def init_enrichment_service(gn_env: GNEnvironment):
         # assume we're testing
         return
 
+    if gn_env.config.get(ConfigKeys.ENRICH, None) is None:
+        # not enabled
+        return
+
     from dino.enrich.manager import EnrichmentManager
     from dino.enrich.title import TitleEnrichment
 
@@ -1062,9 +1066,9 @@ def initialize_env(dino_env):
     init_observer(dino_env)
     init_request_validators(dino_env)
     init_response_formatter(dino_env)
+    init_enrichment_service(dino_env)
 
     if 'wio' in dino_env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
-        init_enrichment_service(dino_env)
         init_fake_storage_engine(dino_env)
         init_heartbeat_service(dino_env)
         delete_ephemeral_rooms(dino_env)
