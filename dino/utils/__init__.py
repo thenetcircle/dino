@@ -404,10 +404,18 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str=None
     })
 
 
+def _user_status_int_to_str(user_status: str) -> str:
+    if user_status in {UserKeys.STATUS_AVAILABLE, UserKeys.STATUS_CHAT}:
+        return 'online'
+    if user_status == UserKeys.STATUS_INVISIBLE:
+        return 'invisible'
+    return 'offline'
+
+
 def activity_for_login(
         user_id: str, user_name: str,
-        include_unread_history: bool=False,
-        encode_attachments: bool=True,
+        include_unread_history: bool = False,
+        encode_attachments: bool = True,
         heartbeat_sid=False,
         user_status=UserKeys.STATUS_AVAILABLE
 ) -> dict:
@@ -429,7 +437,7 @@ def activity_for_login(
     response = ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
-            'summary': str(user_status),
+            'summary': _user_status_int_to_str(str(user_status)),
             'displayName': b64e(user_name),
             'content': sid,
             'attachments': get_user_info_attachments_for(
