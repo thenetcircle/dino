@@ -1,3 +1,4 @@
+import sys
 from activitystreams.models.activity import Activity
 from activitystreams.models.defobject import DefObject
 from activitystreams.models.actor import Actor
@@ -22,6 +23,7 @@ from dino.exceptions import NoSuchChannelException
 from dino.exceptions import NoChannelFoundException
 from dino.exceptions import MultipleRoomsFoundForNameException
 from dino import validation
+from dino import environ
 from dino.validation.duration import DurationValidator
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -98,7 +100,9 @@ class RequestValidator(BaseValidator):
                 try:
                     channel_id = utils.get_channel_for_room(room_id)
                 except NoSuchRoomException:
-                    return False, ECodes.NOT_ONLINE, 'target user %s is not online' % room_id
+                    # TODO: ignore for now, but capture so we can track; a user room won't exist, try to emit anyway
+                    environ.env.capture_exception(sys.exc_info())
+                    return True, False, False
 
             if not utils.channel_exists(channel_id):
                 return False, ECodes.NO_SUCH_CHANNEL, 'channel %s does not exists' % channel_id
