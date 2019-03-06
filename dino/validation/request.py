@@ -9,7 +9,6 @@ import traceback
 
 from uuid import UUID
 
-from dino import environ
 from dino import utils
 from dino.config import SessionKeys
 from dino.config import ApiActions
