@@ -61,7 +61,7 @@ python-engineio==2.3.1
 python-socketio==2.0.0
 python3-protobuf==2.5.0
 pytz==2018.5
-PyYAML==3.13
+PyYAML==5.1b3
 raven==6.9.0
 redis==2.10.6
 requests==2.20.0
