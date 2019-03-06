@@ -1,18 +1,6 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from datetime import datetime
+
+from dino.exceptions import NoSuchRoomException
 from flask import request
 
 import logging
@@ -21,8 +9,6 @@ from dino.utils import b64e
 from dino.utils.decorators import timeit
 from dino.rest.resources.base import BaseResource
 from dino import environ
-
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 logger = logging.getLogger(__name__)
 
@@ -41,24 +27,28 @@ class RoomsForUsersResource(BaseResource):
         rooms = environ.env.db.rooms_for_user(user_id)
 
         for room_id, room_name in rooms.items():
-            if room_id in channel_ids:
-                channel_id = channel_ids[room_id]
-            else:
-                channel_id = environ.env.db.channel_for_room(room_id)
-                channel_ids[room_id] = channel_id
+            try:
+                if room_id in channel_ids:
+                    channel_id = channel_ids[room_id]
+                else:
+                    channel_id = environ.env.db.channel_for_room(room_id)
+                    channel_ids[room_id] = channel_id
 
-            if channel_id in channel_names:
-                channel_name = channel_names[channel_id]
-            else:
-                channel_name = environ.env.db.get_channel_name(channel_id)
-                channel_names[channel_id] = channel_name
+                if channel_id in channel_names:
+                    channel_name = channel_names[channel_id]
+                else:
+                    channel_name = environ.env.db.get_channel_name(channel_id)
+                    channel_names[channel_id] = channel_name
 
-            output.append({
-                'room_id': room_id,
-                'room_name': b64e(room_name),
-                'channel_id': channel_id,
-                'channel_name': b64e(channel_name)
-            })
+                output.append({
+                    'room_id': room_id,
+                    'room_name': b64e(room_name),
+                    'channel_id': channel_id,
+                    'channel_name': b64e(channel_name)
+                })
+            except NoSuchRoomException:
+                # can ignore, already deleted or old cache value
+                pass
 
         return output
 
