@@ -93,8 +93,12 @@ class RequestValidator(BaseValidator):
             channel_id = None
             if hasattr(activity, 'object') and hasattr(activity.object, 'url'):
                 channel_id = activity.object.url
+
             if channel_id is None or len(channel_id.strip()) == 0:
-                channel_id = utils.get_channel_for_room(room_id)
+                try:
+                    channel_id = utils.get_channel_for_room(room_id)
+                except NoSuchRoomException:
+                    return False, ECodes.NOT_ONLINE, 'target user %s is not online' % room_id
 
             if not utils.channel_exists(channel_id):
                 return False, ECodes.NO_SUCH_CHANNEL, 'channel %s does not exists' % channel_id
