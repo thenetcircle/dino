@@ -745,7 +745,11 @@ class DatabaseRdbms(object):
                 visible_users[user_id] = user_name
             return visible_users
 
-        self.get_room_name(room_id)
+        try:
+            self.get_room_name(room_id)
+        except NoSuchRoomException:
+            logger.warning('tried to get users_in_room for non-existing room "{}"'.format(room_id))
+            return dict()
 
         is_super_user = False
         if this_user_id is not None:
@@ -1316,9 +1320,21 @@ class DatabaseRdbms(object):
                         'likely removed after check and before joining: %s'
             logger.warning(error_msg % (user_id, user_name, room_id, room_name, str(e)))
         except IntegrityError as e:
-            logger.warning('user "%s" (%s) tried to join room "%s" (%s) but it has been deleted: %s' %
-                           (user_name, user_id, room_name, room_id, str(e)))
-            raise NoSuchRoomException(room_id)
+            # try one more time, might have been temporary
+            logger.error('could not join room "{}" ({}), got IntegrityError, will try one more time: {}'.format(
+                room_name, room_id, str(e))
+            )
+
+            try:
+                _join_room()
+            except UnmappedInstanceError as e1:
+                error_msg = 'user "%s" (%s) tried to join room "%s" (%s), but the room was None when joining; ' \
+                            'likely removed after check and before joining: %s'
+                logger.warning(error_msg % (user_id, user_name, room_id, room_name, str(e1)))
+            except IntegrityError as e1:
+                logger.warning('user "%s" (%s) tried to join room "%s" (%s) but it has been deleted: %s' %
+                               (user_name, user_id, room_name, room_id, str(e1)))
+                raise NoSuchRoomException(room_id)
 
         self.env.cache.set_user_in_room(user_id, room_id, room_name)
 

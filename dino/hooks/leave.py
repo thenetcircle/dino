@@ -9,6 +9,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from dino.exceptions import NoSuchRoomException
 
 from dino import environ
 from dino import utils
@@ -28,7 +29,11 @@ class OnLeaveHooks(object):
         user_id = activity.actor.id
         user_name = activity.actor.display_name
         room_id = activity.target.id
-        room_name = utils.get_room_name(room_id)
+
+        try:
+            room_name = utils.get_room_name(room_id)
+        except NoSuchRoomException:
+            room_name = '[removed]'
 
         utils.remove_user_from_room(user_id, user_name, room_id)
 

@@ -12,6 +12,7 @@
 
 import logging
 import eventlet
+from dino.exceptions import NoSuchRoomException
 
 from dino import environ
 from dino import utils
@@ -35,7 +36,10 @@ class OnJoinHooks(object):
         user_name = environ.env.session.get(SessionKeys.user_name.value)
         room_name = utils.get_room_name(room_id)
 
-        utils.join_the_room(user_id, user_name, room_id, room_name)
+        try:
+            utils.join_the_room(user_id, user_name, room_id, room_name)
+        except NoSuchRoomException:
+            logger.error('tried to join non-existing room "{}" ({})'.format(room_id, room_name))
 
     @staticmethod
     @timeit(logger, 'on_join_hook_emit_join_event')
