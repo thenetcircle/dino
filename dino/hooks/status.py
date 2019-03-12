@@ -96,7 +96,7 @@ class OnStatusHooks(object):
         else:
             OnStatusHooks.logger.info(
                 'setting user {} ({}) to visible (online), was invisible (online)'.format(user_id, user_name))
-            OnStatusHooks.set_online(user_name, user_name)
+            OnStatusHooks.set_online(user_id, user_name)
 
     @staticmethod
     def set_invisible(user_id: str, user_name: str) -> None:
