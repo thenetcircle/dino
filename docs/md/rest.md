@@ -470,7 +470,7 @@ keys.
 
 ## POST /status
 
-Set the online status of a user.
+Set the online status or visibility status of a user.
 
 Request contains:
 
@@ -478,7 +478,7 @@ Request contains:
 ```json
 {   
     "id": "<user ID>",
-    "status": "<one of online/offline/invisible>"
+    "status": "<one of online/offline/invisible/visible>"
 }   
 ```
 
