@@ -1087,9 +1087,9 @@ class BaseDatabaseTest(BaseTest):
         self.assertEqual(BaseTest.OTHER_USER_NAME, self.db.get_user_name(BaseTest.OTHER_USER_ID))
 
     def _test_users_in_room(self):
-        self.assertRaises(NoSuchRoomException, self.db.users_in_room, BaseTest.ROOM_ID)
+        self.assertEqual(0, len(self.db.users_in_room(BaseTest.ROOM_ID)))
         self._create_channel()
-        self.assertRaises(NoSuchRoomException, self.db.users_in_room, BaseTest.ROOM_ID)
+        self.assertEqual(0, len(self.db.users_in_room(BaseTest.ROOM_ID)))
 
         self._create_room()
         self.assertEqual(0, len(self.db.users_in_room(BaseTest.ROOM_ID)))
