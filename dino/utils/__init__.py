@@ -1357,8 +1357,8 @@ def user_is_invisible(user_id: str) -> bool:
     return get_user_status(user_id) == UserKeys.STATUS_INVISIBLE
 
 
-def get_user_status(user_id: str) -> str:
-    return str(environ.env.db.get_user_status(user_id))
+def get_user_status(user_id: str, skip_cache: bool = False) -> str:
+    return str(environ.env.db.get_user_status(user_id, skip_cache))
 
 
 def get_last_read_for(room_id: str, user_id: str) -> str:

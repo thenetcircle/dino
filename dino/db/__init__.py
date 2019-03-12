@@ -1280,11 +1280,12 @@ class IDatabase(Interface):
         :return: a list of room uuids
         """
 
-    def get_user_status(self, user_id: str) -> str:
+    def get_user_status(self, user_id: str, skip_cache: bool = False) -> str:
         """
         the the status of the user (online/offline/invisible)
 
         :param user_id: the id of the user
+        :param skip_cache: bypass the cache or not
         :return: the status
         """
 

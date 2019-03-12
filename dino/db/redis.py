@@ -1239,7 +1239,7 @@ class DatabaseRedis(object):
         self.redis.hdel(RedisKeys.rooms(channel_id), room_id)
         self.redis.hdel(RedisKeys.channel_for_rooms(), room_id)
 
-    def get_user_status(self, user_id: str) -> str:
+    def get_user_status(self, user_id: str, skip_cache: bool = False) -> str:
         status = self.env.cache.get_user_status(user_id)
         if status is not None:
             return status

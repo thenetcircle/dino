@@ -468,7 +468,7 @@ class DatabaseRdbms(object):
             return exists
         return _room_exists()
 
-    def get_user_status(self, user_id: str) -> str:
+    def get_user_status(self, user_id: str, skip_cache: bool = False) -> str:
         @with_session
         def _get_user_status(session=None):
             status = session.query(UserStatus).filter_by(uuid=user_id).first()
@@ -476,9 +476,10 @@ class DatabaseRdbms(object):
                 return UserKeys.STATUS_UNAVAILABLE
             return status.status
 
-        status = self.env.cache.get_user_status(user_id)
-        if status is not None:
-            return status
+        if not skip_cache:
+            status = self.env.cache.get_user_status(user_id)
+            if status is not None:
+                return status
 
         status = _get_user_status()
         self.env.cache.set_user_status(user_id, status)
