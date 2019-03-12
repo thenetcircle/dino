@@ -4,6 +4,7 @@ import sys
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
+from dino.config import UserKeys
 from dino.exceptions import NoSuchUserException
 
 
@@ -36,6 +37,8 @@ class OnStatusHooks(object):
             OnStatusHooks.set_online(user_id, user_name, image)
         elif status == 'invisible':
             OnStatusHooks.set_invisible(user_id, user_name)
+        elif status == 'visible':
+            OnStatusHooks.set_visible(user_id, user_name)
         elif status == 'offline':
             OnStatusHooks.set_offline(user_id, user_name)
 
@@ -73,6 +76,29 @@ class OnStatusHooks(object):
                 include_self=False, namespace='/ws')
 
     @staticmethod
+    def set_visible(user_id: str, user_name: str) -> None:
+        status_for_already_visible = {
+            UserKeys.STATUS_AVAILABLE,
+            UserKeys.STATUS_CHAT,
+            UserKeys.STATUS_UNAVAILABLE
+        }
+
+        if utils.get_user_status(user_id) in status_for_already_visible:
+            return
+
+        # otherwise status is UserKeys.STATUS_INVISIBLE, but if not in multicast the user is offline
+        if not environ.env.cache.user_is_in_multicast(user_id):
+            OnStatusHooks.logger.info(
+                'setting user {} ({}) to visible (offline), was invisible (offline)'.format(user_id, user_name))
+            OnStatusHooks.set_offline(user_id, user_name)
+
+        # status is UserKeys.STATUS_VISIBLE, but is in multicast so the user is online
+        else:
+            OnStatusHooks.logger.info(
+                'setting user {} ({}) to visible (online), was invisible (online)'.format(user_id, user_name))
+            OnStatusHooks.set_online(user_name, user_name)
+
+    @staticmethod
     def set_invisible(user_id: str, user_name: str) -> None:
         OnStatusHooks.logger.info('setting user {} ({}) to invisible'.format(
             user_id, user_name,
@@ -102,7 +128,7 @@ class OnStatusHooks(object):
                     'gn_user_invisible', invisible_activity, room=admin_id, broadcast=False, namespace='/ws')
 
     @staticmethod
-    def set_online(user_id: str, user_name: str, image: str) -> None:
+    def set_online(user_id: str, user_name: str, image: str = '') -> None:
         was_invisible = utils.user_is_invisible(user_id)
         OnStatusHooks.logger.info('setting user {} ({}) online (was invisible before? {})'.format(
             user_id, user_name, was_invisible
