@@ -99,9 +99,13 @@ class OnStatusHooks(object):
             user_id, user_name,
         ))
 
-        is_online_now = utils.user_is_online(user_id)
+        is_offline = not utils.user_is_online(user_id)
+        environ.env.db.set_user_invisible(user_id, is_offline=is_offline)
 
-        environ.env.db.set_user_invisible(user_id)
+        if is_offline:
+            # nothing more to do if offline already
+            return
+
         disconnect_activity = utils.activity_for_disconnect(user_id, user_name)
 
         rooms = utils.rooms_for_user(user_id)
