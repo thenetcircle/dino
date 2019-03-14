@@ -1256,8 +1256,11 @@ class DatabaseRedis(object):
         self.env.cache.set_user_online(user_id)
         self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
 
-    def set_user_invisible(self, user_id: str) -> None:
-        self.env.cache.set_user_invisible(user_id)
+    def set_user_invisible(self, user_id: str, is_offline=False) -> None:
+        if is_offline:
+            self.env.cache.setUser_status_invisible(user_id)
+        else:
+            self.env.cache.set_user_invisible(user_id)
 
     def update_last_read_for(self, users: set, room_id: str, time_stamp: int) -> None:
         self.get_room_name(room_id)

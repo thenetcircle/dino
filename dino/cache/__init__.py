@@ -818,6 +818,14 @@ class ICache(Interface):
         :return:
         """
 
+    def set_user_status_invisible(self, user_id: str) -> None:
+        """
+        only sets the user status to invisible, used for when chaning visibility status while a user is offline
+
+        :param user_id:
+        :return:
+        """
+
     def set_user_invisible(self, user_id: str) -> None:
         """
 

@@ -1305,11 +1305,12 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def set_user_invisible(self, user_id: str) -> None:
+    def set_user_invisible(self, user_id: str, is_offline=False) -> None:
         """
         indicate a user is invisible
 
         :param user_id: id of the user
+        :param is_offline: if the user is offline, we only want to set the user status to invisible, nothing else
         :return: nothing
         """
 

@@ -485,7 +485,7 @@ class DatabaseRdbms(object):
         self.env.cache.set_user_status(user_id, status)
         return status
 
-    def set_user_invisible(self, user_id: str) -> None:
+    def set_user_invisible(self, user_id: str, is_offline=False) -> None:
         @with_session
         def _set_user_invisible(session=None):
             user_status = session.query(UserStatus).filter(UserStatus.uuid == user_id).first()
@@ -497,7 +497,10 @@ class DatabaseRdbms(object):
             session.add(user_status)
             session.commit()
 
-        self.env.cache.set_user_invisible(user_id)
+        if is_offline:
+            self.env.cache.set_user_status_invisible(user_id)
+        else:
+            self.env.cache.set_user_invisible(user_id)
 
         try:
             _set_user_invisible()

@@ -77,32 +77,30 @@ class OnStatusHooks(object):
 
     @staticmethod
     def set_visible(user_id: str, user_name: str) -> None:
-        status_for_already_visible = {
-            UserKeys.STATUS_AVAILABLE,
-            UserKeys.STATUS_CHAT,
-            UserKeys.STATUS_UNAVAILABLE
-        }
-
-        if utils.get_user_status(user_id) in status_for_already_visible:
+        user_status = utils.get_user_status(user_id, skip_cache=True)
+        if user_status in {UserKeys.STATUS_AVAILABLE, UserKeys.STATUS_CHAT}:
             return
 
-        # otherwise status is UserKeys.STATUS_INVISIBLE, but if not in multicast the user is offline
-        if not environ.env.cache.user_is_in_multicast(user_id):
-            OnStatusHooks.logger.info(
-                'setting user {} ({}) to visible (offline), was invisible (offline)'.format(user_id, user_name))
-            OnStatusHooks.set_offline(user_id, user_name)
-
         # status is UserKeys.STATUS_VISIBLE, but is in multicast so the user is online
-        else:
+        if environ.env.cache.user_is_in_multicast(user_id):
             OnStatusHooks.logger.info(
                 'setting user {} ({}) to visible (online), was invisible (online)'.format(user_id, user_name))
             OnStatusHooks.set_online(user_id, user_name)
+
+        # otherwise status is UserKeys.STATUS_INVISIBLE, but if not in multicast the user is offline
+        else:
+            OnStatusHooks.logger.info(
+                'setting user {} ({}) to visible (offline), was invisible (offline)'.format(user_id, user_name))
+            OnStatusHooks.set_offline(user_id, user_name)
 
     @staticmethod
     def set_invisible(user_id: str, user_name: str) -> None:
         OnStatusHooks.logger.info('setting user {} ({}) to invisible'.format(
             user_id, user_name,
         ))
+
+        is_online_now = utils.user_is_online(user_id)
+
         environ.env.db.set_user_invisible(user_id)
         disconnect_activity = utils.activity_for_disconnect(user_id, user_name)
 

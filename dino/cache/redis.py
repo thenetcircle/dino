@@ -779,6 +779,14 @@ class CacheRedis(object):
             logger.error('could not set_user_online(): %s' % str(e))
             logger.exception(traceback.format_exc())
 
+    def set_user_status_invisible(self, user_id: str) -> None:
+        try:
+            user_id_str = str(user_id).strip()
+            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
+        except Exception as e:
+            logger.error('could not set_user_status_invisible(): %s' % str(e))
+            logger.exception(traceback.format_exc())
+
     def set_user_invisible(self, user_id: str) -> None:
         try:
             user_id_str = str(user_id).strip()
