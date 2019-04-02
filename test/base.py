@@ -264,7 +264,10 @@ class BaseTest(unittest.TestCase):
                     },
                     'crossroom': {
                         'acls': all_acls
-                    }
+                    },
+                    'whisper': {
+                        'acls': ['disallow']
+                    },
                 },
                 'available': {
                     'acls': all_acls

@@ -138,7 +138,10 @@ def index():
 @app.route('/api/acls', methods=['GET'])
 def acl_list():
     acls = acl_manager.get_acls()
-    result = { 'channel': {}, 'room': {} }
+    result = {
+        'channel': {},
+        'room': {}
+    }
 
     for action in acls['channel']:
         result['channel'][action] = acls['channel'][action]['acls']

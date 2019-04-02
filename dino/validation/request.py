@@ -669,6 +669,13 @@ class RequestValidator(BaseValidator):
         except (NoSuchChannelException, NoChannelFoundException):
             return False, ECodes.NO_SUCH_CHANNEL, 'no channel found for actor.url (room uuid to whisper in)'
 
+        channel_acls = utils.get_acls_in_channel_for_action(activity.object.url, ApiActions.WHISPER)
+        is_valid, msg = validation.acl.validate_acl_for_action(
+            activity, ApiTargets.CHANNEL, ApiActions.WHISPER, channel_acls)
+
+        if not is_valid:
+            return False, ECodes.NOT_ALLOWED, msg
+
         return True, None, None
 
     def on_create(self, activity: Activity) -> (bool, int, str):

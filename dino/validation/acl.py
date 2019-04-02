@@ -56,7 +56,15 @@ class AclValidator(object):
             return False, e.msg
         return True, None
 
-    def validate_acl_for_action(self, activity: Activity, target: str, action: str, target_acls: dict, target_id: str=None, object_type: str=None) -> (bool, str):
+    def validate_acl_for_action(
+            self,
+            activity: Activity,
+            target: str,
+            action: str,
+            target_acls: dict,
+            target_id: str = None,
+            object_type: str = None
+    ) -> (bool, str):
         all_acls = environ.env.config.get(ConfigKeys.ACL)
 
         if not hasattr(activity, 'target') or not hasattr(activity.target, 'object_type'):
@@ -697,7 +705,7 @@ class AclConfigValidator(object):
         rules = ['acls', 'exclude']
         actions = {
             'room': ['join', 'setacl', 'history', 'create', 'list', 'kick', 'message', 'crossroom', 'ban'],
-            'channel': ['create', 'setacl', 'list', 'create', 'message', 'crossroom', 'ban']
+            'channel': ['create', 'setacl', 'list', 'create', 'message', 'crossroom', 'ban', 'whisper']
         }
 
         AclConfigValidator.check_acl_roots(acls)

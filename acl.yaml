@@ -79,6 +79,9 @@ channel:
             - samechannel
     crossroom:
         <<: *AVAILABLE
+    whisper:
+        acls:
+           - disallow
     setacl:
         acls:
             - owner
