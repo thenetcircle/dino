@@ -783,6 +783,7 @@ class CacheRedis(object):
         try:
             user_id_str = str(user_id).strip()
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
+            self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
         except Exception as e:
             logger.error('could not set_user_status_invisible(): %s' % str(e))
             logger.exception(traceback.format_exc())
