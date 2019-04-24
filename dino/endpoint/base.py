@@ -62,7 +62,6 @@ class BasePublisher(ABC):
                          (message['verb'], message['id']))
             return
 
-        start = time.time()
         n_tries = 3
         current_try = 0
         failed = False
@@ -70,9 +69,6 @@ class BasePublisher(ABC):
         for current_try in range(n_tries):
             try:
                 self.try_publish(message)
-
-                self.env.stats.incr('publish.external.count')
-                self.env.stats.timing('publish.external.time', (time.time()-start)*1000)
                 failed = False
                 self.update_recently_sent(message['id'])
                 break

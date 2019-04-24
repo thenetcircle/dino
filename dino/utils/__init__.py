@@ -28,7 +28,6 @@ from dino.config import UserKeys
 from dino.config import ApiActions
 from dino.config import ApiTargets
 from dino.config import SessionKeys
-from dino.utils.decorators import timeit
 from dino.utils.blacklist import BlackListChecker
 from dino.utils.activity_helper import ActivityBuilder
 from datetime import timedelta
@@ -500,7 +499,6 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
     return response
 
 
-@timeit(logger, 'on_activity_for_history')
 def activity_for_history(activity: Activity, messages: list) -> dict:
     response = ActivityBuilder.enrich({
         'object': {
@@ -805,7 +803,6 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     return response
 
 
-@timeit(logger, 'on_activity_for_users_in_room')
 def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
     users = users_orig.copy()
     response = ActivityBuilder.enrich({
@@ -1295,7 +1292,6 @@ def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
     return False
 
 
-@timeit(logger, 'on_get_history_for_room')
 def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> list:
     history = environ.env.config.get(
             ConfigKeys.TYPE,

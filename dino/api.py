@@ -481,7 +481,6 @@ def on_users_in_room(data: dict, activity: Activity) -> (int, Union[dict, str]):
     return ECodes.OK, utils.activity_for_users_in_room(activity, users)
 
 
-@timeit(logger, 'on_list_rooms')
 def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     """
     get a list of rooms
@@ -537,7 +536,6 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     return ECodes.OK, activity_json
 
 
-@timeit(logger, 'on_list_channels')
 def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     """
     get a list of channels

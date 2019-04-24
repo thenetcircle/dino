@@ -34,7 +34,6 @@ class OnMessageHooks(object):
         def send(_data: dict, _room: str, _json: bool=True, _broadcast: bool=True) -> None:
             environ.env.emit('message', _data, json=_json, room=_room, broadcast=_broadcast)
 
-        @timeit(logger, 'on_message_hooks_publish_activity')
         def publish_activity() -> None:
             user_name = activity.actor.display_name
             if utils.is_base64(user_name):
@@ -43,7 +42,6 @@ class OnMessageHooks(object):
             activity_json = utils.activity_for_message(user_id, user_name)
             environ.env.publish(activity_json, external=True)
 
-        @timeit(logger, 'on_message_hooks_broadcast')
         def broadcast():
             room_id = activity.target.id
             if utils.user_is_invisible(user_id):
@@ -59,7 +57,6 @@ class OnMessageHooks(object):
             else:
                 send(data, _room=room_id)
 
-        @timeit(logger, 'on_message_hooks_store')
         def store(deleted=False) -> Union[str, None]:
             try:
                 message_id = environ.env.storage.store_message(activity, deleted=deleted)
@@ -218,5 +215,6 @@ class OnMessageHooks(object):
 
 
 @environ.env.observer.on('on_message')
+@timeit(logger, 'on_message_hooks')
 def _on_message_broadcast(arg: tuple) -> None:
     OnMessageHooks.do_process(arg)

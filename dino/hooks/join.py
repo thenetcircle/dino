@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 class OnJoinHooks(object):
     @staticmethod
-    @timeit(logger, 'on_join_hook_join_room')
     def join_room(arg: tuple) -> None:
         data, activity = arg
         room_id = activity.target.id
@@ -42,7 +41,6 @@ class OnJoinHooks(object):
             logger.error('tried to join non-existing room "{}" ({})'.format(room_id, room_name))
 
     @staticmethod
-    @timeit(logger, 'on_join_hook_emit_join_event')
     def emit_join_event(activity, user_id, user_name, image) -> None:
         room_id = activity.target.id
         room_name = utils.get_room_name(room_id)
@@ -66,6 +64,7 @@ class OnJoinHooks(object):
 
 
 @environ.env.observer.on('on_join')
+@timeit(logger, 'on_join_hooks')
 def _on_join_join_room(arg: tuple) -> None:
     OnJoinHooks.join_room(arg)
 
