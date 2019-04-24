@@ -313,16 +313,27 @@ class CacheRedis(object):
         return self._get_ban_timestamp(key, user_id)
 
     def reset_rooms_for_channel(self, channel_id: str) -> None:
-        key = RedisKeys.rooms_for_channel_with_info(channel_id)
-        self.cache.delete(key)
+        key_with_info = RedisKeys.rooms_for_channel_with_info(channel_id)
+        key_without_info = RedisKeys.rooms_for_channel_without_info(channel_id)
 
-    def get_rooms_for_channel(self, channel_id: str) -> dict:
-        key = RedisKeys.rooms_for_channel_with_info(channel_id)
+        self.cache.delete(key_with_info)
+        self.cache.delete(key_without_info)
+
+    def get_rooms_for_channel(self, channel_id: str, with_info: bool = True) -> dict:
+        if with_info:
+            key = RedisKeys.rooms_for_channel_with_info(channel_id)
+        else:
+            key = RedisKeys.rooms_for_channel_without_info(channel_id)
+
         return self.cache.get(key)
 
-    def set_rooms_for_channel(self, channel_id: str, rooms_info: dict) -> None:
-        key = RedisKeys.rooms_for_channel_with_info(channel_id)
-        self.cache.set(key, rooms_info, ttl=ONE_MINUTE + random.random()*ONE_MINUTE)
+    def set_rooms_for_channel(self, channel_id: str, rooms_infos: dict, with_info: bool = True) -> None:
+        if with_info:
+            key = RedisKeys.rooms_for_channel_with_info(channel_id)
+        else:
+            key = RedisKeys.rooms_for_channel_without_info(channel_id)
+
+        self.cache.set(key, rooms_infos, ttl=ONE_MINUTE + random.random()*ONE_MINUTE)
 
     def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
         key = RedisKeys.acls_in_room_for_action(room_id, action)

@@ -73,7 +73,6 @@ from dino.exceptions import ValidationException
 from dino.utils import b64d
 from dino.utils import b64e
 from dino.utils import is_base64
-from dino.utils.decorators import timeit
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -210,7 +209,6 @@ class DatabaseRdbms(object):
         self.env.cache.reset_user_roles(user_id)
         self.get_user_roles(user_id)
 
-    @timeit(logger, 'on_get_user_roles_in_room')
     def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:
         @with_session
         def _room_roles(session=None) -> list:
@@ -618,7 +616,6 @@ class DatabaseRdbms(object):
 
     def rooms_for_channel_without_info(self, channel_id: str) -> dict:
         @with_session
-        @timeit(logger, 'on_rooms_for_channel_user_ids')
         def _rooms_for_channel(session=None):
             all_rooms = session.query(Rooms)\
                 .join(Rooms.channel)\
@@ -632,19 +629,24 @@ class DatabaseRdbms(object):
                 } for room in all_rooms
             }
 
+        channels = self.env.cache.get_rooms_for_channel(channel_id, with_info=False)
+        if channels is not None:
+            return channels
+
         try:
-            return _rooms_for_channel()
+            channels = _rooms_for_channel()
         except Exception as e:
             logger.error('could not get rooms: {}'.format(str(e)))
             logger.exception(traceback.format_exc())
             self.env.capture_exception(sys.exc_info())
-        return dict()
+            return dict()
+
+        self.env.cache.set_rooms_for_channel(channel_id, channels, with_info=False)
+        return channels
 
     def rooms_for_channel(self, channel_id) -> dict:
-        @timeit(logger, 'on_rooms_for_channel')
         def _rooms():
             @with_session
-            @timeit(logger, 'on_rooms_for_channel_user_ids')
             def _user_ids_and_room_data(session=None):
                 all_rooms = session.query(Rooms)\
                     .join(Rooms.channel)\
@@ -665,14 +667,12 @@ class DatabaseRdbms(object):
                         unique_users.add(user.uuid)
                 return unique_users, room_info
 
-            @timeit(logger, 'on_rooms_for_channel_user_statuses')
             def _user_statuses(_user_ids: set):
                 user_statuses = dict()
                 for user_id in _user_ids:
                     user_statuses[user_id] = self.get_user_status(user_id)
                 return user_statuses
 
-            @timeit(logger, 'on_rooms_for_channel_get_the_rooms')
             def _get_the_rooms(all_rooms: dict, user_statuses: dict):
                 rooms_with_n_users = dict()
                 for room_id in all_rooms.keys():
@@ -721,7 +721,6 @@ class DatabaseRdbms(object):
 
     def users_in_room(self, room_id: str, this_user_id: str=None, skip_cache: bool=False) -> dict:
         @with_session
-        @timeit(logger, 'on_users_in_room_user_ids')
         def _user_ids(session=None):
             room = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).first()
             users_in_room = dict()
@@ -732,7 +731,6 @@ class DatabaseRdbms(object):
                 users_in_room[user.uuid] = user.name
             return users_in_room
 
-        @timeit(logger, 'on_users_in_room_user_statuses')
         def _user_statuses(user_ids: dict):
             statuses = dict()
             for user_id in user_ids.keys():
@@ -1811,7 +1809,6 @@ class DatabaseRdbms(object):
 
     def get_acls_in_room_for_action(self, room_id: str, action: str):
         @with_session
-        @timeit(logger, 'on_get_acls_in_room_for_action')
         def _acls(session=None):
             room = session.query(Rooms)\
                 .outerjoin(Rooms.acls)\
@@ -1843,7 +1840,6 @@ class DatabaseRdbms(object):
 
     def get_acls_in_channel_for_action(self, channel_id: str, action: str):
         @with_session
-        @timeit(logger, 'on_get_acls_in_channel_for_action')
         def _acls(session=None):
             channel = session.query(Channels)\
                 .outerjoin(Channels.acls)\

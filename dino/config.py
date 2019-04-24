@@ -301,6 +301,7 @@ class RedisKeys(object):
     RKEY_ACLS_IN_ROOM_FOR_ACTION = 'room:acls:%s:%s'  # room:acls:room_id:action_name
     RKEY_ACLS_IN_CHANNEL_FOR_ACTION = 'channel:acls:%s:%s'  # room:acls:channel_id:action_name
     RKEY_ROOMS_FOR_CHANNEL_WITH_INFO = 'channel:rooms:info:%s'  # channel:rooms:info:channel_id
+    RKEY_ROOMS_FOR_CHANNEL_WITHOUT_INFO = 'channel:rooms:noinfo:%s'  # channel:rooms:noinfo:channel_id
     RKEY_TYPE_OF_ROOMS_IN_CHANNEL = 'channel:roomtype:%s'  # channel:roomtype:channel_id
     RKEY_ROOMS_FOR_USER = 'user:rooms:%s'  # user:rooms:user_id
     RKEY_USERS_IN_ROOM = 'room:%s'  # room:room_id
@@ -394,6 +395,10 @@ class RedisKeys(object):
     @staticmethod
     def rooms_for_channel_with_info(channel_id: str) -> str:
         return RedisKeys.RKEY_ROOMS_FOR_CHANNEL_WITH_INFO % channel_id
+
+    @staticmethod
+    def rooms_for_channel_without_info(channel_id: str) -> str:
+        return RedisKeys.RKEY_ROOMS_FOR_CHANNEL_WITHOUT_INFO % channel_id
 
     @staticmethod
     def default_rooms() -> str:

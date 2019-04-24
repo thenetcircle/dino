@@ -178,9 +178,9 @@ class ICache(Interface):
         :return: a list of sids or None if not cached
         """
 
-    def get_rooms_for_channel(self, channel_id: str) -> dict:
+    def get_rooms_for_channel(self, channel_id: str, with_info: bool = True) -> dict:
         """
-        get the room info for this channel
+        get the rooms for this channel with or without info
 
         returned info is a dict of dicts (or None of not found):
 
@@ -191,11 +191,19 @@ class ICache(Interface):
                 'users': len(visible_users)
             }
 
+        if with_info=False:
+
+            rooms[room.uuid] = {
+                'name': room.name,
+                'ephemeral': room.ephemeral
+            }
+
         :param channel_id: uuid of the channel
+        :param with_info: boolean, if true (default), will include n_users and is_ephemeral in output
         :return: the room infos
         """
 
-    def set_rooms_for_channel(self, channel_id: str, room_infos: dict) -> dict:
+    def set_rooms_for_channel(self, channel_id: str, rooms_infos: dict, with_info: bool = True) -> None:
         """
         set the room info for this channel
 
@@ -209,7 +217,8 @@ class ICache(Interface):
             }
 
         :param channel_id: uuid of the channel
-        :param room_infos: the room infos
+        :param rooms_infos: the room infos
+        :param with_info: if the rooms_infos includes ephemeral and users tag or not
         :return: nothing
         """
 
