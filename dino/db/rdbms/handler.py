@@ -1124,7 +1124,9 @@ class DatabaseRdbms(object):
     @with_session
     def get_all_user_ids(self, session=None) -> list:
         from sqlalchemy.orm import load_only
-        users = session.query(Users).options(load_only('uuid')).all()
+        users = session.query(Users)\
+            .join(UserStatus, Users.uuid == UserStatus.uuid)\
+            .options(load_only('uuid')).all()
         return [user.uuid for user in users]
 
     def update_room_sort_order(self, room_uuid: str, sort_order: int) -> None:
