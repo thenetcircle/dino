@@ -22,14 +22,14 @@ logger.info('getting all user ids...')
 
 try:
     all_users = env.db.get_all_user_ids()
-    logger.info('caching all user roles...')
+    logger.info('caching all user roles ({})...'.format(len(all_users)))
     env.db.get_users_roles(all_users)
 except NotImplementedError:
     pass
 
 try:
-    logger.info('caching all rooms for channels...')
     channels = env.db.get_channels()
+    logger.info('caching all rooms for channels ({})...'.format(len(channels)))
     for channel_id in channels.keys():
         env.db.rooms_for_channel(channel_id)
 except NotImplementedError:
