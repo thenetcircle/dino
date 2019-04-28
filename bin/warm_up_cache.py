@@ -27,4 +27,12 @@ try:
 except NotImplementedError:
     pass
 
+try:
+    logger.info('caching all rooms for channels...')
+    channels = env.db.get_channels()
+    for channel_id in channels.keys():
+        env.db.rooms_for_channel(channel_id)
+except NotImplementedError:
+    pass
+
 logger.info('done! cache warmed up')
