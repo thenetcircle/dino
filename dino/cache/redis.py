@@ -319,21 +319,168 @@ class CacheRedis(object):
         self.cache.delete(key_with_info)
         self.cache.delete(key_without_info)
 
-    def get_rooms_for_channel(self, channel_id: str, with_info: bool = True) -> dict:
-        if with_info:
-            key = RedisKeys.rooms_for_channel_with_info(channel_id)
-        else:
-            key = RedisKeys.rooms_for_channel_without_info(channel_id)
+        self.redis.delete(key_with_info)
+        self.redis.delete(key_without_info)
 
-        return self.cache.get(key)
+    def get_rooms_for_channel(self, channel_id: str, with_info: bool = True) -> dict:
+        """
+        rooms_with_n_users[room_id] = {
+            'name': all_rooms[room_id]['name'],
+            'sort_order': all_rooms[room_id]['sort_order'],
+            'ephemeral': all_rooms[room_id]['ephemeral'],
+            'admin': all_rooms[room_id]['admin'],
+            'users': len(visible_users)
+        }
+        """
+        if with_info:
+            return self._get_rooms_for_channel_with_info(channel_id)
+        else:
+            return self._get_rooms_for_channel_without_info(channel_id)
+
+    def _get_rooms_for_channel_without_info(self, channel_id: str) -> dict:
+        """
+        room.uuid: {
+            'ephemeral': room.ephemeral,
+            'name': room.name
+        }
+        """
+        key = RedisKeys.rooms_for_channel_without_info(channel_id)
+
+        rooms = self.cache.get(key)
+        if rooms is not None:
+            return rooms
+
+        raw_rooms = self.redis.hgetall(key)
+        if raw_rooms is None or len(raw_rooms) == 0:
+            return None
+
+        clean_rooms = dict()
+        for room_id, room_info in raw_rooms.items():
+            room_id = str(room_id, 'utf8')
+            room_info = str(room_info, 'utf8')
+            room_ephemeral, room_name = room_info.split('|', maxsplit=1)
+
+            if room_ephemeral.lower() in {'', 'true'}:
+                room_ephemeral = True
+            else:
+                room_ephemeral = False
+
+            clean_rooms[room_id] = {
+                'name': room_name,
+                'ephemeral': room_ephemeral
+            }
+
+        return clean_rooms
+
+    def _get_rooms_for_channel_with_info(self, channel_id: str) -> dict:
+        """
+        rooms_with_n_users[room_id] = {
+            'name': all_rooms[room_id]['name'],
+            'sort_order': all_rooms[room_id]['sort_order'],
+            'ephemeral': all_rooms[room_id]['ephemeral'],
+            'admin': all_rooms[room_id]['admin'],
+            'users': len(visible_users)
+        }
+        """
+        key = RedisKeys.rooms_for_channel_with_info(channel_id)
+
+        rooms = self.cache.get(key)
+        if rooms is not None:
+            return rooms
+
+        raw_rooms = self.redis.hgetall(key)
+        if raw_rooms is None or len(raw_rooms) == 0:
+            return None
+
+        clean_rooms = dict()
+        for room_id, room_info in raw_rooms.items():
+            room_id = str(room_id, 'utf8')
+            room_info = str(room_info, 'utf8')
+            room_sort, room_ephemeral, room_admin, room_users, room_name = room_info.split('|', maxsplit=4)
+
+            if room_sort == '':
+                room_sort = '999'
+            room_sort = int(room_sort)
+
+            if room_admin.lower() in {'', 'false'}:
+                room_admin = False
+            else:
+                room_admin = True
+
+            if room_ephemeral.lower() in {'', 'true'}:
+                room_ephemeral = True
+            else:
+                room_ephemeral = False
+
+            if room_users == '':
+                room_users = '0'
+            room_users = int(room_users)
+
+            clean_rooms[room_id] = {
+                'name': room_name,
+                'sort_order': room_sort,
+                'ephemeral': room_ephemeral,
+                'admin': room_admin,
+                'users': room_users
+            }
+
+        return clean_rooms
 
     def set_rooms_for_channel(self, channel_id: str, rooms_infos: dict, with_info: bool = True) -> None:
         if with_info:
-            key = RedisKeys.rooms_for_channel_with_info(channel_id)
+            self._set_rooms_for_channel_with_info(channel_id, rooms_infos)
         else:
-            key = RedisKeys.rooms_for_channel_without_info(channel_id)
+            self._set_rooms_for_channel_without_info(channel_id, rooms_infos)
 
+    def _set_rooms_for_channel_with_info(self, channel_id: str, rooms_infos: dict) -> None:
+        """
+        rooms_with_n_users[room_id] = {
+            'name': all_rooms[room_id]['name'],
+            'sort_order': all_rooms[room_id]['sort_order'],
+            'ephemeral': all_rooms[room_id]['ephemeral'],
+            'admin': all_rooms[room_id]['admin'],
+            'users': len(visible_users)
+        }
+
+        room_sort, room_ephemeral, room_admin, room_users, room_name = room_info.split('|', maxsplit=4)
+        """
+        key = RedisKeys.rooms_for_channel_with_info(channel_id)
         self.cache.set(key, rooms_infos, ttl=ONE_MINUTE + random.random()*ONE_MINUTE)
+
+        redis_rooms = dict()
+        for room_id, room_info in rooms_infos.items():
+            r_value = '{}|{}|{}|{}|{}'.format(
+                str(room_info['sort_order']),
+                str(room_info['ephemeral'] or True).lower(),
+                str(room_info['admin'] or False).lower(),
+                str(room_info['users'] or 0),
+                room_info['name']
+            )
+            redis_rooms[room_id] = r_value
+
+        if len(redis_rooms) > 0:
+            self.redis.hmset(key, redis_rooms)
+
+    def _set_rooms_for_channel_without_info(self, channel_id: str, rooms_infos: dict) -> None:
+        """
+        room.uuid: {
+            'ephemeral': room.ephemeral,
+            'name': room.name
+        }
+        """
+        key = RedisKeys.rooms_for_channel_without_info(channel_id)
+        self.cache.set(key, rooms_infos, ttl=ONE_MINUTE + random.random()*ONE_MINUTE)
+
+        redis_rooms = dict()
+        for room_id, room_info in rooms_infos.items():
+            r_value = '{}|{}'.format(
+                str(room_info['ephemeral'] or True).lower(),
+                room_info['name']
+            )
+            redis_rooms[room_id] = r_value
+
+        if len(redis_rooms) > 0:
+            self.redis.hmset(key, redis_rooms)
 
     def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
         key = RedisKeys.acls_in_room_for_action(room_id, action)
