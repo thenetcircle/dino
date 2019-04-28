@@ -26,8 +26,8 @@ __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 logger = logging.getLogger(__name__)
 socket_logger = logging.getLogger('socketio')
 socket_logger.setLevel(logging.WARNING)
-logging.getLogger('amqp').setLevel(logging.INFO)
-logging.getLogger('kafka.conn').setLevel(logging.INFO)
+logging.getLogger('amqp').setLevel(logging.WARNING)
+logging.getLogger('kafka.conn').setLevel(logging.WARNING)
 
 
 def create_app():
