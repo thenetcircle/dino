@@ -5,10 +5,16 @@ import eventlet
 import traceback
 import logging
 import sys
+import os
 
 from dino.endpoint.base import PublishException
 
 logger = logging.getLogger(__name__)
+DINO_DEBUG = os.environ.get('DINO_DEBUG')
+if DINO_DEBUG is not None and DINO_DEBUG.lower() in {'1', 'true', 'yes'}:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
 
 
 class PubSub(object):

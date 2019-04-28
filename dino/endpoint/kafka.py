@@ -1,5 +1,5 @@
 import logging
-import random
+import os
 import traceback
 
 from dino import environ
@@ -7,6 +7,11 @@ from dino.config import ConfigKeys
 from dino.endpoint.base import BasePublisher
 
 logger = logging.getLogger(__name__)
+DINO_DEBUG = os.environ.get('DINO_DEBUG')
+if DINO_DEBUG is not None and DINO_DEBUG.lower() in {'1', 'true', 'yes'}:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
 
 
 class KafkaPublisher(BasePublisher):

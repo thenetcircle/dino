@@ -44,6 +44,11 @@ from dino.exceptions import NoSuchRoomException
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 logger = logging.getLogger(__name__)
+DINO_DEBUG = os.environ.get('DINO_DEBUG')
+if DINO_DEBUG is not None and DINO_DEBUG.lower() in {'1', 'true', 'yes'}:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
 
 ADMIN_B64 = 'QWRtaW4='
 
@@ -1331,7 +1336,7 @@ def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str, is
         environ.env.db.join_room(user_id, user_name, room_id, room_name)
 
     environ.env.join_room(room_id)
-    logger.debug('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
+    logger.info('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
 
 
 def user_is_online(user_id: str) -> bool:
