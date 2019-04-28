@@ -45,6 +45,29 @@ class CacheRedisTest(TestCase):
         self.cache = self.env.cache
         self.cache._flushall()
 
+    def test_get_channels_with_sort_no_channels(self):
+        self.assertEqual(None, self.env.cache.get_channels_with_sort())
+
+    def test_get_channels_with_sort_channel_in_cache(self):
+        self.assertEqual(None, self.env.cache.get_channels_with_sort())
+        self.cache._set(RedisKeys.RKEY_CHANNELS_SORT, {'channel-id': ('channel-name', 999)})
+        self.assertEqual(1, len(self.env.cache.get_channels_with_sort()))
+
+    def test_get_channels_with_sort_channel_in_redis(self):
+        self.assertEqual(None, self.env.cache.get_channels_with_sort())
+        self.env.cache.redis_instance.hmset(RedisKeys.RKEY_CHANNELS_SORT, {'channel-id': '999|channel-name'})
+
+        cached_value = self.env.cache.get_channels_with_sort()
+
+        self.assertEqual(1, len(cached_value))
+        self.assertEqual('channel-id', list(cached_value.keys())[0])
+
+        channel_name = list(cached_value.values())[0][0]
+        channel_sort = list(cached_value.values())[0][1]
+
+        self.assertEqual(999, channel_sort)
+        self.assertEqual('channel-name', channel_name)
+
     def test_set_user_status(self):
         self.cache.set_user_status(CacheRedisTest.USER_ID, '1')
         self.assertEqual('1', self.cache.get_user_status(CacheRedisTest.USER_ID))

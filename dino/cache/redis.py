@@ -500,14 +500,47 @@ class CacheRedis(object):
     def reset_channels_with_sort(self):
         key = RedisKeys.channels_with_sort()
         self.cache.delete(key)
+        self.redis.delete(key)
 
     def get_channels_with_sort(self):
         key = RedisKeys.channels_with_sort()
-        return self.cache.get(key)
+        channels = self.cache.get(key)
+        if channels is not None:
+            return channels
+
+        raw_channels = self.redis.hgetall(key)
+        clean_channels = dict()
+
+        if raw_channels is None or len(raw_channels) == 0:
+            return None
+
+        for channel_id, channel_sort_channel_name in raw_channels.items():
+            try:
+                channel_sort_channel_name = str(channel_sort_channel_name, 'utf8')
+                channel_sort, channel_name = channel_sort_channel_name.split('|', maxsplit=1)
+                channel_sort = int(channel_sort)
+                channel_id = str(channel_id, 'utf8')
+
+                clean_channels[channel_id] = (channel_name, channel_sort)
+            except Exception as e:
+                logger.error('invalid channel name in redis with key {}, value was "{}": {}'.format(
+                    key, channel_sort_channel_name, str(e)))
+
+        self.cache.set(key, clean_channels, ttl=ONE_MINUTE)
+        return clean_channels
 
     def set_channels_with_sort(self, channels):
+        if len(channels) == 0:
+            return
+
         key = RedisKeys.channels_with_sort()
-        self.cache.set(key, channels, ttl=TEN_MINUTES)
+        self.cache.set(key, channels, ttl=ONE_MINUTE)
+
+        redis_channels = dict()
+        for channel_id, (channel_name, channel_sort) in channels.items():
+            redis_channels[channel_id] = '{}|{}'.format(str(channel_sort), channel_name)
+
+        self.redis.hmset(key, redis_channels)
 
     def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> str:
         key = RedisKeys.banned_users_channel(channel_id)

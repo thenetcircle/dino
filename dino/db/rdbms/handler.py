@@ -874,18 +874,18 @@ class DatabaseRdbms(object):
 
     def get_channels(self) -> dict:
         @with_session
-        def _channels(session=None):
+        def _get_channels(session=None):
             rows = session.query(Channels).all()
-            channels = dict()
+            _channels = dict()
             for row in rows:
-                channels[row.uuid] = (row.name, row.sort_order)
-            return channels
+                _channels[row.uuid] = (row.name, row.sort_order)
+            return _channels
 
         channels = self.env.cache.get_channels_with_sort()
         if channels is not None:
             return channels
 
-        channels = _channels()
+        channels = _get_channels()
         self.env.cache.set_channels_with_sort(channels)
         return channels
 
