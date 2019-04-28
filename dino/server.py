@@ -24,6 +24,8 @@ from dino.config import ConfigKeys
 __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
 logger = logging.getLogger(__name__)
+socket_logger = logging.getLogger('socketio')
+socket_logger.setLevel(logging.WARNING)
 logging.getLogger('amqp').setLevel(logging.INFO)
 logging.getLogger('kafka.conn').setLevel(logging.INFO)
 
@@ -65,7 +67,7 @@ def create_app():
 
     _socketio = SocketIO(
             _app,
-            logger=logger,
+            logger=socket_logger,
             engineio_logger=os.environ.get('DINO_DEBUG', '0') == '1',
             async_mode='eventlet',
             message_queue=message_queue,
