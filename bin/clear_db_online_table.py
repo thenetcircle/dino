@@ -73,5 +73,14 @@ else:
         raise RuntimeError('could not connect to db')
 
     cur = conn.cursor()
+    # clean up old users
+    cur.execute("""
+    delete from users where id in (
+        select u.id from users u 
+            left outer join rooms_users_association_table ru 
+            on ru.user_id = u.id 
+        where ru.user_id is null
+    )""")
+    # clear from being 'online' by being in a room
     cur.execute("""delete from rooms_users_association_table""")
     conn.commit()
