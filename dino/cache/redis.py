@@ -460,6 +460,7 @@ class CacheRedis(object):
 
         if len(redis_rooms) > 0:
             self.redis.hmset(key, redis_rooms)
+            self.redis.expire(key, TEN_SECONDS)
 
     def _set_rooms_for_channel_without_info(self, channel_id: str, rooms_infos: dict) -> None:
         """
