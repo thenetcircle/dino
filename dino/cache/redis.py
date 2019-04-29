@@ -482,6 +482,7 @@ class CacheRedis(object):
 
         if len(redis_rooms) > 0:
             self.redis.hmset(key, redis_rooms)
+            self.redis.expire(key, TEN_SECONDS)
 
     def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
         key = RedisKeys.acls_in_room_for_action(room_id, action)
@@ -689,6 +690,7 @@ class CacheRedis(object):
             redis_channels[channel_id] = '{}|{}'.format(str(channel_sort), channel_name)
 
         self.redis.hmset(key, redis_channels)
+        self.redis.expire(key, ONE_MINUTE)
 
     def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> str:
         key = RedisKeys.banned_users_channel(channel_id)
@@ -812,18 +814,21 @@ class CacheRedis(object):
         cache_key = '%s-%s' % (key, room_id)
         self.cache.set(cache_key, room_name)
         self.redis.hset(key, room_id, room_name)
+        self.redis.expire(key, ONE_MINUTE)
 
     def set_channel_exists(self, channel_id: str) -> None:
         key = RedisKeys.channel_exists()
         cache_key = '%s-%s' % (key, channel_id)
         self.redis.hset(key, channel_id, True)
+        self.redis.expire(key, ONE_MINUTE)
         self.cache.set(cache_key, True)
 
     def set_channel_for_room(self, channel_id: str, room_id: str) -> None:
         key = RedisKeys.channel_for_rooms()
         cache_key = '%s-%s' % (key, room_id)
         self.redis.hset(key, room_id, channel_id)
-        self.cache.set(cache_key, channel_id, ttl=EIGHT_HOURS_IN_SECONDS)
+        self.redis.expire(key, ONE_HOUR)
+        self.cache.set(cache_key, channel_id, ttl=ONE_HOUR)
 
     def get_channel_exists(self, channel_id):
         key = RedisKeys.channel_exists()
@@ -844,6 +849,7 @@ class CacheRedis(object):
         cache_key = '%s-name-%s' % (key, channel_id)
         self.cache.set(cache_key, channel_name)
         self.redis.hset(key, channel_id, channel_name)
+        self.redis.expire(key, TEN_MINUTES)
 
     def get_channel_name(self, channel_id: str) -> str:
         key = RedisKeys.channels()
@@ -880,6 +886,7 @@ class CacheRedis(object):
         cache_key = '%s-%s-name' % (key, room_id)
         self.cache.set(cache_key, room_name, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
         self.redis.hset(key, room_id, room_name)
+        self.redis.expire(key, TEN_MINUTES)
 
     def get_channel_for_room(self, room_id):
         key = RedisKeys.channel_for_rooms()
