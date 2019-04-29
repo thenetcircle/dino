@@ -38,13 +38,19 @@ fi
 
 echo "clearing online db tables... "
 if ! python bin/clear_db_online_table.py ${DINO_ENV} ${DINO_HOME}; then
-    echo "error: could not clear db tables"
+    echo "error: could not clear online tables"
     exit 1
 fi
 
 echo "clearing sessions db tables... "
 if ! python bin/clear_db_sessions_table.py ${DINO_ENV} ${DINO_HOME}; then
-    echo "error: could not clear db tables"
+    echo "error: could not clear sessions tables"
+    exit 1
+fi
+
+echo "clearing expired bans and hanging acls... "
+if ! python bin/clear_db_acls_bans_table.py ${DINO_ENV} ${DINO_HOME}; then
+    echo "error: could not clear acls/bans tables"
     exit 1
 fi
 
