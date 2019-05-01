@@ -73,10 +73,15 @@ class HeartbeatResource(BaseResource):
 
     def heartbeat_user(self, user_id: str):
         try:
+            user_name = utils.get_user_name_for(user_id)
+        except NoSuchUserException:
+            user_name = str(user_id)
+
+        try:
             data = {
                 'actor': {
                     'id': user_id,
-                    'displayName': utils.get_user_name_for(user_id)
+                    'displayName': user_name
                 },
                 'verb': 'heartbeat'
             }
