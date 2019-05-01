@@ -21,6 +21,7 @@ EIGHT_HOURS_IN_SECONDS = 8*60*60
 TEN_MINUTES = 10*60
 FIVE_MINUTES = 5*60
 ONE_MINUTE = 60
+THIRTY_SECONDS = 30
 ONE_HOUR = 60*60
 TEN_SECONDS = 10
 
@@ -445,7 +446,7 @@ class CacheRedis(object):
         room_sort, room_ephemeral, room_admin, room_users, room_name = room_info.split('|', maxsplit=4)
         """
         key = RedisKeys.rooms_for_channel_with_info(channel_id)
-        self.cache.set(key, rooms_infos, ttl=ONE_MINUTE + random.random()*ONE_MINUTE)
+        self.cache.set(key, rooms_infos, ttl=TEN_SECONDS)
 
         redis_rooms = dict()
         for room_id, room_info in rooms_infos.items():
@@ -460,7 +461,7 @@ class CacheRedis(object):
 
         if len(redis_rooms) > 0:
             self.redis.hmset(key, redis_rooms)
-            self.redis.expire(key, TEN_SECONDS)
+            self.redis.expire(key, ONE_MINUTE)
 
     def _set_rooms_for_channel_without_info(self, channel_id: str, rooms_infos: dict) -> None:
         """
@@ -470,7 +471,7 @@ class CacheRedis(object):
         }
         """
         key = RedisKeys.rooms_for_channel_without_info(channel_id)
-        self.cache.set(key, rooms_infos, ttl=ONE_MINUTE + random.random()*ONE_MINUTE)
+        self.cache.set(key, rooms_infos, ttl=TEN_SECONDS)
 
         redis_rooms = dict()
         for room_id, room_info in rooms_infos.items():
@@ -482,7 +483,7 @@ class CacheRedis(object):
 
         if len(redis_rooms) > 0:
             self.redis.hmset(key, redis_rooms)
-            self.redis.expire(key, TEN_SECONDS)
+            self.redis.expire(key, ONE_MINUTE)
 
     def get_acls_in_room_for_action(self, room_id: str, action: str) -> dict:
         key = RedisKeys.acls_in_room_for_action(room_id, action)
