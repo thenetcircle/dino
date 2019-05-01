@@ -711,14 +711,15 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
     })
 
     response['object']['attachments'] = list()
-    for channel_id, (channel_name, sort_order) in channels.items():
+    for channel_id, (channel_name, sort_order, tags) in channels.items():
         object_type = is_channel_static_or_temporary_or_mix(channel_id)
 
         response['object']['attachments'].append({
             'id': channel_id,
             'url': sort_order,
             'displayName': b64e(channel_name),
-            'objectType': object_type
+            'objectType': object_type,
+            'content': tags or ''
         })
         response['object']['attachments'] = sorted(response['object']['attachments'], key=lambda k: k['url'])
 

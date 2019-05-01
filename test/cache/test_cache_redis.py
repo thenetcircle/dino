@@ -55,7 +55,7 @@ class CacheRedisTest(TestCase):
 
     def test_get_channels_with_sort_channel_in_redis(self):
         self.assertEqual(None, self.env.cache.get_channels_with_sort())
-        self.env.cache.redis_instance.hmset(RedisKeys.RKEY_CHANNELS_SORT, {'channel-id': '999|channel-name'})
+        self.env.cache.redis_instance.hmset(RedisKeys.RKEY_CHANNELS_SORT, {'channel-id': '999|normal|channel-name'})
 
         cached_value = self.env.cache.get_channels_with_sort()
 

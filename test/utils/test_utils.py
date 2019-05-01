@@ -298,7 +298,7 @@ class UtilsActivityForTest(TestCase):
         self.assertIsNotNone(utils.activity_for_request_admin('1', '2', '3', '4', '5', '6'))
 
     def test_activity_for_list_channels(self):
-        channels = {'id': ('namne', 1), 'other-id': ('other-name', 2)}
+        channels = {'id': ('namne', 1, 'normal'), 'other-id': ('other-name', 2, 'normal')}
         self.assertIsNotNone(utils.activity_for_list_channels(None, channels))
 
     def test_activity_for_invite(self):

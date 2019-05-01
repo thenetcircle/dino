@@ -667,11 +667,11 @@ class CacheRedis(object):
         for channel_id, channel_sort_channel_name in raw_channels.items():
             try:
                 channel_sort_channel_name = str(channel_sort_channel_name, 'utf8')
-                channel_sort, channel_name = channel_sort_channel_name.split('|', maxsplit=1)
+                channel_sort, channel_tags, channel_name = channel_sort_channel_name.split('|', maxsplit=2)
                 channel_sort = int(channel_sort)
                 channel_id = str(channel_id, 'utf8')
 
-                clean_channels[channel_id] = (channel_name, channel_sort)
+                clean_channels[channel_id] = (channel_name, channel_sort, channel_tags)
             except Exception as e:
                 logger.error('invalid channel name in redis with key {}, value was "{}": {}'.format(
                     key, channel_sort_channel_name, str(e)))
@@ -687,8 +687,8 @@ class CacheRedis(object):
         self.cache.set(key, channels, ttl=ONE_MINUTE)
 
         redis_channels = dict()
-        for channel_id, (channel_name, channel_sort) in channels.items():
-            redis_channels[channel_id] = '{}|{}'.format(str(channel_sort), channel_name)
+        for channel_id, (channel_name, channel_sort, tags) in channels.items():
+            redis_channels[channel_id] = '{}|{}|{}'.format(tags, str(channel_sort), channel_name)
 
         self.redis.hmset(key, redis_channels)
         self.redis.expire(key, ONE_MINUTE)

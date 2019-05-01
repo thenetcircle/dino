@@ -31,11 +31,12 @@ class ChannelManager(BaseManager):
         channels = self.env.db.get_channels()
         output = list()
 
-        for channel_id, (channel_name, sort_order) in channels.items():
+        for channel_id, (channel_name, sort_order, tags) in channels.items():
             output.append({
                 'sort': sort_order,
                 'uuid': channel_id,
-                'name': channel_name
+                'name': channel_name,
+                'tags': tags
             })
         return output
 

@@ -27,7 +27,7 @@ class FakeDb(object):
     _channel_names = dict()
 
     def get_channels(self):
-        return {ChannelManagerTest.CHANNEL_ID: (ChannelManagerTest.CHANNEL_NAME, 1)}
+        return {ChannelManagerTest.CHANNEL_ID: (ChannelManagerTest.CHANNEL_NAME, 1, 'normal')}
 
     def create_channel(self, name, uuid, user_id):
         if name is None or len(name.strip()) == 0:

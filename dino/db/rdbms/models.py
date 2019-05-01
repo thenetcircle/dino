@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text, text
 from sqlalchemy.orm import relationship
 
 from dino.db.rdbms import DeclarativeBase
@@ -38,6 +38,7 @@ class Channels(DeclarativeBase):
     name = Column('name', String(128), nullable=False)
     created = Column('created', DateTime, nullable=False)
     sort_order = Column('sort_order', Integer, nullable=False, default=1)
+    tags = Column('tags', String(128), nullable=True)
 
     rooms = relationship('Rooms', back_populates='channel')
     roles = relationship('ChannelRoles', back_populates='channel')

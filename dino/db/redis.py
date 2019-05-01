@@ -444,7 +444,7 @@ class DatabaseRedis(object):
 
         for channel_id, channel_name in all_channels.items():
             # second argument in tuple is sort order, but it's not supported with redis db
-            clean[str(channel_id, 'utf-8')] = (str(channel_name, 'utf-8'), 1)
+            clean[str(channel_id, 'utf-8')] = (str(channel_name, 'utf-8'), 1, 'normal')
         return clean
 
     def update_room_sort_order(self, room_uuid: str, sort_order: int) -> None:
