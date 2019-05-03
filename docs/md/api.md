@@ -184,6 +184,7 @@ Response data if successful:
                     "id": "<channel UUID>",
                     "displayName": "<channel name>",
                     "url": 8,
+                    "content": "normal,another-tag",
                     "objectType": "static",
                     "attachments": [
                         {
@@ -197,6 +198,7 @@ Response data if successful:
                     "id": "<channel UUID>",
                     "displayName": "<channel name>",
                     "url": 20,
+                    "content": "another-tag",
                     "objectType": "temporary",
                     "attachments": [
                         {
@@ -224,6 +226,8 @@ both. Possible values are thus:
 * mix
 
 If the channel has 0 rooms in it, the objectType will be `mix`.
+
+The `content` field on each attachment specifies a comma separated list of tags for the channel.
 
 Attachments for each channel describes the ACLs for that channel.
 
