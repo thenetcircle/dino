@@ -598,11 +598,11 @@ are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the roo
 it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
 keys.</p>
 <h2 id="post-status">POST /status</h2>
-<p>Set the online status of a user.</p>
+<p>Set the online status or visibility status of a user.</p>
 <p>Request contains:</p>
 <pre><code class="json">{   
     &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
-    &quot;status&quot;: &quot;&lt;one of online/offline/invisible&gt;&quot;
+    &quot;status&quot;: &quot;&lt;one of online/offline/invisible/visible&gt;&quot;
 }   
 </code></pre>
 

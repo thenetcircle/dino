@@ -381,6 +381,7 @@ room/channel/global.</p>
                     &quot;id&quot;: &quot;&lt;channel UUID&gt;&quot;,
                     &quot;displayName&quot;: &quot;&lt;channel name&gt;&quot;,
                     &quot;url&quot;: 8,
+                    &quot;content&quot;: &quot;normal,another-tag&quot;,
                     &quot;objectType&quot;: &quot;static&quot;,
                     &quot;attachments&quot;: [
                         {
@@ -394,6 +395,7 @@ room/channel/global.</p>
                     &quot;id&quot;: &quot;&lt;channel UUID&gt;&quot;,
                     &quot;displayName&quot;: &quot;&lt;channel name&gt;&quot;,
                     &quot;url&quot;: 20,
+                    &quot;content&quot;: &quot;another-tag&quot;,
                     &quot;objectType&quot;: &quot;temporary&quot;,
                     &quot;attachments&quot;: [
                         {
@@ -420,6 +422,7 @@ both. Possible values are thus:</p>
 <li>mix</li>
 </ul>
 <p>If the channel has 0 rooms in it, the objectType will be <code>mix</code>.</p>
+<p>The <code>content</code> field on each attachment specifies a comma separated list of tags for the channel.</p>
 <p>Attachments for each channel describes the ACLs for that channel.</p>
 <h2 id="received"><code>received</code></h2>
 <p>Acknowledge that one or more messages has been received. The status will change from <code>sent</code> to <code>delivered</code>.</p>
