@@ -77,6 +77,10 @@ class SessionKeys(Enum):
     token = 'token'
     is_streaming = 'is_streaming'
 
+    app_avatar = 'app_avatar'
+    app_avatar_safe = 'app_avatar_safe'
+    enabled_safe = 'enabled_safe'
+
     user_agent = 'user_agent'
     user_agent_browser = 'user_agent_browser'
     user_agent_version = 'user_agent_version'
