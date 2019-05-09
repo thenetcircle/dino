@@ -516,6 +516,7 @@ class CacheRedis(object):
         key = RedisKeys.sids_for_user_in_rooms(user_id)
         sids_joined = ','.join(sids)
         self.redis.hset(key, room_id, sids_joined)
+        self.redis.expire(key, FIVE_MINUTES)
 
     def get_sids_for_user_in_room(self, user_id: str, room_id: str) -> Union[List[str], None]:
         key = RedisKeys.sids_for_user_in_rooms(user_id)

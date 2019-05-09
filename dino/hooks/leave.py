@@ -25,7 +25,7 @@ class OnLeaveHooks(object):
     def leave_room(arg: tuple) -> None:
         data, activity = arg
 
-        #  todo: should handle invisibility here? don't broadcast leaving a room if invisible
+        # todo: should handle invisibility here? don't broadcast leaving a room if invisible
         user_id = activity.actor.id
         user_name = activity.actor.display_name
         room_id = activity.target.id
