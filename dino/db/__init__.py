@@ -28,6 +28,33 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def sids_for_user_in_room(self, user_id: str, room_id: str) -> list:
+        """
+        get a list of session ids that a user has in a certain room (requires multi-session enabled)
+
+        :param user_id:
+        :param room_id:
+        :return:
+        """
+
+    def remove_sids_in_rooms_for_user(self, user_id: str = None) -> None:
+        """
+        remove all session ids that a user has any room (requires multi-session enabled)
+
+        :param user_id:
+        :return:
+        """
+
+    def remove_sid_for_user_in_room(self, user_id: str, room_id: str = None, sid_to_remove: str = None) -> None:
+        """
+        remove one session id that a user has in a certain room (requires multi-session enabled)
+
+        :param user_id:
+        :param room_id:
+        :param sid_to_remove:
+        :return:
+        """
+
     def rooms_for_channel_without_info(self, channel_id: str) -> dict:
         """
         get rooms for channel, similar to #rooms_for_channel but without user information

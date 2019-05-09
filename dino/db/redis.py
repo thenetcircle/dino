@@ -455,6 +455,18 @@ class DatabaseRedis(object):
         # not supported in redis db
         pass
 
+    def sids_for_user_in_room(self, user_id: str, room_id: str) -> list:
+        # not supported in redis db (also requires multi-session enabled)
+        pass
+
+    def remove_sids_in_rooms_for_user(self, user_id: str = None) -> None:
+        # not supported in redis db (also requires multi-session enabled)
+        pass
+
+    def remove_sid_for_user_in_room(self, user_id: str, room_id: str = None, sid_to_remove: str = None) -> None:
+        # not supported in redis db (also requires multi-session enabled)
+        pass
+
     def rooms_for_channel_without_info(self, channel_id: str) -> dict:
         rooms = self.rooms_for_channel(channel_id)
         return {

@@ -1,5 +1,5 @@
 from zope.interface import Interface
-from typing import Union
+from typing import Union, List
 
 
 class ICache(Interface):
@@ -9,6 +9,34 @@ class ICache(Interface):
 
         :param sid: the s session id
         :return: the user id or none
+        """
+
+    def reset_sids_for_user_in_room(self, user_id: str, room_id: str) -> None:
+        """
+        clears all session ids a user has for a room (requires multi-session enabled)
+
+        :param user_id:
+        :param room_id:
+        :return:
+        """
+
+    def set_sids_for_user_in_room(self, user_id: str, room_id: str, sids: List[str]) -> None:
+        """
+        remove one session id a user has for a room (requires multi-session enabled)
+
+        :param user_id:
+        :param room_id:
+        :param sids:
+        :return:
+        """
+
+    def get_sids_for_user_in_room(self, user_id: str, room_id: str) -> Union[List[str], None]:
+        """
+        get all session ids a user has for a room (requires multi-session enabled)
+
+        :param user_id:
+        :param room_id:
+        :return:
         """
 
     def add_heartbeat(self, user_id: str) -> None:
