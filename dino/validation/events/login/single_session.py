@@ -18,7 +18,6 @@ from activitystreams.models.activity import Activity
 from dino import utils
 from dino.config import ErrorCodes
 from dino.config import ConfigKeys
-from dino.config import SessionKeys
 from dino.environ import GNEnvironment
 
 logger = logging.getLogger(__name__)
@@ -34,10 +33,9 @@ class OnLoginEnforceSingleSession(IPlugin):
 
     def setup(self, env: GNEnvironment):
         self.env = env
-        try:
-            self.env.config.get(ConfigKeys.VALIDATION).get('on_login').get('single_session')
-            self.enabled = True
-        except Exception:
+        self.enabled = utils.is_multiple_sessions_allowed()
+
+        if not self.enabled:
             logger.info('no config enabled for plugin single_session, ignoring plugin')
 
     def _process(self, data: dict, activity: Activity):

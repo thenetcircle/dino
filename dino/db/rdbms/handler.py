@@ -36,7 +36,7 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs, Spams, Config
+from dino.db.rdbms.models import AclConfigs, Spams, Config, RoomSids
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import Bans
 from dino.db.rdbms.models import BlackList
@@ -70,7 +70,7 @@ from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import MultipleRoomsFoundForNameException
 from dino.exceptions import UserExistsException
 from dino.exceptions import ValidationException
-from dino.utils import b64d
+from dino.utils import b64d, get_room_id
 from dino.utils import b64e
 from dino.utils import is_base64
 
@@ -768,6 +768,64 @@ class DatabaseRdbms(object):
 
         self.env.cache.set_users_in_room(room_id, users, is_super_user=is_super_user)
         return users
+
+    def sids_for_user_in_room(self, user_id: str, room_id: str) -> list:
+        @with_session
+        def _get_sids(session=None):
+            _sids = session.query(RoomSids)\
+                .filter_by(room_id=room_id)\
+                .filter_by(user_id=user_id)\
+                .all()
+            return [sid.session_id for sid in _sids]
+
+        sids = self.env.cache.get_sids_for_user_in_room(user_id, room_id)
+        if sids is not None and len(sids) > 0:
+            return sids
+
+        try:
+            sids = _get_sids()
+        except Exception as e:
+            logger.error('could not get sids: {}'.format(str(e)))
+            logger.exception(e)
+            self.env.capture_exception(sys.exc_info())
+            return list()
+
+        if sids is None or len(sids) == 0:
+            return list()
+
+        self.env.cache.set_sids_for_user_in_room(user_id, room_id, sids)
+        return sids
+
+    def remove_sids_in_rooms_for_user(self, user_id: str = None) -> None:
+        self.remove_sid_from_room(user_id=user_id, room_id=None)
+
+    @with_session
+    def remove_sid_for_user_in_room(self, user_id: str, room_id: str = None, sid_to_remove: str = None, session=None) -> None:
+        try:
+            if room_id is None:
+                sids = session.query(RoomSids) \
+                    .filter_by(user_id=user_id) \
+                    .all()
+            else:
+                sids = session.query(RoomSids)\
+                    .filter_by(room_id=room_id)\
+                    .filter_by(user_id=user_id)\
+                    .all()
+
+            for sid in sids:
+                if sid_to_remove is None or sid_to_remove == sid.session_id:
+                    session.delete(sid)
+            session.commit()
+
+        except Exception as e:
+            logger.error('could not reset sids: {}'.format(str(e)))
+            logger.exception(e)
+            self.env.capture_exception(sys.exc_info())
+
+        if room_id is None:
+            self.env.cache.reset_sids_for_user(user_id)
+        else:
+            self.env.cache.reset_sids_for_user_in_room(user_id, room_id)
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
         self.get_room_name(room_id)

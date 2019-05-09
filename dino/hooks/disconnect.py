@@ -159,6 +159,7 @@ class OnDisconnectHooks(object):
                 if all_sids is not None and len(all_sids) > 0:
                     return
 
+                environ.env.db.remove_sids_in_rooms_for_user(user_id)
                 activity_json = utils.activity_for_disconnect(user_id, user_name)
                 environ.env.publish(activity_json, external=True)
             except Exception as e:
