@@ -796,8 +796,23 @@ class DatabaseRdbms(object):
         self.env.cache.set_sids_for_user_in_room(user_id, room_id, sids)
         return sids
 
-    def remove_sids_in_rooms_for_user(self, user_id: str = None) -> None:
-        self.remove_sid_from_room(user_id=user_id, room_id=None)
+    @with_session
+    def get_rooms_with_sid(self, session_id: str, user_id: str, session=None) -> dict:
+        room_sids = session.query(RoomSids)\
+            .fiter_by(user_id=user_id)\
+            .filter_by(session_id=session_id)\
+            .all()
+
+        if room_sids is None or len(room_sids) == 0:
+            return dict()
+
+        rooms = dict()
+        for room_sid in room_sids:
+            if room_sid.session_id not in rooms:
+                rooms[room_sid.session_id] = list()
+            rooms[room_sid.session_id].append(room_sid.room_id)
+
+        return rooms
 
     @with_session
     def remove_sid_for_user_in_room(self, user_id: str, room_id: str = None, sid_to_remove: str = None, session=None) -> None:
@@ -831,18 +846,6 @@ class DatabaseRdbms(object):
         self.get_room_name(room_id)
         self.channel_for_room(room_id)
         return room_id in self.rooms_for_user(user_id)
-
-    @with_session
-    def remove_current_rooms_for_user(self, user_id: str, session=None) -> None:
-        for i in range(3):
-            try:
-                self._remove_current_rooms_for_user(user_id, session)
-                return
-            except StaleDataError as e:
-                logger.warning('stale data when removing current rooms for user, attempt {}/2: {}'.format(
-                    str(i), str(e)
-                ))
-        logger.error('got stale data after 3 retries, giving up')
 
     def set_ephemeral_room(self, room_id: str):
         self._set_ephemeral_on_room_to(room_id, is_ephemeral=True)
@@ -902,6 +905,18 @@ class DatabaseRdbms(object):
         self.env.cache.set_default_rooms(default_rooms)
         return default_rooms
 
+    @with_session
+    def remove_current_rooms_for_user(self, user_id: str, session=None) -> None:
+        for i in range(3):
+            try:
+                self._remove_current_rooms_for_user(user_id, session)
+                return
+            except StaleDataError as e:
+                logger.warning('stale data when removing current rooms for user, attempt {}/2: {}'.format(
+                    str(i), str(e)
+                ))
+        logger.error('got stale data after 3 retries, gving up')
+
     def _remove_current_rooms_for_user(self, user_id: str, session):
         user = session.query(Users).filter(Users.uuid == user_id).first()
         if user is None:
@@ -910,6 +925,47 @@ class DatabaseRdbms(object):
         rooms = session.query(Rooms)\
             .join(Rooms.users)\
             .filter(Users.uuid == user_id)\
+            .all()
+
+        if rooms is None or len(rooms) == 0:
+            return
+
+        for room in rooms:
+            try:
+                room.users.remove(user)
+            except ValueError:
+                # happens if the user already left a room
+                pass
+
+        try:
+            session.commit()
+        except StaleDataError:
+            # might have just been removed by another node
+            session.rollback()
+
+        self.env.cache.remove_rooms_for_user(user_id)
+
+    @with_session
+    def remove_room_for_user(self, user_id: str, room_id: str, session=None) -> None:
+        for i in range(3):
+            try:
+                self._remove_room_for_user(user_id, room_id, session)
+                return
+            except StaleDataError as e:
+                logger.warning('stale data when removing current rooms for user, attempt {}/2: {}'.format(
+                    str(i), str(e)
+                ))
+        logger.error('got stale data after 3 retries, gving up')
+
+    def _remove_room_for_user(self, user_id: str, room_id: str, session):
+        user = session.query(Users).filter(Users.uuid == user_id).first()
+        if user is None:
+            return
+
+        rooms = session.query(Rooms)\
+            .join(Rooms.users)\
+            .filter(Users.uuid == user_id)\
+            .filter(Rooms.uuid == room_id)\
             .all()
 
         if rooms is None or len(rooms) == 0:
