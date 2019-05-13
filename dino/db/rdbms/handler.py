@@ -1407,7 +1407,7 @@ class DatabaseRdbms(object):
                 'db error when leaving room, likely already removed from assoc table: %s' % str(e))
             self.env.capture_exception(sys.exc_info())
 
-    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
+    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str, session_id: str) -> None:
         self.get_room_name(room_id)
 
         @with_session
@@ -1429,7 +1429,23 @@ class DatabaseRdbms(object):
 
             room.users.append(user)
             session.add(room)
+
             session.commit()
+
+        @with_session
+        def _add_room_sid(session=None):
+            room_sid = RoomSids()
+            room_sid.user_id = user_id
+            room_sid.session_id = session_id
+            room_sid.room_id = room_id
+            session.add(room_sid)
+            session.commit()
+
+        try:
+            _add_room_sid()
+        except Exception as e:
+            error_msg = 'could not add RoomSids for room {} ({}), user {} ({}), sid {}: {}'
+            logger.error(error_msg.format(user_id, user_name, room_id, room_name, session_id, str(e)))
 
         try:
             _join_room()

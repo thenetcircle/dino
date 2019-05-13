@@ -1096,7 +1096,7 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
+    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str, session_id: str) -> None:
         """
         join a room
 
@@ -1104,6 +1104,7 @@ class IDatabase(Interface):
         :param user_name: the name of the user joining
         :param room_id: the uuid of the room to join
         :param room_name: the name of the room to join
+        :param session_id: the current session id joining the room
         :return: nothing
         """
 

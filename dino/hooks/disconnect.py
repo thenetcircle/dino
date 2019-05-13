@@ -20,7 +20,7 @@ class OnDisconnectHooks(object):
         when a client disconnects this hook will handle the related logic
 
         :param arg: tuple of (data, parsed_activity)
-        :param is_socket_disconnect: true if normal websocket connection, false if long-lives heartbeat session
+        :param is_socket_disconnect: true if normal websocket connection, false if long-lived heartbeat session
         :return: nothing
         """
 
