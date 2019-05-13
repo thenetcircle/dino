@@ -1114,7 +1114,7 @@ def remove_sid_for_user_in_room(user_id, room_id, sid):
 
 
 def sids_for_user_in_room(user_id, room_id):
-    environ.env.db.sids_for_user_in_room(user_id, room_id)
+    return environ.env.db.sids_for_user_in_room(user_id, room_id)
 
 
 def is_multiple_sessions_allowed():

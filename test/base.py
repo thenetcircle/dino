@@ -102,6 +102,9 @@ class DataRequired(Form):
         super(DataRequired, self).__init__(label, validators, **kwargs)
 
 
+SESSION_ID = str(uuid())
+
+
 class BaseTest(unittest.TestCase):
     OTHER_USER_ID = '8888'
     OTHER_USER_NAME = 'pleb'
@@ -112,7 +115,7 @@ class BaseTest(unittest.TestCase):
     CHANNEL_ID = str(uuid())
     CHANNEL_NAME = 'Best Channel'
     ROOM_NAME = 'Shanghai'
-    SESSION_ID = str(uuid())
+    SESSION_ID = SESSION_ID
     AGE = '30'
     GENDER = 'f'
     MEMBERSHIP = '0'
@@ -194,8 +197,11 @@ class BaseTest(unittest.TestCase):
 
     class Request(object):
         method = 'GET'
-        sid = '124'
+        sid = SESSION_ID
         namespace = '/chat'
+
+        def __init__(self, sid=SESSION_ID):
+            self.sid = sid
 
     def setUp(self):
         BaseTest.users_in_room.clear()
