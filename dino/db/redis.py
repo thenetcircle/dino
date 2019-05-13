@@ -459,10 +459,6 @@ class DatabaseRedis(object):
         # not supported in redis db (also requires multi-session enabled)
         pass
 
-    def remove_sids_in_rooms_for_user(self, user_id: str = None) -> None:
-        # not supported in redis db (also requires multi-session enabled)
-        pass
-
     def remove_sid_for_user_in_room(self, user_id: str, room_id: str = None, sid_to_remove: str = None) -> None:
         # not supported in redis db (also requires multi-session enabled)
         pass
@@ -710,6 +706,28 @@ class DatabaseRedis(object):
         self.redis.hdel(RedisKeys.channels(), channel_id)
         self.redis.hdel(RedisKeys.banned_users_channel(channel_id))
         self.redis.hdel(RedisKeys.channel_acl(channel_id))
+
+    def remove_room_for_user(self, user_id: str, room_id: str) -> None:
+        # not supported
+        pass
+
+    def get_rooms_with_sid(self, user_id: str) -> dict:
+        key = RedisKeys.sids_for_user_in_rooms(user_id)
+        sids_bytes = self.redis.hgetall(key)
+        if sids_bytes is None:
+            return dict()
+
+        rooms = dict()
+        for room_id, session_ids in sids_bytes.items():
+            room_id = str(room_id, 'utf-8')
+            session_ids = str(session_ids, 'utf-8').split(',')
+
+            for session_id in session_ids:
+                if session_id not in rooms:
+                    rooms[session_id] = list()
+                rooms[session_id].append(room_id)
+
+        return rooms
 
     def remove_room_ban(self, room_id: str, user_id: str) -> str:
         self.redis.hdel(RedisKeys.banned_users(room_id), user_id)
@@ -1165,9 +1183,12 @@ class DatabaseRedis(object):
             clean_rooms[room_id] = room_name
         return clean_rooms
 
-    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
+    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str, session_id: str) -> None:
         self.redis.hset(RedisKeys.rooms_for_user(user_id), room_id, room_name)
         self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)
+
+        key = RedisKeys.sids_for_user_in_rooms(user_id)
+        self.redis.hset(key, room_id, session_id)
 
     def create_channel(self, channel_name, channel_id, user_id) -> None:
         if self.channel_exists(channel_id):

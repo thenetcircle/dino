@@ -797,10 +797,9 @@ class DatabaseRdbms(object):
         return sids
 
     @with_session
-    def get_rooms_with_sid(self, session_id: str, user_id: str, session=None) -> dict:
+    def get_rooms_with_sid(self, user_id: str, session=None) -> dict:
         room_sids = session.query(RoomSids)\
-            .fiter_by(user_id=user_id)\
-            .filter_by(session_id=session_id)\
+            .filter_by(user_id=user_id)\
             .all()
 
         if room_sids is None or len(room_sids) == 0:

@@ -88,7 +88,8 @@ class StorageMockCassandraTest(BaseTest):
         self.assertEqual(BaseTest.ROOM_ID, res[0]['target_id'])
 
     def join(self):
-        environ.env.db.join_room(BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
+        environ.env.db.join_room(
+            BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME, BaseTest.SESSION_ID)
 
     def act_message(self):
         data = self.activity_for_message()

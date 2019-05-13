@@ -79,15 +79,17 @@ class OnDisconnectHooks(object):
             try:
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 rooms = environ.env.db.rooms_for_user(user_id)
+                rooms_with_sid = environ.env.db.get_rooms_with_sid(user_id=user_id)
 
-                rooms_with_sid = environ.env.db.get_rooms_with_sid(session_id=_current_sid, user_id=user_id)
                 rooms_for_other_sessions = set()
-                for session_id, room_id in rooms_with_sid.items():
+                room_to_name = dict()
+
+                for session_id, room_ids in rooms_with_sid.items():
                     if session_id == _current_sid:
                         continue
-                    rooms_for_other_sessions.add(room_id)
+                    for room_id in room_ids:
+                        rooms_for_other_sessions.add(room_id)
 
-                room_to_name = dict()
                 for room_id, room_name in rooms.items():
                     room_to_name[room_id] = room_to_name
 

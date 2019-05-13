@@ -37,14 +37,6 @@ class IDatabase(Interface):
         :return:
         """
 
-    def remove_sids_in_rooms_for_user(self, user_id: str = None) -> None:
-        """
-        remove all session ids that a user has any room (requires multi-session enabled)
-
-        :param user_id:
-        :return:
-        """
-
     def remove_sid_for_user_in_room(self, user_id: str, room_id: str = None, sid_to_remove: str = None) -> None:
         """
         remove one session id that a user has in a certain room (requires multi-session enabled)
@@ -584,6 +576,26 @@ class IDatabase(Interface):
 
         :param channel_id: the uuid of the channel
         :param user_id: the id of the user
+        :return:
+        """
+
+    def get_rooms_with_sid(self, user_id: str) -> dict:
+        """
+        get all rooms this user has joined, together with which sid it is
+
+        {sid1: [room1, room2, ...], sid1: ...}
+
+        :param user_id:
+        :return:
+        """
+
+    def remove_room_for_user(self, user_id: str, room_id: str, session=None) -> None:
+        """
+        remove room for user
+
+        :param user_id:
+        :param room_id:
+        :param session:
         :return:
         """
 

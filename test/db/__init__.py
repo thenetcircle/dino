@@ -536,7 +536,8 @@ class BaseDatabaseTest(BaseTest):
         return self.db.get_user_name_for(BaseTest.USER_ID)
 
     def _join(self):
-        self.db.join_room(BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
+        self.db.join_room(
+            BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME, BaseTest.SESSION_ID)
 
     def _leave(self):
         self.db.leave_room(BaseTest.USER_ID, BaseTest.ROOM_ID)

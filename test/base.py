@@ -112,6 +112,7 @@ class BaseTest(unittest.TestCase):
     CHANNEL_ID = str(uuid())
     CHANNEL_NAME = 'Best Channel'
     ROOM_NAME = 'Shanghai'
+    SESSION_ID = str(uuid())
     AGE = '30'
     GENDER = 'f'
     MEMBERSHIP = '0'
