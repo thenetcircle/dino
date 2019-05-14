@@ -1,32 +1,34 @@
 from activitystreams import parse as as_parser
 
-from dino.config import ConfigKeys
-from test.base import BaseTest
-from dino.hooks import OnJoinHooks, OnLeaveHooks
-from test.functional import BaseFunctional
-from dino import environ
-
+from dino.hooks.leave import OnLeaveHooks
+from dino.hooks.join import OnJoinHooks
 from dino import utils
+from dino import environ
+from test.base import BaseTest
+from test.db import BaseDatabaseTest
+from dino.auth.simple import AllowAllAuth
+from dino.stats.statsd import MockStatsd
+from pymitter import EventEmitter
 
 SESSION_ID_ONE = 'session-one'
 SESSION_ID_TWO = 'session-two'
 
 
-class MultiSession(BaseFunctional):
+class MultiSessionTest(BaseDatabaseTest):
     def setUp(self):
-        self.set_up_env()
-
-        environ.env.config.set(ConfigKeys.TESTING, True)
-        environ.env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
+        self.set_up_env('sqlite')
+        self.env.stats = MockStatsd()
+        self.env.auth = AllowAllAuth()
+        self.env.capture_exception = lambda x: False
+        self.env.observer = EventEmitter()
 
         self.env.request = BaseTest.Request(SESSION_ID_ONE)
-        self.env.db.create_channel(BaseTest.CHANNEL_NAME, BaseTest.CHANNEL_ID, BaseTest.USER_ID)
-        act = self.activity_for_create()
-        act['target']['id'] = BaseTest.ROOM_ID
-        act['target']['objectType'] = 'room'
-
-        from dino.hooks.create import OnCreateHooks
-        OnCreateHooks.create_room((act, as_parser(act)))
+        environ.env.request = self.env.request
+        self.db.create_channel(BaseTest.CHANNEL_NAME, BaseTest.CHANNEL_ID, BaseTest.USER_ID)
+        self.db.create_room(
+            BaseTest.ROOM_NAME, BaseTest.ROOM_ID, BaseTest.CHANNEL_ID,
+            BaseTest.USER_ID, BaseTest.USER_NAME
+        )
 
     def tearDown(self):
         from dino.db.rdbms.dbman import Database
@@ -41,7 +43,7 @@ class MultiSession(BaseFunctional):
 
         self.env.cache._flushall()
 
-    def one_session_join(self):
+    def test_one_session_join(self):
         users = utils.get_users_in_room(BaseTest.ROOM_ID, skip_cache=True)
         self.assertFalse(BaseTest.USER_ID in users.keys())
 
@@ -50,10 +52,10 @@ class MultiSession(BaseFunctional):
         users = utils.get_users_in_room(BaseTest.ROOM_ID, skip_cache=True)
         self.assertTrue(BaseTest.USER_ID in users.keys())
 
-        room_sids = self.env.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
+        room_sids = self.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
         self.assertIn(SESSION_ID_ONE, room_sids.keys())
 
-    def one_session_leave(self):
+    def test_one_session_leave(self):
         users = utils.get_users_in_room(BaseTest.ROOM_ID, skip_cache=True)
         self.assertFalse(BaseTest.USER_ID in users.keys())
 
@@ -63,16 +65,16 @@ class MultiSession(BaseFunctional):
         users = utils.get_users_in_room(BaseTest.ROOM_ID, skip_cache=True)
         self.assertTrue(BaseTest.USER_ID in users.keys())
 
-        room_sids = self.env.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
+        room_sids = self.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
         self.assertIn(SESSION_ID_ONE, room_sids.keys())
 
         act = self.activity_for_leave()
         OnLeaveHooks.leave_room((act, as_parser(act)))
 
-        room_sids = self.env.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
+        room_sids = self.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
         self.assertNotIn(SESSION_ID_ONE, room_sids.keys())
 
-    def two_sessions_one_leave(self):
+    def test_two_sessions_one_leave(self):
         # first session joins
         users = utils.get_users_in_room(BaseTest.ROOM_ID, skip_cache=True)
         self.assertNotIn(BaseTest.USER_ID, users.keys())
@@ -85,9 +87,10 @@ class MultiSession(BaseFunctional):
 
         # second session joins
         self.env.request = BaseTest.Request(SESSION_ID_TWO)
+        environ.env.request = self.env.request
         OnJoinHooks.join_room((act, as_parser(act)))
 
-        room_sids = self.env.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
+        room_sids = self.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
         self.assertIn(SESSION_ID_ONE, room_sids.keys())
         self.assertIn(SESSION_ID_TWO, room_sids.keys())
 
@@ -102,16 +105,17 @@ class MultiSession(BaseFunctional):
         users = utils.get_users_in_room(BaseTest.ROOM_ID, skip_cache=True)
         self.assertIn(BaseTest.USER_ID, users.keys())
 
-        room_sids = self.env.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
+        room_sids = self.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
         self.assertNotIn(SESSION_ID_TWO, room_sids.keys())
         self.assertIn(SESSION_ID_ONE, room_sids.keys())
 
         # first session leaves
         self.env.request = BaseTest.Request(SESSION_ID_ONE)
+        environ.env.request = self.env.request
         act = self.activity_for_leave()
         OnLeaveHooks.leave_room((act, as_parser(act)))
 
-        room_sids = self.env.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
+        room_sids = self.db.get_rooms_with_sid(user_id=BaseTest.USER_ID)
         self.assertNotIn(SESSION_ID_TWO, room_sids.keys())
         self.assertNotIn(SESSION_ID_ONE, room_sids.keys())
 

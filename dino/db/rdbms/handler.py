@@ -800,6 +800,8 @@ class DatabaseRdbms(object):
 
     @with_session
     def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove, session=None):
+        print('about to remove sid {} for user {} in room {}'.format(sid_to_remove, user_id, room_id))
+
         if room_id is None:
             sids = session.query(RoomSids) \
                 .filter_by(user_id=user_id) \
@@ -811,6 +813,7 @@ class DatabaseRdbms(object):
                 .all()
 
         for sid in sids:
+            print('found sid {} user {} room {}'.format(sid.session_id, sid.user_id, sid.room_id))
             if sid_to_remove is None or sid_to_remove == sid.session_id:
                 session.delete(sid)
         session.commit()
