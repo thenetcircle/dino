@@ -74,4 +74,5 @@ else:
 
     cur = conn.cursor()
     cur.execute("""delete from sids""")
+    cur.execute("""delete from roomsids""")
     conn.commit()

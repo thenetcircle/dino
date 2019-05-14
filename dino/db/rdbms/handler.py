@@ -798,22 +798,32 @@ class DatabaseRdbms(object):
         room_sids = session.query(RoomSids).filter_by(user_id=user_id).all()
         return {rs.session_id: rs.room_id for rs in room_sids}
 
-    @with_session
-    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove, session=None):
-        if room_id is None:
-            sids = session.query(RoomSids) \
-                .filter_by(user_id=user_id) \
-                .all()
-        else:
-            sids = session.query(RoomSids) \
-                .filter_by(room_id=room_id) \
-                .filter_by(user_id=user_id) \
-                .all()
+    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove):
+        @with_session
+        def _remove_sid_for_user_in_room(session=None):
+            if room_id is None:
+                sids = session.query(RoomSids) \
+                    .filter_by(user_id=user_id) \
+                    .all()
+            else:
+                sids = session.query(RoomSids) \
+                    .filter_by(room_id=room_id) \
+                    .filter_by(user_id=user_id) \
+                    .all()
 
-        for sid in sids:
-            if sid_to_remove is None or sid_to_remove == sid.session_id:
-                session.delete(sid)
-        session.commit()
+            for sid in sids:
+                if sid_to_remove is None or sid_to_remove == sid.session_id:
+                    session.delete(sid)
+            session.commit()
+
+        for _ in range(3):
+            try:
+                _remove_sid_for_user_in_room()
+                break
+            except Exception as e:
+                logger.error('could not remove sid {} for user {} in room {}: {}'.format(
+                    sid_to_remove, user_id, room_id, str(e)
+                ))
 
     @with_session
     def sids_for_user_in_room(self, user_id, room_id, session=None):
@@ -1367,7 +1377,7 @@ class DatabaseRdbms(object):
             try:
                 _save_sid_in_room()
             except Exception as e:
-                logger.error('could not save ROomSids for user {}, room {}, sid {}: {}'.format(
+                logger.error('could not save RoomSids for user {}, room {}, sid {}: {}'.format(
                     user_id, room_id, sid, str(e)
                 ))
 
