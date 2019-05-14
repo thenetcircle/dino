@@ -765,8 +765,6 @@ class DatabaseRdbms(object):
         all_users = _user_ids()
         user_statuses = _user_statuses(all_users)
         users = _visible_users(all_users, user_statuses)
-        print('users')
-        print(users)
 
         self.env.cache.set_users_in_room(room_id, users, is_super_user=is_super_user)
         return users

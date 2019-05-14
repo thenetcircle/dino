@@ -205,6 +205,7 @@ class BaseDatabaseTest(BaseTest):
         else:
             raise ValueError('unknown type %s' % db)
 
+        environ.env = self.env
         environ.env.config = self.env.config
         environ.env.db = self.db
         environ.env.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)

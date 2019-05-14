@@ -23,9 +23,6 @@ class OnLeaveHooks(object):
 
         # multi-login, can be in same room as another session
         sids = utils.sids_for_user_in_room(user_id, room_id)
-        from pprint import pprint
-        print('sids')
-        pprint(sids)
         if sids is not None and len(sids) > 0:
             return
 

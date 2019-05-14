@@ -102,7 +102,7 @@ class DataRequired(Form):
         super(DataRequired, self).__init__(label, validators, **kwargs)
 
 
-SESSION_ID = str(uuid())
+SESSION_ID = 'session-id'
 
 
 class BaseTest(unittest.TestCase):

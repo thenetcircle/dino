@@ -194,7 +194,7 @@ test:
     testing: True
     request_log_location: False
     database:
-        type: 'redis'
+        type: 'mock'
         host: '$DINO_DB_HOST'
         db: 1
     storage:
@@ -203,7 +203,7 @@ test:
         db: 0
         max_history: 200
     coordinator:
-        type: 'redis'
+        type: 'mock'
         host: '$DINO_CACHE_HOST'
         db: 9
     auth:
