@@ -10,13 +10,20 @@ from dino.utils import is_base64
 from dino.utils import b64d
 from dino.utils import b64e
 
+__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
 
 @implementer(IStorage)
 class StorageRedis(object):
     redis = None
 
-    def __init__(self, env, host: str, port: int = 6379, db: int = 0):
+    def __init__(self, host: str, port: int = 6379, db: int = 0, env=None):
+        if env is None:
+            from dino import environ
+            env = environ.env
+
         self.env = env
+
         if self.env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
             from fakeredis import FakeRedis as Redis
         else:

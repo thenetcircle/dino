@@ -20,7 +20,7 @@ class OnDisconnectHooks(object):
         when a client disconnects this hook will handle the related logic
 
         :param arg: tuple of (data, parsed_activity)
-        :param is_socket_disconnect: true if normal websocket connection, false if long-lived heartbeat session
+        :param is_socket_disconnect: true if normal websocket connection, false if long-lives heartbeat session
         :return: nothing
         """
 
@@ -79,24 +79,10 @@ class OnDisconnectHooks(object):
             try:
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 rooms = environ.env.db.rooms_for_user(user_id)
-                rooms_with_sid = environ.env.db.get_rooms_with_sid(user_id=user_id)
 
-                rooms_for_other_sessions = set()
-                room_to_name = dict()
-
-                for session_id, room_ids in rooms_with_sid.items():
-                    if session_id == _current_sid:
-                        continue
-                    for room_id in room_ids:
-                        rooms_for_other_sessions.add(room_id)
+                # TODO: when multi-device is to be done this has to be considered; leave only room this session was in?
 
                 for room_id, room_name in rooms.items():
-                    room_to_name[room_id] = room_to_name
-
-                for room_id in rooms_with_sid.get(_current_sid):
-                    if room_id in rooms_for_other_sessions:
-                        continue
-
                     logger.info('checking whether to remove room %s or not' % room_id)
                     if 'target' not in data:
                         data['target'] = dict()
@@ -107,10 +93,7 @@ class OnDisconnectHooks(object):
                     else:
                         activity.target.id = room_id
 
-                    room_name = room_to_name.get(room_id)
-                    environ.env.db.remove_sid_for_user_in_room(user_id=user_id, room_id=room_id)
                     utils.remove_user_from_room(user_id, user_name, room_id)
-                    environ.env.db.remove_room_for_user(user_id, room_id)
                     environ.env.emit(
                         'gn_user_left',
                         utils.activity_for_leave(user_id, user_name, room_id, room_name),
@@ -119,6 +102,7 @@ class OnDisconnectHooks(object):
                     )
                     utils.check_if_should_remove_room(data, activity)
 
+                environ.env.db.remove_current_rooms_for_user(user_id)
             except Exception as e:
                 logger.error('could not leave all public rooms: %s' % str(e))
                 logger.debug('request for failed leave_all_public_rooms_and_emit_leave_events(): %s' % str(data))

@@ -4,7 +4,7 @@ import traceback
 import random
 
 from zope.interface import implementer
-from typing import Union, List
+from typing import Union
 
 from dino.config import RedisKeys
 from dino.config import ConfigKeys
@@ -504,28 +504,6 @@ class CacheRedis(object):
     def reset_sids_for_user(self, user_id: str) -> None:
         key = RedisKeys.sid_for_user_id()
         self.redis.hdel(key, user_id)
-
-        key = RedisKeys.sids_for_user_in_rooms(user_id)
-        self.redis.delete(key)
-
-    def reset_sids_for_user_in_room(self, user_id: str, room_id: str) -> None:
-        key = RedisKeys.sids_for_user_in_rooms(user_id)
-        self.redis.hdel(key, room_id)
-
-    def set_sids_for_user_in_room(self, user_id: str, room_id: str, sids: List[str]) -> None:
-        key = RedisKeys.sids_for_user_in_rooms(user_id)
-        sids_joined = ','.join(sids)
-        self.redis.hset(key, room_id, sids_joined)
-        self.redis.expire(key, FIVE_MINUTES)
-
-    def get_sids_for_user_in_room(self, user_id: str, room_id: str) -> Union[List[str], None]:
-        key = RedisKeys.sids_for_user_in_rooms(user_id)
-        sids_bytes = self.redis.hget(key, room_id)
-        if sids_bytes is None:
-            return None
-
-        sids = str(sids_bytes, 'utf-8')
-        return sids.split(',')
 
     def remove_sid_for_user(self, user_id: str, sid: str) -> None:
         def _try_to_remove_sid(sid_to_remove):

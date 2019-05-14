@@ -28,22 +28,27 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def sids_for_user_in_room(self, user_id: str, room_id: str) -> list:
+    def get_rooms_with_sid(self, user_id: str):
         """
-        get a list of session ids that a user has in a certain room (requires multi-session enabled)
 
         :param user_id:
-        :param room_id:
         :return:
         """
 
-    def remove_sid_for_user_in_room(self, user_id: str, room_id: str = None, sid_to_remove: str = None) -> None:
+    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove):
         """
-        remove one session id that a user has in a certain room (requires multi-session enabled)
 
         :param user_id:
         :param room_id:
         :param sid_to_remove:
+        :return:
+        """
+
+    def sids_for_user_in_room(self, user_id, room_id):
+        """
+
+        :param user_id:
+        :param room_id:
         :return:
         """
 
@@ -579,26 +584,6 @@ class IDatabase(Interface):
         :return:
         """
 
-    def get_rooms_with_sid(self, user_id: str) -> dict:
-        """
-        get all rooms this user has joined, together with which sid it is
-
-        {sid1: [room1, room2, ...], sid1: ...}
-
-        :param user_id:
-        :return:
-        """
-
-    def remove_room_for_user(self, user_id: str, room_id: str, session=None) -> None:
-        """
-        remove room for user
-
-        :param user_id:
-        :param room_id:
-        :param session:
-        :return:
-        """
-
     def remove_room_ban(self, room_id: str, user_id: str) -> str:
         """
         remove a room ban for a user, e.g. when the ban has expired
@@ -1108,7 +1093,7 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str, session_id: str) -> None:
+    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         """
         join a room
 
@@ -1116,7 +1101,6 @@ class IDatabase(Interface):
         :param user_name: the name of the user joining
         :param room_id: the uuid of the room to join
         :param room_name: the name of the room to join
-        :param session_id: the current session id joining the room
         :return: nothing
         """
 

@@ -205,7 +205,6 @@ class BaseDatabaseTest(BaseTest):
         else:
             raise ValueError('unknown type %s' % db)
 
-        environ.env = self.env
         environ.env.config = self.env.config
         environ.env.db = self.db
         environ.env.db.create_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.USER_NAME)
@@ -537,8 +536,7 @@ class BaseDatabaseTest(BaseTest):
         return self.db.get_user_name_for(BaseTest.USER_ID)
 
     def _join(self):
-        self.db.join_room(
-            BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME, BaseTest.SESSION_ID)
+        self.db.join_room(BaseTest.USER_ID, BaseTest.USER_NAME, BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
 
     def _leave(self):
         self.db.leave_room(BaseTest.USER_ID, BaseTest.ROOM_ID)

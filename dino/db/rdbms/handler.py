@@ -46,6 +46,7 @@ from dino.db.rdbms.models import DefaultRooms
 from dino.db.rdbms.models import GlobalRoles
 from dino.db.rdbms.models import LastReads
 from dino.db.rdbms.models import RoomRoles
+from dino.db.rdbms.models import RoomSids
 from dino.db.rdbms.models import Rooms
 from dino.db.rdbms.models import Sids
 from dino.db.rdbms.models import UserStatus
@@ -70,7 +71,7 @@ from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import MultipleRoomsFoundForNameException
 from dino.exceptions import UserExistsException
 from dino.exceptions import ValidationException
-from dino.utils import b64d, get_room_id
+from dino.utils import b64d
 from dino.utils import b64e
 from dino.utils import is_base64
 
@@ -769,88 +770,58 @@ class DatabaseRdbms(object):
         self.env.cache.set_users_in_room(room_id, users, is_super_user=is_super_user)
         return users
 
-    def sids_for_user_in_room(self, user_id: str, room_id: str) -> list:
-        @with_session
-        def _get_sids(session=None):
-            _sids = session.query(RoomSids)\
-                .filter_by(room_id=room_id)\
-                .filter_by(user_id=user_id)\
-                .all()
-            return [sid.session_id for sid in _sids]
-
-        sids = self.env.cache.get_sids_for_user_in_room(user_id, room_id)
-        if sids is not None and len(sids) > 0:
-            return sids
-
-        try:
-            sids = _get_sids()
-        except Exception as e:
-            logger.error('could not get sids: {}'.format(str(e)))
-            logger.exception(e)
-            self.env.capture_exception(sys.exc_info())
-            return list()
-
-        if sids is None or len(sids) == 0:
-            return list()
-
-        self.env.cache.set_sids_for_user_in_room(user_id, room_id, sids)
-        return sids
-
-    @with_session
-    def get_rooms_with_sid(self, user_id: str, session=None) -> dict:
-        room_sids = session.query(RoomSids)\
-            .filter_by(user_id=user_id)\
-            .all()
-
-        if room_sids is None or len(room_sids) == 0:
-            return dict()
-
-        rooms = dict()
-        for room_sid in room_sids:
-            if room_sid.session_id not in rooms:
-                rooms[room_sid.session_id] = list()
-            rooms[room_sid.session_id].append(room_sid.room_id)
-
-        return rooms
-
-    @with_session
-    def remove_sid_for_user_in_room(self, user_id: str, room_id: str = None, sid_to_remove: str = None, session=None) -> None:
-        try:
-            if room_id is None:
-                sids = session.query(RoomSids) \
-                    .filter_by(user_id=user_id) \
-                    .all()
-            else:
-                sids = session.query(RoomSids)\
-                    .filter_by(room_id=room_id)\
-                    .filter_by(user_id=user_id)\
-                    .all()
-
-            for sid in sids:
-                if sid_to_remove is None or sid_to_remove == sid.session_id:
-                    session.delete(sid)
-            session.commit()
-
-        except Exception as e:
-            logger.error('could not reset sids: {}'.format(str(e)))
-            logger.exception(e)
-            self.env.capture_exception(sys.exc_info())
-
-        if room_id is None:
-            self.env.cache.reset_sids_for_user(user_id)
-        else:
-            self.env.cache.reset_sids_for_user_in_room(user_id, room_id)
-
     def room_contains(self, room_id: str, user_id: str) -> bool:
         self.get_room_name(room_id)
         self.channel_for_room(room_id)
         return room_id in self.rooms_for_user(user_id)
+
+    @with_session
+    def remove_current_rooms_for_user(self, user_id: str, session=None) -> None:
+        for i in range(3):
+            try:
+                self._remove_current_rooms_for_user(user_id, session)
+                return
+            except StaleDataError as e:
+                logger.warning('stale data when removing current rooms for user, attempt {}/2: {}'.format(
+                    str(i), str(e)
+                ))
+        logger.error('got stale data after 3 retries, giving up')
 
     def set_ephemeral_room(self, room_id: str):
         self._set_ephemeral_on_room_to(room_id, is_ephemeral=True)
 
     def unset_ephemeral_room(self, room_id: str):
         self._set_ephemeral_on_room_to(room_id, is_ephemeral=False)
+
+    @with_session
+    def get_rooms_with_sid(self, user_id: str, session=None):
+        room_sids = session.query(RoomSids).filter_by(user_id=user_id).all()
+        return {rs.session_id: rs.room_id for rs in room_sids}
+
+    @with_session
+    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove, session=None):
+        if room_id is None:
+            sids = session.query(RoomSids) \
+                .filter_by(user_id=user_id) \
+                .all()
+        else:
+            sids = session.query(RoomSids) \
+                .filter_by(room_id=room_id) \
+                .filter_by(user_id=user_id) \
+                .all()
+
+        for sid in sids:
+            if sid_to_remove is None or sid_to_remove == sid.session_id:
+                session.delete(sid)
+        session.commit()
+
+    @with_session
+    def sids_for_user_in_room(self, user_id, room_id, session=None):
+        sids = session.query(RoomSids) \
+            .filter_by(room_id=room_id) \
+            .filter_by(user_id=user_id) \
+            .all()
+        return [sid.session_id for sid in sids]
 
     @with_session
     def _set_ephemeral_on_room_to(self, room_id: str, is_ephemeral: bool, session=None):
@@ -904,18 +875,6 @@ class DatabaseRdbms(object):
         self.env.cache.set_default_rooms(default_rooms)
         return default_rooms
 
-    @with_session
-    def remove_current_rooms_for_user(self, user_id: str, session=None) -> None:
-        for i in range(3):
-            try:
-                self._remove_current_rooms_for_user(user_id, session)
-                return
-            except StaleDataError as e:
-                logger.warning('stale data when removing current rooms for user, attempt {}/2: {}'.format(
-                    str(i), str(e)
-                ))
-        logger.error('got stale data after 3 retries, gving up')
-
     def _remove_current_rooms_for_user(self, user_id: str, session):
         user = session.query(Users).filter(Users.uuid == user_id).first()
         if user is None:
@@ -924,47 +883,6 @@ class DatabaseRdbms(object):
         rooms = session.query(Rooms)\
             .join(Rooms.users)\
             .filter(Users.uuid == user_id)\
-            .all()
-
-        if rooms is None or len(rooms) == 0:
-            return
-
-        for room in rooms:
-            try:
-                room.users.remove(user)
-            except ValueError:
-                # happens if the user already left a room
-                pass
-
-        try:
-            session.commit()
-        except StaleDataError:
-            # might have just been removed by another node
-            session.rollback()
-
-        self.env.cache.remove_rooms_for_user(user_id)
-
-    @with_session
-    def remove_room_for_user(self, user_id: str, room_id: str, session=None) -> None:
-        for i in range(3):
-            try:
-                self._remove_room_for_user(user_id, room_id, session)
-                return
-            except StaleDataError as e:
-                logger.warning('stale data when removing current rooms for user, attempt {}/2: {}'.format(
-                    str(i), str(e)
-                ))
-        logger.error('got stale data after 3 retries, gving up')
-
-    def _remove_room_for_user(self, user_id: str, room_id: str, session):
-        user = session.query(Users).filter(Users.uuid == user_id).first()
-        if user is None:
-            return
-
-        rooms = session.query(Rooms)\
-            .join(Rooms.users)\
-            .filter(Users.uuid == user_id)\
-            .filter(Rooms.uuid == room_id)\
             .all()
 
         if rooms is None or len(rooms) == 0:
@@ -1406,7 +1324,7 @@ class DatabaseRdbms(object):
                 'db error when leaving room, likely already removed from assoc table: %s' % str(e))
             self.env.capture_exception(sys.exc_info())
 
-    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str, session_id: str) -> None:
+    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.get_room_name(room_id)
 
         @with_session
@@ -1428,23 +1346,30 @@ class DatabaseRdbms(object):
 
             room.users.append(user)
             session.add(room)
-
             session.commit()
 
         @with_session
-        def _add_room_sid(session=None):
+        def _save_sid_in_room(session=None):
             room_sid = RoomSids()
             room_sid.user_id = user_id
-            room_sid.session_id = session_id
             room_sid.room_id = room_id
+            room_sid.session_id = sid
             session.add(room_sid)
             session.commit()
 
+        sid = None
         try:
-            _add_room_sid()
+            sid = self.env.request.sid
         except Exception as e:
-            error_msg = 'could not add RoomSids for room {} ({}), user {} ({}), sid {}: {}'
-            logger.error(error_msg.format(user_id, user_name, room_id, room_name, session_id, str(e)))
+            logger.error('could not get sid from request: {}'.format(str(e)))
+
+        if sid is not None:
+            try:
+                _save_sid_in_room()
+            except Exception as e:
+                logger.error('could not save ROomSids for user {}, room {}, sid {}: {}'.format(
+                    user_id, room_id, sid, str(e)
+                ))
 
         try:
             _join_room()

@@ -26,17 +26,17 @@ environ.env.config.set(ConfigKeys.TESTING, True)
 environ.env.config.set(ConfigKeys.SESSION, {'user_id': '1234'})
 
 
-class BaseFunctionalTest(BaseTest):
+class BaseFunctional(object):
     class FakeRequest(object):
         def __init__(self):
             self.sid = str(uuid())
 
     class FakeEnv(GNEnvironment):
         def __init__(self):
-            super(BaseFunctionalTest.FakeEnv, self).__init__(None, ConfigDict(), skip_init=True)
+            super(BaseFunctional.FakeEnv, self).__init__(None, ConfigDict(), skip_init=True)
             self.config = ConfigDict()
             self.cache = CacheRedis(self, 'mock')
-            self.storage = StorageRedis(self, 'mock')
+            self.storage = StorageRedis(host='mock', env=self)
             self.session = dict()
             self.node = 'test'
             self.request = BaseFunctionalTest.FakeRequest()
@@ -156,7 +156,6 @@ class BaseFunctionalTest(BaseTest):
         )
 
         self.env.session[SessionKeys.user_name.value] = BaseTest.USER_NAME
-        self.env.request.sid = BaseTest.SESSION_ID
         self.env.config.set(ConfigKeys.DRIVER, 'sqlite', domain=ConfigKeys.DATABASE)
         self.db = DatabaseRdbms(self.env)
 
