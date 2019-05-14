@@ -70,6 +70,14 @@ class Rooms(DeclarativeBase):
         back_populates='rooms')
 
 
+class RoomSids(DeclarativeBase):
+    __tablename__ = 'roomsids'
+
+    user_id = Column('user_id', String(128), nullable=False, index=True, primary_key=True)
+    room_id = Column('room_id', String(128), nullable=False, index=True, primary_key=True)
+    session_id = Column('session_id', String(128), nullable=False, index=True, primary_key=True)
+
+
 class DefaultRooms(DeclarativeBase):
     __tablename__ = 'defaultrooms'
 

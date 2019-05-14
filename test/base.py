@@ -196,6 +196,10 @@ class BaseTest(unittest.TestCase):
         sid = '124'
         namespace = '/chat'
 
+        def __init__(self, sid=None):
+            if sid is not None:
+                self.sid = sid
+
     def setUp(self):
         BaseTest.users_in_room.clear()
         BaseTest.emit_args.clear()

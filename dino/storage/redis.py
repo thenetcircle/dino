@@ -1,21 +1,6 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from zope.interface import implementer
 from activitystreams.models.activity import Activity
 
-from dino import environ
 from dino.storage import IStorage
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
@@ -32,8 +17,14 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class StorageRedis(object):
     redis = None
 
-    def __init__(self, host: str, port: int = 6379, db: int = 0):
-        if environ.env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
+    def __init__(self, host: str, port: int = 6379, db: int = 0, env=None):
+        if env is None:
+            from dino import environ
+            env = environ.env
+
+        self.env = env
+
+        if self.env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
             from fakeredis import FakeRedis as Redis
         else:
             from redis import Redis
@@ -43,8 +34,8 @@ class StorageRedis(object):
     def store_message(self, activity: Activity, deleted=False) -> None:
         target_id = activity.target.id
         target_name = b64e(activity.target.display_name)
-        user_id = environ.env.session.get(SessionKeys.user_id.value)
-        user_name = b64e(environ.env.session.get(SessionKeys.user_name.value))
+        user_id = self.env.session.get(SessionKeys.user_id.value)
+        user_name = b64e(self.env.session.get(SessionKeys.user_name.value))
         channel_id = activity.object.url
         channel_name = b64e(activity.object.summary)
         msg = activity.object.content
@@ -57,7 +48,7 @@ class StorageRedis(object):
                 '%s,%s,%s,%s,%s,%s,%s,%s' % (
                     activity.id, activity.published, user_id, user_name, target_name, channel_id, channel_name, msg))
 
-        max_history = environ.env.config.get(ConfigKeys.LIMIT, domain=ConfigKeys.HISTORY, default=-1)
+        max_history = self.env.config.get(ConfigKeys.LIMIT, domain=ConfigKeys.HISTORY, default=-1)
         if max_history > 0:
             self.redis.ltrim(RedisKeys.room_history(target_id), 0, max_history)
 

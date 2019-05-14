@@ -1109,6 +1109,42 @@ def is_global_moderator(user_id: str) -> bool:
     return environ.env.db.is_global_moderator(user_id)
 
 
+def remove_sid_for_user_in_room(user_id, room_id, sid):
+    environ.env.db.remove_sid_for_user_in_room(user_id, room_id, sid)
+
+
+def sids_for_user_in_room(user_id, room_id):
+    return environ.env.db.sids_for_user_in_room(user_id, room_id)
+
+
+def is_multiple_sessions_allowed():
+    valid_conf = environ.env.config.get(ConfigKeys.VALIDATION)
+
+    if valid_conf is None:
+        return True
+
+    if 'on_login' not in valid_conf.keys():
+        return True
+
+    login_conf = valid_conf.get('on_login')
+
+    if login_conf is None or type(login_conf) != list:
+        return True
+
+    for conf in login_conf:
+        if conf is None or type(conf) != dict:
+            continue
+
+        if 'name' not in conf:
+            continue
+
+        name = conf.get('name')
+        if name is not None and name == 'single_session':
+            return False
+
+    return True
+
+
 def is_moderator(room_id: str, user_id: str) -> bool:
     return environ.env.db.is_moderator(room_id, user_id)
 

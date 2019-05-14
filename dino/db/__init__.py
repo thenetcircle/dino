@@ -28,6 +28,30 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_rooms_with_sid(self, user_id: str):
+        """
+
+        :param user_id:
+        :return:
+        """
+
+    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove):
+        """
+
+        :param user_id:
+        :param room_id:
+        :param sid_to_remove:
+        :return:
+        """
+
+    def sids_for_user_in_room(self, user_id, room_id):
+        """
+
+        :param user_id:
+        :param room_id:
+        :return:
+        """
+
     def rooms_for_channel_without_info(self, channel_id: str) -> dict:
         """
         get rooms for channel, similar to #rooms_for_channel but without user information

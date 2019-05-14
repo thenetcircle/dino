@@ -36,7 +36,7 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs, Spams, Config
+from dino.db.rdbms.models import AclConfigs, Spams, Config, RoomSids
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import Bans
 from dino.db.rdbms.models import BlackList
@@ -46,6 +46,7 @@ from dino.db.rdbms.models import DefaultRooms
 from dino.db.rdbms.models import GlobalRoles
 from dino.db.rdbms.models import LastReads
 from dino.db.rdbms.models import RoomRoles
+from dino.db.rdbms.models import RoomSids
 from dino.db.rdbms.models import Rooms
 from dino.db.rdbms.models import Sids
 from dino.db.rdbms.models import UserStatus
@@ -793,6 +794,36 @@ class DatabaseRdbms(object):
         self._set_ephemeral_on_room_to(room_id, is_ephemeral=False)
 
     @with_session
+    def get_rooms_with_sid(self, user_id: str, session=None):
+        room_sids = session.query(RoomSids).filter_by(user_id=user_id).all()
+        return {rs.session_id: rs.room_id for rs in room_sids}
+
+    @with_session
+    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove, session=None):
+        if room_id is None:
+            sids = session.query(RoomSids) \
+                .filter_by(user_id=user_id) \
+                .all()
+        else:
+            sids = session.query(RoomSids) \
+                .filter_by(room_id=room_id) \
+                .filter_by(user_id=user_id) \
+                .all()
+
+        for sid in sids:
+            if sid_to_remove is None or sid_to_remove == sid.session_id:
+                session.delete(sid)
+        session.commit()
+
+    @with_session
+    def sids_for_user_in_room(self, user_id, room_id, session=None):
+        sids = session.query(RoomSids) \
+            .filter_by(room_id=room_id) \
+            .filter_by(user_id=user_id) \
+            .all()
+        return [sid.session_id for sid in sids]
+
+    @with_session
     def _set_ephemeral_on_room_to(self, room_id: str, is_ephemeral: bool, session=None):
         room = session.query(Rooms).filter(Rooms.uuid == room_id).first()
         if room is None:
@@ -1316,6 +1347,29 @@ class DatabaseRdbms(object):
             room.users.append(user)
             session.add(room)
             session.commit()
+
+        @with_session
+        def _save_sid_in_room(session=None):
+            room_sid = RoomSids()
+            room_sid.user_id = user_id
+            room_sid.room_id = room_id
+            room_sid.session_id = sid
+            session.add(room_sid)
+            session.commit()
+
+        sid = None
+        try:
+            sid = self.env.request.sid
+        except Exception as e:
+            logger.error('could not get sid from request: {}'.format(str(e)))
+
+        if sid is not None:
+            try:
+                _save_sid_in_room()
+            except Exception as e:
+                logger.error('could not save ROomSids for user {}, room {}, sid {}: {}'.format(
+                    user_id, room_id, sid, str(e)
+                ))
 
         try:
             _join_room()
