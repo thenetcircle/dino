@@ -1,5 +1,5 @@
 from zope.interface import Interface
-from typing import Union
+from typing import Union, Dict
 
 
 class ICache(Interface):
@@ -9,6 +9,21 @@ class ICache(Interface):
 
         :param sid: the s session id
         :return: the user id or none
+        """
+
+    def get_room_acls_for_action(self, action: str) -> Union[None, Dict[str, Dict[str, str]]]:
+        """
+
+        :param action:
+        :return:
+        """
+
+    def set_room_acls_for_action(self, action: str, acls: Dict[str, Dict[str, str]]) -> None:
+        """
+
+        :param action:
+        :param acls:
+        :return:
         """
 
     def add_heartbeat(self, user_id: str) -> None:

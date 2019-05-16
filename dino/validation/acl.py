@@ -704,7 +704,7 @@ class AclConfigValidator(object):
         available_acls = acls['available']['acls']
         rules = ['acls', 'exclude']
         actions = {
-            'room': ['join', 'setacl', 'history', 'create', 'list', 'kick', 'message', 'crossroom', 'ban'],
+            'room': ['join', 'setacl', 'history', 'create', 'list', 'kick', 'message', 'crossroom', 'ban', 'autojoin'],
             'channel': ['create', 'setacl', 'list', 'create', 'message', 'crossroom', 'ban', 'whisper']
         }
 

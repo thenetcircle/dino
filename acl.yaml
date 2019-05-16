@@ -99,6 +99,11 @@ room:
         exclude:
             - crossroom
             - samechannel
+    autojoin:
+        <<: *AVAILABLE
+        exclude:
+          - crossroom
+          - samechannel
     list:
         <<: *AVAILABLE
         exclude:

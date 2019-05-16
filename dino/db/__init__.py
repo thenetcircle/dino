@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Union, Dict
 
 from activitystreams import Activity
 from zope.interface import Interface
@@ -26,6 +26,13 @@ class IDatabase(Interface):
         initialize the config table
 
         :return: nothing
+        """
+
+    def get_room_acls_for_action(self, action) -> Dict[str, Dict[str, str]]:
+        """
+
+        :param action:
+        :return:
         """
 
     def get_rooms_with_sid(self, user_id: str):

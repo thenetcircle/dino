@@ -2,9 +2,14 @@ import logging
 import sys
 import traceback
 
+import activitystreams
+
+from dino.utils.activity_helper import ActivityBuilder
+
 from dino import environ
 from dino import utils
-from dino.config import SessionKeys
+from dino import validation
+from dino.config import SessionKeys, ConfigKeys, ApiActions
 from dino.config import UserKeys
 from dino.exceptions import NoSuchUserException
 
@@ -104,22 +109,37 @@ class OnLoginHooks(object):
             # if login after server restart the cache value user:status:<user id> is non-existent, set to invisible
             environ.env.cache.set_user_invisible(user_id)
 
+    @staticmethod
+    def autojoin_rooms(arg: tuple) -> None:
+        data, activity = arg
+
+        if not environ.env.config.get(ConfigKeys.AUTOJOIN_ENABLED, 'false').lower() in {'true', 'yes', '1', 'y'}:
+            return
+
+        try:
+            room_acls = environ.env.db.get_room_acls_for_action(ApiActions.AUTOJOIN)
+        except Exception as e:
+            logger.error('could not get autojoin acls: {}'.format(str(e)))
+            return
+
+        for room_id, acls in room_acls.items():
+            is_valid, error_msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.JOIN, acls)
+            if not is_valid:
+                continue
+
+            join_data = ActivityBuilder.enrich({
+                'verb': 'join',
+                'target': {
+                    'id': room_id
+                }
+            })
+            environ.env.observer.emit('on_join', (data, activitystreams.parse(join_data)))
+
 
 @environ.env.observer.on('on_login')
 def _on_login_set_user_online(arg: tuple) -> None:
     OnLoginHooks.set_user_online_if_not_previously_invisible(arg)
-
-
-@environ.env.observer.on('on_login')
-def _on_login_update_session(arg: tuple) -> None:
     OnLoginHooks.update_session_and_join_private_room(arg)
-
-
-@environ.env.observer.on('on_login')
-def _on_login_reset_temp_session_values(arg: tuple) -> None:
     OnLoginHooks.reset_temp_session_values(arg)
-
-
-@environ.env.observer.on('on_login')
-def _on_login_publish_activity(arg: tuple) -> None:
+    OnLoginHooks.autojoin_rooms(arg)
     OnLoginHooks.publish_activity(arg)

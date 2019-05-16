@@ -4,7 +4,7 @@ import traceback
 import random
 
 from zope.interface import implementer
-from typing import Union
+from typing import Union, Dict
 
 from dino.config import RedisKeys
 from dino.config import ConfigKeys
@@ -95,6 +95,45 @@ class CacheRedis(object):
 
     def _del(self, key) -> None:
         self.cache.delete(key)
+
+    def get_room_acls_for_action(self, action: str) -> Union[None, Dict[str, Dict[str, str]]]:
+        key = RedisKeys.rooms_with_action(action)
+        room_ids_bytes = self.redis.get(key)
+
+        if room_ids_bytes is None:
+            return None
+
+        room_ids_str = str(room_ids_bytes, 'utf-8')
+        room_ids = room_ids_str.split(',')
+
+        room_acls = dict()
+        for room_id in room_ids:
+            key = RedisKeys.room_acls_for_action(room_id, action)
+            acls = self.redis.hgetall(key)
+
+            str_acls = dict()
+            for acl_type, acl_value in acls.items():
+                str_acls[str(acl_type, 'utf-8')] = str(acl_value, 'utf-8')
+
+            room_acls[room_id] = str_acls
+
+        return room_acls
+
+    def set_room_acls_for_action(self, action: str, acls: Dict[str, Dict[str, str]]) -> None:
+        for room_id, values in acls.items():
+            key = RedisKeys.room_acls_for_action(room_id, action)
+            self.redis.hmset(key, values)
+            self.redis.expire(key, TEN_MINUTES)
+
+        room_ids = list(acls.keys())
+        key = RedisKeys.rooms_with_action(action)
+
+        # avoid race condition that could happen if we used lists instead; after clearing a
+        # list and before filling it with this updated list of room ids, another client
+        # might be querying redis and getting 0 results
+        room_ids_str = ','.join(room_ids)
+        self.redis.set(key, room_ids_str)
+        self.redis.expire(key, TEN_MINUTES)
 
     def add_heartbeat(self, user_id: str) -> None:
         redis_key = RedisKeys.heartbeat_user(user_id)

@@ -169,6 +169,7 @@ class ApiActions(object):
     all_api_actions = list()
 
     JOIN = 'join'
+    AUTOJOIN = 'autojoin'
     CROSSROOM = 'crossroom'
     MESSAGE = 'message'
     KICK = 'kick'
@@ -215,6 +216,7 @@ class ConfigKeys(object):
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'
     RESPONSE_FORMAT = 'response_format'
+    AUTOJOIN_ENABLED = 'autojoin'
     LOGGING = 'logging'
     DATE_FORMAT = 'date_format'
     DEBUG = 'debug'
@@ -347,6 +349,17 @@ class RedisKeys(object):
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
 
     RKEY_HEARTBEAT = 'heartbeat:{}'
+
+    RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
+    RKEY_ACLS_FOR_ROOMS_HAVING_ACTION = 'rooms:acl:{}:{}'  # rooms:acl:<room_id>:<acl_action> => {acl_type: acl_value}
+
+    @staticmethod
+    def room_acls_for_action(room_id: str, action: str) -> str:
+        return RedisKeys.RKEY_ACLS_FOR_ROOMS_HAVING_ACTION.format(room_id, action)
+
+    @staticmethod
+    def rooms_with_action(action: str) -> str:
+        return RedisKeys.RKEY_ROOMS_WITH_ACL_ACTION.format(action)
 
     @staticmethod
     def heartbeat_user(user_id: str) -> str:

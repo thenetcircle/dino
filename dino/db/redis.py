@@ -14,7 +14,7 @@
 from activitystreams import Activity
 from zope.interface import implementer
 from datetime import datetime
-from typing import Union
+from typing import Union, Dict
 from uuid import uuid4 as uuid
 import logging
 
@@ -68,6 +68,9 @@ class DatabaseRedis(object):
         self.env = env
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
+
+    def get_room_acls_for_action(self, action) -> Dict[str, Dict[str, str]]:
+        pass
 
     def get_rooms_with_sid(self, user_id: str):
         pass
