@@ -68,6 +68,9 @@ class DatabaseRedis(object):
         self.env = env
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
+        
+    def get_all_permanent_rooms(self):
+        pass
 
     def get_room_acls_for_action(self, action) -> Dict[str, Dict[str, str]]:
         pass

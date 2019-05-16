@@ -11,6 +11,19 @@ class ICache(Interface):
         :return: the user id or none
         """
 
+    def get_all_permanent_rooms(self):
+        """
+
+        :return:
+        """
+
+    def set_all_permanent_rooms(self, rooms):
+        """
+
+        :param rooms:
+        :return:
+        """
+
     def get_room_acls_for_action(self, action: str) -> Union[None, Dict[str, Dict[str, str]]]:
         """
 

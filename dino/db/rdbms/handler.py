@@ -131,6 +131,29 @@ class DatabaseRdbms(object):
             'spam_should_save': config.spam_should_save
         }
 
+    def get_all_permanent_rooms(self):
+        @with_session
+        def _get_all_permanent_rooms(session=None):
+            rooms = session.query(Rooms).filer(Rooms.ephemeral.is_(False)).all()
+            if rooms is None or len(rooms) == 0:
+                return dict()
+
+            room_acls = dict()
+            for room in rooms:
+                acls = self.get_all_acls_room(room.uuid)
+                room_acls[room.uuid] = acls
+
+            return room_acls
+
+        all_rooms = self.env.cache.get_all_permanent_rooms()
+        if all_rooms is not None:
+            return all_rooms
+
+        all_rooms = _get_all_permanent_rooms()
+        self.env.cache.set_all_permanent_rooms(all_rooms)
+
+        return all_rooms
+
     def is_room_ephemeral(self, room_id: str) -> bool:
         @with_session
         def is_ephemeral(session=None):

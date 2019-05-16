@@ -28,6 +28,12 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def get_all_permanent_rooms(self):
+        """
+
+        :return:
+        """
+
     def get_room_acls_for_action(self, action) -> Dict[str, Dict[str, str]]:
         """
 

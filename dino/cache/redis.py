@@ -96,6 +96,20 @@ class CacheRedis(object):
     def _del(self, key) -> None:
         self.cache.delete(key)
 
+    def get_all_permanent_rooms(self):
+        key = RedisKeys.all_permanent_rooms()
+        rooms = self.redis.get(key)
+        if rooms is None or len(rooms) == 0:
+            return None
+
+        return str(rooms, 'utf-8').split(',')
+
+    def set_all_permanent_rooms(self, rooms):
+        rooms_str = ','.join(rooms)
+        key = RedisKeys.all_permanent_rooms()
+        self.redis.set(key, rooms_str)
+        self.redis.expire(key, FIVE_MINUTES)
+
     def get_room_acls_for_action(self, action: str) -> Union[None, Dict[str, Dict[str, str]]]:
         key = RedisKeys.rooms_with_action(action)
         room_ids_bytes = self.redis.get(key)

@@ -314,6 +314,7 @@ class RedisKeys(object):
     RKEY_USERS_IN_ROOM_VISIBLE = 'room:visible:%s'  # room:visible:room_id
     RKEY_USERS_IN_ROOM_WITH_INVISIBLE = 'room:with:invisible:%s'  # room:with:invisible:room_id
     RKEY_ROOMS = 'rooms:%s'  # room:channel_id
+    RKEY_ROOMS_PERMANENT = 'rooms:permanent'
     RKEY_ONLINE_BITMAP = 'users:online:bitmap'
     RKEY_ONLINE_SET = 'users:online:set'
     RKEY_MULTI_CAST = 'users:multicast'
@@ -352,6 +353,10 @@ class RedisKeys(object):
 
     RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
     RKEY_ACLS_FOR_ROOMS_HAVING_ACTION = 'rooms:acl:{}:{}'  # rooms:acl:<room_id>:<acl_action> => {acl_type: acl_value}
+
+    @staticmethod
+    def all_permanent_rooms():
+        return RedisKeys.RKEY_ROOMS_PERMANENT
 
     @staticmethod
     def room_acls_for_action(room_id: str, action: str) -> str:
