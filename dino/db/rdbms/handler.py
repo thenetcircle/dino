@@ -134,7 +134,7 @@ class DatabaseRdbms(object):
     def get_all_permanent_rooms(self):
         @with_session
         def _get_all_permanent_rooms(session=None):
-            rooms = session.query(Rooms).filer(Rooms.ephemeral.is_(False)).all()
+            rooms = session.query(Rooms).filter(Rooms.ephemeral.is_(False)).all()
             if rooms is None or len(rooms) == 0:
                 return dict()
 
