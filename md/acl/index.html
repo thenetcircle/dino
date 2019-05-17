@@ -96,6 +96,10 @@
     
         <ul>
         
+            <li><a class="toctree-l3" href="#available-acl_types">Available acl_types</a></li>
+        
+            <li><a class="toctree-l3" href="#available-actions">Available actions</a></li>
+        
             <li><a class="toctree-l3" href="#custom-acl-pattern">Custom ACL Pattern</a></li>
         
         </ul>
@@ -152,6 +156,54 @@
             <div class="section">
               
                 <h2 id="access-control-lists">Access Control Lists</h2>
+<h3 id="available-acl_types">Available <code>acl_type</code>s</h3>
+<ul>
+<li>age</li>
+<li>gender</li>
+<li>membership</li>
+<li>group</li>
+<li>country</li>
+<li>city</li>
+<li>image</li>
+<li>has_webcam</li>
+<li>fake_checked</li>
+<li>owner</li>
+<li>admin</li>
+<li>room_owner</li>
+<li>moderator</li>
+<li>superuser</li>
+<li>crossroom</li>
+<li>samechannel</li>
+<li>sameroom</li>
+<li>disallow</li>
+<li>custom</li>
+</ul>
+<p>For custom, see <a href="./#custom-acl-pattern">Custom ACL Pattern</a> below.</p>
+<h3 id="available-actions">Available <code>actions</code></h3>
+<p>For rooms, the actions are:</p>
+<ul>
+<li>join</li>
+<li>setacl</li>
+<li>history</li>
+<li>create</li>
+<li>list</li>
+<li>kick</li>
+<li>message</li>
+<li>crossroom</li>
+<li>ban</li>
+<li>autojoin</li>
+</ul>
+<p>And for channels:</p>
+<ul>
+<li>create</li>
+<li>setacl</li>
+<li>list</li>
+<li>create</li>
+<li>message</li>
+<li>crossroom</li>
+<li>ban</li>
+<li>whisper</li>
+</ul>
 <h3 id="custom-acl-pattern">Custom ACL Pattern</h3>
 <p>A custom ACL pattern may be set instead of the regular simple ACL types. A simple grammar exists to specify this.</p>
 <h4 id="grammar">Grammar</h4>

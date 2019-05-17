@@ -97,6 +97,12 @@
     <a class="current" href="./">REST API</a>
     <ul class="subnav">
             
+    <li class="toctree-l2"><a href="#get-acl">GET /acl</a></li>
+    
+
+    <li class="toctree-l2"><a href="#post-acl">POST /acl</a></li>
+    
+
     <li class="toctree-l2"><a href="#get-history">GET /history</a></li>
     
 
@@ -193,57 +199,106 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="get-history">GET /history</h2>
+                <h2 id="get-acl">GET /acl</h2>
+<p>Retrieve all ACLs for all non-temporary rooms in all channels.</p>
+<p>Example response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {
+        &quot;status&quot;: &quot;OK&quot;,
+        &quot;data&quot;: {
+            &quot;0efd8a52-7220-4160-88fe-68a15d470d95&quot;: [{
+                &quot;type&quot;: &quot;admin&quot;,
+                &quot;action&quot;: &quot;join&quot;,
+                &quot;value&quot;: &quot;&quot;
+            }, {
+                &quot;type&quot;: &quot;admin&quot;,
+                &quot;action&quot;: &quot;list&quot;,
+                &quot;value&quot;: &quot;&quot;
+            }],
+            &quot;a81e4726-784a-11e9-bbdd-bbfdfd886868&quot;: [{
+                &quot;type&quot;: &quot;gender&quot;,
+                &quot;action&quot;: &quot;autojoin&quot;,
+                &quot;value&quot;: &quot;m,f&quot;
+            }]
+        }
+    },
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="post-acl">POST /acl</h2>
+<p>Request:</p>
+<pre><code class="json">{
+    &quot;room_id&quot;: &quot;a81e4726-784a-11e9-bbdd-bbfdfd886868&quot;,
+    &quot;action&quot;: &quot;autojoin&quot;,
+    &quot;acl_type&quot;: &quot;gender&quot;,
+    &quot;acl_value&quot;: &quot;age=35,(gender=f|membership=normal)&quot;
+}
+</code></pre>
+
+<p>For more examples on the format of the <code>acl_value</code> field, see the <a href="../acl/">ACL</a> section. </p>
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {
+        &quot;status&quot;: &quot;OK&quot;
+    }, 
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="get-history">GET /history</h2>
 <p>Request contains info on what time slice, target, origin to get history for:</p>
-<pre><code>{
-    "from_time": "2016-12-26T08:39:54Z",
-    "to_time": "2016-12-28T08:39:54Z",
-    "user_id": "124352",
-    "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59" # optional
-}
+<pre><code class="json">    {
+        &quot;from_time&quot;: &quot;2016-12-26T08:39:54Z&quot;,
+        &quot;to_time&quot;: &quot;2016-12-28T08:39:54Z&quot;,
+        &quot;user_id&quot;: &quot;124352&quot;,
+        &quot;room_id&quot;: &quot;dedf878e-b25d-4713-8058-20c6f0547c59&quot; # optional
+    }
 </code></pre>
+
 <p>Response would be something similar to the following:</p>
-<pre><code>{
-    "status_code": 200,
-    "data": [{
-        "deleted": false,
-        "target_name": "YmFkIGtpZHo=",
-        "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
-        "timestamp": "2017-01-26T04:58:33Z",
-        "from_user_name": "YmF0bWFu",
-        "message_id": "37db81f2-4e16-4076-b759-8ce1c23a364e",
-        "from_user_id": "997110",
-        "channel_name": "U2hhbmdoYWk=",
-        "body": "aG93IGFyZSB5b3U/",
-        "domain": "room",
-        "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
-    }, {
-        "deleted": false,
-        "target_name": "YmFkIGtpZHo=",
-        "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
-        "timestamp": "2017-01-26T04:58:31Z",
-        "from_user_name": "YmF0bWFu",
-        "message_id": "416d3c60-7197-471c-a706-7dbeca090d11",
-        "from_user_id": "997110",
-        "channel_name": "U2hhbmdoYWk=",
-        "body": "aGVsbG8gdGhlcmU=",
-        "domain": "room",
-        "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
-    }, {
-        "deleted": false,
-        "target_name": "YmFkIGtpZHo=",
-        "target_id": "675eb2a5-17c6-45e4-bc0f-674241573f22",
-        "timestamp": "2017-01-26T04:58:16Z",
-        "from_user_name": "YmF0bWFu",
-        "message_id": "91655457-3712-4c2f-b6f2-c3b0f8be29e5",
-        "from_user_id": "997110",
-        "channel_name": "U2hhbmdoYWk=",
-        "body": "ZmRzYQ==",
-        "domain": "room",
-        "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
-    }]
-}
+<pre><code class="json">    {
+        &quot;status_code&quot;: 200,
+        &quot;data&quot;: [{
+            &quot;deleted&quot;: false,
+            &quot;target_name&quot;: &quot;YmFkIGtpZHo=&quot;,
+            &quot;target_id&quot;: &quot;675eb2a5-17c6-45e4-bc0f-674241573f22&quot;,
+            &quot;timestamp&quot;: &quot;2017-01-26T04:58:33Z&quot;,
+            &quot;from_user_name&quot;: &quot;YmF0bWFu&quot;,
+            &quot;message_id&quot;: &quot;37db81f2-4e16-4076-b759-8ce1c23a364e&quot;,
+            &quot;from_user_id&quot;: &quot;997110&quot;,
+            &quot;channel_name&quot;: &quot;U2hhbmdoYWk=&quot;,
+            &quot;body&quot;: &quot;aG93IGFyZSB5b3U/&quot;,
+            &quot;domain&quot;: &quot;room&quot;,
+            &quot;channel_id&quot;: &quot;dedf878e-b25d-4713-8058-20c6f0547c59&quot;
+        }, {
+            &quot;deleted&quot;: false,
+            &quot;target_name&quot;: &quot;YmFkIGtpZHo=&quot;,
+            &quot;target_id&quot;: &quot;675eb2a5-17c6-45e4-bc0f-674241573f22&quot;,
+            &quot;timestamp&quot;: &quot;2017-01-26T04:58:31Z&quot;,
+            &quot;from_user_name&quot;: &quot;YmF0bWFu&quot;,
+            &quot;message_id&quot;: &quot;416d3c60-7197-471c-a706-7dbeca090d11&quot;,
+            &quot;from_user_id&quot;: &quot;997110&quot;,
+            &quot;channel_name&quot;: &quot;U2hhbmdoYWk=&quot;,
+            &quot;body&quot;: &quot;aGVsbG8gdGhlcmU=&quot;,
+            &quot;domain&quot;: &quot;room&quot;,
+            &quot;channel_id&quot;: &quot;dedf878e-b25d-4713-8058-20c6f0547c59&quot;
+        }, {
+            &quot;deleted&quot;: false,
+            &quot;target_name&quot;: &quot;YmFkIGtpZHo=&quot;,
+            &quot;target_id&quot;: &quot;675eb2a5-17c6-45e4-bc0f-674241573f22&quot;,
+            &quot;timestamp&quot;: &quot;2017-01-26T04:58:16Z&quot;,
+            &quot;from_user_name&quot;: &quot;YmF0bWFu&quot;,
+            &quot;message_id&quot;: &quot;91655457-3712-4c2f-b6f2-c3b0f8be29e5&quot;,
+            &quot;from_user_id&quot;: &quot;997110&quot;,
+            &quot;channel_name&quot;: &quot;U2hhbmdoYWk=&quot;,
+            &quot;body&quot;: &quot;ZmRzYQ==&quot;,
+            &quot;domain&quot;: &quot;room&quot;,
+            &quot;channel_id&quot;: &quot;dedf878e-b25d-4713-8058-20c6f0547c59&quot;
+        }]
+    }
 </code></pre>
+
 <ul>
 <li>If neither <code>from_time</code> nor <code>to_time</code> is specified, the last 7 days will be used as limit,</li>
 <li>If <code>from_time</code> is specified but no <code>to_time</code>, <code>to_time</code> will be <code>from_time + 7 days</code>,</li>
