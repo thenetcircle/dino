@@ -1,6 +1,7 @@
 import logging
 import sys
 import traceback
+from datetime import datetime
 
 from eventlet.greenpool import GreenPool
 from flask import request
@@ -30,6 +31,7 @@ class AclResource(BaseResource):
     def __init__(self):
         super(AclResource, self).__init__()
         self.acl_manager = AclManager(environ.env)
+        self.last_cleared = datetime.utcnow()
         self.executor = GreenPool()
         self.request = request
         self.env = environ.env
@@ -101,3 +103,12 @@ class AclResource(BaseResource):
             raise KeyError('missing parameter acl_type for in request')
         if 'acl_value' not in json_data:
             raise KeyError('missing parameter acl_value for in request')
+
+    def _get_lru_method(self):
+        return self.do_get_with_params
+
+    def _get_last_cleared(self):
+        return self.last_cleared
+
+    def _set_last_cleared(self, last_cleared):
+        self.last_cleared = last_cleared
