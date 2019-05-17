@@ -9,7 +9,7 @@ from dino.utils.activity_helper import ActivityBuilder
 from dino import environ
 from dino import utils
 from dino import validation
-from dino.config import SessionKeys, ConfigKeys, ApiActions
+from dino.config import SessionKeys, ConfigKeys, ApiActions, ApiTargets
 from dino.config import UserKeys
 from dino.exceptions import NoSuchUserException
 
@@ -113,7 +113,7 @@ class OnLoginHooks(object):
     def autojoin_rooms(arg: tuple) -> None:
         data, activity = arg
 
-        if not environ.env.config.get(ConfigKeys.AUTOJOIN_ENABLED, 'false').lower() in {'true', 'yes', '1', 'y'}:
+        if not str(environ.env.config.get(ConfigKeys.AUTOJOIN_ENABLED, 'false')).lower() in {'true', 'yes', '1', 'y'}:
             return
 
         try:
