@@ -80,7 +80,7 @@ class AclResource(BaseResource):
         output = dict()
 
         for room_id in room_ids:
-            acls = self.acl_manager.get_acls_room(room_id)
+            acls = self.acl_manager.get_acls_room(room_id, encode_result=False)
             output[room_id] = acls
 
         return output
