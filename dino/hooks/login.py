@@ -127,7 +127,7 @@ class OnLoginHooks(object):
             join_data = data.copy()
             join_data['target'] = {
                 'id': room_id,
-                'object_type': 'room'
+                'objectType': 'room'
             }
 
             is_valid, error_msg = validation.acl.validate_acl_for_action(
