@@ -104,6 +104,8 @@ class AclResource(BaseResource):
         if 'acl_value' not in json_data:
             raise KeyError('missing parameter acl_value for in request')
 
+        return json_data
+
     def _get_lru_method(self):
         return self.do_get_with_params
 
