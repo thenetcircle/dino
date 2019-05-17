@@ -38,8 +38,8 @@ class AclResource(BaseResource):
 
     def do_post(self):
         try:
-            json = self._validate_params()
-            self.schedule_execution(json)
+            json_data = self._validate_params()
+            self._do_post(json_data)
             return ok()
         except Exception as e:
             logger.error('could not ban user: %s' % str(e))
