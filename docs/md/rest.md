@@ -1,16 +1,76 @@
+## GET /acl
+
+Retrieve all ACLs for all non-temporary rooms in all channels.
+
+Example response:
+
+```json
+{
+	"data": {
+		"status": "OK",
+		"data": {
+			"0efd8a52-7220-4160-88fe-68a15d470d95": [{
+				"type": "admin",
+				"action": "join",
+				"value": ""
+			}, {
+				"type": "admin",
+				"action": "list",
+				"value": ""
+			}],
+			"a81e4726-784a-11e9-bbdd-bbfdfd886868": [{
+				"type": "gender",
+				"action": "autojoin",
+				"value": "m,f"
+			}]
+		}
+	},
+	"status_code": 200
+}
+```
+
+## POST /acl
+
+Request:
+
+```json
+{
+	"room_id": "a81e4726-784a-11e9-bbdd-bbfdfd886868",
+	"action": "autojoin",
+	"acl_type": "gender",
+	"acl_value": "age=35,(gender=f|membership=normal)"
+}
+```
+
+For more examples on the format of the `acl_value` field, see the [ACL](acl.md) section. 
+
+Response:
+
+```json
+{
+    "data": {
+        "status": "OK"
+    }, 
+    "status_code": 200
+}
+```
+
 ## GET /history
 
 Request contains info on what time slice, target, origin to get history for:
 
+```json
     {
         "from_time": "2016-12-26T08:39:54Z",
         "to_time": "2016-12-28T08:39:54Z",
         "user_id": "124352",
         "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59" # optional
     }
+```
 
 Response would be something similar to the following:
 
+```json
     {
         "status_code": 200,
         "data": [{
@@ -51,6 +111,7 @@ Response would be something similar to the following:
             "channel_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
         }]
     }
+```
 
 * If neither `from_time` nor `to_time` is specified, the last 7 days will be used as limit,
 * If `from_time` is specified but no `to_time`, `to_time` will be `from_time + 7 days`,
