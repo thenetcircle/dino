@@ -123,7 +123,20 @@ class OnLoginHooks(object):
             return
 
         for room_id, acls in room_acls.items():
-            is_valid, error_msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.JOIN, acls)
+            # needed for validation
+            join_data = data.copy()
+            join_data['target'] = {
+                'id': room_id,
+                'object_type': 'room'
+            }
+
+            is_valid, error_msg = validation.acl.validate_acl_for_action(
+                activitystreams.parse(join_data),
+                ApiTargets.ROOM,
+                ApiActions.JOIN,
+                acls
+            )
+
             if not is_valid:
                 continue
 
@@ -133,7 +146,7 @@ class OnLoginHooks(object):
                     'id': room_id
                 }
             })
-            environ.env.observer.emit('on_join', (data, activitystreams.parse(join_data)))
+            environ.env.observer.emit('on_join', (join_data, activitystreams.parse(join_data)))
 
 
 @environ.env.observer.on('on_login')
