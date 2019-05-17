@@ -142,6 +142,9 @@ class OnLoginHooks(object):
 
             join_data = ActivityBuilder.enrich({
                 'verb': 'join',
+                'actor': {
+                    'id': activity.actor.id
+                },
                 'target': {
                     'id': room_id
                 }
