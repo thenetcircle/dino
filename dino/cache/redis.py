@@ -688,7 +688,7 @@ class CacheRedis(object):
 
         redis_channels = dict()
         for channel_id, (channel_name, channel_sort, tags) in channels.items():
-            redis_channels[channel_id] = '{}|{}|{}'.format(tags, str(channel_sort), channel_name)
+            redis_channels[channel_id] = '{}|{}|{}'.format(str(channel_sort), tags, channel_name)
 
         self.redis.hmset(key, redis_channels)
         self.redis.expire(key, ONE_MINUTE)
