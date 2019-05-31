@@ -671,6 +671,9 @@ class CacheRedis(object):
                 channel_sort = int(channel_sort)
                 channel_id = str(channel_id, 'utf8')
 
+                if channel_tags == 'None':
+                    channel_tags = ''
+
                 clean_channels[channel_id] = (channel_name, channel_sort, channel_tags)
             except Exception as e:
                 logger.error('invalid channel name in redis with key {}, value was "{}": {}'.format(

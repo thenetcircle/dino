@@ -919,7 +919,7 @@ class DatabaseRdbms(object):
             rows = session.query(Channels).all()
             _channels = dict()
             for row in rows:
-                _channels[row.uuid] = (row.name, row.sort_order, row.tags)
+                _channels[row.uuid] = (row.name, row.sort_order, row.tags or '')
             return _channels
 
         channels = self.env.cache.get_channels_with_sort()
