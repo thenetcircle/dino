@@ -1145,7 +1145,21 @@ Response data if successful:
                         {
                             "author": {
                                 "id": "<the user id of the sender>",
-                                "displayName": "<the user name of the sender>"
+                                "displayName": "<the user name of the sender>",
+                                "attachments": [
+                                    {
+                                        "objectType": "avatar",
+                                        "url": "https://example.com/image/a.jpg"
+                                    },
+                                    {
+                                        "objectType": "app_avatar",
+                                        "url": "https://example.com/image/a.jpg"
+                                    },
+                                    {
+                                        "objectType": "app_avatar_safe",
+                                        "url": "https://example.com/image/a.jpg"
+                                    }
+                                ]
                             },
                             "id": "<message ID>",
                             "content": "<the message content>",
@@ -1155,6 +1169,20 @@ Response data if successful:
                             "author": {
                                 "id": "<the user id of the sender>",
                                 "displayName": "<the user name of the sender>"
+                                "attachments": [
+                                    {
+                                        "objectType": "avatar",
+                                        "url": "https://example.com/image/a.jpg"
+                                    },
+                                    {
+                                        "objectType": "app_avatar",
+                                        "url": "https://example.com/image/a.jpg"
+                                    },
+                                    {
+                                        "objectType": "app_avatar_safe",
+                                        "url": "https://example.com/image/a.jpg"
+                                    }
+                                ]
                             },
                             "id": "<message ID>",
                             "content": "<the message content>",

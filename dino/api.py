@@ -458,9 +458,10 @@ def on_join(data: dict, activity: Activity) -> (int, Union[str, None]):
     owners = utils.get_owners_for_room(room_id)
     acls = utils.get_acls_for_room(room_id)
     users = utils.get_users_in_room(room_id, user_id=user_id, skip_cache=True)
+    avatars = utils.get_avatars(messages)
 
     environ.env.observer.emit('on_join', (data, activity))
-    return ECodes.OK, utils.activity_for_join(activity, acls, messages, owners, users)
+    return ECodes.OK, utils.activity_for_join(activity, acls, messages, owners, users, avatars)
 
 
 @timeit(logger, 'on_users_in_room')
