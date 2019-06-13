@@ -2255,9 +2255,9 @@ class DatabaseRdbms(object):
             avatar = Avatars()
             avatar.user_id = user_id
 
-        avatar.avatar_url = avatar_url
-        avatar.app_avatar_url = app_avatar_url
-        avatar.app_avatar_safe_url = app_avatar_safe_url
+        avatar.avatar = avatar_url
+        avatar.app_avatar = app_avatar_url
+        avatar.app_avatar_safe = app_avatar_safe_url
         session.add(avatar)
         session.commit()
 
