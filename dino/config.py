@@ -347,6 +347,11 @@ class RedisKeys(object):
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
 
     RKEY_HEARTBEAT = 'heartbeat:{}'
+    RKEY_AVATARS = 'user:avatars'
+
+    @staticmethod
+    def avatars() -> str:
+        return RedisKeys.RKEY_AVATARS
 
     @staticmethod
     def heartbeat_user(user_id: str) -> str:

@@ -530,6 +530,12 @@ class DatabaseRedis(object):
         self.redis.hset(key, SessionKeys.user_name.value, user_name)
         self.redis.hset(RedisKeys.user_names(), user_id, user_name)
 
+    def set_avatar_for(self, user_id: str, avatar_url: str, app_avatar_url: str, app_avatar_safe_url: str) -> None:
+        return
+
+    def get_avatars_for(self, user_ids: set) -> dict:
+        return dict()
+
     def room_contains(self, room_id: str, user_id: str) -> bool:
         self.get_room_name(room_id)
         self.channel_for_room(room_id)

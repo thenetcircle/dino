@@ -4,7 +4,7 @@ import traceback
 import random
 
 from zope.interface import implementer
-from typing import Union
+from typing import Union, Tuple
 
 from dino.config import RedisKeys
 from dino.config import ConfigKeys
@@ -500,6 +500,30 @@ class CacheRedis(object):
     def get_users_in_room_for_role(self, room_id: str, role: str) -> dict:
         key = RedisKeys.users_in_room_for_role(room_id, role)
         return self.cache.get(key)
+
+    def set_avatar_for(self, user_id: str, avatar_url: str, app_avatar_url: str, app_avatar_safe_url: str) -> None:
+        key = RedisKeys.avatars()
+        cache_key = '{}-{}'.format(key, user_id)
+        urls = '|'.join([avatar_url, app_avatar_url, app_avatar_safe_url])
+        self.cache.set(cache_key, urls, ttl=THIRTY_SECONDS)
+        self.redis.hset(key, user_id, urls)
+
+    def get_avatar_for(self, user_id: str) -> Union[Tuple[str, str, str], None]:
+        key = RedisKeys.avatars()
+        cache_key = '{}-{}'.format(key, user_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        value = self.redis.hget(key, user_id)
+        if value is None:
+            return None
+
+        value = str(value, 'utf-8')
+        avatar_url, app_avatar_url, app_avatar_safe_url = value.split('|', maxsplit=2)
+
+        self.cache.set(cache_key, value, ttl=THIRTY_SECONDS)
+        return avatar_url, app_avatar_url, app_avatar_safe_url
 
     def reset_sids_for_user(self, user_id: str) -> None:
         key = RedisKeys.sid_for_user_id()
