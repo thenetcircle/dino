@@ -2269,15 +2269,23 @@ class DatabaseRdbms(object):
         user_to_avatar = dict()
 
         for user_id in user_ids:
-            avatar_url, app_avatar_url, app_avatar_safe_url = self.env.cache.get_avatar_for(user_id)
-            if avatar_url is None:
+            avatar_url, app_avatar_url, app_avatar_safe_url = '', '', ''
+            avatars = self.env.cache.get_avatar_for(user_id)
+
+            if avatars is None:
                 avatar = _get_avatar(user_id)
-                self.env.cache.set_avatar_for(
-                    user_id,
-                    avatar.avatar_url,
-                    avatar.app_avatar_url,
-                    avatar.app_avatar_safe_url
-                )
+                if avatar is not None:
+                    avatar_url = avatar.avatar
+                    app_avatar_url = avatar.app_avatar
+                    app_avatar_safe_url = avatar.app_avatar_safe
+                    self.env.cache.set_avatar_for(
+                        user_id,
+                        avatar_url,
+                        app_avatar_url,
+                        app_avatar_safe_url
+                    )
+            else:
+                avatar_url, app_avatar_url, app_avatar_safe_url = avatars
 
             user_to_avatar[user_id] = (avatar_url, app_avatar_url, app_avatar_safe_url)
         return user_to_avatar
