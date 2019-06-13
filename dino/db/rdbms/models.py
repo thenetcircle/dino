@@ -35,7 +35,9 @@ class Avatars(DeclarativeBase):
 
     id = Column(Integer, primary_key=True)
     user_id = Column('user_id', String(128), nullable=False, index=True, unique=True)
-    url = Column('url', String(256), nullable=False, index=False, unique=False)
+    avatar_url = Column('avatar_url', String(256), nullable=False, index=False, unique=False)
+    app_avatar_url = Column('app_avatar_url', String(256), nullable=False, index=False, unique=False)
+    app_avatar_safe = Column('app_avatar_safe', String(256), nullable=False, index=False, unique=False)
 
 
 class Channels(DeclarativeBase):
