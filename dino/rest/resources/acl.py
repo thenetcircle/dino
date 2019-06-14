@@ -42,7 +42,7 @@ class AclResource(BaseResource):
             self._do_post(json_data)
             return ok()
         except Exception as e:
-            logger.error('could not ban user: %s' % str(e))
+            logger.error('could not update acls: %s' % str(e))
             logger.exception(traceback.format_exc())
             self.env.capture_exception(sys.exc_info())
             return fail(str(e))
