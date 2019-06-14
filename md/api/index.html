@@ -1177,7 +1177,21 @@ separated value), plus any global roles. Possible roles are:</p>
                         {
                             &quot;author&quot;: {
                                 &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
-                                &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
+                                &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;,
+                                &quot;attachments&quot;: [
+                                    {
+                                        &quot;objectType&quot;: &quot;avatar&quot;,
+                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
+                                    },
+                                    {
+                                        &quot;objectType&quot;: &quot;app_avatar&quot;,
+                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
+                                    },
+                                    {
+                                        &quot;objectType&quot;: &quot;app_avatar_safe&quot;,
+                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
+                                    }
+                                ]
                             },
                             &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
                             &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
@@ -1187,6 +1201,20 @@ separated value), plus any global roles. Possible roles are:</p>
                             &quot;author&quot;: {
                                 &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
                                 &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
+                                &quot;attachments&quot;: [
+                                    {
+                                        &quot;objectType&quot;: &quot;avatar&quot;,
+                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
+                                    },
+                                    {
+                                        &quot;objectType&quot;: &quot;app_avatar&quot;,
+                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
+                                    },
+                                    {
+                                        &quot;objectType&quot;: &quot;app_avatar_safe&quot;,
+                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
+                                    }
+                                ]
                             },
                             &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
                             &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
