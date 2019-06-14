@@ -170,6 +170,7 @@ class ApiActions(object):
     all_api_actions = list()
 
     JOIN = 'join'
+    AUTOJOIN = 'autojoin'
     CROSSROOM = 'crossroom'
     MESSAGE = 'message'
     KICK = 'kick'
@@ -216,6 +217,7 @@ class ConfigKeys(object):
     LOG_LEVEL = 'log_level'
     LOG_FORMAT = 'log_format'
     RESPONSE_FORMAT = 'response_format'
+    AUTOJOIN_ENABLED = 'autojoin'
     LOGGING = 'logging'
     DATE_FORMAT = 'date_format'
     DEBUG = 'debug'
@@ -313,6 +315,7 @@ class RedisKeys(object):
     RKEY_USERS_IN_ROOM_VISIBLE = 'room:visible:%s'  # room:visible:room_id
     RKEY_USERS_IN_ROOM_WITH_INVISIBLE = 'room:with:invisible:%s'  # room:with:invisible:room_id
     RKEY_ROOMS = 'rooms:%s'  # room:channel_id
+    RKEY_ROOMS_PERMANENT = 'rooms:permanent'
     RKEY_ONLINE_BITMAP = 'users:online:bitmap'
     RKEY_ONLINE_SET = 'users:online:set'
     RKEY_MULTI_CAST = 'users:multicast'
@@ -353,6 +356,21 @@ class RedisKeys(object):
     @staticmethod
     def avatars() -> str:
         return RedisKeys.RKEY_AVATARS
+
+    RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
+    RKEY_ACLS_FOR_ROOMS_HAVING_ACTION = 'rooms:acl:{}:{}'  # rooms:acl:<room_id>:<acl_action> => {acl_type: acl_value}
+
+    @staticmethod
+    def all_permanent_rooms():
+        return RedisKeys.RKEY_ROOMS_PERMANENT
+
+    @staticmethod
+    def room_acls_for_action(room_id: str, action: str) -> str:
+        return RedisKeys.RKEY_ACLS_FOR_ROOMS_HAVING_ACTION.format(room_id, action)
+
+    @staticmethod
+    def rooms_with_action(action: str) -> str:
+        return RedisKeys.RKEY_ROOMS_WITH_ACL_ACTION.format(action)
 
     @staticmethod
     def heartbeat_user(user_id: str) -> str:

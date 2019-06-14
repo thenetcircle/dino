@@ -1,5 +1,55 @@
 ## Access Control Lists
 
+### Available `acl_type`s
+
+- age
+- gender
+- membership
+- group
+- country
+- city
+- image
+- has_webcam
+- fake_checked
+- owner
+- admin
+- room_owner
+- moderator
+- superuser
+- crossroom
+- samechannel
+- sameroom
+- disallow
+- custom
+
+For custom, see [Custom ACL Pattern](acl.md#custom-acl-pattern) below.
+
+### Available `actions`
+
+For rooms, the actions are:
+
+- join
+- setacl
+- history
+- create
+- list
+- kick
+- message
+- crossroom
+- ban
+- autojoin
+
+And for channels:
+
+- create
+- setacl
+- list
+- create
+- message
+- crossroom
+- ban
+- whisper
+
 ### Custom ACL Pattern
 
 A custom ACL pattern may be set instead of the regular simple ACL types. A simple grammar exists to specify this.

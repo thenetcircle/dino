@@ -18,6 +18,7 @@ import traceback
 from datetime import datetime
 from functools import wraps
 from typing import Union
+from typing import Dict
 from uuid import uuid4 as uuid
 
 from activitystreams import Activity
@@ -36,7 +37,12 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs, Spams, Config, Avatars
+from dino.db.rdbms.models import AclConfigs
+from dino.db.rdbms.models import Spams
+from dino.db.rdbms.models import Config
+from dino.db.rdbms.models import RoomSids
+from dino.db.rdbms.models import Acls
+from dino.db.rdbms.models import Avatars
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import Bans
 from dino.db.rdbms.models import BlackList
@@ -130,6 +136,29 @@ class DatabaseRdbms(object):
             'spam_should_delete': config.spam_should_delete,
             'spam_should_save': config.spam_should_save
         }
+
+    def get_all_permanent_rooms(self):
+        @with_session
+        def _get_all_permanent_rooms(session=None):
+            rooms = session.query(Rooms).filter(Rooms.ephemeral.is_(False)).all()
+            if rooms is None or len(rooms) == 0:
+                return dict()
+
+            room_acls = dict()
+            for room in rooms:
+                acls = self.get_all_acls_room(room.uuid)
+                room_acls[room.uuid] = acls
+
+            return room_acls
+
+        all_rooms = self.env.cache.get_all_permanent_rooms()
+        if all_rooms is not None:
+            return all_rooms
+
+        all_rooms = _get_all_permanent_rooms()
+        self.env.cache.set_all_permanent_rooms(all_rooms)
+
+        return all_rooms
 
     def is_room_ephemeral(self, room_id: str) -> bool:
         @with_session
@@ -1871,6 +1900,41 @@ class DatabaseRdbms(object):
             raise NoSuchRoomException(room_id)
 
         self.env.cache.set_all_acls_for_room(room_id, value)
+        return value
+
+    def get_room_acls_for_action(self, action) -> Dict[str, Dict[str, str]]:
+        @with_session
+        def _acls(session=None):
+            rooms = session.query(Rooms)\
+                .join(Rooms.acls)\
+                .filter(Acls.action == action)\
+                .all()
+
+            if rooms is None or len(rooms) == 0:
+                return dict()
+
+            room_acls = dict()
+
+            for room in rooms:
+                acls = dict()
+                found_acls = room.acls
+
+                if found_acls is None or len(found_acls) == 0:
+                    acls[room.uuid] = dict()
+
+                for found_acl in found_acls:
+                    if found_acl.action == action:
+                        acls[found_acl.acl_type] = found_acl.acl_value
+
+                room_acls[room.uuid] = acls
+
+            return room_acls
+
+        value = self.env.cache.get_room_acls_for_action(action)
+        if value is not None:
+            return value
+        value = _acls()
+        self.env.cache.set_room_acls_for_action(action, value)
         return value
 
     def get_acls_in_room_for_action(self, room_id: str, action: str):

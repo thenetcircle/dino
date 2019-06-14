@@ -216,3 +216,26 @@ CSS                               4              2             26             13
 --------------------------------------------------------------------------------
 SUM:                            246           7511           4782          26343
 --------------------------------------------------------------------------------
+
+
+Tue 14 May 09:46:11 CST 2019
+     100 files     200 files     300 files     400 files     436 text files.
+classified 436 filesDuplicate file check 436 files (377 known unique)Unique:      100 files                                          Unique:      200 files                                          Unique:      300 files                                               385 unique files.                              
+Counting:  44Counting:  40Counting:  49Counting:  0Counting:  0Counting:  40Counting:  49Counting:  39     231 files ignored.
+
+github.com/AlDanial/cloc v 1.76  T=1.04 s (249.9 files/s, 39109.8 lines/s)
+--------------------------------------------------------------------------------
+Language                      files          blank        comment           code
+--------------------------------------------------------------------------------
+Python                          208           7449           4065          25359
+JavaScript                        8            257            479            791
+HTML                              4             93              0            713
+YAML                             11             23             73            493
+Bourne Shell                     21             88              6            463
+Bourne Again Shell                2             24             40            162
+Markdown                          2             20              0            161
+Dockerfile                        1             11             13             28
+CSS                               4              2             26             13
+--------------------------------------------------------------------------------
+SUM:                            261           7967           4702          28183
+--------------------------------------------------------------------------------

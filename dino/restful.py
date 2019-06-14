@@ -15,6 +15,7 @@
 from flask import Flask
 from flask_restful import Api
 
+from dino.rest.resources.acl import AclResource
 from dino.rest.resources.heartbeat import HeartbeatResource
 from dino.rest.resources.banned import BannedResource
 from dino.rest.resources.ban import BanResource
@@ -112,3 +113,4 @@ api.add_resource(SendResource, '/send')
 api.add_resource(SetStatusResource, '/status')
 api.add_resource(FullHistoryResource, '/full-history')
 api.add_resource(HeartbeatResource, '/heartbeat')
+api.add_resource(AclResource, '/acl')

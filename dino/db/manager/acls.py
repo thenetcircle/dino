@@ -51,9 +51,9 @@ class AclManager(BaseManager):
         acls = self.env.db.get_all_acls_channel(channel_id)
         return self._format_acls(acls)
 
-    def get_acls_room(self, room_id: str) -> list:
+    def get_acls_room(self, room_id: str, encode_result: bool = True) -> list:
         acls = self.env.db.get_all_acls_room(room_id)
-        return self._format_acls(acls)
+        return self._format_acls(acls, encode_result=encode_result)
 
     def delete_acl_channel(self, channel_id: str, action: str, acl_type: str) -> None:
         self.env.db.delete_acl_in_channel_for_action(channel_id, acl_type, action)
@@ -73,13 +73,13 @@ class AclManager(BaseManager):
     def add_acl_room(self, room_id: str, action: str, acl_type: str, acl_value: str) -> None:
         self.env.db.add_acls_in_room_for_action(room_id, action, {acl_type: acl_value})
 
-    def _format_acls(self, all_acls: dict) -> list:
+    def _format_acls(self, all_acls: dict, encode_result: bool = True) -> list:
         output = list()
         for action, acls in all_acls.items():
             for acl_type, acl_value in acls.items():
                 output.append({
                     'action': action,
                     'type': acl_type,
-                    'value': b64e(acl_value)
+                    'value': b64e(acl_value) if encode_result else acl_value
                 })
         return output
