@@ -568,7 +568,7 @@ class CacheRedis(object):
         cache_key = '{}-{}'.format(key, user_id)
         value = self.cache.get(cache_key)
         if value is not None:
-            return value
+            return value.split('|', maxsplit=2)
 
         value = self.redis.hget(key, user_id)
         if value is None:
