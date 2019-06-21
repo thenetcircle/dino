@@ -365,20 +365,27 @@ def activity_for_sid_disconnect(user_id: str, user_name: str, current_sid: str) 
     })
 
 
-def activity_for_message(user_id: str, user_name: str) -> dict:
+def activity_for_message(user_id: str, user_name: str, message_id: str = None) -> dict:
     """
     user for sending event to other system to do statistics for how active a user is
     :param user_id: the id of the user
     :param user_name: the name of the user
+    :param message_id: the id of the message stored in db, is None if using REST to send, not stored
     :return: an activity streams dict
     """
-    return ActivityBuilder.enrich({
+    data = {
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name)
         },
         'verb': 'send'
-    })
+    }
+    if message_id is not None:
+        data['object'] = {
+            'id': message_id
+        }
+
+    return ActivityBuilder.enrich(data)
 
 
 def activity_for_spam_word(activity: Activity) -> dict:
