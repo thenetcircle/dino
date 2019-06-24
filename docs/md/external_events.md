@@ -233,6 +233,9 @@ level of users. Example activity:
         "id": "<user ID>",
         "displayName": "<base64 encoded username>"
     },
+    "object" {
+        "id": "<uuid of the message that was sent>"
+    },
     "verb": "send",
     "id": "<server-generated UUID>",
     "published": "<server-generated timestamp, RFC3339 format>"
