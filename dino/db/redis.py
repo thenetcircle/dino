@@ -84,6 +84,15 @@ class DatabaseRedis(object):
     def sids_for_user_in_room(self, user_id, room_id):
         pass
 
+    def get_rooms_with_sid(self, user_id: str):
+        pass
+
+    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove):
+        pass
+
+    def sids_for_user_in_room(self, user_id, room_id):
+        pass
+
     def get_user_for_sid(self, sid: str) -> str:
         return None
 
