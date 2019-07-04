@@ -77,6 +77,7 @@ class SessionKeys(Enum):
     token = 'token'
     is_streaming = 'is_streaming'
 
+    avatar = 'avatar'
     app_avatar = 'app_avatar'
     app_avatar_safe = 'app_avatar_safe'
     enabled_safe = 'enabled_safe'
@@ -347,6 +348,11 @@ class RedisKeys(object):
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
 
     RKEY_HEARTBEAT = 'heartbeat:{}'
+    RKEY_AVATARS = 'user:avatars'
+
+    @staticmethod
+    def avatars() -> str:
+        return RedisKeys.RKEY_AVATARS
 
     @staticmethod
     def heartbeat_user(user_id: str) -> str:
