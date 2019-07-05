@@ -772,68 +772,32 @@ reason than the <code>history</code> event can be used. Can also be used to get 
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;object&quot;: {
-            &quot;objectType&quot;: &quot;room&quot;,
-            &quot;attachments&quot;: [{
-                &quot;objectType&quot;: &quot;acl&quot;,
-                &quot;attachments&quot;: []
-            }, {
-                &quot;objectType&quot;: &quot;history&quot;,
-                &quot;attachments&quot;: [{
+            &quot;objectType&quot;: &quot;messages&quot;,
+            &quot;attachments&quot;: [
+                {
                     &quot;author&quot;: {
-                        &quot;id&quot;: &quot;50327&quot;,
-                        &quot;displayName&quot;: &quot;Zmbw==&quot;,
-                        &quot;attachments&quot;: [{
-                            &quot;objectType&quot;: &quot;avatar&quot;,
-                            &quot;content&quot;: &quot;aHR0cDovLzAuYmlsZC5wb3BwZW4ubGFiL20QzdCOUI5XzMwMF9zcS5qcGc=&quot;
-                        }, {
-                            &quot;objectType&quot;: &quot;app_avatar&quot;,
-                            &quot;content&quot;: &quot;aHR0cDovLzAuaW1nLnBvcGNvcm4NTAwNDMyNy1GOUI4RjBDNjBBlCOV8zMDBfc3EuanBn&quot;
-                        }, {
-                            &quot;objectType&quot;: &quot;app_avatar_safe&quot;,
-                            &quot;content&quot;: &quot;aHR0cDovLzAuaW1nLnBvcGNvcTAwNDMyNy1GOUI4RjBDN3QjlCOV8zMDBfc3EuanBn&quot;
-                        }]
+                        &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
+                        &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
                     },
-                    &quot;summary&quot;: &quot;7935a673-da64-4419-818b-e6e0d1864b61&quot;,
-                    &quot;id&quot;: &quot;d02598a1-6ae6-4182-8f2c-c2e66d941303&quot;,
-                    &quot;content&quot;: &quot;eyJjb2xvciI6IjiwiZ2nRlOiJkc2EifQ==&quot;,
-                    &quot;published&quot;: &quot;2019-07-04T07:45:59Z&quot;
-                }]
-            }, {
-                &quot;objectType&quot;: &quot;owner&quot;,
-                &quot;attachments&quot;: [{
-                    &quot;id&quot;: &quot;0&quot;,
-                    &quot;displayName&quot;: &quot;QWW4=&quot;
-                }]
-            }, {
-                &quot;objectType&quot;: &quot;user&quot;,
-                &quot;attachments&quot;: [{
-                    &quot;id&quot;: &quot;5048&quot;,
-                    &quot;displayName&quot;: &quot;am8yaw==&quot;,
-                    &quot;attachments&quot;: [{
-                        &quot;objectType&quot;: &quot;region&quot;,
-                        &quot;content&quot;: &quot;Qmlu&quot;
-                    }, {
-                        &quot;objectType&quot;: &quot;avatar&quot;,
-                        &quot;content&quot;: &quot;aHR0cDovLzAuYmOTgxRjhBNUM0NDA5MDQ2MDA4ODdERTJfMzAwX3NxLmpwZw==&quot;
-                    }, {
-                        &quot;objectType&quot;: &quot;&lt;etc. etc.&gt;&quot;,
-                        &quot;content&quot;: &quot;&lt;some other content&gt;&quot;
-                    }],
-                    &quot;content&quot;: &quot;globalmod&quot;,
-                    &quot;objectType&quot;: &quot;user&quot;
-                }]
-            }]
+                    &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
+                    &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
+                },
+                {
+                    &quot;author&quot;: {
+                        &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
+                        &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
+                    },
+                    &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
+                    &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
+                    &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
+                }
+            ]
         },
-        &quot;verb&quot;: &quot;join&quot;,
         &quot;target&quot;: {
-            &quot;id&quot;: &quot;7935a673-da64-4419-818b-e6e0d1864b61&quot;,
-            &quot;displayName&quot;: &quot;TG9k=&quot;
+            &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;
         },
-        &quot;id&quot;: &quot;6a61c7a5-0ae0-4735-918d-18c9d137e43c&quot;,
-        &quot;published&quot;: &quot;2019-07-05T06:18:30Z&quot;,
-        &quot;provider&quot;: {
-            &quot;id&quot;: &quot;some-name&quot;
-        }
+        &quot;verb&quot;: &quot;history&quot;
     }
 }
 </code></pre>
@@ -1207,124 +1171,66 @@ separated value), plus any global roles. Possible roles are:</p>
     &quot;data&quot;: {
         &quot;object&quot;: {
             &quot;objectType&quot;: &quot;room&quot;,
-            &quot;attachments&quot;: [
-                {
-                    &quot;objectType&quot;: &quot;history&quot;,
-                    &quot;attachments&quot;: [
-                        {
-                            &quot;author&quot;: {
-                                &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
-                                &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;,
-                                &quot;attachments&quot;: [
-                                    {
-                                        &quot;objectType&quot;: &quot;avatar&quot;,
-                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
-                                    },
-                                    {
-                                        &quot;objectType&quot;: &quot;app_avatar&quot;,
-                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
-                                    },
-                                    {
-                                        &quot;objectType&quot;: &quot;app_avatar_safe&quot;,
-                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
-                                    }
-                                ]
-                            },
-                            &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
-                            &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
-                            &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
-                        },
-                        {
-                            &quot;author&quot;: {
-                                &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
-                                &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
-                                &quot;attachments&quot;: [
-                                    {
-                                        &quot;objectType&quot;: &quot;avatar&quot;,
-                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
-                                    },
-                                    {
-                                        &quot;objectType&quot;: &quot;app_avatar&quot;,
-                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
-                                    },
-                                    {
-                                        &quot;objectType&quot;: &quot;app_avatar_safe&quot;,
-                                        &quot;url&quot;: &quot;https://example.com/image/a.jpg&quot;
-                                    }
-                                ]
-                            },
-                            &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
-                            &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
-                            &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
-                        }
-                    ]
-                },
-                {
-                    &quot;objectType&quot;: &quot;owner&quot;,
-                    &quot;attachments&quot;: [
-                        {
-                            &quot;id&quot;: &quot;&lt;owner's user ID&gt;&quot;,
-                            &quot;displayName&quot;: &quot;&lt;owner's user name&gt;&quot;,
-                        },
-                        {
-                            &quot;id&quot;: &quot;&lt;owner's user ID&gt;&quot;,
-                            &quot;displayName&quot;: &quot;&lt;owner's user name&gt;&quot;,
-                        }
-                    ]
-                },
-                {
-                    &quot;objectType&quot;: &quot;acl&quot;,
-                    &quot;attachments&quot;: [
-                        {
-                            &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
-                            &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
-                        },
-                        {
-                            &quot;objectType&quot;: &quot;&lt;ACL type name&gt;&quot;,
-                            &quot;content&quot;: &quot;&lt;ACL value&gt;&quot;,
-                        }
-                    ]
-                },
-                {
-                    &quot;objectType&quot;: &quot;user&quot;,
-                    &quot;attachments&quot;: [
-                        {
-                            &quot;id&quot;: &quot;&lt;user ID of a user in the room&gt;&quot;,
-                            &quot;displayName&quot;: &quot;&lt;user name of a user in the room&gt;&quot;,
-                            &quot;content&quot;: &quot;moderator,owner&quot;,
-                            &quot;attachments&quot;: [
-                                {
-                                    &quot;content&quot;: &quot;NDA=&quot;,
-                                    &quot;objectType&quot;: &quot;age&quot;
-                                },
-                                {
-                                    &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
-                                    &quot;objectType&quot;: &quot;avatar&quot;
-                                }
-                            ]
-                        },
-                        {
-                            &quot;id&quot;: &quot;&lt;user ID of a user in the room&gt;&quot;,
-                            &quot;displayName&quot;: &quot;&lt;user name of a user in the room&gt;&quot;,
-                            &quot;content&quot;: &quot;superuser&quot;,
-                            &quot;attachments&quot;: [
-                                {
-                                    &quot;content&quot;: &quot;NDA=&quot;,
-                                    &quot;objectType&quot;: &quot;age&quot;
-                                },
-                                {
-                                    &quot;content&quot;: &quot;aHR0cDovL3NvbWUtdXJsLnRsZC9mb28uanBn&quot;,
-                                    &quot;objectType&quot;: &quot;avatar&quot;
-                                }
-                            ]
-                        }
-                    ]
-                },
-            ]
+            &quot;attachments&quot;: [{
+                &quot;objectType&quot;: &quot;acl&quot;,
+                &quot;attachments&quot;: []
+            }, {
+                &quot;objectType&quot;: &quot;history&quot;,
+                &quot;attachments&quot;: [{
+                    &quot;author&quot;: {
+                        &quot;id&quot;: &quot;50327&quot;,
+                        &quot;displayName&quot;: &quot;Zmbw==&quot;,
+                        &quot;attachments&quot;: [{
+                            &quot;objectType&quot;: &quot;avatar&quot;,
+                            &quot;content&quot;: &quot;aHR0cDovLzAuYmlsZC5wb3BwZW4ubGFiL20QzdCOUI5XzMwMF9zcS5qcGc=&quot;
+                        }, {
+                            &quot;objectType&quot;: &quot;app_avatar&quot;,
+                            &quot;content&quot;: &quot;aHR0cDovLzAuaW1nLnBvcGNvcm4NTAwNDMyNy1GOUI4RjBDNjBBlCOV8zMDBfc3EuanBn&quot;
+                        }, {
+                            &quot;objectType&quot;: &quot;app_avatar_safe&quot;,
+                            &quot;content&quot;: &quot;aHR0cDovLzAuaW1nLnBvcGNvcTAwNDMyNy1GOUI4RjBDN3QjlCOV8zMDBfc3EuanBn&quot;
+                        }]
+                    },
+                    &quot;summary&quot;: &quot;7935a673-da64-4419-818b-e6e0d1864b61&quot;,
+                    &quot;id&quot;: &quot;d02598a1-6ae6-4182-8f2c-c2e66d941303&quot;,
+                    &quot;content&quot;: &quot;eyJjb2xvciI6IjiwiZ2nRlOiJkc2EifQ==&quot;,
+                    &quot;published&quot;: &quot;2019-07-04T07:45:59Z&quot;
+                }]
+            }, {
+                &quot;objectType&quot;: &quot;owner&quot;,
+                &quot;attachments&quot;: [{
+                    &quot;id&quot;: &quot;0&quot;,
+                    &quot;displayName&quot;: &quot;QWW4=&quot;
+                }]
+            }, {
+                &quot;objectType&quot;: &quot;user&quot;,
+                &quot;attachments&quot;: [{
+                    &quot;id&quot;: &quot;5048&quot;,
+                    &quot;displayName&quot;: &quot;am8yaw==&quot;,
+                    &quot;attachments&quot;: [{
+                        &quot;objectType&quot;: &quot;region&quot;,
+                        &quot;content&quot;: &quot;Qmlu&quot;
+                    }, {
+                        &quot;objectType&quot;: &quot;avatar&quot;,
+                        &quot;content&quot;: &quot;aHR0cDovLzAuYmOTgxRjhBNUM0NDA5MDQ2MDA4ODdERTJfMzAwX3NxLmpwZw==&quot;
+                    }, {
+                        &quot;objectType&quot;: &quot;&lt;etc. etc.&gt;&quot;,
+                        &quot;content&quot;: &quot;&lt;some other content&gt;&quot;
+                    }],
+                    &quot;content&quot;: &quot;globalmod&quot;,
+                    &quot;objectType&quot;: &quot;user&quot;
+                }]
+            }]
         },
         &quot;verb&quot;: &quot;join&quot;,
         &quot;target&quot;: {
-            &quot;id&quot;: &quot;&lt;the room ID that the user joined&gt;&quot;
+            &quot;id&quot;: &quot;7935a673-da64-4419-818b-e6e0d1864b61&quot;,
+            &quot;displayName&quot;: &quot;TG9k=&quot;
+        },
+        &quot;id&quot;: &quot;6a61c7a5-0ae0-4735-918d-18c9d137e43c&quot;,
+        &quot;published&quot;: &quot;2019-07-05T06:18:30Z&quot;,
+        &quot;provider&quot;: {
+            &quot;id&quot;: &quot;some-name&quot;
         }
     }
 }
