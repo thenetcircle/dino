@@ -79,12 +79,13 @@ def online_counter():
 
     with GracefulInterruptHandler() as interrupt_handler:
         while True:
-            online_count = 0
+            session_ids = set()
 
             try:
                 for namespace in socketio.server.manager.get_namespaces():
-                    online_count += len(socketio.server.manager.rooms[namespace][None])
-                environ.env.cache.set_session_count(online_count)
+                    session_ids.update(socketio.server.manager.rooms[namespace][None].values())
+
+                environ.env.cache.set_session_count(len(session_ids))
             except Exception as e:
                 logger.error('could not count sessions: {}'.format(str(e)))
                 logger.exception(e)
