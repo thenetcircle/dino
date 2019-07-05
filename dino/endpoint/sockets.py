@@ -73,6 +73,33 @@ def consume():
             time.sleep(0.1)
 
 
+def online_counter():
+    if len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING, False):
+        return
+
+    with GracefulInterruptHandler() as interrupt_handler:
+        while True:
+            session_ids = set()
+
+            try:
+                for namespace in socketio.server.manager.get_namespaces():
+                    session_ids.update(socketio.server.manager.rooms[namespace][None].values())
+
+                environ.env.cache.set_session_count(len(session_ids))
+            except Exception as e:
+                logger.error('could not count sessions: {}'.format(str(e)))
+                logger.exception(e)
+                time.sleep(1)
+
+            if interrupt_handler.interrupted:
+                return
+
+            time.sleep(10)
+
+
+if not environ.env.config.get(ConfigKeys.TESTING, False):
+    eventlet.spawn_n(online_counter)
+
 if not environ.env.config.get(ConfigKeys.TESTING, False):
     def disconnect_by_sid(sid: str) -> None:
         if sid is None:

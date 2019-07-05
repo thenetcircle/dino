@@ -888,3 +888,11 @@ class ICache(Interface):
         :param user_id:
         :return:
         """
+
+    def set_session_count(self, session_count: int) -> None:
+        """
+        save the number of active sessions connected to this node
+
+        :param session_count: number of sessions
+        :return: nothing
+        """
