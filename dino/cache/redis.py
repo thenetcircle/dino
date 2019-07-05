@@ -1024,3 +1024,7 @@ class CacheRedis(object):
         except Exception as e:
             logger.error('could not set_user_invisible(): %s' % str(e))
             logger.exception(traceback.format_exc())
+
+    def set_session_count(self, session_count: int) -> None:
+        # TODO: self.redis.hset(RedisKeys.session_count(), session_count)
+        pass
