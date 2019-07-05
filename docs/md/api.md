@@ -651,32 +651,68 @@ Response data if successful:
     "status_code": 200,
     "data": {
         "object": {
-            "objectType": "messages",
-            "attachments": [
-                {
+            "objectType": "room",
+            "attachments": [{
+                "objectType": "acl",
+                "attachments": []
+            }, {
+                "objectType": "history",
+                "attachments": [{
                     "author": {
-                        "id": "<the user id of the sender>",
-                        "displayName": "<the user name of the sender>"
+                        "id": "50327",
+                        "displayName": "Zmbw==",
+                        "attachments": [{
+                            "objectType": "avatar",
+                            "content": "aHR0cDovLzAuYmlsZC5wb3BwZW4ubGFiL20QzdCOUI5XzMwMF9zcS5qcGc="
+                        }, {
+                            "objectType": "app_avatar",
+                            "content": "aHR0cDovLzAuaW1nLnBvcGNvcm4NTAwNDMyNy1GOUI4RjBDNjBBlCOV8zMDBfc3EuanBn"
+                        }, {
+                            "objectType": "app_avatar_safe",
+                            "content": "aHR0cDovLzAuaW1nLnBvcGNvcTAwNDMyNy1GOUI4RjBDN3QjlCOV8zMDBfc3EuanBn"
+                        }]
                     },
-                    "id": "<message ID>",
-                    "content": "<the message content>",
-                    "published": "<the time it was sent, RFC3339>"
-                },
-                {
-                    "author": {
-                        "id": "<the user id of the sender>",
-                        "displayName": "<the user name of the sender>"
-                    },
-                    "id": "<message ID>",
-                    "content": "<the message content>",
-                    "published": "<the time it was sent, RFC3339>"
-                }
-            ]
+                    "summary": "7935a673-da64-4419-818b-e6e0d1864b61",
+                    "id": "d02598a1-6ae6-4182-8f2c-c2e66d941303",
+                    "content": "eyJjb2xvciI6IjiwiZ2nRlOiJkc2EifQ==",
+                    "published": "2019-07-04T07:45:59Z"
+                }]
+            }, {
+                "objectType": "owner",
+                "attachments": [{
+                    "id": "0",
+                    "displayName": "QWW4="
+                }]
+            }, {
+                "objectType": "user",
+                "attachments": [{
+                    "id": "5048",
+                    "displayName": "am8yaw==",
+                    "attachments": [{
+                        "objectType": "region",
+                        "content": "Qmlu"
+                    }, {
+                        "objectType": "avatar",
+                        "content": "aHR0cDovLzAuYmOTgxRjhBNUM0NDA5MDQ2MDA4ODdERTJfMzAwX3NxLmpwZw=="
+                    }, {
+                        "objectType": "<etc. etc.>",
+                        "content": "<some other content>"
+                    }],
+                    "content": "globalmod",
+                    "objectType": "user"
+                }]
+            }]
         },
+        "verb": "join",
         "target": {
-            "id": "<room UUID>"
+            "id": "7935a673-da64-4419-818b-e6e0d1864b61",
+            "displayName": "TG9k="
         },
-        "verb": "history"
+        "id": "6a61c7a5-0ae0-4735-918d-18c9d137e43c",
+        "published": "2019-07-05T06:18:30Z",
+        "provider": {
+            "id": "some-name"
+        }
     }
 }
 ```
