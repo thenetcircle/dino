@@ -13,18 +13,19 @@
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="../../css/highlight.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
   
   <script>
     // Current page data
     var mkdocs_page_name = "API";
     var mkdocs_page_input_path = "md/api.md";
-    var mkdocs_page_url = "/md/api/";
+    var mkdocs_page_url = null;
   </script>
   
-  <script src="../../js/jquery-2.1.1.min.js"></script>
-  <script src="../../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
   
 </head>
 
@@ -38,7 +39,7 @@
         <a href="../.." class="icon icon-home"> Dino</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
@@ -771,32 +772,68 @@ reason than the <code>history</code> event can be used. Can also be used to get 
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;object&quot;: {
-            &quot;objectType&quot;: &quot;messages&quot;,
-            &quot;attachments&quot;: [
-                {
+            &quot;objectType&quot;: &quot;room&quot;,
+            &quot;attachments&quot;: [{
+                &quot;objectType&quot;: &quot;acl&quot;,
+                &quot;attachments&quot;: []
+            }, {
+                &quot;objectType&quot;: &quot;history&quot;,
+                &quot;attachments&quot;: [{
                     &quot;author&quot;: {
-                        &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
-                        &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
+                        &quot;id&quot;: &quot;50327&quot;,
+                        &quot;displayName&quot;: &quot;Zmbw==&quot;,
+                        &quot;attachments&quot;: [{
+                            &quot;objectType&quot;: &quot;avatar&quot;,
+                            &quot;content&quot;: &quot;aHR0cDovLzAuYmlsZC5wb3BwZW4ubGFiL20QzdCOUI5XzMwMF9zcS5qcGc=&quot;
+                        }, {
+                            &quot;objectType&quot;: &quot;app_avatar&quot;,
+                            &quot;content&quot;: &quot;aHR0cDovLzAuaW1nLnBvcGNvcm4NTAwNDMyNy1GOUI4RjBDNjBBlCOV8zMDBfc3EuanBn&quot;
+                        }, {
+                            &quot;objectType&quot;: &quot;app_avatar_safe&quot;,
+                            &quot;content&quot;: &quot;aHR0cDovLzAuaW1nLnBvcGNvcTAwNDMyNy1GOUI4RjBDN3QjlCOV8zMDBfc3EuanBn&quot;
+                        }]
                     },
-                    &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
-                    &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
-                    &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
-                },
-                {
-                    &quot;author&quot;: {
-                        &quot;id&quot;: &quot;&lt;the user id of the sender&gt;&quot;,
-                        &quot;displayName&quot;: &quot;&lt;the user name of the sender&gt;&quot;
-                    },
-                    &quot;id&quot;: &quot;&lt;message ID&gt;&quot;,
-                    &quot;content&quot;: &quot;&lt;the message content&gt;&quot;,
-                    &quot;published&quot;: &quot;&lt;the time it was sent, RFC3339&gt;&quot;
-                }
-            ]
+                    &quot;summary&quot;: &quot;7935a673-da64-4419-818b-e6e0d1864b61&quot;,
+                    &quot;id&quot;: &quot;d02598a1-6ae6-4182-8f2c-c2e66d941303&quot;,
+                    &quot;content&quot;: &quot;eyJjb2xvciI6IjiwiZ2nRlOiJkc2EifQ==&quot;,
+                    &quot;published&quot;: &quot;2019-07-04T07:45:59Z&quot;
+                }]
+            }, {
+                &quot;objectType&quot;: &quot;owner&quot;,
+                &quot;attachments&quot;: [{
+                    &quot;id&quot;: &quot;0&quot;,
+                    &quot;displayName&quot;: &quot;QWW4=&quot;
+                }]
+            }, {
+                &quot;objectType&quot;: &quot;user&quot;,
+                &quot;attachments&quot;: [{
+                    &quot;id&quot;: &quot;5048&quot;,
+                    &quot;displayName&quot;: &quot;am8yaw==&quot;,
+                    &quot;attachments&quot;: [{
+                        &quot;objectType&quot;: &quot;region&quot;,
+                        &quot;content&quot;: &quot;Qmlu&quot;
+                    }, {
+                        &quot;objectType&quot;: &quot;avatar&quot;,
+                        &quot;content&quot;: &quot;aHR0cDovLzAuYmOTgxRjhBNUM0NDA5MDQ2MDA4ODdERTJfMzAwX3NxLmpwZw==&quot;
+                    }, {
+                        &quot;objectType&quot;: &quot;&lt;etc. etc.&gt;&quot;,
+                        &quot;content&quot;: &quot;&lt;some other content&gt;&quot;
+                    }],
+                    &quot;content&quot;: &quot;globalmod&quot;,
+                    &quot;objectType&quot;: &quot;user&quot;
+                }]
+            }]
         },
+        &quot;verb&quot;: &quot;join&quot;,
         &quot;target&quot;: {
-            &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;
+            &quot;id&quot;: &quot;7935a673-da64-4419-818b-e6e0d1864b61&quot;,
+            &quot;displayName&quot;: &quot;TG9k=&quot;
         },
-        &quot;verb&quot;: &quot;history&quot;
+        &quot;id&quot;: &quot;6a61c7a5-0ae0-4735-918d-18c9d137e43c&quot;,
+        &quot;published&quot;: &quot;2019-07-05T06:18:30Z&quot;,
+        &quot;provider&quot;: {
+            &quot;id&quot;: &quot;some-name&quot;
+        }
     }
 }
 </code></pre>
@@ -1338,9 +1375,8 @@ separated value), plus any global roles. Possible roles are:</p>
     </span>
 </div>
     <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js"></script>
-      <script src="../../search/require.js"></script>
-      <script src="../../search/search.js"></script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
 
 </body>
 </html>
