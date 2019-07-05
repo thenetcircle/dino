@@ -349,6 +349,11 @@ class RedisKeys(object):
 
     RKEY_HEARTBEAT = 'heartbeat:{}'
     RKEY_AVATARS = 'user:avatars'
+    RKEY_SESSION_COUNT = 'session:count'
+
+    @staticmethod
+    def session_count() -> str:
+        return RedisKeys.RKEY_SESSION_COUNT
 
     @staticmethod
     def avatars() -> str:

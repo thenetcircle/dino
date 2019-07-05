@@ -2,6 +2,8 @@ import json
 import logging
 import traceback
 import random
+import sys
+import socket
 
 from zope.interface import implementer
 from typing import Union, Tuple
@@ -73,6 +75,19 @@ class CacheRedis(object):
             self.redis_instance = None
 
         self.cache = MemoryCache()
+
+        args = sys.argv
+        for a in ['--bind', '-b']:
+            bind_arg_pos = [i for i, x in enumerate(args) if x == a]
+            if len(bind_arg_pos) > 0:
+                bind_arg_pos = bind_arg_pos[0]
+                break
+
+        self.listen_port = 'standalone'
+        if bind_arg_pos is not None and not isinstance(bind_arg_pos, list):
+            self.listen_port = args[bind_arg_pos + 1].split(':')[1]
+
+        self.listen_host = socket.gethostname().split('.')[0]
 
     @property
     def redis(self):
@@ -1026,5 +1041,5 @@ class CacheRedis(object):
             logger.exception(traceback.format_exc())
 
     def set_session_count(self, session_count: int) -> None:
-        # TODO: self.redis.hset(RedisKeys.session_count(), session_count)
-        pass
+        node_key = '{}-{}'.format(self.listen_host, self.listen_port)
+        self.redis.hset(RedisKeys.session_count(), node_key, session_count)
