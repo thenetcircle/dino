@@ -42,6 +42,12 @@ class OnLoginHooks(object):
         environ.env.session[SessionKeys.user_agent_platform.value] = user_agent_platform or ''
         environ.env.session[SessionKeys.user_agent_language.value] = user_agent_language or ''
 
+        avatar_url = environ.env.session.get(SessionKeys.avatar.value) or ''
+        app_avatar_url = environ.env.session.get(SessionKeys.app_avatar.value) or ''
+        app_avatar_safe = environ.env.session.get(SessionKeys.app_avatar_safe.value) or ''
+
+        environ.env.db.set_avatar_for(user_id, avatar_url, app_avatar_url, app_avatar_safe)
+
         if activity.actor.image is None:
             environ.env.session['image_url'] = ''
             environ.env.session[SessionKeys.image.value] = 'n'

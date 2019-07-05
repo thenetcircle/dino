@@ -32,6 +32,7 @@ try:
     logger.info('caching all rooms for channels ({})...'.format(len(channels)))
     for channel_id in channels.keys():
         env.db.rooms_for_channel(channel_id)
+        env.db.get_acls_in_channel_for_action(channel_id, 'list')
 except NotImplementedError:
     pass
 
