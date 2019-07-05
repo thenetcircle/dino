@@ -81,9 +81,14 @@ def online_counter():
         while True:
             online_count = 0
 
-            for namespace in socketio.server.manager.get_namespaces():
-                online_count += socketio.server.manager.rooms[namespace]
-            environ.env.cache.set_session_count(online_count)
+            try:
+                for namespace in socketio.server.manager.get_namespaces():
+                    online_count += len(socketio.server.manager.rooms[namespace][None])
+                environ.env.cache.set_session_count(online_count)
+            except Exception as e:
+                logger.error('could not count sessions: {}'.format(str(e)))
+                logger.exception(e)
+                time.sleep(1)
 
             if interrupt_handler.interrupted:
                 return
