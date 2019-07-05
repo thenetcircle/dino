@@ -544,15 +544,15 @@ def activity_for_history(activity: Activity, messages: list, avatars: dict = Non
                 'attachments': [
                     {
                         'objectType': 'avatar',
-                        'url': b64e(avatar_url)
+                        'content': b64e(avatar_url)
                     },
                     {
                         'objectType': 'app_avatar',
-                        'url': b64e(app_avatar_url)
+                        'content': b64e(app_avatar_url)
                     },
                     {
                         'objectType': 'app_avatar_safe',
-                        'url': b64e(app_avatar_safe_url)
+                        'content': b64e(app_avatar_safe_url)
                     },
                 ]
             },
