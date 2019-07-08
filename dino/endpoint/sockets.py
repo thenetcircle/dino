@@ -83,7 +83,7 @@ def online_counter():
 
             try:
                 for namespace in socketio.server.manager.get_namespaces():
-                    session_ids.update(socketio.server.manager.rooms[namespace][None].values())
+                    session_ids.update(socketio.server.manager.rooms[namespace][None].keys())
 
                 environ.env.cache.set_session_count(len(session_ids))
             except Exception as e:
