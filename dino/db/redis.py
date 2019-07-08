@@ -84,6 +84,15 @@ class DatabaseRedis(object):
     def sids_for_user_in_room(self, user_id, room_id):
         pass
 
+    def get_rooms_with_sid(self, user_id: str):
+        pass
+
+    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove):
+        pass
+
+    def sids_for_user_in_room(self, user_id, room_id):
+        pass
+
     def get_user_for_sid(self, sid: str) -> str:
         return None
 
@@ -544,6 +553,12 @@ class DatabaseRedis(object):
         self.redis.hset(key, SessionKeys.user_id.value, user_id)
         self.redis.hset(key, SessionKeys.user_name.value, user_name)
         self.redis.hset(RedisKeys.user_names(), user_id, user_name)
+
+    def set_avatar_for(self, user_id: str, avatar_url: str, app_avatar_url: str, app_avatar_safe_url: str) -> None:
+        return
+
+    def get_avatars_for(self, user_ids: set) -> dict:
+        return dict()
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
         self.get_room_name(room_id)

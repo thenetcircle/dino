@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Dict
+from typing import Union
+from typing import Dict
 
 from activitystreams import Activity
 from zope.interface import Interface
@@ -991,6 +992,25 @@ class IDatabase(Interface):
         :raises NoSuchRoomException if channel can't be found
         :param channel_id: the uuid of the channel
         :return: a dict of user_id -> user_name
+        """
+
+    def set_avatar_for(self, user_id: str, avatar_url: str, app_avatar_url: str, app_avatar_safe_url: str) -> None:
+        """
+        set the avatar url for a user after login
+
+        :param user_id: the id of the user
+        :param avatar_url: the url of the avatar
+        :param app_avatar_url: the url of the avatar
+        :param app_avatar_safe_url: the url of the avatar
+        :return: nothing
+        """
+
+    def get_avatars_for(self, user_ids: set) -> dict:
+        """
+        return a dict of {user_id: avatar_url}
+
+        :param user_ids: a set of user ids
+        :return: a dict of user_id to avatar_url
         """
 
     def get_owners_room(self, room_id: str) -> dict:

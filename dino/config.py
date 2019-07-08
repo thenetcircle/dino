@@ -77,6 +77,7 @@ class SessionKeys(Enum):
     token = 'token'
     is_streaming = 'is_streaming'
 
+    avatar = 'avatar'
     app_avatar = 'app_avatar'
     app_avatar_safe = 'app_avatar_safe'
     enabled_safe = 'enabled_safe'
@@ -350,6 +351,16 @@ class RedisKeys(object):
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
 
     RKEY_HEARTBEAT = 'heartbeat:{}'
+    RKEY_AVATARS = 'user:avatars'
+    RKEY_SESSION_COUNT = 'session:count'
+
+    @staticmethod
+    def session_count() -> str:
+        return RedisKeys.RKEY_SESSION_COUNT
+
+    @staticmethod
+    def avatars() -> str:
+        return RedisKeys.RKEY_AVATARS
 
     RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
     RKEY_ACLS_FOR_ROOMS_HAVING_ACTION = 'rooms:acl:{}:{}'  # rooms:acl:<room_id>:<acl_action> => {acl_type: acl_value}

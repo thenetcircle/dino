@@ -304,6 +304,25 @@ class ICache(Interface):
         :return: dict
         """
 
+    def set_avatar_for(self, user_id: str, avatar_url: str, app_avatar_url: str, app_avatar_safe_url: str) -> None:
+        """
+        set the avatar url for a user
+
+        :param user_id: the id of the user
+        :param avatar_url: the url of the avatar
+        :param app_avatar_url: the url of the avatar
+        :param app_avatar_safe_url: the url of the avatar
+        :return: nothing
+        """
+
+    def get_avatar_for(self, user_id: str) -> Union[str, None]:
+        """
+        get the cached avatar url for this user id
+
+        :param user_id: the id of the user
+        :return: the avatar url if existing, otherwise None
+        """
+
     def get_users_in_room_for_role(self, room_id: str, role: str) -> dict:
         """
         get the users who have this role for this room
@@ -868,4 +887,12 @@ class ICache(Interface):
 
         :param user_id:
         :return:
+        """
+
+    def set_session_count(self, session_count: int) -> None:
+        """
+        save the number of active sessions connected to this node
+
+        :param session_count: number of sessions
+        :return: nothing
         """

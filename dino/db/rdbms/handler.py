@@ -17,7 +17,8 @@ import sys
 import traceback
 from datetime import datetime
 from functools import wraps
-from typing import Union, Dict
+from typing import Union
+from typing import Dict
 from uuid import uuid4 as uuid
 
 from activitystreams import Activity
@@ -36,7 +37,11 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs, Spams, Config, RoomSids, Acls
+from dino.db.rdbms.models import AclConfigs
+from dino.db.rdbms.models import Spams
+from dino.db.rdbms.models import Config
+from dino.db.rdbms.models import RoomSids
+from dino.db.rdbms.models import Avatars
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import Bans
 from dino.db.rdbms.models import BlackList
@@ -2362,6 +2367,55 @@ class DatabaseRdbms(object):
 
     def get_owners_room(self, room_id: str) -> dict:
         return self._get_users_with_role_in_room(room_id, RoleKeys.OWNER)
+
+    @with_session
+    def set_avatar_for(
+            self,
+            user_id: str,
+            avatar_url: str,
+            app_avatar_url: str,
+            app_avatar_safe_url: str,
+            session=None
+    ) -> None:
+        avatar = session.query(Avatars).filter(Avatars.user_id == user_id).first()
+        if avatar is None:
+            avatar = Avatars()
+            avatar.user_id = user_id
+
+        avatar.avatar = avatar_url
+        avatar.app_avatar = app_avatar_url
+        avatar.app_avatar_safe = app_avatar_safe_url
+        session.add(avatar)
+        session.commit()
+
+    def get_avatars_for(self, user_ids: set) -> dict:
+        @with_session
+        def _get_avatar(_user_id, session=None):
+            return session.query(Avatars).filter(Avatars.user_id == _user_id).first()
+
+        user_to_avatar = dict()
+
+        for user_id in user_ids:
+            avatar_url, app_avatar_url, app_avatar_safe_url = '', '', ''
+            avatars = self.env.cache.get_avatar_for(user_id)
+
+            if avatars is None:
+                avatar = _get_avatar(user_id)
+                if avatar is not None:
+                    avatar_url = avatar.avatar
+                    app_avatar_url = avatar.app_avatar
+                    app_avatar_safe_url = avatar.app_avatar_safe
+                    self.env.cache.set_avatar_for(
+                        user_id,
+                        avatar_url,
+                        app_avatar_url,
+                        app_avatar_safe_url
+                    )
+            else:
+                avatar_url, app_avatar_url, app_avatar_safe_url = avatars
+
+            user_to_avatar[user_id] = (avatar_url, app_avatar_url, app_avatar_safe_url)
+        return user_to_avatar
 
     def get_moderators_room(self, room_id: str) -> dict:
         return self._get_users_with_role_in_room(room_id, RoleKeys.MODERATOR)

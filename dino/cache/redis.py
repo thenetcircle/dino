@@ -2,9 +2,13 @@ import json
 import logging
 import traceback
 import random
+import sys
+import socket
 
 from zope.interface import implementer
-from typing import Union, Dict
+from typing import Union
+from typing import Dict
+from typing import Tuple
 
 from dino.config import RedisKeys
 from dino.config import ConfigKeys
@@ -73,6 +77,19 @@ class CacheRedis(object):
             self.redis_instance = None
 
         self.cache = MemoryCache()
+
+        args = sys.argv
+        for a in ['--bind', '-b']:
+            bind_arg_pos = [i for i, x in enumerate(args) if x == a]
+            if len(bind_arg_pos) > 0:
+                bind_arg_pos = bind_arg_pos[0]
+                break
+
+        self.listen_port = 'standalone'
+        if bind_arg_pos is not None and not isinstance(bind_arg_pos, list):
+            self.listen_port = args[bind_arg_pos + 1].split(':')[1]
+
+        self.listen_host = socket.gethostname().split('.')[0]
 
     @property
     def redis(self):
@@ -554,6 +571,30 @@ class CacheRedis(object):
         key = RedisKeys.users_in_room_for_role(room_id, role)
         return self.cache.get(key)
 
+    def set_avatar_for(self, user_id: str, avatar_url: str, app_avatar_url: str, app_avatar_safe_url: str) -> None:
+        key = RedisKeys.avatars()
+        cache_key = '{}-{}'.format(key, user_id)
+        urls = '|'.join([avatar_url, app_avatar_url, app_avatar_safe_url])
+        self.cache.set(cache_key, urls, ttl=THIRTY_SECONDS)
+        self.redis.hset(key, user_id, urls)
+
+    def get_avatar_for(self, user_id: str) -> Union[Tuple[str, str, str], None]:
+        key = RedisKeys.avatars()
+        cache_key = '{}-{}'.format(key, user_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value.split('|', maxsplit=2)
+
+        value = self.redis.hget(key, user_id)
+        if value is None:
+            return None
+
+        value = str(value, 'utf-8')
+        avatar_url, app_avatar_url, app_avatar_safe_url = value.split('|', maxsplit=2)
+
+        self.cache.set(cache_key, value, ttl=THIRTY_SECONDS)
+        return avatar_url, app_avatar_url, app_avatar_safe_url
+
     def reset_sids_for_user(self, user_id: str) -> None:
         key = RedisKeys.sid_for_user_id()
         self.redis.hdel(key, user_id)
@@ -741,7 +782,7 @@ class CacheRedis(object):
 
         redis_channels = dict()
         for channel_id, (channel_name, channel_sort, tags) in channels.items():
-            redis_channels[channel_id] = '{}|{}|{}'.format(tags, str(channel_sort), channel_name)
+            redis_channels[channel_id] = '{}|{}|{}'.format(str(channel_sort), tags, channel_name)
 
         self.redis.hmset(key, redis_channels)
         self.redis.expire(key, ONE_MINUTE)
@@ -1053,3 +1094,7 @@ class CacheRedis(object):
         except Exception as e:
             logger.error('could not set_user_invisible(): %s' % str(e))
             logger.exception(traceback.format_exc())
+
+    def set_session_count(self, session_count: int) -> None:
+        node_key = '{}-{}'.format(self.listen_host, self.listen_port)
+        self.redis.hset(RedisKeys.session_count(), node_key, session_count)

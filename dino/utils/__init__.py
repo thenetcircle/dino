@@ -365,20 +365,27 @@ def activity_for_sid_disconnect(user_id: str, user_name: str, current_sid: str) 
     })
 
 
-def activity_for_message(user_id: str, user_name: str) -> dict:
+def activity_for_message(user_id: str, user_name: str, message_id: str = None) -> dict:
     """
     user for sending event to other system to do statistics for how active a user is
     :param user_id: the id of the user
     :param user_name: the name of the user
+    :param message_id: the id of the message stored in db, is None if using REST to send, not stored
     :return: an activity streams dict
     """
-    return ActivityBuilder.enrich({
+    data = {
         'actor': {
             'id': user_id,
             'displayName': b64e(user_name)
         },
         'verb': 'send'
-    })
+    }
+    if message_id is not None:
+        data['object'] = {
+            'id': message_id
+        }
+
+    return ActivityBuilder.enrich(data)
 
 
 def activity_for_spam_word(activity: Activity) -> dict:
@@ -504,7 +511,7 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
     return response
 
 
-def activity_for_history(activity: Activity, messages: list) -> dict:
+def activity_for_history(activity: Activity, messages: list, avatars: dict = None) -> dict:
     response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'messages'
@@ -525,10 +532,29 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
 
     response['object']['attachments'] = list()
     for message in messages:
+        avatar_url, app_avatar_url, app_avatar_safe_url = '', '', ''
+        if avatars is not None:
+            avatar_url, app_avatar_url, app_avatar_safe_url = \
+                avatars.get(message['from_user_id']) or ('', '', '')
+
         response['object']['attachments'].append({
             'author': {
                 'id': message['from_user_id'],
-                'displayName': b64e(message['from_user_name'])
+                'displayName': b64e(message['from_user_name']),
+                'attachments': [
+                    {
+                        'objectType': 'avatar',
+                        'content': b64e(avatar_url)
+                    },
+                    {
+                        'objectType': 'app_avatar',
+                        'content': b64e(app_avatar_url)
+                    },
+                    {
+                        'objectType': 'app_avatar_safe',
+                        'content': b64e(app_avatar_safe_url)
+                    },
+                ]
             },
             'summary': message['target_id'],
             'id': message['message_id'],
@@ -538,7 +564,14 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
     return response
 
 
-def activity_for_join(activity: Activity, acls: dict, messages: list, owners: dict, users: dict) -> dict:
+def activity_for_join(
+        activity: Activity,
+        acls: dict,
+        messages: list,
+        owners: dict,
+        users: dict,
+        avatars: dict = None
+) -> dict:
     response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'room',
@@ -557,7 +590,7 @@ def activity_for_join(activity: Activity, acls: dict, messages: list, owners: di
         'attachments': acl_activity['object']['attachments']
     })
 
-    history_activity = activity_for_history(activity, messages)
+    history_activity = activity_for_history(activity, messages, avatars)
     response['object']['attachments'].append({
         'objectType': 'history',
         'attachments': history_activity['object']['attachments']
@@ -1188,6 +1221,14 @@ def get_acls_for_channel(channel_id: str) -> dict:
 
 def get_owners_for_room(room_id: str) -> dict:
     return environ.env.db.get_owners_room(room_id)
+
+
+def get_avatars(messages: list) -> dict:
+    user_ids = set()
+    for message in messages:
+        user_ids.add(message['from_user_id'])
+
+    return environ.env.db.get_avatars_for(user_ids)
 
 
 def channel_exists(channel_id: str) -> bool:
