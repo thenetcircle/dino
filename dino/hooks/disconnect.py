@@ -25,6 +25,12 @@ class OnDisconnectHooks(object):
         """
 
         def set_user_offline(user_id, current_sid):
+            all_sids = utils.get_sids_for_user_id(user_id)
+
+            # only one of the user sessions disconnected
+            if len(all_sids) > 1:
+                return
+
             try:
                 if not utils.is_valid_id(user_id):
                     logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
