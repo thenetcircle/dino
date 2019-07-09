@@ -388,6 +388,7 @@ class BaseDatabaseTest(BaseTest):
         self.assertTrue(BaseTest.ROOM_ID in rooms.keys())
         self.assertTrue(BaseTest.ROOM_NAME in rooms.values())
 
+        self.db.remove_sid_for_user_in_room(BaseTest.USER_ID, BaseTest.ROOM_ID, self.env.request.sid)
         self.db.remove_current_rooms_for_user(BaseTest.USER_ID)
         self.assertEqual(0, len(self._rooms_for_user()))
 

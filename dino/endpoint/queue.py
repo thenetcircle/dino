@@ -376,7 +376,7 @@ class QueueHandler(object):
             room_name = activity.target.display_name
         namespace = activity.target.url
 
-        if kicked_sids is None or len(kicked_sids) == 0 or kicked_sids == [None] or kicked_sids[0] == '':
+        if len(kicked_sids) == 0 or kicked_sids == [None] or kicked_sids[0] == '':
             logger.warning('no sid(s) found for user id %s' % kicked_id)
             return
 
@@ -433,7 +433,7 @@ class QueueHandler(object):
             target_id = ''
             target_name = ''
 
-        if banned_sids is None or len(banned_sids) == 0 or banned_sids == [None] or banned_sids[0] == '':
+        if len(banned_sids) == 0 or banned_sids == [None] or banned_sids[0] == '':
             logger.warning('no sid(s) found for user id %s' % banned_id)
             return
 

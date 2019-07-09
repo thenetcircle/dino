@@ -803,17 +803,28 @@ class DatabaseRdbms(object):
         self.channel_for_room(room_id)
         return room_id in self.rooms_for_user(user_id)
 
-    @with_session
-    def remove_current_rooms_for_user(self, user_id: str, session=None) -> None:
-        for i in range(3):
-            try:
-                self._remove_current_rooms_for_user(user_id, session)
-                return
-            except StaleDataError as e:
-                logger.warning('stale data when removing current rooms for user, attempt {}/2: {}'.format(
-                    str(i), str(e)
-                ))
-        logger.error('got stale data after 3 retries, giving up')
+    def remove_current_rooms_for_user(self, user_id):
+        @with_session
+        def remove(room_sids: dict, session=None) -> None:
+
+            for i in range(3):
+                try:
+                    self._remove_current_rooms_for_user(user_id, room_sids, session)
+                    return
+                except StaleDataError as e:
+                    logger.warning('stale data when removing current rooms for user, attempt {}/2: {}'.format(
+                        str(i), str(e)
+                    ))
+            logger.error('got stale data after 3 retries, giving up')
+
+        sids_to_rooms = self.get_rooms_with_sid(user_id)
+        room_to_sids = dict()
+        for sid, room in sids_to_rooms.items():
+            if room not in room_to_sids:
+                room_to_sids[room] = set()
+            room_to_sids[room].add(sid)
+
+        remove(room_to_sids)
 
     def set_ephemeral_room(self, room_id: str):
         self._set_ephemeral_on_room_to(room_id, is_ephemeral=True)
@@ -852,6 +863,8 @@ class DatabaseRdbms(object):
                 logger.error('could not remove sid {} for user {} in room {}: {}'.format(
                     sid_to_remove, user_id, room_id, str(e)
                 ))
+
+        self.env.cache.remove_sid_for_user(user_id, sid_to_remove)
 
     @with_session
     def sids_for_user_in_room(self, user_id, room_id, session=None):
@@ -913,7 +926,7 @@ class DatabaseRdbms(object):
         self.env.cache.set_default_rooms(default_rooms)
         return default_rooms
 
-    def _remove_current_rooms_for_user(self, user_id: str, session):
+    def _remove_current_rooms_for_user(self, user_id: str, room_sids: dict, session):
         user = session.query(Users).filter(Users.uuid == user_id).first()
         if user is None:
             return
@@ -927,6 +940,10 @@ class DatabaseRdbms(object):
             return
 
         for room in rooms:
+            # have other sessions in the room
+            if room.uuid in room_sids and len(room_sids[room.uuid]) > 0:
+                continue
+
             try:
                 room.users.remove(user)
             except ValueError:
@@ -1405,7 +1422,7 @@ class DatabaseRdbms(object):
             try:
                 _save_sid_in_room()
             except Exception as e:
-                logger.error('could not save RoomSids for user {}, room {}, sid {}: {}'.format(
+                logger.error('could not save ROomSids for user {}, room {}, sid {}: {}'.format(
                     user_id, room_id, sid, str(e)
                 ))
 
@@ -2881,10 +2898,36 @@ class DatabaseRdbms(object):
             session.delete(user_sid)
             session.commit()
 
+        @with_session
+        def remove_room_sid(session=None):
+            room_sid = session.query(RoomSids)\
+                .filter(RoomSids.session_id == sid)\
+                .filter(RoomSids.user_id == user_id)\
+                .first()
+
+            if room_sid is None:
+                return
+
+            session.delete(room_sid)
+            session.commit()
+
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
         self.env.cache.remove_sid_for_user(user_id, sid)
-        update_sid()
+
+        try:
+            update_sid()
+        except Exception as e:
+            logger.error('could not remove user sid {} for user {} because: {}'.format(sid, user_id, str(e)))
+            logger.exception(e)
+            self.env.capture_exception(sys.exc_info())
+
+        try:
+            remove_room_sid()
+        except Exception as e:
+            logger.error('could not remove room sid {} for user {} because: {}'.format(sid, user_id, str(e)))
+            logger.exception(e)
+            self.env.capture_exception(sys.exc_info())
 
     def add_sid_for_user(self, user_id: str, sid: str) -> None:
         @with_session

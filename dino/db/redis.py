@@ -91,7 +91,7 @@ class DatabaseRedis(object):
         pass
 
     def sids_for_user_in_room(self, user_id, room_id):
-        pass
+        return []
 
     def get_user_for_sid(self, sid: str) -> str:
         return None
@@ -1121,12 +1121,12 @@ class DatabaseRedis(object):
     def remove_sid_for_user(self, user_id: str, sid: str) -> None:
         self.reset_sids_for_user(user_id)
 
-    def get_sids_for_user(self, user_id: str) -> Union[list, None]:
+    def get_sids_for_user(self, user_id: str) -> list:
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
         sid = self.redis.hget(RedisKeys.sid_for_user_id(), user_id)
         if sid is None:
-            return None
+            return list()
         return [str(sid, 'utf-8')]
 
     def _get_users_with_role_in_channel(self, channel_id: str, role_key: str):
