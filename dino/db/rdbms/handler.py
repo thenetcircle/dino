@@ -838,6 +838,8 @@ class DatabaseRdbms(object):
             logger.exception(e)
             self.env.capture_exception(sys.exc_info())
 
+        self.env.cache.remove_sid_for_user(user_id, sid_to_remove)
+
     @with_session
     def sids_for_user_in_room(self, user_id, room_id, session=None):
         sids = session.query(RoomSids) \
