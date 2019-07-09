@@ -802,25 +802,33 @@ class DatabaseRdbms(object):
         room_sids = session.query(RoomSids).filter_by(user_id=user_id).all()
         return {rs.session_id: rs.room_id for rs in room_sids}
 
-    @with_session
-    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove, session=None):
-        print('about to remove sid {} for user {} in room {}'.format(sid_to_remove, user_id, room_id))
+    def remove_sid_for_user_in_room(self, user_id, room_id, sid_to_remove):
+        @with_session
+        def _remove_sid_for_user_in_room(session=None):
+            print('about to remove sid {} for user {} in room {}'.format(sid_to_remove, user_id, room_id))
 
-        if room_id is None:
-            sids = session.query(RoomSids) \
-                .filter_by(user_id=user_id) \
-                .all()
-        else:
-            sids = session.query(RoomSids) \
-                .filter_by(room_id=room_id) \
-                .filter_by(user_id=user_id) \
-                .all()
+            if room_id is None:
+                sids = session.query(RoomSids) \
+                    .filter_by(user_id=user_id) \
+                    .all()
+            else:
+                sids = session.query(RoomSids) \
+                    .filter_by(room_id=room_id) \
+                    .filter_by(user_id=user_id) \
+                    .all()
 
-        for sid in sids:
-            print('found sid {} user {} room {}'.format(sid.session_id, sid.user_id, sid.room_id))
-            if sid_to_remove is None or sid_to_remove == sid.session_id:
-                session.delete(sid)
-        session.commit()
+            for sid in sids:
+                print('found sid {} user {} room {}'.format(sid.session_id, sid.user_id, sid.room_id))
+                if sid_to_remove is None or sid_to_remove == sid.session_id:
+                    session.delete(sid)
+            session.commit()
+
+        try:
+            _remove_sid_for_user_in_room()
+        except Exception as e:
+            logger.error('could not remove room sid {} for user {} because: {}'.format(sid_to_remove, user_id, str(e)))
+            logger.exception(e)
+            self.env.capture_exception(sys.exc_info())
 
     @with_session
     def sids_for_user_in_room(self, user_id, room_id, session=None):
@@ -2815,10 +2823,36 @@ class DatabaseRdbms(object):
             session.delete(user_sid)
             session.commit()
 
+        @with_session
+        def remove_room_sid(session=None):
+            room_sid = session.query(RoomSids)\
+                .filter(RoomSids.session_id == sid)\
+                .filter(RoomSids.user_id == user_id)\
+                .first()
+
+            if room_sid is None:
+                return
+
+            session.delete(room_sid)
+            session.commit()
+
         if user_id is None or len(user_id.strip()) == 0:
             raise EmptyUserIdException(user_id)
         self.env.cache.remove_sid_for_user(user_id, sid)
-        update_sid()
+
+        try:
+            update_sid()
+        except Exception as e:
+            logger.error('could not remove user sid {} for user {} because: {}'.format(sid, user_id, str(e)))
+            logger.exception(e)
+            self.env.capture_exception(sys.exc_info())
+
+        try:
+            remove_room_sid()
+        except Exception as e:
+            logger.error('could not remove room sid {} for user {} because: {}'.format(sid, user_id, str(e)))
+            logger.exception(e)
+            self.env.capture_exception(sys.exc_info())
 
     def add_sid_for_user(self, user_id: str, sid: str) -> None:
         @with_session

@@ -35,7 +35,7 @@ class OnDisconnectHooks(object):
                 all_sids = utils.get_sids_for_user_id(user_id)
 
                 # if the user still has another session up we don't set the user as offline
-                if all_sids is not None and len(all_sids) > 0:
+                if len(all_sids) > 0:
                     logger.debug('when setting user offline, found other sids: [%s]' % ','.join(all_sids))
                     return
 
@@ -49,6 +49,12 @@ class OnDisconnectHooks(object):
                 logger.exception(traceback.format_exc())
 
         def leave_private_room(user_id, current_sid):
+            all_sids = utils.get_sids_for_user_id(user_id)
+
+            # only one of the user sessions disconnected
+            if len(all_sids) > 1:
+                return
+
             try:
                 # todo: only broadcast 'offline' status if currently 'online' (i.e. don't broadcast if e.g. 'invisible')
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
@@ -60,8 +66,6 @@ class OnDisconnectHooks(object):
                 environ.env.db.remove_sid_for_user(user_id, current_sid)
 
                 all_sids = utils.get_sids_for_user_id(user_id)
-                if all_sids is None:
-                    all_sids = list()
                 all_sids = all_sids.copy()
 
                 if len(all_sids) == 0 or (current_sid in all_sids and len(all_sids) == 1):
@@ -80,9 +84,14 @@ class OnDisconnectHooks(object):
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 rooms = environ.env.db.rooms_for_user(user_id)
 
-                # TODO: when multi-device is to be done this has to be considered; leave only room this session was in?
-
                 for room_id, room_name in rooms.items():
+                    environ.env.db.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
+                    sids_in_room = environ.env.db.sids_for_user_in_room(user_id, room_id)
+
+                    # still have other sessions in this room
+                    if len(sids_in_room) > 0:
+                        continue
+
                     logger.info('checking whether to remove room %s or not' % room_id)
                     if 'target' not in data:
                         data['target'] = dict()
@@ -142,8 +151,6 @@ class OnDisconnectHooks(object):
                         return
 
                 all_sids = utils.get_sids_for_user_id(user_id)
-                if all_sids is None:
-                    all_sids = list()
 
                 # race condition might lead to db cache saying it's still there or similar
                 make_sure_current_sid_removed(all_sids, user_id, current_sid)
