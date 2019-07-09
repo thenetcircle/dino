@@ -68,6 +68,7 @@ class OnDisconnectHooks(object):
 
                 if user_id is None or len(user_id.strip()) == 0:
                     return
+
                 environ.env.leave_room(current_sid)
                 environ.env.db.remove_sid_for_user(user_id, current_sid)
 
