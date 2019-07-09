@@ -7,7 +7,6 @@ import yaml
 from redis import Redis
 
 STATSD_HOST = '10.20.2.108'
-REDIS_HOST = '10.20.2.109'
 PREFIX = '%s.' % socket.gethostname()
 GRANULARITY = 2  # seconds
 
@@ -15,16 +14,25 @@ GRANULARITY = 2  # seconds
 hosts = yaml.safe_load(open('statsd-online-count.yaml'))
 
 r_servers = dict()
-for host, db in hosts.items():
-    r_servers[host] = Redis(host=REDIS_HOST, db=db)
+for host, port, community, db in hosts:
+    r_servers[community] = Redis(host=host, port=port, db=db)
 
 
 def online_count():
     c = statsd.StatsClient(STATSD_HOST, 8125, prefix=PREFIX + 'online')
     while True:
-        for community, db_num in hosts.items():
-            count = r_servers[community].bitcount('users:online:bitmap')
+        for _, _, community, db_num in hosts:
+            count = r_servers[community].scard('users:multicast')
             c.gauge('%s.count' % community, count)
+
+            sessions = r_servers[community].hgetall('session:count')
+            session_count = 0
+
+            for _, value in sessions.items():
+                session_count += int(float(str(value, 'utf-8')))
+
+            c.gauge('%s.count' % community, count)
+            c.gauge('%s.sessions' % community, session_count)
         time.sleep(GRANULARITY)
 
 
