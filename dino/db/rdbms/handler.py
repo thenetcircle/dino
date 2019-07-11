@@ -2333,16 +2333,20 @@ class DatabaseRdbms(object):
             app_avatar_safe_url: str,
             session=None
     ) -> None:
-        avatar = session.query(Avatars).filter(Avatars.user_id == user_id).first()
-        if avatar is None:
-            avatar = Avatars()
-            avatar.user_id = user_id
+        try:
+            avatar = session.query(Avatars).filter(Avatars.user_id == user_id).first()
+            if avatar is None:
+                avatar = Avatars()
+                avatar.user_id = user_id
 
-        avatar.avatar = avatar_url
-        avatar.app_avatar = app_avatar_url
-        avatar.app_avatar_safe = app_avatar_safe_url
-        session.add(avatar)
-        session.commit()
+            avatar.avatar = avatar_url
+            avatar.app_avatar = app_avatar_url
+            avatar.app_avatar_safe = app_avatar_safe_url
+            session.add(avatar)
+            session.commit()
+        except IntegrityError as e:
+            logger.error('could not set avatar for user {}: {}'.format(user_id, str(e)))
+            self.env.capture_exception(sys.exc_info())
 
     def get_avatars_for(self, user_ids: set) -> dict:
         @with_session
