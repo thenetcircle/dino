@@ -56,8 +56,16 @@ class ClearHistoryResource(BaseResource):
 
         user_id = json.get('id')
 
+        clear_body = False
+        include_soft_deleted_messages = False
+        if deletion_type == 'hard':
+            clear_body = True
+            include_soft_deleted_messages = True
+
         before = time.time()
-        messages = self.storage_manager.get_all_message_ids_from_user(user_id)
+        messages = self.storage_manager.get_all_message_ids_from_user(
+            user_id, include_deleted=include_soft_deleted_messages)
+
         logger.info('about to {} delete {} messages for user {} (fetching IDs took {}s)'.format(
             deletion_type, len(messages), user_id, '%.2f' % (time.time()-before))
         )
@@ -65,10 +73,6 @@ class ClearHistoryResource(BaseResource):
         before = time.time()
         failures = 0
         successes = 0
-
-        clear_body = True
-        if deletion_type == 'soft':
-            clear_body = False
 
         for message_id in messages:
             try:
