@@ -135,6 +135,13 @@ class CassandraStorage(object):
             return list()
         return [row.message_id for row in rows]
 
+    @timeit(logger, 'on_cassandra_get_all_message_ids_for_user')
+    def get_all_message_ids_for_user(self, user_id: str):
+        rows = self.driver.msgs_select_all_for_user(user_id)
+        if rows is None or len(rows.current_rows) == 0:
+            return list()
+        return [row.message_id for row in rows]
+
     @timeit(logger, 'on_cassandra_get_undeleted_message_ids_for_user_and_room')
     def get_undeleted_message_ids_for_user_and_room(self, user_id: str, room_id: str):
         rows = self.driver.msgs_select_non_deleted_for_user_and_room(user_id, room_id)

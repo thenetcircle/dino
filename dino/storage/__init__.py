@@ -23,6 +23,14 @@ class IStorage(Interface):
         :return: nothing
         """
 
+    def get_all_message_ids_for_user(self, user_id: str):
+        """
+        get all message ids, even for soft-deleted messages
+
+        :param user_id:
+        :return:
+        """
+
     def get_message(self, message_id: str) -> dict:
         """
         get the message with the given ID

@@ -55,6 +55,9 @@ class StorageRedis(object):
     def get_undeleted_message_ids_for_user(self, user_id: str):
         raise NotImplementedError('inefficient query for redis storage, not implemented')
 
+    def get_all_message_ids_for_user(self, user_id: str):
+        return list()
+
     def delete_message(self, message_id: str, room_id: str=None):
         if room_id is None:
             raise RuntimeError('redis storage needs room_id parameter to delete message')
