@@ -291,7 +291,7 @@ class QueueHandler(object):
         try:
             message_ids = self.env.storage.get_undeleted_message_ids_for_user(user_id)
             for message_id in message_ids:
-                self.env.storage.delete_message(message_id)
+                self.env.storage.delete_message(message_id, clear_body=False)
         except Exception as e:
             logger.error('could not delete messages for user %s: %s' % (user_id, str(e)))
             logger.exception(traceback.format_exc(e))
@@ -339,7 +339,7 @@ class QueueHandler(object):
 
             for message_id in messages:
                 try:
-                    self.env.storage.delete_message(message_id)
+                    self.env.storage.delete_message(message_id, clear_body=False)
                     successes += 1
                 except Exception as e:
                     logger.error('could not delete message with id %s because: %s' % (message_id, str(e)))

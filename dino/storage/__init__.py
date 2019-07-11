@@ -94,7 +94,7 @@ class IStorage(Interface):
         :return: a list of messages
         """
 
-    def delete_message(self, message_id: str, room_id: str=None) -> None:
+    def delete_message(self, message_id: str, room_id: str=None, clear_body: bool=True) -> None:
         """
         delete a message
 
