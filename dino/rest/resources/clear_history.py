@@ -50,18 +50,29 @@ class ClearHistoryResource(BaseResource):
         if 'id' not in json:
             raise RuntimeError('no id parameter in request')
 
+        deletion_type = json.get('type') or 'soft'
+        if deletion_type not in {'hard', 'soft'}:
+            raise RuntimeError('unknown deletion type: {}'.format(deletion_type))
+
         user_id = json.get('id')
+
         before = time.time()
         messages = self.storage_manager.get_all_message_ids_from_user(user_id)
-        logger.info('about to delete %s messages for user %s (fetching IDs took %.2fs)' % (len(messages), user_id, time.time()-before))
+        logger.info('about to {} delete {} messages for user {} (fetching IDs took {}s)'.format(
+            deletion_type, len(messages), user_id, '%.2f' % (time.time()-before))
+        )
 
         before = time.time()
         failures = 0
         successes = 0
 
+        clear_body = True
+        if deletion_type == 'soft':
+            clear_body = False
+
         for message_id in messages:
             try:
-                self.storage_manager.delete_message(message_id)
+                self.storage_manager.delete_message(message_id, clear_body=clear_body)
                 successes += 1
             except Exception as e:
                 logger.error('could not delete message with id %s because: %s' % (message_id, str(e)))
