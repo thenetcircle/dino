@@ -66,11 +66,14 @@ class OnDisconnectHooks(object):
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 logger.debug('a user disconnected [id: "%s", name: "%s", sid: "%s"]' % (user_id, user_name, current_sid))
 
+                try:
+                    environ.env.leave_room(current_sid)
+                    environ.env.db.remove_sid_for_user(user_id, current_sid)
+                except Exception as e:
+                    logger.warning('could not remove sid {} for user {}: {}'.format(current_sid, user_id, str(e)))
+
                 if user_id is None or len(user_id.strip()) == 0:
                     return
-
-                environ.env.leave_room(current_sid)
-                environ.env.db.remove_sid_for_user(user_id, current_sid)
 
                 all_sids = utils.get_sids_for_user_id(user_id)
                 all_sids = all_sids.copy()
@@ -89,7 +92,7 @@ class OnDisconnectHooks(object):
         def leave_all_public_rooms_and_emit_leave_events(user_id):
             try:
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
-                rooms = environ.env.db.rooms_for_user(user_id)
+                rooms = environ.env.db.rooms_for_user(user_id, skip_cache=True)
 
                 for room_id, room_name in rooms.items():
                     environ.env.db.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
@@ -210,5 +213,5 @@ def _on_disconnect_handle_disconnect(arg: tuple) -> None:
 
 
 @environ.env.observer.on('on_heartbeat_disconnect')
-def _on_disconnect_handle_disconnect(arg: tuple) -> None:
+def _on_disconnect_handle_disconnect_heartbeat(arg: tuple) -> None:
     OnDisconnectHooks.handle_disconnect(arg, is_socket_disconnect=False)

@@ -574,7 +574,7 @@ class DatabaseRdbms(object):
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
 
-    def rooms_for_user(self, user_id: str) -> dict:
+    def rooms_for_user(self, user_id: str, skip_cache: bool = False) -> dict:
         @with_session
         def _rooms_for_user(session=None) -> dict:
             rows = session.query(Rooms)\
@@ -586,6 +586,11 @@ class DatabaseRdbms(object):
             for row in rows:
                 clean_rooms[row.uuid] = row.name
             return clean_rooms
+
+        if skip_cache:
+            rooms = _rooms_for_user()
+            self.env.cache.set_rooms_for_user(user_id, rooms)
+            return rooms
 
         rooms = self.env.cache.get_rooms_for_user(user_id)
         if rooms is not None and len(rooms) > 0:
@@ -2843,19 +2848,26 @@ class DatabaseRdbms(object):
 
         @with_session
         def remove_room_sid(session=None):
-            room_sid = session.query(RoomSids)\
-                .filter(RoomSids.session_id == sid)\
-                .filter(RoomSids.user_id == user_id)\
-                .first()
+            if user_id is None or len(user_id) == 0:
+                room_sids = session.query(RoomSids)\
+                    .filter(RoomSids.session_id == sid)\
+                    .all()
+            else:
+                room_sids = session.query(RoomSids)\
+                    .filter(RoomSids.session_id == sid)\
+                    .filter(RoomSids.user_id == user_id)\
+                    .all()
 
-            if room_sid is None:
+            if room_sids is None or len(room_sids) == 0:
                 return
 
-            session.delete(room_sid)
+            for room_sid in room_sids:
+                session.delete(room_sid)
             session.commit()
 
         if user_id is None or len(user_id.strip()) == 0:
-            raise EmptyUserIdException(user_id)
+            return
+
         self.env.cache.remove_sid_for_user(user_id, sid)
 
         try:

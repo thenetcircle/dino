@@ -1300,11 +1300,12 @@ class IDatabase(Interface):
         :return: a dict with users
         """
 
-    def rooms_for_user(self, user_id: str = None) -> dict:
+    def rooms_for_user(self, user_id: str, skip_cache: bool = False) -> dict:
         """
         get all rooms that a user is in
 
         :param user_id: the id of the user
+        :param skip_cache: check db directly or check cache first
         :return: a dict of rooms: {'<room id>': '<room name>'}
         """
 
