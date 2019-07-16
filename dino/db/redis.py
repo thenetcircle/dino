@@ -1174,7 +1174,7 @@ class DatabaseRedis(object):
         self.env.cache.set_channel_name(channel_id, channel_name)
         return channel_name
 
-    def rooms_for_user(self, user_id: str) -> dict:
+    def rooms_for_user(self, user_id: str, skip_cache: bool = False) -> dict:
         clean_rooms = dict()
 
         rooms = self.redis.hgetall(RedisKeys.rooms_for_user(user_id))

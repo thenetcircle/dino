@@ -66,11 +66,14 @@ class OnDisconnectHooks(object):
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 logger.debug('a user disconnected [id: "%s", name: "%s", sid: "%s"]' % (user_id, user_name, current_sid))
 
+                try:
+                    environ.env.leave_room(current_sid)
+                    environ.env.db.remove_sid_for_user(user_id, current_sid)
+                except Exception as e:
+                    logger.warning('could not remove sid {} for user {}: {}'.format(current_sid, user_id, str(e)))
+
                 if user_id is None or len(user_id.strip()) == 0:
                     return
-
-                environ.env.leave_room(current_sid)
-                environ.env.db.remove_sid_for_user(user_id, current_sid)
 
                 all_sids = utils.get_sids_for_user_id(user_id)
                 all_sids = all_sids.copy()
@@ -89,7 +92,7 @@ class OnDisconnectHooks(object):
         def leave_all_public_rooms_and_emit_leave_events(user_id):
             try:
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
-                rooms = environ.env.db.rooms_for_user(user_id)
+                rooms = environ.env.db.rooms_for_user(user_id, skip_cache=True)
 
                 for room_id, room_name in rooms.items():
                     environ.env.db.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
@@ -139,8 +142,14 @@ class OnDisconnectHooks(object):
                     except NoSuchUserException:
                         user_name = '<unknown>'
 
+                all_sids = utils.get_sids_for_user_id(user_id)
+
+                # race condition might lead to db cache saying it's still there or similar
+                make_sure_current_sid_removed(all_sids, user_id, current_sid)
+
                 if user_id is None or user_id == 'None':
                     logger.warning('blank user_id on disconnect event, trying sid instead')
+
                     if current_sid is None or current_sid == 'None' or current_sid == '':
                         logger.error('blank sid as well as blank user id, ignoring disconnect event')
                         return
@@ -148,19 +157,13 @@ class OnDisconnectHooks(object):
                     try:
                         user_id = utils.get_user_for_sid(current_sid)
                     except Exception as e:
-                        logger.error('could not get user id from sid "{}": {}'.format(current_sid, str(e)))
-                        logger.exception(traceback.format_exc())
+                        logger.warning('could not get user id from sid "{}": {}'.format(current_sid, str(e)))
                         environ.env.capture_exception(sys.exc_info())
-                        return
+                        user_id = '-1'
 
                     if user_id is None or len(user_id.strip()) == 0:
-                        logger.error('blank user id for sid "{}", ignoring disconnect event'.format(current_sid))
-                        return
-
-                all_sids = utils.get_sids_for_user_id(user_id)
-
-                # race condition might lead to db cache saying it's still there or similar
-                make_sure_current_sid_removed(all_sids, user_id, current_sid)
+                        logger.warning('blank user id for sid "{}"'.format(current_sid))
+                        user_id = '-1'
 
                 logger.debug(
                     'sid %s disconnected, all_sids: [%s] for user %s (%s)' % (
@@ -210,5 +213,5 @@ def _on_disconnect_handle_disconnect(arg: tuple) -> None:
 
 
 @environ.env.observer.on('on_heartbeat_disconnect')
-def _on_disconnect_handle_disconnect(arg: tuple) -> None:
+def _on_disconnect_handle_disconnect_heartbeat(arg: tuple) -> None:
     OnDisconnectHooks.handle_disconnect(arg, is_socket_disconnect=False)

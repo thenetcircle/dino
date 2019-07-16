@@ -601,6 +601,12 @@ class CacheRedis(object):
 
     def remove_sid_for_user(self, user_id: str, sid: str) -> None:
         def _try_to_remove_sid(sid_to_remove):
+            sid_key = RedisKeys.user_id_for_sid()
+            self.redis.hdel(sid_key, sid_to_remove)
+
+            if user_id is None:
+                return
+
             all_sids = self.get_sids_for_user(user_id)
             if all_sids is None:
                 all_sids = set()
@@ -608,14 +614,10 @@ class CacheRedis(object):
             if sid_to_remove not in all_sids:
                 return
 
-            key = RedisKeys.sid_for_user_id()
-
-            sid_key = RedisKeys.user_id_for_sid()
-            for one_sid in all_sids:
-                self.redis.hdel(sid_key, one_sid)
-
             all_sids.remove(sid_to_remove)
             all_sids = ','.join(list(set(all_sids)))
+
+            key = RedisKeys.sid_for_user_id()
             self.redis.hset(key, user_id, all_sids)
 
         try:
