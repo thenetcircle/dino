@@ -142,8 +142,14 @@ class OnDisconnectHooks(object):
                     except NoSuchUserException:
                         user_name = '<unknown>'
 
+                all_sids = utils.get_sids_for_user_id(user_id)
+
+                # race condition might lead to db cache saying it's still there or similar
+                make_sure_current_sid_removed(all_sids, user_id, current_sid)
+
                 if user_id is None or user_id == 'None':
                     logger.warning('blank user_id on disconnect event, trying sid instead')
+
                     if current_sid is None or current_sid == 'None' or current_sid == '':
                         logger.error('blank sid as well as blank user id, ignoring disconnect event')
                         return
@@ -151,19 +157,13 @@ class OnDisconnectHooks(object):
                     try:
                         user_id = utils.get_user_for_sid(current_sid)
                     except Exception as e:
-                        logger.error('could not get user id from sid "{}": {}'.format(current_sid, str(e)))
-                        logger.exception(traceback.format_exc())
+                        logger.warning('could not get user id from sid "{}": {}'.format(current_sid, str(e)))
                         environ.env.capture_exception(sys.exc_info())
-                        return
+                        user_id = '-1'
 
                     if user_id is None or len(user_id.strip()) == 0:
-                        logger.error('blank user id for sid "{}", ignoring disconnect event'.format(current_sid))
-                        return
-
-                all_sids = utils.get_sids_for_user_id(user_id)
-
-                # race condition might lead to db cache saying it's still there or similar
-                make_sure_current_sid_removed(all_sids, user_id, current_sid)
+                        logger.warning('blank user id for sid "{}"'.format(current_sid))
+                        user_id = '-1'
 
                 logger.debug(
                     'sid %s disconnected, all_sids: [%s] for user %s (%s)' % (

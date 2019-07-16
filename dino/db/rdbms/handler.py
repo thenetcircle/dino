@@ -2836,7 +2836,6 @@ class DatabaseRdbms(object):
         @with_session
         def update_sid(session=None):
             user_sid = session.query(Sids)\
-                .filter(Sids.user_uuid == user_id)\
                 .filter(Sids.sid == sid)\
                 .first()
 
@@ -2848,15 +2847,9 @@ class DatabaseRdbms(object):
 
         @with_session
         def remove_room_sid(session=None):
-            if user_id is None or len(user_id) == 0:
-                room_sids = session.query(RoomSids)\
-                    .filter(RoomSids.session_id == sid)\
-                    .all()
-            else:
-                room_sids = session.query(RoomSids)\
-                    .filter(RoomSids.session_id == sid)\
-                    .filter(RoomSids.user_id == user_id)\
-                    .all()
+            room_sids = session.query(RoomSids)\
+                .filter(RoomSids.session_id == sid)\
+                .all()
 
             if room_sids is None or len(room_sids) == 0:
                 return
@@ -2864,9 +2857,6 @@ class DatabaseRdbms(object):
             for room_sid in room_sids:
                 session.delete(room_sid)
             session.commit()
-
-        if user_id is None or len(user_id.strip()) == 0:
-            return
 
         self.env.cache.remove_sid_for_user(user_id, sid)
 
