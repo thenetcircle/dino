@@ -511,7 +511,7 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
     return response
 
 
-def activity_for_history(activity: Activity, messages: list, avatars: dict = None) -> dict:
+def activity_for_history(activity: Activity, messages: list) -> dict:
     response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'messages'
@@ -530,12 +530,23 @@ def activity_for_history(activity: Activity, messages: list, avatars: dict = Non
             'displayName': room_name
         }
 
+    user_ids = set()
+    for message in messages:
+        user_ids.add(message['from_user_id'])
+
+    # we can't use auth api directly for user info like we do for users_in_room, since
+    # auth data is temporary, and only works if the user is currently online, which is
+    # not the case for historical messages, so get from auth if online, otherwise db
+    user_infos = environ.env.db.get_user_infos(user_ids)
+
     response['object']['attachments'] = list()
     for message in messages:
-        avatar_url, app_avatar_url, app_avatar_safe_url = '', '', ''
-        if avatars is not None:
-            avatar_url, app_avatar_url, app_avatar_safe_url = \
-                avatars.get(message['from_user_id']) or ('', '', '')
+        user_info = user_infos.get(message['from_user_id'], dict())
+
+        avatar_url = user_info.get(SessionKeys.avatar.value, '')
+        app_avatar_url = user_info.get(SessionKeys.app_avatar.value, '')
+        app_avatar_safe_url = user_info.get(SessionKeys.app_avatar_safe.value, '')
+        gender = user_info.get(SessionKeys.gender.value, '-1')
 
         response['object']['attachments'].append({
             'author': {
@@ -543,15 +554,19 @@ def activity_for_history(activity: Activity, messages: list, avatars: dict = Non
                 'displayName': b64e(message['from_user_name']),
                 'attachments': [
                     {
-                        'objectType': 'avatar',
+                        'objectType': SessionKeys.gender.value,
+                        'content': b64e(gender)
+                    },
+                    {
+                        'objectType': SessionKeys.avatar.value,
                         'content': b64e(avatar_url)
                     },
                     {
-                        'objectType': 'app_avatar',
+                        'objectType': SessionKeys.app_avatar.value,
                         'content': b64e(app_avatar_url)
                     },
                     {
-                        'objectType': 'app_avatar_safe',
+                        'objectType': SessionKeys.app_avatar_safe.value,
                         'content': b64e(app_avatar_safe_url)
                     },
                 ]
@@ -569,8 +584,7 @@ def activity_for_join(
         acls: dict,
         messages: list,
         owners: dict,
-        users: dict,
-        avatars: dict = None
+        users: dict
 ) -> dict:
     response = ActivityBuilder.enrich({
         'object': {
@@ -590,7 +604,7 @@ def activity_for_join(
         'attachments': acl_activity['object']['attachments']
     })
 
-    history_activity = activity_for_history(activity, messages, avatars)
+    history_activity = activity_for_history(activity, messages)
     response['object']['attachments'].append({
         'objectType': 'history',
         'attachments': history_activity['object']['attachments']
@@ -1221,14 +1235,6 @@ def get_acls_for_channel(channel_id: str) -> dict:
 
 def get_owners_for_room(room_id: str) -> dict:
     return environ.env.db.get_owners_room(room_id)
-
-
-def get_avatars(messages: list) -> dict:
-    user_ids = set()
-    for message in messages:
-        user_ids.add(message['from_user_id'])
-
-    return environ.env.db.get_avatars_for(user_ids)
 
 
 def channel_exists(channel_id: str) -> bool:

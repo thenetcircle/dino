@@ -994,17 +994,6 @@ class IDatabase(Interface):
         :return: a dict of user_id -> user_name
         """
 
-    def set_avatar_for(self, user_id: str, avatar_url: str, app_avatar_url: str, app_avatar_safe_url: str) -> None:
-        """
-        set the avatar url for a user after login
-
-        :param user_id: the id of the user
-        :param avatar_url: the url of the avatar
-        :param app_avatar_url: the url of the avatar
-        :param app_avatar_safe_url: the url of the avatar
-        :return: nothing
-        """
-
     def get_avatars_for(self, user_ids: set) -> dict:
         """
         return a dict of {user_id: avatar_url}
@@ -1321,6 +1310,23 @@ class IDatabase(Interface):
         :param user_id: the id of the user
         :param skip_cache: check db directly or check cache first
         :return: a dict of rooms: {'<room id>': '<room name>'}
+        """
+
+    def get_user_infos(self, user_ids: set) -> dict:
+        """
+        get persisted user info for a set of user ids
+
+        :param user_ids: a set of user ids
+        :return: dictionary of {user_id: {key: value}}
+        """
+
+    def set_user_info(self, user_id: str, user_info: dict) -> None:
+        """
+        persist user information for one user
+
+        :param user_id: the id fo the user
+        :param user_info: the session dict
+        :return: nothing
         """
 
     def remove_current_rooms_for_user(self, user_id: str) -> None:

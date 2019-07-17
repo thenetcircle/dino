@@ -89,17 +89,27 @@ class OnDisconnectHooks(object):
                 logger.debug('request for failed leave_private_room(): %s' % str(data))
                 logger.exception(traceback.format_exc())
 
-        def leave_all_public_rooms_and_emit_leave_events(user_id):
+        def leave_all_public_rooms_and_emit_leave_events(user_id, current_sid):
             try:
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 rooms = environ.env.db.rooms_for_user(user_id, skip_cache=True)
 
                 for room_id, room_name in rooms.items():
-                    environ.env.db.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
+                    environ.env.db.remove_sid_for_user_in_room(user_id, room_id, current_sid)
                     sids_in_room = environ.env.db.sids_for_user_in_room(user_id, room_id)
+
+                    # race condition could cause fetching to happen before deletion... just
+                    # make sure that current_sid it's not in this set
+                    try:
+                        sids_in_room.remove(current_sid)
+                    except KeyError:
+                        pass
 
                     # still have other sessions in this room
                     if len(sids_in_room) > 0:
+                        logger.info('user {} ({}) still have other sids in room: {}'.format(
+                            user_id, user_name, ','.join(sids_in_room)
+                        ))
                         continue
 
                     logger.info('checking whether to remove room %s or not' % room_id)
@@ -169,15 +179,18 @@ class OnDisconnectHooks(object):
                     'sid %s disconnected, all_sids: [%s] for user %s (%s)' % (
                         current_sid, ','.join(all_sids), user_id, user_name))
 
-                sid_ended_event = utils.activity_for_sid_disconnect(user_id, user_name, current_sid)
-                environ.env.publish(sid_ended_event, external=True)
+                if user_id != '-1':
+                    sid_ended_event = utils.activity_for_sid_disconnect(user_id, user_name, current_sid)
+                    environ.env.publish(sid_ended_event, external=True)
 
                 # if the user still has another session up we don't send disconnect event
                 if all_sids is not None and len(all_sids) > 0:
                     return
 
-                activity_json = utils.activity_for_disconnect(user_id, user_name)
-                environ.env.publish(activity_json, external=True)
+                if user_id != '-1':
+                    activity_json = utils.activity_for_disconnect(user_id, user_name)
+                    environ.env.publish(activity_json, external=True)
+
             except Exception as e:
                 logger.error('could not emit disconnect event: %s' % str(e))
                 logger.debug('request for failed emit_disconnect_event(): %s' % str(data))
@@ -199,7 +212,7 @@ class OnDisconnectHooks(object):
         if is_socket_disconnect:
             _current_sid = environ.env.request.sid
             leave_private_room(_user_id, _current_sid)
-            leave_all_public_rooms_and_emit_leave_events(_user_id)
+            leave_all_public_rooms_and_emit_leave_events(_user_id, _current_sid)
         else:
             _current_sid = 'hb-{}'.format(_user_id)
 
