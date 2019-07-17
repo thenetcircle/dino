@@ -89,17 +89,25 @@ class OnDisconnectHooks(object):
                 logger.debug('request for failed leave_private_room(): %s' % str(data))
                 logger.exception(traceback.format_exc())
 
-        def leave_all_public_rooms_and_emit_leave_events(user_id):
+        def leave_all_public_rooms_and_emit_leave_events(user_id, current_sid):
             try:
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 rooms = environ.env.db.rooms_for_user(user_id, skip_cache=True)
 
                 for room_id, room_name in rooms.items():
-                    environ.env.db.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
+                    environ.env.db.remove_sid_for_user_in_room(user_id, room_id, current_sid)
                     sids_in_room = environ.env.db.sids_for_user_in_room(user_id, room_id)
+
+                    try:
+                        sids_in_room.remove(current_sid)
+                    except KeyError:
+                        pass
 
                     # still have other sessions in this room
                     if len(sids_in_room) > 0:
+                        logger.info('user {} ({}) still have other sids in room: {}'.format(
+                            user_id, user_name, ','.join(sids_in_room)
+                        ))
                         continue
 
                     logger.info('checking whether to remove room %s or not' % room_id)
@@ -199,7 +207,7 @@ class OnDisconnectHooks(object):
         if is_socket_disconnect:
             _current_sid = environ.env.request.sid
             leave_private_room(_user_id, _current_sid)
-            leave_all_public_rooms_and_emit_leave_events(_user_id)
+            leave_all_public_rooms_and_emit_leave_events(_user_id, _current_sid)
         else:
             _current_sid = 'hb-{}'.format(_user_id)
 

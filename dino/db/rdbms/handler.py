@@ -851,7 +851,7 @@ class DatabaseRdbms(object):
             .filter_by(room_id=room_id) \
             .filter_by(user_id=user_id) \
             .all()
-        return [sid.session_id for sid in sids]
+        return {sid.session_id for sid in sids}
 
     @with_session
     def _set_ephemeral_on_room_to(self, room_id: str, is_ephemeral: bool, session=None):
