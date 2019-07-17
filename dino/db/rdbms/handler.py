@@ -844,7 +844,7 @@ class DatabaseRdbms(object):
         self.env.cache.remove_sid_for_user(user_id, sid_to_remove)
 
     @with_session
-    def sids_for_user_in_room(self, user_id, room_id, session=None):
+    def sids_for_user_in_room(self, user_id, room_id, session=None) -> set:
         sids = session.query(RoomSids) \
             .filter_by(room_id=room_id) \
             .filter_by(user_id=user_id) \
