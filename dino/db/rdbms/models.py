@@ -40,6 +40,29 @@ class Avatars(DeclarativeBase):
     app_avatar_safe = Column('app_avatar_safe', String(256), nullable=False, index=False, unique=False)
 
 
+class UserInfo(DeclarativeBase):
+    __tablename__ = 'user_info'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column('user_id', String(128), nullable=False, index=True, unique=True)
+    avatar = Column('avatar', String(256), nullable=True, index=False, unique=False)
+    app_avatar = Column('app_avatar', String(256), nullable=True, index=False, unique=False)
+    app_avatar_safe = Column('app_avatar_safe', String(256), nullable=True, index=False, unique=False)
+
+    age = Column('age', String(256), nullable=True, index=False, unique=False)
+    gender = Column('gender', String(256), nullable=True, index=False, unique=False)
+    membership = Column('membership', String(256), nullable=True, index=False, unique=False)
+    group = Column('group', String(256), nullable=True, index=False, unique=False)
+    country = Column('country', String(256), nullable=True, index=False, unique=False)
+    city = Column('city', String(256), nullable=True, index=False, unique=False)
+    image = Column('image', String(256), nullable=True, index=False, unique=False)
+    has_webcam = Column('has_webcam', String(256), nullable=True, index=False, unique=False)
+    fake_checked = Column('fake_checked', String(256), nullable=True, index=False, unique=False)
+    is_streaming = Column('is_streaming', String(256), nullable=True, index=False, unique=False)
+    enabled_safe = Column('enabled_safe', String(256), nullable=True, index=False, unique=False)
+    last_login = Column('last_login', DateTime, nullable=False)
+
+
 class Channels(DeclarativeBase):
     __tablename__ = 'channels'
 

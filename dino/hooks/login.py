@@ -1,6 +1,7 @@
 import logging
 import sys
 import traceback
+from datetime import datetime as dt
 
 from dino import environ
 from dino import utils
@@ -42,11 +43,24 @@ class OnLoginHooks(object):
         environ.env.session[SessionKeys.user_agent_platform.value] = user_agent_platform or ''
         environ.env.session[SessionKeys.user_agent_language.value] = user_agent_language or ''
 
-        avatar_url = environ.env.session.get(SessionKeys.avatar.value) or ''
-        app_avatar_url = environ.env.session.get(SessionKeys.app_avatar.value) or ''
-        app_avatar_safe = environ.env.session.get(SessionKeys.app_avatar_safe.value) or ''
+        user_info = {
+            SessionKeys.avatar.value: environ.env.session.get(SessionKeys.avatar.value) or '',
+            SessionKeys.app_avatar.value: environ.env.session.get(SessionKeys.app_avatar.value) or '',
+            SessionKeys.app_avatar_safe.value: environ.env.session.get(SessionKeys.app_avatar_safe.value) or '',
+            SessionKeys.age.value: environ.env.session.get(SessionKeys.age.value) or '',
+            SessionKeys.gender.value: environ.env.session.get(SessionKeys.gender.value) or '',
+            SessionKeys.membership.value: environ.env.session.get(SessionKeys.membership.value) or '',
+            SessionKeys.group.value: environ.env.session.get(SessionKeys.group.value) or '',
+            SessionKeys.country.value: environ.env.session.get(SessionKeys.country.value) or '',
+            SessionKeys.has_webcam.value: environ.env.session.get(SessionKeys.has_webcam.value) or '',
+            SessionKeys.fake_checked.value: environ.env.session.get(SessionKeys.fake_checked.value) or '',
+            SessionKeys.is_streaming.value: environ.env.session.get(SessionKeys.is_streaming.value) or '',
+            SessionKeys.enabled_safe.value: environ.env.session.get(SessionKeys.enabled_safe.value) or '',
 
-        environ.env.db.set_avatar_for(user_id, avatar_url, app_avatar_url, app_avatar_safe)
+            'last_login': dt.utcnow()
+        }
+
+        environ.env.db.set_user_info(user_id, user_info)
 
         if activity.actor.image is None:
             environ.env.session['image_url'] = ''

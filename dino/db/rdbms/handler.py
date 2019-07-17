@@ -28,7 +28,7 @@ from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy.exc import IntegrityError
 from zope.interface import implementer
 
-from dino.config import ApiActions
+from dino.config import ApiActions, SessionKeys
 from dino.config import ApiTargets
 from dino.config import ConfigKeys
 from dino.config import RoleKeys
@@ -36,7 +36,7 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs
+from dino.db.rdbms.models import AclConfigs, UserInfo
 from dino.db.rdbms.models import Spams
 from dino.db.rdbms.models import Config
 from dino.db.rdbms.models import RoomSids
@@ -1358,6 +1358,71 @@ class DatabaseRdbms(object):
                 'db error when leaving room, likely already removed from assoc table: %s' % str(e))
             self.env.capture_exception(sys.exc_info())
 
+    def get_user_infos(self, user_ids: set) -> dict:
+        @with_session
+        def _get_infos(_ids: set, session=None) -> dict:
+            _users = session.query(UserInfo).filter(UserInfo.user_id.in_(_ids)).all()
+            _infos = dict()
+
+            for _user in _users:
+                _infos[_user.user_id] = _user.to_dict()
+
+            return _infos
+
+        not_found = set()
+        user_infos = dict()
+
+        for user_id in user_ids:
+            user_info = self.env.auth.get_user_info(user_id)
+
+            if len(user_info) == 0:
+                not_found.add(user_id)
+                continue
+
+            user_infos[user_id] = user_info
+
+        for user_id in not_found:
+            user_infos[user_id] = dict()
+
+        if len(not_found) > 0:
+            infos = _get_infos(not_found)
+            for user_id, info in infos.items():
+                user_infos[user_id] = info
+
+        return user_infos
+
+    def set_user_info(self, user_id: str, user_info: dict):
+        @with_session
+        def _set_user_info(session=None):
+            info = session.query(UserInfo).filter(UserInfo.user_id == user_id).first()
+            if info is None:
+                info = UserInfo()
+                info.user_id = user_id
+
+            info.avatar = user_info.get(SessionKeys.avatar.value)
+            info.app_avatar = user_info.get(SessionKeys.app_avatar.value)
+            info.app_avatar_safe = user_info.get(SessionKeys.app_avatar_safe.value)
+            info.age = user_info.get(SessionKeys.age.value)
+            info.gender = user_info.get(SessionKeys.gender.value)
+            info.membership = user_info.get(SessionKeys.membership.value)
+            info.group = user_info.get(SessionKeys.group.value)
+            info.country = user_info.get(SessionKeys.country.value)
+            info.has_webcam = user_info.get(SessionKeys.has_webcam.value)
+            info.fake_checked = user_info.get(SessionKeys.fake_checked.value)
+            info.is_streaming = user_info.get(SessionKeys.is_streaming.value)
+            info.enabled_safe = user_info.get(SessionKeys.enabled_safe.value)
+            info.last_login = user_info.get('last_login')
+
+            session.add(info)
+            session.commit()
+
+        try:
+            _set_user_info()
+        except Exception as e:
+            logger.error('could not set user info for user {}: {}'.format(user_id, str(e)))
+            logger.exception(e)
+            self.env.capture_exception(sys.exc_info())
+
     def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
         self.get_room_name(room_id)
 
@@ -2355,8 +2420,8 @@ class DatabaseRdbms(object):
 
     def get_avatars_for(self, user_ids: set) -> dict:
         @with_session
-        def _get_avatar(_user_id, session=None):
-            return session.query(Avatars).filter(Avatars.user_id == _user_id).first()
+        def _get_user_info(_user_id, session=None) -> UserInfo:
+            return session.query(UserInfo).filter(UserInfo.user_id == _user_id).first()
 
         user_to_avatar = dict()
 
@@ -2365,7 +2430,7 @@ class DatabaseRdbms(object):
             avatars = self.env.cache.get_avatar_for(user_id)
 
             if avatars is None:
-                avatar = _get_avatar(user_id)
+                avatar = _get_user_info(user_id)
                 if avatar is not None:
                     avatar_url = avatar.avatar
                     app_avatar_url = avatar.app_avatar
