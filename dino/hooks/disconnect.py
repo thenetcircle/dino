@@ -169,15 +169,18 @@ class OnDisconnectHooks(object):
                     'sid %s disconnected, all_sids: [%s] for user %s (%s)' % (
                         current_sid, ','.join(all_sids), user_id, user_name))
 
-                sid_ended_event = utils.activity_for_sid_disconnect(user_id, user_name, current_sid)
-                environ.env.publish(sid_ended_event, external=True)
+                if user_id != '-1':
+                    sid_ended_event = utils.activity_for_sid_disconnect(user_id, user_name, current_sid)
+                    environ.env.publish(sid_ended_event, external=True)
 
                 # if the user still has another session up we don't send disconnect event
                 if all_sids is not None and len(all_sids) > 0:
                     return
 
-                activity_json = utils.activity_for_disconnect(user_id, user_name)
-                environ.env.publish(activity_json, external=True)
+                if user_id != '-1':
+                    activity_json = utils.activity_for_disconnect(user_id, user_name)
+                    environ.env.publish(activity_json, external=True)
+
             except Exception as e:
                 logger.error('could not emit disconnect event: %s' % str(e))
                 logger.debug('request for failed emit_disconnect_event(): %s' % str(data))
