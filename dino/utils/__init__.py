@@ -543,9 +543,9 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
     for message in messages:
         user_info = user_infos.get(message['from_user_id'], dict())
 
-        avatar_url = user_info.get(SessionKeys.avatar_url.value, '')
-        app_avatar_url = user_info.get(SessionKeys.app_avatar_url.value, '')
-        app_avatar_safe_url = user_info.get(SessionKeys.app_avatar_safe_url.value, '')
+        avatar_url = user_info.get(SessionKeys.avatar.value, '')
+        app_avatar_url = user_info.get(SessionKeys.app_avatar.value, '')
+        app_avatar_safe_url = user_info.get(SessionKeys.app_avatar_safe.value, '')
         gender = user_info.get(SessionKeys.gender.value, '-1')
 
         response['object']['attachments'].append({
@@ -558,15 +558,15 @@ def activity_for_history(activity: Activity, messages: list) -> dict:
                         'content': b64e(gender)
                     },
                     {
-                        'objectType': 'avatar',
+                        'objectType': SessionKeys.avatar.value,
                         'content': b64e(avatar_url)
                     },
                     {
-                        'objectType': 'app_avatar',
+                        'objectType': SessionKeys.app_avatar.value,
                         'content': b64e(app_avatar_url)
                     },
                     {
-                        'objectType': 'app_avatar_safe',
+                        'objectType': SessionKeys.app_avatar_safe.value,
                         'content': b64e(app_avatar_safe_url)
                     },
                 ]

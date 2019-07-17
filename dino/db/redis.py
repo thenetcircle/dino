@@ -539,9 +539,6 @@ class DatabaseRedis(object):
         self.redis.hset(key, SessionKeys.user_name.value, user_name)
         self.redis.hset(RedisKeys.user_names(), user_id, user_name)
 
-    def set_avatar_for(self, user_id: str, avatar_url: str, app_avatar_url: str, app_avatar_safe_url: str) -> None:
-        return
-
     def get_avatars_for(self, user_ids: set) -> dict:
         return dict()
 
@@ -1146,6 +1143,17 @@ class DatabaseRedis(object):
         if room_name is None:
             raise NoSuchRoomException(room_id)
         return room_name.decode('utf-8')
+
+    def get_user_infos(self, user_ids: set) -> dict:
+        infos = dict()
+
+        for user_id in user_ids:
+            infos[user_id] = dict()
+
+        return infos
+
+    def set_user_info(self, user_id: str, user_info: dict) -> None:
+        pass
 
     def get_channel_name(self, channel_id: str) -> str:
         channel_name = self.env.cache.get_channel_name(channel_id)

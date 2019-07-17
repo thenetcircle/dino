@@ -1389,7 +1389,7 @@ class DatabaseRdbms(object):
 
         return user_infos
 
-    def set_user_info(self, user_id: str, user_info: dict):
+    def set_user_info(self, user_id: str, user_info: dict) -> None:
         @with_session
         def _set_user_info(session=None):
             info = session.query(UserInfo).filter(UserInfo.user_id == user_id).first()
