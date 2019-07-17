@@ -30,16 +30,6 @@ class UserStatus(DeclarativeBase):
     status = Column('status', Integer, nullable=False, default=UserKeys.STATUS_UNKNOWN)
 
 
-class Avatars(DeclarativeBase):
-    __tablename__ = 'avatars'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column('user_id', String(128), nullable=False, index=True, unique=True)
-    avatar = Column('avatar', String(256), nullable=False, index=False, unique=False)
-    app_avatar = Column('app_avatar', String(256), nullable=False, index=False, unique=False)
-    app_avatar_safe = Column('app_avatar_safe', String(256), nullable=False, index=False, unique=False)
-
-
 class UserInfo(DeclarativeBase):
     __tablename__ = 'user_info'
 

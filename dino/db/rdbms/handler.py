@@ -39,8 +39,6 @@ from dino.db.rdbms.mock import MockDatabase
 from dino.db.rdbms.models import AclConfigs, UserInfo
 from dino.db.rdbms.models import Spams
 from dino.db.rdbms.models import Config
-from dino.db.rdbms.models import RoomSids
-from dino.db.rdbms.models import Avatars
 from dino.db.rdbms.models import Acls
 from dino.db.rdbms.models import Bans
 from dino.db.rdbms.models import BlackList
@@ -2393,30 +2391,6 @@ class DatabaseRdbms(object):
 
     def get_owners_room(self, room_id: str) -> dict:
         return self._get_users_with_role_in_room(room_id, RoleKeys.OWNER)
-
-    @with_session
-    def set_avatar_for(
-            self,
-            user_id: str,
-            avatar_url: str,
-            app_avatar_url: str,
-            app_avatar_safe_url: str,
-            session=None
-    ) -> None:
-        try:
-            avatar = session.query(Avatars).filter(Avatars.user_id == user_id).first()
-            if avatar is None:
-                avatar = Avatars()
-                avatar.user_id = user_id
-
-            avatar.avatar = avatar_url
-            avatar.app_avatar = app_avatar_url
-            avatar.app_avatar_safe = app_avatar_safe_url
-            session.add(avatar)
-            session.commit()
-        except IntegrityError as e:
-            logger.error('could not set avatar for user {}: {}'.format(user_id, str(e)))
-            self.env.capture_exception(sys.exc_info())
 
     def get_avatars_for(self, user_ids: set) -> dict:
         @with_session
