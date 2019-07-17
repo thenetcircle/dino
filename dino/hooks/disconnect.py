@@ -98,6 +98,8 @@ class OnDisconnectHooks(object):
                     environ.env.db.remove_sid_for_user_in_room(user_id, room_id, current_sid)
                     sids_in_room = environ.env.db.sids_for_user_in_room(user_id, room_id)
 
+                    # race condition could cause fetching to happen before deletion... just
+                    # make sure that current_sid it's not in this set
                     try:
                         sids_in_room.remove(current_sid)
                     except KeyError:
