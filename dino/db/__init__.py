@@ -44,7 +44,7 @@ class IDatabase(Interface):
         :return:
         """
 
-    def sids_for_user_in_room(self, user_id, room_id):
+    def sids_for_user_in_room(self, user_id, room_id) -> set:
         """
 
         :param user_id:
