@@ -511,7 +511,7 @@ def activity_for_create_room(data: dict, activity: Activity) -> dict:
     return response
 
 
-def activity_for_history(activity: Activity, messages: list, avatars: dict = None) -> dict:
+def activity_for_history(activity: Activity, messages: list) -> dict:
     response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'messages'
@@ -534,6 +534,9 @@ def activity_for_history(activity: Activity, messages: list, avatars: dict = Non
     for message in messages:
         user_ids.add(message['from_user_id'])
 
+    # we can't use auth api directly for user info like we do for users_in_room, since
+    # auth data is temporary, and only works if the user is currently online, which is
+    # not the case for historical messages, so get from auth if online, otherwise db
     user_infos = environ.env.db.get_user_infos(user_ids)
 
     response['object']['attachments'] = list()
