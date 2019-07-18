@@ -54,19 +54,19 @@ class UserInfo(DeclarativeBase):
 
     def to_dict(self):
         return {
-            SessionKeys.user_id: self.user_id,
-            SessionKeys.avatar: self.avatar or '',
-            SessionKeys.app_avatar: self.app_avatar or '',
-            SessionKeys.app_avatar_safe: self.app_avatar_safe or '',
-            SessionKeys.age: self.age or '',
-            SessionKeys.gender: self.gender or '',
-            SessionKeys.membership: self.membership or '',
-            SessionKeys.group: self.group or '',
-            SessionKeys.city: self.city or '',
-            SessionKeys.has_webcam: self.has_webcam or '',
-            SessionKeys.fake_checked: self.fake_checked or '',
-            SessionKeys.is_streaming: self.is_streaming or '',
-            SessionKeys.enabled_safe: self.enabled_safe or ''
+            SessionKeys.user_id.value: self.user_id,
+            SessionKeys.avatar.value: self.avatar or '',
+            SessionKeys.app_avatar.value: self.app_avatar or '',
+            SessionKeys.app_avatar_safe.value: self.app_avatar_safe or '',
+            SessionKeys.age.value: self.age or '',
+            SessionKeys.gender.value: self.gender or '',
+            SessionKeys.membership.value: self.membership or '',
+            SessionKeys.group.value: self.group or '',
+            SessionKeys.city.value: self.city or '',
+            SessionKeys.has_webcam.value: self.has_webcam or '',
+            SessionKeys.fake_checked.value: self.fake_checked or '',
+            SessionKeys.is_streaming.value: self.is_streaming or '',
+            SessionKeys.enabled_safe.value: self.enabled_safe or ''
         }
 
 

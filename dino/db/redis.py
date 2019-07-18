@@ -1145,15 +1145,17 @@ class DatabaseRedis(object):
         return room_name.decode('utf-8')
 
     def get_user_infos(self, user_ids: set) -> dict:
-        infos = dict()
+        user_infos = dict()
 
         for user_id in user_ids:
-            infos[user_id] = dict()
+            user_info = self.env.auth.get_user_info(user_id)
+            user_infos[user_id] = user_info
 
-        return infos
+        return user_infos
 
     def set_user_info(self, user_id: str, user_info: dict) -> None:
-        pass
+        for key, value in user_info.items():
+            self.env.auth.update_session_for_key(user_id, key, value)
 
     def get_channel_name(self, channel_id: str) -> str:
         channel_name = self.env.cache.get_channel_name(channel_id)

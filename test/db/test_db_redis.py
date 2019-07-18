@@ -1,22 +1,8 @@
-#!/usr/bin/env python
+from datetime import datetime
 
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
+from dino.config import UserKeys, SessionKeys, RedisKeys
+from test.base import BaseTest
 from test.db import BaseDatabaseTest
-
-from dino.config import UserKeys
-
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class DatabaseRedisTest(BaseDatabaseTest):
@@ -26,6 +12,15 @@ class DatabaseRedisTest(BaseDatabaseTest):
     def tearDown(self):
         self.db.redis.flushall()
         self.env.cache._flushall()
+
+    def test_get_user_infos(self):
+        self.db.set_user_info(BaseTest.USER_ID, {SessionKeys.gender.value: 'm', 'last_login': datetime.utcnow()})
+        self.db.set_user_info(BaseTest.OTHER_USER_ID, {SessionKeys.gender.value: 'w', 'last_login': datetime.utcnow()})
+
+        infos = self.db.get_user_infos({BaseTest.USER_ID, BaseTest.OTHER_USER_ID})
+
+        self.assertEqual('m', infos[BaseTest.USER_ID][SessionKeys.gender.value])
+        self.assertEqual('w', infos[BaseTest.OTHER_USER_ID][SessionKeys.gender.value])
 
     def test_set_two_owners_on_room(self):
         self._test_set_two_owners_on_room()
