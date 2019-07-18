@@ -17,7 +17,7 @@ from sqlalchemy.orm import relationship
 
 from dino.db.rdbms import DeclarativeBase
 from dino.db.rdbms import rooms_users_association_table
-from dino.config import UserKeys
+from dino.config import UserKeys, SessionKeys
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
@@ -51,6 +51,23 @@ class UserInfo(DeclarativeBase):
     is_streaming = Column('is_streaming', String(256), nullable=True, index=False, unique=False)
     enabled_safe = Column('enabled_safe', String(256), nullable=True, index=False, unique=False)
     last_login = Column('last_login', DateTime, nullable=False)
+
+    def to_dict(self):
+        return {
+            SessionKeys.user_id: self.user_id,
+            SessionKeys.avatar: self.avatar or '',
+            SessionKeys.app_avatar: self.app_avatar or '',
+            SessionKeys.app_avatar_safe: self.app_avatar_safe or '',
+            SessionKeys.age: self.age or '',
+            SessionKeys.gender: self.gender or '',
+            SessionKeys.membership: self.membership or '',
+            SessionKeys.group: self.group or '',
+            SessionKeys.city: self.city or '',
+            SessionKeys.has_webcam: self.has_webcam or '',
+            SessionKeys.fake_checked: self.fake_checked or '',
+            SessionKeys.is_streaming: self.is_streaming or '',
+            SessionKeys.enabled_safe: self.enabled_safe or ''
+        }
 
 
 class Channels(DeclarativeBase):

@@ -1383,7 +1383,14 @@ class DatabaseRdbms(object):
             user_infos[user_id] = dict()
 
         if len(not_found) > 0:
-            infos = _get_infos(not_found)
+            try:
+                infos = _get_infos(not_found)
+            except Exception as e:
+                logger.error('could not get user infos: {}'.format(str(e)))
+                logger.exception(e)
+                self.env.capture_exception(sys.exc_info())
+                infos = {uid: dict() for uid in not_found}
+
             for user_id, info in infos.items():
                 user_infos[user_id] = info
 
