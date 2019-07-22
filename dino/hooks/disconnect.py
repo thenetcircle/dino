@@ -96,21 +96,23 @@ class OnDisconnectHooks(object):
 
                 for room_id, room_name in rooms.items():
                     environ.env.db.remove_sid_for_user_in_room(user_id, room_id, current_sid)
-                    sids_in_room = environ.env.db.sids_for_user_in_room(user_id, room_id)
 
-                    # race condition could cause fetching to happen before deletion... just
-                    # make sure that current_sid it's not in this set
-                    try:
-                        sids_in_room.remove(current_sid)
-                    except KeyError:
-                        pass
+                    if utils.is_multiple_sessions_allowed():
+                        sids_in_room = environ.env.db.sids_for_user_in_room(user_id, room_id)
 
-                    # still have other sessions in this room
-                    if len(sids_in_room) > 0:
-                        logger.info('user {} ({}) still have other sids in room: {}'.format(
-                            user_id, user_name, ','.join(sids_in_room)
-                        ))
-                        continue
+                        # race condition could cause fetching to happen before deletion... just
+                        # make sure that current_sid it's not in this set
+                        try:
+                            sids_in_room.remove(current_sid)
+                        except KeyError:
+                            pass
+
+                        # still have other sessions in this room
+                        if len(sids_in_room) > 0:
+                            logger.info('user {} ({}) still have other sids in room: {}'.format(
+                                user_id, user_name, ','.join(sids_in_room)
+                            ))
+                            continue
 
                     logger.info('checking whether to remove room %s or not' % room_id)
                     if 'target' not in data:
