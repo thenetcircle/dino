@@ -95,6 +95,7 @@ class OnDisconnectHooks(object):
                 rooms = environ.env.db.rooms_for_user(user_id, skip_cache=True)
 
                 for room_id, room_name in rooms.items():
+                    """
                     environ.env.db.remove_sid_for_user_in_room(user_id, room_id, current_sid)
 
                     if utils.is_multiple_sessions_allowed():
@@ -113,6 +114,7 @@ class OnDisconnectHooks(object):
                                 user_id, user_name, ','.join(sids_in_room)
                             ))
                             continue
+                    """
 
                     logger.info('checking whether to remove room %s or not' % room_id)
                     if 'target' not in data:

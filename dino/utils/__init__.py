@@ -1164,6 +1164,7 @@ def sids_for_user_in_room(user_id, room_id):
     return environ.env.db.sids_for_user_in_room(user_id, room_id)
 
 
+"""
 def is_multiple_sessions_allowed():
     valid_conf = environ.env.config.get(ConfigKeys.VALIDATION)
 
@@ -1190,6 +1191,7 @@ def is_multiple_sessions_allowed():
             return False
 
     return True
+"""
 
 
 def is_moderator(room_id: str, user_id: str) -> bool:
