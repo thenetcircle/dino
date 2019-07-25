@@ -53,6 +53,7 @@ class OnDisconnectHooks(object):
                 logger.error('could not set user offline: %s' % str(e))
                 logger.debug('request for failed set_user_offline(): %s' % str(data))
                 logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
 
         def leave_private_room(user_id, current_sid):
             all_sids = utils.get_sids_for_user_id(user_id)
@@ -88,6 +89,7 @@ class OnDisconnectHooks(object):
                 logger.error('could not leave private room: %s' % str(e))
                 logger.debug('request for failed leave_private_room(): %s' % str(data))
                 logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
 
         def leave_all_public_rooms_and_emit_leave_events(user_id, current_sid):
             try:
@@ -140,6 +142,7 @@ class OnDisconnectHooks(object):
                 logger.error('could not leave all public rooms: %s' % str(e))
                 logger.debug('request for failed leave_all_public_rooms_and_emit_leave_events(): %s' % str(data))
                 logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
 
         def emit_disconnect_event(user_id, current_sid) -> None:
             try:
@@ -199,6 +202,7 @@ class OnDisconnectHooks(object):
                 logger.error('could not emit disconnect event: %s' % str(e))
                 logger.debug('request for failed emit_disconnect_event(): %s' % str(data))
                 logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
 
         def make_sure_current_sid_removed(all_sids, user_id, current_sid):
             if current_sid in all_sids:
