@@ -1368,7 +1368,7 @@ class DatabaseRdbms(object):
 
         logger.info('user {} just left room {}'.format(user_id, room_id))
         self.env.cache.leave_room_for_user(user_id, room_id)
-        self.get_room_name(room_id)
+        # self.get_room_name(room_id)
 
         try:
             _leave()
