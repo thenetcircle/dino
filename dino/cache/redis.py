@@ -467,9 +467,9 @@ class CacheRedis(object):
         for room_id, room_info in rooms_infos.items():
             r_value = '{}|{}|{}|{}|{}'.format(
                 str(room_info['sort_order']),
-                str(room_info['ephemeral'] or True).lower(),
-                str(room_info['admin'] or False).lower(),
-                str(room_info['users'] or 0),
+                str(room_info.get('ephemeral', True)).lower(),
+                str(room_info.get('admin', False)).lower(),
+                str(room_info.get('users', 0)),
                 room_info['name']
             )
             redis_rooms[room_id] = r_value
