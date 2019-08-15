@@ -1164,6 +1164,10 @@ def sids_for_user_in_room(user_id, room_id):
     return environ.env.db.sids_for_user_in_room(user_id, room_id)
 
 
+def is_multiple_sessions_allowed():
+    return True
+
+
 """
 def is_multiple_sessions_allowed():
     valid_conf = environ.env.config.get(ConfigKeys.VALIDATION)

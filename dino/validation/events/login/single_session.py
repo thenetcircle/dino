@@ -33,7 +33,7 @@ class OnLoginEnforceSingleSession(IPlugin):
 
     def setup(self, env: GNEnvironment):
         self.env = env
-        self.enabled = utils.is_multiple_sessions_allowed()
+        self.enabled = not utils.is_multiple_sessions_allowed()
 
         if not self.enabled:
             logger.info('no config enabled for plugin single_session, ignoring plugin')
