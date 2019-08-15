@@ -137,6 +137,9 @@ class CacheRedis(object):
         room_ids_str = str(room_ids_bytes, 'utf-8')
         room_ids = room_ids_str.split(',')
 
+        if len(room_ids) == 0:
+            return None
+
         room_acls = dict()
         for room_id in room_ids:
             key = RedisKeys.room_acls_for_action(room_id, action)
