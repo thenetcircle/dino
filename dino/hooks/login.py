@@ -143,6 +143,11 @@ class OnLoginHooks(object):
             return
 
         for room_id, acls in room_acls.items():
+            # TODO: sometimes room_id is None
+            if room_id is None:
+                logger.error('room_id for autojoin was None: {}'.format(room_acls))
+                continue
+
             # needed for validation
             join_data = data.copy()
             join_data['target'] = {
