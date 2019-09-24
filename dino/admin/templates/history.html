@@ -7,7 +7,7 @@
 </p>
 
 <div>
-    <form id="search-history" method="post" action="{{ config.ROOT_URL }}/api/history" class="pure-form">
+    <form id="search-history" method="post" action="{{ config.ROOT_URL }}/history/search" class="pure-form">
         <fieldset>
              <legend>Show history for</legend>
             {{ render_field(form.room_id) }}
