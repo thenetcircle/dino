@@ -1059,7 +1059,7 @@ def undelete_message(message_id: str):
 
 
 @app.route('/history/search', methods=['POST'])
-def search_history():
+def search_history_workaround():
     form = SearchHistoryForm(request.form)
     user_id = form.user_id.data
     room_id = form.room_id.data
