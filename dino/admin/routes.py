@@ -1036,7 +1036,7 @@ def _enable_disable(func, msg):
 
 
 @app.route('/history', methods=['GET', 'POST'])
-def history():
+def history_workaround():
     form = SearchHistoryForm(request.form)
     return render_template(
             'history.html',
@@ -1047,13 +1047,13 @@ def history():
 
 
 @app.route('/history/<message_id>/delete', methods=['PUT'])
-def delete_message(message_id: str):
+def delete_message_workaround(message_id: str):
     storage_manager.delete_message(message_id)
     return jsonify({'status_code': 200})
 
 
 @app.route('/history/<message_id>/undelete', methods=['PUT'])
-def undelete_message(message_id: str):
+def undelete_message_workaround(message_id: str):
     storage_manager.undelete_message(message_id)
     return jsonify({'status_code': 200})
 
