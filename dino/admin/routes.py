@@ -19,6 +19,7 @@ from werkzeug.wrappers import Response
 from dino import environ
 from dino import utils
 from dino import validation
+from dino.admin.forms import SearchHistoryForm
 from dino.admin.orm import acl_manager
 from dino.admin.orm import blacklist_manager
 from dino.admin.orm import broadcast_manager
@@ -1034,6 +1035,52 @@ def _enable_disable(func, msg):
 ####################################
 
 
+@app.route('/history', methods=['GET', 'POST'])
+def history():
+    form = SearchHistoryForm(request.form)
+    return render_template(
+            'history.html',
+            form=form,
+            messages=list(),
+            environment=environment,
+            version=tag_name)
+
+
+@app.route('/history/<message_id>/delete', methods=['PUT'])
+def delete_message(message_id: str):
+    storage_manager.delete_message(message_id)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/history/<message_id>/undelete', methods=['PUT'])
+def undelete_message(message_id: str):
+    storage_manager.undelete_message(message_id)
+    return jsonify({'status_code': 200})
+
+
+@app.route('/history/search', methods=['POST'])
+def search_history():
+    form = SearchHistoryForm(request.form)
+    user_id = form.user_id.data
+    room_id = form.room_id.data
+    from_time = form.from_time.data
+    to_time = form.to_time.data
+
+    try:
+        msgs = storage_manager.find_history(room_id, user_id, from_time, to_time)
+    except Exception as e:
+        logger.error('could not get messages: %s' % str(e))
+        logger.exception(traceback.format_exc())
+        msgs = list()
+
+    return render_template(
+            'history.html',
+            form=form,
+            messages=msgs,
+            environment=environment,
+            version=tag_name)
+
+
 @app.route('/api/history/stream', methods=['POST'])
 @requires_auth
 def stream_history():
@@ -1261,7 +1308,7 @@ def send_images(path):
 
 
 @app.route('/staticv/<path:path>')
-def send_static(path):
+def send_staticv(path):
     return send_from_directory('admin/static/vendor/', path)
 
 
