@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.18.14'
+version = '0.18.16-dev'
 
 setup(
     name='dino',
