@@ -121,7 +121,7 @@ def authorized():
 
 @app.route('/workaround', methods=['GET'])
 @requires_auth
-def index():
+def workaround():
     floating_menu = str(environ.env.config.get(ConfigKeys.USE_FLOATING_MENU, domain=ConfigKeys.WEB))
     floating_menu = floating_menu.strip().lower() in {'yes', 'y', 'true'}
     logger.info('using floating menu? "%s"' % str(floating_menu))
