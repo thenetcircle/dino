@@ -1,0 +1,35 @@
+{% macro render_field(field) %}
+    {{ field(placeholder=field.description) }}
+    {% if field.errors %}
+        <ul class=errors>
+            {% for error in field.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endmacro %}
+
+{% macro render_form(legend, button_value, form) %}
+    <fieldset>
+         <legend>{{ legend }}</legend>
+        {% for field in form %}
+            {% if field.errors %}
+                {{ field(placeholder=field.description, class_="ui-state-error") }}
+            {% else %}
+                {{ field(placeholder=field.description) }}
+            {% endif %}
+        {% endfor %}
+
+        {% for field in form %}
+            {% if field.errors %}
+                <ul class=errors>
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endfor %}
+
+        <p><input type="submit" value="{{ button_value }}" class="pure-button pure-button-primary" /></p>
+    </fieldset>
+{% endmacro %}

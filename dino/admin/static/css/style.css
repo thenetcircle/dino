@@ -1,0 +1,128 @@
+body {
+    padding: 10px;
+}
+
+.l-box {
+    padding: 1em;
+}
+
+textarea {
+    font-size: 90%;
+    font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+}
+
+#ban-form, #edit-form, #rename-form {
+    display: none;
+}
+
+#menubar {
+    height: 50px;
+    border-bottom: 1px solid #666;
+    margin-bottom: 10px;
+}
+
+.btn-danger {
+    background: rgb(202, 60, 60);
+    color: white;
+}
+
+.pure-button {
+    font-size: 80%;
+}
+
+ul.flashes {
+    color: red;
+    font-weight: bold;
+    font-size: 125%;
+    border: 2p solid red;
+}
+
+.button-secondary {
+    color: white;
+    background: rgb(66, 184, 221); /* this is a light blue */
+}
+
+.pure-form fieldset {
+    padding: .15em 0 .2em
+}
+
+.pure-form legend {
+    font-size: 100%;
+    font-weight: bold;
+}
+
+.pure-form {
+    margin-bottom: 0em;
+}
+
+div.form-toggler {
+    padding-bottom: 10px;
+    padding-top: 10px;
+    font-size: 130%;
+}
+
+td.timestamp {
+    font-size: small;
+}
+
+td.actions {
+    width: 130px;
+}
+
+td.actions-small {
+    width: 130px;
+}
+
+div#rename-form {
+    display: none;
+}
+
+.ui-button-danger {
+    color: #ffffff !important;
+    background-color: #d9534f;
+    border-color: #c9312c;
+}
+
+.ui-button-danger:hover {
+    color: #ffffff !important;
+    background-color: #d43f3a;
+    border-color: #b42c27;
+}
+
+a.buttons-collection {
+    margin-left: 1em;
+}
+
+#rename-form, #edit-form {
+    display: none;
+}
+
+@media screen and (min-width: 64em) {
+    .pure-form input, .pure-form select {
+        width: 140px;
+    }
+}
+
+@media screen and (max-width: 64em) {
+    .pure-form input, .pure-form select {
+        width: 100%;
+    }
+}
+
+@media screen and (min-width: 48em) {
+    div.form-container {
+        display: block;
+    }
+    div.form-toggler {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 48em) {
+    div.form-container {
+        display: none;
+    }
+    div.form-toggler {
+        display: block;
+    }
+}

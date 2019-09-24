@@ -1,0 +1,44 @@
+<div id="rename-form" title="Rename">
+    <p class="validateRenameTips">All form fields are required.</p>
+
+    <form>
+        <fieldset>
+            <label for="rename-name">Name</label>
+            <input type="text" name="rename-name" id="rename-name" value="" class="text ui-widget-content ui-corner-all">
+            <input type="hidden" class="rename-url" value="" />
+
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+
+<div id="edit-form" title="Edit">
+    <p class="validateEditTips">All form fields are required.</p>
+
+    <form>
+        <fieldset>
+            <label for="edit-value">Value</label>
+            <input type="text" name="edit-value" id="edit-value" value="" class="text ui-widget-content ui-corner-all">
+            <input type="hidden" class="edit-url" value="" />
+
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+
+<div id="ban-form" title="Ban">
+    <p class="validateBanTips">All form fields are required.</p>
+
+    <form>
+        <fieldset>
+            <label for="ban-duration">Duration</label>
+            <input type="text" name="ban-duration" id="ban-duration" value="" class="text ui-widget-content ui-corner-all">
+            <input type="hidden" class="ban-url" value="" />
+
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>

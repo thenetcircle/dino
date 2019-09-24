@@ -1,0 +1,87 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+<p>
+    History
+</p>
+
+<div>
+    <form id="search-history" method="post" action="{{ config.ROOT_URL }}api/history" class="pure-form">
+        <fieldset>
+             <legend>Show history for</legend>
+            {{ render_field(form.room_id) }}
+            {{ render_field(form.user_id) }}
+            {{ render_field(form.from_time) }}
+            {{ render_field(form.to_time) }}
+            <br /><br />
+            <p><input type="submit" value="Search" class="pure-button pure-button-primary" /></p>
+        </fieldset>
+    </form>
+</div>
+
+<hr />
+
+<table id="list-history" class="display responsive" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <td>
+                From User (ID)
+            </td>
+            <td>
+                Target
+            </td>
+            <td>
+                Sent Time
+            </td>
+            <td>
+                Content
+            </td>
+            <td>
+                Type
+            </td>
+            <td>
+                Deleted?
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+        <tr>
+            <td>
+                {{ message.from_user_name }} <small>({{ message.from_user_id }})</small>
+            </td>
+            <td>
+                {% if message.domain == 'room' %}
+                    <a href="{{ config.ROOT_URL }}channel/{{ message.channel_id }}/room/{{ message.target_id }}">{{ message.target_name }}</a>
+                {% else %}
+                    {{ message.target_name }}
+                {% endif %}
+            </td>
+            <td>
+                <small>{{ message.timestamp }}</small>
+            </td>
+            <td>{{ message.body }}</td>
+            <td>{{ message.domain }}</td>
+            <td>
+                <input class="message-id" type="hidden" value="{{ message.message_id }}" />
+                {% if message.deleted == True %}
+                    <input type="checkbox" name="message-deleted" checked>
+                {% else %}
+                    <input type="checkbox" name="message-deleted">
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<link rel="stylesheet" type="text/css" media="all" href="{{ config.ROOT_URL }}static/buttons.dataTables.min.css"/>
+<link rel="stylesheet" type="text/css" href="{{ config.ROOT_URL }}static/jquery.switchButton.css" />
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/jquery.switchButton.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/jszip.min.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/buttons.html5.min.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="{{ config.ROOT_URL }}static/custom/js/history.js"></script>
+
+{% endblock %}
