@@ -1065,20 +1065,24 @@ def search_history_workaround():
     room_id = form.room_id.data
     from_time = form.from_time.data
     to_time = form.to_time.data
+    msgs = list()
 
     try:
-        msgs = storage_manager.find_history(room_id, user_id, from_time, to_time)
+        msgs, real_from_time, real_to_time = storage_manager.find_history(room_id, user_id, from_time, to_time)
     except Exception as e:
-        logger.error('could not get messages: %s' % str(e))
+        logger.error('Could not get messages: %s' % str(e))
         logger.exception(traceback.format_exc())
-        msgs = list()
+        return render_template(
+                'history.html',
+                form=form,
+                messages=msgs
+        )
 
     return render_template(
             'history.html',
             form=form,
-            messages=msgs,
-            environment=environment,
-            version=tag_name)
+            messages=msgs
+    )
 
 
 @app.route('/api/history/stream', methods=['POST'])
