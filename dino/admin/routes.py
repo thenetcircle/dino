@@ -1250,6 +1250,27 @@ def send_static(path):
     return send_from_directory('admin/static/', path)
 
 
+@app.route('/static/custom/<path:path>')
+def send_custom(path):
+    return send_from_directory('admin/static/custom/', path)
+
+
+@app.route('/images/<path:path>')
+def send_images(path):
+    return send_from_directory('admin/static/vendor/images/', path)
+
+
+@app.route('/staticv/<path:path>')
+def send_static(path):
+    return send_from_directory('admin/static/vendor/', path)
+
+
+@app.route('/fonts/<path:path>')
+def send_fonts(path):
+    return send_from_directory('admin/static/vendor/fonts/', path)
+
+
+
 @app.errorhandler(404)
 def page_not_found(_):
     # your processing here
