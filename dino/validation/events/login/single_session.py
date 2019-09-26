@@ -55,7 +55,7 @@ class OnLoginEnforceSingleSession(IPlugin):
 
     def __call__(self, *args, **kwargs) -> (bool, str):
         if not self.enabled:
-            return
+            return True, None, None
 
         data, activity = args[0], args[1]
         try:
