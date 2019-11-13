@@ -63,7 +63,7 @@ pyparsing==2.2.0
 PySocks==1.6.8
 pystache==0.5.4
 python-dateutil==2.7.3
-python-engineio==3.8.1
+python-engineio==3.8.2.post1
 python-socketio==4.1.0
 python3-protobuf==2.5.0
 pytype==2019.3.27
