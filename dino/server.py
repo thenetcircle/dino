@@ -72,7 +72,7 @@ def create_app():
         async_mode='eventlet',
         message_queue=message_queue,
         channel=message_channel,
-        cors_allowed_origins=environ.env.config.get(ConfigKeys.CORS_ORIGINS, default='*')
+        cors_allowed_origins=environ.env.config.get(ConfigKeys.CORS_ORIGINS, default='*').split(',')
     )
 
     # preferably "emit" should be set during env creation, but the socketio object is not created until after env is
