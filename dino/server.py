@@ -66,12 +66,14 @@ def create_app():
     logger.info('message_queue: %s' % message_queue)
 
     _socketio = SocketIO(
-            _app,
-            logger=socket_logger,
-            engineio_logger=os.environ.get('DINO_DEBUG', '0') == '1',
-            async_mode='eventlet',
-            message_queue=message_queue,
-            channel=message_channel)
+        _app,
+        logger=socket_logger,
+        engineio_logger=os.environ.get('DINO_DEBUG', '0') == '1',
+        async_mode='eventlet',
+        message_queue=message_queue,
+        channel=message_channel,
+        cors_allowed_origins=environ.env.config.get(ConfigKeys.CORS_ORIGINS, default='*')
+    )
 
     # preferably "emit" should be set during env creation, but the socketio object is not created until after env is
     environ.env.out_of_scope_emit = _socketio.emit
