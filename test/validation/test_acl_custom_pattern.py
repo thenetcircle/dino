@@ -235,6 +235,113 @@ class CustomPatternAclValidatorTest(TestCase):
     def test_joining_as_gender_male_or_above_25_ok(self):
         self.true('gender=m|age=25:')
 
+    def test_tg_p_w_ok(self):
+        pattern = 'gender=!w|gender=w,membership=tg_p'
+        environ.env.session[SessionKeys.gender.value] = 'w'
+        environ.env.session[SessionKeys.membership.value] = 'tg_p'
+        self.true(pattern)
+
+    def test_tg_p_m_ok(self):
+        pattern = 'gender=!w|gender=w,membership=tg_p'
+        environ.env.session[SessionKeys.gender.value] = 'm'
+        environ.env.session[SessionKeys.membership.value] = 'tg_p'
+        self.true(pattern)
+
+    def test_tg_non_p_w_not_ok(self):
+        pattern = 'gender=!w|gender=w,membership=tg_p'
+        environ.env.session[SessionKeys.gender.value] = 'w'
+        environ.env.session[SessionKeys.membership.value] = 'tg'
+        self.false(pattern)
+
+    def test_tg_non_p_ts_ok(self):
+        pattern = 'gender=!w|gender=w,membership=tg_p'
+        environ.env.session[SessionKeys.gender.value] = 'ts'
+        environ.env.session[SessionKeys.membership.value] = 'tg'
+        self.true(pattern)
+
+    def test_tg_multiple(self):
+        pattern = 'gender=!w,membership=!tg|gender=w,membership=tg_p'
+
+        environ.env.session[SessionKeys.gender.value] = 'ts'
+        environ.env.session[SessionKeys.membership.value] = 'tg'
+        self.false(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'ts'
+        environ.env.session[SessionKeys.membership.value] = 'tg_p'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'ts'
+        environ.env.session[SessionKeys.membership.value] = 'normal'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'ts'
+        environ.env.session[SessionKeys.membership.value] = 'premium'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'ts'
+        environ.env.session[SessionKeys.membership.value] = 'vip'
+        self.true(pattern)
+
+        environ.env.session[SessionKeys.gender.value] = 'w'
+        environ.env.session[SessionKeys.membership.value] = 'tg_p'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'w'
+        environ.env.session[SessionKeys.membership.value] = 'tg'
+        self.false(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'w'
+        environ.env.session[SessionKeys.membership.value] = 'vip'
+        self.false(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'w'
+        environ.env.session[SessionKeys.membership.value] = 'normal'
+        self.false(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'w'
+        environ.env.session[SessionKeys.membership.value] = 'premium'
+        self.false(pattern)
+
+        environ.env.session[SessionKeys.gender.value] = 'm'
+        environ.env.session[SessionKeys.membership.value] = 'tg'
+        self.false(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'm'
+        environ.env.session[SessionKeys.membership.value] = 'tg_p'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'm'
+        environ.env.session[SessionKeys.membership.value] = 'vip'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'm'
+        environ.env.session[SessionKeys.membership.value] = 'normal'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'm'
+        environ.env.session[SessionKeys.membership.value] = 'premium'
+        self.true(pattern)
+
+        environ.env.session[SessionKeys.gender.value] = 'p'
+        environ.env.session[SessionKeys.membership.value] = 'tg'
+        self.false(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'p'
+        environ.env.session[SessionKeys.membership.value] = 'tg_p'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'p'
+        environ.env.session[SessionKeys.membership.value] = 'vip'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'p'
+        environ.env.session[SessionKeys.membership.value] = 'normal'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'p'
+        environ.env.session[SessionKeys.membership.value] = 'premium'
+        self.true(pattern)
+
+        environ.env.session[SessionKeys.gender.value] = 'tv'
+        environ.env.session[SessionKeys.membership.value] = 'tg'
+        self.false(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'tv'
+        environ.env.session[SessionKeys.membership.value] = 'tg_p'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'tv'
+        environ.env.session[SessionKeys.membership.value] = 'vip'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'tv'
+        environ.env.session[SessionKeys.membership.value] = 'normal'
+        self.true(pattern)
+        environ.env.session[SessionKeys.gender.value] = 'tv'
+        environ.env.session[SessionKeys.membership.value] = 'premium'
+        self.true(pattern)
+
     def false(self, pattern):
         is_valid, _ = self.validator(self.act(), environ.env, 'custom', pattern)
         self.assertFalse(is_valid)
