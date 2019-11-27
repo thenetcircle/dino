@@ -64,6 +64,9 @@ def create_app():
         raise RuntimeError('unknown message queue type {} specified: {}'.format(message_queue_type, environ.env.config.params))
 
     logger.info('message_queue: %s' % message_queue)
+    cors = environ.env.config.get(ConfigKeys.CORS_ORIGINS, default='*').split(',')
+    if cors == ['*']:
+        cors = cors[0]
 
     _socketio = SocketIO(
         _app,
@@ -72,7 +75,7 @@ def create_app():
         async_mode='eventlet',
         message_queue=message_queue,
         channel=message_channel,
-        cors_allowed_origins=environ.env.config.get(ConfigKeys.CORS_ORIGINS, default='*').split(',')
+        cors_allowed_origins=cors
     )
 
     # preferably "emit" should be set during env creation, but the socketio object is not created until after env is
