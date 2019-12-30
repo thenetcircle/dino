@@ -56,7 +56,7 @@ if dbtype == 'rdbms':
             dbname, dbuser, dbhost, dbport, dbpass)
         )
         cur = conn.cursor()
-        cur.execute("""select count(*) from rooms_users_association_table""")
+        cur.execute("""select count(distinct user_id) from rooms_users_association_table""")
         the_count = cur.fetchone()[0]
 
     if dbtype == 'rdbms' and dbdriver.startswith('mysql'):
@@ -64,7 +64,7 @@ if dbtype == 'rdbms':
 
         conn = MySQLdb.connect(passwd=dbpass, db=dbname, user=dbuser, host=dbhost, port=dbport)
         cur = conn.cursor()
-        cur.execute("""select count(*) from rooms_users_association_table""")
+        cur.execute("""select count(distinct user_id) from rooms_users_association_table""")
         the_count = cur.fetchone()[0]
 
 r_host, r_port = config['cache']['host'].split(':')
