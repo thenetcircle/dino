@@ -4,6 +4,7 @@ Four keys are maintained in redis:
 
 * users:online:bitmap
 * users:online:set
+* users:online:inrooms
 * users:multicast
 * user:status:<user id>
 
@@ -33,3 +34,11 @@ One key for each user containing the status, which is a single character with th
 * 3: invisible
 * 4: unavailable (offline)
 * 5: unknown
+
+## users:online:inrooms (STRING)
+
+A count of the number of online users who are in rooms. The other online keys includes users who are online but haven't 
+joined any rooms, this key does not.
+
+Not updated in real-time, but on a regular interval by a cron job.
+
