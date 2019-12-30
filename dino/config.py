@@ -344,6 +344,7 @@ class RedisKeys(object):
     RKEY_DEFAULT_ROOMS = 'rooms:default'
     RKEY_ACKS_USER = 'acks:user:%s'
     RKEY_ACKS_ROOM = 'acks:room:%s'
+    RKEY_USERS_IN_ROOM_COUNT = 'users:online:inrooms'
 
     RKEY_SID_TO_USER_ID = 'user:sid:map'
     RKEY_USER_ID_TO_SID = 'sid:user:map'
