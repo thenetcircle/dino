@@ -68,7 +68,10 @@ if dbtype == 'rdbms':
         the_count = cur.fetchone()[0]
 
 r_host, r_port = config['cache']['host'].split(':')
-r_db = config['cache']['db']
+
+r_db = 0
+if 'db' in config['cache']:
+    r_db = config['cache']['db']
 
 r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
 r_server.set('users:online:inrooms', the_count)
