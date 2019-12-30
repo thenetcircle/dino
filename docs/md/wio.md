@@ -6,7 +6,7 @@ Four keys are maintained in redis:
 * users:online:set
 * users:online:inrooms
 * users:multicast
-* user:status:<user id>
+* user:status:USER_ID
 
 ## users:online:bitmap (BITMAP)
 
