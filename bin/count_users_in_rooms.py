@@ -2,7 +2,6 @@ import sys
 import os
 import yaml
 import redis
-import psycopg2
 
 
 dino_env = sys.argv[1]
@@ -40,26 +39,36 @@ config = load_secrets_file(config)
 
 dbtype = config['database']['type']
 
+the_count = 0
+
 if dbtype == 'rdbms':
+    dbdriver = config['database']['driver']
     dbname = config['database']['db']
     dbhost = config['database']['host']
     dbport = config['database']['port']
     dbuser = config['database']['user']
     dbpass = config['database']['password']
 
-    try:
+    if dbdriver.startswith('postgres'):
+        import psycopg2
+
         conn = psycopg2.connect("dbname='%s' user='%s' host='%s' port='%s' password='%s'" % (
             dbname, dbuser, dbhost, dbport, dbpass)
         )
-    except:
-        raise RuntimeError('could not connect to db')
+        cur = conn.cursor()
+        cur.execute("""select count(*) from rooms_users_association_table""")
+        the_count = cur.fetchone()[0]
 
-    cur = conn.cursor()
-    cur.execute("""select count(*) from rooms_users_association_table""")
-    the_count = cur.fetchone()[0]
+    if dbtype == 'rdbms' and dbdriver.startswith('mysql'):
+        import MySQLdb
 
-    r_host, r_port = config['cache']['host'].split(':')
-    r_db = config['cache']['db']
+        conn = MySQLdb.connect(passwd=dbpass, db=dbname, user=dbuser, host=dbhost, port=dbport)
+        cur = conn.cursor()
+        cur.execute("""select count(*) from rooms_users_association_table""")
+        the_count = cur.fetchone()[0]
 
-    r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
-    r_server.set('users:online:inrooms', the_count)
+r_host, r_port = config['cache']['host'].split(':')
+r_db = config['cache']['db']
+
+r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
+r_server.set('users:online:inrooms', the_count)
