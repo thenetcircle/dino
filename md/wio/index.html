@@ -115,6 +115,9 @@
     <li class="toctree-l2"><a href="#userstatususer_id-string">user:status:USER_ID (STRING)</a></li>
     
 
+    <li class="toctree-l2"><a href="#usersonlineinrooms-string">users:online:inrooms (STRING)</a></li>
+    
+
     </ul>
 	    </li>
           
@@ -160,6 +163,7 @@
 <ul>
 <li>users:online:bitmap</li>
 <li>users:online:set</li>
+<li>users:online:inrooms</li>
 <li>users:multicast</li>
 <li>user:status:<user id></li>
 </ul>
@@ -182,6 +186,10 @@ multicasting of notifications without showing up as <code>online</code>.</p>
 <li>4: unavailable (offline)</li>
 <li>5: unknown</li>
 </ul>
+<h2 id="usersonlineinrooms-string">users:online:inrooms (STRING)</h2>
+<p>A count of the number of online users who are in rooms. The other online keys includes users who are online but haven't 
+joined any rooms, this key does not.</p>
+<p>Not updated in real-time, but on a regular interval by a cron job.</p>
               
             </div>
           </div>
