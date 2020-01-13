@@ -3,6 +3,7 @@ import os
 import yaml
 import redis
 import time
+import traceback
 
 
 dino_env = sys.argv[1]
@@ -53,28 +54,32 @@ elif dbdriver.startswith('mysql'):
 while True:
     the_count = 0
 
-    if dbdriver.startswith('postgres'):
-        conn = psycopg2.connect("dbname='%s' user='%s' host='%s' port='%s' password='%s'" % (
-            dbname, dbuser, dbhost, dbport, dbpass)
-        )
-        cur = conn.cursor()
-        cur.execute("""select count(distinct user_id) from rooms_users_association_table""")
-        the_count = cur.fetchone()[0]
+    try:
+        if dbdriver.startswith('postgres'):
+            conn = psycopg2.connect("dbname='%s' user='%s' host='%s' port='%s' password='%s'" % (
+                dbname, dbuser, dbhost, dbport, dbpass)
+            )
+            cur = conn.cursor()
+            cur.execute("""select count(distinct user_id) from rooms_users_association_table""")
+            the_count = cur.fetchone()[0]
 
-    elif dbdriver.startswith('mysql'):
-        conn = MySQLdb.connect(passwd=dbpass, db=dbname, user=dbuser, host=dbhost, port=dbport)
-        cur = conn.cursor()
-        cur.execute("""select count(distinct user_id) from rooms_users_association_table""")
-        the_count = cur.fetchone()[0]
+        elif dbdriver.startswith('mysql'):
+            conn = MySQLdb.connect(passwd=dbpass, db=dbname, user=dbuser, host=dbhost, port=dbport)
+            cur = conn.cursor()
+            cur.execute("""select count(distinct user_id) from rooms_users_association_table""")
+            the_count = cur.fetchone()[0]
 
-    r_host, r_port = config['cache']['host'].split(':')
+        r_host, r_port = config['cache']['host'].split(':')
 
-    r_db = 0
-    if 'db' in config['cache']:
-        r_db = config['cache']['db']
+        r_db = 0
+        if 'db' in config['cache']:
+            r_db = config['cache']['db']
 
-    r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
-    r_server.set('users:online:inrooms', the_count)
+        r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
+        r_server.set('users:online:inrooms', the_count)
+    except Exception as e:
+        print('could not count: {}'.format(str(e)))
+        print(traceback.format_exc())
 
     try:
         time.sleep(60)
