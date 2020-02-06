@@ -58,6 +58,9 @@ class StorageManager(BaseManager):
         self.env.storage.delete_message(message_id, clear_body=clear_body)
         self.env.db.mark_spam_deleted_if_exists(message_id)
 
+    def get_latest_messages(self, target_id: str, limit: int = 100):
+        return self.env.storage.get_history(target_id, limit)
+
     def find_history(self, room_id, user_id, from_time, to_time) -> (list, datetime, datetime):
         if is_blank(user_id) and is_blank(room_id):
             raise RuntimeError('need user ID and/or room ID')
