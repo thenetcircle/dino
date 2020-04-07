@@ -52,7 +52,7 @@ oauthlib==2.1.0
 packaging==17.1
 pandas==0.23.4
 pip-review==1.0
-psutil==5.4.6
+psutil==5.6.6
 psycogreen==1.0
 psycopg2==2.7.5
 Pycco==0.5.1
@@ -63,7 +63,7 @@ pyparsing==2.2.0
 PySocks==1.6.8
 pystache==0.5.4
 python-dateutil==2.7.3
-python-engineio==3.8.1
+python-engineio==3.9.0
 python-socketio==4.1.0
 python3-protobuf==2.5.0
 pytype==2019.3.27
