@@ -101,6 +101,9 @@
     <li class="toctree-l2"><a href="#get-acl">GET /acl</a></li>
     
 
+    <li class="toctree-l2"><a href="#get-rooms">GET /rooms</a></li>
+    
+
     <li class="toctree-l2"><a href="#post-acl">POST /acl</a></li>
     
 
@@ -222,6 +225,31 @@
                 &quot;value&quot;: &quot;m,f&quot;
             }]
         }
+    },
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="get-rooms">GET /rooms</h2>
+<p>Returns a list of all rooms currently existing. Result is cached for 1 minute and might thus not be always up-to-date.</p>
+<p>Example response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {
+        &quot;status&quot;: &quot;OK&quot;,
+        &quot;data&quot;: [
+            {
+                &quot;id&quot;: &quot;0efd8a52-7220-4160-88fe-68a15d470d95&quot;,
+                &quot;status&quot;: &quot;private/public&quot;,
+                &quot;name&quot;: &quot;room name&quot;,
+                &quot;channel&quot;: &quot;channel name&quot;
+            },
+            {
+                &quot;id&quot;: &quot;a81e4726-784a-11e9-bbdd-bbfdfd886868&quot;,
+                &quot;status&quot;: &quot;private/public&quot;,
+                &quot;name&quot;: &quot;room name 2&quot;,
+                &quot;channel&quot;: &quot;channel name 2&quot;
+            }
+        ]
     },
     &quot;status_code&quot;: 200
 }
