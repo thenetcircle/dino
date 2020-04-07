@@ -234,23 +234,22 @@
 <p>Returns a list of all rooms currently existing. Result is cached for 1 minute and might thus not be always up-to-date.</p>
 <p>Example response:</p>
 <pre><code class="json">{
-    &quot;data&quot;: {
-        &quot;status&quot;: &quot;OK&quot;,
-        &quot;data&quot;: [
-            {
-                &quot;id&quot;: &quot;0efd8a52-7220-4160-88fe-68a15d470d95&quot;,
-                &quot;status&quot;: &quot;private/public&quot;,
-                &quot;name&quot;: &quot;room name&quot;,
-                &quot;channel&quot;: &quot;channel name&quot;
-            },
-            {
-                &quot;id&quot;: &quot;a81e4726-784a-11e9-bbdd-bbfdfd886868&quot;,
-                &quot;status&quot;: &quot;private/public&quot;,
-                &quot;name&quot;: &quot;room name 2&quot;,
-                &quot;channel&quot;: &quot;channel name 2&quot;
-            }
-        ]
-    },
+    &quot;data&quot;: [{
+        &quot;name&quot;: &quot;default&quot;,
+        &quot;status&quot;: &quot;public&quot;,
+        &quot;id&quot;: &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
+        &quot;channel&quot;: &quot;App and Web&quot;
+    }, {
+        &quot;name&quot;: &quot;default1&quot;,
+        &quot;status&quot;: &quot;public&quot;,
+        &quot;id&quot;: &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;,
+        &quot;channel&quot;: &quot;App only&quot;
+    }, {
+        &quot;name&quot;: &quot;default2&quot;,
+        &quot;status&quot;: &quot;public&quot;,
+        &quot;id&quot;: &quot;6418dff0-43fc-469a-8f3b-724d3a5dcecf&quot;,
+        &quot;channel&quot;: &quot;Web only&quot;
+    }],
     &quot;status_code&quot;: 200
 }
 </code></pre>
