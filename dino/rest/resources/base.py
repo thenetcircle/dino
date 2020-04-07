@@ -10,10 +10,11 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class BaseResource(Resource):
-    CACHE_CLEAR_INTERVAL = 2  # 2 seconds
+    def __init__(self, cache_clear_interval=2):
+        self.cache_clear_interval = cache_clear_interval
 
     def get(self):
-        if (datetime.utcnow() - self._get_last_cleared()).total_seconds() > BaseResource.CACHE_CLEAR_INTERVAL:
+        if (datetime.utcnow() - self._get_last_cleared()).total_seconds() > self.cache_clear_interval:
             self._get_lru_method().cache_clear()
             self._set_last_cleared(datetime.utcnow())
 

@@ -21,6 +21,7 @@ from dino.rest.resources.banned import BannedResource
 from dino.rest.resources.ban import BanResource
 from dino.rest.resources.kick import KickResource
 from dino.rest.resources.broadcast import BroadcastResource
+from dino.rest.resources.latest_history import LatestHistoryResource
 from dino.rest.resources.roles import RolesResource
 from dino.rest.resources.rooms import RoomsResource
 from dino.rest.resources.rooms_for_users import RoomsForUsersResource
@@ -104,6 +105,7 @@ api.add_resource(RolesResource, '/roles')
 api.add_resource(BannedResource, '/banned')
 api.add_resource(BanResource, '/ban')
 api.add_resource(HistoryResource, '/history')
+api.add_resource(LatestHistoryResource, '/latest-history')
 api.add_resource(KickResource, '/kick')
 api.add_resource(RoomsForUsersResource, '/rooms-for-users')
 api.add_resource(SetAdminResource, '/set-admin')
