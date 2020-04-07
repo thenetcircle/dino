@@ -37,23 +37,22 @@ Example response:
 
 ```json
 {
-	"data": {
-		"status": "OK",
-		"data": [
-            {
-                "id": "0efd8a52-7220-4160-88fe-68a15d470d95",
-                "status": "private/public",
-                "name": "room name",
-                "channel": "channel name"
-            },
-            {
-                "id": "a81e4726-784a-11e9-bbdd-bbfdfd886868",
-                "status": "private/public",
-                "name": "room name 2",
-                "channel": "channel name 2"
-            }
-        ]
-	},
+	"data": [{
+		"name": "default",
+		"status": "public",
+		"id": "2e7d537e-bed5-47c5-a7f6-357075759e5d",
+		"channel": "App and Web"
+	}, {
+		"name": "default1",
+		"status": "public",
+		"id": "2ddd90ac-1d44-4af5-9c7d-b9191bc35675",
+		"channel": "App only"
+	}, {
+		"name": "default2",
+		"status": "public",
+		"id": "6418dff0-43fc-469a-8f3b-724d3a5dcecf",
+		"channel": "Web only"
+	}],
 	"status_code": 200
 }
 ```
