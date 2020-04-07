@@ -29,6 +29,35 @@ Example response:
 }
 ```
 
+## GET /rooms
+
+Returns a list of all rooms currently existing. Result is cached for 1 minute and might thus not be always up-to-date.
+
+Example response:
+
+```json
+{
+	"data": {
+		"status": "OK",
+		"data": [
+            {
+                "id": "0efd8a52-7220-4160-88fe-68a15d470d95",
+                "status": "private/public",
+                "name": "room name",
+                "channel": "channel name"
+            },
+            {
+                "id": "a81e4726-784a-11e9-bbdd-bbfdfd886868",
+                "status": "private/public",
+                "name": "room name 2",
+                "channel": "channel name 2"
+            }
+        ]
+	},
+	"status_code": 200
+}
+```
+
 ## POST /acl
 
 Request:
