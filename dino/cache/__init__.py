@@ -1,5 +1,5 @@
 from zope.interface import Interface
-from typing import Union, Dict
+from typing import Union, Dict, List
 
 
 class ICache(Interface):
@@ -12,6 +12,19 @@ class ICache(Interface):
         """
 
     def get_all_permanent_rooms(self):
+        """
+
+        :return:
+        """
+
+    def set_all_rooms(self, all_rooms):
+        """
+
+        :param all_rooms:
+        :return:
+        """
+
+    def get_all_rooms(self) -> Union[List, None]:
         """
 
         :return:

@@ -6,7 +6,7 @@ import sys
 import socket
 
 from zope.interface import implementer
-from typing import Union
+from typing import Union, List
 from typing import Dict
 from typing import Tuple
 
@@ -750,6 +750,15 @@ class CacheRedis(object):
         key = RedisKeys.channels_with_sort()
         self.cache.delete(key)
         self.redis.delete(key)
+
+    def set_all_rooms(self, all_rooms):
+        key = RedisKeys.all_rooms()
+        self.cache.delete(key)
+        self.cache.set(key, all_rooms, ttl=ONE_MINUTE)
+
+    def get_all_rooms(self) -> Union[List, None]:
+        key = RedisKeys.all_rooms()
+        return self.cache.get(key)
 
     def get_channels_with_sort(self):
         key = RedisKeys.channels_with_sort()

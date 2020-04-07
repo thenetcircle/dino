@@ -66,6 +66,13 @@ class IDatabase(Interface):
         :return:
         """
 
+    def get_all_rooms(self) -> list:
+        """
+        get all rooms
+
+        :return: list of dicts in the form [{'id': room_uuid, 'name': room_name, 'channel': channel_name, 'status': 'private'/'public'}]
+        """
+
     def rooms_for_channel_without_info(self, channel_id: str) -> dict:
         """
         get rooms for channel, similar to #rooms_for_channel but without user information

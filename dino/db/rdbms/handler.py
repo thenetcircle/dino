@@ -646,6 +646,37 @@ class DatabaseRdbms(object):
         self.env.cache.set_type_of_rooms_in_channel(channel_id, object_type)
         return object_type
 
+    def get_all_rooms(self) -> list:
+        @with_session
+        def _all_rooms(session=None):
+            all_rooms = session.query(Rooms)\
+                .join(Rooms.channel)\
+                .all()
+
+            return [
+                {
+                    'id': room.uuid,
+                    'status': 'private' if room.ephemeral else 'public',
+                    'name': room.name,
+                    'channel': room.channel.name
+                } for room in all_rooms
+            ]
+
+        rooms = self.env.cache.get_all_rooms()
+        if rooms is not None:
+            return rooms
+
+        try:
+            rooms = _all_rooms()
+        except Exception as e:
+            logger.error('could not get rooms: {}'.format(str(e)))
+            logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
+            return list()
+
+        self.env.cache.set_all_rooms(rooms)
+        return rooms
+
     def rooms_for_channel_without_info(self, channel_id: str) -> dict:
         @with_session
         def _rooms_for_channel(session=None):

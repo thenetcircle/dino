@@ -302,6 +302,7 @@ class ConfigKeys(object):
 
 
 class RedisKeys(object):
+    RKEY_ALL_ROOMS = 'rooms:all'
     RKEY_USERS_IN_ROOM_FOR_ROLE = 'room:role:%s:%s'  # room:role:room_id:role_type
     RKEY_USERS_IN_CHANNEL_FOR_ROLE = 'channel:role:%s:%s'  # channel:role:room_id:role_type
     RKEY_ACLS_IN_CHANNEL = 'channel:acls:%s'  # channel:acls:channel_id
@@ -356,6 +357,13 @@ class RedisKeys(object):
     RKEY_AVATARS = 'user:avatars'
     RKEY_SESSION_COUNT = 'session:count'
 
+    RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
+    RKEY_ACLS_FOR_ROOMS_HAVING_ACTION = 'rooms:acl:{}:{}'  # rooms:acl:<room_id>:<acl_action> => {acl_type: acl_value}
+
+    @staticmethod
+    def all_rooms() -> str:
+        return RedisKeys.RKEY_ALL_ROOMS
+
     @staticmethod
     def session_count() -> str:
         return RedisKeys.RKEY_SESSION_COUNT
@@ -363,9 +371,6 @@ class RedisKeys(object):
     @staticmethod
     def avatars() -> str:
         return RedisKeys.RKEY_AVATARS
-
-    RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
-    RKEY_ACLS_FOR_ROOMS_HAVING_ACTION = 'rooms:acl:{}:{}'  # rooms:acl:<room_id>:<acl_action> => {acl_type: acl_value}
 
     @staticmethod
     def all_permanent_rooms():

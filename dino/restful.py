@@ -22,6 +22,7 @@ from dino.rest.resources.ban import BanResource
 from dino.rest.resources.kick import KickResource
 from dino.rest.resources.broadcast import BroadcastResource
 from dino.rest.resources.roles import RolesResource
+from dino.rest.resources.rooms import RoomsResource
 from dino.rest.resources.rooms_for_users import RoomsForUsersResource
 from dino.rest.resources.remove_admin import RemoveAdminResource
 from dino.rest.resources.set_admin import SetAdminResource
@@ -114,3 +115,4 @@ api.add_resource(SetStatusResource, '/status')
 api.add_resource(FullHistoryResource, '/full-history')
 api.add_resource(HeartbeatResource, '/heartbeat')
 api.add_resource(AclResource, '/acl')
+api.add_resource(RoomsResource, '/rooms')
