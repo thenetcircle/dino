@@ -656,7 +656,7 @@ class DatabaseRdbms(object):
             return [
                 {
                     'id': room.uuid,
-                    'status': 'private' if room.ephemeral else 'public',
+                    'status': 'temporary' if room.ephemeral else 'static',
                     'name': room.name,
                     'channel': room.channel.name
                 } for room in all_rooms
