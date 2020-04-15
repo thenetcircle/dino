@@ -899,7 +899,7 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
 
         channel_dict = gn_env.db.get_channels()
 
-        for channel_id, _, _ in channel_dict.items():
+        for channel_id, *_ in channel_dict.items():
             rooms = gn_env.db.rooms_for_channel(channel_id)
 
             for room_id, room_info in rooms.items():
