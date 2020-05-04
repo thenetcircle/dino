@@ -24,7 +24,7 @@ validation:
     gender:
         type: "str_in_csv"
         value: "##db##"
-        default: "m,w,p,tv,ts"
+        default: "m,w,p,tv,ts,ftm,mtf"
     membership:
         type: "str_in_csv"
         value: "##db##"
