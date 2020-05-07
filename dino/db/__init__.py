@@ -73,6 +73,13 @@ class IDatabase(Interface):
         :return: list of dicts in the form [{'id': room_uuid, 'name': room_name, 'channel': channel_name, 'status': 'private'/'public'}]
         """
 
+    def user_name_exists(self, user_name: str) -> bool:
+        """
+
+        :param user_name:
+        :return:
+        """
+
     def rooms_for_channel_without_info(self, channel_id: str) -> dict:
         """
         get rooms for channel, similar to #rooms_for_channel but without user information

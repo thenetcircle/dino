@@ -361,6 +361,7 @@ class RedisKeys(object):
     RKEY_HEARTBEAT = 'heartbeat:{}'
     RKEY_AVATARS = 'user:avatars'
     RKEY_SESSION_COUNT = 'session:count'
+    RKEY_USER_NAMES_SET = 'user:names:set'
 
     RKEY_CAN_WHISPER = 'whisper:{}'  # whisper:user_id
     RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
@@ -369,6 +370,10 @@ class RedisKeys(object):
     @staticmethod
     def all_rooms() -> str:
         return RedisKeys.RKEY_ALL_ROOMS
+
+    @staticmethod
+    def user_names_set() -> str:
+        return RedisKeys.RKEY_USER_NAMES_SET
 
     @staticmethod
     def can_whisper_to(user_id: str) -> str:

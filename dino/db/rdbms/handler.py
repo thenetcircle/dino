@@ -2413,6 +2413,21 @@ class DatabaseRdbms(object):
             users[role.user_id] = self.get_user_name(role.user_id)
         return users
 
+    def user_name_exists(self, user_name: str) -> bool:
+        @with_session
+        def _user_name_exists(session=None):
+            user = session.query(Users).filter(Users.name == user_name).first()
+            return user is not None
+
+        if self.env.cache.get_user_name_exists(user_name):
+            return True
+
+        exists = _user_name_exists()
+        if exists:
+            self.env.cache.set_user_name_exists(user_name)
+
+        return exists
+
     def get_user_name(self, user_id: str, skip_cache=False) -> str:
         @with_session
         def _get_user_name(session=None):

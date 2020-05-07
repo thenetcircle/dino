@@ -988,6 +988,22 @@ class CacheRedis(object):
         self.redis.hset(key, channel_id, channel_name)
         self.redis.expire(key, TEN_MINUTES)
 
+    def get_user_name_exists(self, user_name: str) -> bool:
+        key = RedisKeys.user_names_set()
+        cache_key = '{}-{}'.format(key, user_name)
+
+        if self.cache.get(cache_key) is not None:
+            return True
+
+        return self.redis.sismember(key, user_name)
+
+    def set_user_name_exists(self, user_name: str):
+        key = RedisKeys.user_names_set()
+        cache_key = '{}-{}'.format(key, user_name)
+
+        self.cache.set(cache_key, True, ttl=EIGHT_HOURS_IN_SECONDS)
+        self.redis.sadd(key, user_name)
+
     def get_channel_name(self, channel_id: str) -> str:
         key = RedisKeys.channels()
         cache_key = '%s-name-%s' % (key, channel_id)

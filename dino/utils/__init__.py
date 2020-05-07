@@ -124,6 +124,19 @@ def is_valid_id(user_id: str):
     return True
 
 
+def is_a_user_name(user_name: str) -> bool:
+    if len(user_name) < 5:
+        return False
+
+    try:
+        return environ.env.db.user_name_exists(user_name)
+    except Exception as e:
+        logger.error("could not check if user name '{}' exists or not: {}".format(user_name, str(e)))
+        logger.exception(str(e))
+        environ.env.capture_exception(sys.exc_info())
+        return False
+
+
 def can_send_whisper_to_user(activity: Activity) -> bool:
     message = b64d(activity.object.content)
     words = message.split()
@@ -133,6 +146,10 @@ def can_send_whisper_to_user(activity: Activity) -> bool:
     sender_id = activity.actor.id
 
     for target_user_name in users:
+        if not is_a_user_name(target_user_name):
+            logger.info('did not find a user called "{}", not checking if we can whisper or not'.format(target_user_name))
+            continue
+
         allowed = environ.env.cache.get_can_whisper_to_user(sender_id, target_user_name)
 
         # doesn't exist in cache
