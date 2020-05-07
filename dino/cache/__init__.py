@@ -17,6 +17,20 @@ class ICache(Interface):
         :return:
         """
 
+    def get_user_name_exists(self, user_name: str) -> bool:
+        """
+        
+        :param user_name:
+        :return:
+        """
+
+    def set_user_name_exists(self, user_name: str):
+        """
+
+        :param user_name:
+        :return:
+        """
+
     def get_can_whisper_to_user(self, sender_id: str, target_user_name: str) -> Union[None, bool]:
         """
 

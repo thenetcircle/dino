@@ -64,6 +64,9 @@ class FakeDb(object):
             raise NoChannelFoundException(room_id)
         return FakeDb._channel_for_room[room_id]
 
+    def user_name_exists(self, user_name):
+        return True
+
     def is_admin(self, *args):
         return False
 
