@@ -90,14 +90,9 @@ class RequestValidator(BaseValidator):
                     return False, ECodes.NOT_ALLOWED, \
                            'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
 
-            logger.info('checking if is whisper')
             if utils.is_whisper(activity):
-                logger.info('is whisper')
                 if not utils.can_send_whisper_to_user(activity):
-                    logger.info('can not send')
                     return False, ECodes.NOT_ALLOWED_TO_WHISPER, 'not allowed to whisper this user'
-                else:
-                    logger.info('can send')
 
         elif object_type == 'private':
             channel_id = None

@@ -142,6 +142,9 @@ def can_send_whisper_to_user(activity: Activity) -> bool:
         environ.env.cache.set_can_whisper_to_user(sender_id, target_user_name, allowed)
 
         if not allowed:
+            logger.info("user {} is not allowed to send whisper to {} (message was: '{}')".format(
+                sender_id, target_user_name, message
+            ))
             return False
 
     return True

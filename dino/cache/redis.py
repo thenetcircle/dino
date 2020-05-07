@@ -774,11 +774,16 @@ class CacheRedis(object):
         return can_whisper == '1'
 
     def set_can_whisper_to_user(self, sender_id: str, target_user_name: str, allowed: bool) -> None:
+        # if not allowed, we need to check remote system, maybe they will soon be allowed
+        if not allowed:
+            return
+
         key = RedisKeys.can_whisper_to(sender_id)
         cache_key = '%s-%s' % (key, target_user_name)
 
         self.cache.set(cache_key, allowed, ttl=ONE_HOUR)
         self.redis.hset(key, target_user_name, '1' if allowed else '0')
+        self.redis.expire(key, EIGHT_HOURS_IN_SECONDS)
 
     def get_channels_with_sort(self):
         key = RedisKeys.channels_with_sort()
