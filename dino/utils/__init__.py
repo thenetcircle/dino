@@ -137,7 +137,7 @@ def can_send_whisper_to_user(activity: Activity) -> bool:
 
         # doesn't exist in cache
         if allowed is None:
-            allowed = True  # TODO: call rest api to ask
+            allowed = environ.env.remote.can_send_whisper_to(sender_id, target_user_name)
 
         environ.env.cache.set_can_whisper_to_user(sender_id, target_user_name, allowed)
 

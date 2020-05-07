@@ -244,6 +244,7 @@ class GNEnvironment(object):
         self.service_config = None
         self.spam = None
         self.heartbeat = None
+        self.remote = None
 
         self.event_validator_map = dict()
         self.event_validators = dict()
@@ -1056,6 +1057,16 @@ def init_service_config(gn_env: GNEnvironment) -> None:
     gn_env.service_config = ConfigService(gn_env)
 
 
+@timeit(logger, 'init remote call handler')
+def init_remote_handler(gn_env: GNEnvironment) -> None:
+    if len(gn_env.config) == 0 or gn_env.config.get(ConfigKeys.TESTING, False):
+        # assume we're testing
+        return
+
+    from dino.remote.handler import RemoteHandler
+    gn_env.remote = RemoteHandler(gn_env)
+
+
 def initialize_env(dino_env):
     init_logging(dino_env)
     init_database(dino_env)
@@ -1079,6 +1090,7 @@ def initialize_env(dino_env):
         init_storage_engine(dino_env)
         init_spam_service(dino_env)
         init_service_config(dino_env)
+        init_remote_handler(dino_env)
 
 
 _config_paths = None
