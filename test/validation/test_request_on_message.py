@@ -1,21 +1,10 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from activitystreams import parse as as_parser
 
 from unittest import TestCase
 from uuid import uuid4 as uuid
 
 from dino import environ
+from dino.remote import IRemoteHandler
 from dino.utils import b64e
 from dino.auth.redis import AuthRedis
 from dino.config import ConfigKeys
@@ -30,7 +19,19 @@ from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclRangeValidator
 
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+
+class FakeRemote(IRemoteHandler):
+    def __init__(self):
+        self.blocked = dict()
+
+    def can_send_whisper_to(self, sender_id: str, target_user_name: str) -> bool:
+        if target_user_name not in self.blocked.keys():
+            return True
+
+        if sender_id in self.blocked.get(target_user_name):
+            return False
+
+        return True
 
 
 class FakeDb(object):
@@ -102,6 +103,14 @@ class FakeDb(object):
         return FakeDb._channel_names[channel_id]
 
 
+class FakeCache:
+    def get_can_whisper_to_user(self, sender_id, target_user_name):
+        return None
+
+    def set_can_whisper_to_user(self, sender_id, target_user_name, allowed):
+        pass
+
+
 class RequestMessageTest(TestCase):
     CHANNEL_ID = '8765'
     CHANNEL_NAME = 'Shanghai'
@@ -119,6 +128,166 @@ class RequestMessageTest(TestCase):
     COUNTRY = 'cn'
     CITY = 'Shanghai'
     TOKEN = str(uuid())
+
+    def setUp(self):
+        environ.env.db = FakeDb()
+        self.remote = FakeRemote()
+        environ.env.remote = self.remote
+        environ.env.cache = FakeCache()
+        FakeDb._channel_exists = {
+            RequestMessageTest.CHANNEL_ID: True,
+            RequestMessageTest.OTHER_CHANNEL_ID: False
+        }
+
+        FakeDb._room_exists = {
+            RequestMessageTest.ROOM_ID: True,
+            RequestMessageTest.OTHER_ROOM_ID: False
+        }
+
+        FakeDb._room_contains = {
+            RequestMessageTest.ROOM_ID: {
+                RequestMessageTest.USER_ID
+            },
+            RequestMessageTest.OTHER_ROOM_ID: set()
+        }
+
+        FakeDb._channel_names = {
+            RequestMessageTest.CHANNEL_ID: RequestMessageTest.CHANNEL_NAME
+        }
+
+        FakeDb._channel_for_room = {
+            RequestMessageTest.ROOM_ID: RequestMessageTest.CHANNEL_ID,
+            RequestMessageTest.OTHER_ROOM_ID: RequestMessageTest.OTHER_CHANNEL_ID,
+        }
+
+        self.auth = AuthRedis(host='mock', env=environ.env)
+        environ.env.session = {
+            SessionKeys.user_id.value: RequestMessageTest.USER_ID,
+            SessionKeys.user_name.value: RequestMessageTest.USER_NAME,
+            SessionKeys.age.value: RequestMessageTest.AGE,
+            SessionKeys.gender.value: RequestMessageTest.GENDER,
+            SessionKeys.membership.value: RequestMessageTest.MEMBERSHIP,
+            SessionKeys.image.value: RequestMessageTest.IMAGE,
+            SessionKeys.has_webcam.value: RequestMessageTest.HAS_WEBCAM,
+            SessionKeys.fake_checked.value: RequestMessageTest.FAKE_CHECKED,
+            SessionKeys.country.value: RequestMessageTest.COUNTRY,
+            SessionKeys.city.value: RequestMessageTest.CITY,
+            SessionKeys.token.value: RequestMessageTest.TOKEN
+        }
+
+        environ.env.config = {
+            ConfigKeys.ACL: {
+                'room': {
+                    'join': {
+                        'acls': [
+                            'gender',
+                            'age',
+                            'country'
+                        ]
+                    },
+                    'message': {
+                        'acls': [
+                            'gender',
+                            'age'
+                        ]
+                    },
+                    'crossroom': {
+                        'acls': [
+                            'samechannel'
+                        ]
+                    }
+                },
+                'channel': {
+                    'crossroom': {
+                        'acls': [
+                            'samechannel'
+                        ]
+                    }
+                },
+                'available': {
+                    'acls': [
+                        'gender',
+                        'age',
+                        'samechannel'
+                    ]
+                },
+                'validation': {
+                    'samechannel': {
+                        'type': 'samechannel',
+                        'value': AclSameChannelValidator()
+                    },
+                    'country': {
+                        'type': 'anything',
+                        'value': AclStrInCsvValidator()
+                    },
+                    'gender': {
+                        'type': 'str_in_csv',
+                        'value': AclStrInCsvValidator('m,f')
+                    },
+                    'age': {
+                        'type': 'range',
+                        'value': AclRangeValidator()
+                    }
+                }
+            }
+        }
+        self.auth.redis.hmset(RedisKeys.auth_key(RequestMessageTest.USER_ID), environ.env.session)
+        self.validator = RequestValidator()
+
+    def test_whisper_ok(self):
+        act = self.act()
+        act.object.content = b64e(" -kenobi Hello there!")
+        is_valid, code, msg = self.validator.on_message(act)
+        self.assertTrue(is_valid)
+
+    def test_no_whisper_ok(self):
+        act = self.act()
+        act.object.content = b64e(" kenobi Hello there!")
+        is_valid, code, msg = self.validator.on_message(act)
+        self.assertTrue(is_valid)
+
+    def test_multiple_whisper_ok(self):
+        act = self.act()
+        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        is_valid, code, msg = self.validator.on_message(act)
+        self.assertTrue(is_valid)
+
+    def test_whisper_not_ok_first_blocked(self):
+        act = self.act()
+
+        self.remote.blocked['kenobi'] = {act.actor.id}
+
+        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        is_valid, code, msg = self.validator.on_message(act)
+        self.assertFalse(is_valid)
+
+    def test_whisper_not_ok_second_blocked(self):
+        act = self.act()
+
+        self.remote.blocked['anakin'] = {act.actor.id}
+
+        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        is_valid, code, msg = self.validator.on_message(act)
+        self.assertFalse(is_valid)
+
+    def test_whisper_not_ok_both_blocked(self):
+        act = self.act()
+
+        self.remote.blocked['kenobi'] = {act.actor.id}
+        self.remote.blocked['anakin'] = {act.actor.id}
+
+        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        is_valid, code, msg = self.validator.on_message(act)
+        self.assertFalse(is_valid)
+
+    def test_whisper_ok_none_blocked(self):
+        act = self.act()
+
+        self.remote.blocked[act.actor.id] = {'batman'}
+
+        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        is_valid, code, msg = self.validator.on_message(act)
+        self.assertTrue(is_valid)
 
     def test_on_message(self):
         is_valid, code, msg = self.validator.on_message(self.act())
@@ -234,105 +403,3 @@ class RequestMessageTest(TestCase):
                 'objectType': 'room'
             }
         }
-
-    def setUp(self):
-        environ.env.db = FakeDb()
-        FakeDb._channel_exists = {
-            RequestMessageTest.CHANNEL_ID: True,
-            RequestMessageTest.OTHER_CHANNEL_ID: False
-        }
-
-        FakeDb._room_exists = {
-            RequestMessageTest.ROOM_ID: True,
-            RequestMessageTest.OTHER_ROOM_ID: False
-        }
-
-        FakeDb._room_contains = {
-            RequestMessageTest.ROOM_ID: {
-                RequestMessageTest.USER_ID
-            },
-            RequestMessageTest.OTHER_ROOM_ID: set()
-        }
-
-        FakeDb._channel_names = {
-            RequestMessageTest.CHANNEL_ID: RequestMessageTest.CHANNEL_NAME
-        }
-
-        FakeDb._channel_for_room = {
-            RequestMessageTest.ROOM_ID: RequestMessageTest.CHANNEL_ID,
-            RequestMessageTest.OTHER_ROOM_ID: RequestMessageTest.OTHER_CHANNEL_ID,
-        }
-
-        self.auth = AuthRedis(host='mock', env=environ.env)
-        environ.env.session = {
-            SessionKeys.user_id.value: RequestMessageTest.USER_ID,
-            SessionKeys.user_name.value: RequestMessageTest.USER_NAME,
-            SessionKeys.age.value: RequestMessageTest.AGE,
-            SessionKeys.gender.value: RequestMessageTest.GENDER,
-            SessionKeys.membership.value: RequestMessageTest.MEMBERSHIP,
-            SessionKeys.image.value: RequestMessageTest.IMAGE,
-            SessionKeys.has_webcam.value: RequestMessageTest.HAS_WEBCAM,
-            SessionKeys.fake_checked.value: RequestMessageTest.FAKE_CHECKED,
-            SessionKeys.country.value: RequestMessageTest.COUNTRY,
-            SessionKeys.city.value: RequestMessageTest.CITY,
-            SessionKeys.token.value: RequestMessageTest.TOKEN
-        }
-
-        environ.env.config = {
-            ConfigKeys.ACL: {
-                'room': {
-                    'join': {
-                        'acls': [
-                            'gender',
-                            'age',
-                            'country'
-                        ]
-                    },
-                    'message': {
-                        'acls': [
-                            'gender',
-                            'age'
-                        ]
-                    },
-                    'crossroom': {
-                        'acls': [
-                            'samechannel'
-                        ]
-                    }
-                },
-                'channel': {
-                    'crossroom': {
-                        'acls': [
-                            'samechannel'
-                        ]
-                    }
-                },
-                'available': {
-                    'acls': [
-                        'gender',
-                        'age',
-                        'samechannel'
-                    ]
-                },
-                'validation': {
-                    'samechannel': {
-                        'type': 'samechannel',
-                        'value': AclSameChannelValidator()
-                    },
-                    'country': {
-                        'type': 'anything',
-                        'value': AclStrInCsvValidator()
-                    },
-                    'gender': {
-                        'type': 'str_in_csv',
-                        'value': AclStrInCsvValidator('m,f')
-                    },
-                    'age': {
-                        'type': 'range',
-                        'value': AclRangeValidator()
-                    }
-                }
-            }
-        }
-        self.auth.redis.hmset(RedisKeys.auth_key(RequestMessageTest.USER_ID), environ.env.session)
-        self.validator = RequestValidator()
