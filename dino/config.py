@@ -152,6 +152,7 @@ class ErrorCodes(object):
     TOO_MANY_ATTACHMENTS = 716
     NOT_ENABLED = 717
     ROOM_NAME_RESTRICTED = 718
+    NOT_ALLOWED_TO_WHISPER = 719
 
     NO_SUCH_USER = 800
     NO_SUCH_CHANNEL = 801
@@ -357,12 +358,17 @@ class RedisKeys(object):
     RKEY_AVATARS = 'user:avatars'
     RKEY_SESSION_COUNT = 'session:count'
 
+    RKEY_CAN_WHISPER = 'whisper:{}'  # whisper:user_id
     RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
     RKEY_ACLS_FOR_ROOMS_HAVING_ACTION = 'rooms:acl:{}:{}'  # rooms:acl:<room_id>:<acl_action> => {acl_type: acl_value}
 
     @staticmethod
     def all_rooms() -> str:
         return RedisKeys.RKEY_ALL_ROOMS
+
+    @staticmethod
+    def can_whisper_to(user_id: str) -> str:
+        return RedisKeys.RKEY_CAN_WHISPER.format(user_id)
 
     @staticmethod
     def session_count() -> str:

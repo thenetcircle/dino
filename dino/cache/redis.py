@@ -760,6 +760,26 @@ class CacheRedis(object):
         key = RedisKeys.all_rooms()
         return self.cache.get(key)
 
+    def get_can_whisper_to_user(self, sender_id: str, target_user_name: str) -> Union[None, bool]:
+        key = RedisKeys.can_whisper_to(sender_id)
+        cache_key = '%s-%s' % (key, target_user_name)
+
+        can_whisper = self.cache.get(cache_key)
+        if can_whisper is not None:
+            return can_whisper
+
+        can_whisper = self.redis.hget(key, target_user_name)
+        can_whisper = str(can_whisper, 'utf-8')
+
+        return can_whisper == '1'
+
+    def set_can_whisper_to_user(self, sender_id: str, target_user_name: str, allowed: bool) -> None:
+        key = RedisKeys.can_whisper_to(sender_id)
+        cache_key = '%s-%s' % (key, target_user_name)
+
+        self.cache.set(cache_key, allowed, ttl=ONE_HOUR)
+        self.redis.hset(key, target_user_name, '1' if allowed else '0')
+
     def get_channels_with_sort(self):
         key = RedisKeys.channels_with_sort()
         channels = self.cache.get(key)

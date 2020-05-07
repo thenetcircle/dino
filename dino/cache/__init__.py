@@ -5,7 +5,7 @@ from typing import Union, Dict, List
 class ICache(Interface):
     def get_user_for_sid(self, sid: str):
         """
-        get the user id for a sig
+        get the user id for a sid
 
         :param sid: the s session id
         :return: the user id or none
@@ -14,6 +14,23 @@ class ICache(Interface):
     def get_all_permanent_rooms(self):
         """
 
+        :return:
+        """
+
+    def get_can_whisper_to_user(self, sender_id: str, target_user_name: str) -> Union[None, bool]:
+        """
+
+        :param sender_id:
+        :param target_user_name:
+        :return:
+        """
+
+    def set_can_whisper_to_user(self, sender_id: str, target_user_name: str, allowed: bool) -> None:
+        """
+
+        :param sender_id:
+        :param target_user_name:
+        :param allowed:
         :return:
         """
 

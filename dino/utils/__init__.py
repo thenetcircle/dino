@@ -1,15 +1,3 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from activitystreams import Activity
 from activitystreams import parse as as_parser
 from typing import Union
@@ -18,6 +6,7 @@ import logging
 import traceback
 import sys
 import os
+import re
 
 from dino.config import ConfigKeys
 from dino import environ
@@ -40,8 +29,6 @@ from dino.exceptions import NoTargetRoomException
 from dino.exceptions import UserExistsException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import NoSuchRoomException
-
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 logger = logging.getLogger(__name__)
 DINO_DEBUG = os.environ.get('DINO_DEBUG')
@@ -135,6 +122,37 @@ def is_valid_id(user_id: str):
     except Exception:
         return False
     return True
+
+
+def can_send_whisper_to_user(activity: Activity) -> bool:
+    message = b64d(activity.object.content)
+    words = message.split()
+
+    users = [word for word in words if word.startswith('-')]
+    users = [re.sub("[-,.'!)(]", "", user.strip()) for user in users]
+    sender_id = activity.actor.id
+
+    for target_user_name in users:
+        allowed = environ.env.cache.get_can_whisper_to_user(sender_id, target_user_name)
+
+        # doesn't exist in cache
+        if allowed is None:
+            allowed = True  # TODO: call rest api to ask
+
+        environ.env.cache.set_can_whisper_to_user(sender_id, target_user_name, allowed)
+
+        if not allowed:
+            return False
+
+    return True
+
+
+def is_whisper(activity: Activity) -> bool:
+    message = b64d(activity.object.content)
+    words = message.split()
+
+    # generator, returns as soon as one matches
+    return any((word.startswith('-') for word in words))
 
 
 def used_blacklisted_word(activity: Activity) -> (bool, Union[str, None]):
