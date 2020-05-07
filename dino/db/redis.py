@@ -75,9 +75,6 @@ class DatabaseRedis(object):
     def get_room_acls_for_action(self, action) -> Dict[str, Dict[str, str]]:
         pass
 
-    def set_all_rooms(self, all_rooms):
-        pass
-
     def get_all_rooms(self) -> Union[List, None]:
         return list()
 
