@@ -301,6 +301,10 @@ class ConfigKeys(object):
     USE_FLOATING_MENU = 'use_floating_menu'
     CORS_ORIGINS = 'cors_origins'
 
+    ENDPOINT = 'endpoint'
+    PATH_CAN_WHISPER = 'path_can_whisper'
+    REMOTE = 'remote'
+
 
 class RedisKeys(object):
     RKEY_ALL_ROOMS = 'rooms:all'

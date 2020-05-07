@@ -78,6 +78,9 @@ default:
         user: '$DINO_DB_USER'
         password: '$DINO_DB_PASS'
         pool_size: 150
+    remote:
+        host: '$DINO_REMOTE_HOST'
+        path_can_whisper: '$DINO_PATH_CAN_WHISPER'
     storage:
         #type: 'redis'
         #host: '127.0.0.1:6379'
