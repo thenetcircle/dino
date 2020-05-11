@@ -19,7 +19,7 @@ class ICache(Interface):
 
     def get_user_name_exists(self, user_name: str) -> bool:
         """
-        
+
         :param user_name:
         :return:
         """

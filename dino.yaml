@@ -81,6 +81,7 @@ default:
     remote:
         host: '$DINO_REMOTE_HOST'
         path_can_whisper: '$DINO_PATH_CAN_WHISPER'
+        private_key: '$DINO_REMOTE_PRIVATE_KEY'
     storage:
         #type: 'redis'
         #host: '127.0.0.1:6379'
