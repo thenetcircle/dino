@@ -15,7 +15,7 @@ from dino.exceptions import NoSuchRoomException
 from dino.exceptions import NoChannelFoundException
 from dino.exceptions import NoSuchChannelException
 from dino.validation import RequestValidator
-from dino.validation.acl import AclStrInCsvValidator
+from dino.validation.acl import AclStrInCsvValidator, AclDisallowValidator
 from dino.validation.acl import AclSameChannelValidator
 from dino.validation.acl import AclRangeValidator
 
@@ -53,8 +53,16 @@ class FakeDb(object):
     }
 
     _channel_acls = {
-        'message': dict(),
-        'crossroom': {'samechannel': ''},
+        '8765': {
+            'message': dict(),
+            'crossroom': {'samechannel': ''},
+            'whisper': dict(),
+        },
+        '1234': {
+            'message': dict(),
+            'crossroom': {'samechannel': ''},
+            'whisper': {'disallow': 'whisper'},
+        },
     }
 
     def channel_for_room(self, room_id: str) -> str:
@@ -83,7 +91,7 @@ class FakeDb(object):
         return False
 
     def get_acls_in_channel_for_action(self, channel_id, action):
-        return FakeDb._channel_acls[action]
+        return FakeDb._channel_acls[channel_id][action]
 
     def get_acls_in_room_for_action(self, room_id: str, action: str):
         return FakeDb._room_acls[action]
@@ -120,6 +128,7 @@ class RequestMessageTest(TestCase):
     ROOM_ID = '4567'
     OTHER_ROOM_ID = '9999'
     OTHER_CHANNEL_ID = '8888'
+    WHISPER_NOT_ALLOWED_CHANNEL_ID = '1234'
     USER_ID = '1234'
     USER_NAME = 'Joe'
     AGE = '30'
@@ -139,7 +148,8 @@ class RequestMessageTest(TestCase):
         environ.env.cache = FakeCache()
         FakeDb._channel_exists = {
             RequestMessageTest.CHANNEL_ID: True,
-            RequestMessageTest.OTHER_CHANNEL_ID: False
+            RequestMessageTest.OTHER_CHANNEL_ID: False,
+            RequestMessageTest.WHISPER_NOT_ALLOWED_CHANNEL_ID: True
         }
 
         FakeDb._room_exists = {
@@ -155,7 +165,8 @@ class RequestMessageTest(TestCase):
         }
 
         FakeDb._channel_names = {
-            RequestMessageTest.CHANNEL_ID: RequestMessageTest.CHANNEL_NAME
+            RequestMessageTest.CHANNEL_ID: RequestMessageTest.CHANNEL_NAME,
+            RequestMessageTest.WHISPER_NOT_ALLOWED_CHANNEL_ID: RequestMessageTest.CHANNEL_NAME + ' no whisper'
         }
 
         FakeDb._channel_for_room = {
@@ -201,6 +212,11 @@ class RequestMessageTest(TestCase):
                     }
                 },
                 'channel': {
+                    'whisper': {
+                        'acls': [
+                            'disallow'
+                        ]
+                    },
                     'crossroom': {
                         'acls': [
                             'samechannel'
@@ -211,7 +227,8 @@ class RequestMessageTest(TestCase):
                     'acls': [
                         'gender',
                         'age',
-                        'samechannel'
+                        'samechannel',
+                        'whisper',
                     ]
                 },
                 'validation': {
@@ -230,6 +247,10 @@ class RequestMessageTest(TestCase):
                     'age': {
                         'type': 'range',
                         'value': AclRangeValidator()
+                    },
+                    'disallow': {
+                        'type': 'disallow',
+                        'value': AclDisallowValidator()
                     }
                 }
             }
@@ -291,6 +312,16 @@ class RequestMessageTest(TestCase):
         act.object.content = b64e(" -kenobi -anakin Hello there!")
         is_valid, code, msg = self.validator.on_message(act)
         self.assertTrue(is_valid)
+
+    def test_whisper_not_ok_in_channel_acl(self):
+        act = self.act()
+        act.object.url = RequestMessageTest.WHISPER_NOT_ALLOWED_CHANNEL_ID
+
+        self.remote.blocked[act.actor.id] = {'batman'}
+
+        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        is_valid, code, msg = self.validator.on_message(act)
+        self.assertFalse(is_valid)
 
     def test_on_message(self):
         is_valid, code, msg = self.validator.on_message(self.act())

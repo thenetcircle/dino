@@ -126,43 +126,75 @@ def is_valid_id(user_id: str):
 
 def is_a_user_name(user_name: str) -> bool:
     if len(user_name) < 5:
+        logger.info('did not find a user called "{}", too short'.format(user_name))
         return False
 
     try:
-        return environ.env.db.user_name_exists(user_name)
+        exists = environ.env.db.user_name_exists(user_name)
     except Exception as e:
         logger.error("could not check if user name '{}' exists or not: {}".format(user_name, str(e)))
         logger.exception(str(e))
         environ.env.capture_exception(sys.exc_info())
         return False
 
+    if not exists:
+        logger.info('did not find a user called "{}"'.format(user_name))
 
-def can_send_whisper_to_user(activity: Activity) -> bool:
-    message = b64d(activity.object.content)
+    return exists
+
+
+def get_whisper_users_from_message(message) -> list:
     words = message.split()
 
     users = [word for word in words if word.startswith('-')]
     users = [re.sub("[-,.'!)(]", "", user.strip()) for user in users]
+
+    return [user for user in users if is_a_user_name(user)]
+
+
+def can_send_whisper_to_user(activity: Activity, message: str, users: list) -> bool:
     sender_id = activity.actor.id
 
-    for target_user_name in users:
-        if not is_a_user_name(target_user_name):
-            logger.info('did not find a user called "{}", not checking if we can whisper or not'.format(target_user_name))
-            continue
+    # generator
+    return all((
+        can_send_whisper_to_user_single(sender_id, user, message)
+        for user in users
+    ))
 
-        allowed = environ.env.cache.get_can_whisper_to_user(sender_id, target_user_name)
 
-        # doesn't exist in cache
-        if allowed is None:
-            allowed = environ.env.remote.can_send_whisper_to(sender_id, target_user_name)
+def can_send_whisper_in_channel(activity, channel_id: str):
+    channel_acls = get_acls_in_channel_for_action(channel_id, ApiActions.WHISPER)
 
-        environ.env.cache.set_can_whisper_to_user(sender_id, target_user_name, allowed)
+    is_valid, msg = validation.acl.validate_acl_for_action(
+        activity,
+        ApiTargets.CHANNEL,
+        ApiActions.WHISPER,
+        channel_acls or dict()
+    )
 
-        if not allowed:
-            logger.info("user {} is not allowed to send whisper to {} (message was: '{}')".format(
-                sender_id, target_user_name, message
-            ))
-            return False
+    if not is_valid:
+        logger.debug('not allowed to whisper in channel: %s' % msg)
+
+    return is_valid
+
+
+def can_send_whisper_to_user_single(sender_id, target_user_name, message) -> bool:
+    if not is_a_user_name(target_user_name):
+        return True
+
+    allowed = environ.env.cache.get_can_whisper_to_user(sender_id, target_user_name)
+
+    # doesn't exist in cache
+    if allowed is None:
+        allowed = environ.env.remote.can_send_whisper_to(sender_id, target_user_name)
+
+    environ.env.cache.set_can_whisper_to_user(sender_id, target_user_name, allowed)
+
+    if not allowed:
+        logger.info("user {} is not allowed to send whisper to {} (message was: '{}')".format(
+            sender_id, target_user_name, message
+        ))
+        return False
 
     return True
 
