@@ -1104,15 +1104,37 @@ class CacheRedis(object):
             logger.exception(traceback.format_exc())
             raise e  # force catch from caller
 
+    def get_last_online(self, user_id: str) -> Union[str, None]:
+        user_id_str = str(user_id).strip()
+        key = RedisKeys.user_last_online(user_id_str)
+        last_online = self.cache.get(key)
+
+        if last_online is not None:
+            return last_online
+
+        last_online = self.redis.get(key)
+        if last_online is None:
+            return None
+
+        last_online = str(last_online, 'utf-8')
+        self.cache.set(key, last_online)
+
+        return last_online
+
     def set_user_offline(self, user_id: str) -> None:
         try:
             user_id_str = str(user_id).strip()
             user_id_int = int(float(user_id))
+            unix_time = str(int(datetime.utcnow().timestamp()))
+
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
+            self.cache.set(RedisKeys.user_last_online(user_id_str), unix_time)
+
             self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
             self.redis.srem(RedisKeys.online_set(), user_id_str)
             self.redis.srem(RedisKeys.users_multi_cast(), user_id_str)
             self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
+            self.redis.set(RedisKeys.user_last_online(user_id_str), unix_time)
         except Exception as e:
             logger.error('could not set_user_offline(): %s' % str(e))
             logger.exception(traceback.format_exc())

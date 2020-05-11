@@ -39,6 +39,20 @@ class ICache(Interface):
         :return:
         """
 
+    def get_last_online(self, user_id: str) -> Union[str, None]:
+        """
+
+        :param user_id:
+        :return:
+        """
+
+    def set_user_offline(self, user_id: str) -> None:
+        """
+
+        :param user_id:
+        :return:
+        """
+
     def set_can_whisper_to_user(self, sender_id: str, target_user_name: str, allowed: bool) -> None:
         """
 

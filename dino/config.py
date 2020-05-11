@@ -329,6 +329,7 @@ class RedisKeys(object):
     RKEY_ONLINE_SET = 'users:online:set'
     RKEY_MULTI_CAST = 'users:multicast'
     RKEY_USER_STATUS = 'user:status:%s'  # user:status:user_id
+    RKEY_USER_LAST_ONLINE = 'user:online:last:{}'  # user:online:last:user_id
     RKEY_ROOM_NAME = 'room:names'
     RKEY_ROOM_ACL = 'room:acl:%s'  # room:acl:room_id
     RKEY_CHANNEL_ACL = 'channel:acl:%s'  # channel:acl:channel_id
@@ -567,6 +568,10 @@ class RedisKeys(object):
     @staticmethod
     def user_status(user_id: str) -> str:
         return RedisKeys.RKEY_USER_STATUS % user_id
+
+    @staticmethod
+    def user_last_online(user_id: str) -> str:
+        return RedisKeys.RKEY_USER_LAST_ONLINE.format(user_id)
 
     @staticmethod
     def room_history(room_id: str) -> str:
