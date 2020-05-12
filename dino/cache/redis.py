@@ -4,6 +4,7 @@ import traceback
 import random
 import sys
 import socket
+import pytz
 
 from zope.interface import implementer
 from typing import Union, List
@@ -1125,7 +1126,10 @@ class CacheRedis(object):
         try:
             user_id_str = str(user_id).strip()
             user_id_int = int(float(user_id))
-            unix_time = str(int(datetime.utcnow().timestamp()))
+
+            u = datetime.utcnow()
+            u = u.replace(tzinfo=pytz.utc)
+            unix_time = str(int(u.timestamp()))
 
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
             self.cache.set(RedisKeys.user_last_online(user_id_str), unix_time)
