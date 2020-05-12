@@ -21,13 +21,19 @@ class RemoteHandler(IRemoteHandler):
     def can_send_whisper_to(self, sender_id: str, target_user_name: str) -> bool:
         url = "{}/{}".format(self.host, self.path_whisper)
 
+        # might not be an int in some applications
+        try:
+            sender_id = int(sender_id)
+        except ValueError:
+            pass
+
         try:
             self.logger.debug("calling url: {}".format(url))
 
             request = Request(
                 method="whisper.validate",
-                senderId=500724,
-                receiverName="yingang009",
+                senderId=sender_id,
+                receiverName=target_user_name,
             )
 
             request_and_hash = self.private_key + str(request)
