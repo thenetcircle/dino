@@ -66,7 +66,7 @@ class RemoteHandler(IRemoteHandler):
 
         # '.data' is hinted JSONRPCResponse in lib, but if successful, it's a SuccessResponse, which
         # has the 'result' variable that JSONRPCResponse doesn't, so add the 'noqa' to skip warnings
-        success = response.result('success', 1)  # noqa
+        success = response.result.get('success', 1)  # noqa
         error_msg = response.result.get('error_msg', '[empty error in response]')  # noqa
 
         return success == 1
