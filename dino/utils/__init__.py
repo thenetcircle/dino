@@ -204,6 +204,8 @@ def is_whisper(activity: Activity) -> bool:
 
     import ast
     try:
+        message = message.replace("false", "False")
+        message = message.replace("true", "True")
         message = ast.literal_eval(message)
     except Exception as e:
         logger.error("could not eval message because {}, message was '{}'".format(str(e), message))
