@@ -104,6 +104,9 @@
     <li class="toctree-l2"><a href="#a-room-was-removed">A room was removed</a></li>
     
 
+    <li class="toctree-l2"><a href="#a-room-was-renamed">A room was renamed</a></li>
+    
+
     <li class="toctree-l2"><a href="#invitation-received">Invitation received</a></li>
     
 
@@ -365,6 +368,25 @@ keep the room list in sync on client side):</p>
     &quot;id&quot;: &quot;c42ebf01-3d50-4f27-a345-4ed213be045d&quot;,
     &quot;published&quot;: &quot;2016-10-07T10:45:34Z&quot;,
     &quot;verb&quot;: &quot;removed&quot;
+}
+</code></pre>
+
+<h2 id="a-room-was-renamed">A room was renamed</h2>
+<p>When a room is renamed by an admin/owner an event called <code>gn_room_renamed</code> will be sent to everyone on the server (to
+keep the room list in sync on client side):</p>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID who renamed the room&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;name of the user who renamed the room, in base64&gt;&quot;
+    },
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room uuid&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;NEW room name in base64&gt;&quot;,
+        &quot;objectType&quot;: &quot;room&quot;
+    },
+    &quot;id&quot;: &quot;c42ebf01-3d50-4f27-a345-4ed213be045d&quot;,
+    &quot;published&quot;: &quot;2016-10-07T10:45:34Z&quot;,
+    &quot;verb&quot;: &quot;renamed&quot;
 }
 </code></pre>
 
