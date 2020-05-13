@@ -201,6 +201,27 @@ def can_send_whisper_to_user_single(sender_id, target_user_name, message) -> boo
 
 def is_whisper(activity: Activity) -> bool:
     message = b64d(activity.object.content)
+
+    import ast
+    try:
+        message = ast.literal_eval(message)
+    except Exception as e:
+        logger.error("could not eval message because {}, message was '{}'".format(str(e), message))
+        logger.exception(e)
+        environ.env.capture_exception(sys.exc_info())
+        return False
+
+    try:
+        if "text" in message.keys():
+            message = message.get("text", "")
+        else:
+            return False
+    except Exception as e:
+        logger.error("could not get text from message {}, message was '{}'".format(str(e), message))
+        logger.exception(e)
+        environ.env.capture_exception(sys.exc_info())
+        return False
+
     words = message.split()
 
     # generator, returns as soon as one matches

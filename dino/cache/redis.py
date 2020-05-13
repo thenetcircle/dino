@@ -770,8 +770,10 @@ class CacheRedis(object):
             return can_whisper
 
         can_whisper = self.redis.hget(key, target_user_name)
-        can_whisper = str(can_whisper, 'utf-8')
+        if can_whisper is None:
+            return None
 
+        can_whisper = str(can_whisper, 'utf-8')
         return can_whisper == '1'
 
     def set_can_whisper_to_user(self, sender_id: str, target_user_name: str, allowed: bool) -> None:
