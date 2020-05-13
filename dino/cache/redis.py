@@ -1142,7 +1142,6 @@ class CacheRedis(object):
             self.redis.srem(RedisKeys.online_set(), user_id_str)
             self.redis.srem(RedisKeys.users_multi_cast(), user_id_str)
             self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
-            self.redis.set(RedisKeys.user_last_online(user_id_str), unix_time)
         except Exception as e:
             logger.error('could not set_user_offline(): %s' % str(e))
             logger.exception(traceback.format_exc())
