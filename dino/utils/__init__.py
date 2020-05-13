@@ -130,6 +130,7 @@ def is_a_user_name(user_name: str) -> bool:
         return False
 
     try:
+        logger.info('checking if username "{}" exists'.format(user_name))
         exists = environ.env.db.user_name_exists(user_name)
     except Exception as e:
         logger.error("could not check if user name '{}' exists or not: {}".format(user_name, str(e)))
@@ -148,8 +149,12 @@ def get_whisper_users_from_message(message) -> list:
 
     users = [word for word in words if word.startswith('-')]
     users = [re.sub("[-,.'!)(]", "", user.strip()) for user in users]
+    logger.info("users in whisper: {}".format(users))
 
-    return [user for user in users if is_a_user_name(user)]
+    users = [user for user in users if is_a_user_name(user)]
+    logger.info("users in whisper that exist: {}".format(users))
+
+    return users
 
 
 def can_send_whisper_to_user(activity: Activity, message: str, users: list) -> bool:
@@ -199,31 +204,7 @@ def can_send_whisper_to_user_single(sender_id, target_user_name, message) -> boo
     return True
 
 
-def is_whisper(activity: Activity) -> bool:
-    message = b64d(activity.object.content)
-
-    import ast
-    try:
-        message = message.replace("false", "False")
-        message = message.replace("true", "True")
-        message = ast.literal_eval(message)
-    except Exception as e:
-        logger.error("could not eval message because {}, message was '{}'".format(str(e), message))
-        logger.exception(e)
-        environ.env.capture_exception(sys.exc_info())
-        return False
-
-    try:
-        if "text" in message.keys():
-            message = message.get("text", "")
-        else:
-            return False
-    except Exception as e:
-        logger.error("could not get text from message {}, message was '{}'".format(str(e), message))
-        logger.exception(e)
-        environ.env.capture_exception(sys.exc_info())
-        return False
-
+def is_whisper(message: str) -> bool:
     words = message.split()
 
     # generator, returns as soon as one matches
