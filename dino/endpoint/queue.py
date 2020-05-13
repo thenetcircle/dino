@@ -8,7 +8,7 @@ from datetime import datetime
 from uuid import uuid4 as uuid
 from activitystreams.models.activity import Activity
 
-from dino.config import ConfigKeys
+from dino.config import ConfigKeys, UserKeys
 from dino.exceptions import NoSuchUserException
 from dino.environ import GNEnvironment
 from dino import environ
@@ -453,7 +453,12 @@ class QueueHandler(object):
                 rooms_for_user = self.env.db.rooms_for_user(banned_id)
                 logger.info('user %s is in these rooms (will ban from all): %s' % (banned_id, str(rooms_for_user)))
                 self.ban_globally(activity_json, activity, rooms_for_user, banned_id, banned_sids, namespace)
-                self.env.db.set_user_offline(banned_id)
+
+                if utils.get_user_status(banned_id) == UserKeys.STATUS_INVISIBLE:
+                    environ.env.cache.remove_from_multicast_on_disconnect(banned_id)
+                else:
+                    environ.env.db.set_user_offline(banned_id)
+
                 disconnect_activity = utils.activity_for_disconnect(banned_id, banned_name)
                 self.env.publish(disconnect_activity, external=True)
 
