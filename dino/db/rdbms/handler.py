@@ -554,6 +554,8 @@ class DatabaseRdbms(object):
         logger.debug('setting user %s as offline in cache' % user_id)
         self.env.cache.set_user_offline(user_id)
 
+        # TODO: save last_online in db as well, cache is cleared on deployment
+
         try:
             _set_user_offline()
         except (IntegrityError, StaleDataError) as e:

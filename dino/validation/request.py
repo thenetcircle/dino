@@ -94,12 +94,17 @@ class RequestValidator(BaseValidator):
                 message = utils.b64d(activity.object.content)
                 users = utils.get_whisper_users_from_message(message)
 
+                logger.info('message is a whisper: {}'.format(message))
+                logger.info('users in whisper: {}'.format(users))
+
                 if len(users) > 0:
                     if not utils.can_send_whisper_in_channel(activity, channel_id):
                         return False, ECodes.NOT_ALLOWED_TO_WHISPER_CHANNEL, 'not allowed to whisper in channel'
 
                     if not utils.can_send_whisper_to_user(activity, message, users):
                         return False, ECodes.NOT_ALLOWED_TO_WHISPER_USER, 'not allowed to whisper this user'
+            else:
+                logger.info("not a whisper")
 
         elif object_type == 'private':
             channel_id = None
