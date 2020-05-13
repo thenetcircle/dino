@@ -125,8 +125,8 @@ def is_valid_id(user_id: str):
 
 
 def is_a_user_name(user_name: str) -> bool:
-    if len(user_name) < 5:
-        logger.debug('did not find a user called "{}", too short'.format(user_name))
+    if len(user_name) < 3 or len(user_name) > 20:
+        logger.debug('did not find a user called "{}", too short/long'.format(user_name))
         return False
 
     try:
