@@ -984,6 +984,19 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
     return response
 
 
+def activity_for_room_renamed(activity: Activity, room_name: str) -> dict:
+    act = ActivityBuilder.enrich({
+        'target': {
+            'id': activity.target.id,
+            'displayName': b64e(room_name),
+            'objectType': 'room'
+        },
+        'verb': 'renamed'
+    })
+
+    return act
+
+
 def activity_for_room_removed(activity: Activity, room_name: str, reason: str=None) -> dict:
     act = ActivityBuilder.enrich({
         'target': {
@@ -1002,6 +1015,23 @@ def activity_for_room_removed(activity: Activity, room_name: str, reason: str=No
     return act
 
 
+def activity_for_rename_room(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
+    act = ActivityBuilder.enrich({
+        'actor': {
+            'id': user_id,
+            'displayName': b64e(user_name)
+        },
+        'target': {
+            'id': room_id,
+            'displayName': b64e(room_name),
+            'objectType': 'room'
+        },
+        'verb': 'rename'
+    })
+
+    return act
+
+
 def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_name: str, reason: str=None) -> dict:
     act = ActivityBuilder.enrich({
         'actor': {
@@ -1010,7 +1040,8 @@ def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_na
         },
         'target': {
             'id': room_id,
-            'displayName': b64e(room_name)
+            'displayName': b64e(room_name),
+            'objectType': 'room'
         },
         'verb': 'remove'
     })

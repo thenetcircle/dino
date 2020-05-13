@@ -242,7 +242,7 @@ class RequestValidator(BaseValidator):
 
         return True, None, None
 
-    def on_remove_room(self, activity: Activity) -> (bool, int, str):
+    def _remove_or_rename_room(self, activity: Activity, action: str) -> (bool, int, str):
         user_id = activity.actor.id
         room_id = activity.target.id
 
@@ -261,7 +261,13 @@ class RequestValidator(BaseValidator):
         if utils.is_owner_channel(channel_id, user_id):
             return True, None, None
 
-        return False, ECodes.NOT_ALLOWED, 'user %s is not allowed to remove the room' % str(user_id)
+        return False, ECodes.NOT_ALLOWED, 'user {} is not allowed to {} the room'.format(str(user_id), action)
+
+    def on_remove_room(self, activity: Activity) -> (bool, int, str):
+        return self._remove_or_rename_room(activity, 'remove')
+
+    def on_rename_room(self, activity: Activity) -> (bool, int, str):
+        return self._remove_or_rename_room(activity, 'rename')
 
     def on_disconnect(self, activity: Activity) -> (bool, int, str):
         user_id = environ.env.session.get(SessionKeys.user_id.value)

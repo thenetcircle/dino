@@ -414,6 +414,21 @@ def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
     return ECodes.OK, utils.activity_for_history(activity, messages)
 
 
+@timeit(logger, 'on_rename_room')
+def on_rename_room(data: dict, activity: Activity) -> (int, Union[str, None]):
+    room_id = activity.target.id
+    new_room_name = activity.target.display_name
+
+    rename_activity = utils.activity_for_rename_room(
+            activity.actor.id, activity.actor.display_name, room_id, new_room_name)
+
+    environ.env.db.rename_room(room_id, new_room_name)
+    environ.env.emit('gn_room_renamed', rename_activity, broadcast=True, include_self=True, namespace='/ws')
+    environ.env.observer.emit('on_rename_room', (data, activity))
+
+    return ECodes.OK, utils.activity_for_room_renamed(activity, new_room_name)
+
+
 @timeit(logger, 'on_remove_room')
 def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
     """

@@ -348,6 +348,13 @@ def on_users_in_room(data: dict, activity: Activity) -> (int, Union[str, dict, N
     return api.on_users_in_room(data, activity)
 
 
+@socketio.on('rename_room', namespace='/ws')
+@respond_with('gn_rename_room')
+@pre_process('on_rename_room')
+def on_rename_room(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
+    return api.on_rename_room(data, activity)
+
+
 @socketio.on('remove_room', namespace='/ws')
 @respond_with('gn_remove_room')
 @pre_process('on_remove_room')
