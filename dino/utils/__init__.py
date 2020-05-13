@@ -126,11 +126,11 @@ def is_valid_id(user_id: str):
 
 def is_a_user_name(user_name: str) -> bool:
     if len(user_name) < 5:
-        logger.info('did not find a user called "{}", too short'.format(user_name))
+        logger.debug('did not find a user called "{}", too short'.format(user_name))
         return False
 
     try:
-        logger.info('checking if username "{}" exists'.format(user_name))
+        logger.debug('checking if username "{}" exists'.format(user_name))
         exists = environ.env.db.user_name_exists(user_name)
     except Exception as e:
         logger.error("could not check if user name '{}' exists or not: {}".format(user_name, str(e)))
@@ -139,7 +139,7 @@ def is_a_user_name(user_name: str) -> bool:
         return False
 
     if not exists:
-        logger.info('did not find a user called "{}"'.format(user_name))
+        logger.debug('did not find a user called "{}"'.format(user_name))
 
     return exists
 
@@ -149,10 +149,10 @@ def get_whisper_users_from_message(message) -> list:
 
     users = [word for word in words if word.startswith('-')]
     users = [re.sub("[-,.'!)(]", "", user.strip()) for user in users]
-    logger.info("users in whisper: {}".format(users))
+    logger.debug("users in whisper: {}".format(users))
 
     users = [user for user in users if is_a_user_name(user)]
-    logger.info("users in whisper that exist: {}".format(users))
+    logger.debug("users in whisper that exist: {}".format(users))
 
     return users
 
