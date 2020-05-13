@@ -194,6 +194,28 @@ keep the room list in sync on client side):
 }
 ```
 
+## A room was renamed
+
+When a room is renamed by an admin/owner an event called `gn_room_renamed` will be sent to everyone on the server (to
+keep the room list in sync on client side):
+
+```json
+{
+    "actor": {
+        "id": "<user ID who renamed the room>",
+        "displayName": "<name of the user who renamed the room, in base64>"
+    },
+    "target": {
+        "id": "<room uuid>",
+        "displayName": "<NEW room name in base64>",
+        "objectType": "room"
+    },
+    "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+    "published": "2016-10-07T10:45:34Z",
+    "verb": "renamed"
+}
+```
+
 ## Invitation received
 
 When user B invites user A to join room X, the event `gn_invitation` will be sent to user A with the following content:

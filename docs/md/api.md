@@ -43,6 +43,8 @@ MULTIPLE_ROOMS_WITH_NAME = 715
 TOO_MANY_ATTACHMENTS = 716
 NOT_ENABLED = 717
 ROOM_NAME_RESTRICTED = 718
+NOT_ALLOWED_TO_WHISPER_USER = 719
+NOT_ALLOWED_TO_WHISPER_CHANNEL = 720
 
 NO_SUCH_USER = 800
 NO_SUCH_CHANNEL = 801
@@ -1204,3 +1206,39 @@ Response data if successful:
 ```
 
 Attachments for each user contains the user data, e.g. user name, age, city etc.
+
+## `rename_room`
+
+Responds with the event name `gn_rename_room`. Every other connected user will receive a 
+[`gn_room_renamed`](events.md#gn_room_renamed) event.
+
+Request example:
+
+```json
+{
+    "verb": "rename",
+    "target": {
+        "id": "<room ID>",
+        "displayName": "<NEW room name in base64>",
+        "objectType": "room"
+    }
+}
+```
+    
+Response data if successful:
+
+```json
+{
+    "status_code": 200,
+    "data": {
+        "target": {
+            "id": "<room uuid>",
+            "displayName": "<room name in base64>",
+            "objectType": "room"
+        },
+        "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+        "published": "2016-10-07T10:45:34Z",
+        "verb": "renamed"
+    }
+}
+```
