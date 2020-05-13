@@ -1134,6 +1134,8 @@ class CacheRedis(object):
             unix_time = str(int(u.timestamp()))
 
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
+
+            logger.info('setting last online for {} to {}'.format(user_id_str, unix_time))
             self.cache.set(RedisKeys.user_last_online(user_id_str), unix_time)
 
             self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
