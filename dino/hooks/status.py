@@ -88,6 +88,8 @@ class OnStatusHooks(object):
             OnStatusHooks.set_online(user_id, user_name)
 
         # otherwise status is UserKeys.STATUS_INVISIBLE, but if not in multicast the user is offline
+        # TODO: when choosing to login invisibly, this is called before the user connects to dino, so should NOT do set_offline()
+        # TODO: should visible login call set_status with 'online' or 'visible'?
         else:
             OnStatusHooks.logger.info(
                 'setting user {} ({}) to visible (offline), was invisible (offline)'.format(user_id, user_name))
