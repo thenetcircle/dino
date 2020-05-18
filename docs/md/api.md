@@ -936,7 +936,8 @@ Request contains:
         "id": "<UUID of the room to kick from>"
     },
     "object": {
-        "id": "<UUID of the user to kick>"
+        "id": "<UUID of the user to kick>",
+        "content": "<optional reason field>"
     },
     "verb": "kick"
 }

@@ -439,7 +439,7 @@ When a user is kicked from a room, an event will be sent to all users in that ro
     "published": "<server-generated timestamp, RFC3339 format>",
     "actor": {
         "id": "<UUID of the kicker>",
-        "displayName": "<name of the kicker>",,
+        "displayName": "<name of the kicker>",
         "attachments": [
             {
                 "content": "NDA=",
@@ -453,7 +453,8 @@ When a user is kicked from a room, an event will be sent to all users in that ro
     },
     "object": {
         "id": "<UUID of the kicked user>",
-        "displayName": "<name of the kicked user>",,
+        "displayName": "<name of the kicked user>",
+        "content": "<optional reason field>",
         "attachments": [
             {
                 "content": "NDA=",

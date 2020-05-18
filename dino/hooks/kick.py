@@ -49,8 +49,13 @@ class OnKickHooks(object):
             'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
             'id': str(uuid())
         }
+
         if activity.object.display_name is not None:
             kick_activity['object']['displayName'] = activity.object.display_name
+
+        # reason
+        if activity.object.content is not None:
+            kick_activity['object']['content'] = activity.object.content
 
         # when banning globally, no target room is specified
         if activity.target is not None:
