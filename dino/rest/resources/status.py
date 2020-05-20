@@ -55,9 +55,15 @@ class SetStatusResource(BaseResource):
 
         user_id = json.get('id')
         status = json.get('status')
+        stage = json.get('stage', default='online')
+
         all_statuses = {'online', 'offline', 'invisible', 'visible'}
         if status not in all_statuses:
             raise RuntimeError('unknown status [{}], need one of [{}]'.format(status, ','.join(all_statuses)))
+
+        all_stages = {'online', 'login'}
+        if stage not in all_stages:
+            raise RuntimeError('unknown stage [{}], need one of [{}]'.format(stage, ','.join(all_stages)))
 
         try:
             environ.env.db.create_user(user_id, str(user_id))
@@ -66,7 +72,8 @@ class SetStatusResource(BaseResource):
 
         activity_base = {
             'actor': {
-                'id': user_id
+                'id': user_id,
+                'summary': stage
             },
             'verb': status
         }

@@ -567,7 +567,8 @@ Request contains:
 ```json
 {   
     "id": "<user ID>",
-    "status": "<one of online/offline/invisible/visible>"
+    "status": "<one of online/offline/invisible/visible>",
+    "stage": "<one of login/online>"
 }   
 ```
 

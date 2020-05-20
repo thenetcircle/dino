@@ -36,7 +36,11 @@ class OnStatusHooks(object):
         if status == 'online':
             OnStatusHooks.set_online(user_id, user_name, image)
         elif status == 'invisible':
-            OnStatusHooks.set_invisible(user_id, user_name)
+            stage = 'status'
+            if hasattr(activity.actor, 'summary'):
+                stage = activity.actor.summary
+
+            OnStatusHooks.set_invisible(user_id, user_name, stage=stage)
         elif status == 'visible':
             OnStatusHooks.set_visible(user_id, user_name)
         elif status == 'offline':
@@ -96,12 +100,18 @@ class OnStatusHooks(object):
             OnStatusHooks.set_offline(user_id, user_name)
 
     @staticmethod
-    def set_invisible(user_id: str, user_name: str) -> None:
+    def set_invisible(user_id: str, user_name: str, stage: str) -> None:
         OnStatusHooks.logger.info('setting user {} ({}) to invisible'.format(
             user_id, user_name,
         ))
 
-        is_offline = not utils.user_is_online(user_id)
+        # when logging in as 'invisible', the rest call can happen after ws
+        # logs in, in which case we don't want to update last_online
+        if stage == 'login':
+            is_offline = True
+        else:
+            is_offline = not utils.user_is_online(user_id)
+
         environ.env.db.set_user_invisible(user_id, is_offline=is_offline)
 
         if is_offline:
