@@ -66,6 +66,13 @@ class IDatabase(Interface):
         :return:
         """
 
+    def get_last_online_since(self, days: int) -> list:
+        """
+
+        :param days:
+        :return:
+        """
+
     def get_all_rooms(self) -> list:
         """
         get all rooms

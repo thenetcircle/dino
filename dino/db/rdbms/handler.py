@@ -16,6 +16,7 @@ import logging
 import sys
 import traceback
 from datetime import datetime
+from datetime import timedelta
 from functools import wraps
 from typing import Union
 from typing import Dict
@@ -542,6 +543,20 @@ class DatabaseRdbms(object):
                 logger.error('other error when trying to set user %s invisible second try: %s' % (user_id, str(e)))
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
+
+    @with_session
+    def get_last_online_since(self, days: int, session=None) -> list:
+        u = datetime.utcnow()
+        u = u.replace(tzinfo=pytz.utc)
+        u = u - timedelta(days=days)
+        unix_time = int(u.timestamp())
+
+        lasts = session.query(UserStatus).filter(LastOnline.at > unix_time).all()
+
+        if lasts is None:
+            return list()
+
+        return [(last.uuid, last.at) for last in lasts]
 
     def set_user_offline(self, user_id: str) -> None:
         @with_session

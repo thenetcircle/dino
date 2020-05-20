@@ -1124,6 +1124,16 @@ class CacheRedis(object):
 
         return last_online
 
+    def set_last_online(self, last_online_times: list):
+        pipe = self.redis.pipeline()
+
+        for user_id, at in last_online_times:
+            key = RedisKeys.user_last_online(user_id)
+            self.cache.set(key, str(at))
+            self.redis.set(key, str(at))
+
+        pipe.execute()
+
     def set_user_offline(self, user_id: str) -> None:
         try:
             user_id_str = str(user_id).strip()

@@ -39,6 +39,13 @@ class ICache(Interface):
         :return:
         """
 
+    def set_last_online(self, last_online_times: list):
+        """
+
+        :param last_online_times:
+        :return:
+        """
+
     def get_last_online(self, user_id: str) -> Union[str, None]:
         """
 
