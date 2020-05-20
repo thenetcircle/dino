@@ -306,6 +306,7 @@ class ConfigKeys(object):
     PATH_CAN_WHISPER = 'path_can_whisper'
     REMOTE = 'remote'
     PRIVATE_KEY = 'private_key'
+    VALIDATE_WHISPERS = 'validate_whispers'
 
 
 class RedisKeys(object):

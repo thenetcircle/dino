@@ -211,6 +211,10 @@ def is_whisper(message: str) -> bool:
     return any((word.startswith('-') for word in words))
 
 
+def should_validate_whispers() -> bool:
+    return environ.env.config.get(ConfigKeys.VALIDATE_WHISPERS, default=False)
+
+
 def used_blacklisted_word(activity: Activity) -> (bool, Union[str, None]):
     word_used_if_any = environ.env.blacklist.contains_blacklisted_word(activity)
     return word_used_if_any is not None, word_used_if_any

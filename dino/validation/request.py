@@ -120,21 +120,20 @@ class RequestValidator(BaseValidator):
                     return False, ECodes.NOT_ALLOWED, \
                            'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
 
-            message = parse_message(message)
-            if message is not None and utils.is_whisper(message):
-                users = utils.get_whisper_users_from_message(message)
+            if utils.should_validate_whispers():
+                message = parse_message(message)
+                if message is not None and utils.is_whisper(message):
+                    users = utils.get_whisper_users_from_message(message)
 
-                logger.info('message is a whisper: {}'.format(message))
-                logger.info('users in whisper: {}'.format(users))
+                    logger.info('message is a whisper: {}'.format(message))
+                    logger.info('users in whisper: {}'.format(users))
 
-                if len(users) > 0:
-                    if not utils.can_send_whisper_in_channel(activity, channel_id):
-                        return False, ECodes.NOT_ALLOWED_TO_WHISPER_CHANNEL, 'not allowed to whisper in channel'
+                    if len(users) > 0:
+                        if not utils.can_send_whisper_in_channel(activity, channel_id):
+                            return False, ECodes.NOT_ALLOWED_TO_WHISPER_CHANNEL, 'not allowed to whisper in channel'
 
-                    if not utils.can_send_whisper_to_user(activity, message, users):
-                        return False, ECodes.NOT_ALLOWED_TO_WHISPER_USER, 'not allowed to whisper this user'
-            else:
-                logger.info("not a whisper")
+                        if not utils.can_send_whisper_to_user(activity, message, users):
+                            return False, ECodes.NOT_ALLOWED_TO_WHISPER_USER, 'not allowed to whisper this user'
 
         elif object_type == 'private':
             channel_id = None

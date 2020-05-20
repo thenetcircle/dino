@@ -8,6 +8,7 @@ common_config: &common_config
     invisible_unrestricted: False
     request_log_location: '$DINO_REQ_LOG_LOC'
     spam_classifier: True
+    validate_whispers: True
     auth:
         type: 'nutcracker'
         host: '$DINO_AUTH_HOST'
