@@ -180,6 +180,15 @@ class LastReads(DeclarativeBase):
     time_stamp = Column('time_stamp', Integer, nullable=False)
 
 
+class LastOnline(DeclarativeBase):
+    __tablename__ = 'lastonline'
+
+    id = Column(Integer, primary_key=True)
+
+    uuid = Column('uuid', String(128), nullable=False, index=True)
+    at = Column('at', Integer, nullable=False, index=True)
+
+
 class Config(DeclarativeBase):
     __tablename__ = 'service_config'
 

@@ -1136,7 +1136,10 @@ class CacheRedis(object):
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
 
             logger.info('setting last online for {} to {}'.format(user_id_str, unix_time))
-            self.cache.set(RedisKeys.user_last_online(user_id_str), unix_time)
+
+            last_online_key = RedisKeys.user_last_online(user_id_str)
+            self.cache.set(last_online_key, unix_time)
+            self.redis.set(last_online_key, unix_time)
 
             self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
             self.redis.srem(RedisKeys.online_set(), user_id_str)

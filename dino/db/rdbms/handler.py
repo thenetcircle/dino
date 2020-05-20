@@ -21,6 +21,7 @@ from typing import Union
 from typing import Dict
 from uuid import uuid4 as uuid
 
+import pytz
 from activitystreams import Activity
 from sqlalchemy import func
 from sqlalchemy import or_
@@ -48,6 +49,7 @@ from dino.db.rdbms.models import Channels
 from dino.db.rdbms.models import DefaultRooms
 from dino.db.rdbms.models import GlobalRoles
 from dino.db.rdbms.models import LastReads
+from dino.db.rdbms.models import LastOnline
 from dino.db.rdbms.models import RoomRoles
 from dino.db.rdbms.models import RoomSids
 from dino.db.rdbms.models import Rooms
@@ -551,10 +553,30 @@ class DatabaseRdbms(object):
             session.delete(status)
             session.commit()
 
+        @with_session
+        def _set_last_online(session=None):
+            u = datetime.utcnow()
+            u = u.replace(tzinfo=pytz.utc)
+            unix_time = int(u.timestamp())
+
+            last_online = session.query(LastOnline).filter(LastOnline.uuid == user_id).first()
+            if last_online is None:
+                last_online = LastOnline()
+                last_online.uuid = user_id
+
+            last_online.at = unix_time
+            session.add(last_online)
+            session.commit()
+
         logger.debug('setting user %s as offline in cache' % user_id)
         self.env.cache.set_user_offline(user_id)
 
-        # TODO: save last_online in db as well, cache is cleared on deployment
+        try:
+            _set_last_online()
+        except Exception as e:
+            logger.error('could not set last_online in db for user {}: {}'.format(user_id, str(e)))
+            logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
 
         try:
             _set_user_offline()
