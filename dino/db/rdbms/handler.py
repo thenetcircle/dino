@@ -528,6 +528,7 @@ class DatabaseRdbms(object):
         if is_offline:
             self.env.cache.set_user_status_invisible(user_id)
         else:
+            self._set_last_online(user_id)
             self.env.cache.set_user_invisible(user_id)
 
         try:
@@ -558,6 +559,21 @@ class DatabaseRdbms(object):
 
         return [(last.uuid, last.at) for last in lasts]
 
+    @with_session
+    def _set_last_online(self, user_id: str, session=None):
+        u = datetime.utcnow()
+        u = u.replace(tzinfo=pytz.utc)
+        unix_time = int(u.timestamp())
+
+        last_online = session.query(LastOnline).filter(LastOnline.uuid == user_id).first()
+        if last_online is None:
+            last_online = LastOnline()
+            last_online.uuid = user_id
+
+        last_online.at = unix_time
+        session.add(last_online)
+        session.commit()
+
     def set_user_offline(self, user_id: str) -> None:
         @with_session
         def _set_user_offline(session=None):
@@ -568,26 +584,11 @@ class DatabaseRdbms(object):
             session.delete(status)
             session.commit()
 
-        @with_session
-        def _set_last_online(session=None):
-            u = datetime.utcnow()
-            u = u.replace(tzinfo=pytz.utc)
-            unix_time = int(u.timestamp())
-
-            last_online = session.query(LastOnline).filter(LastOnline.uuid == user_id).first()
-            if last_online is None:
-                last_online = LastOnline()
-                last_online.uuid = user_id
-
-            last_online.at = unix_time
-            session.add(last_online)
-            session.commit()
-
         logger.debug('setting user %s as offline in cache' % user_id)
         self.env.cache.set_user_offline(user_id)
 
         try:
-            _set_last_online()
+            self._set_last_online(user_id)
         except Exception as e:
             logger.error('could not set last_online in db for user {}: {}'.format(user_id, str(e)))
             logger.exception(traceback.format_exc())
