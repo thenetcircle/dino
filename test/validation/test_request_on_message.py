@@ -260,19 +260,19 @@ class RequestMessageTest(TestCase):
 
     def test_whisper_ok(self):
         act = self.act()
-        act.object.content = b64e(" -kenobi Hello there!")
+        act.object.content = b64e('{"text":" -kenobi Hello there!"}')
         is_valid, code, msg = self.validator.on_message(act)
         self.assertTrue(is_valid)
 
     def test_no_whisper_ok(self):
         act = self.act()
-        act.object.content = b64e(" kenobi Hello there!")
+        act.object.content = b64e('{"text":" kenobi Hello there!"}')
         is_valid, code, msg = self.validator.on_message(act)
         self.assertTrue(is_valid)
 
     def test_multiple_whisper_ok(self):
         act = self.act()
-        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        act.object.content = b64e('{"text":" -kenobi -anakin Hello there!"}')
         is_valid, code, msg = self.validator.on_message(act)
         self.assertTrue(is_valid)
 
@@ -281,7 +281,7 @@ class RequestMessageTest(TestCase):
 
         self.remote.blocked['kenobi'] = {act.actor.id}
 
-        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        act.object.content = b64e('{"text":" -kenobi -anakin Hello there!"}')
         is_valid, code, msg = self.validator.on_message(act)
         self.assertFalse(is_valid)
 
@@ -290,7 +290,7 @@ class RequestMessageTest(TestCase):
 
         self.remote.blocked['anakin'] = {act.actor.id}
 
-        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        act.object.content = b64e('{"text":" -kenobi -anakin Hello there!"}')
         is_valid, code, msg = self.validator.on_message(act)
         self.assertFalse(is_valid)
 
@@ -300,7 +300,7 @@ class RequestMessageTest(TestCase):
         self.remote.blocked['kenobi'] = {act.actor.id}
         self.remote.blocked['anakin'] = {act.actor.id}
 
-        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        act.object.content = b64e('{"text":" -kenobi -anakin Hello there!"}')
         is_valid, code, msg = self.validator.on_message(act)
         self.assertFalse(is_valid)
 
@@ -309,7 +309,7 @@ class RequestMessageTest(TestCase):
 
         self.remote.blocked[act.actor.id] = {'batman'}
 
-        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        act.object.content = b64e('{"text":" -kenobi -anakin Hello there!"}')
         is_valid, code, msg = self.validator.on_message(act)
         self.assertTrue(is_valid)
 
@@ -319,7 +319,7 @@ class RequestMessageTest(TestCase):
 
         self.remote.blocked[act.actor.id] = {'batman'}
 
-        act.object.content = b64e(" -kenobi -anakin Hello there!")
+        act.object.content = b64e('{"text":" -kenobi -anakin Hello there!"}')
         is_valid, code, msg = self.validator.on_message(act)
         self.assertFalse(is_valid)
 
