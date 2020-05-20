@@ -29,6 +29,7 @@ ONE_MINUTE = 60
 THIRTY_SECONDS = 30
 ONE_HOUR = 60*60
 TEN_SECONDS = 10
+SEVEN_DAYS = 7 * 24 * ONE_HOUR
 
 logger = logging.getLogger(__name__)
 
@@ -1131,6 +1132,7 @@ class CacheRedis(object):
             key = RedisKeys.user_last_online(user_id)
             self.cache.set(key, str(at))
             self.redis.set(key, str(at))
+            self.redis.expire(key, SEVEN_DAYS)
 
         pipe.execute()
 
@@ -1150,6 +1152,7 @@ class CacheRedis(object):
             last_online_key = RedisKeys.user_last_online(user_id_str)
             self.cache.set(last_online_key, unix_time)
             self.redis.set(last_online_key, unix_time)
+            self.redis.expire(last_online_key, SEVEN_DAYS)
 
             self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
             self.redis.srem(RedisKeys.online_set(), user_id_str)
