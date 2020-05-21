@@ -552,7 +552,7 @@ class DatabaseRdbms(object):
         u = u - timedelta(days=days)
         unix_time = int(u.timestamp())
 
-        lasts = session.query(UserStatus).filter(LastOnline.at > unix_time).all()
+        lasts = session.query(LastOnline).filter(LastOnline.at > unix_time).all()
 
         if lasts is None:
             return list()
