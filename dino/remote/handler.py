@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import sys
+import traceback
 
 from jsonrpcclient.clients.http_client import HTTPClient
 from jsonrpcclient.requests import Request
@@ -68,5 +69,27 @@ class RemoteHandler(IRemoteHandler):
         # has the 'result' variable that JSONRPCResponse doesn't, so add the 'noqa' to skip warnings
         success = response.result.get('success', 1)  # noqa
         error_msg = response.result.get('error_msg', '[empty error in response]')  # noqa
+        error_code = response.result.get('error_msg', '-1')  # noqa
+
+        try:
+            error_code = int(float(error_code))
+        except Exception as e:
+            self.logger.error("could not convert error code '{}' to int: {}".format(error_code, str(e)))
+            self.logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
+
+        errors = {
+            50000: "generic error",
+            50001: "only contacts can whisper",
+            50002: "whisper is turned off",
+        }
+
+        if error_code in errors.keys():
+            self.logger.info("got error code {} '{}' when checking whisper from {} to {}".format(
+                error_code, errors.get(error_code), sender_id, target_user_name
+            ))
+
+            if error_code in {50001, 50002}:
+                return False
 
         return success == 1
