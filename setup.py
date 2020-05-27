@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.18.27-dev'
+version = '1.0.0-dev'
 
 setup(
     name='dino',
@@ -20,7 +20,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'zope.interface',   # interfaces
         'pyyaml',            # configuration files
         'redis',           # redis client
         'psycopg2',
