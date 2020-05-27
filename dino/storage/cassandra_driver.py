@@ -17,7 +17,6 @@ import pytz
 
 from datetime import datetime
 from enum import Enum
-from zope.interface import implementer
 
 from cassandra.cluster import ResultSet
 from cassandra.cluster import Session
@@ -55,8 +54,7 @@ class StatementKeys(Enum):
     msg_select_msg_id_from_user_and_room_not_deleted = 'msg_select_msg_id_from_user_and_room_not_deleted'
 
 
-@implementer(IDriver)
-class Driver(object):
+class Driver(IDriver):
     def __init__(self, session: Session, key_space: str, strategy: str, replications: int):
         self.session = session
         self.statements = dict()

@@ -1,8 +1,9 @@
-from zope.interface import Interface
+from abc import ABC
+
 from typing import Union, Dict, List
 
 
-class ICache(Interface):
+class ICache(ABC):
     def get_user_for_sid(self, sid: str):
         """
         get the user id for a sid

@@ -29,7 +29,6 @@ from sqlalchemy import or_
 from sqlalchemy.orm.exc import StaleDataError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy.exc import IntegrityError
-from zope.interface import implementer
 
 from dino.config import ApiActions, SessionKeys
 from dino.config import ApiTargets
@@ -101,8 +100,7 @@ def with_session(view_func):
     return wrapped
 
 
-@implementer(IDatabase)
-class DatabaseRdbms(object):
+class DatabaseRdbms(IDatabase):
     def __init__(self, env: GNEnvironment):
         self.env = env
         if self.env.config.get(ConfigKeys.TESTING, False):

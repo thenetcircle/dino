@@ -1,27 +1,8 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from zope.interface import implementer
-
 from dino.stats import IStats
 from dino.config import ConfigKeys
 
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-
-@implementer(IStats)
-class MockStatsd(object):
+class MockStatsd(IStats):
     def __init__(self):
         self.vals = dict()
         self.timings = dict()
@@ -48,8 +29,7 @@ class MockStatsd(object):
         self.vals[key] = value
 
 
-@implementer(IStats)
-class StatsdService(object):
+class StatsdService(IStats):
     def __init__(self, env):
         self.env = env
 

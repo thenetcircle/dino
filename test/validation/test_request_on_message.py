@@ -190,6 +190,7 @@ class RequestMessageTest(TestCase):
         }
 
         environ.env.config = {
+            ConfigKeys.VALIDATE_WHISPERS: True,
             ConfigKeys.ACL: {
                 'room': {
                     'join': {

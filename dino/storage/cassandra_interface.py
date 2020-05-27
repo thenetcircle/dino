@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from zope.interface import Interface
+from abc import ABC
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-class IDriver(Interface):
+class IDriver(ABC):
     def init(self):
         """
         creates keyspace, tables, views etc.

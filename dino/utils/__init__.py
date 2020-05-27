@@ -212,7 +212,7 @@ def is_whisper(message: str) -> bool:
 
 
 def should_validate_whispers() -> bool:
-    return environ.env.config.get(ConfigKeys.VALIDATE_WHISPERS, default=False)
+    return environ.env.config.get(ConfigKeys.VALIDATE_WHISPERS, False)
 
 
 def used_blacklisted_word(activity: Activity) -> (bool, Union[str, None]):

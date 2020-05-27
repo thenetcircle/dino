@@ -10,11 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from zope.interface import Interface
+from abc import ABC
 from activitystreams.models.activity import Activity
 
 
-class IStorage(Interface):
+class IStorage(ABC):
     def store_message(self, activity: Activity) -> None:
         """
         save this message to the storage

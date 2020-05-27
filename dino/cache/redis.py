@@ -6,7 +6,6 @@ import sys
 import socket
 import pytz
 
-from zope.interface import implementer
 from typing import Union, List
 from typing import Dict
 from typing import Tuple
@@ -20,8 +19,6 @@ from datetime import datetime
 from datetime import timedelta
 import redis
 
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
-
 EIGHT_HOURS_IN_SECONDS = 8*60*60
 TEN_MINUTES = 10*60
 FIVE_MINUTES = 5*60
@@ -34,7 +31,7 @@ SEVEN_DAYS = 7 * 24 * ONE_HOUR
 logger = logging.getLogger(__name__)
 
 
-class MemoryCache(object):
+class MemoryCache:
     def __init__(self):
         self.vals = dict()
 
@@ -66,8 +63,7 @@ class MemoryCache(object):
         self.vals = dict()
 
 
-@implementer(ICache)
-class CacheRedis(object):
+class CacheRedis(ICache):
     def __init__(self, env, host: str, port: int = 6379, db: int = 0):
         if env.config.get(ConfigKeys.TESTING, False) or host == 'mock':
             from fakeredis import FakeStrictRedis

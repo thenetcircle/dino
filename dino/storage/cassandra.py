@@ -14,7 +14,6 @@
 
 import logging
 
-from zope.interface import implementer
 from activitystreams.models.activity import Activity
 
 from dino.storage import IStorage
@@ -29,8 +28,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 logger = logging.getLogger(__name__)
 
 
-@implementer(IStorage)
-class CassandraStorage(object):
+class CassandraStorage(IStorage):
     driver = None
     session = None
 

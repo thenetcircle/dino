@@ -1,4 +1,3 @@
-from zope.interface import implementer
 from activitystreams.models.activity import Activity
 
 from dino.storage import IStorage
@@ -13,8 +12,7 @@ from dino.utils import b64e
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-@implementer(IStorage)
-class StorageRedis(object):
+class StorageRedis(IStorage):
     redis = None
 
     def __init__(self, host: str, port: int = 6379, db: int = 0, env=None):
