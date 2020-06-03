@@ -55,13 +55,13 @@ class SetStatusResource(BaseResource):
 
         user_id = json.get('id')
         status = json.get('status')
-        stage = json.get('stage', 'online')
+        stage = json.get('stage', 'status')
 
         all_statuses = {'online', 'offline', 'invisible', 'visible'}
         if status not in all_statuses:
             raise RuntimeError('unknown status [{}], need one of [{}]'.format(status, ','.join(all_statuses)))
 
-        all_stages = {'online', 'login'}
+        all_stages = {'status', 'login'}
         if stage not in all_stages:
             raise RuntimeError('unknown stage [{}], need one of [{}]'.format(stage, ','.join(all_stages)))
 
