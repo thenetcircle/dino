@@ -55,7 +55,7 @@ class SetStatusResource(BaseResource):
 
         user_id = json.get('id')
         status = json.get('status')
-        stage = json.get('stage', default='online')
+        stage = json.get('stage', 'online')
 
         all_statuses = {'online', 'offline', 'invisible', 'visible'}
         if status not in all_statuses:
