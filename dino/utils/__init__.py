@@ -146,14 +146,14 @@ def is_a_user_name(user_name: str) -> bool:
     return exists
 
 
-def get_whisper_users_from_message(message) -> list:
+def get_whisper_users_from_message(message) -> set:
     words = message.split()
 
     users = [word for word in words if word.startswith('-')]
     users = set([re.sub("[-,.'!)(]", "", user.strip()) for user in users])
     logger.debug("users in whisper: {}".format(users))
 
-    users = [user for user in users if is_a_user_name(user)]
+    users = {user for user in users if is_a_user_name(user)}
     logger.debug("users in whisper that exist: {}".format(users))
 
     return users

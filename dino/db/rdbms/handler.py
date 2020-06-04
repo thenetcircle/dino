@@ -276,14 +276,14 @@ class DatabaseRdbms(object):
 
         return room_roles + global_roles
 
-    def get_admins_in_room(self, room_id: str, this_user_id: str=None) -> list:
+    def get_admins_in_room(self, room_id: str, this_user_id: str=None) -> set:
         users = self.users_in_room(room_id, this_user_id, skip_cache=True)
         mods_in_room = list()
         for user_id, _ in users.items():
             if not self.is_super_user(user_id) and not self.is_global_moderator(user_id):
                 continue
             mods_in_room.append(user_id)
-        return mods_in_room
+        return set(mods_in_room)
 
     @with_session
     def get_online_admins(self, session=None) -> list:

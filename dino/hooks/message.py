@@ -57,6 +57,12 @@ class OnMessageHooks(object):
             else:
                 parsed_message = utils.parse_message(activity.object.content)
                 if parsed_message is not None and utils.is_whisper(parsed_message):
+                    whisper_users = utils.get_whisper_users_from_message(parsed_message)
+                    admins = environ.env.db.get_admins_in_room(activity.target.id)
+
+                    if len(admins_in_room) > 0:
+                        whisper_users.update(admins)
+
                     for whisper_user_id in utils.get_whisper_users_from_message(parsed_message):
                         send(data, _room=whisper_user_id)
                 else:
