@@ -1549,16 +1549,21 @@ def filter_whisper_messages_not_for_me(messages, user_id: str):
     if is_super_user(user_id) or is_global_moderator(user_id):
         return messages
 
+    user_name = get_user_name_for(user_id)
+
     for message in messages:
         parsed_message = parse_message(message['body'], encoded=False)
 
         if parsed_message is not None:
-            user_ids = set(get_whisper_users_from_message(parsed_message))
+            user_names = set(get_whisper_users_from_message(parsed_message))
 
-            if len(user_ids):
-                # it not sent TO me, and not send BY me, skip it
-                if user_id not in user_ids and message['from_user_id'] != user_id:
-                    continue
+            if len(user_names):
+                try:
+                    # it not sent TO me, and not send BY me, skip it
+                    if user_name not in user_names and message['from_user_id'] != user_id:
+                        continue
+                except NoSuchUserException:
+                    pass
 
         filtered.append(message)
 
