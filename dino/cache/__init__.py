@@ -726,6 +726,21 @@ class ICache(Interface):
         :return:
         """
 
+    def get_user_id(self, user_name: str) -> str:
+        """
+
+        :param user_name:
+        :return:
+        """
+
+    def set_user_id(self, user_id: str, user_name: str) -> None:
+        """
+
+        :param user_id:
+        :param user_name:
+        :return:
+        """
+
     def get_user_name(self, user_id: str) -> str:
         """
         the the name of the user from the id

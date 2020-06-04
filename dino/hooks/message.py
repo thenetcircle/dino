@@ -14,6 +14,7 @@ from typing import Union
 from dino import environ
 from dino import utils
 from dino.config import ConfigKeys
+from dino.exceptions import NoSuchUserException
 from dino.utils.decorators import timeit
 
 import logging
@@ -64,12 +65,17 @@ class OnMessageHooks(object):
                     if len(admins):
                         whisper_users.update(admins)
 
-                    for whisper_user_id in utils.get_whisper_users_from_message(parsed_message):
-                        logger.info("sending whisper to user {}".format(whisper_user_id))
-                        send(data, _room=whisper_user_id)
+                    for whisper_user_name in utils.get_whisper_users_from_message(parsed_message):
+                        logger.info("sending whisper to user {}".format(whisper_user_name))
+
+                        try:
+                            whisper_user_id = environ.env.db.get_user_id(whisper_user_name)
+                            send(data, _room=whisper_user_id)
+                        except NoSuchUserException:
+                            pass
 
                     # also send to the sender
-                    logger.info("sending whisper intended for {} back to sender {}".format(whisper_user_id, user_id))
+                    logger.info("sending whisper back to sender {}".format(user_id))
                     send(data, _room=user_id)
                 else:
                     send(data, _room=room_id)

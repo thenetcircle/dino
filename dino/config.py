@@ -350,6 +350,7 @@ class RedisKeys(object):
     RKEY_CHANNEL_FOR_ROOMS = 'room:channel'
     RKEY_LAST_READ = 'room:read:%s'  # room:read:room_id
     RKEY_USER_NAMES = 'user:names'
+    RKEY_USER_IDS = 'user:ids'
     RKEY_ROOM_ADMIN = 'room:admin'
     RKEY_ACL_VALIDATION = 'acl:validation:%s'  # acl:validation:acl_type (e.g. acl:validation:gender)
     RKEY_USER_ROLES = 'users:roles'
@@ -490,6 +491,10 @@ class RedisKeys(object):
     @staticmethod
     def user_names() -> str:
         return RedisKeys.RKEY_USER_NAMES
+
+    @staticmethod
+    def user_ids() -> str:
+        return RedisKeys.RKEY_USER_IDS
 
     @staticmethod
     def sid_for_user_id() -> str:

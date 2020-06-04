@@ -1274,6 +1274,9 @@ class DatabaseRedis(object):
     def type_of_rooms_in_channel(self, channel_id: str) -> str:
         return 'mix'
 
+    def get_user_id(self, user_name: str) -> str:
+        return user_name
+
     def remove_room(self, channel_id: str, room_id: str) -> None:
         if self.env.cache.get_channel_exists(channel_id) is None:
             if not self.channel_exists(channel_id):

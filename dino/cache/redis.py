@@ -874,6 +874,26 @@ class CacheRedis(object):
         self.cache.set(cache_key, room_id)
         self.redis.hset(key, room_name, room_id)
 
+    def get_user_id(self, user_name: str) -> str:
+        key = RedisKeys.user_ids()
+        cache_key = '%s-%s' % (key, user_name)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value
+
+        user_id = self.redis.hget(key, user_name)
+        if user_id is not None:
+            user_id = str(user_id, 'utf-8')
+            self.cache.set(cache_key, user_id)
+            return user_id
+        return user_id
+
+    def set_user_id(self, user_id: str, user_name: str):
+        key = RedisKeys.user_ids()
+        cache_key = '%s-%s' % (key, user_name)
+        self.redis.hset(key, user_name, user_id)
+        self.cache.set(cache_key, user_id)
+
     def get_user_name(self, user_id: str) -> str:
         key = RedisKeys.user_names()
         cache_key = '%s-%s' % (key, user_id)

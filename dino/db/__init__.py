@@ -990,11 +990,20 @@ class IDatabase(Interface):
 
     def get_user_name(self, user_id: str) -> str:
         """
-        the the user name from user id
+        get the user name from user id
 
         :raises NoSuchUserException if a name can't be found
         :param user_id: the uuid of the user
         :return: the user name
+        """
+
+    def get_user_id(self, user_name: str) -> str:
+        """
+        get the user id from user name
+
+        :raises NoSuchUserException if a name can't be found
+        :param user_name: the name of the user
+        :return: the user id
         """
 
     def get_owners_channel(self, channel_id: str) -> dict:

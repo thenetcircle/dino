@@ -2468,6 +2468,27 @@ class DatabaseRdbms(object):
 
         return exists
 
+    def get_user_id(self, user_name: str) -> str:
+        @with_session
+        def _get_user_name(session=None):
+            user = session.query(Users).filter(Users.name == user_name).first()
+            if user is None:
+                return None
+            return user.uuid
+
+        user_id = self.env.cache.get_user_id(user_name)
+        if user_id is not None and len(user_id.strip()) > 0:
+            return user_id
+
+        user_id = _get_user_name()
+        if user_id is not None and len(user_id.strip()) > 0:
+            self.env.cache.set_user_id(user_id, user_name)
+
+        if user_id is None or len(user_id.strip()) == 0:
+            raise NoSuchUserException(user_name)
+
+        return user_id
+
     def get_user_name(self, user_id: str, skip_cache=False) -> str:
         @with_session
         def _get_user_name(session=None):
