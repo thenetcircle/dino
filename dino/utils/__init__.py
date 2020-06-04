@@ -190,7 +190,7 @@ def can_send_whisper_in_channel(activity, channel_id: str):
 
 def can_send_whisper_to_user_single(sender_id, target_user_name, message) -> (bool, int):
     if not is_a_user_name(target_user_name):
-        return True
+        return True, ErrorCodes.OK
 
     allowed, reason_code = environ.env.cache.get_can_whisper_to_user(sender_id, target_user_name)
 
@@ -206,7 +206,7 @@ def can_send_whisper_to_user_single(sender_id, target_user_name, message) -> (bo
         ))
         return False, reason_code
 
-    return True, reason_code
+    return True, ErrorCodes.OK
 
 
 def is_whisper(message: str) -> bool:
@@ -217,7 +217,7 @@ def is_whisper(message: str) -> bool:
 
 
 def should_validate_whispers() -> bool:
-    return environ.env.config.get(ConfigKeys.VALIDATE_WHISPERS, default=False)
+    return environ.env.config.get(ConfigKeys.VALIDATE_WHISPERS, False)
 
 
 def used_blacklisted_word(activity: Activity) -> (bool, Union[str, None]):

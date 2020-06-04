@@ -24,14 +24,14 @@ class FakeRemote(IRemoteHandler):
     def __init__(self):
         self.blocked = dict()
 
-    def can_send_whisper_to(self, sender_id: str, target_user_name: str) -> bool:
+    def can_send_whisper_to(self, sender_id: str, target_user_name: str):
         if target_user_name not in self.blocked.keys():
-            return True
+            return True, ErrorCodes.OK
 
         if sender_id in self.blocked.get(target_user_name):
-            return False
+            return False, ErrorCodes.NOT_ALLOWED_TO_WHISPER_TURNED_OFF
 
-        return True
+        return True, ErrorCodes.OK
 
 
 class FakeDb(object):
@@ -116,9 +116,9 @@ class FakeDb(object):
 
 class FakeCache:
     def get_can_whisper_to_user(self, sender_id, target_user_name):
-        return None
+        return None, None
 
-    def set_can_whisper_to_user(self, sender_id, target_user_name, allowed):
+    def set_can_whisper_to_user(self, sender_id, target_user_name, allowed, reason_code):
         pass
 
 
@@ -190,6 +190,7 @@ class RequestMessageTest(TestCase):
         }
 
         environ.env.config = {
+            ConfigKeys.VALIDATE_WHISPERS: True,
             ConfigKeys.ACL: {
                 'room': {
                     'join': {
