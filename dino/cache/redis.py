@@ -762,22 +762,23 @@ class CacheRedis(object):
         key = RedisKeys.all_rooms()
         return self.cache.get(key)
 
-    def get_can_whisper_to_user(self, sender_id: str, target_user_name: str) -> Union[None, bool]:
+    def get_can_whisper_to_user(self, sender_id: str, target_user_name: str):
         key = RedisKeys.can_whisper_to(sender_id)
         cache_key = '%s-%s' % (key, target_user_name)
 
-        can_whisper = self.cache.get(cache_key)
-        if can_whisper is not None:
-            return can_whisper
+        can_whisper_and_reason = self.cache.get(cache_key)
+        if can_whisper_and_reason is not None:
+            can_whisper, reason_code = can_whisper_and_reason
+            return can_whisper, reason_code
 
         can_whisper = self.redis.hget(key, target_user_name)
         if can_whisper is None:
-            return None
+            return None, None
 
-        can_whisper = str(can_whisper, 'utf-8')
-        return can_whisper == '1'
+        can_whisper, reason_code = str(can_whisper, 'utf-8').split('|')
+        return can_whisper == '1', reason_code
 
-    def set_can_whisper_to_user(self, sender_id: str, target_user_name: str, allowed: bool) -> None:
+    def set_can_whisper_to_user(self, sender_id: str, target_user_name: str, allowed: bool, reason_code: int) -> None:
         # if not allowed, we need to check remote system, maybe they will soon be allowed
         if not allowed:
             return
@@ -785,8 +786,13 @@ class CacheRedis(object):
         key = RedisKeys.can_whisper_to(sender_id)
         cache_key = '%s-%s' % (key, target_user_name)
 
-        self.cache.set(cache_key, allowed, ttl=ONE_HOUR)
-        self.redis.hset(key, target_user_name, '1' if allowed else '0')
+        can_whisper_and_reason = '|'.join([
+            '1' if allowed else '0',
+            str(reason_code)
+        ])
+
+        self.cache.set(cache_key, (allowed, reason_code), ttl=ONE_HOUR)
+        self.redis.hset(key, target_user_name, can_whisper_and_reason)
         self.redis.expire(key, EIGHT_HOURS_IN_SECONDS)
 
     def get_channels_with_sort(self):

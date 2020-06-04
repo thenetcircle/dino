@@ -31,7 +31,7 @@ class ICache(Interface):
         :return:
         """
 
-    def get_can_whisper_to_user(self, sender_id: str, target_user_name: str) -> Union[None, bool]:
+    def get_can_whisper_to_user(self, sender_id: str, target_user_name: str):
         """
 
         :param sender_id:
@@ -60,12 +60,13 @@ class ICache(Interface):
         :return:
         """
 
-    def set_can_whisper_to_user(self, sender_id: str, target_user_name: str, allowed: bool) -> None:
+    def set_can_whisper_to_user(self, sender_id: str, target_user_name: str, allowed: bool, reason_code: int) -> None:
         """
 
         :param sender_id:
         :param target_user_name:
         :param allowed:
+        :param reason_code
         :return:
         """
 

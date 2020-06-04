@@ -8,7 +8,7 @@ import sys
 import os
 import re
 
-from dino.config import ConfigKeys
+from dino.config import ConfigKeys, ErrorCodes
 from dino import environ
 from dino.validation.duration import DurationValidator
 from dino.validation.generic import GenericValidator
@@ -157,14 +157,19 @@ def get_whisper_users_from_message(message) -> list:
     return users
 
 
-def can_send_whisper_to_user(activity: Activity, message: str, users: list) -> bool:
+def can_send_whisper_to_user(activity: Activity, message: str, users: list) -> (bool, int):
     sender_id = activity.actor.id
 
-    # generator
-    return all((
+    can_whisper_and_reason = [
         can_send_whisper_to_user_single(sender_id, user, message)
         for user in users
-    ))
+    ]
+
+    for can_whisper, reason in can_whisper_and_reason:
+        if not can_whisper:
+            return False, reason
+
+    return True, ErrorCodes.OK
 
 
 def can_send_whisper_in_channel(activity, channel_id: str):
@@ -183,25 +188,25 @@ def can_send_whisper_in_channel(activity, channel_id: str):
     return is_valid
 
 
-def can_send_whisper_to_user_single(sender_id, target_user_name, message) -> bool:
+def can_send_whisper_to_user_single(sender_id, target_user_name, message) -> (bool, int):
     if not is_a_user_name(target_user_name):
         return True
 
-    allowed = environ.env.cache.get_can_whisper_to_user(sender_id, target_user_name)
+    allowed, reason_code = environ.env.cache.get_can_whisper_to_user(sender_id, target_user_name)
 
     # doesn't exist in cache
     if allowed is None:
-        allowed = environ.env.remote.can_send_whisper_to(sender_id, target_user_name)
+        allowed, reason_code = environ.env.remote.can_send_whisper_to(sender_id, target_user_name)
 
-    environ.env.cache.set_can_whisper_to_user(sender_id, target_user_name, allowed)
+    environ.env.cache.set_can_whisper_to_user(sender_id, target_user_name, allowed, reason_code)
 
     if not allowed:
         logger.info("user {} is not allowed to send whisper to {} (message was: '{}')".format(
             sender_id, target_user_name, message
         ))
-        return False
+        return False, reason_code
 
-    return True
+    return True, reason_code
 
 
 def is_whisper(message: str) -> bool:

@@ -6,7 +6,7 @@ import traceback
 from jsonrpcclient.clients.http_client import HTTPClient
 from jsonrpcclient.requests import Request
 
-from dino.config import ConfigKeys
+from dino.config import ConfigKeys, ErrorCodes
 from dino.environ import GNEnvironment
 from dino.remote import IRemoteHandler
 
@@ -19,7 +19,7 @@ class RemoteHandler(IRemoteHandler):
         self.path_whisper = env.config.get(ConfigKeys.PATH_CAN_WHISPER, domain=ConfigKeys.REMOTE)
         self.private_key = env.config.get(ConfigKeys.PRIVATE_KEY, domain=ConfigKeys.REMOTE)
 
-    def can_send_whisper_to(self, sender_id: str, target_user_name: str) -> bool:
+    def can_send_whisper_to(self, sender_id: str, target_user_name: str) -> (bool, int):
         url = "{}/{}".format(self.host, self.path_whisper)
 
         # might not be an int in some applications
@@ -51,15 +51,15 @@ class RemoteHandler(IRemoteHandler):
             self.logger.error("could not call remote endpoint {}: {}".format(url, str(e)))
             self.env.capture_exception(sys.exc_info())
             self.logger.exception(e)
-            return True
+            return True, ErrorCodes.OK
 
         if response is None:
             self.logger.error("received None response for jsonrpc call")
-            return True
+            return True, ErrorCodes.OK
 
         if not response.ok:
             self.logger.error("remote jsonrpc call failed, error_msg: {}".format(str(response)))
-            return True
+            return True, ErrorCodes.OK
 
         self.logger.debug("response for sender_id {} and target_user_name {}: {}".format(
             sender_id, target_user_name, str(response)
@@ -89,7 +89,9 @@ class RemoteHandler(IRemoteHandler):
                 error_code, errors.get(error_code), sender_id, target_user_name
             ))
 
-            if error_code in {50001, 50002}:
-                return False
+            if error_code == 50001:
+                return False, ErrorCodes.NOT_ALLOWED_TO_WHISPER_NOT_A_CONTACT
+            elif error_code == 50002:
+                return False, ErrorCodes.NOT_ALLOWED_TO_WHISPER_TURNED_OFF
 
-        return success == 1
+        return success == 1, ErrorCodes.OK

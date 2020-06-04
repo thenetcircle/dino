@@ -132,8 +132,9 @@ class RequestValidator(BaseValidator):
                         if not utils.can_send_whisper_in_channel(activity, channel_id):
                             return False, ECodes.NOT_ALLOWED_TO_WHISPER_CHANNEL, 'not allowed to whisper in channel'
 
-                        if not utils.can_send_whisper_to_user(activity, message, users):
-                            return False, ECodes.NOT_ALLOWED_TO_WHISPER_USER, 'not allowed to whisper this user'
+                        can_whisper, reason_code = utils.can_send_whisper_to_user(activity, message, users)
+                        if not can_whisper:
+                            return False, reason_code, 'not allowed to whisper this user'
 
         elif object_type == 'private':
             channel_id = None
