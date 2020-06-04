@@ -55,7 +55,12 @@ class OnMessageHooks(object):
                     for owner in owners:
                         send(data, _room=owner)
             else:
-                send(data, _room=room_id)
+                parsed_message = utils.parse_message(activity.object.content)
+                if parsed_message is not None and utils.is_whisper(parsed_message):
+                    for whisper_user_id in utils.get_whisper_users_from_message(parsed_message):
+                        send(data, _room=whisper_user_id)
+                else:
+                    send(data, _room=room_id)
 
         def store(deleted=False) -> Union[str, None]:
             try:

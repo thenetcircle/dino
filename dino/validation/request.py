@@ -36,35 +36,6 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_message(self, activity: Activity) -> (bool, int, str):
-        def parse_message(msg):
-            msg = utils.b64d(msg)
-
-            if len(msg.strip()) == 0:
-                return None
-
-            try:
-                msg = msg.replace("false", "False")
-                msg = msg.replace("true", "True")
-                msg = ast.literal_eval(msg)
-            except Exception as e:
-                logger.error("could not eval message because {}, message was '{}'".format(str(e), msg))
-                logger.exception(e)
-                environ.env.capture_exception(sys.exc_info())
-                return None
-
-            try:
-                if "text" in msg.keys():
-                    msg = msg.get("text", "")
-                else:
-                    return None
-            except Exception as e:
-                logger.error("could not get text from message {}, message was '{}'".format(str(e), msg))
-                logger.exception(e)
-                environ.env.capture_exception(sys.exc_info())
-                return None
-
-            return msg
-
         room_id = activity.target.id
         user_id = activity.actor.id
         object_type = activity.target.object_type
@@ -121,7 +92,7 @@ class RequestValidator(BaseValidator):
                            'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
 
             if utils.should_validate_whispers():
-                message = parse_message(message)
+                message = utils.parse_message(message)
                 if message is not None and utils.is_whisper(message):
                     users = utils.get_whisper_users_from_message(message)
 

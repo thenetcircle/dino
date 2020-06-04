@@ -1,3 +1,5 @@
+import ast
+
 from activitystreams import Activity
 from activitystreams import parse as as_parser
 from typing import Union
@@ -148,7 +150,7 @@ def get_whisper_users_from_message(message) -> list:
     words = message.split()
 
     users = [word for word in words if word.startswith('-')]
-    users = [re.sub("[-,.'!)(]", "", user.strip()) for user in users]
+    users = set([re.sub("[-,.'!)(]", "", user.strip()) for user in users])
     logger.debug("users in whisper: {}".format(users))
 
     users = [user for user in users if is_a_user_name(user)]
@@ -207,6 +209,37 @@ def can_send_whisper_to_user_single(sender_id, target_user_name, message) -> (bo
         return False, reason_code
 
     return True, ErrorCodes.OK
+
+
+def parse_message(msg, encoded=True):
+    if encoded:
+        msg = b64d(msg)
+
+    if len(msg.strip()) == 0:
+        return None
+
+    try:
+        msg = msg.replace("false", "False")
+        msg = msg.replace("true", "True")
+        msg = ast.literal_eval(msg)
+    except Exception as e:
+        logger.error("could not eval message because {}, message was '{}'".format(str(e), msg))
+        logger.exception(e)
+        environ.env.capture_exception(sys.exc_info())
+        return None
+
+    try:
+        if "text" in msg.keys():
+            msg = msg.get("text", "")
+        else:
+            return None
+    except Exception as e:
+        logger.error("could not get text from message {}, message was '{}'".format(str(e), msg))
+        logger.exception(e)
+        environ.env.capture_exception(sys.exc_info())
+        return None
+
+    return msg
 
 
 def is_whisper(message: str) -> bool:
@@ -1495,6 +1528,38 @@ def user_is_allowed_to_delete_message(room_id: str, user_id: str) -> bool:
     return False
 
 
+def filter_whisper_messages_not_for_me(messages, user_id: str):
+    """
+    messages = [{
+        'message_id': row.message_id,
+        'from_user_id': row.from_user_id,
+        'from_user_name': row.from_user_name,
+        'target_id': row.target_id,
+        'target_name': row.target_name,
+        'body': row.body,
+        'domain': row.domain,
+        'channel_id': row.channel_id,
+        'channel_name': row.channel_name,
+        'timestamp': row.sent_time,
+        'deleted': row.deleted
+    }]
+    """
+    filtered = list()
+
+    for message in messages:
+        parsed_message = parse_message(message['body'], encoded=False)
+
+        if parsed_message is not None:
+            user_ids = set(get_whisper_users_from_message(parsed_message))
+
+            if len(user_ids) and user_id not in user_ids:
+                continue
+
+        filtered.append(message)
+
+    return messages
+
+
 def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> list:
     history = environ.env.config.get(
             ConfigKeys.TYPE,
@@ -1516,7 +1581,11 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
                 return list()
 
         return environ.env.storage.get_unread_history(room_id, _last_read)
-    return _history(last_read)
+
+    messages = _history(last_read)
+    messages = filter_whisper_messages_not_for_me(messages, user_id)
+
+    return messages
 
 
 def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
