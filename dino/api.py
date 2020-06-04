@@ -419,10 +419,12 @@ def on_rename_room(data: dict, activity: Activity) -> (int, Union[str, None]):
     room_id = activity.target.id
     new_room_name = activity.target.display_name
 
+    channel_id = utils.get_channel_for_room(room_id)
+
     rename_activity = utils.activity_for_rename_room(
             activity.actor.id, activity.actor.display_name, room_id, new_room_name)
 
-    environ.env.db.rename_room(room_id, new_room_name)
+    environ.env.db.rename_room(channel_id, room_id, new_room_name)
     environ.env.emit('gn_room_renamed', rename_activity, broadcast=True, include_self=True, namespace='/ws')
     environ.env.observer.emit('on_rename_room', (data, activity))
 
