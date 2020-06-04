@@ -65,6 +65,9 @@ class OnMessageHooks(object):
 
                     for whisper_user_id in utils.get_whisper_users_from_message(parsed_message):
                         send(data, _room=whisper_user_id)
+
+                    # also send to the sender
+                    send(data, _room=user_id)
                 else:
                     send(data, _room=room_id)
 
