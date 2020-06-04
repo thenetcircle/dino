@@ -60,7 +60,7 @@ class OnMessageHooks(object):
                     whisper_users = utils.get_whisper_users_from_message(parsed_message)
                     admins = environ.env.db.get_admins_in_room(activity.target.id)
 
-                    if len(admins_in_room) > 0:
+                    if len(admins):
                         whisper_users.update(admins)
 
                     for whisper_user_id in utils.get_whisper_users_from_message(parsed_message):
