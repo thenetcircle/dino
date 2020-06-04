@@ -1555,8 +1555,10 @@ def filter_whisper_messages_not_for_me(messages, user_id: str):
         if parsed_message is not None:
             user_ids = set(get_whisper_users_from_message(parsed_message))
 
-            if len(user_ids) and user_id not in user_ids:
-                continue
+            if len(user_ids):
+                # it not sent TO me, and not send BY me, skip it
+                if user_id not in user_ids and message['from_user_id'] != user_id:
+                    continue
 
         filtered.append(message)
 
