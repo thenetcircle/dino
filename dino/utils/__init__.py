@@ -1546,6 +1546,9 @@ def filter_whisper_messages_not_for_me(messages, user_id: str):
     """
     filtered = list()
 
+    if is_super_user(user_id) or is_global_moderator(user_id):
+        return messages
+
     for message in messages:
         parsed_message = parse_message(message['body'], encoded=False)
 
@@ -1557,7 +1560,7 @@ def filter_whisper_messages_not_for_me(messages, user_id: str):
 
         filtered.append(message)
 
-    return messages
+    return filtered
 
 
 def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> list:
