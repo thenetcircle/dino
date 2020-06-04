@@ -159,7 +159,7 @@ def get_whisper_users_from_message(message) -> set:
     return users
 
 
-def can_send_whisper_to_user(activity: Activity, message: str, users: list) -> (bool, int):
+def can_send_whisper_to_user(activity: Activity, message: str, users: set) -> (bool, int):
     sender_id = activity.actor.id
 
     can_whisper_and_reason = [

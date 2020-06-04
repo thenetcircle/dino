@@ -69,7 +69,7 @@ class RemoteHandler(IRemoteHandler):
         # has the 'result' variable that JSONRPCResponse doesn't, so add the 'noqa' to skip warnings
         success = response.result.get('success', 1)  # noqa
         error_msg = response.result.get('error_msg', '[empty error in response]')  # noqa
-        error_code = response.result.get('error_msg', '-1')  # noqa
+        error_code = response.result.get('error', '-1')  # noqa
 
         try:
             error_code = int(float(error_code))
@@ -93,5 +93,9 @@ class RemoteHandler(IRemoteHandler):
                 return False, ErrorCodes.NOT_ALLOWED_TO_WHISPER_NOT_A_CONTACT
             elif error_code == 50002:
                 return False, ErrorCodes.NOT_ALLOWED_TO_WHISPER_TURNED_OFF
+            elif error_code == 50000 and error_msg == "whisper self":
+                return False, ErrorCodes.NOT_ALLOWED_TO_WHISPER_SELF
+            elif error_code == 50000:
+                return False, ErrorCodes.NOT_ALLOWED_TO_WHISPER_GENERIC_ERROR
 
         return success == 1, ErrorCodes.OK
