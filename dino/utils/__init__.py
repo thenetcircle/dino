@@ -1030,7 +1030,7 @@ def activity_for_room_renamed(activity: Activity, room_name: str) -> dict:
     act = ActivityBuilder.enrich({
         'target': {
             'id': activity.target.id,
-            'displayName': b64e(room_name),
+            'displayName': room_name,
             'objectType': 'room'
         },
         'verb': 'renamed'
@@ -1061,11 +1061,11 @@ def activity_for_rename_room(user_id: str, user_name: str, room_id: str, room_na
     act = ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
-            'displayName': b64e(user_name)
+            'displayName': user_name
         },
         'target': {
             'id': room_id,
-            'displayName': b64e(room_name),
+            'displayName': room_name,
             'objectType': 'room'
         },
         'verb': 'rename'
