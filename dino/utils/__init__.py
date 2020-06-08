@@ -150,7 +150,7 @@ def get_whisper_users_from_message(message) -> set:
     words = message.split()
 
     users = [word for word in words if word.startswith('-')]
-    users = set([re.sub("[-,.'!)(]", "", user.strip()) for user in users])
+    users = set([re.sub("[,.'!)(]", "", user.strip()) for user in users])
     logger.debug("users in whisper: {}".format(users))
 
     users = {user for user in users if is_a_user_name(user)}

@@ -57,7 +57,7 @@ class OnMessageHooks(object):
                         send(data, _room=owner)
             else:
                 parsed_message = utils.parse_message(activity.object.content)
-                
+
                 if parsed_message is not None and utils.is_whisper(parsed_message):
                     logger.info("parsed whisper message: {}".format(parsed_message))
 
