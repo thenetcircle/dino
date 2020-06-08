@@ -200,7 +200,9 @@ def can_send_whisper_to_user_single(sender_id, target_user_name, message) -> (bo
     if allowed is None:
         allowed, reason_code = environ.env.remote.can_send_whisper_to(sender_id, target_user_name)
 
-    environ.env.cache.set_can_whisper_to_user(sender_id, target_user_name, allowed, reason_code)
+    # if ErrorCodes.REMOTE_ERROR don't cache it, try again next time
+    if reason_code == ErrorCodes.OK:
+        environ.env.cache.set_can_whisper_to_user(sender_id, target_user_name, allowed, reason_code)
 
     if not allowed:
         logger.info("user {} is not allowed to send whisper to {} (message was: '{}')".format(

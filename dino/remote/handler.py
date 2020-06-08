@@ -54,7 +54,7 @@ class RemoteHandler(IRemoteHandler):
             self.logger.error("could not call remote endpoint {}: {}".format(url, str(e)))
             self.env.capture_exception(sys.exc_info())
             self.logger.exception(e)
-            return True, ErrorCodes.OK
+            return True, ErrorCodes.REMOTE_ERROR
 
         if response is None:
             self.logger.error("received None response for jsonrpc call")
