@@ -218,14 +218,17 @@ def parse_message(msg, encoded=True):
     if len(msg.strip()) == 0:
         return None
 
-    try:
-        msg = msg.replace("false", "False")
-        msg = msg.replace("true", "True")
-        msg = ast.literal_eval(msg)
-    except Exception as e:
-        logger.error("could not eval message because {}, message was '{}'".format(str(e), msg))
-        logger.exception(e)
-        environ.env.capture_exception(sys.exc_info())
+    if '{' in msg:
+        try:
+            msg = msg.replace("false", "False")
+            msg = msg.replace("true", "True")
+            msg = ast.literal_eval(msg)
+        except Exception as e:
+            logger.error("could not eval message because {}, message was '{}'".format(str(e), msg))
+            logger.exception(e)
+            environ.env.capture_exception(sys.exc_info())
+            return None
+    else:
         return None
 
     try:
@@ -243,6 +246,10 @@ def parse_message(msg, encoded=True):
 
 
 def is_whisper(message: str) -> bool:
+    # sending images etc doesn't have a string body
+    if type(message) == dict:
+        return False
+
     words = message.split()
 
     # generator, returns as soon as one matches
