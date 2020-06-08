@@ -4,7 +4,6 @@ import sys
 import traceback
 
 from jsonrpcclient.clients.http_client import HTTPClient
-from jsonrpcclient.requests import Request
 
 from dino.config import ConfigKeys, ErrorCodes
 from dino.environ import GNEnvironment
@@ -31,15 +30,12 @@ class RemoteHandler(IRemoteHandler):
         try:
             self.logger.debug("calling url: {}".format(url))
 
-            request = Request(
-                method="whisper.validate",
-                senderId=sender_id,
-                receiverName=target_user_name,
-            )
+            params = '{"receiverName": target_user_name, "senderId": sender_id}'
+            request = '{"method": "whisper.validate", "id": 1, "params": ' + params + ', "jsonrpc": "2.0"}'
 
-            request_and_hash = self.private_key + str(request)
+            request_and_hash = self.private_key + request
             sign_hash = hashlib.md5(request_and_hash.encode('utf-8')).hexdigest()
-            
+
             self.logger.info("request_and_hash: {}".format(request_and_hash))
             self.logger.info("sign_hash: {}".format(sign_hash))
 
