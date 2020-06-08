@@ -31,7 +31,7 @@ class RemoteHandler(IRemoteHandler):
             self.logger.debug("calling url: {}".format(url))
 
             params = '{"receiverName": "' + target_user_name + '", "senderId": ' + str(sender_id)
-            request = '{"method": "whisper.validate", "id": 1, "params": ' + params + ', "jsonrpc": "2.0"}'
+            request = '{"method": "whisper.validate", "id": 1, "params": ' + params + ', "jsonrpc": "2.0"}]'
 
             request_and_hash = self.private_key + request
             sign_hash = hashlib.md5(request_and_hash.encode('utf-8')).hexdigest()
