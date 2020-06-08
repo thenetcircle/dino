@@ -57,8 +57,10 @@ class OnMessageHooks(object):
                         send(data, _room=owner)
             else:
                 parsed_message = utils.parse_message(activity.object.content)
-                logger.info("parsed whisper message: {}".format(parsed_message))
+                
                 if parsed_message is not None and utils.is_whisper(parsed_message):
+                    logger.info("parsed whisper message: {}".format(parsed_message))
+
                     whisper_users = utils.get_whisper_users_from_message(parsed_message)
                     admins = environ.env.db.get_admins_in_room(activity.target.id)
 
