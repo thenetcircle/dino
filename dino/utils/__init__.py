@@ -155,9 +155,6 @@ def get_whisper_users_from_message(message) -> set:
         users = [word for word in words if word.startswith('-')]
         users = set([re.sub("[,.'!)(]", "", user.strip().lstrip('-')) for user in users])
         logger.info("users in whisper: {}".format(users))
-
-        users = {user for user in users if is_a_user_name(user)}
-        logger.info("users in whisper that exist: {}".format(users))
     except Exception as e:
         logger.error("could not get users from message because {}, message was '{}'".format(str(e), str(message)))
         logger.exception(e)
@@ -216,8 +213,6 @@ def parse_message(msg, encoded=True):
     if encoded:
         msg = b64d(msg)
 
-    logger.info('[check whisper] parsing message: {}'.format(str(msg)))
-
     if len(msg.strip()) == 0:
         return None
 
@@ -232,14 +227,12 @@ def parse_message(msg, encoded=True):
             environ.env.capture_exception(sys.exc_info())
             return None
     else:
-        logger.info('[check whisper] no bracket in message')
         return None
 
     try:
         if "text" in msg.keys():
             msg = msg.get("text", "")
         else:
-            logger.info('[check whisper] no "text" key in message')
             return None
     except Exception as e:
         logger.error("could not get text from message {}, message was '{}'".format(str(e), msg))
@@ -1559,7 +1552,6 @@ def filter_whisper_messages_not_for_me(messages, user_id: str):
     filtered = list()
 
     if is_super_user(user_id) or is_global_moderator(user_id):
-        logger.info('[check whisper] user {} is a super user or moderator'.format(user_id))
         return messages
 
     user_name = get_user_name_for(user_id)
@@ -1577,8 +1569,6 @@ def filter_whisper_messages_not_for_me(messages, user_id: str):
                         continue
                 except NoSuchUserException:
                     pass
-        else:
-            logger.info('[check whisper] parsed message is None')
 
         filtered.append(message)
 
