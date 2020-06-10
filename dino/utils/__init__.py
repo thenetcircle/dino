@@ -147,14 +147,21 @@ def is_a_user_name(user_name: str) -> bool:
 
 
 def get_whisper_users_from_message(message) -> set:
-    words = message.split()
+    users = set()
 
-    users = [word for word in words if word.startswith('-')]
-    users = set([re.sub("[,.'!)(]", "", user.strip().lstrip('-')) for user in users])
-    logger.debug("users in whisper: {}".format(users))
+    try:
+        words = message.split()
 
-    users = {user for user in users if is_a_user_name(user)}
-    logger.debug("users in whisper that exist: {}".format(users))
+        users = [word for word in words if word.startswith('-')]
+        users = set([re.sub("[,.'!)(]", "", user.strip().lstrip('-')) for user in users])
+        logger.debug("users in whisper: {}".format(users))
+
+        users = {user for user in users if is_a_user_name(user)}
+        logger.debug("users in whisper that exist: {}".format(users))
+    except Exception as e:
+        logger.error("could not get users from message because {}, message was '{}'".format(str(e), str(message)))
+        logger.exception(e)
+        environ.env.capture_exception(sys.exc_info())
 
     return users
 
