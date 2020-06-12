@@ -149,6 +149,10 @@ def is_a_user_name(user_name: str) -> bool:
 def get_whisper_users_from_message(message) -> set:
     users = set()
 
+    # ads, images, etc.
+    if type(message) == dict:
+        return users
+
     try:
         words = message.split()
 
