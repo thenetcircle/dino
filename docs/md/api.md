@@ -964,6 +964,9 @@ Request contains:
 
 ```json
 {
+    "actor": {
+        "id": "<ID of the user who's banning someone; leave empty for admin ID>"
+    },
     "target": {
         "id": "<UUID of the room/channel to ban from>",
         "objectType": "<room/channel/global>"
