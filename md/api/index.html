@@ -1006,11 +1006,14 @@ of a single message.</p>
 <p>Responds with <code>gn_kick</code>.</p>
 <p>Request contains:</p>
 <pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;ID of the user who's kicking someone, leave black for admin ID&gt;&quot;
+    },
     &quot;target&quot;: {
-        &quot;id&quot;: &quot;&lt;UUID of the room to kick from&gt;&quot;
+        &quot;id&quot;: &quot;&lt;ID of the room to kick from&gt;&quot;
     },
     &quot;object&quot;: {
-        &quot;id&quot;: &quot;&lt;UUID of the user to kick&gt;&quot;,
+        &quot;id&quot;: &quot;&lt;ID of the user to kick&gt;&quot;,
         &quot;content&quot;: &quot;&lt;optional reason field&gt;&quot;
     },
     &quot;verb&quot;: &quot;kick&quot;
