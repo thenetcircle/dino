@@ -932,11 +932,14 @@ Request contains:
 
 ```json
 {
+    "actor": {
+        "id": "<ID of the user who's kicking someone, leave black for admin ID>"
+    },
     "target": {
-        "id": "<UUID of the room to kick from>"
+        "id": "<ID of the room to kick from>"
     },
     "object": {
-        "id": "<UUID of the user to kick>",
+        "id": "<ID of the user to kick>",
         "content": "<optional reason field>"
     },
     "verb": "kick"
