@@ -1031,6 +1031,9 @@ of a single message.</p>
 <p>Responds with <code>gn_ban</code>.</p>
 <p>Request contains:</p>
 <pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;ID of the user who's banning someone; leave empty for admin ID&gt;&quot;
+    },
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;UUID of the room/channel to ban from&gt;&quot;,
         &quot;objectType&quot;: &quot;&lt;room/channel/global&gt;&quot;
