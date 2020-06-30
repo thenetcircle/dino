@@ -219,6 +219,8 @@ class QueueHandler(object):
         if room_id is None:
             raise RuntimeError('trying to kick when room is none')
 
+        # TODO: don't kick super users / global mods
+
         try:
             _users = list()
             if room_id in self.socketio.server.manager.rooms[namespace]:
