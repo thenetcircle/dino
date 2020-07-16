@@ -471,7 +471,6 @@ class Driver(object):
                         (len(message_rows.current_rows), target_id, from_user_id, timestamp))
 
             for message_row in message_rows.current_rows:
-                logger.debug('deleting row: %s' % str(message_row))
                 body = message_row.body
 
                 if clear_body:
