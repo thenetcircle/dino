@@ -158,7 +158,6 @@ def get_whisper_users_from_message(message) -> set:
 
         users = [word for word in words if word.startswith('-')]
         users = set([re.sub("[,.'!)(]", "", user.strip().lstrip('-')) for user in users])
-        logger.info("users in whisper: {}".format(users))
     except Exception as e:
         logger.error("could not get users from message because {}, message was '{}'".format(str(e), str(message)))
         logger.exception(e)
@@ -1554,9 +1553,6 @@ def filter_whisper_messages_not_for_me(messages, user_id: str):
     }]
     """
     filtered = list()
-
-    if is_super_user(user_id) or is_global_moderator(user_id):
-        return messages
 
     user_name = get_user_name_for(user_id)
 
