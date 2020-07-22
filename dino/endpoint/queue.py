@@ -191,11 +191,11 @@ class QueueHandler(object):
 
     def _handle_server_activity(self, data: dict, activity: Activity) -> None:
         if activity.id in self.recently_delegated_events_set:
-            logger.info('ignoring event with id %s since we delegated from this node' % activity.id)
             return
+
         if activity.id in self.recently_handled_events_set:
-            logger.info('ignoring event with id %s since we already handled it on this node' % activity.id)
             return
+
         if 'revision' in data:
             if data['revision'] > 3:
                 logger.warning('dropping event {} ({}) since it has revision {}; being sent around too much'.format(

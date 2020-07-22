@@ -59,8 +59,6 @@ class OnMessageHooks(object):
                 parsed_message = utils.parse_message(activity.object.content)
 
                 if parsed_message is not None and utils.is_whisper(parsed_message):
-                    logger.info("parsed whisper message: {}".format(parsed_message))
-
                     whisper_users = utils.get_whisper_users_from_message(parsed_message)
                     admins = environ.env.db.get_admins_in_room(activity.target.id)
 
@@ -68,7 +66,6 @@ class OnMessageHooks(object):
                         whisper_users.update(admins)
 
                     for whisper_user_name in utils.get_whisper_users_from_message(parsed_message):
-                        logger.info("sending whisper to user {}".format(whisper_user_name))
 
                         try:
                             whisper_user_id = environ.env.db.get_user_id(whisper_user_name)
@@ -77,7 +74,6 @@ class OnMessageHooks(object):
                             pass
 
                     # also send to the sender
-                    logger.info("sending whisper back to sender {}".format(user_id))
                     send(data, _room=user_id)
                 else:
                     send(data, _room=room_id)

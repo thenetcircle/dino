@@ -96,9 +96,6 @@ class RequestValidator(BaseValidator):
                 if message is not None and utils.is_whisper(message):
                     users = utils.get_whisper_users_from_message(message)
 
-                    logger.info('message is a whisper: {}'.format(message))
-                    logger.info('users in whisper: {}'.format(users))
-
                     if len(users) > 0:
                         if not utils.can_send_whisper_in_channel(activity, channel_id):
                             return False, ECodes.NOT_ALLOWED_TO_WHISPER_CHANNEL, 'not allowed to whisper in channel'

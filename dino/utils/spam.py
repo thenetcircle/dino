@@ -58,7 +58,6 @@ class SpamClassifier(object):
             self.rfc.predict_proba(x)[0][1],
             self.svc.predict(x)[0]
         )
-        logger.info('y_hat: {}'.format(y_hat))
         threshold = float(self.env.service_config.get_spam_threshold()) / 100
 
         # if 2 out of 3 classifiers are at least 'threshold' % certain it's spam, classify it as such
@@ -68,7 +67,6 @@ class SpamClassifier(object):
         if self.too_long_or_too_short(message):
             return False, None
 
-        logger.info('prediction message: {}'.format(message))
         x = self.transform([message])
         return self.predict(x)
 

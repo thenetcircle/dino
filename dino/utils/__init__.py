@@ -759,8 +759,6 @@ def check_if_should_remove_room(data, activity):
         # session rooms are not persisted
         return
 
-    logger.info('checking whether to remove room "%s" (%s) or not' % (room_name, room_id))
-
     check_if_remove_room_empty(activity)
 
 

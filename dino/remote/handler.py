@@ -29,8 +29,6 @@ class RemoteHandler(IRemoteHandler):
             pass
 
         try:
-            self.logger.debug("calling url: {}".format(url))
-
             request = str(Request(
                 method="whisper.validate",
                 senderId=sender_id,
@@ -39,9 +37,6 @@ class RemoteHandler(IRemoteHandler):
 
             request_and_hash = self.private_key + request
             sign_hash = hashlib.md5(request_and_hash.encode('utf-8')).hexdigest()
-
-            self.logger.info("request_and_hash: {}".format(request_and_hash))
-            self.logger.info("sign_hash: {}".format(sign_hash))
 
             client = HTTPClient(url)
             client.session.headers.update({
