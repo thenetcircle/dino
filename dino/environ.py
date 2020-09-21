@@ -1063,8 +1063,12 @@ def init_remote_handler(gn_env: GNEnvironment) -> None:
         # assume we're testing
         return
 
-    from dino.remote.handler import RemoteHandler
-    gn_env.remote = RemoteHandler(gn_env)
+    if gn_env.config.get(ConfigKeys.HOST, domain=ConfigKeys.REMOTE, default="") == "":
+        from dino.remote.mock import MockHandler
+        gn_env.remote = MockHandler()
+    else:
+        from dino.remote.handler import RemoteHandler
+        gn_env.remote = RemoteHandler(gn_env)
 
 
 def initialize_env(dino_env):
