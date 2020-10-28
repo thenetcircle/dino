@@ -7,6 +7,7 @@ Four keys are maintained in redis:
 * users:online:inrooms
 * users:multicast
 * user:status:USER_ID
+* user:online:last:USER_ID
 
 ## users:online:bitmap (BITMAP)
 
@@ -42,3 +43,8 @@ joined any rooms, this key does not.
 
 Not updated in real-time, but on a regular interval by a cron job.
 
+## user:online:last:USER_ID (STRING)
+
+A timestamp when the user last went offline. If a user logs in as invisible then logs out as invisible, the timestamp is
+NOT changed. If a user is visible and turns invisible, then logs out, the timestamp is set to the time the user went
+invisible, not when the user logged out.
