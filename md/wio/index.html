@@ -118,6 +118,9 @@
     <li class="toctree-l2"><a href="#usersonlineinrooms-string">users:online:inrooms (STRING)</a></li>
     
 
+    <li class="toctree-l2"><a href="#useronlinelastuser_id-string">user:online:last:USER_ID (STRING)</a></li>
+    
+
     </ul>
 	    </li>
           
@@ -166,6 +169,7 @@
 <li>users:online:inrooms</li>
 <li>users:multicast</li>
 <li>user:status:USER_ID</li>
+<li>user:online:last:USER_ID</li>
 </ul>
 <h2 id="usersonlinebitmap-bitmap">users:online:bitmap (BITMAP)</h2>
 <p>The ID of the user is used as the offset in the bitmap. When a user logs in the bit in that offset will be set to 1,
@@ -190,6 +194,10 @@ multicasting of notifications without showing up as <code>online</code>.</p>
 <p>A count of the number of online users who are in rooms. The other online keys includes users who are online but haven't 
 joined any rooms, this key does not.</p>
 <p>Not updated in real-time, but on a regular interval by a cron job.</p>
+<h2 id="useronlinelastuser_id-string">user:online:last:USER_ID (STRING)</h2>
+<p>A timestamp when the user last went offline. If a user logs in as invisible then logs out as invisible, the timestamp is
+NOT changed. If a user is visible and turns invisible, then logs out, the timestamp is set to the time the user went
+invisible, not when the user logged out.</p>
               
             </div>
           </div>
