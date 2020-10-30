@@ -1158,7 +1158,6 @@ class CacheRedis(object):
             key = RedisKeys.user_last_online(user_id)
             self.cache.set(key, str(at))
             self.redis.set(key, str(at))
-            self.redis.expire(key, SEVEN_DAYS)
 
         pipe.execute()
 
