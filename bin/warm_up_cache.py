@@ -37,7 +37,7 @@ except NotImplementedError:
     pass
 
 try:
-    last_online_times = env.db.get_last_online_since(days=7)
+    last_online_times = env.db.get_last_online_since(days=31)
     logger.info('caching all last online time for {} users...'.format(len(last_online_times)))
     env.cache.set_last_online(last_online_times)
 except NotImplementedError:
