@@ -37,6 +37,7 @@ except NotImplementedError:
     pass
 
 try:
+    # TODO: make this configurable, sometimes we need to keep EVERYONE in the cache, sometimes just recent
     last_online_times = env.db.get_last_online_since(days=31)
     logger.info('caching all last online time for {} users...'.format(len(last_online_times)))
     env.cache.set_last_online(last_online_times)
