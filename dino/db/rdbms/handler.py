@@ -547,12 +547,15 @@ class DatabaseRdbms(object):
 
     @with_session
     def get_last_online_since(self, days: int, session=None) -> list:
-        u = datetime.utcnow()
-        u = u.replace(tzinfo=pytz.utc)
-        u = u - timedelta(days=days)
-        unix_time = int(u.timestamp())
+        if days > 0:
+            u = datetime.utcnow()
+            u = u.replace(tzinfo=pytz.utc)
+            u = u - timedelta(days=days)
+            unix_time = int(u.timestamp())
 
-        lasts = session.query(LastOnline).filter(LastOnline.at > unix_time).all()
+            lasts = session.query(LastOnline).filter(LastOnline.at > unix_time).all()
+        else:
+            lasts = session.query(LastOnline).all()
 
         if lasts is None:
             return list()

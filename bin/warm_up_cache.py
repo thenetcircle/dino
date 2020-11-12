@@ -1,24 +1,27 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
+import os
+import sys
 
 from dino.environ import env
 
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+DEFAULT_DAYS = 31
 
 logger = logging.getLogger('warm_up_cache.py')
+days = os.getenv('DINO_DAYS')
 
-logger.info('getting all user ids...')
+if days is None:
+    if len(sys.argv) > 0:
+        days = sys.argv[1]
+    else:
+        days = DEFAULT_DAYS
+
+try:
+    days = int(float(days))
+except ValueError as e:
+    logger.error("invalid days: {}: {}, using default value of {}".format(days, str(e), DEFAULT_DAYS))
+    days = DEFAULT_DAYS
+
+logger.info('caching all user ids...')
 
 try:
     all_users = env.db.get_all_user_ids()
@@ -26,6 +29,8 @@ try:
     env.db.get_users_roles(all_users)
 except NotImplementedError:
     pass
+
+logger.info('caching all rooms...')
 
 try:
     channels = env.db.get_channels()
@@ -36,8 +41,10 @@ try:
 except NotImplementedError:
     pass
 
+logger.info('caching all last online times...')
+
 try:
-    last_online_times = env.db.get_last_online_since(days=31)
+    last_online_times = env.db.get_last_online_since(days=days)
     logger.info('caching all last online time for {} users...'.format(len(last_online_times)))
     env.cache.set_last_online(last_online_times)
 except NotImplementedError:
