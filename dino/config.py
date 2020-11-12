@@ -268,6 +268,7 @@ class ConfigKeys(object):
     DISCONNECT_ON_FAILED_LOGIN = 'disconnect_on_failed_login'
     SENDER_CAN_DELETE = 'sender_can_delete'
     DELIVERY_GUARANTEE = 'delivery_guarantee'
+    WARMUP_DAYS = 'warmup_days'
 
     ENRICH = 'enrich'
     TITLE = 'title'

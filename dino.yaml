@@ -17,6 +17,7 @@ common_config: &common_config
         type: 'nutcracker'
         host: '$DINO_CACHE_HOST'
         backend_hosts: '$DINO_NUTCRACKER_CACHE_HOSTS'
+        warmup_days: '$DINO_WARMUP_DAYS'
     coordinator:
         type: 'redis'
         host: '$DINO_CACHE_HOST'
