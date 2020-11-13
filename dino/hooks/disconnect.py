@@ -27,6 +27,16 @@ class OnDisconnectHooks(object):
         def set_user_offline(user_id, current_sid):
             all_sids = utils.get_sids_for_user_id(user_id)
 
+            # update last_online on every session closure
+            if utils.get_user_status(user_id) != UserKeys.STATUS_INVISIBLE:
+                try:
+                    environ.env.db._set_last_online(user_id)
+                    environ.env.cache._set_last_online(user_id)
+                except Exception as e:
+                    logger.error('could not set last_online in db for user {}: {}'.format(user_id, str(e)))
+                    logger.exception(traceback.format_exc())
+                    environ.env.capture_exception(sys.exc_info())
+
             # only one of the user sessions disconnected
             if len(all_sids) > 1:
                 return
