@@ -604,7 +604,7 @@ class RequestValidator(BaseValidator):
 
     def on_kick(self, activity: Activity) -> (bool, int, str):
         room_id = activity.target.id
-        user_id = activity.object.id
+        user_id_to_kick = activity.object.id
 
         if room_id is None or room_id.strip() == '':
             return False, ECodes.MISSING_TARGET_ID, 'got blank room id, can not kick'
@@ -614,11 +614,11 @@ class RequestValidator(BaseValidator):
         except NoSuchRoomException:
             return False, ECodes.NO_SUCH_ROOM, 'no room with id "%s" exists' % room_id
 
-        if user_id is None or user_id.strip() == '':
+        if user_id_to_kick is None or user_id_to_kick.strip() == '':
             return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'got blank user id, can not kick'
 
-        if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
-            return True, None, None
+        if utils.is_super_user(user_id_to_kick) or utils.is_global_moderator(user_id_to_kick):
+            return False, ECodes.NOT_ALLOWED, "not allowed to kick operators"
 
         channel_id = utils.get_channel_for_room(room_id)
         channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.KICK)
