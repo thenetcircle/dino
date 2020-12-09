@@ -340,16 +340,15 @@ class CacheRedis(object):
     def set_user_roles(self, user_id: str, roles: dict) -> None:
         key = RedisKeys.user_roles()
         redis_key = '%s-%s' % (key, user_id)
-        cache_key = '%s-%s' % (key, user_id)
         self.redis.set(redis_key, json.dumps(roles))
         self.redis.expire(redis_key, TEN_MINUTES)
-        self.cache.set(cache_key, roles, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
+        self.cache.set(redis_key, roles, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
 
     def reset_user_roles(self, user_id: str) -> None:
         key = RedisKeys.user_roles()
-        cache_key = '%s-%s' % (key, user_id)
-        self.redis.hdel(key, user_id)
-        self.cache.delete(cache_key)
+        redis_key = '%s-%s' % (key, user_id)
+        self.redis.delete(redis_key)
+        self.cache.delete(redis_key)
 
     def get_admin_room(self) -> Union[str, None]:
         key = RedisKeys.admin_room()

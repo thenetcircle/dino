@@ -24,7 +24,7 @@ class OnLeaveHooks(object):
         # multi-login, can be in same room as another session
         sids = utils.sids_for_user_in_room(user_id, room_id)
         if sids is not None and len(sids) > 0:
-            if len(sids) > 1 or sids[0] != environ.env.request.sid:
+            if len(sids) > 1 or next(iter(sids)) != environ.env.request.sid:
                 return
 
         utils.remove_user_from_room(user_id, user_name, room_id)

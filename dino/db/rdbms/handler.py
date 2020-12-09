@@ -237,7 +237,7 @@ class DatabaseRdbms(object):
 
     def _update_user_roles_in_cache(self, user_id: str) -> None:
         self.env.cache.reset_user_roles(user_id)
-        self.get_user_roles(user_id)
+        self.get_user_roles(user_id, skip_cache=True)
 
     def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:
         @with_session
@@ -346,7 +346,7 @@ class DatabaseRdbms(object):
                 _output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',') if len(a) > 0]
         return _output
 
-    def get_user_roles(self, user_id: str) -> dict:
+    def get_user_roles(self, user_id: str, skip_cache: bool = False) -> dict:
         @with_session
         def _roles(session=None) -> dict:
             g_roles, c_roles, r_roles = (
@@ -356,22 +356,23 @@ class DatabaseRdbms(object):
             )
             return self._format_user_roles(g_roles, c_roles, r_roles)
 
-        output = self.env.cache.get_user_roles(user_id)
+        if not skip_cache:
+            output = self.env.cache.get_user_roles(user_id)
 
-        if output is not None:
-            did_reset_user_roles = False
-            if 'room' in output:
-                for room_id in output['room']:
-                    try:
-                        self.get_room_name(room_id)
-                    except NoSuchRoomException:
-                        logger.warning(
-                            'user has room %s in roles, but room does not exist; will delete role' % room_id)
-                        self.env.cache.reset_user_roles(user_id)
-                        did_reset_user_roles = True
-                        break
-            if not did_reset_user_roles:
-                return output
+            if output is not None:
+                did_reset_user_roles = False
+                if 'room' in output:
+                    for room_id in output['room']:
+                        try:
+                            self.get_room_name(room_id)
+                        except NoSuchRoomException:
+                            logger.warning(
+                                'user has room %s in roles, but room does not exist; will delete role' % room_id)
+                            self.env.cache.reset_user_roles(user_id)
+                            did_reset_user_roles = True
+                            break
+                if not did_reset_user_roles:
+                    return output
 
         roles = _roles()
         self.env.cache.set_user_roles(user_id, roles)
