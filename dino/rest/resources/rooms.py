@@ -27,4 +27,10 @@ class RoomsResource(BaseResource):
 
     @timeit(logger, 'on_rest_rooms')
     def do_get(self):
-        return environ.env.db.get_all_rooms()
+        all_rooms = environ.env.db.get_all_rooms()
+        for room in all_rooms:
+            room["users"] = len(environ.env.db.users_in_room(room["id"]))
+            room["room_acl"] = environ.env.db.get_all_acls_room(room["id"])
+            room["channel_acl"] = environ.env.db.get_all_acls_channel(room["channel"])
+
+        return all_rooms
