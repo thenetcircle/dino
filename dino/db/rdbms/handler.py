@@ -702,7 +702,8 @@ class DatabaseRdbms(object):
                     'id': room.uuid,
                     'status': 'temporary' if room.ephemeral else 'static',
                     'name': room.name,
-                    'channel': room.channel.name
+                    'channel': room.channel.name,
+                    'channel_id': room.channel.id,
                 } for room in all_rooms
             ]
 

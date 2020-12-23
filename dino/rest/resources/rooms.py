@@ -31,6 +31,6 @@ class RoomsResource(BaseResource):
         for room in all_rooms:
             room["users"] = len(environ.env.db.users_in_room(room["id"]))
             room["room_acl"] = environ.env.db.get_all_acls_room(room["id"])
-            room["channel_acl"] = environ.env.db.get_all_acls_channel(room["channel"])
+            room["channel_acl"] = environ.env.db.get_all_acls_channel(room["channel_id"])
 
         return all_rooms
