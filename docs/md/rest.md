@@ -57,6 +57,51 @@ Example response:
 }
 ```
 
+## GET /rooms-acl
+
+Returns a list of all rooms currently existing, that a specific user is 
+allowed to join (if a user is not allowed to list a channel, no rooms 
+from that channel will be included either). Result is cached for 1 
+minute per user id and might thus not be always up-to-date.
+
+Request:
+
+```json
+{
+	"user_id": "1234"
+}
+```
+
+Response:
+
+```json
+{
+    "data": [{
+        "status": "static",
+        "room_id": "2e7d537e-bed5-47c5-a7f6-357075759e5d",
+        "users": 0,
+        "room_name": "default",
+        "channel_id": "7e1beff2-3d4f-40cc-baa5-f1fd79cc59c0",
+        "channel_name": "App and Web"
+    }, {
+        "status": "static",
+        "room_id": "2ddd90ac-1d44-4af5-9c7d-b9191bc35675",
+        "users": 0,
+        "room_name": "default1",
+        "channel_id": "9613fbb5-5eaf-41b1-8480-0b364af04b80",
+        "channel_name": "App only"
+    }, {
+        "status": "static",
+        "room_id": "6418dff0-43fc-469a-8f3b-724d3a5dcecf",
+        "users": 0,
+        "room_name": "default2",
+        "channel_id": "a37a51f0-48ed-43ba-9fcb-750ce7ee3fdb",
+        "channel_name": "Web only"
+    }],
+    "status_code": 200
+}
+```
+
 ## POST /acl
 
 Request:

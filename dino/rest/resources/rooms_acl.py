@@ -33,19 +33,15 @@ class RoomsAclResource(BaseResource):
             "verb": "filter"
         })
 
-        logger.info("channels {}".format(channels))
-
         # filter_channels_by_acl() expects channels in a certain format
         temp_activity = utils.activity_for_list_channels(channels)
         channels_with_acl = temp_activity["object"]["attachments"]
-
-        logger.info("channels_with_acl {}".format(channels_with_acl))
 
         # filter the channels and replace it on the activity we created
         filtered_channels = utils.filter_channels_by_acl(activity, channels_with_acl, env_to_use=self.env)
         filtered_rooms = dict()
         channel_names = dict()
-        
+
         for channel in filtered_channels:
             channel_id = channel["id"]
             channel_names[channel_id] = self.env.db.get_channel_name(channel_id)
