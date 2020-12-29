@@ -86,7 +86,7 @@
             var socket;
             $(document).ready(function() {
                 //socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {path: '/ws', transports:['websocket']});
-                socket = io.connect('ws://maggie-kafka-3.thenetcircle.lab:12200/ws', {path: '/ws/socket.io', transports:['websocket']});
+                socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {transports:['websocket']});
 
                 socket.on('connect', function() {
                     socket.emit('login', {

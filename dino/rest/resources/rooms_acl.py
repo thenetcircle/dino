@@ -10,9 +10,9 @@ from dino import environ
 logger = logging.getLogger(__name__)
 
 
-class RoomsResource(BaseResource):
+class RoomsAclResource(BaseResource):
     def __init__(self):
-        super(RoomsResource, self).__init__()
+        super(RoomsAclResource, self).__init__()
         self.last_cleared = datetime.utcnow()
         self.request = request
 
@@ -27,4 +27,17 @@ class RoomsResource(BaseResource):
 
     @timeit(logger, 'on_rest_rooms')
     def do_get(self):
-        return environ.env.db.get_all_rooms()
+        all_rooms = environ.env.db.get_all_rooms()
+        channel_acls = dict()
+        room_acls = dict()
+
+        for room in all_rooms:
+            room["users"] = len(environ.env.db.users_in_room(room["id"]))
+            room_acls[room["id"]] = environ.env.db.get_all_acls_room(room["id"])
+
+            if room["channel_id"] not in channel_acls:
+                channel_acls[room["channel_id"]] = environ.env.db.get_all_acls_channel(room["channel_id"])
+
+
+
+        return all_rooms
