@@ -22,7 +22,7 @@ class RoomsAclResource(BaseResource):
         self.request = request
 
     @timeit(logger, "on_rest_rooms")
-    def do_get(self, user_id):
+    def _do_get(self, user_id):
         channels = environ.env.db.get_channels()
         activity = parse_to_as({
             "actor": {
