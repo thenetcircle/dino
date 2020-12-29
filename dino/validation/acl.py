@@ -63,9 +63,14 @@ class AclValidator(object):
             action: str,
             target_acls: dict,
             target_id: str = None,
-            object_type: str = None
+            object_type: str = None,
+            env_to_use=None,
     ) -> (bool, str):
-        all_acls = environ.env.config.get(ConfigKeys.ACL)
+        # for testing purposes
+        if env_to_use is None:
+            env_to_use = environ.env
+
+        all_acls = env_to_use.config.get(ConfigKeys.ACL)
 
         if not hasattr(activity, 'target') or not hasattr(activity.target, 'object_type'):
             return False, 'target.objectType must not be none'
@@ -120,7 +125,7 @@ class AclValidator(object):
                     continue
 
                 is_valid_func = all_acls['validation'][acl]['value']
-                is_valid, msg = is_valid_func(activity, environ.env, acl, target_acls[acl])
+                is_valid, msg = is_valid_func(activity, env_to_use, acl, target_acls[acl])
                 if not is_valid:
                     return False, 'acl "%s" did not validate for target acl "%s": %s' % (
                         acl, target_acls[acl], msg)

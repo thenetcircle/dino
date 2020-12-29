@@ -20,30 +20,36 @@ class RoomsAclResource(BaseResource):
         super(RoomsAclResource, self).__init__()
         self.last_cleared = datetime.utcnow()
         self.request = request
+        self.env = environ.env
 
     @timeit(logger, "on_rest_rooms")
     def _do_get(self, user_id):
-        channels = environ.env.db.get_channels()
+        channels = self.env.db.get_channels()
         activity = parse_to_as({
             "actor": {
                 "id": user_id
             },
+            "target": dict(),
             "verb": "filter"
         })
+
+        logger.info("channels {}".format(channels))
 
         # filter_channels_by_acl() expects channels in a certain format
         temp_activity = utils.activity_for_list_channels(channels)
         channels_with_acl = temp_activity["object"]["attachments"]
 
+        logger.info("channels_with_acl {}".format(channels_with_acl))
+
         # filter the channels and replace it on the activity we created
-        filtered_channels = utils.filter_channels_by_acl(activity, channels_with_acl)
+        filtered_channels = utils.filter_channels_by_acl(activity, channels_with_acl, env_to_use=self.env)
         filtered_rooms = dict()
         channel_names = dict()
         
         for channel in filtered_channels:
             channel_id = channel["id"]
-            channel_names[channel_id] = environ.env.db.get_channel_name(channel_id)
-            all_rooms_in_channel = environ.env.db.rooms_for_channel(channel_id)
+            channel_names[channel_id] = self.env.db.get_channel_name(channel_id)
+            all_rooms_in_channel = self.env.db.rooms_for_channel(channel_id)
 
             for room_id, room in all_rooms_in_channel.items():
                 room["id"] = room_id
@@ -53,11 +59,14 @@ class RoomsAclResource(BaseResource):
                 except NoSuchRoomException:
                     continue
 
+                activity.target.id = room_id
                 is_valid, error_msg = validation.acl.validate_acl_for_action(
                     activity, 
                     ApiTargets.ROOM, 
                     ApiActions.JOIN, 
-                    acls
+                    acls,
+                    object_type=ApiTargets.ROOM,
+                    env_to_use=self.env
                 )
                 if not is_valid:
                     logger.info("user {} is not allowed to join room {}".format(user_id, room_id))
@@ -75,14 +84,15 @@ class RoomsAclResource(BaseResource):
 
         formatted_rooms = list()
         for channel_id, rooms in filtered_rooms.items():
-            formatted_rooms.append({
-                "status": "temporary" if room["ephemeral"] else "static",
-                "users": room["users"],
-                "room_id": room["id"],
-                "room_name": room["name"],
-                "channel_name": channel_names.get(channel_id, ""),
-                "channel_id": channel_id,
-            } for room in rooms)
+            for room in rooms:
+                formatted_rooms.append({
+                    "status": "temporary" if room["ephemeral"] else "static",
+                    "users": room["users"],
+                    "room_id": room["id"],
+                    "room_name": room["name"],
+                    "channel_name": channel_names.get(channel_id, ""),
+                    "channel_id": channel_id,
+                })
 
         return formatted_rooms
 
