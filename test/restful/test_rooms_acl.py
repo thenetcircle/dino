@@ -23,11 +23,13 @@ class RoomsAclTest(BaseDatabaseTest):
             SessionKeys.gender.value: BaseTest.GENDER,
         }
 
-        self.auth.redis.hmset(RedisKeys.auth_key(BaseTest.USER_ID), self.session)
-        self.auth.authenticate_and_populate_session(BaseTest.USER_ID, str(uuid()))
-        self.channel_id = str(uuid())
+        for key, value in self.session.items():
+            self.auth.update_session_for_key(BaseTest.USER_ID, key, value)
 
+        self.channel_id = str(uuid())
         self.env.db.create_channel("test name", self.channel_id, BaseTest.OTHER_USER_ID)
+
+        self.env.auth = self.auth
         self.env.session = self.session
         self.resource.env = self.env
 

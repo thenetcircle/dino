@@ -24,6 +24,9 @@ class RoomsAclResource(BaseResource):
 
     @timeit(logger, "on_rest_rooms")
     def _do_get(self, user_id):
+        # always get from redis here, since the user is not logged in
+        session = self.env.auth.get_user_info(user_id)
+
         channels = self.env.db.get_channels()
         activity = parse_to_as({
             "actor": {
@@ -38,7 +41,7 @@ class RoomsAclResource(BaseResource):
         channels_with_acl = temp_activity["object"]["attachments"]
 
         # filter the channels and replace it on the activity we created
-        filtered_channels = utils.filter_channels_by_acl(activity, channels_with_acl, env_to_use=self.env)
+        filtered_channels = utils.filter_channels_by_acl(activity, channels_with_acl, session_to_use=session)
         filtered_rooms = dict()
         channel_names = dict()
 
@@ -62,7 +65,7 @@ class RoomsAclResource(BaseResource):
                     ApiActions.JOIN, 
                     acls,
                     object_type=ApiTargets.ROOM,
-                    env_to_use=self.env
+                    session_to_use=session
                 )
                 if not is_valid:
                     logger.info("user {} is not allowed to join room {}".format(user_id, room_id))

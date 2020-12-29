@@ -64,13 +64,13 @@ class AclValidator(object):
             target_acls: dict,
             target_id: str = None,
             object_type: str = None,
-            env_to_use=None,
+            session_to_use=None,
     ) -> (bool, str):
         # for testing purposes
-        if env_to_use is None:
-            env_to_use = environ.env
+        if session_to_use is None:
+            session_to_use = environ.env.session
 
-        all_acls = env_to_use.config.get(ConfigKeys.ACL)
+        all_acls = environ.env.config.get(ConfigKeys.ACL)
 
         if not hasattr(activity, 'target') or not hasattr(activity.target, 'object_type'):
             return False, 'target.objectType must not be none'
@@ -125,7 +125,7 @@ class AclValidator(object):
                     continue
 
                 is_valid_func = all_acls['validation'][acl]['value']
-                is_valid, msg = is_valid_func(activity, env_to_use, acl, target_acls[acl])
+                is_valid, msg = is_valid_func(activity, environ.env, acl, target_acls[acl], False, session_to_use)
                 if not is_valid:
                     return False, 'acl "%s" did not validate for target acl "%s": %s' % (
                         acl, target_acls[acl], msg)
@@ -511,11 +511,15 @@ class AclStrInCsvValidator(BaseAclValidator):
         if len(args) > 4:
             value_is_negated = args[4]
 
+        session_to_use = env.session
+        if len(args) > 5:
+            session_to_use = args[5]
+
         if acl_values.strip() == '':
             return True, None
         acl_values = acl_values.split(',')
 
-        session_value = env.session.get(acl_type)
+        session_value = session_to_use.get(acl_type)
         if session_value is None:
             logger.warning('no session value for acl "%s"' % acl_type)
             return False, 'no session value for acl"%s"' % acl_type

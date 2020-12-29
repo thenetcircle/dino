@@ -1196,7 +1196,7 @@ def create_or_update_user(user_id: str, user_name: str) -> None:
     environ.env.db.set_user_name(user_id, user_name)
 
 
-def filter_channels_by_acl(activity, channels_with_acls, env_to_use=None):
+def filter_channels_by_acl(activity, channels_with_acls, session_to_use=None):
     filtered_channels = list()
 
     for channel_info in channels_with_acls:
@@ -1206,7 +1206,7 @@ def filter_channels_by_acl(activity, channels_with_acls, env_to_use=None):
         activity.object.url = channel_id
         activity.target.object_type = 'channel'
 
-        if env_to_use is None:
+        if session_to_use is None:
             is_valid, err_msg = validation.acl.validate_acl_for_action(
                 activity,
                 ApiTargets.CHANNEL,
@@ -1224,7 +1224,7 @@ def filter_channels_by_acl(activity, channels_with_acls, env_to_use=None):
                 list_acls,
                 target_id=channel_id,
                 object_type='channel',
-                env_to_use=env_to_use
+                session_to_use=session_to_use
             )
 
         # not allowed to list this channel
