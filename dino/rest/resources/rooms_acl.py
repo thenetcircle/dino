@@ -43,7 +43,7 @@ class RoomsAclResource(BaseResource):
         for channel in filtered_channels:
             channel_id = channel["id"]
             channel_names[channel_id] = environ.env.db.get_channel_name(channel_id)
-            all_rooms_in_channel = environ.env.db.rooms_for_channel()
+            all_rooms_in_channel = environ.env.db.rooms_for_channel(channel_id)
 
             for room_id, room in all_rooms_in_channel.items():
                 room["id"] = room_id
