@@ -18,7 +18,7 @@
   <script>
     // Current page data
     var mkdocs_page_name = "REST API";
-    var mkdocs_page_input_path = "md/rest.md";
+    var mkdocs_page_input_path = "md\\rest.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -102,6 +102,9 @@
     
 
     <li class="toctree-l2"><a href="#get-rooms">GET /rooms</a></li>
+    
+
+    <li class="toctree-l2"><a href="#get-rooms-acl">GET /rooms-acl</a></li>
     
 
     <li class="toctree-l2"><a href="#post-acl">POST /acl</a></li>
@@ -249,6 +252,45 @@
         &quot;status&quot;: &quot;temporary&quot;,
         &quot;id&quot;: &quot;6418dff0-43fc-469a-8f3b-724d3a5dcecf&quot;,
         &quot;channel&quot;: &quot;Web only&quot;
+    }],
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="get-rooms-acl">GET /rooms-acl</h2>
+<p>Returns a list of all rooms currently existing, that a specific user is 
+allowed to join (if a user is not allowed to list a channel, no rooms 
+from that channel will be included either). Result is cached for 1 
+minute per user id and might thus not be always up-to-date.</p>
+<p>Request:</p>
+<pre><code class="json">{
+    &quot;user_id&quot;: &quot;1234&quot;
+}
+</code></pre>
+
+<p>Response:</p>
+<pre><code class="json">{
+    &quot;data&quot;: [{
+        &quot;status&quot;: &quot;static&quot;,
+        &quot;room_id&quot;: &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
+        &quot;users&quot;: 0,
+        &quot;room_name&quot;: &quot;default&quot;,
+        &quot;channel_id&quot;: &quot;7e1beff2-3d4f-40cc-baa5-f1fd79cc59c0&quot;,
+        &quot;channel_name&quot;: &quot;App and Web&quot;
+    }, {
+        &quot;status&quot;: &quot;static&quot;,
+        &quot;room_id&quot;: &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;,
+        &quot;users&quot;: 0,
+        &quot;room_name&quot;: &quot;default1&quot;,
+        &quot;channel_id&quot;: &quot;9613fbb5-5eaf-41b1-8480-0b364af04b80&quot;,
+        &quot;channel_name&quot;: &quot;App only&quot;
+    }, {
+        &quot;status&quot;: &quot;static&quot;,
+        &quot;room_id&quot;: &quot;6418dff0-43fc-469a-8f3b-724d3a5dcecf&quot;,
+        &quot;users&quot;: 0,
+        &quot;room_name&quot;: &quot;default2&quot;,
+        &quot;channel_id&quot;: &quot;a37a51f0-48ed-43ba-9fcb-750ce7ee3fdb&quot;,
+        &quot;channel_name&quot;: &quot;Web only&quot;
     }],
     &quot;status_code&quot;: 200
 }
