@@ -24,6 +24,7 @@ from dino.rest.resources.broadcast import BroadcastResource
 from dino.rest.resources.latest_history import LatestHistoryResource
 from dino.rest.resources.roles import RolesResource
 from dino.rest.resources.rooms import RoomsResource
+from dino.rest.resources.rooms_acl import RoomsAclResource
 from dino.rest.resources.rooms_for_users import RoomsForUsersResource
 from dino.rest.resources.remove_admin import RemoveAdminResource
 from dino.rest.resources.set_admin import SetAdminResource

@@ -562,30 +562,14 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     :return: if ok, {'status_code': ECodes.OK, 'data': <AS with channels as object.attachments>}
     """
     channels = environ.env.db.get_channels()
-
     environ.env.observer.emit('on_list_channels', (data, activity))
-    activity_json = utils.activity_for_list_channels(activity, channels)
-    channels_with_acls = activity_json['object']['attachments']
-    filtered_channels = list()
 
-    for channel_info in channels_with_acls:
-        channel_id = channel_info['id']
-        list_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
-        activity.object.url = channel_id
-        activity.target.object_type = 'channel'
-        is_valid, err_msg = validation.acl.validate_acl_for_action(
-                activity, ApiTargets.CHANNEL, ApiActions.LIST, list_acls, target_id=channel_id, object_type='channel')
+    activity_json = utils.activity_for_list_channels(channels)
 
-        # not allowed to list this channel
-        if not is_valid:
-            continue
+    # filter the channels and replace it on the activity we created
+    activity_json['object']['attachments'] = \
+        utils.filter_channels_by_acl(activity, activity_json['object']['attachments'])
 
-        acls = utils.get_acls_for_channel(channel_id)
-        acl_activity = utils.activity_for_get_acl(activity, acls)
-        channel_info['attachments'] = acl_activity['object']['attachments']
-        filtered_channels.append(channel_info)
-
-    activity_json['object']['attachments'] = filtered_channels
     return ECodes.OK, activity_json
 
 

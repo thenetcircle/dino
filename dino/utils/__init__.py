@@ -871,7 +871,7 @@ def is_channel_static_or_temporary_or_mix(channel_id: str) -> str:
     return environ.env.db.type_of_rooms_in_channel(channel_id)
 
 
-def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
+def activity_for_list_channels(channels: dict) -> dict:
     response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'channels'
@@ -890,8 +890,8 @@ def activity_for_list_channels(activity: Activity, channels: dict) -> dict:
             'objectType': object_type,
             'content': tags or ''
         })
-        response['object']['attachments'] = sorted(response['object']['attachments'], key=lambda k: k['url'])
 
+    response['object']['attachments'] = sorted(response['object']['attachments'], key=lambda k: k['url'])
     return response
 
 
@@ -1194,6 +1194,31 @@ def create_or_update_user(user_id: str, user_name: str) -> None:
             pass
 
     environ.env.db.set_user_name(user_id, user_name)
+
+
+def filter_channels_by_acl(activity, channels_with_acls):
+    filtered_channels = list()
+
+    for channel_info in channels_with_acls:
+        channel_id = channel_info['id']
+        list_acls = get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
+
+        activity.object.url = channel_id
+        activity.target.object_type = 'channel'
+
+        is_valid, err_msg = validation.acl.validate_acl_for_action(
+                activity, ApiTargets.CHANNEL, ApiActions.LIST, list_acls, target_id=channel_id, object_type='channel')
+
+        # not allowed to list this channel
+        if not is_valid:
+            continue
+
+        acls = get_acls_for_channel(channel_id)
+        acl_activity = activity_for_get_acl(activity, acls)
+        channel_info['attachments'] = acl_activity['object']['attachments']
+        filtered_channels.append(channel_info)
+
+    return filtered_channels
 
 
 def is_banned_globally(user_id: str) -> (bool, Union[str, None]):

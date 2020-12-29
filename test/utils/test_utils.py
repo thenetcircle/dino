@@ -299,7 +299,7 @@ class UtilsActivityForTest(TestCase):
 
     def test_activity_for_list_channels(self):
         channels = {'id': ('namne', 1, 'normal'), 'other-id': ('other-name', 2, 'normal')}
-        self.assertIsNotNone(utils.activity_for_list_channels(None, channels))
+        self.assertIsNotNone(utils.activity_for_list_channels(channels))
 
     def test_activity_for_invite(self):
         self.assertIsNotNone(utils.activity_for_invite('1', '2', '3', '4', '5', '6'))
