@@ -510,37 +510,77 @@ Possible roles are:
 The only difference between global superusers and global moderators is that global superusers can also remove static 
 rooms.
 
-## GET /users-in-room
+## GET /users-in-rooms
 
+Request contains a list of room IDs, e.g.:
 
+```json
+{
+    "room_ids": [
+        "2ddd90ac-1d44-4af5-9c7d-b9191bc35675",
+        "2e7d537e-bed5-47c5-a7f6-357075759e5d"
+    ]
+}
+```
+
+Response would be all visible users in the specified rooms, with their user infos attached (`roles` is a 
+comma-separated list of roles, e.g. `owner,globalmod`):
+
+```json
+{
+	"data": {
+		"2ddd90ac-1d44-4af5-9c7d-b9191bc35675": [{
+			"id": "898121",
+			"info": {
+				"membership": "MA==",
+				"has_webcam": "eQ==",
+				"age": "OTk=",
+				"is_streaming": "RmFsc2U=",
+				"city": "U2FzZGY=",
+				"fake_checked": "eQ==",
+				"country": "Y24=",
+				"gender": "bQ==",
+				"image": "eQ=="
+			},
+			"roles": "owner",
+			"name": "Um9iYnk="
+		}]
+	},
+	"status_code": 200
+}
+```
 
 ## GET /rooms-for-users
 
 Request contains a list of user IDs, e.g.:
 
-    {
-        "users": [
-            "1234",
-            "5678"
-        ]
-    }
+```json
+{
+    "users": [
+        "1234",
+        "5678"
+    ]
+}
+```
 
 Response would be all rooms each user is currently in (room names and channel names are base64 encoded):
 
-    {
-        "1234": [{
-            "room_id": "efeca2fe-ba93-11e6-bc9a-4f6f56293063",
-            "room_name": "b2gsIHNvIHlvdSBhY3R1YWxseSBjaGVja2VkIHdoYXQgaXMgd2FzPw==",
-            "channel_id": "fb843140-ba93-11e6-b178-97f0297a6d4d",
-            "channel_name": "dG9tIGlzIGEgZnJlbmNoIG1hZG1hbg=="
-        }],
-        "5678": [{
-            "room_id": "ca1dc3b4-ba93-11e6-b835-7f1d961023a1",
-            "room_name": "cmVhZCB1cCBvbiBoeXBlcmxvZ2xvZysr",
-            "channel_id": "f621fcaa-ba93-11e6-8590-bfe35ff80c03",
-            "channel_name": "YSByZWRidWxsIGEgZGF5IGtlZXBzIHRoZSBzYW5kbWFuIGF3YXk="
-        }]
-    }
+```json
+{
+    "1234": [{
+        "room_id": "efeca2fe-ba93-11e6-bc9a-4f6f56293063",
+        "room_name": "b2gsIHNvIHlvdSBhY3R1YWxseSBjaGVja2VkIHdoYXQgaXMgd2FzPw==",
+        "channel_id": "fb843140-ba93-11e6-b178-97f0297a6d4d",
+        "channel_name": "dG9tIGlzIGEgZnJlbmNoIG1hZG1hbg=="
+    }],
+    "5678": [{
+        "room_id": "ca1dc3b4-ba93-11e6-b835-7f1d961023a1",
+        "room_name": "cmVhZCB1cCBvbiBoeXBlcmxvZ2xvZysr",
+        "channel_id": "f621fcaa-ba93-11e6-8590-bfe35ff80c03",
+        "channel_name": "YSByZWRidWxsIGEgZGF5IGtlZXBzIHRoZSBzYW5kbWFuIGF3YXk="
+    }]
+}
+```
 
 ## POST /delete-messages
 
@@ -548,27 +588,33 @@ Used to delete ALL messages for a specific user ID.
 
 Request body looks like this:
 
-    {
-        "id": "<user ID>"
-    }
+```json
+{
+    "id": "<user ID>"
+}
+```
 
 Example response:
 
-    {
-        "status_code": 200, 
-        "data": {
-            "success": 4, 
-            "failed": 0,
-            "total": 4
-        }
+```json
+{
+    "status_code": 200, 
+    "data": {
+        "success": 4, 
+        "failed": 0,
+        "total": 4
     }
+}
+```
 
 Or if other kinds of failures:
 
-    {
-        "status_code": 500, 
-        "data": "<error message, e.g. 'no id parameter in request'>"
-    }
+```json
+{
+    "status_code": 500, 
+    "data": "<error message, e.g. 'no id parameter in request'>"
+}
+```
 
 ## GET /banned
 
