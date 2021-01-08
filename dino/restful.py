@@ -45,6 +45,8 @@ from dino.rest.resources.status import SetStatusResource
 
 __author__ = 'Oscar Eriksson <oscar@gmail.com>'
 
+from dino.rest.resources.users_in_room import UsersInRoomResource
+
 logger = logging.getLogger(__name__)
 logging.getLogger('amqp').setLevel(logging.INFO)
 logging.getLogger('kafka.conn').setLevel(logging.INFO)
@@ -120,3 +122,4 @@ api.add_resource(HeartbeatResource, '/heartbeat')
 api.add_resource(AclResource, '/acl')
 api.add_resource(RoomsResource, '/rooms')
 api.add_resource(RoomsAclResource, '/rooms-acl')
+api.add_resource(UsersInRoomResource, '/users-in-room')
