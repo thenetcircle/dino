@@ -143,6 +143,9 @@
     <li class="toctree-l2"><a href="#get-roles">GET /roles</a></li>
     
 
+    <li class="toctree-l2"><a href="#get-users-in-rooms">GET /users-in-rooms</a></li>
+    
+
     <li class="toctree-l2"><a href="#get-rooms-for-users">GET /rooms-for-users</a></li>
     
 
@@ -643,54 +646,94 @@ first non-valid parameter and for which user ID.</p>
 </ul>
 <p>The only difference between global superusers and global moderators is that global superusers can also remove static 
 rooms.</p>
-<h2 id="get-rooms-for-users">GET /rooms-for-users</h2>
-<p>Request contains a list of user IDs, e.g.:</p>
-<pre><code>{
-    "users": [
-        "1234",
-        "5678"
+<h2 id="get-users-in-rooms">GET /users-in-rooms</h2>
+<p>Request contains a list of room IDs, e.g.:</p>
+<pre><code class="json">{
+    &quot;room_ids&quot;: [
+        &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;,
+        &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;
     ]
 }
 </code></pre>
+
+<p>Response would be all visible users in the specified rooms, with their user infos attached (<code>roles</code> is a 
+comma-separated list of roles, e.g. <code>owner,globalmod</code>):</p>
+<pre><code class="json">{
+    &quot;data&quot;: {
+        &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;: [{
+            &quot;id&quot;: &quot;898121&quot;,
+            &quot;info&quot;: {
+                &quot;membership&quot;: &quot;MA==&quot;,
+                &quot;has_webcam&quot;: &quot;eQ==&quot;,
+                &quot;age&quot;: &quot;OTk=&quot;,
+                &quot;is_streaming&quot;: &quot;RmFsc2U=&quot;,
+                &quot;city&quot;: &quot;U2FzZGY=&quot;,
+                &quot;fake_checked&quot;: &quot;eQ==&quot;,
+                &quot;country&quot;: &quot;Y24=&quot;,
+                &quot;gender&quot;: &quot;bQ==&quot;,
+                &quot;image&quot;: &quot;eQ==&quot;
+            },
+            &quot;roles&quot;: &quot;owner&quot;,
+            &quot;name&quot;: &quot;Um9iYnk=&quot;
+        }]
+    },
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="get-rooms-for-users">GET /rooms-for-users</h2>
+<p>Request contains a list of user IDs, e.g.:</p>
+<pre><code class="json">{
+    &quot;users&quot;: [
+        &quot;1234&quot;,
+        &quot;5678&quot;
+    ]
+}
+</code></pre>
+
 <p>Response would be all rooms each user is currently in (room names and channel names are base64 encoded):</p>
-<pre><code>{
-    "1234": [{
-        "room_id": "efeca2fe-ba93-11e6-bc9a-4f6f56293063",
-        "room_name": "b2gsIHNvIHlvdSBhY3R1YWxseSBjaGVja2VkIHdoYXQgaXMgd2FzPw==",
-        "channel_id": "fb843140-ba93-11e6-b178-97f0297a6d4d",
-        "channel_name": "dG9tIGlzIGEgZnJlbmNoIG1hZG1hbg=="
+<pre><code class="json">{
+    &quot;1234&quot;: [{
+        &quot;room_id&quot;: &quot;efeca2fe-ba93-11e6-bc9a-4f6f56293063&quot;,
+        &quot;room_name&quot;: &quot;b2gsIHNvIHlvdSBhY3R1YWxseSBjaGVja2VkIHdoYXQgaXMgd2FzPw==&quot;,
+        &quot;channel_id&quot;: &quot;fb843140-ba93-11e6-b178-97f0297a6d4d&quot;,
+        &quot;channel_name&quot;: &quot;dG9tIGlzIGEgZnJlbmNoIG1hZG1hbg==&quot;
     }],
-    "5678": [{
-        "room_id": "ca1dc3b4-ba93-11e6-b835-7f1d961023a1",
-        "room_name": "cmVhZCB1cCBvbiBoeXBlcmxvZ2xvZysr",
-        "channel_id": "f621fcaa-ba93-11e6-8590-bfe35ff80c03",
-        "channel_name": "YSByZWRidWxsIGEgZGF5IGtlZXBzIHRoZSBzYW5kbWFuIGF3YXk="
+    &quot;5678&quot;: [{
+        &quot;room_id&quot;: &quot;ca1dc3b4-ba93-11e6-b835-7f1d961023a1&quot;,
+        &quot;room_name&quot;: &quot;cmVhZCB1cCBvbiBoeXBlcmxvZ2xvZysr&quot;,
+        &quot;channel_id&quot;: &quot;f621fcaa-ba93-11e6-8590-bfe35ff80c03&quot;,
+        &quot;channel_name&quot;: &quot;YSByZWRidWxsIGEgZGF5IGtlZXBzIHRoZSBzYW5kbWFuIGF3YXk=&quot;
     }]
 }
 </code></pre>
+
 <h2 id="post-delete-messages">POST /delete-messages</h2>
 <p>Used to delete ALL messages for a specific user ID.</p>
 <p>Request body looks like this:</p>
-<pre><code>{
-    "id": "&lt;user ID&gt;"
+<pre><code class="json">{
+    &quot;id&quot;: &quot;&lt;user ID&gt;&quot;
 }
 </code></pre>
+
 <p>Example response:</p>
-<pre><code>{
-    "status_code": 200, 
-    "data": {
-        "success": 4, 
-        "failed": 0,
-        "total": 4
+<pre><code class="json">{
+    &quot;status_code&quot;: 200, 
+    &quot;data&quot;: {
+        &quot;success&quot;: 4, 
+        &quot;failed&quot;: 0,
+        &quot;total&quot;: 4
     }
 }
 </code></pre>
+
 <p>Or if other kinds of failures:</p>
-<pre><code>{
-    "status_code": 500, 
-    "data": "&lt;error message, e.g. 'no id parameter in request'&gt;"
+<pre><code class="json">{
+    &quot;status_code&quot;: 500, 
+    &quot;data&quot;: &quot;&lt;error message, e.g. 'no id parameter in request'&gt;&quot;
 }
 </code></pre>
+
 <h2 id="get-banned">GET /banned</h2>
 <p>No data required in request.</p>
 <p>Response is all banned users, separated by channel, room and globally. Example response:</p>
