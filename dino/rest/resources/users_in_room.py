@@ -56,7 +56,7 @@ class UsersInRoomResource(BaseResource):
         if 'room_id' not in json:
             return dict()
 
-        return self.do_get_with_params(json['users'])
+        return self.do_get_with_params(json['room_id'])
 
     def _get_lru_method(self):
         return self.do_get_with_params
