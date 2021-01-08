@@ -11,9 +11,9 @@ from dino.utils.decorators import timeit
 logger = logging.getLogger(__name__)
 
 
-class UsersInRoomResource(BaseResource):
+class UsersInRoomsResource(BaseResource):
     def __init__(self):
-        super(UsersInRoomResource, self).__init__()
+        super(UsersInRoomsResource, self).__init__()
         self.last_cleared = datetime.utcnow()
         self.request = request
 
@@ -53,10 +53,14 @@ class UsersInRoomResource(BaseResource):
             return dict()
 
         logger.debug('GET request: %s' % str(json))
-        if 'room_id' not in json:
+        if 'room_ids' not in json:
             return dict()
 
-        return self.do_get_with_params(json['room_id'])
+        output = dict()
+        for room_id in json['room_ids']:
+            output[room_id] = self.do_get_with_params(room_id)
+
+        return output
 
     def _get_lru_method(self):
         return self.do_get_with_params

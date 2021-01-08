@@ -1,51 +1,31 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+import os
 
 from flask import Flask
 from flask_restful import Api
+from flask_socketio import SocketIO
+from werkzeug.contrib.fixers import ProxyFix
 
+from dino.hooks import *
 from dino.rest.resources.acl import AclResource
-from dino.rest.resources.heartbeat import HeartbeatResource
-from dino.rest.resources.banned import BannedResource
 from dino.rest.resources.ban import BanResource
-from dino.rest.resources.kick import KickResource
+from dino.rest.resources.banned import BannedResource
+from dino.rest.resources.blacklist import BlacklistResource
 from dino.rest.resources.broadcast import BroadcastResource
+from dino.rest.resources.clear_history import ClearHistoryResource
+from dino.rest.resources.full_history import FullHistoryResource
+from dino.rest.resources.heartbeat import HeartbeatResource
+from dino.rest.resources.history import HistoryResource
+from dino.rest.resources.kick import KickResource
 from dino.rest.resources.latest_history import LatestHistoryResource
+from dino.rest.resources.remove_admin import RemoveAdminResource
 from dino.rest.resources.roles import RolesResource
 from dino.rest.resources.rooms import RoomsResource
 from dino.rest.resources.rooms_acl import RoomsAclResource
 from dino.rest.resources.rooms_for_users import RoomsForUsersResource
-from dino.rest.resources.remove_admin import RemoveAdminResource
-from dino.rest.resources.set_admin import SetAdminResource
-from dino.rest.resources.history import HistoryResource
-from dino.rest.resources.clear_history import ClearHistoryResource
-from dino.rest.resources.blacklist import BlacklistResource
 from dino.rest.resources.send import SendResource
-from dino.rest.resources.full_history import FullHistoryResource
-from dino.hooks import *
-
-import os
-import logging
-from flask import Flask
-from flask_socketio import SocketIO
-from werkzeug.contrib.fixers import ProxyFix
-
+from dino.rest.resources.set_admin import SetAdminResource
 from dino.rest.resources.status import SetStatusResource
-
-__author__ = 'Oscar Eriksson <oscar@gmail.com>'
-
-from dino.rest.resources.users_in_room import UsersInRoomResource
+from dino.rest.resources.users_in_rooms import UsersInRoomsResource
 
 logger = logging.getLogger(__name__)
 logging.getLogger('amqp').setLevel(logging.INFO)
@@ -122,4 +102,4 @@ api.add_resource(HeartbeatResource, '/heartbeat')
 api.add_resource(AclResource, '/acl')
 api.add_resource(RoomsResource, '/rooms')
 api.add_resource(RoomsAclResource, '/rooms-acl')
-api.add_resource(UsersInRoomResource, '/users-in-room')
+api.add_resource(UsersInRoomsResource, '/users-in-rooms')

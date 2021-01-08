@@ -510,6 +510,10 @@ Possible roles are:
 The only difference between global superusers and global moderators is that global superusers can also remove static 
 rooms.
 
+## GET /users-in-room
+
+
+
 ## GET /rooms-for-users
 
 Request contains a list of user IDs, e.g.:
