@@ -18,33 +18,17 @@ class JoinsInRoomResource(BaseResource):
         self.request = request
 
     def _do_get(self, room_id):
-        output = {
-            "status_code": 200,
-            "message": "",
-            "count": -1,
-        }
-
         try:
-            output["count"] = environ.env.db.get_joins_in_room(room_id) or 0
-
+            return environ.env.db.get_joins_in_room(room_id) or 0
         except NoSuchRoomException:
             e_msg = "no such room: {}".format(room_id)
-            output["status_code"] = 400
-            output["message"] = e_msg
-            output["count"] = -1
-
             logger.error(e_msg)
-
+            raise RuntimeError(e_msg)
         except Exception as e:
-            e_msg = "unknown error: {}".format(str(e))
-            output["status_code"] = 500
-            output["message"] = e_msg
-            output["count"] = -1
-
+            e_msg = "no such room: {}".format(room_id)
             logger.error(e_msg)
             logger.exception(e)
-
-        return output
+            raise RuntimeError(str(e))
 
     def do_get_with_params(self, user_id):
         return self._do_get(user_id)
