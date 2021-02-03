@@ -35,6 +35,20 @@ class IDatabase(Interface):
         :return:
         """
 
+    def increase_join_count(self, room_id: str) -> None:
+        """
+        increase the cumulative count of joins in a room, not unique per user id
+        """
+
+    def get_joins_in_room(self, room_id: str) -> int:
+        """
+        get the cumulative joins in a room; first check the cache if it's still
+        there, otherwise get the number from the database
+
+        :return: the cumulative join count
+        :raises NoSuchRoomException if no room found with the given id
+        """
+
     def get_room_acls_for_action(self, action) -> Dict[str, Dict[str, str]]:
         """
 

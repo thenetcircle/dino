@@ -18,7 +18,7 @@ import traceback
 from datetime import datetime
 from datetime import timedelta
 from functools import wraps
-from typing import Union
+from typing import Union, Optional
 from typing import Dict
 from uuid import uuid4 as uuid
 
@@ -39,7 +39,7 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs, UserInfo
+from dino.db.rdbms.models import AclConfigs, UserInfo, Joins
 from dino.db.rdbms.models import Spams
 from dino.db.rdbms.models import Config
 from dino.db.rdbms.models import Acls
@@ -238,6 +238,36 @@ class DatabaseRdbms(object):
     def _update_user_roles_in_cache(self, user_id: str) -> None:
         self.env.cache.reset_user_roles(user_id)
         self.get_user_roles(user_id, skip_cache=True)
+
+    @with_session
+    def increase_join_count(self, room_id: str, session=None) -> None:
+        join = session.query(Joins).filter(Joins.room_id == room_id).first()
+        if join is None:
+            join = Joins(amount=0)
+
+        join.amount += 1
+        self.env.cache.increase_join_count(room_id)
+
+        session.add(join)
+        session.commit()
+
+    def get_joins_in_room(self, room_id: str) -> int:
+        @with_session
+        def _get_joins(session=None) -> int:
+            join = session.query(Joins).filter(Joins.room_id == room_id).first()
+            if join is None:
+                raise NoSuchRoomException(room_id)
+
+            return join.amount
+
+        n_joins = self.env.cache.get_join_count(room_id)
+        if n_joins is not None:
+            return n_joins
+
+        n_joins = _get_joins()
+        self.env.cache.set_join_count(room_id, n_joins)
+
+        return n_joins
 
     def get_user_roles_in_room(self, user_id: str, room_id: str) -> list:
         @with_session

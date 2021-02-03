@@ -15,6 +15,7 @@ from dino.rest.resources.clear_history import ClearHistoryResource
 from dino.rest.resources.full_history import FullHistoryResource
 from dino.rest.resources.heartbeat import HeartbeatResource
 from dino.rest.resources.history import HistoryResource
+from dino.rest.resources.joins import JoinsInRoomResource
 from dino.rest.resources.kick import KickResource
 from dino.rest.resources.latest_history import LatestHistoryResource
 from dino.rest.resources.remove_admin import RemoveAdminResource
@@ -103,3 +104,4 @@ api.add_resource(AclResource, '/acl')
 api.add_resource(RoomsResource, '/rooms')
 api.add_resource(RoomsAclResource, '/rooms-acl')
 api.add_resource(UsersInRoomsResource, '/users-in-rooms')
+api.add_resource(JoinsInRoomResource, '/count-joins')

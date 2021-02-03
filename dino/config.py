@@ -220,6 +220,7 @@ class AckStatus(object):
 
 
 class ConfigKeys(object):
+    COUNT_CUMULATIVE_JOINS = 'count_cumulative_join'
     INVISIBLE_UNRESTRICTED = 'invisible_unrestricted'
     REQ_LOG_LOC = 'request_log_location'
     LOG_LEVEL = 'log_level'
@@ -378,6 +379,11 @@ class RedisKeys(object):
     RKEY_CAN_WHISPER = 'whisper:{}'  # whisper:user_id
     RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
     RKEY_ACLS_FOR_ROOMS_HAVING_ACTION = 'rooms:acl:{}:{}'  # rooms:acl:<room_id>:<acl_action> => {acl_type: acl_value}
+    RKEY_JOIN_COUNTS = 'rooms:joins:{}'  # rooms:joins:room_id
+
+    @staticmethod
+    def join_counts(room_id) -> str:
+        return RedisKeys.RKEY_JOIN_COUNTS.format(room_id)
 
     @staticmethod
     def all_rooms() -> str:

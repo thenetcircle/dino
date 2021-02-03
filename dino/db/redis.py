@@ -1220,6 +1220,10 @@ class DatabaseRedis(object):
         self.redis.hset(RedisKeys.channels(), channel_id, channel_name)
         self.set_owner_channel(channel_id, user_id)
 
+    def increase_join_count(self, room_id: str) -> None:
+        self.redis.incr(RedisKeys.join_counts(room_id), 1)
+        self.env.cache.increase_join_count(room_id)
+
     def create_room(self, room_name: str, room_id: str, channel_id: str, user_id: str, user_name: str, ephemeral: bool=True, sort_order: int=False) -> None:
         if self.env.cache.get_channel_exists(channel_id) is None:
             if not self.channel_exists(channel_id):

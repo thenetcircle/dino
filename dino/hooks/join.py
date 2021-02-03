@@ -16,7 +16,7 @@ from dino.exceptions import NoSuchRoomException
 
 from dino import environ
 from dino import utils
-from dino.config import SessionKeys
+from dino.config import SessionKeys, ConfigKeys
 from dino.config import UserKeys
 from dino.utils.decorators import timeit
 
@@ -39,6 +39,12 @@ class OnJoinHooks(object):
             utils.join_the_room(user_id, user_name, room_id, room_name)
         except NoSuchRoomException:
             logger.error('tried to join non-existing room "{}" ({})'.format(room_id, room_name))
+
+        if environ.env.config.get(ConfigKeys.COUNT_CUMULATIVE_JOINS, default=False):
+            try:
+                environ.env.db.increase_join_count(room_id)
+            except Exception as e:
+                logger.error('could not increase cumulative room joins: {}'.format(str(e)))
 
     @staticmethod
     def emit_join_event(activity, user_id, user_name, image) -> None:

@@ -256,6 +256,13 @@ class AclConfigs(DeclarativeBase):
     acl_value = Column('acl_value', String(128), nullable=False)
 
 
+class Joins(DeclarativeBase):
+    __tablename__ = 'joins'
+
+    room_id = Column(String(36), primary_key=True)
+    amount = Column(Integer, nullable=False, default=0)
+
+
 class BlackList(DeclarativeBase):
     __tablename__ = 'blacklist'
 

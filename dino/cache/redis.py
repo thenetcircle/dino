@@ -7,7 +7,7 @@ import socket
 import pytz
 
 from zope.interface import implementer
-from typing import Union, List
+from typing import Union, List, Optional
 from typing import Dict
 from typing import Tuple
 
@@ -735,13 +735,34 @@ class CacheRedis(object):
         key = RedisKeys.acls_in_room(room_id)
         self.cache.delete(key)
 
+    def increase_join_count(self, room_id: str) -> None:
+        key = RedisKeys.join_counts(room_id)
+
+        self.redis.incr(key, 1)
+        self.redis.expire(key, SEVEN_DAYS)
+
+    def get_join_count(self, room_id: str) -> Optional[int]:
+        key = RedisKeys.join_counts(room_id)
+
+        n_joins = self.redis.get(key)
+        if n_joins is None:
+            return None
+
+        return int(float(str(n_joins, "utf-8")))
+
+    def set_join_count(self, room_id: str, n_joins: int) -> None:
+        key = RedisKeys.join_counts(room_id)
+
+        self.redis.set(key, n_joins)
+        self.redis.expire(key, SEVEN_DAYS)
+
     def set_all_acls_for_channel(self, channel_id: str, acls: dict) -> None:
         key = RedisKeys.acls_in_channel(channel_id)
-        self.cache.set(key, acls, ttl=FIVE_MINUTES + random.random()*FIVE_MINUTES)
+        self.cache.set(key, acls, ttl=int(FIVE_MINUTES + random.random()*FIVE_MINUTES))
 
     def set_all_acls_for_room(self, room_id: str, acls: dict) -> None:
         key = RedisKeys.acls_in_room(room_id)
-        self.cache.set(key, acls, ttl=FIVE_MINUTES + random.random()*FIVE_MINUTES)
+        self.cache.set(key, acls, ttl=int(FIVE_MINUTES + random.random()*FIVE_MINUTES))
 
     def get_all_acls_for_channel(self, channel_id: str) -> dict:
         key = RedisKeys.acls_in_channel(channel_id)

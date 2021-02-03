@@ -1,5 +1,5 @@
 from zope.interface import Interface
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Optional
 
 
 class ICache(Interface):
@@ -22,6 +22,21 @@ class ICache(Interface):
 
         :param user_name:
         :return:
+        """
+
+    def increase_join_count(self, room_id: str) -> None:
+        """
+        increase the cumulative count of joins in a room, not unique per user id
+        """
+
+    def get_join_count(self, room_id: str) -> Optional[int]:
+        """
+        get the number of cumulative joins for a room
+        """
+
+    def set_join_count(self, room_id: str, n_joins: int) -> None:
+        """
+        set the number of cumulative joins for a room
         """
 
     def set_user_name_exists(self, user_name: str):
