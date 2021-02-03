@@ -243,7 +243,10 @@ class DatabaseRdbms(object):
     def increase_join_count(self, room_id: str, session=None) -> None:
         join = session.query(Joins).filter(Joins.room_id == room_id).first()
         if join is None:
-            join = Joins(amount=0)
+            join = Joins(
+                amount=0,
+                room_id=room_id
+            )
 
         join.amount += 1
         self.env.cache.increase_join_count(room_id)
