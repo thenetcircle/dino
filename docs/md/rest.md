@@ -260,10 +260,12 @@ Response looks like this:
 
 Broadcasts a message to everyone on the server. Request needs the `body` and `verb` keys:
 
-    {
-        "body": "aGkgdGhlcmU=",
-        "verb": "broadcast"
-    }
+```json
+{
+    "body": "aGkgdGhlcmU=",
+    "verb": "broadcast"
+}
+```
 
 Body needs to be in base64. The verb may be anything, it's up to clients to handle it.
 
@@ -271,32 +273,40 @@ Body needs to be in base64. The verb may be anything, it's up to clients to hand
 
 Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:
 
-    {
-        "word": "YmFkd29yZA=="
-    }
+```json
+{
+    "word": "YmFkd29yZA=="
+}
+```
 
 Response if OK:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 ## DELETE /blacklist
 
 Remove a matching word from the blacklist. Encode the word in base64 first, then post a request on the following format:
 
-    {
-        "word": "YmFkd29yZA=="
-    }
+```json
+{
+    "word": "YmFkd29yZA=="
+}
+```
 
 The sent word will be compared lowercase to find  matching lowercased word in the blacklist and remove all words with
 and exact match (when both lowercase).
 
 Response if OK:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 ## POST /set-admin
 
@@ -304,23 +314,29 @@ Set a user as a global moderator.
 
 Request contains user ID and the user's name (in case the user doesn't exist):
 
-    {
-        "id": "1234",
-        "name": "myuser"
-    }
+```json
+{
+    "id": "1234",
+    "name": "myuser"
+}
+```
 
 Response if OK:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 Or if any errors:
 
-    {
-        "data": "no name parameter in request", 
-        "status_code": 500
-    }
+```json
+{
+    "data": "no name parameter in request", 
+    "status_code": 500
+}
+```
 
 ## POST /remove-admin
 
@@ -328,62 +344,72 @@ Remove global moderator status for a user.
 
 Request contains the user's ID only:
 
-    {
-        "id": "1234"
-    }
+```json
+{
+    "id": "1234"
+}
+```
 
 Response if OK:
 
-    {
-        "status_code": 200
-    }
+```json
+{
+    "status_code": 200
+}
+```
 
 Or if any errors:
 
-    {
-        "data": "no id parameter in request", 
-        "status_code": 500
-    }
+```json
+{
+    "data": "no id parameter in request", 
+    "status_code": 500
+}
+```
 
 ## POST /ban
 
 Request contains info on who to ban where. For banning globally:
 
-    {
-        "1234": {
-            "duration": "24h",
-            "reason": "<optional base64 encoded free-text>",
-            "admin_id": "<id of user banning (must already exist), or leave empty for default>",
-            "type": "global",
-            "name": "<username in base64, optional>"
-        }
+```json
+{
+    "1234": {
+        "duration": "24h",
+        "reason": "<optional base64 encoded free-text>",
+        "admin_id": "<id of user banning (must already exist), or leave empty for default>",
+        "type": "global",
+        "name": "<username in base64, optional>"
     }
+}
+```
 
 Can also ban multiple users at the same time:
 
-    {
-        "<user id>": {
-            "duration": "24h",
-            "type": "global",
-            "reason": "<option reason field, base64 encoded>",
-            "admin_id": "<optional id of admin user who is banning>",
-            "name": "<username in base64, optional>"
-        },
-        "<user id>": {
-            "duration": "10m",
-            "target": "<channel uuid>",
-            "type": "channel",
-            "reason": "<option reason field, base64 encoded>",
-            "admin_id": "<optional id of admin user who is banning>"
-        },
-        "<user id>": {
-            "duration": "7d",
-            "target": "<room uuid>",
-            "type": "room",
-            "reason": "<option reason field, base64 encoded>",
-            "admin_id": "<optional id of admin user who is banning>"
-        }
+```json
+{
+    "<user id>": {
+        "duration": "24h",
+        "type": "global",
+        "reason": "<option reason field, base64 encoded>",
+        "admin_id": "<optional id of admin user who is banning>",
+        "name": "<username in base64, optional>"
+    },
+    "<user id>": {
+        "duration": "10m",
+        "target": "<channel uuid>",
+        "type": "channel",
+        "reason": "<option reason field, base64 encoded>",
+        "admin_id": "<optional id of admin user who is banning>"
+    },
+    "<user id>": {
+        "duration": "7d",
+        "target": "<room uuid>",
+        "type": "room",
+        "reason": "<option reason field, base64 encoded>",
+        "admin_id": "<optional id of admin user who is banning>"
     }
+}
+```
 
 The `name` field must be base64 encoded. The field is also optional and is only used if a ban request is received for 
 a user that doesn't exist on the server, e.g. if the user never logged in before it will not exist. If the name is 
@@ -400,103 +426,115 @@ When type is set to `global`, no target is specified (meaning user is banned fro
 
 Response will be something like the following (if failure):
 
-    {
-        "status": "FAIL",
-        "message": "missing target id for user id <user id> and request <the request json>"
-    }
+```json
+{
+    "status": "FAIL",
+    "message": "missing target id for user id <user id> and request <the request json>"
+}
+```
 
 The banning is done async so if any of the provided user bans has invalid parameters the response will only tell you the
 first non-valid parameter and for which user ID.
 
 For success the response looks like this:
 
-    {
-        "status": "OK"
-    }
+```json
+{
+    "status": "OK"
+}
+```
 
 ## POST /kick
 
 Request contains:
 
-    {
-        "<user id>": {
-            "target": "<room uuid>",
-            "reason": "<option reason field, base64 encoded>",
-            "admin_id": "<optional id of admin user who is kicking>"
-        },
-        "<user id>": {
-            "target": "<room uuid>",
-            "reason": "<option reason field, base64 encoded>",
-            "admin_id": "<optional id of admin user who is kicking>"
-        },
-        "<user id>": {
-            "target": "<room uuid>",
-            "reason": "<option reason field, base64 encoded>",
-            "admin_id": "<optional id of admin user who is kicking>"
-        }
+```json
+{
+    "<user id>": {
+        "target": "<room uuid>",
+        "reason": "<option reason field, base64 encoded>",
+        "admin_id": "<optional id of admin user who is kicking>"
+    },
+    "<user id>": {
+        "target": "<room uuid>",
+        "reason": "<option reason field, base64 encoded>",
+        "admin_id": "<optional id of admin user who is kicking>"
+    },
+    "<user id>": {
+        "target": "<room uuid>",
+        "reason": "<option reason field, base64 encoded>",
+        "admin_id": "<optional id of admin user who is kicking>"
     }
+}
+```
 
 The "reason" field must be base64 encoded. If the "admin_id" field is specified it will be used, if not the default ID
 "0" will be used.
 
 Response will be something like the following:
 
-    {
-        "<user id>": {
-            "status": "OK"
-        },
-        "<user id>": {
-            "status": "FAIL",
-            "message": "no such user"
-        },
-        "<user id>" {
-            "status": "OK"
-        }
+```json
+{
+    "<user id>": {
+        "status": "OK"
+    },
+    "<user id>": {
+        "status": "FAIL",
+        "message": "no such user"
+    },
+    "<user id>": {
+        "status": "OK"
     }
+}
+```
 
 ## GET /roles
 
 Request contains a list of user IDs, e.g.:
 
-    {
-        "users": [
-            "124352",
-            "5678"
-        ]
-    }
+```json
+{
+    "users": [
+        "124352",
+        "5678"
+    ]
+}
+```
 
 Response would be something similar to the following:
 
-    {
-        "data": {
-            "124352": {
-                "room": {
-                    "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": [
-                        "moderator"
-                    ],
-                    "bb0ea500-cd94-11e6-b178-8323deb605bf": [
-                        "owner"
-                    ]
-                },
-                "channel": {
-                    "dedf878e-b25d-4713-8058-20c6f0547c59": [
-                        "admin", 
-                        "owner"
-                    ]
-                },
-                "global": [
-                    "superuser",
-                    "globalmod"
+```json
+{
+    "data": {
+        "124352": {
+            "room": {
+                "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": [
+                    "moderator"
+                ],
+                "bb0ea500-cd94-11e6-b178-8323deb605bf": [
+                    "owner"
                 ]
             },
-            "5678": {
-                "room": {},
-                "channel": {},
-                "global": []
-            }
+            "channel": {
+                "dedf878e-b25d-4713-8058-20c6f0547c59": [
+                    "admin", 
+                    "owner"
+                ]
+            },
+            "global": [
+                "superuser",
+                "globalmod"
+            ]
         },
-        "status_code": 200
-    }
+        "5678": {
+            "room": {},
+            "channel": {},
+            "global": []
+        }
+    },
+    "status_code": 200
+}
+```
 
 Possible roles are:
 
@@ -509,6 +547,42 @@ Possible roles are:
 
 The only difference between global superusers and global moderators is that global superusers can also remove static 
 rooms.
+
+## GET /count-joins
+
+Count the cumulative number of joins for a room. Used for counting the number of "views" a live stream has had. The 
+count is cached for 8 hours, then fetched from db if requested again.
+
+Using curl:
+
+```bash
+curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d '{"room_ids":["2e7d537e-bed5-47c5-a7f6-357075759e5d"]}'
+```
+
+Example request :
+
+```json
+{
+  "room_ids": [
+    "2e7d537e-bed5-47c5-a7f6-357075759e5d",
+    "0e88aae3-cb2f-457c-b1be-8e882479bd34",
+    "0c289aaf-3c7b-4290-89bb-e1fa27cd2300"
+  ]
+}
+```
+
+Example response:
+
+```json
+{
+  "status_code": 200, 
+  "data": {
+    "2e7d537e-bed5-47c5-a7f6-357075759e5d": 5,
+    "0e88aae3-cb2f-457c-b1be-8e882479bd34": 3290,
+    "0c289aaf-3c7b-4290-89bb-e1fa27cd2300": 89
+  }
+}
+```
 
 ## GET /users-in-rooms
 
@@ -726,28 +800,34 @@ User/room will get something similar to this in a `message` event:
 
 The `/banned` endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:
 
-    curl localhost:5400/banned -d '{"users":["110464"]}' -X GET -H "Content-Type: application/json"
+Using curl:
+
+```bash
+curl localhost:5400/banned -d '{"users":["110464"]}' -X GET -H "Content-Type: application/json"
+````
 
 Response would be (slightly different from above example without request body):
 
-    {
-        "data": {
-            "110464": {
-                "channel": {},
-                "room": {
-                    "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
-                        "name": "Y29vbCBndXlz",
-                        "duration": "15m",
-                        "timestamp": "2016-12-14T09:23:00Z"
-                    },
-                    "675eb2a5-17c6-45e4-bc0f-674241573f22": {
-                        "name": "YmFkIGtpZHo=",
-                        "duration": "2m",
-                        "timestamp": "2016-12-14T09:15:51Z"
-                    }
+```json
+{
+    "data": {
+        "110464": {
+            "channel": {},
+            "room": {
+                "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
+                    "name": "Y29vbCBndXlz",
+                    "duration": "15m",
+                    "timestamp": "2016-12-14T09:23:00Z"
                 },
-                "global": {}
-            }
-        },
-        "status_code": 200
-    }
+                "675eb2a5-17c6-45e4-bc0f-674241573f22": {
+                    "name": "YmFkIGtpZHo=",
+                    "duration": "2m",
+                    "timestamp": "2016-12-14T09:15:51Z"
+                }
+            },
+            "global": {}
+        }
+    },
+    "status_code": 200
+}
+```
