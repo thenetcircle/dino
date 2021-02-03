@@ -249,7 +249,7 @@ class DatabaseRdbms(object):
             )
 
         join.amount += 1
-        self.env.cache.increase_join_count(room_id)
+        self.env.cache.set_join_count(room_id, join.amount)
 
         session.add(join)
         session.commit()

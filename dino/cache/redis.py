@@ -735,12 +735,6 @@ class CacheRedis(object):
         key = RedisKeys.acls_in_room(room_id)
         self.cache.delete(key)
 
-    def increase_join_count(self, room_id: str) -> None:
-        key = RedisKeys.join_counts(room_id)
-
-        self.redis.incr(key, 1)
-        self.redis.expire(key, SEVEN_DAYS)
-
     def get_join_count(self, room_id: str) -> Optional[int]:
         key = RedisKeys.join_counts(room_id)
 
