@@ -143,6 +143,9 @@
     <li class="toctree-l2"><a href="#get-roles">GET /roles</a></li>
     
 
+    <li class="toctree-l2"><a href="#get-count-joins">GET /count-joins</a></li>
+    
+
     <li class="toctree-l2"><a href="#get-users-in-rooms">GET /users-in-rooms</a></li>
     
 
@@ -432,110 +435,123 @@ instead.</p>
 
 <h2 id="post-broadcast">POST /broadcast</h2>
 <p>Broadcasts a message to everyone on the server. Request needs the <code>body</code> and <code>verb</code> keys:</p>
-<pre><code>{
-    "body": "aGkgdGhlcmU=",
-    "verb": "broadcast"
+<pre><code class="json">{
+    &quot;body&quot;: &quot;aGkgdGhlcmU=&quot;,
+    &quot;verb&quot;: &quot;broadcast&quot;
 }
 </code></pre>
+
 <p>Body needs to be in base64. The verb may be anything, it's up to clients to handle it.</p>
 <h2 id="post-blacklist">POST /blacklist</h2>
 <p>Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:</p>
-<pre><code>{
-    "word": "YmFkd29yZA=="
+<pre><code class="json">{
+    &quot;word&quot;: &quot;YmFkd29yZA==&quot;
 }
 </code></pre>
+
 <p>Response if OK:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <h2 id="delete-blacklist">DELETE /blacklist</h2>
 <p>Remove a matching word from the blacklist. Encode the word in base64 first, then post a request on the following format:</p>
-<pre><code>{
-    "word": "YmFkd29yZA=="
+<pre><code class="json">{
+    &quot;word&quot;: &quot;YmFkd29yZA==&quot;
 }
 </code></pre>
+
 <p>The sent word will be compared lowercase to find  matching lowercased word in the blacklist and remove all words with
 and exact match (when both lowercase).</p>
 <p>Response if OK:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <h2 id="post-set-admin">POST /set-admin</h2>
 <p>Set a user as a global moderator.</p>
 <p>Request contains user ID and the user's name (in case the user doesn't exist):</p>
-<pre><code>{
-    "id": "1234",
-    "name": "myuser"
+<pre><code class="json">{
+    &quot;id&quot;: &quot;1234&quot;,
+    &quot;name&quot;: &quot;myuser&quot;
 }
 </code></pre>
+
 <p>Response if OK:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <p>Or if any errors:</p>
-<pre><code>{
-    "data": "no name parameter in request", 
-    "status_code": 500
+<pre><code class="json">{
+    &quot;data&quot;: &quot;no name parameter in request&quot;, 
+    &quot;status_code&quot;: 500
 }
 </code></pre>
+
 <h2 id="post-remove-admin">POST /remove-admin</h2>
 <p>Remove global moderator status for a user.</p>
 <p>Request contains the user's ID only:</p>
-<pre><code>{
-    "id": "1234"
+<pre><code class="json">{
+    &quot;id&quot;: &quot;1234&quot;
 }
 </code></pre>
+
 <p>Response if OK:</p>
-<pre><code>{
-    "status_code": 200
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <p>Or if any errors:</p>
-<pre><code>{
-    "data": "no id parameter in request", 
-    "status_code": 500
+<pre><code class="json">{
+    &quot;data&quot;: &quot;no id parameter in request&quot;, 
+    &quot;status_code&quot;: 500
 }
 </code></pre>
+
 <h2 id="post-ban">POST /ban</h2>
 <p>Request contains info on who to ban where. For banning globally:</p>
-<pre><code>{
-    "1234": {
-        "duration": "24h",
-        "reason": "&lt;optional base64 encoded free-text&gt;",
-        "admin_id": "&lt;id of user banning (must already exist), or leave empty for default&gt;",
-        "type": "global",
-        "name": "&lt;username in base64, optional&gt;"
+<pre><code class="json">{
+    &quot;1234&quot;: {
+        &quot;duration&quot;: &quot;24h&quot;,
+        &quot;reason&quot;: &quot;&lt;optional base64 encoded free-text&gt;&quot;,
+        &quot;admin_id&quot;: &quot;&lt;id of user banning (must already exist), or leave empty for default&gt;&quot;,
+        &quot;type&quot;: &quot;global&quot;,
+        &quot;name&quot;: &quot;&lt;username in base64, optional&gt;&quot;
     }
 }
 </code></pre>
+
 <p>Can also ban multiple users at the same time:</p>
-<pre><code>{
-    "&lt;user id&gt;": {
-        "duration": "24h",
-        "type": "global",
-        "reason": "&lt;option reason field, base64 encoded&gt;",
-        "admin_id": "&lt;optional id of admin user who is banning&gt;",
-        "name": "&lt;username in base64, optional&gt;"
+<pre><code class="json">{
+    &quot;&lt;user id&gt;&quot;: {
+        &quot;duration&quot;: &quot;24h&quot;,
+        &quot;type&quot;: &quot;global&quot;,
+        &quot;reason&quot;: &quot;&lt;option reason field, base64 encoded&gt;&quot;,
+        &quot;admin_id&quot;: &quot;&lt;optional id of admin user who is banning&gt;&quot;,
+        &quot;name&quot;: &quot;&lt;username in base64, optional&gt;&quot;
     },
-    "&lt;user id&gt;": {
-        "duration": "10m",
-        "target": "&lt;channel uuid&gt;",
-        "type": "channel",
-        "reason": "&lt;option reason field, base64 encoded&gt;",
-        "admin_id": "&lt;optional id of admin user who is banning&gt;"
+    &quot;&lt;user id&gt;&quot;: {
+        &quot;duration&quot;: &quot;10m&quot;,
+        &quot;target&quot;: &quot;&lt;channel uuid&gt;&quot;,
+        &quot;type&quot;: &quot;channel&quot;,
+        &quot;reason&quot;: &quot;&lt;option reason field, base64 encoded&gt;&quot;,
+        &quot;admin_id&quot;: &quot;&lt;optional id of admin user who is banning&gt;&quot;
     },
-    "&lt;user id&gt;": {
-        "duration": "7d",
-        "target": "&lt;room uuid&gt;",
-        "type": "room",
-        "reason": "&lt;option reason field, base64 encoded&gt;",
-        "admin_id": "&lt;optional id of admin user who is banning&gt;"
+    &quot;&lt;user id&gt;&quot;: {
+        &quot;duration&quot;: &quot;7d&quot;,
+        &quot;target&quot;: &quot;&lt;room uuid&gt;&quot;,
+        &quot;type&quot;: &quot;room&quot;,
+        &quot;reason&quot;: &quot;&lt;option reason field, base64 encoded&gt;&quot;,
+        &quot;admin_id&quot;: &quot;&lt;optional id of admin user who is banning&gt;&quot;
     }
 }
 </code></pre>
+
 <p>The <code>name</code> field must be base64 encoded. The field is also optional and is only used if a ban request is received for 
 a user that doesn't exist on the server, e.g. if the user never logged in before it will not exist. If the name is 
 not specified and the user has to be created before banning, the user ID will be set as the name (later when the user 
@@ -546,95 +562,101 @@ login the real username will overwrite this).</p>
 seconds). Negative or 0 durations are not allowed.</p>
 <p>When type is set to <code>global</code>, no target is specified (meaning user is banned from the whole chat server).</p>
 <p>Response will be something like the following (if failure):</p>
-<pre><code>{
-    "status": "FAIL",
-    "message": "missing target id for user id &lt;user id&gt; and request &lt;the request json&gt;"
+<pre><code class="json">{
+    &quot;status&quot;: &quot;FAIL&quot;,
+    &quot;message&quot;: &quot;missing target id for user id &lt;user id&gt; and request &lt;the request json&gt;&quot;
 }
 </code></pre>
+
 <p>The banning is done async so if any of the provided user bans has invalid parameters the response will only tell you the
 first non-valid parameter and for which user ID.</p>
 <p>For success the response looks like this:</p>
-<pre><code>{
-    "status": "OK"
+<pre><code class="json">{
+    &quot;status&quot;: &quot;OK&quot;
 }
 </code></pre>
+
 <h2 id="post-kick">POST /kick</h2>
 <p>Request contains:</p>
-<pre><code>{
-    "&lt;user id&gt;": {
-        "target": "&lt;room uuid&gt;",
-        "reason": "&lt;option reason field, base64 encoded&gt;",
-        "admin_id": "&lt;optional id of admin user who is kicking&gt;"
+<pre><code class="json">{
+    &quot;&lt;user id&gt;&quot;: {
+        &quot;target&quot;: &quot;&lt;room uuid&gt;&quot;,
+        &quot;reason&quot;: &quot;&lt;option reason field, base64 encoded&gt;&quot;,
+        &quot;admin_id&quot;: &quot;&lt;optional id of admin user who is kicking&gt;&quot;
     },
-    "&lt;user id&gt;": {
-        "target": "&lt;room uuid&gt;",
-        "reason": "&lt;option reason field, base64 encoded&gt;",
-        "admin_id": "&lt;optional id of admin user who is kicking&gt;"
+    &quot;&lt;user id&gt;&quot;: {
+        &quot;target&quot;: &quot;&lt;room uuid&gt;&quot;,
+        &quot;reason&quot;: &quot;&lt;option reason field, base64 encoded&gt;&quot;,
+        &quot;admin_id&quot;: &quot;&lt;optional id of admin user who is kicking&gt;&quot;
     },
-    "&lt;user id&gt;": {
-        "target": "&lt;room uuid&gt;",
-        "reason": "&lt;option reason field, base64 encoded&gt;",
-        "admin_id": "&lt;optional id of admin user who is kicking&gt;"
+    &quot;&lt;user id&gt;&quot;: {
+        &quot;target&quot;: &quot;&lt;room uuid&gt;&quot;,
+        &quot;reason&quot;: &quot;&lt;option reason field, base64 encoded&gt;&quot;,
+        &quot;admin_id&quot;: &quot;&lt;optional id of admin user who is kicking&gt;&quot;
     }
 }
 </code></pre>
+
 <p>The "reason" field must be base64 encoded. If the "admin_id" field is specified it will be used, if not the default ID
 "0" will be used.</p>
 <p>Response will be something like the following:</p>
-<pre><code>{
-    "&lt;user id&gt;": {
-        "status": "OK"
+<pre><code class="json">{
+    &quot;&lt;user id&gt;&quot;: {
+        &quot;status&quot;: &quot;OK&quot;
     },
-    "&lt;user id&gt;": {
-        "status": "FAIL",
-        "message": "no such user"
+    &quot;&lt;user id&gt;&quot;: {
+        &quot;status&quot;: &quot;FAIL&quot;,
+        &quot;message&quot;: &quot;no such user&quot;
     },
-    "&lt;user id&gt;" {
-        "status": "OK"
+    &quot;&lt;user id&gt;&quot;: {
+        &quot;status&quot;: &quot;OK&quot;
     }
 }
 </code></pre>
+
 <h2 id="get-roles">GET /roles</h2>
 <p>Request contains a list of user IDs, e.g.:</p>
-<pre><code>{
-    "users": [
-        "124352",
-        "5678"
+<pre><code class="json">{
+    &quot;users&quot;: [
+        &quot;124352&quot;,
+        &quot;5678&quot;
     ]
 }
 </code></pre>
+
 <p>Response would be something similar to the following:</p>
-<pre><code>{
-    "data": {
-        "124352": {
-            "room": {
-                "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": [
-                    "moderator"
+<pre><code class="json">{
+    &quot;data&quot;: {
+        &quot;124352&quot;: {
+            &quot;room&quot;: {
+                &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;: [
+                    &quot;moderator&quot;
                 ],
-                "bb0ea500-cd94-11e6-b178-8323deb605bf": [
-                    "owner"
+                &quot;bb0ea500-cd94-11e6-b178-8323deb605bf&quot;: [
+                    &quot;owner&quot;
                 ]
             },
-            "channel": {
-                "dedf878e-b25d-4713-8058-20c6f0547c59": [
-                    "admin", 
-                    "owner"
+            &quot;channel&quot;: {
+                &quot;dedf878e-b25d-4713-8058-20c6f0547c59&quot;: [
+                    &quot;admin&quot;, 
+                    &quot;owner&quot;
                 ]
             },
-            "global": [
-                "superuser",
-                "globalmod"
+            &quot;global&quot;: [
+                &quot;superuser&quot;,
+                &quot;globalmod&quot;
             ]
         },
-        "5678": {
-            "room": {},
-            "channel": {},
-            "global": []
+        &quot;5678&quot;: {
+            &quot;room&quot;: {},
+            &quot;channel&quot;: {},
+            &quot;global&quot;: []
         }
     },
-    "status_code": 200
+    &quot;status_code&quot;: 200
 }
 </code></pre>
+
 <p>Possible roles are:</p>
 <ul>
 <li>global superuser (superuser)</li>
@@ -646,6 +668,34 @@ first non-valid parameter and for which user ID.</p>
 </ul>
 <p>The only difference between global superusers and global moderators is that global superusers can also remove static 
 rooms.</p>
+<h2 id="get-count-joins">GET /count-joins</h2>
+<p>Count the cumulative number of joins for a room. Used for counting the number of "views" a live stream has had. The 
+count is cached for 8 hours, then fetched from db if requested again.</p>
+<p>Using curl:</p>
+<pre><code class="bash">curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d '{&quot;room_ids&quot;:[&quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;]}'
+</code></pre>
+
+<p>Example request :</p>
+<pre><code class="json">{
+  &quot;room_ids&quot;: [
+    &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
+    &quot;0e88aae3-cb2f-457c-b1be-8e882479bd34&quot;,
+    &quot;0c289aaf-3c7b-4290-89bb-e1fa27cd2300&quot;
+  ]
+}
+</code></pre>
+
+<p>Example response:</p>
+<pre><code class="json">{
+  &quot;status_code&quot;: 200, 
+  &quot;data&quot;: {
+    &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;: 5,
+    &quot;0e88aae3-cb2f-457c-b1be-8e882479bd34&quot;: 3290,
+    &quot;0c289aaf-3c7b-4290-89bb-e1fa27cd2300&quot;: 89
+  }
+}
+</code></pre>
+
 <h2 id="get-users-in-rooms">GET /users-in-rooms</h2>
 <p>Request contains a list of room IDs, e.g.:</p>
 <pre><code class="json">{
@@ -822,29 +872,33 @@ keys.</p>
 
 <h2 id="user-id-parameter">User ID parameter</h2>
 <p>The <code>/banned</code> endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:</p>
-<pre><code>curl localhost:5400/banned -d '{"users":["110464"]}' -X GET -H "Content-Type: application/json"
-</code></pre>
-<p>Response would be (slightly different from above example without request body):</p>
-<pre><code>{
-    "data": {
-        "110464": {
-            "channel": {},
-            "room": {
-                "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
-                    "name": "Y29vbCBndXlz",
-                    "duration": "15m",
-                    "timestamp": "2016-12-14T09:23:00Z"
+<p>Using curl:</p>
+<pre><code class="bash">curl localhost:5400/banned -d '{&quot;users&quot;:[&quot;110464&quot;]}' -X GET -H &quot;Content-Type: application/json&quot;
+````
+
+Response would be (slightly different from above example without request body):
+
+```json
+{
+    &quot;data&quot;: {
+        &quot;110464&quot;: {
+            &quot;channel&quot;: {},
+            &quot;room&quot;: {
+                &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;: {
+                    &quot;name&quot;: &quot;Y29vbCBndXlz&quot;,
+                    &quot;duration&quot;: &quot;15m&quot;,
+                    &quot;timestamp&quot;: &quot;2016-12-14T09:23:00Z&quot;
                 },
-                "675eb2a5-17c6-45e4-bc0f-674241573f22": {
-                    "name": "YmFkIGtpZHo=",
-                    "duration": "2m",
-                    "timestamp": "2016-12-14T09:15:51Z"
+                &quot;675eb2a5-17c6-45e4-bc0f-674241573f22&quot;: {
+                    &quot;name&quot;: &quot;YmFkIGtpZHo=&quot;,
+                    &quot;duration&quot;: &quot;2m&quot;,
+                    &quot;timestamp&quot;: &quot;2016-12-14T09:15:51Z&quot;
                 }
             },
-            "global": {}
+            &quot;global&quot;: {}
         }
     },
-    "status_code": 200
+    &quot;status_code&quot;: 200
 }
 </code></pre>
               
