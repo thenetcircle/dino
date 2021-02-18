@@ -1653,12 +1653,20 @@ def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
         pass
 
 
-def join_the_room(user_id: str, user_name: str, room_id: str, room_name: str, is_sid_room=False, sid=None) -> None:
+def join_the_room(
+        user_id: str,
+        user_name: str,
+        room_id: str,
+        room_name: str,
+        is_sid_room=False,
+        sid=None,
+        namespace=None
+) -> None:
     # we don't create the db representation of the sid rooms
     if not is_sid_room:
         environ.env.db.join_room(user_id, user_name, room_id, room_name)
 
-    environ.env.join_room(room_id, sid=sid)
+    environ.env.join_room(room_id, sid=sid, namespace=namespace)
     logger.info('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
 
 

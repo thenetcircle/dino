@@ -33,8 +33,12 @@ class OnJoinHooks(object):
         user_id = activity.actor.id
 
         sid = None
+        namespace = None
+
         if hasattr(activity.actor, "content"):
             sid = activity.actor.content
+        if hasattr(activity.actor, "url"):
+            namespace = activity.actor.url
 
         user_name = environ.env.session.get(SessionKeys.user_name.value)
         room_name = utils.get_room_name(room_id)
@@ -43,7 +47,7 @@ class OnJoinHooks(object):
             environ.env.db.get_user_name(user_id)
 
         try:
-            utils.join_the_room(user_id, user_name, room_id, room_name, sid=sid)
+            utils.join_the_room(user_id, user_name, room_id, room_name, sid=sid, namespace=namespace)
         except NoSuchRoomException:
             logger.error('tried to join non-existing room "{}" ({})'.format(room_id, room_name))
 
