@@ -58,7 +58,7 @@ class SendResource(BaseResource):
             'content': msg_content
         }
 
-        if not environ.env.cache.user_is_in_multicast(target_id):
+        if object_type == "private" and not environ.env.cache.user_is_in_multicast(target_id):
             logger.info('user {} is offline, dropping message: {}'.format(target_id, str(json)))
             return
 
