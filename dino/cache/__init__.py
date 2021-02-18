@@ -24,6 +24,21 @@ class ICache(Interface):
         :return:
         """
 
+    def get_default_channel_id(self) -> Optional[str]:
+        """
+        get the default channel id
+
+        :return: the default channel id if existing, otherwise None
+        """
+
+    def set_default_channel_id(self, channel_id: str) -> None:
+        """
+        set the default channel id
+
+        :param channel_id: default channel id to cache
+        :return: nothing
+        """
+
     def increase_join_count(self, room_id: str) -> None:
         """
         increase the cumulative count of joins in a room, not unique per user id

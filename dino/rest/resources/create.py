@@ -1,0 +1,66 @@
+import logging
+from datetime import datetime
+from uuid import uuid4 as uuid
+
+from activitystreams import parse as parse_to_as
+from flask import request
+
+from dino import environ
+from dino.rest.resources.base import BaseResource
+from dino.utils import ActivityBuilder
+from dino.utils.decorators import timeit
+
+logger = logging.getLogger(__name__)
+
+
+def join_activity(actor_id: str, target_id: str) -> dict:
+    return ActivityBuilder.enrich({
+        "actor": {
+            "id": actor_id
+        },
+        "verb": "join",
+        "target": {
+            "id": target_id
+        }
+    })
+
+
+class CreateRoomResource(BaseResource):
+    def __init__(self):
+        super(CreateRoomResource, self).__init__()
+        self.last_cleared = datetime.utcnow()
+        self.request = request
+
+    def _do_post(self, room_name, user_ids, owner_id, owner_name, channel_id):
+        room_id = str(uuid())
+
+        if channel_id is None:
+            channel_id = environ.env.db.get_or_create_default_channel()
+
+        environ.env.db.create_room(room_name, room_id, channel_id, owner_id, owner_name, ephemeral=True)
+        environ.env.db.set_owner(room_id, owner_id)
+
+        for user_id in user_ids:
+            data = join_activity(user_id, room_id)
+            activity = parse_to_as(data)
+
+            # reuse existing logic for joining the room
+            environ.env.observer.emit("on_join", (data, activity))
+
+    @timeit(logger, "on_rest_create_room")
+    def do_post(self):
+        is_valid, msg, json = self.validate_json(self.request, silent=False)
+        if not is_valid:
+            raise AttributeError(msg)
+
+        logger.debug("POST request: %s" % str(json))
+
+        room_name = json["room_id"]
+        user_ids = json["user_ids"]
+        owner_id = json["owner_id"]
+        owner_name = json["owner_name"]
+
+        # optional, will use default if not specified
+        channel_id = json.get("channel_id")
+
+        return self._do_post(room_name, user_ids, owner_id, owner_name, channel_id)

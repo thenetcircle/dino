@@ -85,6 +85,8 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_CHANNEL_NAME = "_DEFAULT"
+
 
 def with_session(view_func):
     @wraps(view_func)
@@ -1252,6 +1254,32 @@ class DatabaseRdbms(object):
             return
 
         self.env.cache.reset_channels_with_sort()
+
+    def get_or_create_default_channel(self):
+        @with_session
+        def _get_default_channel(session=None):
+            channel = session.query(Channels).filter(
+                Channels.name == DEFAULT_CHANNEL_NAME
+            ).first()
+
+            if channel is not None:
+                return channel.uuid
+
+            return None
+
+        channel_id = self.env.cache.get_default_channel_id()
+        if channel_id is not None:
+            return channel_id
+
+        channel_id = _get_default_channel()
+        if channel_id is None:
+            channel_id = str(uuid())
+
+            # default owner is admin id 0
+            self.create_channel(DEFAULT_CHANNEL_NAME, channel_id, "0")
+
+        self.env.cache.set_default_channel_id(channel_id)
+        return channel_id
 
     def create_room(
             self, room_name: str, room_id: str, channel_id: str, user_id: str,
@@ -3335,18 +3363,27 @@ class DatabaseRdbms(object):
                 .filter(Users.uuid == user_id)\
                 .first()
 
-            if channel is not None:
-                if channel.rooms is not None and len(channel.rooms) > 0:
-                    for room in channel.rooms:
-                        if room.users is not None and len(room.users) > 0:
-                            for user in room.users:
-                                if user.uuid == user_id:
-                                    try:
-                                        room.users.remove(user)
-                                    except ValueError:
-                                        # happens if the user already left a room
-                                        pass
-                        session.add(room)
+            if channel is None:
+                return
+
+            if channel.rooms is None or len(channel.rooms) == 0:
+                return
+
+            for room in channel.rooms:
+                if room.users is None or len(room.users) == 0:
+                    continue
+
+                for user in room.users:
+                    if user.uuid != user_id:
+                        continue
+
+                    try:
+                        room.users.remove(user)
+                    except ValueError:
+                        # happens if the user already left a room
+                        pass
+
+                session.add(room)
 
         if not self.channel_exists(channel_id):
             raise NoSuchChannelException(channel_id)

@@ -230,7 +230,7 @@ class CacheRedis(object):
 
     def set_type_of_rooms_in_channel(self, channel_id: str, object_type: str) -> None:
         cache_key = RedisKeys.room_types_in_channel(channel_id)
-        self.cache.set(cache_key, object_type, ttl=ONE_MINUTE + random.random()*ONE_MINUTE)
+        self.cache.set(cache_key, object_type, ttl=int(ONE_MINUTE + random.random()*ONE_MINUTE))
 
     def get_type_of_rooms_in_channel(self, channel_id: str) -> str:
         cache_key = RedisKeys.room_types_in_channel(channel_id)
@@ -266,6 +266,26 @@ class CacheRedis(object):
             self.cache.set(redis_key, rooms, ttl=FIVE_MINUTES)
             return rooms
         return None
+
+    def get_default_channel_id(self) -> Optional[str]:
+        key = RedisKeys.default_channel_id()
+
+        default_channel_id = self.cache.get(key)
+        if default_channel_id is not None:
+            return default_channel_id
+
+        default_channel_id = self.redis.get(key)
+        if default_channel_id is None:
+            return None
+
+        self.cache.set(key, default_channel_id)
+        return str(default_channel_id, 'utf-8')
+
+    def set_default_channel_id(self, channel_id: str) -> None:
+        key = RedisKeys.default_channel_id()
+
+        self.cache.set(key, channel_id)
+        self.redis.set(key, channel_id)
 
     def get_black_list(self) -> set:
         cache_key = RedisKeys.black_list()

@@ -49,6 +49,13 @@ class IDatabase(Interface):
         :raises NoSuchRoomException if no room found with the given id
         """
 
+    def get_or_create_default_channel(self):
+        """
+        default channel to use for new rooms created from rest api
+
+        :return: default channel id
+        """
+
     def get_room_acls_for_action(self, action) -> Dict[str, Dict[str, str]]:
         """
 

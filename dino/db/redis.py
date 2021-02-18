@@ -68,7 +68,19 @@ class DatabaseRedis(object):
         self.env = env
         self.redis = Redis(host=host, port=port, db=db)
         self.acl_validator = AclValidator()
-        
+
+    def get_or_create_default_channel(self):
+        key = RedisKeys.default_channel_id()
+
+        channel_id = self.redis.get(key)
+        if channel_id is not None:
+            return str(channel_id, "utf-8")
+
+        channel_id = str(uuid())
+        self.redis.set(key, channel_id)
+
+        return channel_id
+
     def get_all_permanent_rooms(self):
         pass
 
