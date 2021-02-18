@@ -32,11 +32,13 @@ class OnJoinHooks(object):
         room_id = activity.target.id
         user_id = activity.actor.id
 
-        sid = None
+        sids = [None]
         namespace = None
 
         if hasattr(activity.actor, "content"):
-            sid = activity.actor.content
+            sids = activity.actor.content
+            sids = sids.split(",")
+
         if hasattr(activity.actor, "url"):
             namespace = activity.actor.url
 
@@ -46,10 +48,28 @@ class OnJoinHooks(object):
         if user_name is None:
             environ.env.db.get_user_name(user_id)
 
-        try:
-            utils.join_the_room(user_id, user_name, room_id, room_name, sid=sid, namespace=namespace)
-        except NoSuchRoomException:
-            logger.error('tried to join non-existing room "{}" ({})'.format(room_id, room_name))
+        # for the first session (or the only session), we want to add a
+        # row to the db, but not for any other sessions that are open
+        skip_db_join = False
+
+        for sid in sids:
+            try:
+                utils.join_the_room(
+                    user_id,
+                    user_name,
+                    room_id,
+                    room_name,
+                    skip_db_join=skip_db_join,
+                    sid=sid,
+                    namespace=namespace
+                )
+
+                # for any other open session, we just want to tell flask to join the
+                # session in the room, but not add another row in the db for it
+                skip_db_join = True
+
+            except NoSuchRoomException:
+                logger.error('tried to join non-existing room "{}" ({})'.format(room_id, room_name))
 
         if environ.env.config.get(ConfigKeys.COUNT_CUMULATIVE_JOINS, default=False):
             try:

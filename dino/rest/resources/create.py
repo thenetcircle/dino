@@ -13,11 +13,11 @@ from dino.utils.decorators import timeit
 logger = logging.getLogger(__name__)
 
 
-def join_activity(actor_id: str, target_id: str, session_id: str, namespace: str) -> dict:
+def join_activity(actor_id: str, target_id: str, session_ids: list, namespace: str) -> dict:
     return ActivityBuilder.enrich({
         "actor": {
             "id": actor_id,
-            "content": session_id,
+            "content": ",".join(session_ids),
             "url": namespace
         },
         "verb": "join",
@@ -53,12 +53,11 @@ class CreateRoomResource(BaseResource):
             if len(session_ids) > 1:
                 logger.warning("multiple session ids found for user {}, will make all join".format(user_id))
 
-            for session_id in session_ids:
-                data = join_activity(user_id, room_id, session_id, self.namespace)
-                activity = parse_to_as(data)
+            data = join_activity(user_id, room_id, session_ids, self.namespace)
+            activity = parse_to_as(data)
 
-                # reuse existing logic for joining the room
-                environ.env.observer.emit("on_join", (data, activity))
+            # reuse existing logic for joining the room
+            environ.env.observer.emit("on_join", (data, activity))
 
     @timeit(logger, "on_rest_create_room")
     def do_post(self):

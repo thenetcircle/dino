@@ -1659,12 +1659,13 @@ def join_the_room(
         room_id: str,
         room_name: str,
         is_sid_room=False,
+        skip_db_join=False,
         sid=None,
         namespace=None
 ) -> None:
     # we don't create the db representation of the sid rooms
-    if not is_sid_room:
-        environ.env.db.join_room(user_id, user_name, room_id, room_name)
+    if not is_sid_room and not skip_db_join:
+        environ.env.db.join_room(user_id, user_name, room_id, room_name, sid=sid)
 
     environ.env.join_room(room_id, sid=sid, namespace=namespace)
     logger.info('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))

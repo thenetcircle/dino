@@ -1591,7 +1591,7 @@ class DatabaseRdbms(object):
             logger.exception(e)
             self.env.capture_exception(sys.exc_info())
 
-    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
+    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str, sid=None) -> None:
         self.get_room_name(room_id)
 
         @with_session
@@ -1624,17 +1624,17 @@ class DatabaseRdbms(object):
             session.add(room_sid)
             session.commit()
 
-        sid = None
-        try:
-            sid = self.env.request.sid
-        except Exception as e:
-            logger.error('could not get sid from request: {}'.format(str(e)))
+        if sid is None:
+            try:
+                sid = self.env.request.sid
+            except Exception as e:
+                logger.error('could not get sid from request: {}'.format(str(e)))
 
         if sid is not None:
             try:
                 _save_sid_in_room()
             except Exception as e:
-                logger.error('could not save ROomSids for user {}, room {}, sid {}: {}'.format(
+                logger.error('could not save RoomSids for user {}, room {}, sid {}: {}'.format(
                     user_id, room_id, sid, str(e)
                 ))
 
