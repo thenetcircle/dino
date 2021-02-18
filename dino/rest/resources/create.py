@@ -55,7 +55,7 @@ class CreateRoomResource(BaseResource):
 
         logger.debug("POST request: %s" % str(json))
 
-        room_name = json["room_id"]
+        room_name = json["room_name"]
         user_ids = json["user_ids"]
         owner_id = json["owner_id"]
         owner_name = json["owner_name"]
