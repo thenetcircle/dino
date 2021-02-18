@@ -119,6 +119,9 @@ class ApiJoinTest(BaseTest):
         self.assert_attachment_equals(attachments, 'owner', [])
 
     def test_join_returns_activity_with_one_user_as_attachment(self):
+        third_user_id = "9876"
+        self.env.db.set_user_name(third_user_id, third_user_id)
+
         act = self.activity_for_join()
         response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
@@ -126,7 +129,7 @@ class ApiJoinTest(BaseTest):
         self.assertEqual(0, len(users))
 
         act = self.activity_for_join()
-        act['actor']['id'] = '9876'
+        act['actor']['id'] = third_user_id
         response = api.on_join(act, as_parser(act))
         attachments = response[1]['object']['attachments']
         users = self.get_attachment_for_key(attachments, 'user')

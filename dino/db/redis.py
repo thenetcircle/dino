@@ -81,6 +81,12 @@ class DatabaseRedis(object):
 
         return channel_id
 
+    def increase_join_count(self, room_id: str) -> None:
+        pass
+
+    def get_joins_in_room(self, room_id: str) -> int:
+        return -1
+
     def get_all_permanent_rooms(self):
         pass
 

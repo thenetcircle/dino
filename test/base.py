@@ -384,8 +384,11 @@ class BaseTest(unittest.TestCase):
         environ.env.session = self.session
 
         # TODO: don't do this here, but too many tests that doesn't do it themselves... should remove this base class
-        # and only have test logic in each test class, separate it
+        #  and only have test logic in each test class, separate it
         self.env = environ.env
+
+        self.env.db.set_user_name(BaseTest.USER_ID, BaseTest.USER_NAME)
+        self.env.db.set_user_name(BaseTest.OTHER_USER_ID, BaseTest.OTHER_USER_NAME)
 
     def clear_session(self):
         environ.env.session.clear()

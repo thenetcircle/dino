@@ -39,11 +39,6 @@ class ICache(Interface):
         :return: nothing
         """
 
-    def increase_join_count(self, room_id: str) -> None:
-        """
-        increase the cumulative count of joins in a room, not unique per user id
-        """
-
     def get_join_count(self, room_id: str) -> Optional[int]:
         """
         get the number of cumulative joins for a room
