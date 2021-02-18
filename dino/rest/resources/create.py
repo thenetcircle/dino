@@ -13,10 +13,11 @@ from dino.utils.decorators import timeit
 logger = logging.getLogger(__name__)
 
 
-def join_activity(actor_id: str, target_id: str) -> dict:
+def join_activity(actor_id: str, target_id: str, session_id: str) -> dict:
     return ActivityBuilder.enrich({
         "actor": {
-            "id": actor_id
+            "id": actor_id,
+            "content": session_id
         },
         "verb": "join",
         "target": {
@@ -41,11 +42,21 @@ class CreateRoomResource(BaseResource):
         environ.env.db.set_owner(room_id, owner_id)
 
         for user_id in user_ids:
-            data = join_activity(user_id, room_id)
-            activity = parse_to_as(data)
+            session_ids = environ.env.db.get_sids_for_user(user_id)
 
-            # reuse existing logic for joining the room
-            environ.env.observer.emit("on_join", (data, activity))
+            if len(session_ids) == 0:
+                logger.warning("no sessions found for user {}, can not auto-join created room".format(user_id))
+                continue
+
+            if len(session_ids) > 1:
+                logger.warning("multiple session ids found for user {}, will make all join".format(user_id))
+
+            for session_id in session_ids:
+                data = join_activity(user_id, room_id, session_id)
+                activity = parse_to_as(data)
+
+                # reuse existing logic for joining the room
+                environ.env.observer.emit("on_join", (data, activity))
 
     @timeit(logger, "on_rest_create_room")
     def do_post(self):
