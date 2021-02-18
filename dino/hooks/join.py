@@ -108,6 +108,4 @@ def _on_join_join_room(arg: tuple) -> None:
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     user_id = environ.env.session.get(SessionKeys.user_id.value)
     image = environ.env.session.get(SessionKeys.image.value, '')
-    # OnJoinHooks.emit_join_event(arg[1], user_id, user_name, image)
-
-    eventlet.spawn_after(1, OnJoinHooks.emit_join_event, arg[1], user_id, user_name, image)
+    OnJoinHooks.emit_join_event(arg[1], user_id, user_name, image)
