@@ -149,6 +149,9 @@
     <li class="toctree-l2"><a href="#get-users-in-rooms">GET /users-in-rooms</a></li>
     
 
+    <li class="toctree-l2"><a href="#post-create">POST /create</a></li>
+    
+
     <li class="toctree-l2"><a href="#get-rooms-for-users">GET /rooms-for-users</a></li>
     
 
@@ -729,6 +732,19 @@ comma-separated list of roles, e.g. <code>owner,globalmod</code>):</p>
         &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;: []
     },
     &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="post-create">POST /create</h2>
+<p>Creates and joins the room (if specified users are online):</p>
+<pre><code class="json">{
+    &quot;user_ids&quot;: [
+        &quot;1234&quot;,
+        &quot;5678&quot;
+    ],
+    &quot;room_name&quot;: &quot;&lt;some room name&gt;&quot;,
+    &quot;owner_id&quot;: &quot;&lt;some id&gt;&quot;,
+    &quot;owner_name&quot;: &quot;&lt;some name&gt;&quot;
 }
 </code></pre>
 
