@@ -625,6 +625,22 @@ comma-separated list of roles, e.g. `owner,globalmod`):
 }
 ```
 
+## POST /create
+
+Creates and joins the room (if specified users are online):
+
+```json
+{
+    "user_ids": [
+        "1234",
+        "5678"
+    ],
+    "room_name": "<some room name>",
+    "owner_id": "<some id>",
+    "owner_name": "<some name>"
+}
+```
+
 ## GET /rooms-for-users
 
 Request contains a list of user IDs, e.g.:
