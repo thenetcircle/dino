@@ -817,39 +817,3 @@ User/room will get something similar to this in a `message` event:
     }
 }
 ```
-
-## User ID parameter
-
-The `/banned` endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:
-
-Using curl:
-
-```bash
-curl localhost:5400/banned -d '{"users":["110464"]}' -X GET -H "Content-Type: application/json"
-````
-
-Response would be (slightly different from above example without request body):
-
-```json
-{
-    "data": {
-        "110464": {
-            "channel": {},
-            "room": {
-                "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
-                    "name": "Y29vbCBndXlz",
-                    "duration": "15m",
-                    "timestamp": "2016-12-14T09:23:00Z"
-                },
-                "675eb2a5-17c6-45e4-bc0f-674241573f22": {
-                    "name": "YmFkIGtpZHo=",
-                    "duration": "2m",
-                    "timestamp": "2016-12-14T09:15:51Z"
-                }
-            },
-            "global": {}
-        }
-    },
-    "status_code": 200
-}
-```
