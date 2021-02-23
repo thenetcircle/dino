@@ -769,8 +769,11 @@ Example response:
 
 ## POST /send
 
-Request contains:
+If `target_id` is not specified in the request body, but `target_name` is, Dino will try to 
+send the message to the room with that name, but it only works for rooms that are in the 
+default channel (rooms created using `POST /create` are always in the default channel).
 
+Request contains:
 
 ```json
 {   
@@ -790,10 +793,6 @@ Example response:
     "status_code": 200
 }
 ```
-
-If `target_id` is not specified, but `target_name` is, Dino will try to send the message 
-to the room with that name, but it only works for rooms that are in the default channel 
-(rooms created using `POST /create` are always in the default channel).
 
 User/room will get something similar to this in a `message` event:
 
