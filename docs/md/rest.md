@@ -773,6 +773,8 @@ If `target_id` is not specified in the request body, but `target_name` is, Dino 
 send the message to the room with that name, but it only works for rooms that are in the 
 default channel (rooms created using `POST /create` are always in the default channel).
 
+The `target_name` field (if specified), must be base64 encoded.
+
 Request contains:
 
 ```json

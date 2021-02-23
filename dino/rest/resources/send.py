@@ -49,7 +49,8 @@ class SendResource(BaseResource):
 
         if target_id is None:
             if target_name is not None:
-                target_id = utils.get_room_id(target_name)
+                decoded_target_name = utils.b64d(target_name)
+                target_id = utils.get_room_id(decoded_target_name)
             else:
                 raise RuntimeError("need either target_id or target_name to send messages, both are empty")
 
