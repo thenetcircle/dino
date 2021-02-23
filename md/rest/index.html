@@ -736,7 +736,8 @@ comma-separated list of roles, e.g. <code>owner,globalmod</code>):</p>
 </code></pre>
 
 <h2 id="post-create">POST /create</h2>
-<p>Creates and joins the room (if specified users are online):</p>
+<p>Creates and joins the room (if specified users are online). Rooms created using this API will always be in the default
+channel.</p>
 <pre><code class="json">{
     &quot;user_ids&quot;: [
         &quot;1234&quot;,
@@ -849,6 +850,9 @@ keys.</p>
 </code></pre>
 
 <h2 id="post-send">POST /send</h2>
+<p>If <code>target_id</code> is not specified in the request body, but <code>target_name</code> is, Dino will try to 
+send the message to the room with that name, but it only works for rooms that are in the 
+default channel (rooms created using <code>POST /create</code> are always in the default channel).</p>
 <p>Request contains:</p>
 <pre><code class="json">{   
     &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
