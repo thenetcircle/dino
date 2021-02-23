@@ -167,9 +167,6 @@
     <li class="toctree-l2"><a href="#post-send">POST /send</a></li>
     
 
-    <li class="toctree-l2"><a href="#user-id-parameter">User ID parameter</a></li>
-    
-
     </ul>
 	    </li>
           
@@ -888,38 +885,6 @@ default channel (rooms created using <code>POST /create</code> are always in the
     &quot;object&quot;: {
         &quot;content&quot;: &quot;&lt;the body to send, in base64&gt;&quot;
     }
-}
-</code></pre>
-
-<h2 id="user-id-parameter">User ID parameter</h2>
-<p>The <code>/banned</code> endpoint supports having a json with user ID's in the request body to only get bans for those users. E.g.:</p>
-<p>Using curl:</p>
-<pre><code class="bash">curl localhost:5400/banned -d '{&quot;users&quot;:[&quot;110464&quot;]}' -X GET -H &quot;Content-Type: application/json&quot;
-````
-
-Response would be (slightly different from above example without request body):
-
-```json
-{
-    &quot;data&quot;: {
-        &quot;110464&quot;: {
-            &quot;channel&quot;: {},
-            &quot;room&quot;: {
-                &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;: {
-                    &quot;name&quot;: &quot;Y29vbCBndXlz&quot;,
-                    &quot;duration&quot;: &quot;15m&quot;,
-                    &quot;timestamp&quot;: &quot;2016-12-14T09:23:00Z&quot;
-                },
-                &quot;675eb2a5-17c6-45e4-bc0f-674241573f22&quot;: {
-                    &quot;name&quot;: &quot;YmFkIGtpZHo=&quot;,
-                    &quot;duration&quot;: &quot;2m&quot;,
-                    &quot;timestamp&quot;: &quot;2016-12-14T09:15:51Z&quot;
-                }
-            },
-            &quot;global&quot;: {}
-        }
-    },
-    &quot;status_code&quot;: 200
 }
 </code></pre>
               
