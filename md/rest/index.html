@@ -853,6 +853,7 @@ keys.</p>
 <p>If <code>target_id</code> is not specified in the request body, but <code>target_name</code> is, Dino will try to 
 send the message to the room with that name, but it only works for rooms that are in the 
 default channel (rooms created using <code>POST /create</code> are always in the default channel).</p>
+<p>The <code>target_name</code> field (if specified), must be base64 encoded.</p>
 <p>Request contains:</p>
 <pre><code class="json">{   
     &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
