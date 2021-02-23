@@ -1112,19 +1112,33 @@ class DatabaseRdbms(object):
 
         return _room_name_exists()
 
-    def get_room_id_for_name(self, room_name: str) -> str:
+    def get_room_id_for_name(self, room_name: str, use_default_channel: bool = False) -> str:
         @with_session
         def _do_get(session=None):
             return session.query(Rooms)\
                 .filter(Rooms.name == room_name)\
                 .all()
 
+        default_channel_id = None
+        if use_default_channel:
+            default_channel_id = self.get_or_create_default_channel()
+            room_id = self.env.cache.get_room_id_for_name(default_channel_id, room_name)
+
+            if room_id is not None:
+                return room_id
+
         rooms = _do_get()
         if len(rooms) == 0:
             raise NoSuchRoomException(room_name)
         if len(rooms) > 1:
             raise MultipleRoomsFoundForNameException(room_name)
-        return rooms[0].uuid
+
+        room_id = rooms[0].uuid
+
+        if use_default_channel:
+            self.env.cache.set_room_id_for_name(default_channel_id, room_name)
+
+        return room_id
 
     @with_session
     def get_temp_rooms_user_is_owner_for(self, user_id: str, session=None) -> list:

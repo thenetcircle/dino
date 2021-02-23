@@ -43,9 +43,15 @@ class SendResource(BaseResource):
         user_id = str(json.get('user_id', 0))
         user_name = utils.b64d(json.get('user_name', utils.b64e('admin')))
         object_type = json.get('object_type')
-        target_id = str(json.get('target_id'))
+        target_id = json.get('target_id')
         namespace = json.get('namespace', '/ws')
         target_name = json.get('target_name')
+
+        if target_id is None:
+            if target_name is not None:
+                target_id = utils.get_room_id(target_name)
+            else:
+                raise RuntimeError("need either target_id or target_name to send messages, both are empty")
 
         data = utils.activity_for_message(user_id, user_name)
         data['target'] = {
