@@ -636,9 +636,9 @@ channel.
         "1234",
         "5678"
     ],
-    "room_name": "<some room name>",
+    "room_name": "<some room name, in base64>",
     "owner_id": "<some id>",
-    "owner_name": "<some name>"
+    "owner_name": "<some name, in base64>"
 }
 ```
 
@@ -657,7 +657,7 @@ correct room in the default channel.
         "5678"
     ],
     "room_id": "<some room id>",
-    "room_name": "<some room name>"
+    "room_name": "<some room name, in base64>"
 }
 ```
 

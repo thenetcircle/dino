@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from uuid import uuid4 as uuid
 
+from dino.utils import b64d
 from flask import request
 
 from dino import environ
@@ -40,10 +41,10 @@ class CreateRoomResource(RoomNameBaseResource):
 
         logger.debug("POST request: %s" % str(json))
 
-        room_name = json["room_name"]
+        room_name = b64d(json["room_name"])
         user_ids = json["user_ids"]
         owner_id = json["owner_id"]
-        owner_name = json["owner_name"]
+        owner_name = b64d(json["owner_name"])
 
         # optional, will use default if not specified
         channel_id = json.get("channel_id")
