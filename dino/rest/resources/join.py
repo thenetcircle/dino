@@ -35,7 +35,7 @@ class JoinRoomResource(RoomNameBaseResource):
         logger.debug("POST request: %s" % str(json))
 
         # required
-        user_ids = json.get["users"]
+        user_ids = json.get["user_ids"]
 
         # one of them is required
         room_name = json.get("room_name")
