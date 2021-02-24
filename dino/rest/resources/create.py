@@ -2,34 +2,18 @@ import logging
 from datetime import datetime
 from uuid import uuid4 as uuid
 
-from activitystreams import parse as parse_to_as
 from flask import request
 
 from dino import environ
-from dino.rest.resources.base import BaseResource
-from dino.utils import ActivityBuilder
+from dino.rest.resources.base import RoomNameBaseResource
 from dino.utils.decorators import timeit
 
 logger = logging.getLogger(__name__)
 
 
-def join_activity(actor_id: str, target_id: str, session_ids: list, namespace: str) -> dict:
-    return ActivityBuilder.enrich({
-        "actor": {
-            "id": actor_id,
-            "content": ",".join(session_ids),
-            "url": namespace
-        },
-        "verb": "join",
-        "target": {
-            "id": target_id
-        }
-    })
-
-
-class CreateRoomResource(BaseResource):
+class CreateRoomResource(RoomNameBaseResource):
     def __init__(self):
-        super(CreateRoomResource, self).__init__()
+        super(CreateRoomResource, self).__init__(environ.env)
         self.last_cleared = datetime.utcnow()
         self.request = request
         self.namespace = "/ws"
@@ -44,20 +28,7 @@ class CreateRoomResource(BaseResource):
         environ.env.db.set_owner(room_id, owner_id)
 
         for user_id in user_ids:
-            session_ids = environ.env.db.get_sids_for_user(user_id)
-
-            if len(session_ids) == 0:
-                logger.warning("no sessions found for user {}, can not auto-join created room".format(user_id))
-                continue
-
-            if len(session_ids) > 1:
-                logger.warning("multiple session ids found for user {}, will make all join".format(user_id))
-
-            data = join_activity(user_id, room_id, session_ids, self.namespace)
-            activity = parse_to_as(data)
-
-            # reuse existing logic for joining the room
-            environ.env.observer.emit("on_join", (data, activity))
+            self.join(user_id, room_id)
 
     @timeit(logger, "on_rest_create_room")
     def do_post(self):
