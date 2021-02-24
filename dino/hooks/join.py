@@ -35,7 +35,7 @@ class OnJoinHooks(object):
         sids = [None]
         namespace = None
 
-        if hasattr(activity.actor, "content"):
+        if hasattr(activity.actor, "content") and activity.actor.content is not None:
             sids = activity.actor.content
             sids = sids.split(",")
 

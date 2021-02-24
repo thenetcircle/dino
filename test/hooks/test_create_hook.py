@@ -1,14 +1,7 @@
-from datetime import datetime, timedelta
 from activitystreams import parse as as_parser
-from uuid import uuid4 as uuid
 
 from dino.db.manager.users import UserManager
 from dino.hooks.create import OnCreateHooks
-from dino.exceptions import NoSuchChannelException
-from dino.exceptions import NoSuchRoomException
-from dino.exceptions import UnknownBanTypeException
-from dino.utils import b64d
-
 from test.db import BaseDatabaseTest
 
 

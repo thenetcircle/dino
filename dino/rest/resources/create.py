@@ -30,6 +30,8 @@ class CreateRoomResource(RoomNameBaseResource):
         for user_id in user_ids:
             self.join(user_id, room_id)
 
+        return room_id
+
     @timeit(logger, "on_rest_create_room")
     def do_post(self):
         is_valid, msg, json = self.validate_json(self.request, silent=False)

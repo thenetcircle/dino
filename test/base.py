@@ -153,7 +153,7 @@ class BaseTest(unittest.TestCase):
         pass
 
     @staticmethod
-    def _join_room(room):
+    def _join_room(room, sid=None, namespace=None):
         if room not in BaseTest.users_in_room:
             BaseTest.users_in_room[room] = list()
         BaseTest.users_in_room[room].append(BaseTest.USER_ID)
