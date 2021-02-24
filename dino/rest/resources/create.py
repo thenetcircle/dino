@@ -32,7 +32,9 @@ class CreateRoomResource(RoomNameBaseResource):
             self.join(user_id, room_id)
 
         return {
-            "room_id": room_id
+            "room_id": room_id,
+            "room_name": room_name,
+            "channel_id": channel_id
         }
 
     @timeit(logger, "on_rest_create_room")
