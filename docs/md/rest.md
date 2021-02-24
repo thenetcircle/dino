@@ -642,6 +642,25 @@ channel.
 }
 ```
 
+## POST /join
+
+Joins the room (if specified users are online). Only works for rooms in the default channel (e.g. 
+rooms created using the `POST /create` API).
+
+If `room_id` is specified, it will be used, otherwise, the `room_name` will be used to lookup the 
+correct room in the default channel.
+
+```json
+{
+    "user_ids": [
+        "1234",
+        "5678"
+    ],
+    "room_id": "<some room id>",
+    "room_name": "<some room name>"
+}
+```
+
 ## GET /rooms-for-users
 
 Request contains a list of user IDs, e.g.:
