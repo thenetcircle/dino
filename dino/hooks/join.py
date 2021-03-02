@@ -53,6 +53,10 @@ class OnJoinHooks(object):
         skip_db_join = False
 
         for sid in sids:
+            logger.info("user {} is joining room {} with sid {} on ns {} (db? {})".format(
+                user_id, room_id, sid, namespace, skip_db_join
+            ))
+
             try:
                 utils.join_the_room(
                     user_id,
