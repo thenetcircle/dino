@@ -10,7 +10,6 @@ from dino.utils import ActivityBuilder
 logger = logging.getLogger(__name__)
 
 
-
 def join_activity(actor_id: str, target_id: str, session_ids: list, namespace: str) -> dict:
     return ActivityBuilder.enrich({
         "actor": {
