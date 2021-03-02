@@ -1,17 +1,31 @@
-from dino.db.manager.base import BaseManager
-from dino.environ import GNEnvironment
-from dino import utils
-from dino.config import ConfigKeys
-from dino.exceptions import UnknownBanTypeException
-from dino.exceptions import NoSuchUserException
-
-import traceback
 import logging
-
+import traceback
 from datetime import datetime
 from uuid import uuid4 as uuid
 
+from dino import utils
+from dino.config import ConfigKeys
+from dino.db.manager.base import BaseManager
+from dino.environ import GNEnvironment
+from dino.exceptions import NoSuchUserException
+from dino.exceptions import UnknownBanTypeException
+from dino.utils import ActivityBuilder
+
 logger = logging.getLogger(__name__)
+
+
+def join_activity(actor_id: str, target_id: str, session_ids: list, namespace: str) -> dict:
+    return ActivityBuilder.enrich({
+        "actor": {
+            "id": actor_id,
+            "content": ",".join(session_ids),
+            "url": namespace
+        },
+        "verb": "join",
+        "target": {
+            "id": target_id
+        }
+    })
 
 
 class UserManager(BaseManager):
@@ -47,6 +61,10 @@ class UserManager(BaseManager):
                 'name': user['name']
             })
         return output
+
+    def join_room(self, user_id, room_id, session_ids, namespace) -> None:
+        data = join_activity(user_id, room_id, session_ids, namespace)
+        self.env.publish(data)
 
     def kick_user(self, room_id: str, user_id: str, reason: str=None, admin_id: str=None) -> None:
         try:

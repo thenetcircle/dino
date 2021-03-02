@@ -5,23 +5,10 @@ from datetime import datetime
 from activitystreams import parse as parse_to_as
 from flask_restful import Resource
 
+from dino.db.manager import UserManager
 from dino.utils import ActivityBuilder
 
 logger = logging.getLogger(__name__)
-
-
-def join_activity(actor_id: str, target_id: str, session_ids: list, namespace: str) -> dict:
-    return ActivityBuilder.enrich({
-        "actor": {
-            "id": actor_id,
-            "content": ",".join(session_ids),
-            "url": namespace
-        },
-        "verb": "join",
-        "target": {
-            "id": target_id
-        }
-    })
 
 
 class BaseResource(Resource):
@@ -95,6 +82,7 @@ class RoomNameBaseResource(BaseResource):
     def __init__(self, env):
         super(RoomNameBaseResource, self).__init__()
         self.env = env
+        self.user_manager = UserManager(env)
 
     def join(self, user_id, room_id):
         session_ids = self.env.db.get_sids_for_user(user_id)
@@ -106,8 +94,5 @@ class RoomNameBaseResource(BaseResource):
         if len(session_ids) > 1:
             logger.warning("multiple session ids found for user {}, will make all join".format(user_id))
 
-        data = join_activity(user_id, room_id, session_ids, self.namespace)
-        activity = parse_to_as(data)
-
-        # reuse existing logic for joining the room
-        self.env.observer.emit("on_join", (data, activity))
+        # need to find the correct node the user is on
+        self.user_manager.join_room(user_id, room_id, session_ids, self.namespace)

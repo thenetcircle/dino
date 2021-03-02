@@ -209,6 +209,8 @@ class QueueHandler(object):
 
         if activity.verb in ['ban', 'kick', 'remove']:
             self.handle_local_node_events(data, activity)
+        elif activity.verb == 'join':
+            self.handle_join(data, activity)
         elif activity.verb == 'send':
             self.handle_send_event(data, activity)
         else:
@@ -547,3 +549,10 @@ class QueueHandler(object):
     def handle_remove(self, data: dict, activity: Activity):
         self.env.out_of_scope_emit(
                 'gn_room_removed', data, json=True, namespace=activity.target.url, broadcast=True)
+
+    def handle_join(self, data: dict, activity: Activity):
+        if not self.user_is_on_this_node(activity):
+            return
+
+        # reuse existing logic for joining the room
+        self.env.observer.emit("on_join", (data, activity))
