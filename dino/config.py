@@ -304,6 +304,7 @@ class ConfigKeys(object):
     DEFAULT_REDIS_HOST = 'localhost'
     DEFAULT_HISTORY_LIMIT = 500
     DEFAULT_HISTORY_STRATEGY = 'top'
+    DEFAULT_CHANNEL_NAME = "_DEFAULT"
 
     HISTORY_TYPE_UNREAD = 'unread'
     HISTORY_TYPE_TOP = 'top'

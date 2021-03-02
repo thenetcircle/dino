@@ -78,6 +78,7 @@ class DatabaseRedis(object):
 
         channel_id = str(uuid())
         self.redis.set(key, channel_id)
+        self.redis.hset(RedisKeys.channels(), channel_id, ConfigKeys.DEFAULT_CHANNEL_NAME)
 
         return channel_id
 
@@ -1220,7 +1221,7 @@ class DatabaseRedis(object):
             clean_rooms[room_id] = room_name
         return clean_rooms
 
-    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str) -> None:
+    def join_room(self, user_id: str, user_name: str, room_id: str, room_name: str, sid=None) -> None:
         self.redis.hset(RedisKeys.rooms_for_user(user_id), room_id, room_name)
         self.redis.hset(RedisKeys.users_in_room(room_id), user_id, user_name)
 

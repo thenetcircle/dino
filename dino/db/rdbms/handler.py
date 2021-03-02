@@ -85,8 +85,6 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CHANNEL_NAME = "_DEFAULT"
-
 
 def with_session(view_func):
     @wraps(view_func)
@@ -1273,7 +1271,7 @@ class DatabaseRdbms(object):
         @with_session
         def _get_default_channel(session=None):
             channel = session.query(Channels).filter(
-                Channels.name == DEFAULT_CHANNEL_NAME
+                Channels.name == ConfigKeys.DEFAULT_CHANNEL_NAME
             ).first()
 
             if channel is not None:
@@ -1290,7 +1288,7 @@ class DatabaseRdbms(object):
             channel_id = str(uuid())
 
             # default owner is admin id 0
-            self.create_channel(DEFAULT_CHANNEL_NAME, channel_id, "0")
+            self.create_channel(ConfigKeys.DEFAULT_CHANNEL_NAME, channel_id, "0")
 
         self.env.cache.set_default_channel_id(channel_id)
         return channel_id
