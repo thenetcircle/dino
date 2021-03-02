@@ -33,7 +33,7 @@ class OnJoinHooks(object):
         user_id = activity.actor.id
 
         sids = [None]
-        namespace = None
+        namespace = "/ws"
 
         if hasattr(activity.actor, "content"):
             sids = activity.actor.content
