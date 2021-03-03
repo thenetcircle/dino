@@ -40,7 +40,7 @@ class OnJoinHooks(object):
         room_name = utils.get_room_name(room_id)
 
         if user_name is None:
-            environ.env.db.get_user_name(user_id)
+            user_name = environ.env.db.get_user_name(user_id)
 
         # for the first session (or the only session), we want to add a
         # row to the db, but not for any other sessions that are open

@@ -97,3 +97,18 @@ class RoomNameBaseResource(BaseResource):
 
         # need to find the correct node the user is on
         self.user_manager.join_room(user_id, user_name, room_id, session_ids, self.namespace)
+
+    def leave(self, user_id, room_id):
+        session_ids = self.env.db.get_sids_for_user(user_id)
+
+        if len(session_ids) == 0:
+            logger.warning("no sessions found for user {}, can not leave room {}".format(user_id, room_id))
+            return
+
+        if len(session_ids) > 1:
+            logger.warning("multiple session ids found for user {}, will make all leave".format(user_id))
+
+        user_name = utils.get_user_name_for(user_id)
+
+        # need to find the correct node the user is on
+        self.user_manager.leave_room(user_id, user_name, room_id, session_ids, self.namespace)

@@ -39,6 +39,31 @@ def join_activity(user_id: str, user_name: str, target_id: str, session_ids: lis
     })
 
 
+def leave_activity(user_id: str, user_name: str, target_id: str, session_ids: list, namespace: str) -> dict:
+    user_name = utils.b64e(user_name)
+
+    return ActivityBuilder.enrich({
+        "actor": {
+            "id": user_id,
+            "content": ",".join(session_ids),
+            "displayName": user_name,
+            "url": namespace
+        },
+        "object": {
+            "id": user_id,
+            "displayName": user_name,
+            "objectType": "user",
+            "url": namespace
+        },
+        "verb": "leave",
+        "target": {
+            "id": target_id,
+            "content": "out_of_scope",
+            "objectTYpe": "room"
+        }
+    })
+
+
 class UserManager(BaseManager):
     def __init__(self, env: GNEnvironment):
         self.env = env
@@ -75,6 +100,10 @@ class UserManager(BaseManager):
 
     def join_room(self, user_id, user_name, room_id, session_ids, namespace) -> None:
         data = join_activity(user_id, user_name, room_id, session_ids, namespace)
+        self.env.publish(data)
+
+    def leave_room(self, user_id, user_name, room_id, session_ids, namespace) -> None:
+        data = leave_activity(user_id, user_name, room_id, session_ids, namespace)
         self.env.publish(data)
 
     def kick_user(self, room_id: str, user_id: str, reason: str=None, admin_id: str=None) -> None:

@@ -19,6 +19,7 @@ class OnLeaveHooks(object):
         except NoSuchRoomException:
             room_name = '[removed]'
 
+        # TODO: handle out of scope leaves from rest api
         utils.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
 
         # multi-login, can be in same room as another session
