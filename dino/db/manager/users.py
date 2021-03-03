@@ -21,9 +21,15 @@ def join_activity(actor_id: str, target_id: str, session_ids: list, namespace: s
             "content": ",".join(session_ids),
             "url": namespace
         },
+        "object": {
+            "id": actor_id,
+            "objectType": "user",
+            "url": namespace
+        },
         "verb": "join",
         "target": {
-            "id": target_id
+            "id": target_id,
+            "objectTYpe": "room"
         }
     })
 
