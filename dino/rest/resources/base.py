@@ -2,11 +2,10 @@ import logging
 import traceback
 from datetime import datetime
 
-from activitystreams import parse as parse_to_as
+from dino import utils
 from flask_restful import Resource
 
 from dino.db.manager import UserManager
-from dino.utils import ActivityBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -94,5 +93,7 @@ class RoomNameBaseResource(BaseResource):
         if len(session_ids) > 1:
             logger.warning("multiple session ids found for user {}, will make all join".format(user_id))
 
+        user_name = utils.get_user_name_for(user_id)
+
         # need to find the correct node the user is on
-        self.user_manager.join_room(user_id, room_id, session_ids, self.namespace)
+        self.user_manager.join_room(user_id, user_name, room_id, session_ids, self.namespace)

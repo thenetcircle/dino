@@ -1,15 +1,3 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 import eventlet
 from dino.exceptions import NoSuchRoomException
@@ -20,8 +8,6 @@ from dino.config import SessionKeys, ConfigKeys
 from dino.config import UserKeys
 from dino.utils.decorators import timeit
 
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
-
 logger = logging.getLogger(__name__)
 
 
@@ -31,6 +17,7 @@ class OnJoinHooks(object):
         data, activity = arg
         room_id = activity.target.id
         user_id = activity.actor.id
+        user_name = None
 
         sids = [None]
         namespace = "/ws"
@@ -42,7 +29,14 @@ class OnJoinHooks(object):
         if hasattr(activity.actor, "url"):
             namespace = activity.actor.url
 
-        user_name = environ.env.session.get(SessionKeys.user_name.value)
+        if hasattr(activity.actor, "display_name") and activity.actor.display_name is not None and len(activity.actor.display_name):
+            user_name = utils.b64d(activity.actor.display_name)
+        else:
+            try:
+                user_name = environ.env.session.get(SessionKeys.user_name.value)
+            except RuntimeError as e:
+                logger.warning("working outside request context and no user name on event, getting from db: {}".format(str(e)))
+
         room_name = utils.get_room_name(room_id)
 
         if user_name is None:
