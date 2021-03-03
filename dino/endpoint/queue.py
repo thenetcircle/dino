@@ -33,6 +33,34 @@ class QueueHandler(object):
         self.recently_handled_events = list()
         self.recently_handled_events_set = set()
 
+    def user_is_on_this_node_ignore_rooms(self, activity: Activity) -> bool:
+        if self.env.node not in {'app', 'wio'}:
+            return False
+
+        namespace = activity.target.url or '/ws'
+        user_id = activity.object.id or activity.target.id
+
+        if hasattr(activity.actor, 'content') and activity.actor.content is not None and len(activity.actor.content):
+            user_sids = activity.actor.content.split(",")
+        else:
+            user_sids = utils.get_sids_for_user_id(user_id)
+
+        try:
+            logger.debug('checking if we have user %s in namespace %s' % (user_id, namespace))
+            for user_sid in user_sids:
+                if self.socketio.server.manager.is_connected(user_sid, namespace):
+                    logger.debug('found user %s on this node' % user_id)
+                    return True
+            logger.info('no user %s for namespace [%s] (or user not on this node)' % (user_id, namespace))
+            return False
+        except KeyError as e:
+            logger.warning('namespace %s does not exist (maybe this is web/rest node?): %s' % (namespace, str(e)))
+            return False
+        except Exception as e:
+            logger.error('could not get users for namespace "%s": %s' % (namespace, str(e)))
+            logger.exception(traceback.format_exc())
+            return False
+
     def user_is_on_this_node(self, activity: Activity) -> bool:
         if self.env.node not in {'app', 'wio'}:
             return False
@@ -551,7 +579,7 @@ class QueueHandler(object):
                 'gn_room_removed', data, json=True, namespace=activity.target.url, broadcast=True)
 
     def handle_join(self, data: dict, activity: Activity):
-        if not self.user_is_on_this_node(activity):
+        if not self.user_is_on_this_node_ignore_rooms(activity):
             return
 
         # reuse existing logic for joining the room
