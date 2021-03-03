@@ -78,8 +78,12 @@ def create_app():
         cors_allowed_origins=cors
     )
 
+    def out_of_scope_join(room_id, sid, namespace):
+        _socketio.server.enter_room(sid, room_id, namespace=namespace)
+
     # preferably "emit" should be set during env creation, but the socketio object is not created until after env is
     environ.env.out_of_scope_emit = _socketio.emit
+    environ.env.out_of_scope_join = out_of_scope_join
 
     _app.wsgi_app = ProxyFix(_app.wsgi_app)
     return _app, _socketio

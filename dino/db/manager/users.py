@@ -33,6 +33,7 @@ def join_activity(user_id: str, user_name: str, target_id: str, session_ids: lis
         "verb": "join",
         "target": {
             "id": target_id,
+            "content": "out_of_scope",
             "objectTYpe": "room"
         }
     })

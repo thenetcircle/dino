@@ -1661,13 +1661,19 @@ def join_the_room(
         is_sid_room=False,
         skip_db_join=False,
         sid=None,
-        namespace=None
+        namespace=None,
+        is_out_of_scope=False
 ) -> None:
     # we don't create the db representation of the sid rooms
     if not is_sid_room and not skip_db_join:
         environ.env.db.join_room(user_id, user_name, room_id, room_name, sid=sid)
 
-    environ.env.join_room(room_id, sid=sid, namespace=namespace)
+    # joining from rest api, not request scope
+    if is_out_of_scope:
+        environ.env.out_of_scope_join(room_id, sid=sid, namespace=namespace)
+    else:
+        environ.env.join_room(room_id, sid=sid, namespace=namespace)
+
     logger.info('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
 
 

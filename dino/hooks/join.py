@@ -46,6 +46,11 @@ class OnJoinHooks(object):
         # row to the db, but not for any other sessions that are open
         skip_db_join = False
 
+        # joins from rest api is outside the flask request scope
+        is_out_of_scope = False
+        if hasattr(activity.target, "content"):
+            is_out_of_scope = activity.target.content == "out_of_scope"
+
         for sid in sids:
             logger.info("user {} is joining room {} with sid {} on ns {} (db? {})".format(
                 user_id, room_id, sid, namespace, skip_db_join
@@ -59,7 +64,8 @@ class OnJoinHooks(object):
                     room_name,
                     skip_db_join=skip_db_join,
                     sid=sid,
-                    namespace=namespace
+                    namespace=namespace,
+                    is_out_of_scope=is_out_of_scope
                 )
 
                 # for any other open session, we just want to tell flask to join the
