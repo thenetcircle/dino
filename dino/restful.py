@@ -20,6 +20,7 @@ from dino.rest.resources.join import JoinRoomResource
 from dino.rest.resources.joins import JoinsInRoomResource
 from dino.rest.resources.kick import KickResource
 from dino.rest.resources.latest_history import LatestHistoryResource
+from dino.rest.resources.leave import LeaveRoomResource
 from dino.rest.resources.remove_admin import RemoveAdminResource
 from dino.rest.resources.roles import RolesResource
 from dino.rest.resources.rooms import RoomsResource
@@ -109,3 +110,4 @@ api.add_resource(UsersInRoomsResource, '/users-in-rooms')
 api.add_resource(JoinsInRoomResource, '/count-joins')
 api.add_resource(CreateRoomResource, '/create')
 api.add_resource(JoinRoomResource, '/join')
+api.add_resource(LeaveRoomResource, '/leave')

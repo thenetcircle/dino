@@ -22,15 +22,16 @@ class OnLeaveHooks(object):
         namespace = "/ws"
         is_out_of_scope = False
 
+        # if specified, this is a REST api request, so we need to leave for all sids
         if hasattr(activity.actor, "content") and activity.actor.content is not None:
-            # if specified, this is a rest api request, so we need to leave for all sids
             sids = activity.actor.content.split(",")
             is_out_of_scope = True
+
+        # otherwise, this is a leave request from socket api, in so only leave with this sid
         else:
-            # otherwise, this is a leave request from socket api, in so only leave with this sid
             utils.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
 
-            # multi-login, can be in same room as another session
+            # multi-login, can be in same room with another session still
             sids = utils.sids_for_user_in_room(user_id, room_id)
             if sids is not None and len(sids) > 0:
                 if len(sids) > 1 or next(iter(sids)) != environ.env.request.sid:
@@ -38,7 +39,7 @@ class OnLeaveHooks(object):
 
             utils.remove_user_from_room(user_id, user_name, room_id)
 
-        # rest request to leave room, not from socket api
+        # REST request to leave room, not from socket api
         if is_out_of_scope:
             skip_db_leave = False
             for sid in sids:
