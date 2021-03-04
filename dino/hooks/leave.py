@@ -11,24 +11,49 @@ class OnLeaveHooks(object):
         data, activity = arg
 
         user_id = activity.actor.id
-        user_name = activity.actor.display_name
         room_id = activity.target.id
+        user_name = utils.get_user_name_from_activity_or_session(user_id, activity, environ.env)
 
         try:
             room_name = utils.get_room_name(room_id)
         except NoSuchRoomException:
             room_name = '[removed]'
 
-        # TODO: handle out of scope leaves from rest api
-        utils.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
+        namespace = "/ws"
+        is_out_of_scope = False
 
-        # multi-login, can be in same room as another session
-        sids = utils.sids_for_user_in_room(user_id, room_id)
-        if sids is not None and len(sids) > 0:
-            if len(sids) > 1 or next(iter(sids)) != environ.env.request.sid:
-                return
+        if hasattr(activity.actor, "content") and activity.actor.content is not None:
+            # if specified, this is a rest api request, so we need to leave for all sids
+            sids = activity.actor.content.split(",")
+            is_out_of_scope = True
+        else:
+            # otherwise, this is a leave request from socket api, in so only leave with this sid
+            utils.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
 
-        utils.remove_user_from_room(user_id, user_name, room_id)
+            # multi-login, can be in same room as another session
+            sids = utils.sids_for_user_in_room(user_id, room_id)
+            if sids is not None and len(sids) > 0:
+                if len(sids) > 1 or next(iter(sids)) != environ.env.request.sid:
+                    return
+
+            utils.remove_user_from_room(user_id, user_name, room_id)
+
+        # rest request to leave room, not from socket api
+        if is_out_of_scope:
+            skip_db_leave = False
+            for sid in sids:
+                utils.remove_user_from_room(
+                    user_id,
+                    user_name,
+                    room_id,
+                    sid=sid,
+                    namespace=namespace,
+                    is_out_of_scope=is_out_of_scope,
+                    skip_db_leave=skip_db_leave
+                )
+
+                # skip deleting after first time, only need to delete once in multi-sid leaves
+                skip_db_leave = True
 
         # if invisible, only send 'invisible' leave to admins in the room
         if utils.get_user_status(user_id) == UserKeys.STATUS_INVISIBLE:

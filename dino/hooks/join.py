@@ -11,13 +11,13 @@ from dino.utils.decorators import timeit
 logger = logging.getLogger(__name__)
 
 
+
 class OnJoinHooks(object):
     @staticmethod
     def join_room(arg: tuple) -> None:
         data, activity = arg
         room_id = activity.target.id
         user_id = activity.actor.id
-        user_name = None
 
         sids = [None]
         namespace = "/ws"
@@ -29,18 +29,8 @@ class OnJoinHooks(object):
         if hasattr(activity.actor, "url"):
             namespace = activity.actor.url
 
-        if hasattr(activity.actor, "display_name") and activity.actor.display_name is not None and len(activity.actor.display_name):
-            user_name = utils.b64d(activity.actor.display_name)
-        else:
-            try:
-                user_name = environ.env.session.get(SessionKeys.user_name.value)
-            except RuntimeError as e:
-                logger.warning("working outside request context and no user name on event, getting from db: {}".format(str(e)))
-
+        user_name = utils.get_user_name_from_activity_or_session(user_id, activity, environ.env)
         room_name = utils.get_room_name(room_id)
-
-        if user_name is None:
-            user_name = environ.env.db.get_user_name(user_id)
 
         # for the first session (or the only session), we want to add a
         # row to the db, but not for any other sessions that are open
