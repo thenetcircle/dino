@@ -749,19 +749,6 @@ def activity_for_join(
     return response
 
 
-def check_if_should_remove_room(data, activity):
-    room_id = activity.target.id
-
-    # could be the session room, might not have a name
-    try:
-        room_name = get_room_name(room_id)
-    except NoSuchRoomException:
-        # session rooms are not persisted
-        return
-
-    check_if_remove_room_empty(activity)
-
-
 def remove_room(channel_id, room_id, user_id, user_name, room_name):
     logger.info('removing room %s (%s), last owner has left/disconnected' % (room_id, room_name))
     environ.env.db.remove_room(channel_id, room_id)
@@ -772,10 +759,12 @@ def remove_room(channel_id, room_id, user_id, user_name, room_name):
         environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
 
 
-def check_if_remove_room_empty(activity: Activity):
+def check_if_remove_room_empty(activity: Activity, user_name=None):
     user_id = activity.actor.id
-    user_name = environ.env.session.get(SessionKeys.user_name.value)
     room_id = activity.target.id
+
+    if user_name is None:
+        user_name = environ.env.session.get(SessionKeys.user_name.value)
 
     # could be the session room, might not have a name
     try:
@@ -795,6 +784,7 @@ def check_if_remove_room_empty(activity: Activity):
         del users_in_room[user_id]
     if len(users_in_room) > 0:
         return
+
     remove_room(channel_id, room_id, user_id, user_name, room_name)
 
 

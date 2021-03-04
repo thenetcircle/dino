@@ -89,7 +89,8 @@ class OnLeaveHooks(object):
                 'gn_user_left', activity_left, room=room_id,
                 broadcast=True, include_self=False, namespace='/ws'
             )
-        utils.check_if_should_remove_room(data, activity)
+
+        utils.check_if_remove_room_empty(activity, user_name=user_name)
 
 
 @environ.env.observer.on('on_leave')
