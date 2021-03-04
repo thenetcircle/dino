@@ -18,7 +18,7 @@
   <script>
     // Current page data
     var mkdocs_page_name = "REST API";
-    var mkdocs_page_input_path = "md/rest.md";
+    var mkdocs_page_input_path = "md\\rest.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -153,6 +153,9 @@
     
 
     <li class="toctree-l2"><a href="#post-join">POST /join</a></li>
+    
+
+    <li class="toctree-l2"><a href="#post-leave">POST /leave</a></li>
     
 
     <li class="toctree-l2"><a href="#get-rooms-for-users">GET /rooms-for-users</a></li>
@@ -738,14 +741,26 @@ comma-separated list of roles, e.g. <code>owner,globalmod</code>):</p>
 <h2 id="post-create">POST /create</h2>
 <p>Creates and joins the room (if specified users are online). Rooms created using this API will always be in the default
 channel.</p>
+<p>Example request:</p>
 <pre><code class="json">{
     &quot;user_ids&quot;: [
         &quot;1234&quot;,
         &quot;5678&quot;
     ],
-    &quot;room_name&quot;: &quot;&lt;some room name, in base64&gt;&quot;,
-    &quot;owner_id&quot;: &quot;&lt;some id&gt;&quot;,
-    &quot;owner_name&quot;: &quot;&lt;some name, in base64&gt;&quot;
+    &quot;room_name&quot;: &quot;&lt;a room name, in base64&gt;&quot;,
+    &quot;owner_id&quot;: &quot;&lt;a user id&gt;&quot;,
+    &quot;owner_name&quot;: &quot;&lt;a user name, in base64&gt;&quot;
+}
+</code></pre>
+
+<p>Example response:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;room_id&quot;: &quot;01eafcf0-4ab2-48bb-8ff5-833b056d2727&quot;,
+        &quot;room_name&quot;: &quot;tr19&quot;,
+        &quot;channel_id&quot;: &quot;8d43181a-13e0-4ccc-a64b-ae8e93d36bcd&quot;
+    }
 }
 </code></pre>
 
@@ -754,13 +769,42 @@ channel.</p>
 rooms created using the <code>POST /create</code> API).</p>
 <p>If <code>room_id</code> is specified, it will be used, otherwise, the <code>room_name</code> will be used to lookup the 
 correct room in the default channel.</p>
+<p>Example request:</p>
 <pre><code class="json">{
     &quot;user_ids&quot;: [
         &quot;1234&quot;,
         &quot;5678&quot;
     ],
-    &quot;room_id&quot;: &quot;&lt;some room id&gt;&quot;,
-    &quot;room_name&quot;: &quot;&lt;some room name, in base64&gt;&quot;
+    &quot;room_id&quot;: &quot;&lt;optional: a room id&gt;&quot;,
+    &quot;room_name&quot;: &quot;&lt;a room name, in base64&gt;&quot;
+}
+</code></pre>
+
+<p>Example response:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<h2 id="post-leave">POST /leave</h2>
+<p>Leaves the room (if specified users are online). Only works for rooms in the default channel (e.g. 
+rooms created using the <code>POST /create</code> API).</p>
+<p>If <code>room_id</code> is specified, it will be used, otherwise, the <code>room_name</code> will be used to lookup the 
+correct room in the default channel.</p>
+<p>Example request:</p>
+<pre><code class="json">{
+    &quot;user_ids&quot;: [
+        &quot;1234&quot;,
+        &quot;5678&quot;
+    ],
+    &quot;room_id&quot;: &quot;&lt;optional: a room id&gt;&quot;,
+    &quot;room_name&quot;: &quot;&lt;a room name, in base64&gt;&quot;
+}
+</code></pre>
+
+<p>Example response:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
 }
 </code></pre>
 
