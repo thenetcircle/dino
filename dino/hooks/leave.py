@@ -73,14 +73,16 @@ class OnLeaveHooks(object):
         if is_out_of_scope:
             environ.env.out_of_scope_emit(
                 'gn_user_left', activity_left, room=room_id,
-                broadcast=True, include_self=False, namespace='/ws'
+                broadcast=True,
+                include_self=True,  # otherwise it will try to get the sid from the flask request (which doesn't exist)
+                namespace='/ws'
             )
 
             # send one to the user's private room as well, since the user already
             # left the room the above event won't be sent to the user
             environ.env.out_of_scope_emit(
                 'gn_user_left', activity_left, room=user_id,
-                broadcast=True, include_self=False, namespace='/ws'
+                broadcast=True, include_self=True, namespace='/ws'
             )
         else:
             environ.env.emit(
