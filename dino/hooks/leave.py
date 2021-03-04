@@ -69,8 +69,24 @@ class OnLeaveHooks(object):
             return
 
         activity_left = utils.activity_for_leave(user_id, user_name, room_id, room_name)
-        environ.env.emit(
-            'gn_user_left', activity_left, room=room_id, broadcast=True, include_self=False, namespace='/ws')
+
+        if is_out_of_scope:
+            environ.env.out_of_scope_emit(
+                'gn_user_left', activity_left, room=room_id,
+                broadcast=True, include_self=False, namespace='/ws'
+            )
+
+            # send one to the user's private room as well, since the user already
+            # left the room the above event won't be sent to the user
+            environ.env.out_of_scope_emit(
+                'gn_user_left', activity_left, room=user_id,
+                broadcast=True, include_self=False, namespace='/ws'
+            )
+        else:
+            environ.env.emit(
+                'gn_user_left', activity_left, room=room_id,
+                broadcast=True, include_self=False, namespace='/ws'
+            )
         utils.check_if_should_remove_room(data, activity)
 
 
