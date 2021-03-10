@@ -670,7 +670,7 @@ class AclConfigValidator(object):
     @staticmethod
     def check_acl_validation_methods(acls: dict, available_acls: list) -> None:
         validation_methods = [
-            'str_in_csv', 'range', 'samechannel', 'sameroom', 'disallow',
+            'csv_in_csv', 'str_in_csv', 'range', 'samechannel', 'sameroom', 'disallow',
             'is_admin', 'is_super_user', 'anything', 'custom', 'is_room_owner'
         ]
         validations = acls.get('validation')
