@@ -6,7 +6,6 @@ from activitystreams.models.target import Target
 
 import logging
 import traceback
-import ast
 
 from uuid import UUID
 

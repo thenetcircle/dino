@@ -6,6 +6,7 @@ available: &AVAILABLE
     - group
     - country
     - city
+    - spoken_language
     - image
     - has_webcam
     - fake_checked
@@ -43,6 +44,8 @@ validation:
         type: "str_in_csv"
     city:
         type: "str_in_csv"
+    spoken_language:
+        type: "csv_in_csv"
     image:
         type: "str_in_csv"
         value: "y,n"
@@ -102,8 +105,8 @@ room:
     autojoin:
         <<: *AVAILABLE
         exclude:
-          - crossroom
-          - samechannel
+            - crossroom
+            - samechannel
     list:
         <<: *AVAILABLE
         exclude:

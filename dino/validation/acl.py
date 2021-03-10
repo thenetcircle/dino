@@ -535,6 +535,65 @@ class AclStrInCsvValidator(BaseAclValidator):
         return True, None
 
 
+class AclCsvInCsvValidator(BaseAclValidator):
+    def __init__(self, csv=None):
+        self.valid_csvs = None
+        if csv is not None:
+            self.valid_csvs = csv.split(',')
+
+    def validate_new_acl(self, values: str):
+        # all new values accepted, e.g. for city or country
+        if self.valid_csvs is None:
+            return
+
+        if values is None or len(values.strip()) == 0:
+            return
+
+        new_values = values.split(',')
+        for new_value in new_values:
+            if new_value in self.valid_csvs:
+                continue
+
+            raise ValidationException(
+                    'new acl values "%s" does not match configured possible values "%s"' %
+                    (values, self.valid_csvs))
+
+    def __call__(self, *args, **kwargs):
+        # activity = args[0]
+        env = args[1]
+        acl_type = args[2]
+        acl_values = args[3]
+
+        value_is_negated = False
+        if len(args) > 4:
+            value_is_negated = args[4]
+
+        session_to_use = env.session
+        if len(args) > 5:
+            session_to_use = args[5]
+
+        if acl_values.strip() == '':
+            return True, None
+        acl_values = acl_values.split(',')
+
+        session_values = session_to_use.get(acl_type)
+        if session_values is None:
+            logger.warning('no session values for acl "%s"' % acl_type)
+            return False, 'no session values for acl"%s"' % acl_type
+
+        if value_is_negated:
+            for session_value in session_values.split(","):
+                if session_value in acl_values:
+                    return False, 'session value %s is in non-allowed (ACL negated) values [%s]' % \
+                           (session_value, ','.join(acl_values))
+            return True, None
+
+        for session_value in session_values.split(","):
+            if session_value.lower() in acl_values:
+                return True, None
+        return False, 'session values [%s] not in allowed values [%s]' % (session_values, ','.join(acl_values))
+
+
 class AclRangeValidator(BaseAclValidator):
     def __init__(self):
         pass

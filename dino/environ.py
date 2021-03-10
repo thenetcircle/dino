@@ -47,6 +47,7 @@ from dino.exceptions import AclValueNotFoundException
 from dino.exceptions import NoSuchRoomException
 
 from dino.validation.acl import AclConfigValidator
+from dino.validation.acl import AclCsvInCsvValidator
 from dino.validation.acl import AclRangeValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclSameChannelValidator
@@ -571,6 +572,25 @@ def init_acl_validators(gn_env: GNEnvironment) -> None:
                     csv = validation_config['default']
 
             validation_config['value'] = AclStrInCsvValidator(csv)
+
+        elif validation_type == 'csv_in_csv':
+            csv = None
+            if 'value' in validation_config:
+                csv = validation_config['value']
+
+            if csv == '##db##':
+                try:
+                    csv = gn_env.db.get_acl_validation_value(acl_type, 'csv_in_csv')
+                except AclValueNotFoundException:
+                    logger.warning(
+                            'acl config specifies to get value from db but no value found for type '
+                            '"%s" and method "str_in_csv", will check for default value' % acl_type
+                    )
+                    if 'default' in validation_config and len(validation_config['default'].strip()):
+                        csv = validation_config['default']
+
+            # csv can be None for csv_in_csv
+            validation_config['value'] = AclCsvInCsvValidator(csv)
 
         elif validation_type == 'range':
             validation_config['value'] = AclRangeValidator()
