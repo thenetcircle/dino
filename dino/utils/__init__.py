@@ -749,19 +749,6 @@ def activity_for_join(
     return response
 
 
-def check_if_should_remove_room(data, activity):
-    room_id = activity.target.id
-
-    # could be the session room, might not have a name
-    try:
-        room_name = get_room_name(room_id)
-    except NoSuchRoomException:
-        # session rooms are not persisted
-        return
-
-    check_if_remove_room_empty(activity)
-
-
 def remove_room(channel_id, room_id, user_id, user_name, room_name):
     logger.info('removing room %s (%s), last owner has left/disconnected' % (room_id, room_name))
     environ.env.db.remove_room(channel_id, room_id)
@@ -772,10 +759,12 @@ def remove_room(channel_id, room_id, user_id, user_name, room_name):
         environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
 
 
-def check_if_remove_room_empty(activity: Activity):
+def check_if_remove_room_empty(activity: Activity, user_name=None):
     user_id = activity.actor.id
-    user_name = environ.env.session.get(SessionKeys.user_name.value)
     room_id = activity.target.id
+
+    if user_name is None:
+        user_name = environ.env.session.get(SessionKeys.user_name.value)
 
     # could be the session room, might not have a name
     try:
@@ -795,6 +784,7 @@ def check_if_remove_room_empty(activity: Activity):
         del users_in_room[user_id]
     if len(users_in_room) > 0:
         return
+
     remove_room(channel_id, room_id, user_id, user_name, room_name)
 
 
@@ -1445,6 +1435,25 @@ def get_channel_name(channel_id: str) -> str:
     return environ.env.db.get_channel_name(channel_id)
 
 
+def get_user_name_from_activity_or_session(user_id: str, activity: Activity, env):
+    user_name = None
+
+    if hasattr(activity.actor, "display_name") and activity.actor.display_name is not None and len(
+            activity.actor.display_name):
+        user_name = b64d(activity.actor.display_name)
+    else:
+        try:
+            user_name = env.session.get(SessionKeys.user_name.value)
+        except RuntimeError as e:
+            logger.warning(
+                "working outside request context and no user name on event, getting from db: {}".format(str(e)))
+
+    if user_name is None:
+        user_name = env.db.get_user_name(user_id)
+
+    return user_name
+
+
 def get_room_name(room_id: str) -> str:
     return environ.env.db.get_room_name(room_id)
 
@@ -1644,13 +1653,27 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
     return messages
 
 
-def remove_user_from_room(user_id: str, user_name: str, room_id: str) -> None:
-    environ.env.leave_room(room_id)
-    try:
-        environ.env.db.leave_room(user_id, room_id)
-    except NoSuchRoomException:
-        # room already removed or doesn't exist
-        pass
+def remove_user_from_room(
+        user_id: str,
+        user_name: str,
+        room_id: str,
+        sid=None,
+        namespace=None,
+        is_out_of_scope=False,
+        skip_db_leave=False
+) -> None:
+    if is_out_of_scope:
+        environ.env.out_of_scope_leave(room_id, sid, namespace)
+    else:
+        environ.env.leave_room(room_id)
+
+    # we only need to remove from db once in multi-sid leaves
+    if not skip_db_leave:
+        try:
+            environ.env.db.leave_room(user_id, room_id)
+        except NoSuchRoomException:
+            # room already removed or doesn't exist
+            pass
 
 
 def join_the_room(

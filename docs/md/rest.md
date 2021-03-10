@@ -630,15 +630,30 @@ comma-separated list of roles, e.g. `owner,globalmod`):
 Creates and joins the room (if specified users are online). Rooms created using this API will always be in the default
 channel.
 
+Example request:
+
 ```json
 {
     "user_ids": [
         "1234",
         "5678"
     ],
-    "room_name": "<some room name, in base64>",
-    "owner_id": "<some id>",
-    "owner_name": "<some name, in base64>"
+    "room_name": "<a room name, in base64>",
+    "owner_id": "<a user id>",
+    "owner_name": "<a user name, in base64>"
+}
+```
+
+Example response:
+
+```json
+{
+	"status_code": 200,
+	"data": {
+		"room_id": "01eafcf0-4ab2-48bb-8ff5-833b056d2727",
+		"room_name": "tr19",
+		"channel_id": "8d43181a-13e0-4ccc-a64b-ae8e93d36bcd"
+	}
 }
 ```
 
@@ -650,14 +665,53 @@ rooms created using the `POST /create` API).
 If `room_id` is specified, it will be used, otherwise, the `room_name` will be used to lookup the 
 correct room in the default channel.
 
+Example request:
+
 ```json
 {
     "user_ids": [
         "1234",
         "5678"
     ],
-    "room_id": "<some room id>",
-    "room_name": "<some room name, in base64>"
+    "room_id": "<optional: a room id>",
+    "room_name": "<a room name, in base64>"
+}
+```
+
+Example response:
+
+```json
+{
+    "status_code": 200
+}
+```
+
+## POST /leave
+
+Leaves the room (if specified users are online). Only works for rooms in the default channel (e.g. 
+rooms created using the `POST /create` API).
+
+If `room_id` is specified, it will be used, otherwise, the `room_name` will be used to lookup the 
+correct room in the default channel.
+
+Example request:
+
+```json
+{
+    "user_ids": [
+        "1234",
+        "5678"
+    ],
+    "room_id": "<optional: a room id>",
+    "room_name": "<a room name, in base64>"
+}
+```
+
+Example response:
+
+```json
+{
+    "status_code": 200
 }
 ```
 
