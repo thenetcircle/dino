@@ -31,6 +31,7 @@ from dino.storage.redis import StorageRedis
 from dino.auth.redis import AuthRedis
 from dino.db.redis import DatabaseRedis
 from dino.cache.miss import CacheAllMiss
+from dino.validation.acl import AclCsvInCsvValidator
 from dino.validation.acl import AclStrInCsvValidator
 from dino.validation.acl import AclRangeValidator
 from dino.validation.acl import AclSameChannelValidator
@@ -231,6 +232,7 @@ class BaseTest(unittest.TestCase):
             'membership',
             'group',
             'country',
+            'spoken_language',
             'city',
             'image',
             'has_webcam',
@@ -296,6 +298,10 @@ class BaseTest(unittest.TestCase):
                     'country': {
                         'type': 'str_in_csv',
                         'value': AclStrInCsvValidator()
+                    },
+                    'spoken_language': {
+                        'type': 'csv_in_csv',
+                        'value': AclCsvInCsvValidator()
                     },
                     'disallow': {
                         'type': 'disallow',

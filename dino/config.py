@@ -77,6 +77,7 @@ class SessionKeys(Enum):
     fake_checked = 'fake_checked'
     token = 'token'
     is_streaming = 'is_streaming'
+    spoken_language = 'spoken_language'
 
     avatar = 'avatar'
     app_avatar = 'app_avatar'

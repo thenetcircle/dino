@@ -1,23 +1,10 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from test.base import BaseTest
 from activitystreams import parse as as_parser
 
-from dino.validation import request
-from dino.config import ErrorCodes
 from dino.config import ApiActions
+from dino.config import ErrorCodes
+from dino.config import SessionKeys
+from dino.validation import request
+from test.base import BaseTest
 
 
 class RequestListRoomsTest(BaseTest):
@@ -47,6 +34,51 @@ class RequestListRoomsTest(BaseTest):
         self.assertFalse(is_valid)
         self.assertEqual(code, ErrorCodes.NOT_ALLOWED)
 
+    def test_list_rooms_spoken_country_none(self):
+        self._test_spoken_language(False, 'de', None)
+
+    def test_list_rooms_spoken_country_empty(self):
+        self._test_spoken_language(False, 'de', '')
+
+    def test_list_rooms_spoken_country_wrong_single(self):
+        self._test_spoken_language(False, 'de', 'en')
+
+    def test_list_rooms_spoken_country_wrong_multi(self):
+        self._test_spoken_language(False, 'de', 'en,es')
+
+    def test_list_rooms_spoken_country_allows_multi_user_none(self):
+        self._test_spoken_language(False, 'de,en', None)
+
+    def test_list_rooms_spoken_country_allows_multi_user_empty(self):
+        self._test_spoken_language(False, 'de,en', '')
+
+    def test_list_rooms_spoken_country_allows_multi_user_not_matching(self):
+        self._test_spoken_language(False, 'de,en', 'es')
+
+    def test_list_rooms_spoken_country_allows_multi_user_multi_none_matching(self):
+        self._test_spoken_language(False, 'de,en', 'es,sv')
+
+    def test_list_rooms_spoken_country_allows_multi_user_multi_none_matching_trailing(self):
+        self._test_spoken_language(False, 'de,en', 'es,sv,')
+
+    def test_list_rooms_spoken_country_same_single(self):
+        self._test_spoken_language(True, 'de', 'de')
+
+    def test_list_rooms_spoken_country_same_multi(self):
+        self._test_spoken_language(True, 'de', 'de,en')
+
+    def test_list_rooms_spoken_country_allows_multi_user_matching(self):
+        self._test_spoken_language(True, 'de,en', 'en')
+
+    def test_list_rooms_spoken_country_allows_multi_user_multi_matching_single(self):
+        self._test_spoken_language(True, 'de,en', 'es,en')
+
+    def test_list_rooms_spoken_country_allows_multi_user_multi_matching_single_reverse(self):
+        self._test_spoken_language(True, 'de,en', 'en,es')
+
+    def test_list_rooms_spoken_country_allows_multi_user_multi_matching_single_reverse_trailing(self):
+        self._test_spoken_language(True, 'de,en', 'en,es,')
+
     def test_list_rooms_no_channel_id_status_code_false(self):
         self.assert_in_room(False)
         activity = self.activity_for_list_rooms()
@@ -59,3 +91,18 @@ class RequestListRoomsTest(BaseTest):
         self.assert_in_room(False)
         response_data = request.on_list_rooms(as_parser(self.activity_for_list_rooms()))
         self.assertEqual(True, response_data[0])
+
+    def _test_spoken_language(self, should_succeed: bool, channel_lang, user_lang):
+        self.assert_in_room(False)
+        self.set_channel_acl({ApiActions.LIST: {'spoken_language': channel_lang}})
+        self.set_session(SessionKeys.spoken_language.value, user_lang)
+
+        activity = self.activity_for_list_rooms()
+        is_valid, code, msg = request.on_list_rooms(as_parser(activity))
+
+        if should_succeed:
+            self.assertTrue(is_valid)
+            self.assertIsNone(code)
+        else:
+            self.assertFalse(is_valid)
+            self.assertEqual(code, ErrorCodes.NOT_ALLOWED)
