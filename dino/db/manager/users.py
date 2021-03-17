@@ -31,7 +31,7 @@ def created_activity(user_id: str, user_name: str, target_id: str, target_name: 
         "verb": "created",
         "target": {
             "id": target_id,
-            "displayName": room_name,
+            "displayName": target_name,
             "content": "out_of_scope",
             "objectTYpe": "room"
         }
