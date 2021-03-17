@@ -1,4 +1,4 @@
-## Create rooms and send messages using the room _name_ instead of _ID_
+# Create rooms and send messages using the room _name_ instead of _ID_
 
 The client connects and logs in as normal (example user ID `1234`):
 
@@ -24,7 +24,7 @@ socket.on('connect', function() {
 });
 ```
 
-# Creating rooms
+## Creating rooms
 
 The REST API `/create` can then be called to create a new room for this user (the user will automatically 
 join the room as well). All rooms created using the `POST /create` API will be temporary rooms in the 
@@ -88,7 +88,7 @@ The client will now receive two events over the websocket connection, first one 
 
 ...then one `gn_user_joined` for the same user (see next section).
 
-### Joining a room
+## Joining a room
 
 The REST API `POST /join` can now be used for rooms created in the default channel, by 
 specifying the `name` of the room instead of the `id` of the room (multiple user IDs 
@@ -142,7 +142,7 @@ The user who just joined, and everyone else already in the room, now received a 
 }
 ```
 
-### Sending message to a room
+## Sending message to a room
 
 Using the REST API `POST /send`, we can send messages to the room using the name as 
 well (if no user ID is specified, the ID `0` and name `admin` will be used):
@@ -193,10 +193,10 @@ All users in the room now receive a `message` event:
 }
 ```
 
-### Kicking a user
+## Kicking a user
 
 TODO
 
-### Banning a user
+## Banning a user
 
 TODO
