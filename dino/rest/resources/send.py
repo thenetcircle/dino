@@ -69,6 +69,8 @@ class SendResource(BaseResource):
             logger.info('user {} is offline, dropping message: {}'.format(target_id, str(json)))
             return
 
+        logger.info("sending 'message' to room {}: {}".format(target_id, data))
+
         try:
             environ.env.out_of_scope_emit('message', data, room=target_id, json=True, namespace='/ws', broadcast=True)
         except Exception as e:

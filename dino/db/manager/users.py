@@ -14,7 +14,7 @@ from dino.utils import ActivityBuilder
 logger = logging.getLogger(__name__)
 
 
-def created_activity(user_id: str, user_name: str, target_id: str, session_ids: list, namespace: str) -> dict:
+def created_activity(user_id: str, user_name: str, target_id: str, target_name: str, session_ids: list, namespace: str) -> dict:
     user_name = utils.b64e(user_name)
 
     return ActivityBuilder.enrich({
@@ -22,17 +22,16 @@ def created_activity(user_id: str, user_name: str, target_id: str, session_ids: 
             "id": user_id,
             "content": ",".join(session_ids),
             "displayName": user_name,
+            "objectType": "user",
             "url": namespace
         },
         "object": {
-            "id": user_id,
-            "displayName": user_name,
-            "objectType": "user",
             "url": namespace
         },
         "verb": "created",
         "target": {
             "id": target_id,
+            "displayName": room_name,
             "content": "out_of_scope",
             "objectTYpe": "room"
         }
@@ -127,8 +126,8 @@ class UserManager(BaseManager):
         data = join_activity(user_id, user_name, room_id, session_ids, namespace)
         self.env.publish(data)
 
-    def room_created(self, user_id, user_name, room_id, session_ids, namespace) -> None:
-        data = created_activity(user_id, user_name, room_id, session_ids, namespace)
+    def room_created(self, user_id, user_name, room_id, room_name, session_ids, namespace) -> None:
+        data = created_activity(user_id, user_name, room_id, room_name, session_ids, namespace)
         self.env.publish(data)
 
     def leave_room(self, user_id, user_name, room_id, session_ids, namespace) -> None:

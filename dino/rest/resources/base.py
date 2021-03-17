@@ -97,11 +97,11 @@ class RoomNameBaseResource(BaseResource):
 
         return session_ids, user_name
 
-    def room_created(self, user_id, room_id):
+    def room_created(self, user_id, room_id, room_name):
         session_ids, user_name = self._prepare_session_ids(user_id, room_id)
 
         # need to find the correct node the user is on
-        self.user_manager.room_created(user_id, user_name, room_id, session_ids, self.namespace)
+        self.user_manager.room_created(user_id, user_name, room_id, room_name, session_ids, self.namespace)
 
     def join(self, user_id, room_id):
         session_ids, user_name = self._prepare_session_ids(user_id, room_id)
