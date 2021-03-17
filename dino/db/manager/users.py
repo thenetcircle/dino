@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 def created_activity(user_id: str, user_name: str, target_id: str, target_name: str, session_ids: list, namespace: str) -> dict:
     user_name = utils.b64e(user_name)
+    target_name = utils.b64e(target_name)
 
     return ActivityBuilder.enrich({
         "actor": {
@@ -31,7 +32,7 @@ def created_activity(user_id: str, user_name: str, target_id: str, target_name: 
         "verb": "created",
         "target": {
             "id": target_id,
-            "displayName": utils.b64e(target_name),
+            "displayName": target_name,
             "content": "out_of_scope",
             "objectTYpe": "room"
         }
