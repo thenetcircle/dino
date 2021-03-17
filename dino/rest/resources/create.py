@@ -26,7 +26,6 @@ class CreateRoomResource(RoomNameBaseResource):
             channel_id = environ.env.db.get_or_create_default_channel()
 
         environ.env.db.create_room(room_name, room_id, channel_id, owner_id, owner_name, ephemeral=True)
-        environ.env.db.set_owner(room_id, owner_id)
 
         for user_id in user_ids:
             self.join(user_id, room_id)
