@@ -239,14 +239,21 @@ class QueueHandler(object):
 
         if activity.verb in ['ban', 'kick', 'remove']:
             self.handle_local_node_events(data, activity)
+
         elif activity.verb == 'created':
+            # join first, then emit creation event
+            self.handle_join(data, activity)
             self.handle_created(data, activity)
+
         elif activity.verb == 'join':
             self.handle_join(data, activity)
+
         elif activity.verb == 'leave':
             self.handle_leave(data, activity)
+
         elif activity.verb == 'send':
             self.handle_send_event(data, activity)
+
         else:
             # otherwise it's external events for possible analysis
             environ.env.publish(data, external=True)
