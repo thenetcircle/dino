@@ -47,7 +47,7 @@ class SendResource(BaseResource):
         namespace = json.get('namespace', '/ws')
         target_name = json.get('target_name')
 
-        if target_id is None:
+        if not len(target_id.strip()):
             if target_name is not None and len(target_name.strip()):
                 decoded_target_name = utils.b64d(target_name)
                 target_id = utils.get_room_id(decoded_target_name)
