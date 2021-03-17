@@ -18,7 +18,7 @@ def created_activity(user_id: str, user_name: str, target_id: str, target_name: 
     user_name = utils.b64e(user_name)
     target_name = utils.b64e(target_name)
 
-    return ActivityBuilder.enrich({
+    the_event = ActivityBuilder.enrich({
         "actor": {
             "id": user_id,
             "content": ",".join(session_ids),
@@ -37,6 +37,8 @@ def created_activity(user_id: str, user_name: str, target_id: str, target_name: 
             "objectTYpe": "room"
         }
     })
+    logger.info(the_event)
+    return the_event
 
 
 def join_activity(user_id: str, user_name: str, target_id: str, session_ids: list, namespace: str) -> dict:
