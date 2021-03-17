@@ -70,10 +70,9 @@
             
     <li class="toctree-l2"><a href="#create-rooms-and-send-messages-using-the-room-name-instead-of-id">Create rooms and send messages using the room name instead of ID</a></li>
     
-
-    <li class="toctree-l2"><a href="#creating-rooms">Creating rooms</a></li>
-    
         <ul>
+        
+            <li><a class="toctree-l3" href="#creating-rooms">Creating rooms</a></li>
         
             <li><a class="toctree-l3" href="#joining-a-room">Joining a room</a></li>
         
@@ -161,7 +160,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="create-rooms-and-send-messages-using-the-room-name-instead-of-id">Create rooms and send messages using the room <em>name</em> instead of <em>ID</em></h2>
+                <h1 id="create-rooms-and-send-messages-using-the-room-name-instead-of-id">Create rooms and send messages using the room <em>name</em> instead of <em>ID</em></h1>
 <p>The client connects and logs in as normal (example user ID <code>1234</code>):</p>
 <pre><code class="javascript">socket = io.connect(
     'http://' + document.domain + ':' + location.port + '/chat', 
@@ -184,7 +183,7 @@ socket.on('connect', function() {
 });
 </code></pre>
 
-<h1 id="creating-rooms">Creating rooms</h1>
+<h2 id="creating-rooms">Creating rooms</h2>
 <p>The REST API <code>/create</code> can then be called to create a new room for this user (the user will automatically 
 join the room as well). All rooms created using the <code>POST /create</code> API will be temporary rooms in the 
 default channel, meaning that no channel ID has to be specified when interacting with these rooms:</p>
@@ -240,7 +239,7 @@ and is not necessary to know for clients):</p>
 </code></pre>
 
 <p>...then one <code>gn_user_joined</code> for the same user (see next section).</p>
-<h3 id="joining-a-room">Joining a room</h3>
+<h2 id="joining-a-room">Joining a room</h2>
 <p>The REST API <code>POST /join</code> can now be used for rooms created in the default channel, by 
 specifying the <code>name</code> of the room instead of the <code>id</code> of the room (multiple user IDs 
 can be specified to have them all join):</p>
@@ -287,7 +286,7 @@ EOF
 }
 </code></pre>
 
-<h3 id="sending-message-to-a-room">Sending message to a room</h3>
+<h2 id="sending-message-to-a-room">Sending message to a room</h2>
 <p>Using the REST API <code>POST /send</code>, we can send messages to the room using the name as 
 well (if no user ID is specified, the ID <code>0</code> and name <code>admin</code> will be used):</p>
 <pre><code class="sh">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/send -d @- &lt;&lt; EOF
@@ -331,9 +330,9 @@ EOF
 }
 </code></pre>
 
-<h3 id="kicking-a-user">Kicking a user</h3>
+<h2 id="kicking-a-user">Kicking a user</h2>
 <p>TODO</p>
-<h3 id="banning-a-user">Banning a user</h3>
+<h2 id="banning-a-user">Banning a user</h2>
 <p>TODO</p>
               
             </div>
