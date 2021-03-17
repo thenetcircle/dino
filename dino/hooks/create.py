@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class OnCreateHooks(object):
     @staticmethod
-    def _get_owners(activity: Activity) -> list:
+    def get_owners(activity: Activity) -> list:
         if not hasattr(activity.target, 'attachments') or activity.target.attachments is None:
             return list()
         for attachment in activity.target.attachments:
@@ -49,7 +49,7 @@ class OnCreateHooks(object):
             object_type = activity.target.object_type
 
         is_ephemeral = object_type != 'private'
-        owners = OnCreateHooks._get_owners(activity)
+        owners = OnCreateHooks.get_owners(activity)
 
         if utils.is_base64(room_name):
             room_name = utils.b64d(room_name)
@@ -64,15 +64,24 @@ class OnCreateHooks(object):
         data, activity = arg
         activity_json = utils.activity_for_create_room(data, activity)
 
+        # creations from rest api is outside the flask request scope
+        emit_method = environ.env.emit
+        if hasattr(activity.target, "content"):
+            emit_method = environ.env.out_of_scope_emit
+
         # only send creation even to everyone if it's a public room
         if activity.target.object_type == 'private':
-            owners = OnCreateHooks._get_owners(activity)
+            owners = OnCreateHooks.get_owners(activity)
             for owner_id in owners:
-                environ.env.emit('gn_room_created', activity_json, room=owner_id)
+                emit_method(
+                    'gn_room_created', activity_json, json=True,
+                    room=owner_id, include_self=True, namespace='/ws'
+                )
         else:
-            environ.env.emit(
+            emit_method(
                 'gn_room_created', activity_json, broadcast=True, json=True,
-                include_self=True, namespace='/ws')
+                include_self=True, namespace='/ws'
+            )
 
 
 @environ.env.observer.on('on_create')

@@ -16,6 +16,8 @@ from dino import utils
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
+from dino.hooks import OnCreateHooks
+
 logger = logging.getLogger(__name__)
 DINO_DEBUG = os.environ.get('DINO_DEBUG')
 if DINO_DEBUG is not None and DINO_DEBUG.lower() in {'1', 'true', 'yes'}:
@@ -237,6 +239,8 @@ class QueueHandler(object):
 
         if activity.verb in ['ban', 'kick', 'remove']:
             self.handle_local_node_events(data, activity)
+        elif activity.verb == 'created':
+            self.handle_created(data, activity)
         elif activity.verb == 'join':
             self.handle_join(data, activity)
         elif activity.verb == 'leave':
@@ -586,6 +590,16 @@ class QueueHandler(object):
 
         # reuse existing logic for joining the room
         self.env.observer.emit("on_leave", (data, activity))
+
+    def handle_created(self, data: dict, activity: Activity):
+        """
+        don't reuse all the hook logic for creating rooms here; since we
+        want to create the room whether or not the user is online
+        """
+        if not self.user_is_on_this_node_ignore_rooms(activity):
+            return
+
+        OnCreateHooks.emit_creation_event((data, activity))
 
     def handle_join(self, data: dict, activity: Activity):
         if not self.user_is_on_this_node_ignore_rooms(activity):

@@ -46,7 +46,7 @@ class CreateHookTest(BaseDatabaseTest):
                 'summary': ','.join(real_owners)
             }
         ]
-        found_owners = OnCreateHooks._get_owners(as_parser(act))
+        found_owners = OnCreateHooks.get_owners(as_parser(act))
         self.assertEqual(2, len(found_owners))
         self.assertIn(BaseDatabaseTest.USER_ID, found_owners)
         self.assertIn(BaseDatabaseTest.OTHER_USER_ID, found_owners)

@@ -29,6 +29,15 @@ class FakeObserver:
         act = data_act[1]
         self.events.append((event_name, act))
 
+
+class FakePublish:
+    def __init__(self):
+        self.events = list()
+
+    def __call__(self, *args, **kwargs):
+        self.events.append(args[0])
+
+
 class CreateRoomTest(TestCase):
     USER_ID = '8888'
     ROOM_ID = '1234'
@@ -42,14 +51,17 @@ class CreateRoomTest(TestCase):
         self.cache = CacheRedis(environ.env, host="mock")
         self.db = DatabaseRedis(environ.env, host="mock")
         self.observer = FakeObserver()
+        self.publish = FakePublish()
 
         self.orig_db = environ.env.db
         self.orig_cache = environ.env.cache
         self.orig_observer = environ.env.observer
+        self.orig_publish = environ.env.publish
 
         environ.env.cache = self.cache
         environ.env.db = self.db
         environ.env.observer = self.observer
+        environ.env.publish = self.publish
 
         self.resource = CreateRoomResource()
         self.resource.request = FakeRequest()
@@ -70,9 +82,10 @@ class CreateRoomTest(TestCase):
         environ.env.db = self.orig_db
         environ.env.cache = self.orig_cache
         environ.env.observer = self.orig_observer
+        environ.env.publish = self.orig_publish
 
     def test_do_get_no_cache(self):
-        self.assertEqual(0, len(self.observer.events))
+        self.assertEqual(0, len(self.publish.events))
 
         room_id = self.resource._do_post(
             room_name=CreateRoomTest.ROOM_NAME,
@@ -86,4 +99,4 @@ class CreateRoomTest(TestCase):
         self.assertIsNotNone(room_id)
 
         # join event should have been sent
-        self.assertEqual(1, len(self.observer.events))
+        self.assertEqual(1, len(self.publish.events))

@@ -14,6 +14,31 @@ from dino.utils import ActivityBuilder
 logger = logging.getLogger(__name__)
 
 
+def created_activity(user_id: str, user_name: str, target_id: str, session_ids: list, namespace: str) -> dict:
+    user_name = utils.b64e(user_name)
+
+    return ActivityBuilder.enrich({
+        "actor": {
+            "id": user_id,
+            "content": ",".join(session_ids),
+            "displayName": user_name,
+            "url": namespace
+        },
+        "object": {
+            "id": user_id,
+            "displayName": user_name,
+            "objectType": "user",
+            "url": namespace
+        },
+        "verb": "created",
+        "target": {
+            "id": target_id,
+            "content": "out_of_scope",
+            "objectTYpe": "room"
+        }
+    })
+
+
 def join_activity(user_id: str, user_name: str, target_id: str, session_ids: list, namespace: str) -> dict:
     user_name = utils.b64e(user_name)
 
@@ -100,6 +125,10 @@ class UserManager(BaseManager):
 
     def join_room(self, user_id, user_name, room_id, session_ids, namespace) -> None:
         data = join_activity(user_id, user_name, room_id, session_ids, namespace)
+        self.env.publish(data)
+
+    def room_created(self, user_id, user_name, room_id, session_ids, namespace) -> None:
+        data = created_activity(user_id, user_name, room_id, session_ids, namespace)
         self.env.publish(data)
 
     def leave_room(self, user_id, user_name, room_id, session_ids, namespace) -> None:
