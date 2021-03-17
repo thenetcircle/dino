@@ -278,8 +278,10 @@ class CacheRedis(object):
         if default_channel_id is None:
             return None
 
+        default_channel_id = str(default_channel_id, 'utf-8')
         self.cache.set(key, default_channel_id)
-        return str(default_channel_id, 'utf-8')
+
+        return default_channel_id
 
     def set_default_channel_id(self, channel_id: str) -> None:
         key = RedisKeys.default_channel_id()
