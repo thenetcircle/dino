@@ -18,7 +18,7 @@
   <script>
     // Current page data
     var mkdocs_page_name = "Usage";
-    var mkdocs_page_input_path = "md\\usage.md";
+    var mkdocs_page_input_path = "md/usage.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -68,10 +68,22 @@
     <a class="current" href="./">Usage</a>
     <ul class="subnav">
             
-    <li class="toctree-l2"><a href="#kicking-a-user">Kicking a user</a></li>
+    <li class="toctree-l2"><a href="#create-rooms-and-send-messages-using-the-room-name-instead-of-id">Create rooms and send messages using the room name instead of ID</a></li>
     
 
-    <li class="toctree-l2"><a href="#banning-a-user">Banning a user</a></li>
+    <li class="toctree-l2"><a href="#creating-rooms">Creating rooms</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#joining-a-room">Joining a room</a></li>
+        
+            <li><a class="toctree-l3" href="#sending-message-to-a-room">Sending message to a room</a></li>
+        
+            <li><a class="toctree-l3" href="#kicking-a-user">Kicking a user</a></li>
+        
+            <li><a class="toctree-l3" href="#banning-a-user">Banning a user</a></li>
+        
+        </ul>
     
 
     </ul>
@@ -149,12 +161,180 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="kicking-a-user">Kicking a user</h2>
-<p>When a user is kicked from a room (from api/web/rest), all messages that user has sent in a room will be deleted.</p>
-<p>Every user in the room will receive an event called <code>gn_user_kicked</code> with a possible free-text reason field set.</p>
-<h2 id="banning-a-user">Banning a user</h2>
-<p>When a user is banned (from api/web/rest), all messages that user has ever sent in any room will be deleted.</p>
-<p>TODO: who receives what event?</p>
+                <h2 id="create-rooms-and-send-messages-using-the-room-name-instead-of-id">Create rooms and send messages using the room <em>name</em> instead of <em>ID</em></h2>
+<p>The client connects and logs in as normal (example user ID <code>1234</code>):</p>
+<pre><code class="javascript">socket = io.connect(
+    'http://' + document.domain + ':' + location.port + '/chat', 
+    {transports:['websocket']}
+);
+
+socket.on('connect', function() {
+    socket.emit('login', {
+        verb: 'login',
+        actor: {
+            id: '1234',
+            attachments: [
+                {
+                    objectType: 'token',
+                    content: '&lt;auth token&gt;'
+                }
+            ]
+        }
+    });
+});
+</code></pre>
+
+<h1 id="creating-rooms">Creating rooms</h1>
+<p>The REST API <code>/create</code> can then be called to create a new room for this user (the user will automatically 
+join the room as well). All rooms created using the <code>POST /create</code> API will be temporary rooms in the 
+default channel, meaning that no channel ID has to be specified when interacting with these rooms:</p>
+<pre><code class="sh">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/create -d @- &lt;&lt; EOF
+{
+    &quot;user_ids&quot;: [
+        &quot;1234&quot;
+    ],
+    &quot;room_name&quot;: &quot;dGVzdCByb29tIG5hbWU=&quot;,
+    &quot;owner_id&quot;: &quot;1234&quot;,
+    &quot;owner_name&quot;: &quot;dGVzdCB1c2Vy&quot;
+}
+EOF
+</code></pre>
+
+<p>The response from the REST API (the <code>channel_id</code> is the ID of the default channel for the rooms, 
+and is not necessary to know for clients):</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;channel_id&quot;: &quot;8d43181a-13e0-4ccc-a64b-ae8e93d36bcd&quot;,
+        &quot;room_name&quot;: &quot;dGVzdCByb29tIG5hbWU=&quot;,
+        &quot;room_id&quot;: &quot;24a65e40-91e3-4ef7-8e15-e01196550482&quot;
+    }
+}
+</code></pre>
+
+<p>The client will now receive two events over the websocket connection, first one <code>gn_room_created</code>:</p>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;1234&quot;,
+        &quot;displayName&quot;: &quot;dGVzdCB1c2Vy&quot;,
+        &quot;attachments&quot;: [{
+            &quot;objectType&quot;: &quot;age&quot;,
+            &quot;content&quot;: &quot;MTg=&quot;
+        }, {&quot;many&quot;:&quot;more&quot;}]
+    },
+    &quot;object&quot;: {
+        &quot;url&quot;: &quot;/ws&quot;
+    },
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;8fdef765-ca8d-4f0a-9340-aaaea478d1c5&quot;,
+        &quot;displayName&quot;: &quot;dGVzdCByb29tIG5hbWU=&quot;,
+        &quot;objectType&quot;: &quot;temporary&quot;
+    },
+    &quot;verb&quot;: &quot;create&quot;,
+    &quot;id&quot;: &quot;b2a8ccbf-f768-4cc3-8f6b-39569533f743&quot;,
+    &quot;published&quot;: &quot;2021-03-17T07:17:24Z&quot;,
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;some-provider&quot;
+    }
+}
+</code></pre>
+
+<p>...then one <code>gn_user_joined</code> for the same user (see next section).</p>
+<h3 id="joining-a-room">Joining a room</h3>
+<p>The REST API <code>POST /join</code> can now be used for rooms created in the default channel, by 
+specifying the <code>name</code> of the room instead of the <code>id</code> of the room (multiple user IDs 
+can be specified to have them all join):</p>
+<pre><code class="sh">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/join -d @- &lt;&lt; EOF
+{
+    &quot;user_ids&quot;: [
+        &quot;4321&quot;
+    ],
+    &quot;room_name&quot;: &quot;dGVzdCByb29tIG5hbWU=&quot;
+}
+EOF
+</code></pre>
+
+<p>Response from the REST API:</p>
+<pre><code class="json">{
+  &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<p>The user who just joined, and everyone else already in the room, now received a <code>gn_user_joined</code> event:</p>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;4321&quot;,
+        &quot;displayName&quot;: &quot;dGVzdCB1c2Vy&quot;,
+        &quot;image&quot;: {
+            &quot;url&quot;: &quot;https://some-url/image.jpg&quot;
+        },
+        &quot;attachments&quot;: [{
+            &quot;objectType&quot;: &quot;age&quot;,
+            &quot;content&quot;: &quot;MTg=&quot;
+        }, {&quot;many&quot;:&quot;more&quot;}],
+        &quot;content&quot;: &quot;owner&quot;
+    },
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;8fdef765-ca8d-4f0a-9340-aaaea478d1c5&quot;,
+        &quot;displayName&quot;: &quot;dGVzdCByb29tIG5hbWU=&quot;
+    },
+    &quot;verb&quot;: &quot;join&quot;,
+    &quot;id&quot;: &quot;a791c846-6070-4cac-a591-a87c298bf7a2&quot;,
+    &quot;published&quot;: &quot;2021-03-17T07:17:24Z&quot;,
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;some-provider&quot;
+    }
+}
+</code></pre>
+
+<h3 id="sending-message-to-a-room">Sending message to a room</h3>
+<p>Using the REST API <code>POST /send</code>, we can send messages to the room using the name as 
+well (if no user ID is specified, the ID <code>0</code> and name <code>admin</code> will be used):</p>
+<pre><code class="sh">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/send -d @- &lt;&lt; EOF
+{
+    &quot;user_id&quot;: &quot;1234&quot;,
+    &quot;user_name&quot;: &quot;dGVzdCB1c2Vy&quot;,
+    &quot;object_type&quot;: &quot;room&quot;,
+    &quot;target_name&quot;: &quot;dGVzdCByb29tIG5hbWU=&quot;,
+    &quot;content&quot;: &quot;dGVzdCBjb250ZW50&quot;
+}
+EOF
+</code></pre>
+
+<p>Response from the REST API:</p>
+<pre><code class="json">{
+  &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<p>All users in the room now receive a <code>message</code> event:</p>
+<pre><code class="json">{
+    &quot;object&quot;: {
+        &quot;content&quot;: &quot;dGVzdCBjb250ZW50&quot;
+    },
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;some-provider&quot;
+    },
+    &quot;target&quot;: {
+        &quot;objectType&quot;: &quot;room&quot;,
+        &quot;id&quot;: &quot;8fdef765-ca8d-4f0a-9340-aaaea478d1c5&quot;,
+        &quot;url&quot;: &quot;/ws&quot;,
+        &quot;displayName&quot;: &quot;dGVzdCByb29tIG5hbWU=&quot;
+    },
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;1234&quot;,
+        &quot;displayName&quot;: &quot;dGVzdCB1c2Vy&quot;
+    },
+    &quot;verb&quot;: &quot;send&quot;,
+    &quot;id&quot;: &quot;f29a1633-5de2-4185-9014-26c15af41896&quot;,
+    &quot;published&quot;: &quot;2021-03-17T07:17:40Z&quot;
+}
+</code></pre>
+
+<h3 id="kicking-a-user">Kicking a user</h3>
+<p>TODO</p>
+<h3 id="banning-a-user">Banning a user</h3>
+<p>TODO</p>
               
             </div>
           </div>
