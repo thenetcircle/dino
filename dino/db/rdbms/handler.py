@@ -1492,7 +1492,6 @@ class DatabaseRdbms(object):
             session.delete(room)
             session.commit()
 
-        self.get_channel_name(channel_id)
         room_name = self.get_room_name(room_id)
 
         try:

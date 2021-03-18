@@ -916,8 +916,6 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
         return
 
     def delete():
-        from dino import utils
-
         channel_dict = gn_env.db.get_channels()
 
         for channel_id, *_ in channel_dict.items():
@@ -926,8 +924,6 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
             for room_id, room_info in rooms.items():
                 short_id = room_id.split('-')[0]
                 room_name = room_info['name']
-                logger.debug('checking room %s: %s' % (room_id, room_name))
-
                 users = gn_env.db.users_in_room(room_id)
                 if len(users) > 0:
                     logger.debug('[%s] NOT removing room (%s), has % user(s) in it' % (short_id, room_name, len(users)))
@@ -937,18 +933,10 @@ def delete_ephemeral_rooms(gn_env: GNEnvironment):
                     logger.debug('[%s] NOT removing room (%s), not ephemeral' % (short_id, room_name))
                     continue
 
-                logger.info('[%s] removing ephemeral room (%s)' % (short_id, room_name))
-
                 try:
-                    gn_env.db.get_room_name(room_id)
+                    gn_env.db.remove_room(channel_id, room_id)
                 except NoSuchRoomException:
-                    logger.info('[%s] ephemeral room (%s) has already been removed' % (short_id, room_name))
-                    continue
-
-                activity = utils.activity_for_remove_room('0', 'server', room_id, room_name, 'empty ephemeral room')
-
-                gn_env.db.remove_room(channel_id, room_id)
-                gn_env.observer.emit('on_remove_room', (activity, as_parser(activity)))
+                    pass
 
     eventlet.spawn_after(seconds=30*60, func=delete)
 
