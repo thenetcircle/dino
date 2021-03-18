@@ -193,6 +193,17 @@ All users in the room now receive a `message` event:
 }
 ```
 
+Finally, when leaving the room, call the REST API `POST /leave`:
+
+```sh
+curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/leave -d @- << EOF
+{
+    "user_ids": ["1234"],
+	"room_name": "dGVzdCByb29tIG5hbWU="
+}
+EOF
+```
+
 ## Kicking a user
 
 TODO
@@ -206,5 +217,6 @@ TODO
 * [POST /create](rest.md#post-create),
 * [POST /join](rest.md#post-join),
 * [POST /send](rest.md#post-send),
+* [POST /leave](rest.md#post-leave),
 * [GET /users-in-rooms](rest.md#get-users-in-rooms),
 * [GET /count-joins](rest.md#get-count-joins).
