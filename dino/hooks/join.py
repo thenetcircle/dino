@@ -67,7 +67,7 @@ class OnJoinHooks(object):
 
         if environ.env.config.get(ConfigKeys.COUNT_CUMULATIVE_JOINS, default=False):
             try:
-                environ.env.db.increase_join_count(room_id)
+                environ.env.db.increase_join_count(room_id, room_name)
             except Exception as e:
                 logger.error('could not increase cumulative room joins: {}'.format(str(e)))
 

@@ -240,16 +240,18 @@ class DatabaseRdbms(object):
         self.get_user_roles(user_id, skip_cache=True)
 
     @with_session
-    def increase_join_count(self, room_id: str, session=None) -> None:
+    def increase_join_count(self, room_id: str, room_name: str, session=None) -> None:
         join = session.query(Joins).filter(Joins.room_id == room_id).first()
         if join is None:
             join = Joins(
                 amount=0,
-                room_id=room_id
+                room_id=room_id,
+                room_name=room_name
             )
 
         join.amount += 1
         self.env.cache.set_join_count(room_id, join.amount)
+        self.env.cache.set_join_count_by_name(room_name, join.amount)
 
         session.add(join)
         session.commit()
