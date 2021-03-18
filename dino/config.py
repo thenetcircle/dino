@@ -334,6 +334,8 @@ class RedisKeys(object):
     RKEY_USERS_IN_ROOM = 'room:%s'  # room:room_id
     RKEY_USERS_IN_ROOM_VISIBLE = 'room:visible:%s'  # room:visible:room_id
     RKEY_USERS_IN_ROOM_WITH_INVISIBLE = 'room:with:invisible:%s'  # room:with:invisible:room_id
+    RKEY_USERS_IN_ROOM_VISIBLE_BY_NAME = 'room:visible:name:%s'  # room:visible:room_name
+    RKEY_USERS_IN_ROOM_WITH_INVISIBLE_BY_NAME = 'room:with:invisible:name:%s'  # room:with:invisible:room_name
     RKEY_ROOMS = 'rooms:%s'  # room:channel_id
     RKEY_ROOMS_PERMANENT = 'rooms:permanent'
     RKEY_ONLINE_BITMAP = 'users:online:bitmap'
@@ -440,6 +442,14 @@ class RedisKeys(object):
     @staticmethod
     def ack_for_room(user_id: str) -> str:
         return RedisKeys.RKEY_ACKS_ROOM % user_id
+
+    @staticmethod
+    def users_in_room_incl_invisible_by_name(room_name: str) -> str:
+        return RedisKeys.RKEY_USERS_IN_ROOM_WITH_INVISIBLE_BY_NAME % room_name
+
+    @staticmethod
+    def users_in_room_only_visible_by_name(room_name: str) -> str:
+        return RedisKeys.RKEY_USERS_IN_ROOM_VISIBLE_BY_NAME % room_name
 
     @staticmethod
     def users_in_room_incl_invisible(room_id: str) -> str:

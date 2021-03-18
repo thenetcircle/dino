@@ -703,6 +703,20 @@ class CacheRedis(object):
         all_sids = list(set(str(all_sids, 'utf-8').split(',')))
         return all_sids.copy()
 
+    def get_users_in_room_by_name(self, room_name: str, is_super_user: bool) -> dict:
+        if is_super_user:
+            key = RedisKeys.users_in_room_incl_invisible_by_name(room_name)
+        else:
+            key = RedisKeys.users_in_room_only_visible_by_name(room_name)
+        return self.cache.get(key)
+
+    def set_users_in_room_by_name(self, room_name: str, users: dict, is_super_user: bool) -> None:
+        if is_super_user:
+            key = RedisKeys.users_in_room_incl_invisible_by_name(room_name)
+        else:
+            key = RedisKeys.users_in_room_only_visible_by_name(room_name)
+        self.cache.set(key, users, ttl=int(TEN_SECONDS + random.random()*TEN_SECONDS))
+
     def get_users_in_room(self, room_id: str, is_super_user: bool) -> dict:
         if is_super_user:
             key = RedisKeys.users_in_room_incl_invisible(room_id)
@@ -715,11 +729,11 @@ class CacheRedis(object):
             key = RedisKeys.users_in_room_incl_invisible(room_id)
         else:
             key = RedisKeys.users_in_room_only_visible(room_id)
-        self.cache.set(key, users, ttl=TEN_SECONDS + random.random()*TEN_SECONDS)
+        self.cache.set(key, users, ttl=int(TEN_SECONDS + random.random()*TEN_SECONDS))
 
     def set_users_in_room_for_role(self, room_id: str, role: str, users: dict) -> None:
         key = RedisKeys.users_in_room_for_role(room_id, role)
-        self.cache.set(key, users, ttl=TEN_MINUTES + random.random()*TEN_MINUTES)
+        self.cache.set(key, users, ttl=int(TEN_MINUTES + random.random()*TEN_MINUTES))
 
     def reset_users_in_room_for_role(self, room_id: str, role: str) -> None:
         key = RedisKeys.users_in_room_for_role(room_id, role)

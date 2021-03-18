@@ -917,18 +917,16 @@ class DatabaseRdbms(object):
                 visible_users[user_id] = user_name
             return visible_users
 
-        try:
-            self.get_room_name(room_id)
-        except NoSuchRoomException:
-            logger.warning('tried to get users_in_room for non-existing room "{}"'.format(room_id))
-            return dict()
-
         is_super_user = False
         if this_user_id is not None:
             is_super_user = self.is_super_user(this_user_id) or self.is_global_moderator(this_user_id)
 
         if not skip_cache:
-            users = self.env.cache.get_users_in_room(room_id, is_super_user=is_super_user)
+            if room_id is None:
+                users = self.env.cache.get_users_in_room_by_name(room_name, is_super_user=is_super_user)
+            else:
+                users = self.env.cache.get_users_in_room(room_id, is_super_user=is_super_user)
+
             if users is not None:
                 return users.copy()
 
@@ -936,7 +934,11 @@ class DatabaseRdbms(object):
         user_statuses = _user_statuses(all_users)
         users = _visible_users(all_users, user_statuses)
 
-        self.env.cache.set_users_in_room(room_id, users, is_super_user=is_super_user)
+        if room_id is None:
+            self.env.cache.set_users_in_room_by_name(room_name, users, is_super_user=is_super_user)
+        else:
+            self.env.cache.set_users_in_room(room_id, users, is_super_user=is_super_user)
+
         return users
 
     def room_contains(self, room_id: str, user_id: str) -> bool:
