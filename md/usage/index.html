@@ -78,9 +78,13 @@
         
             <li><a class="toctree-l3" href="#sending-message-to-a-room">Sending message to a room</a></li>
         
+            <li><a class="toctree-l3" href="#leaving-a-room">Leaving a room</a></li>
+        
             <li><a class="toctree-l3" href="#kicking-a-user">Kicking a user</a></li>
         
             <li><a class="toctree-l3" href="#banning-a-user">Banning a user</a></li>
+        
+            <li><a class="toctree-l3" href="#useful-rest-apis-that-support-room_name-instead-of-room_id">Useful REST APIs that support room_name instead of room_id</a></li>
         
         </ul>
     
@@ -330,10 +334,35 @@ EOF
 }
 </code></pre>
 
+<h2 id="leaving-a-room">Leaving a room</h2>
+<p>When leaving the room, call the REST API <code>POST /leave</code>:</p>
+<pre><code class="sh">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/leave -d @- &lt;&lt; EOF
+{
+    &quot;user_ids&quot;: [&quot;1234&quot;],
+    &quot;room_name&quot;: &quot;dGVzdCByb29tIG5hbWU=&quot;
+}
+EOF
+</code></pre>
+
+<p>Response from REST API:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
 <h2 id="kicking-a-user">Kicking a user</h2>
 <p>TODO</p>
 <h2 id="banning-a-user">Banning a user</h2>
 <p>TODO</p>
+<h2 id="useful-rest-apis-that-support-room_name-instead-of-room_id">Useful REST APIs that support <code>room_name</code> instead of <code>room_id</code></h2>
+<ul>
+<li><a href="../rest/#post-create">POST /create</a>,</li>
+<li><a href="../rest/#post-join">POST /join</a>,</li>
+<li><a href="../rest/#post-send">POST /send</a>,</li>
+<li><a href="../rest/#post-leave">POST /leave</a>,</li>
+<li><a href="../rest/#get-users-in-rooms">GET /users-in-rooms</a>,</li>
+<li><a href="../rest/#get-count-joins">GET /count-joins</a>.</li>
+</ul>
               
             </div>
           </div>

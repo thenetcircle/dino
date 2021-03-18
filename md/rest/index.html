@@ -560,7 +560,7 @@ and exact match (when both lowercase).</p>
 
 <p>The <code>name</code> field must be base64 encoded. The field is also optional and is only used if a ban request is received for 
 a user that doesn't exist on the server, e.g. if the user never logged in before it will not exist. If the name is 
-not specified and the user has to be created before banning, the user ID will be set as the name (later when the user 
+not specified, and the user has to be created before banning, the user ID will be set as the name (later when the user 
 login the real username will overwrite this).</p>
 <p>The <code>reason</code> field must be base64 encoded. If the <code>admin_id</code> field is specified it will be used, if not the default ID
 <code>0</code> will be used (the default admin user).</p>
@@ -678,20 +678,24 @@ rooms.</p>
 <p>Count the cumulative number of joins for a room. Used for counting the number of "views" a live stream has had. The 
 count is cached for 8 hours, then fetched from db if requested again.</p>
 <p>Using curl:</p>
-<pre><code class="bash">curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d '{&quot;room_ids&quot;:[&quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;]}'
-</code></pre>
-
-<p>Example request :</p>
-<pre><code class="json">{
-  &quot;room_ids&quot;: [
-    &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
-    &quot;0e88aae3-cb2f-457c-b1be-8e882479bd34&quot;,
-    &quot;0c289aaf-3c7b-4290-89bb-e1fa27cd2300&quot;
-  ]
+<pre><code class="sh">curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d @- &lt;&lt; EOF
+{
+    &quot;room_ids&quot;: [&quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;]
 }
+EOF
 </code></pre>
 
-<p>Example response:</p>
+<p>Instead of <code>room_ids</code>, we can use <code>room_names</code> (base64 encoded) instead (only works for rooms in the default channel, 
+e.g. created using <code>POST /create</code>):</p>
+<pre><code class="sh">curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d @- &lt;&lt; EOF
+{
+    &quot;room_names&quot;: [&quot;c29tZSByb29tIG5hbWUK&quot;]
+}
+EOF
+</code></pre>
+
+<p>If room IDs were used in the request, the keys in the response will also be room IDs, but if room names were used, 
+the base64 encoded room name will be the key:</p>
 <pre><code class="json">{
   &quot;status_code&quot;: 200, 
   &quot;data&quot;: {
@@ -703,17 +707,28 @@ count is cached for 8 hours, then fetched from db if requested again.</p>
 </code></pre>
 
 <h2 id="get-users-in-rooms">GET /users-in-rooms</h2>
-<p>Request contains a list of room IDs, e.g.:</p>
+<p>Request contains a list of room IDs, and an optional <code>only_count</code> field (default is <code>false</code>), e.g.:</p>
 <pre><code class="json">{
     &quot;room_ids&quot;: [
         &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;,
         &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;
+    ],
+    &quot;only_count&quot;: false
+}
+</code></pre>
+
+<p>Instead of room IDs, we can specify room names (base64 encoded):</p>
+<pre><code class="json">{
+    &quot;room_names&quot;: [
+        &quot;c29tZSByb29tIG5hbWUK&quot;
     ]
 }
 </code></pre>
 
 <p>Response would be all visible users in the specified rooms, with their user infos attached (<code>roles</code> is a 
-comma-separated list of roles, e.g. <code>owner,globalmod</code>):</p>
+comma-separated list of roles, e.g. <code>owner,globalmod</code>).</p>
+<p>If room IDs were used in the request, the keys in the response will also be room IDs, but if room names were used, 
+the base64 encoded room name will be the key:</p>
 <pre><code class="json">{
     &quot;data&quot;: {
         &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;: [{
@@ -733,6 +748,16 @@ comma-separated list of roles, e.g. <code>owner,globalmod</code>):</p>
             &quot;name&quot;: &quot;Um9iYnk=&quot;
         }],
         &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;: []
+    },
+    &quot;status_code&quot;: 200
+}
+</code></pre>
+
+<p>Response if <code>only_count</code> is <code>true</code>:</p>
+<pre><code class="json">{
+    &quot;data&quot;: {
+        &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;: 5,
+        &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;: 2
     },
     &quot;status_code&quot;: 200
 }
