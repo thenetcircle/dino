@@ -413,7 +413,7 @@ Can also ban multiple users at the same time:
 
 The `name` field must be base64 encoded. The field is also optional and is only used if a ban request is received for 
 a user that doesn't exist on the server, e.g. if the user never logged in before it will not exist. If the name is 
-not specified and the user has to be created before banning, the user ID will be set as the name (later when the user 
+not specified, and the user has to be created before banning, the user ID will be set as the name (later when the user 
 login the real username will overwrite this).
 
 The `reason` field must be base64 encoded. If the `admin_id` field is specified it will be used, if not the default ID
@@ -555,23 +555,27 @@ count is cached for 8 hours, then fetched from db if requested again.
 
 Using curl:
 
-```bash
-curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d '{"room_ids":["2e7d537e-bed5-47c5-a7f6-357075759e5d"]}'
-```
-
-Example request :
-
-```json
+```sh
+curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d @- << EOF
 {
-  "room_ids": [
-    "2e7d537e-bed5-47c5-a7f6-357075759e5d",
-    "0e88aae3-cb2f-457c-b1be-8e882479bd34",
-    "0c289aaf-3c7b-4290-89bb-e1fa27cd2300"
-  ]
+    "room_ids": ["2e7d537e-bed5-47c5-a7f6-357075759e5d"]
 }
+EOF
 ```
 
-Example response:
+Instead of `room_ids`, we can use `room_names` (base64 encoded) instead (only works for rooms in the default channel, 
+e.g. created using `POST /create`):
+
+```sh
+curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d @- << EOF
+{
+    "room_names": ["c29tZSByb29tIG5hbWUK"]
+}
+EOF
+```
+
+If room IDs were used in the request, the keys in the response will also be room IDs, but if room names were used, 
+the base64 encoded room name will be the key:
 
 ```json
 {
@@ -586,19 +590,33 @@ Example response:
 
 ## GET /users-in-rooms
 
-Request contains a list of room IDs, e.g.:
+Request contains a list of room IDs, and an optional `only_count` field (default is `false`), e.g.:
 
 ```json
 {
     "room_ids": [
         "2ddd90ac-1d44-4af5-9c7d-b9191bc35675",
         "2e7d537e-bed5-47c5-a7f6-357075759e5d"
+    ],
+    "only_count": false
+}
+```
+
+Instead of room IDs, we can specify room names (base64 encoded):
+
+```json
+{
+    "room_names": [
+        "c29tZSByb29tIG5hbWUK"
     ]
 }
 ```
 
 Response would be all visible users in the specified rooms, with their user infos attached (`roles` is a 
-comma-separated list of roles, e.g. `owner,globalmod`):
+comma-separated list of roles, e.g. `owner,globalmod`).
+
+If room IDs were used in the request, the keys in the response will also be room IDs, but if room names were used, 
+the base64 encoded room name will be the key:
 
 ```json
 {
@@ -620,6 +638,18 @@ comma-separated list of roles, e.g. `owner,globalmod`):
 			"name": "Um9iYnk="
 		}],
         "2e7d537e-bed5-47c5-a7f6-357075759e5d": []
+	},
+	"status_code": 200
+}
+```
+
+Response if `only_count` is `true`:
+
+```json
+{
+	"data": {
+		"2ddd90ac-1d44-4af5-9c7d-b9191bc35675": 5,
+        "2e7d537e-bed5-47c5-a7f6-357075759e5d": 2
 	},
 	"status_code": 200
 }

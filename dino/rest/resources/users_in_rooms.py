@@ -6,6 +6,7 @@ from flask import request
 
 from dino import utils
 from dino.rest.resources.base import BaseResource
+from dino.utils import b64d
 from dino.utils.decorators import timeit
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ class UsersInRoomsResource(BaseResource):
         self.last_cleared = datetime.utcnow()
         self.request = request
 
-    def _do_get(self, room_id: str = None, room_name: str = None):
+    def _do_get(self, room_id: str = None, room_name: str = None, only_count: bool = False):
         output = list()
         list_activity = parse_to_as({
             "verb": "list",
@@ -30,6 +31,9 @@ class UsersInRoomsResource(BaseResource):
             users = utils.get_users_in_room(room_id=room_id, skip_cache=False)
         else:
             users = utils.get_users_in_room(room_name=room_name, skip_cache=False)
+
+        if only_count:
+            return len(users)
 
         activity = utils.activity_for_users_in_room(list_activity, users)
 
@@ -46,8 +50,8 @@ class UsersInRoomsResource(BaseResource):
 
         return output
 
-    def do_get_with_params(self, room_id: str = None, room_name: str = None):
-        return self._do_get(room_id, room_name)
+    def do_get_with_params(self, room_id: str = None, room_name: str = None, only_count: bool = False):
+        return self._do_get(room_id, room_name, only_count)
 
     @timeit(logger, 'on_rest_rooms_for_users')
     def do_get(self):
@@ -62,13 +66,17 @@ class UsersInRoomsResource(BaseResource):
 
         output = dict()
 
+        only_count = False
+        if 'only_count' in json:
+            only_count = json['only_count']
+
         if 'room_ids' in json:
             for room_id in json['room_ids']:
-                output[room_id] = self.do_get_with_params(room_id=room_id)
+                output[room_id] = self.do_get_with_params(room_id=room_id, only_count=only_count)
 
         if 'room_names' in json:
             for room_name in json['room_names']:
-                output[room_name] = self.do_get_with_params(room_name=room_name)
+                output[room_name] = self.do_get_with_params(room_name=b64d(room_name), only_count=only_count)
 
         return output
 

@@ -200,3 +200,11 @@ TODO
 ## Banning a user
 
 TODO
+
+## Useful REST APIs that support `room_name` instead of `room_id`
+
+* [POST /create](rest.md#post-create),
+* [POST /join](rest.md#post-join),
+* [POST /send](rest.md#post-send),
+* [GET /users-in-rooms](rest.md#get-users-in-rooms),
+* [GET /count-joins](rest.md#get-count-joins).

@@ -6,6 +6,7 @@ from flask import request
 from dino import environ
 from dino.exceptions import NoSuchRoomException
 from dino.rest.resources.base import BaseResource
+from dino.utils import b64d
 from dino.utils.decorators import timeit
 
 logger = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ class JoinsInRoomResource(BaseResource):
 
         if 'room_names' in json:
             for room_name in json['room_names']:
-                output[room_name] = self.do_get_with_params(room_name=room_name)
+                output[room_name] = self.do_get_with_params(room_name=b64d(room_name))
 
         return output
 
