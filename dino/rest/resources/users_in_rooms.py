@@ -17,7 +17,7 @@ class UsersInRoomsResource(BaseResource):
         self.last_cleared = datetime.utcnow()
         self.request = request
 
-    def _do_get(self, room_id):
+    def _do_get(self, room_id: str = None, room_name: str = None):
         output = list()
         list_activity = parse_to_as({
             "verb": "list",
@@ -26,7 +26,11 @@ class UsersInRoomsResource(BaseResource):
             }
         })
 
-        users = utils.get_users_in_room(room_id, skip_cache=False)
+        if room_id is not None:
+            users = utils.get_users_in_room(room_id=room_id, skip_cache=False)
+        else:
+            users = utils.get_users_in_room(room_name=room_name, skip_cache=False)
+
         activity = utils.activity_for_users_in_room(list_activity, users)
 
         for user in activity["object"]["attachments"]:
@@ -42,8 +46,8 @@ class UsersInRoomsResource(BaseResource):
 
         return output
 
-    def do_get_with_params(self, user_id):
-        return self._do_get(user_id)
+    def do_get_with_params(self, room_id: str = None, room_name: str = None):
+        return self._do_get(room_id, room_name)
 
     @timeit(logger, 'on_rest_rooms_for_users')
     def do_get(self):
@@ -52,15 +56,19 @@ class UsersInRoomsResource(BaseResource):
             logger.error('invalid json: %s' % msg)
             return dict()
 
-        # TODO: support 'room_names'
-
         logger.debug('GET request: %s' % str(json))
-        if 'room_ids' not in json:
+        if 'room_ids' not in json and 'room_names' not in json:
             return dict()
 
         output = dict()
-        for room_id in json['room_ids']:
-            output[room_id] = self.do_get_with_params(room_id)
+
+        if 'room_ids' in json:
+            for room_id in json['room_ids']:
+                output[room_id] = self.do_get_with_params(room_id=room_id)
+
+        if 'room_names' in json:
+            for room_name in json['room_names']:
+                output[room_name] = self.do_get_with_params(room_name=room_name)
 
         return output
 

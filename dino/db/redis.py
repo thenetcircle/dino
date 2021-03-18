@@ -590,7 +590,10 @@ class DatabaseRedis(object):
         self.channel_for_room(room_id)
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
-    def users_in_room(self, room_id: str, this_user_id: str=None, skip_cache: bool=False) -> dict:
+    def users_in_room(
+            self, room_id: str, this_user_id: str = None, skip_cache: bool = False, user_name: str = None
+    ) -> dict:
+        # TODO: support room name
         try:
             self.get_room_name(room_id)
         except NoSuchRoomException:

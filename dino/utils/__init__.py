@@ -1390,7 +1390,12 @@ def is_room_ephemeral(room_id: str) -> bool:
     return environ.env.db.is_room_ephemeral(room_id)
 
 
-def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False) -> dict:
+def get_users_in_room(
+        room_id: str = None,
+        user_id: str = None,
+        skip_cache: bool = False,
+        room_name: str = None
+) -> dict:
     """
     get a dict of user_id => user_name for users in this room
 
@@ -1398,9 +1403,10 @@ def get_users_in_room(room_id: str, user_id: str=None, skip_cache: bool=False) -
     :param user_id: if specified, will check if super user, and if so will also include invisible users
     :param skip_cache: if True, check db directly, used for gn_join to get correct user list when joining; when listing
     rooms it is not necessary to have exact list; cache is 10-20s (random) per room
+    :param room_name: the name of the room (optional to use instead of room id)
     :return: a list of users in the room
     """
-    return environ.env.db.users_in_room(room_id, this_user_id=user_id, skip_cache=skip_cache)
+    return environ.env.db.users_in_room(room_id, this_user_id=user_id, skip_cache=skip_cache, room_name=room_name)
 
 
 def get_acls_in_room_for_action(room_id: str, action: str) -> dict:

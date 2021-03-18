@@ -1344,13 +1344,17 @@ class IDatabase(Interface):
         :return: a dict of acls for this action
         """
 
-    def users_in_room(self, room_id: str, this_user_id: str=None) -> dict:
+    def users_in_room(
+            self, room_id: str = None, this_user_id: str = None, skip_cache: bool = False, room_name: str = None
+    ) -> dict:
         """
         get a dict of {user_id: user_name} of users in the given room
 
         :raises NoSuchRoomException if room doesn't exist
         :param room_id: the uuid of the room
         :param this_user_id: the id of this user, to give extra info if admin
+        :param skip_cache: if should read from cache or not
+        :param room_name: optional to use instead of room id
         :return: a dict with users
         """
 

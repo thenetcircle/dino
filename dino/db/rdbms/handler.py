@@ -878,16 +878,25 @@ class DatabaseRdbms(object):
             })
         return output
 
-    def users_in_room(self, room_id: str, this_user_id: str=None, skip_cache: bool=False) -> dict:
+    def users_in_room(
+            self, room_id: str = None, this_user_id: str = None, skip_cache: bool = False, room_name: str = None
+    ) -> dict:
         @with_session
         def _user_ids(session=None):
-            room = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).first()
+            if room_id is not None:
+                room = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.uuid == room_id).first()
+            else:
+                room = session.query(Rooms).outerjoin(Rooms.users).filter(Rooms.name == room_name).first()
+
             users_in_room = dict()
+
             if room is None:
-                logger.warning('no room found for UUID %s' % room_id)
+                logger.warning('no room found for UUID/name "{}"/"{}"'.format(room_id, room_name))
                 return users_in_room
+
             for user in room.users:
                 users_in_room[user.uuid] = user.name
+
             return users_in_room
 
         def _user_statuses(user_ids: dict):
