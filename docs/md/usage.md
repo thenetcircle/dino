@@ -193,7 +193,9 @@ All users in the room now receive a `message` event:
 }
 ```
 
-Finally, when leaving the room, call the REST API `POST /leave`:
+## Leaving a room
+
+When leaving the room, call the REST API `POST /leave`:
 
 ```sh
 curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/leave -d @- << EOF
@@ -202,6 +204,14 @@ curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/leave
 	"room_name": "dGVzdCByb29tIG5hbWU="
 }
 EOF
+```
+
+Response from REST API:
+
+```json
+{
+    "status_code": 200
+}
 ```
 
 ## Kicking a user
