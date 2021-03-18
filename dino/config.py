@@ -382,11 +382,16 @@ class RedisKeys(object):
     RKEY_ROOMS_WITH_ACL_ACTION = 'rooms:acl:{}'  # rooms:acl:<acl_action> => "room_id_1,room_id_2,..."
     RKEY_ACLS_FOR_ROOMS_HAVING_ACTION = 'rooms:acl:{}:{}'  # rooms:acl:<room_id>:<acl_action> => {acl_type: acl_value}
     RKEY_JOIN_COUNTS = 'rooms:joins:{}'  # rooms:joins:room_id
+    RKEY_JOIN_COUNTS_BY_NAME = 'rooms:joins:name:{}'  # rooms:joins:name:room_name
     RKEY_DEFAULT_CHANNEL_ID = 'channel:default:id'
 
     @staticmethod
     def default_channel_id() -> str:
         return RedisKeys.RKEY_DEFAULT_CHANNEL_ID
+
+    @staticmethod
+    def join_counts_by_name(room_id) -> str:
+        return RedisKeys.RKEY_JOIN_COUNTS_BY_NAME.format(room_id)
 
     @staticmethod
     def join_counts(room_id) -> str:

@@ -52,6 +52,8 @@ class UsersInRoomsResource(BaseResource):
             logger.error('invalid json: %s' % msg)
             return dict()
 
+        # TODO: support 'room_names'
+
         logger.debug('GET request: %s' % str(json))
         if 'room_ids' not in json:
             return dict()

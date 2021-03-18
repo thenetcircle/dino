@@ -757,6 +757,15 @@ class CacheRedis(object):
         key = RedisKeys.acls_in_room(room_id)
         self.cache.delete(key)
 
+    def get_join_count_by_name(self, room_name: str) -> Optional[int]:
+        key = RedisKeys.join_counts_by_name(room_name)
+
+        n_joins = self.redis.get(key)
+        if n_joins is None:
+            return None
+
+        return int(float(str(n_joins, "utf-8")))
+
     def get_join_count(self, room_id: str) -> Optional[int]:
         key = RedisKeys.join_counts(room_id)
 
@@ -765,6 +774,12 @@ class CacheRedis(object):
             return None
 
         return int(float(str(n_joins, "utf-8")))
+
+    def set_join_count_by_name(self, room_name: str, n_joins: int) -> None:
+        key = RedisKeys.join_counts_by_name(room_name)
+
+        self.redis.set(key, n_joins)
+        self.redis.expire(key, SEVEN_DAYS)
 
     def set_join_count(self, room_id: str, n_joins: int) -> None:
         key = RedisKeys.join_counts(room_id)

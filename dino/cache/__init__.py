@@ -39,9 +39,19 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def get_join_count_by_name(self, room_name: str) -> Optional[int]:
+        """
+        get the number of cumulative joins for a room
+        """
+
     def get_join_count(self, room_id: str) -> Optional[int]:
         """
         get the number of cumulative joins for a room
+        """
+
+    def set_join_count_by_name(self, room_name: str, n_joins: int) -> None:
+        """
+        set the number of cumulative joins for a room
         """
 
     def set_join_count(self, room_id: str, n_joins: int) -> None:

@@ -260,6 +260,7 @@ class Joins(DeclarativeBase):
     __tablename__ = 'joins'
 
     room_id = Column(String(36), primary_key=True)
+    room_name = Column(String(128), nullable=True, index=True)
     amount = Column(Integer, nullable=False, default=0)
 
 

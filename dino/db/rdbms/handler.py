@@ -254,6 +254,24 @@ class DatabaseRdbms(object):
         session.add(join)
         session.commit()
 
+    def get_joins_in_room_by_name(self, room_name: str) -> int:
+        @with_session
+        def _get_joins(session=None) -> int:
+            join = session.query(Joins).filter(Joins.room_name == room_name).first()
+            if join is None:
+                raise NoSuchRoomException(room_name)
+
+            return join.amount
+
+        n_joins = self.env.cache.get_join_count_by_name(room_name)
+        if n_joins is not None:
+            return n_joins
+
+        n_joins = _get_joins()
+        self.env.cache.set_join_count_by_name(room_name, n_joins)
+
+        return n_joins
+
     def get_joins_in_room(self, room_id: str) -> int:
         @with_session
         def _get_joins(session=None) -> int:

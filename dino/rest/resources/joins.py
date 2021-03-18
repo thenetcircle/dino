@@ -17,9 +17,12 @@ class JoinsInRoomResource(BaseResource):
         self.last_cleared = datetime.utcnow()
         self.request = request
 
-    def _do_get(self, room_id):
+    def _do_get(self, room_id: str = None, room_name: str = None):
         try:
-            return environ.env.db.get_joins_in_room(room_id) or 0
+            if room_id is not None:
+                return environ.env.db.get_joins_in_room(room_id) or 0
+            else:
+                return environ.env.db.get_joins_in_room_by_name(room_name) or 0
         except NoSuchRoomException:
             e_msg = "no such room: {}".format(room_id)
             logger.error(e_msg)
@@ -30,8 +33,8 @@ class JoinsInRoomResource(BaseResource):
             logger.exception(e)
             raise RuntimeError(str(e))
 
-    def do_get_with_params(self, user_id):
-        return self._do_get(user_id)
+    def do_get_with_params(self, room_id: str = None, room_name: str = None):
+        return self._do_get(room_id, room_name)
 
     @timeit(logger, 'on_rest_rooms_for_users')
     def do_get(self):
@@ -41,12 +44,18 @@ class JoinsInRoomResource(BaseResource):
             return dict()
 
         logger.debug('GET request: %s' % str(json))
-        if 'room_ids' not in json:
+        if 'room_ids' not in json and 'room_names' not in json:
             return dict()
 
         output = dict()
-        for room_id in json['room_ids']:
-            output[room_id] = self.do_get_with_params(room_id)
+
+        if 'room_ids' in json:
+            for room_id in json['room_ids']:
+                output[room_id] = self.do_get_with_params(room_id=room_id)
+
+        if 'room_names' in json:
+            for room_name in json['room_names']:
+                output[room_name] = self.do_get_with_params(room_name=room_name)
 
         return output
 
