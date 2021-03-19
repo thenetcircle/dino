@@ -18,7 +18,7 @@
   <script>
     // Current page data
     var mkdocs_page_name = "Usage";
-    var mkdocs_page_input_path = "md/usage.md";
+    var mkdocs_page_input_path = "md\\usage.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -80,11 +80,9 @@
         
             <li><a class="toctree-l3" href="#leaving-a-room">Leaving a room</a></li>
         
-            <li><a class="toctree-l3" href="#kicking-a-user">Kicking a user</a></li>
-        
             <li><a class="toctree-l3" href="#banning-a-user">Banning a user</a></li>
         
-            <li><a class="toctree-l3" href="#useful-rest-apis-that-support-room_name-instead-of-room_id">Useful REST APIs that support room_name instead of room_id</a></li>
+            <li><a class="toctree-l3" href="#kicking-a-user">Kicking a user</a></li>
         
         </ul>
     
@@ -165,6 +163,17 @@
             <div class="section">
               
                 <h1 id="create-rooms-and-send-messages-using-the-room-name-instead-of-id">Create rooms and send messages using the room <em>name</em> instead of <em>ID</em></h1>
+<p>Useful REST APIs that support <code>room_name</code> instead of <code>room_id</code>:</p>
+<ul>
+<li><a href="../rest/#post-create">POST /create</a>,</li>
+<li><a href="../rest/#post-join">POST /join</a>,</li>
+<li><a href="../rest/#post-send">POST /send</a>,</li>
+<li><a href="../rest/#post-leave">POST /leave</a>,</li>
+<li><a href="../rest/#post-ban">POST /ban</a>,</li>
+<li><a href="../rest/#post-kick">POST /kick</a>,</li>
+<li><a href="../rest/#get-users-in-rooms">GET /users-in-rooms</a>,</li>
+<li><a href="../rest/#get-count-joins">GET /count-joins</a>.</li>
+</ul>
 <p>The client connects and logs in as normal (example user ID <code>1234</code>):</p>
 <pre><code class="javascript">socket = io.connect(
     'http://' + document.domain + ':' + location.port + '/chat', 
@@ -191,7 +200,7 @@ socket.on('connect', function() {
 <p>The REST API <code>/create</code> can then be called to create a new room for this user (the user will automatically 
 join the room as well). All rooms created using the <code>POST /create</code> API will be temporary rooms in the 
 default channel, meaning that no channel ID has to be specified when interacting with these rooms:</p>
-<pre><code class="sh">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/create -d @- &lt;&lt; EOF
+<pre><code class="shell">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/create -d @- &lt;&lt; EOF
 {
     &quot;user_ids&quot;: [
         &quot;1234&quot;
@@ -247,7 +256,7 @@ and is not necessary to know for clients):</p>
 <p>The REST API <code>POST /join</code> can now be used for rooms created in the default channel, by 
 specifying the <code>name</code> of the room instead of the <code>id</code> of the room (multiple user IDs 
 can be specified to have them all join):</p>
-<pre><code class="sh">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/join -d @- &lt;&lt; EOF
+<pre><code class="shell">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/join -d @- &lt;&lt; EOF
 {
     &quot;user_ids&quot;: [
         &quot;4321&quot;
@@ -293,7 +302,7 @@ EOF
 <h2 id="sending-message-to-a-room">Sending message to a room</h2>
 <p>Using the REST API <code>POST /send</code>, we can send messages to the room using the name as 
 well (if no user ID is specified, the ID <code>0</code> and name <code>admin</code> will be used):</p>
-<pre><code class="sh">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/send -d @- &lt;&lt; EOF
+<pre><code class="shell">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/send -d @- &lt;&lt; EOF
 {
     &quot;user_id&quot;: &quot;1234&quot;,
     &quot;user_name&quot;: &quot;dGVzdCB1c2Vy&quot;,
@@ -350,19 +359,143 @@ EOF
 }
 </code></pre>
 
-<h2 id="kicking-a-user">Kicking a user</h2>
-<p>TODO</p>
 <h2 id="banning-a-user">Banning a user</h2>
-<p>TODO</p>
-<h2 id="useful-rest-apis-that-support-room_name-instead-of-room_id">Useful REST APIs that support <code>room_name</code> instead of <code>room_id</code></h2>
-<ul>
-<li><a href="../rest/#post-create">POST /create</a>,</li>
-<li><a href="../rest/#post-join">POST /join</a>,</li>
-<li><a href="../rest/#post-send">POST /send</a>,</li>
-<li><a href="../rest/#post-leave">POST /leave</a>,</li>
-<li><a href="../rest/#get-users-in-rooms">GET /users-in-rooms</a>,</li>
-<li><a href="../rest/#get-count-joins">GET /count-joins</a>.</li>
-</ul>
+<p>To ban a user, call the <code>/ban</code> API. The request:</p>
+<pre><code class="shell">curl -X POST  -H 'Content-Type: application/json' http://the-host-name:8080/ban -d @- &lt;&lt; EOF
+{
+    &quot;921984&quot;: {
+        &quot;room_name&quot;: &quot;YSB0ZXN0IHJvb20gMg==&quot;,
+        &quot;type&quot;: &quot;room&quot;,
+        &quot;duration&quot;: &quot;1s&quot;
+    }
+}
+</code></pre>
+
+<p>Response from the REST API:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;status&quot;: &quot;OK&quot;
+    }
+}
+</code></pre>
+
+<p>The banned user will receive three events; <code>gn_banned</code> (only the banned user gets this event), 
+<code>gn_user_banned</code> (all users in the room get this event, including the banned user) and finally 
+a <code>gn_user_kicked</code> event (all users in the room gets this event as well, including the banned 
+user).</p>
+<p>The <code>gn_banned</code> event (YOU were banned):</p>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;displayName&quot;: &quot;YWRtaW4=&quot;
+    },
+    &quot;verb&quot;: &quot;ban&quot;,
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;921984&quot;,
+        &quot;displayName&quot;: &quot;YWRzZmZhZHNkZmFzYWZkcw==&quot;,
+        &quot;summary&quot;: &quot;1s&quot;,
+        &quot;updated&quot;: &quot;2021-03-19T07:53:25Z&quot;
+    },
+    &quot;id&quot;: &quot;b564c6df-9f6b-4a9d-ab60-dca04f4d9416&quot;,
+    &quot;published&quot;: &quot;2021-03-19T07:53:24Z&quot;,
+    &quot;target&quot;: {
+        &quot;objectType&quot;: &quot;room&quot;,
+        &quot;id&quot;: &quot;77395763-6d11-4b06-b890-83bfb9c31b89&quot;,
+        &quot;displayName&quot;: &quot;dGVzdCByb29tIDM=&quot;
+    },
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;some-provider&quot;
+    }
+}
+</code></pre>
+
+<p>The <code>gn_user_banned</code> event (a user in a room was banned, not necessarily you):</p>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;displayName&quot;: &quot;YWRtaW4=&quot;
+    },
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;921984&quot;,
+        &quot;displayName&quot;: &quot;YWRzZmZhZHNkZmFzYWZkcw==&quot;
+    },
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;77395763-6d11-4b06-b890-83bfb9c31b89&quot;,
+        &quot;displayName&quot;: &quot;dGVzdCByb29tIDM=&quot;
+    },
+    &quot;verb&quot;: &quot;ban&quot;,
+    &quot;id&quot;: &quot;3fbc29e0-4807-4170-a23a-b41c94b1bd69&quot;,
+    &quot;published&quot;: &quot;2021-03-19T07:53:24Z&quot;,
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;some-provider&quot;
+    }
+}
+</code></pre>
+
+<p>Finally, the <code>gn_user_kicked</code> event, telling people the user has been removed from the room (even the banned user gets this event):</p>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;displayName&quot;: &quot;YWRtaW4=&quot;
+    },
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;921984&quot;,
+        &quot;displayName&quot;: &quot;YWRzZmZhZHNkZmFzYWZkcw==&quot;
+    },
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;77395763-6d11-4b06-b890-83bfb9c31b89&quot;
+    },
+    &quot;verb&quot;: &quot;ban&quot;,
+    &quot;id&quot;: &quot;3fbc29e0-4807-4170-a23a-b41c94b1bd69&quot;,
+    &quot;published&quot;: &quot;2021-03-19T07:53:24Z&quot;,
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;some-provider&quot;
+    }
+}
+</code></pre>
+
+<h2 id="kicking-a-user">Kicking a user</h2>
+<p>Note: instead of using the <code>/kick</code> API, the <code>/ban</code> api can be used with <code>duration</code> set to <code>1s</code>.</p>
+<p>To kick a user, call the <code>/ban</code> API. The request:</p>
+<pre><code class="shell">curl -X POST  -H 'Content-Type: application/json' http://the-host-name:8080/kick -d @- &lt;&lt; EOF
+{
+    &quot;921984&quot;: {
+        &quot;room_name&quot;: &quot;YSB0ZXN0IHJvb20gMg==&quot;
+    }
+}
+</code></pre>
+
+<p>Response from the REST API:</p>
+<pre><code class="json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;921984&quot;: &quot;OK&quot;
+    }
+}
+</code></pre>
+
+<p>Everyone in the room, including the kicked user, will receive the <code>gn_user_kicked</code> event:</p>
+<pre><code class="json">{
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;displayName&quot;: &quot;YWRtaW4=&quot;
+    },
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;921984&quot;,
+        &quot;displayName&quot;: &quot;YWRzZmZhZHNkZmFzYWZkcw==&quot;
+    },
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;683fab21-fcb3-473e-bdab-49ab44600200&quot;
+    },
+    &quot;verb&quot;: &quot;kick&quot;,
+    &quot;id&quot;: &quot;d182efbf-070e-482c-b6b1-929c90b5bb2c&quot;,
+    &quot;published&quot;: &quot;2021-03-19T07:47:16Z&quot;,
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;some-provider&quot;
+    }
+}
+</code></pre>
               
             </div>
           </div>
