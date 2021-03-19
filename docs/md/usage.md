@@ -1,5 +1,16 @@
 # Create rooms and send messages using the room _name_ instead of _ID_
 
+Useful REST APIs that support `room_name` instead of `room_id`:
+
+* [POST /create](rest.md#post-create),
+* [POST /join](rest.md#post-join),
+* [POST /send](rest.md#post-send),
+* [POST /leave](rest.md#post-leave),
+* [POST /ban](rest.md#post-ban),
+* [POST /kick](rest.md#post-kick),
+* [GET /users-in-rooms](rest.md#get-users-in-rooms),
+* [GET /count-joins](rest.md#get-count-joins).
+
 The client connects and logs in as normal (example user ID `1234`):
 
 ```javascript
@@ -30,7 +41,7 @@ The REST API `/create` can then be called to create a new room for this user (th
 join the room as well). All rooms created using the `POST /create` API will be temporary rooms in the 
 default channel, meaning that no channel ID has to be specified when interacting with these rooms:
 
-```sh
+```shell
 curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/create -d @- << EOF
 {
     "user_ids": [
@@ -94,7 +105,7 @@ The REST API `POST /join` can now be used for rooms created in the default chann
 specifying the `name` of the room instead of the `id` of the room (multiple user IDs 
 can be specified to have them all join):
 
-```sh
+```shell
 curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/join -d @- << EOF
 {
     "user_ids": [
@@ -147,7 +158,7 @@ The user who just joined, and everyone else already in the room, now received a 
 Using the REST API `POST /send`, we can send messages to the room using the name as 
 well (if no user ID is specified, the ID `0` and name `admin` will be used):
 
-```sh
+```shell
 curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/send -d @- << EOF
 {
     "user_id": "1234",
@@ -214,19 +225,160 @@ Response from REST API:
 }
 ```
 
-## Kicking a user
-
-TODO
-
 ## Banning a user
 
-TODO
+To ban a user, call the `/ban` API. The request:
 
-## Useful REST APIs that support `room_name` instead of `room_id`
+```shell
+curl -X POST  -H 'Content-Type: application/json' http://the-host-name:8080/ban -d @- << EOF
+{
+    "921984": {
+        "room_name": "YSB0ZXN0IHJvb20gMg==",
+        "type": "room",
+        "duration": "1s"
+    }
+}
+```
 
-* [POST /create](rest.md#post-create),
-* [POST /join](rest.md#post-join),
-* [POST /send](rest.md#post-send),
-* [POST /leave](rest.md#post-leave),
-* [GET /users-in-rooms](rest.md#get-users-in-rooms),
-* [GET /count-joins](rest.md#get-count-joins).
+Response from the REST API:
+
+```json
+{
+	"status_code": 200,
+	"data": {
+		"status": "OK"
+	}
+}
+```
+
+The banned user will receive three events; `gn_banned` (only the banned user gets this event), 
+`gn_user_banned` (all users in the room get this event, including the banned user) and finally 
+a `gn_user_kicked` event (all users in the room gets this event as well, including the banned 
+user).
+
+The `gn_banned` event (YOU were banned):
+
+```json
+{
+	"actor": {
+		"id": "0",
+		"displayName": "YWRtaW4="
+	},
+	"verb": "ban",
+	"object": {
+		"id": "921984",
+		"displayName": "YWRzZmZhZHNkZmFzYWZkcw==",
+		"summary": "1s",
+		"updated": "2021-03-19T07:53:25Z"
+	},
+	"id": "b564c6df-9f6b-4a9d-ab60-dca04f4d9416",
+	"published": "2021-03-19T07:53:24Z",
+	"target": {
+		"objectType": "room",
+		"id": "77395763-6d11-4b06-b890-83bfb9c31b89",
+		"displayName": "dGVzdCByb29tIDM="
+	},
+	"provider": {
+		"id": "some-provider"
+	}
+}
+```
+
+The `gn_user_banned` event (a user in a room was banned, not necessarily you):
+
+```json
+{
+	"actor": {
+		"id": "0",
+		"displayName": "YWRtaW4="
+	},
+	"object": {
+		"id": "921984",
+		"displayName": "YWRzZmZhZHNkZmFzYWZkcw=="
+	},
+	"target": {
+		"id": "77395763-6d11-4b06-b890-83bfb9c31b89",
+		"displayName": "dGVzdCByb29tIDM="
+	},
+	"verb": "ban",
+	"id": "3fbc29e0-4807-4170-a23a-b41c94b1bd69",
+	"published": "2021-03-19T07:53:24Z",
+	"provider": {
+		"id": "some-provider"
+	}
+}
+```
+
+Finally, the `gn_user_kicked` event, telling people the user has been removed from the room (even the banned user gets this event):
+
+```json
+{
+	"actor": {
+		"id": "0",
+		"displayName": "YWRtaW4="
+	},
+	"object": {
+		"id": "921984",
+		"displayName": "YWRzZmZhZHNkZmFzYWZkcw=="
+	},
+	"target": {
+		"id": "77395763-6d11-4b06-b890-83bfb9c31b89"
+	},
+	"verb": "ban",
+	"id": "3fbc29e0-4807-4170-a23a-b41c94b1bd69",
+	"published": "2021-03-19T07:53:24Z",
+	"provider": {
+		"id": "some-provider"
+	}
+}
+```
+
+## Kicking a user
+
+Note: instead of using the `/kick` API, the `/ban` api can be used with `duration` set to `1s`.
+
+To kick a user, call the `/ban` API. The request:
+
+```shell
+curl -X POST  -H 'Content-Type: application/json' http://the-host-name:8080/kick -d @- << EOF
+{
+    "921984": {
+        "room_name": "YSB0ZXN0IHJvb20gMg=="
+    }
+}
+```
+
+Response from the REST API:
+
+```json
+{
+	"status_code": 200,
+	"data": {
+		"921984": "OK"
+	}
+}
+```
+
+Everyone in the room, including the kicked user, will receive the `gn_user_kicked` event:
+
+```json
+{
+	"actor": {
+		"id": "0",
+		"displayName": "YWRtaW4="
+	},
+	"object": {
+		"id": "921984",
+		"displayName": "YWRzZmZhZHNkZmFzYWZkcw=="
+	},
+	"target": {
+		"id": "683fab21-fcb3-473e-bdab-49ab44600200"
+	},
+	"verb": "kick",
+	"id": "d182efbf-070e-482c-b6b1-929c90b5bb2c",
+	"published": "2021-03-19T07:47:16Z",
+	"provider": {
+		"id": "some-provider"
+	}
+}
+```
