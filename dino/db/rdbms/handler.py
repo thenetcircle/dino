@@ -1344,6 +1344,13 @@ class DatabaseRdbms(object):
             room.admin = False
             session.add(room)
 
+            join = Joins(
+                amount=0,
+                room_id=room_id,
+                room_name=room_name
+            )
+            session.add(join)
+
             role = RoomRoles()
             role.room = room
             role.user_id = user_id
