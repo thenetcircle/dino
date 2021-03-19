@@ -91,6 +91,10 @@ def online_counter():
                 environ.env.cache.set_session_count(len(session_ids))
             except Exception as e:
                 logger.error('could not count sessions: {}'.format(str(e)))
+                logger.error('current rooms for namespace "{}": {}'.format(
+                    namespace,
+                    socketio.server.manager.rooms[namespace])
+                )
                 logger.exception(e)
                 time.sleep(1)
 
