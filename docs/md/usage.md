@@ -238,6 +238,7 @@ curl -X POST  -H 'Content-Type: application/json' http://the-host-name:8080/ban 
         "duration": "1s"
     }
 }
+EOF
 ```
 
 Response from the REST API:
@@ -346,6 +347,7 @@ curl -X POST  -H 'Content-Type: application/json' http://the-host-name:8080/kick
         "room_name": "YSB0ZXN0IHJvb20gMg=="
     }
 }
+EOF
 ```
 
 Response from the REST API:
