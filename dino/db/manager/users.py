@@ -190,18 +190,17 @@ class UserManager(BaseManager):
 
     def ban_user(
             self, user_id: str, target_id: str, duration: str, target_type: str,
-            reason: str=None, banner_id: str=None, user_name: str=None
+            reason: str = None, banner_id: str = None, user_name: str = None, target_name: str = None
     ) -> None:
-        target_name = None
-
-        if target_type == 'global':
-            pass
-        elif target_type == 'channel':
-            target_name = self.env.db.get_channel_name(target_id)
-        elif target_type == 'room':
-            target_name = self.env.db.get_room_name(target_id)
-        else:
+        if target_type not in {'global', 'channel', 'room'}:
             raise UnknownBanTypeException(target_type)
+
+        if target_name is None:
+            if target_type == 'channel':
+                target_name = self.env.db.get_channel_name(target_id)
+
+            elif target_type == 'room':
+                target_name = self.env.db.get_room_name(target_id)
 
         try:
             user_name = utils.b64e(self.env.db.get_user_name(user_id))
@@ -232,8 +231,10 @@ class UserManager(BaseManager):
 
         if reason is not None:
             ban_activity['object']['content'] = reason
+
         if banner_id is not None:
             ban_activity['actor']['id'] = banner_id
+
         if target_name is not None:
             ban_activity['target']['id'] = target_id
             ban_activity['target']['displayName'] = utils.b64e(target_name)

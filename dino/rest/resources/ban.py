@@ -1,21 +1,19 @@
 import logging
-import traceback
 import sys
+import traceback
+
+from eventlet.greenpool import GreenPool
+from flask import request
 
 from dino import environ
 from dino import utils
-from dino.utils.decorators import timeit
 from dino.db.manager import UserManager
-from dino.rest.resources.base import BaseResource
-from dino.exceptions import UnknownBanTypeException
 from dino.exceptions import NoSuchUserException
-
-from flask import request
-from eventlet.greenpool import GreenPool
+from dino.exceptions import UnknownBanTypeException
+from dino.rest.resources.base import BaseResource
+from dino.utils.decorators import timeit
 
 logger = logging.getLogger(__name__)
-
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 def fail(error_message):
@@ -75,9 +73,8 @@ class BanResource(BaseResource):
             except KeyError:
                 raise KeyError('missing target type for user id %s and request %s' % (user_id, ban_info))
 
-            try:
-                ban_info['target']
-            except KeyError:
+            # 'target' is for backwards compatibility; new versions user either room_id or room_name
+            if 'target' not in ban_info and 'room_id' not in ban_info and 'room_name' not in ban_info:
                 if target_type != 'global':
                     raise KeyError('missing target id for user id %s and request %s' % (user_id, ban_info))
 
@@ -103,10 +100,22 @@ class BanResource(BaseResource):
 
     def ban_user(self, user_id: str, ban_info: dict):
         target_type = ban_info.get('type', '')
-        target_id = ban_info.get('target', '')
         duration = ban_info.get('duration', '')
         reason = ban_info.get('reason', '')
         banner_id = ban_info.get('admin_id', '')
+        room_name = None
+
+        if 'target' in ban_info:
+            target_id = ban_info.get('target')
+
+        elif 'room_id' in ban_info:
+            target_id = ban_info.get('room_id')
+
+        # already validated that one of the three is in the request
+        else:
+            room_name = ban_info.get('room_name')
+            room_name = utils.b64d(room_name)
+            target_id = utils.get_room_id(room_name, use_default_channel=True)
 
         try:
             user_name = ban_info['name']
@@ -117,17 +126,23 @@ class BanResource(BaseResource):
 
         try:
             self.user_manager.ban_user(
-                    user_id, target_id, duration, target_type,
-                    reason=reason, banner_id=banner_id, user_name=user_name)
+                user_id, target_id, duration, target_type,
+                reason=reason, banner_id=banner_id,
+                user_name=user_name, target_name=room_name
+            )
+
         except ValueError as e:
             logger.error('invalid ban duration "%s" for user %s: %s' % (duration, user_id, str(e)))
             self.env.capture_exception(sys.exc_info())
+
         except NoSuchUserException as e:
             logger.error('no such user %s: %s' % (user_id, str(e)))
             self.env.capture_exception(sys.exc_info())
+
         except UnknownBanTypeException as e:
             logger.error('unknown ban type "%s" for user %s: %s' % (target_type, user_id, str(e)))
             self.env.capture_exception(sys.exc_info())
+
         except Exception as e:
             logger.error('could not ban user %s: %s' % (user_id, str(e)))
             logger.error(traceback.format_exc())
