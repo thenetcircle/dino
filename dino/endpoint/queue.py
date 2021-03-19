@@ -270,6 +270,9 @@ class QueueHandler(object):
                 _users = self.socketio.server.manager.rooms[namespace][room_id]
             else:
                 logger.warning('no room %s for namespace [%s] (or room is empty/removed)' % (room_id, namespace))
+        except KeyError as e:
+            # this is probably just the rest/web node
+            pass
         except Exception as e:
             logger.error('could not get users for namespace "%s" and room "%s": %s' % (namespace, room_id, str(e)))
             logger.exception(traceback.format_exc())
