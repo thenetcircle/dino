@@ -1464,8 +1464,8 @@ def get_room_name(room_id: str) -> str:
     return environ.env.db.get_room_name(room_id)
 
 
-def get_room_id(room_name: str) -> str:
-    return environ.env.db.get_room_id_for_name(room_name)
+def get_room_id(room_name: str, use_default_channel: bool = False) -> str:
+    return environ.env.db.get_room_id_for_name(room_name, use_default_channel=use_default_channel)
 
 
 def room_exists(channel_id: str, room_id: str) -> bool:

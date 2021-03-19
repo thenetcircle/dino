@@ -1,6 +1,7 @@
 import logging
 import traceback
 from datetime import datetime
+from typing import Optional
 from uuid import uuid4 as uuid
 
 from dino import utils
@@ -135,17 +136,23 @@ class UserManager(BaseManager):
         data = leave_activity(user_id, user_name, room_id, session_ids, namespace)
         self.env.publish(data)
 
-    def kick_user(self, room_id: str, user_id: str, reason: str=None, admin_id: str=None) -> None:
-        try:
-            room_name = self.env.db.get_room_name(room_id)
-            room_name = utils.b64e(room_name)
-        except Exception as e:
-            logger.error('could not get room name for room uuid %s: %s' % (room_id, str(e)))
-            raise e
+    def kick_user(
+            self, room_id: Optional[str], user_id: str, reason: str = None, admin_id: str = None, room_name: str = None
+    ) -> None:
+        # TODO: support get room_id from room name
+
+        if room_name is None:
+            try:
+                room_name = self.env.db.get_room_name(room_id)
+            except Exception as e:
+                logger.error('could not get room name for room uuid %s: %s' % (room_id, str(e)))
+                raise e
+
+        elif room_id is None:
+            room_id = utils.get_room_id(room_name, use_default_channel=True)
 
         try:
             user_name = self.env.db.get_user_name(user_id)
-            user_name = utils.b64e(user_name)
         except Exception as e:
             logger.error('could not get user name for user id %s: %s' % (user_id, str(e)))
             raise e
@@ -158,11 +165,11 @@ class UserManager(BaseManager):
             'verb': 'kick',
             'object': {
                 'id': user_id,
-                'displayName': user_name
+                'displayName': utils.b64e(user_name)
             },
             'target': {
                 'id': room_id,
-                'displayName': room_name,
+                'displayName': utils.b64e(room_name),
                 'objectType': 'room',
                 'url': '/ws'
             },
@@ -177,7 +184,7 @@ class UserManager(BaseManager):
             if utils.is_base64(reason):
                 kick_activity['object']['content'] = reason
             else:
-                logger.warn('reason is not base64, ignoring')
+                logger.warning('reason is not base64, ignoring')
 
         self.env.publish(kick_activity)
 
