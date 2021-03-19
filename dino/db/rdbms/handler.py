@@ -1165,7 +1165,7 @@ class DatabaseRdbms(object):
         room_id = rooms[0].uuid
 
         if use_default_channel:
-            self.env.cache.set_room_id_for_name(default_channel_id, room_name)
+            self.env.cache.set_room_id_for_name(default_channel_id, room_name, room_id)
 
         return room_id
 
