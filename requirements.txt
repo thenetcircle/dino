@@ -68,7 +68,7 @@ python-socketio==4.1.0
 python3-protobuf==2.5.0
 pytype==2019.3.27
 pytz==2018.5
-PyYAML==5.1b3
+PyYAML==5.4
 raven==6.9.0
 redis==2.10.6
 requests==2.22.0
