@@ -356,7 +356,7 @@ class CacheRedis(object):
         value = self.redis.get(redis_key)
         if value is not None:
             value = json.loads(str(value, 'utf-8'))
-            self.cache.set(cache_key, value, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
+            self.cache.set(cache_key, value, ttl=int(TEN_MINUTES + random.random()*FIVE_MINUTES))
         return value
 
     def set_user_roles(self, user_id: str, roles: dict) -> None:
@@ -364,7 +364,7 @@ class CacheRedis(object):
         redis_key = '%s-%s' % (key, user_id)
         self.redis.set(redis_key, json.dumps(roles))
         self.redis.expire(redis_key, TEN_MINUTES)
-        self.cache.set(redis_key, roles, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
+        self.cache.set(redis_key, roles, ttl=int(TEN_MINUTES + random.random()*FIVE_MINUTES))
 
     def reset_user_roles(self, user_id: str) -> None:
         key = RedisKeys.user_roles()
