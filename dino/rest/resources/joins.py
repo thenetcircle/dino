@@ -24,10 +24,6 @@ class JoinsInRoomResource(BaseResource):
                 return environ.env.db.get_joins_in_room(room_id) or 0
             else:
                 return environ.env.db.get_joins_in_room_by_name(room_name) or 0
-        except NoSuchRoomException:
-            e_msg = "no such room: {}".format(room_id)
-            logger.error(e_msg)
-            raise RuntimeError(e_msg)
         except Exception as e:
             e_msg = "no such room: {}".format(room_id)
             logger.error(e_msg)

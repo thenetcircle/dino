@@ -110,6 +110,10 @@ class DatabaseRdbms(object):
         else:
             DatabaseRdbms.db = Database(env)
 
+        self.count_cumulative_joins = env.config.get(
+            ConfigKeys.COUNT_CUMULATIVE_JOINS, default=False
+        )
+
     @with_session
     def _session(self, session):
         return session
@@ -261,7 +265,9 @@ class DatabaseRdbms(object):
         def _get_joins(session=None) -> int:
             join = session.query(Joins).filter(Joins.room_name == room_name).first()
             if join is None:
-                raise NoSuchRoomException(room_name)
+                # can't create it since we only know the name not the id here
+                logger.warning("can't count joins for unknown room name '{}', returning 0".format(room_name))
+                return 0
 
             return join.amount
 
@@ -279,7 +285,9 @@ class DatabaseRdbms(object):
         def _get_joins(session=None) -> int:
             join = session.query(Joins).filter(Joins.room_id == room_id).first()
             if join is None:
-                raise NoSuchRoomException(room_id)
+                # can't create it since we only know the id not the name here
+                logger.warning("can't count joins for unknown room name '{}', returning 0".format(room_id))
+                return 0
 
             return join.amount
 
@@ -1344,12 +1352,13 @@ class DatabaseRdbms(object):
             room.admin = False
             session.add(room)
 
-            join = Joins(
-                amount=0,
-                room_id=room_id,
-                room_name=room_name
-            )
-            session.add(join)
+            if self.count_cumulative_joins:
+                join = Joins(
+                    amount=0,
+                    room_id=room_id,
+                    room_name=room_name
+                )
+                session.add(join)
 
             role = RoomRoles()
             role.room = room
