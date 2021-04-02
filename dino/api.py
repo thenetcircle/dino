@@ -489,7 +489,6 @@ def on_users_in_room(data: dict, activity: Activity) -> (int, Union[dict, str]):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok, {'status_code': ECodes.OK, 'data': <AS with users as object.attachments>}
     """
-    # TODO: should people not in the room be able to list users in the room?
     room_id = activity.target.id
     user_id = activity.actor.id
     users = utils.get_users_in_room(room_id, user_id, skip_cache=True)
