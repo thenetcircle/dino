@@ -2,6 +2,8 @@
 
 Useful REST APIs that support `room_name` instead of `room_id`:
 
+* [WS join](api.md#join),
+* [WS leave](api.md#leave),
 * [POST /create](rest.md#post-create),
 * [POST /join](rest.md#post-join),
 * [POST /send](rest.md#post-send),
@@ -99,7 +101,23 @@ The client will now receive two events over the websocket connection, first one 
 
 ...then one `gn_user_joined` for the same user (see next section).
 
-## Joining a room
+## Joining a room using the WS api
+
+Simply add `objectType: "room"` to the `target` object:
+
+```json
+{
+    "verb": "join",
+    "target": {
+        "id": "<room name>",
+        "objectType": "name"
+    }
+}
+```
+
+The response is the same as described in the [join](api.md#join) API.
+
+## Joining a room using the REST api
 
 The REST API `POST /join` can now be used for rooms created in the default channel, by 
 specifying the `name` of the room instead of the `id` of the room (multiple user IDs 
@@ -204,7 +222,23 @@ All users in the room now receive a `message` event:
 }
 ```
 
-## Leaving a room
+## Leaving a room using the WS api
+
+Simply add `objectType: "room"` to the `target` object:
+
+```json
+{
+    "verb": "leave",
+    "target": {
+        "id": "<room name>",
+        "objectType": "name"
+    }
+}
+```
+
+The response is the same as described in the [leave](api.md#leave) API.
+
+## Leaving a room using the REST api
 
 When leaving the room, call the REST API `POST /leave`:
 

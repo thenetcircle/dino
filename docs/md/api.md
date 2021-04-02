@@ -545,6 +545,18 @@ Request contains:
 }
 ```
 
+Or, if you want to leave a room based on the room name:
+    
+```json
+{
+    "verb": "join",
+    "target": {
+        "id": "<room name>",
+        "objectType": "name"
+    }
+}
+```
+
 Response data if successful:
 
 ```json
@@ -1138,7 +1150,19 @@ Request contains:
     }
 }
 ```
+
+Or, if you want to join a room based on the room name:
     
+```json
+{
+    "verb": "join",
+    "target": {
+        "id": "<room name>",
+        "objectType": "name"
+    }
+}
+```
+
 Response data if successful:
 
 ```json
