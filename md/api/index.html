@@ -687,6 +687,16 @@ reason text etc. </p>
 }
 </code></pre>
 
+<p>Or, if you want to leave a room based on the room name:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;join&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room name&gt;&quot;,
+        &quot;objectType&quot;: &quot;name&quot;
+    }
+}
+</code></pre>
+
 <p>Response data if successful:</p>
 <pre><code class="json">{
     &quot;status_code&quot;: 200
@@ -1173,6 +1183,16 @@ separated value), plus any global roles. Possible roles are:</p>
     &quot;verb&quot;: &quot;join&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room ID&gt;&quot;
+    }
+}
+</code></pre>
+
+<p>Or, if you want to join a room based on the room name:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;join&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room name&gt;&quot;,
+        &quot;objectType&quot;: &quot;name&quot;
     }
 }
 </code></pre>

@@ -74,11 +74,15 @@
         
             <li><a class="toctree-l3" href="#creating-rooms">Creating rooms</a></li>
         
-            <li><a class="toctree-l3" href="#joining-a-room">Joining a room</a></li>
+            <li><a class="toctree-l3" href="#joining-a-room-using-the-ws-api">Joining a room using the WS api</a></li>
+        
+            <li><a class="toctree-l3" href="#joining-a-room-using-the-rest-api">Joining a room using the REST api</a></li>
         
             <li><a class="toctree-l3" href="#sending-message-to-a-room">Sending message to a room</a></li>
         
-            <li><a class="toctree-l3" href="#leaving-a-room">Leaving a room</a></li>
+            <li><a class="toctree-l3" href="#leaving-a-room-using-the-ws-api">Leaving a room using the WS api</a></li>
+        
+            <li><a class="toctree-l3" href="#leaving-a-room-using-the-rest-api">Leaving a room using the REST api</a></li>
         
             <li><a class="toctree-l3" href="#banning-a-user">Banning a user</a></li>
         
@@ -165,6 +169,8 @@
                 <h1 id="create-rooms-and-send-messages-using-the-room-name-instead-of-id">Create rooms and send messages using the room <em>name</em> instead of <em>ID</em></h1>
 <p>Useful REST APIs that support <code>room_name</code> instead of <code>room_id</code>:</p>
 <ul>
+<li><a href="../api/#join">WS join</a>,</li>
+<li><a href="../api/#leave">WS leave</a>,</li>
 <li><a href="../rest/#post-create">POST /create</a>,</li>
 <li><a href="../rest/#post-join">POST /join</a>,</li>
 <li><a href="../rest/#post-send">POST /send</a>,</li>
@@ -252,7 +258,19 @@ and is not necessary to know for clients):</p>
 </code></pre>
 
 <p>...then one <code>gn_user_joined</code> for the same user (see next section).</p>
-<h2 id="joining-a-room">Joining a room</h2>
+<h2 id="joining-a-room-using-the-ws-api">Joining a room using the WS api</h2>
+<p>Simply add <code>objectType: "room"</code> to the <code>target</code> object:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;join&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room name&gt;&quot;,
+        &quot;objectType&quot;: &quot;name&quot;
+    }
+}
+</code></pre>
+
+<p>The response is the same as described in the <a href="../api/#join">join</a> API.</p>
+<h2 id="joining-a-room-using-the-rest-api">Joining a room using the REST api</h2>
 <p>The REST API <code>POST /join</code> can now be used for rooms created in the default channel, by 
 specifying the <code>name</code> of the room instead of the <code>id</code> of the room (multiple user IDs 
 can be specified to have them all join):</p>
@@ -343,7 +361,19 @@ EOF
 }
 </code></pre>
 
-<h2 id="leaving-a-room">Leaving a room</h2>
+<h2 id="leaving-a-room-using-the-ws-api">Leaving a room using the WS api</h2>
+<p>Simply add <code>objectType: "room"</code> to the <code>target</code> object:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;leave&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;&lt;room name&gt;&quot;,
+        &quot;objectType&quot;: &quot;name&quot;
+    }
+}
+</code></pre>
+
+<p>The response is the same as described in the <a href="../api/#leave">leave</a> API.</p>
+<h2 id="leaving-a-room-using-the-rest-api">Leaving a room using the REST api</h2>
 <p>When leaving the room, call the REST API <code>POST /leave</code>:</p>
 <pre><code class="sh">curl -X POST -H 'Content-Type: application/json' http://the-host-name:8080/leave -d @- &lt;&lt; EOF
 {
