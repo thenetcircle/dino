@@ -115,22 +115,21 @@ def count_connections(connect_type=None):
 def can_use_room_name():
     def factory(view_func):
         @wraps(view_func)
-        def decorator(*a, **k):
+        def decorator(*args, **kwargs):
+            def add_target_id_if_missing(data):
+                if 'target' not in data or 'objectType' not in data['target']:
+                    return
+
+                if data['target']['objectType'] == 'name':
+                    room_id = utils.get_room_id(data['target']['id'], use_default_channel=True)
+                    data['target']['id'] = room_id
+
             try:
-                if 'target' not in a[0] or 'objectType' not in a[0]['target']:
-                    return a
-
-                if a[0]['target']['objectType'] != 'name':
-                    return a
-
-                room_id = utils.get_room_id(a[0]['target']['id'], use_default_channel=True)
-                a[0]['target']['id'] = room_id
-
+                add_target_id_if_missing(args[0])
+                return view_func(*args, **kwargs)
             except Exception as e:
                 logger.error(str(e))
                 environ.env.capture_exception(sys.exc_info())
-
-            return a
         return decorator
     return factory
 
