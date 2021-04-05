@@ -2245,8 +2245,6 @@ class DatabaseRdbms(object):
                 acls[found_acl.acl_type] = found_acl.acl_value
             return acls
 
-        self.get_room_name(room_id)
-
         value = self.env.cache.get_acls_in_room_for_action(room_id, action)
         if value is not None:
             return value

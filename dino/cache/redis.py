@@ -591,7 +591,7 @@ class CacheRedis(object):
 
     def set_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
         key = RedisKeys.acls_in_room_for_action(room_id, action)
-        self.cache.set(key, acls, ttl=TEN_MINUTES + random.random()*TEN_MINUTES)
+        self.cache.set(key, acls, ttl=int(TEN_MINUTES + random.random()*TEN_MINUTES))
 
     def get_acls_in_channel_for_action(self, channel_id: str, action: str) -> dict:
         key = RedisKeys.acls_in_channel_for_action(channel_id, action)
