@@ -327,13 +327,11 @@ def activity_for_going_visible(user_id: str) -> dict:
 
 def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_name: str, image_url: str) -> dict:
     user_roles = environ.env.db.get_user_roles_in_room(user_id, room_id)
-    if not is_base64(user_name):
-        user_name = b64e(user_name)
 
     return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
-            'displayName': user_name,
+            'displayName': b64e(user_name),
             'image': {
                 'url': image_url
             },
