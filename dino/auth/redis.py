@@ -40,7 +40,7 @@ class AuthRedis(object):
     def get_user_info(self, user_id: str) -> dict:
         key = RedisKeys.auth_key(user_id)
         session = self.env.cache.get_user_info(user_id)
-        if session is not None:
+        if session is not None and len(session):
             return session
 
         binary_stored_session = self.redis.hgetall(key)

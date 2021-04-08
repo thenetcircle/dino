@@ -112,6 +112,28 @@ def count_connections(connect_type=None):
     return factory
 
 
+def can_use_room_name():
+    def factory(view_func):
+        @wraps(view_func)
+        def decorator(*args, **kwargs):
+            def add_target_id_if_missing(data):
+                if 'target' not in data or 'objectType' not in data['target']:
+                    return
+
+                if data['target']['objectType'] == 'name':
+                    room_id = utils.get_room_id(data['target']['id'], use_default_channel=True)
+                    data['target']['id'] = room_id
+
+            try:
+                add_target_id_if_missing(args[0])
+                return view_func(*args, **kwargs)
+            except Exception as e:
+                logger.error(str(e))
+                environ.env.capture_exception(sys.exc_info())
+        return decorator
+    return factory
+
+
 def pre_process(validation_name, should_validate_request=True):
     def factory(view_func):
         @wraps(view_func)

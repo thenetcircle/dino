@@ -356,7 +356,7 @@ class CacheRedis(object):
         value = self.redis.get(redis_key)
         if value is not None:
             value = json.loads(str(value, 'utf-8'))
-            self.cache.set(cache_key, value, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
+            self.cache.set(cache_key, value, ttl=int(TEN_MINUTES + random.random()*FIVE_MINUTES))
         return value
 
     def set_user_roles(self, user_id: str, roles: dict) -> None:
@@ -364,7 +364,7 @@ class CacheRedis(object):
         redis_key = '%s-%s' % (key, user_id)
         self.redis.set(redis_key, json.dumps(roles))
         self.redis.expire(redis_key, TEN_MINUTES)
-        self.cache.set(redis_key, roles, ttl=TEN_MINUTES + random.random()*FIVE_MINUTES)
+        self.cache.set(redis_key, roles, ttl=int(TEN_MINUTES + random.random()*FIVE_MINUTES))
 
     def reset_user_roles(self, user_id: str) -> None:
         key = RedisKeys.user_roles()
@@ -591,7 +591,7 @@ class CacheRedis(object):
 
     def set_acls_in_room_for_action(self, room_id: str, action: str, acls: dict) -> None:
         key = RedisKeys.acls_in_room_for_action(room_id, action)
-        self.cache.set(key, acls, ttl=TEN_MINUTES + random.random()*TEN_MINUTES)
+        self.cache.set(key, acls, ttl=int(TEN_MINUTES + random.random()*TEN_MINUTES))
 
     def get_acls_in_channel_for_action(self, channel_id: str, action: str) -> dict:
         key = RedisKeys.acls_in_channel_for_action(channel_id, action)

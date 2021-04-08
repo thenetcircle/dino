@@ -204,7 +204,14 @@ class OnMessageHooks(object):
             publish_activity()
             return
 
-        user_used_blacklisted_word, word_used_if_any = utils.used_blacklisted_word(activity)
+        is_chat_op = False
+        if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
+            is_chat_op = True
+
+        if is_chat_op:
+            user_used_blacklisted_word, word_used_if_any = False, None
+        else:
+            user_used_blacklisted_word, word_used_if_any = utils.used_blacklisted_word(activity)
 
         if user_used_blacklisted_word:
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word_used_if_any)
@@ -216,7 +223,10 @@ class OnMessageHooks(object):
                 for admin_user_id in admins_in_room:
                     send(data, _room=admin_user_id, _broadcast=False)
         else:
-            is_spam, spam_id = check_spam()
+            if is_chat_op:
+                is_spam, spam_id = False, None
+            else:
+                is_spam, spam_id = check_spam()
 
             if is_spam and environ.env.service_config.is_spam_classifier_enabled():
                 spam_activity = utils.activity_for_spam_word(activity)

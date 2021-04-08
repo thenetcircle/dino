@@ -117,7 +117,7 @@ def _on_join_emit_join_event(arg: tuple) -> None:
         if hasattr(activity.actor, "id"):
             user_id = activity.actor.id
         if hasattr(activity.actor, "display_name"):
-            user_name = activity.actor.display_name
+            user_name = utils.b64d(activity.actor.display_name)
 
     if user_id is None:
         user_id = environ.env.session.get(SessionKeys.user_id.value)

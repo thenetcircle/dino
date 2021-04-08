@@ -18,7 +18,7 @@ from dino import environ
 from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import RedisKeys
-from dino.utils.decorators import pre_process
+from dino.utils.decorators import pre_process, can_use_room_name
 from dino.utils.decorators import respond_with
 from dino.utils.decorators import count_connections
 from dino.forms import LoginForm
@@ -348,6 +348,7 @@ def on_history(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
 @socketio.on('join', namespace='/ws')
 @respond_with('gn_join')
 @pre_process('on_join')
+@can_use_room_name()
 def on_join(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_join(data, activity)
 
@@ -397,6 +398,7 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[str, dict, N
 @socketio.on('leave', namespace='/ws')
 @respond_with('gn_leave')
 @pre_process('on_leave')
+@can_use_room_name()
 def on_leave(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_leave(data, activity)
 

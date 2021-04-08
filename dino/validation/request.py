@@ -403,7 +403,7 @@ class RequestValidator(BaseValidator):
             try:
                 room_name = utils.get_room_name(room_id)
             except NoSuchRoomException:
-                return False, ECodes.NO_SUCH_ROOM, 'room does not exist'
+                return False, ECodes.NO_SUCH_ROOM, 'room with id "{}" does not exist'.format(room_id)
         else:
             if room_name is None or len(room_name.strip()) == 0:
                 return False, ECodes.MISSING_TARGET_DISPLAY_NAME, 'neither room id nor name supplied'
@@ -411,7 +411,7 @@ class RequestValidator(BaseValidator):
             try:
                 room_id = utils.get_room_id(room_name)
             except NoSuchRoomException:
-                return False, ECodes.NO_SUCH_ROOM, 'room does not exists with given name'
+                return False, ECodes.NO_SUCH_ROOM, 'room does not exists with given name "{}"'.format(room_name)
             except MultipleRoomsFoundForNameException:
                 return False, ECodes.MULTIPLE_ROOMS_WITH_NAME, 'found multiple rooms with name "%s"' % room_name
 
