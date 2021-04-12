@@ -89,6 +89,9 @@ def online_counter():
                     session_ids.update(socketio.server.manager.rooms[namespace][None].keys())
 
                 environ.env.cache.set_session_count(len(session_ids))
+            except KeyError:
+                # happens when there's no one online, just ignore
+                pass
             except Exception as e:
                 logger.error('could not count sessions: {}'.format(str(e)))
                 logger.error('current namespaces->rooms: {}'.format(socketio.server.manager.rooms))

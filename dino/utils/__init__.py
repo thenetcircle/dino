@@ -331,7 +331,7 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
     return ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
-            'displayName': user_name,
+            'displayName': b64e(user_name),
             'image': {
                 'url': image_url
             },
