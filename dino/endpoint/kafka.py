@@ -38,7 +38,9 @@ class KafkaPublisher(BasePublisher):
         self.queue = eq_queue
         self.queue_connection = KafkaProducer(
             bootstrap_servers=eq_host,
-            value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+            api_version_auto_timeout_ms=10000
+        )
         logger.info('setting up pubsub for type "{}: and host(s) "{}"'.format(self.queue_type, ','.join(eq_host)))
 
     def try_publish(self, message):
