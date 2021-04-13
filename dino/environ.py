@@ -1088,7 +1088,8 @@ def initialize_env(dino_env):
     if 'wio' in dino_env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
         init_fake_storage_engine(dino_env)
         init_heartbeat_service(dino_env)
-        delete_ephemeral_rooms(dino_env)
+        # TODO: check if removing the room causes us not to be able to send messages
+        # delete_ephemeral_rooms(dino_env)
     else:
         init_blacklist_service(dino_env)
         init_admin_and_admin_room(dino_env)
