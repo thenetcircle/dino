@@ -1204,6 +1204,7 @@ def filter_channels_by_acl(activity, channels_with_acls, session_to_use=None):
     for channel_info in channels_with_acls:
         channel_id = channel_info['id']
         list_acls = get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
+        logger.info("list acls for channel {}: {}".format(channel_id, list_acls))
 
         activity.object.url = channel_id
         activity.target.object_type = 'channel'
@@ -1231,7 +1232,10 @@ def filter_channels_by_acl(activity, channels_with_acls, session_to_use=None):
 
         # not allowed to list this channel
         if not is_valid:
+            logger.info("skipping channel {}, not valid for acls: {}".format(channel_id, err_msg))
             continue
+        else:
+            logger.info("channel {} appears valid".format(channel_id))
 
         acls = get_acls_for_channel(channel_id)
         acl_activity = activity_for_get_acl(activity, acls)

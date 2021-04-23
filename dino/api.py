@@ -576,26 +576,14 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok, {'status_code': ECodes.OK, 'data': <AS with channels as object.attachments>}
     """
-    all_channels = environ.env.db.get_channels()
-    channels = dict()
-
-    # some channels have restrictions, like spoken_language, so don't include them in the response
-    for channel_id in all_channels.keys():
-        acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
-        is_valid, msg = validation.acl.validate_acl_for_action(
-            activity, ApiTargets.CHANNEL, ApiActions.LIST, acls, channel_id=channel_id
-        )
-
-        if is_valid:
-            channels[channel_id] = all_channels[channel_id]
-
-    environ.env.observer.emit('on_list_channels', (data, activity))
+    channels = environ.env.db.get_channels()
     activity_json = utils.activity_for_list_channels(channels)
 
     # filter the channels and replace it on the activity we created
     activity_json['object']['attachments'] = \
         utils.filter_channels_by_acl(activity, activity_json['object']['attachments'])
 
+    environ.env.observer.emit('on_list_channels', (data, activity))
     return ECodes.OK, activity_json
 
 
