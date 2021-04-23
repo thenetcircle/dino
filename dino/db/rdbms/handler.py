@@ -1136,6 +1136,8 @@ class DatabaseRdbms(object):
             rows = session.query(Channels).all()
             _channels = dict()
             for row in rows:
+                if row.name == ConfigKeys.DEFAULT_CHANNEL_NAME:
+                    continue
                 _channels[row.uuid] = (row.name, row.sort_order, row.tags)
             return _channels
 
