@@ -1166,7 +1166,6 @@ def get_excluded_users(user_id: str) -> Set:
     excluded = user_info.get(SessionKeys.excluded_list.value, None)
 
     if excluded is None or not len(excluded.strip()):
-        logger.info("no excluded_list in session for user {}".format(user_id))
         return set()
 
     return set(excluded.strip().rstrip(",").split(","))

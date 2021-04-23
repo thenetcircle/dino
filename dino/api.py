@@ -513,15 +513,13 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     excluded_users = utils.get_excluded_users(user_id)
     room_roles = roles['room']
 
-    logger.info("excluded users: {}".format(excluded_users))
-
     filtered_rooms = dict()
     for room_id, room_details in rooms.items():
         # don't show rooms if the I ignored the owner, or if the owner ignored me; both cases should be in the
         # same set of "excluded" users; owner lists are cached per room, so don't query db for all at once
         for owner_id in environ.env.db.get_room_owners(room_id):
-            logger.info("checking if owner {} in exclusion list: {}".format(owner_id, excluded_users))
-            if owner_id in excluded_users:
+            # owner id 0 is the default "admin" owner of static rooms, no need to check them
+            if owner_id != "0" and owner_id in excluded_users:
                 logger.info("room {} with owner {} EXCLUDED".format(room_id, owner_id))
                 continue
             else:
@@ -574,9 +572,18 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint
     :return: if ok, {'status_code': ECodes.OK, 'data': <AS with channels as object.attachments>}
     """
-    channels = environ.env.db.get_channels()
-    environ.env.observer.emit('on_list_channels', (data, activity))
+    all_channels = environ.env.db.get_channels()
+    channels = dict()
 
+    # some channels have restrictions, like spoken_language, so don't include them in the response
+    for channel_id in all_channels.keys():
+        acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
+        is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.CHANNEL, ApiActions.LIST, acls)
+
+        if is_valid:
+            channels[channel_id] = all_channels[channel_id]
+
+    environ.env.observer.emit('on_list_channels', (data, activity))
     activity_json = utils.activity_for_list_channels(channels)
 
     # filter the channels and replace it on the activity we created
