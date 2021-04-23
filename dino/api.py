@@ -525,7 +525,6 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
         # same set of "excluded" users; owner lists are cached per room, so don't query db for all at once
         for owner_id in environ.env.db.get_room_owners(room_id):
             if should_exclude_room(owner_id):
-                logger.info("room {} with owner '{}' excluded for user '{}'".format(room_id, owner_id, user_id))
                 continue
 
         try:
