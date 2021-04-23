@@ -1,4 +1,5 @@
 import ast
+from typing import Set
 
 from activitystreams import Activity
 from activitystreams import parse as as_parser
@@ -1158,6 +1159,14 @@ def get_sids_for_user_id(user_id: str) -> Union[list, None]:
 
 def get_user_for_sid(sid: str) -> Union[str, None]:
     return environ.env.db.get_user_for_sid(sid)
+
+
+def get_excluded_users(user_id: str) -> Set:
+    excluded = environ.env.auth.get_user_info(user_id)
+    if excluded is None or not len(excluded.strip()):
+        return set()
+
+    return set(excluded.strip().rstrip(",").split(","))
 
 
 def create_or_update_user(user_id: str, user_name: str) -> None:

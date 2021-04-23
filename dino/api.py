@@ -510,10 +510,23 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     rooms = environ.env.db.rooms_for_channel(channel_id)
 
     roles = utils.get_user_roles(environ.env.session.get(SessionKeys.user_id.value))
+    excluded_users = utils.get_excluded_users(user_id)
     room_roles = roles['room']
+    
+    logger.info("excluded users: {}".format(excluded_users))
 
     filtered_rooms = dict()
     for room_id, room_details in rooms.items():
+        # don't show rooms if the I ignored the owner, or if the owner ignored me; both cases should be in the
+        # same set of "excluded" users; owner lists are cached per room, so don't query db for all at once
+        for owner_id in environ.env.db.get_room_owners(room_id):
+            logger.info("checking if owner {} in exclusion list: {}".format(owner_id, excluded_users))
+            if owner_id in excluded_users:
+                logger.info("room {} with owner {} EXCLUDED".format(room_id, owner_id))
+                continue
+            else:
+                logging.info("room {} with owner {} NOT EXCLUDED".format(room_id, owner_id))
+
         try:
             acls = utils.get_acls_in_room_for_action(room_id, ApiActions.LIST)
             is_valid, err_msg = validation.acl.validate_acl_for_action(
@@ -538,6 +551,7 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     activity_json = utils.activity_for_list_rooms(activity, filtered_rooms)
 
     rooms_with_acls = activity_json['object']['attachments']
+
     for room_info in rooms_with_acls:
         try:
             acls = utils.get_acls_for_room(room_info['id'])

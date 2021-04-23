@@ -18,6 +18,7 @@ import traceback
 from datetime import datetime
 from datetime import timedelta
 from functools import wraps
+from typing import List
 from typing import Union, Optional
 from typing import Dict
 from uuid import uuid4 as uuid
@@ -406,6 +407,21 @@ class DatabaseRdbms(object):
             for r_role in r_roles:
                 _output['room'][r_role.room.uuid] = [a for a in r_role.roles.split(',') if len(a) > 0]
         return _output
+
+    def get_room_owners(self, room_id: str):
+        @with_session
+        def _get_owners(session=None) -> List[str]:
+            return session.query(RoomRoles.user_id) \
+                .join(RoomRoles.room) \
+                .filter(Rooms.uuid == room_id) \
+                .filter(RoomRoles.roles.contains(RoleKeys.OWNER)) \
+                .all()
+
+        # TODO: cache
+        owners = set(_get_owners())
+
+        logger.info("owners of room {}: {}".format(room_id, owners))
+        return owners
 
     def get_user_roles(self, user_id: str, skip_cache: bool = False) -> dict:
         @with_session

@@ -1173,7 +1173,7 @@ class CacheRedis(object):
 
     def set_user_info(self, user_id: str, info: dict) -> None:
         key = RedisKeys.auth_key(user_id)
-        self.cache.set(key, info, ttl=ONE_HOUR)
+        self.cache.set(key, info, ttl=int(FIVE_MINUTES + random.random() * ONE_MINUTE))
 
     def reset_user_info(self, user_id: str) -> None:
         key = RedisKeys.auth_key(user_id)
