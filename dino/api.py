@@ -581,9 +581,6 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[dict, str]):
 
     # some channels have restrictions, like spoken_language, so don't include them in the response
     for channel_id in all_channels.keys():
-        if not hasattr(activity, 'object') or not hasattr(activity.object, 'url'):
-            activity.object = DefObject
-
         acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
         is_valid, msg = validation.acl.validate_acl_for_action(
             activity, ApiTargets.CHANNEL, ApiActions.LIST, acls, channel_id=channel_id
