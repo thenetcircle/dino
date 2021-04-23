@@ -440,6 +440,21 @@ class RequestValidator(BaseValidator):
         if utils.is_owner_channel(channel_id, user_id):
             return True, None, None
 
+        # try real-time when joining
+        excluded_users = utils.get_excluded_users(user_id, skip_cache=True)
+
+        def should_exclude_room(owner):
+            # owner id 0 is the default "admin" owner of static rooms, no need to check them
+            if owner is None or not len(owner.strip()) or owner == "0":
+                return False
+
+            return owner in excluded_users
+
+        room_owners = utils.get_owners_for_room(room_id)
+        for owner_id in room_owners:
+            if should_exclude_room(owner_id):
+                return False, ECodes.NOT_ALLOWED, "matches ignore list"
+
         activity.object.url = channel_id
         activity.object.display_name = utils.get_channel_name(channel_id)
         activity.target.object_type = 'room'

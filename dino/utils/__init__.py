@@ -1161,8 +1161,8 @@ def get_user_for_sid(sid: str) -> Union[str, None]:
     return environ.env.db.get_user_for_sid(sid)
 
 
-def get_excluded_users(user_id: str) -> Set:
-    user_info = environ.env.auth.get_user_info(user_id)
+def get_excluded_users(user_id: str, skip_cache: bool = False) -> Set:
+    user_info = environ.env.auth.get_user_info(user_id, skip_cache=skip_cache)
     excluded = user_info.get(SessionKeys.excluded_list.value, None)
 
     if excluded is None or not len(excluded.strip()):
@@ -1232,10 +1232,7 @@ def filter_channels_by_acl(activity, channels_with_acls, session_to_use=None):
 
         # not allowed to list this channel
         if not is_valid:
-            logger.info("skipping channel {}, not valid for acls: {}".format(channel_id, err_msg))
             continue
-        else:
-            logger.info("channel {} appears valid".format(channel_id))
 
         acls = get_acls_for_channel(channel_id)
         acl_activity = activity_for_get_acl(activity, acls)

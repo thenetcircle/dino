@@ -37,11 +37,13 @@ class AuthRedis(object):
             return self.redis_instance
         return redis.Redis(connection_pool=self.redis_pool)
 
-    def get_user_info(self, user_id: str) -> dict:
+    def get_user_info(self, user_id: str, skip_cache: bool = False) -> dict:
         key = RedisKeys.auth_key(user_id)
-        session = self.env.cache.get_user_info(user_id)
-        if session is not None and len(session):
-            return session
+
+        if not skip_cache:
+            session = self.env.cache.get_user_info(user_id)
+            if session is not None and len(session):
+                return session
 
         binary_stored_session = self.redis.hgetall(key)
         stored_session = dict()
