@@ -422,8 +422,6 @@ class DatabaseRdbms(object):
             return owners
 
         owners = {owner[0] for owner in _get_owners()}
-        logger.info("owners of room {}: {}".format(room_id, owners))
-
         self.env.cache.set_room_owners(room_id, owners)
 
         return owners
