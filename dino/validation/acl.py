@@ -65,6 +65,7 @@ class AclValidator(object):
             target_id: str = None,
             object_type: str = None,
             session_to_use=None,
+            channel_id: str = None,
     ) -> (bool, str):
         # for testing purposes
         if session_to_use is None:
@@ -90,7 +91,8 @@ class AclValidator(object):
         if target == 'room':
             channel_id = utils.get_channel_for_room(target_id)
         else:
-            channel_id = activity.object.url
+            if channel_id is None:
+                channel_id = activity.object.url
 
         if utils.is_admin(channel_id, user_id):
             return True, None
