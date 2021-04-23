@@ -513,17 +513,21 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     excluded_users = utils.get_excluded_users(user_id)
     room_roles = roles['room']
 
+    def should_exclude_room(owner):
+        # owner id 0 is the default "admin" owner of static rooms, no need to check them
+        if owner is None or not len(owner.strip()) or owner == "0":
+            return False
+
+        return owner in excluded_users
+
     filtered_rooms = dict()
     for room_id, room_details in rooms.items():
         # don't show rooms if the I ignored the owner, or if the owner ignored me; both cases should be in the
         # same set of "excluded" users; owner lists are cached per room, so don't query db for all at once
         for owner_id in environ.env.db.get_room_owners(room_id):
-            # owner id 0 is the default "admin" owner of static rooms, no need to check them
-            if owner_id != "0" and owner_id in excluded_users:
-                logger.info("room {} with owner {} EXCLUDED".format(room_id, owner_id))
+            if should_exclude_room(owner_id):
+                logger.info("room {} with owner '{}' excluded for user '{}'".format(room_id, owner_id, user_id))
                 continue
-            else:
-                logging.info("room {} with owner {} NOT EXCLUDED".format(room_id, owner_id))
 
         try:
             acls = utils.get_acls_in_room_for_action(room_id, ApiActions.LIST)
