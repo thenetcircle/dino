@@ -418,7 +418,7 @@ class DatabaseRdbms(object):
                 .all()
 
         # TODO: cache
-        owners = set(_get_owners())
+        owners = {owner[0] for owner in _get_owners()}
 
         logger.info("owners of room {}: {}".format(room_id, owners))
         return owners
