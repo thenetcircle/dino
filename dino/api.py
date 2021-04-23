@@ -512,7 +512,7 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     roles = utils.get_user_roles(environ.env.session.get(SessionKeys.user_id.value))
     excluded_users = utils.get_excluded_users(user_id)
     room_roles = roles['room']
-    
+
     logger.info("excluded users: {}".format(excluded_users))
 
     filtered_rooms = dict()

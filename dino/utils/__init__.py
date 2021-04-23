@@ -1162,8 +1162,11 @@ def get_user_for_sid(sid: str) -> Union[str, None]:
 
 
 def get_excluded_users(user_id: str) -> Set:
-    excluded = environ.env.auth.get_user_info(user_id)
+    user_info = environ.env.auth.get_user_info(user_id)
+    excluded = user_info.get(SessionKeys.excluded_list.value, None)
+
     if excluded is None or not len(excluded.strip()):
+        logger.info("no excluded_list in session for user {}".format(user_id))
         return set()
 
     return set(excluded.strip().rstrip(",").split(","))
