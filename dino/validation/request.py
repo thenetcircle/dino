@@ -451,7 +451,6 @@ class RequestValidator(BaseValidator):
             return owner in excluded_users
 
         room_owners = utils.get_owners_for_room(room_id)
-        logger.info("owners of room {}: {}".format(room_id, room_owners))
         for owner_id in room_owners:
             if should_exclude_room(owner_id):
                 return False, ECodes.NOT_ALLOWED, "matches ignore list"

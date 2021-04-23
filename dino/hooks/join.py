@@ -42,8 +42,8 @@ class OnJoinHooks(object):
             is_out_of_scope = activity.target.content == "out_of_scope"
 
         for sid in sids:
-            logger.info("user {} is joining room {} with sid {} on ns {} (db? {})".format(
-                user_id, room_id, sid, namespace, skip_db_join
+            logger.info("user {} ({}) is joining room {} ({}) with sid {} on ns {} (db? {})".format(
+                user_id, user_name, room_id, room_name, sid, namespace, skip_db_join
             ))
 
             try:

@@ -1715,8 +1715,6 @@ def join_the_room(
     else:
         environ.env.join_room(room_id, sid=sid, namespace=namespace)
 
-    logger.info('user %s (%s) is joining %s (%s)' % (user_id, user_name, room_id, room_name))
-
 
 def user_is_online(user_id: str) -> bool:
     if user_id is None or len(user_id.strip()) == 0:
