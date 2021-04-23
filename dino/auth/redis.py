@@ -41,9 +41,12 @@ class AuthRedis(object):
         key = RedisKeys.auth_key(user_id)
 
         if not skip_cache:
+            logger.info("getting user info from cache for user {}".format(user_id))
             session = self.env.cache.get_user_info(user_id)
             if session is not None and len(session):
                 return session
+        else:
+            logger.info("getting user info from redis for user {}".format(user_id))
 
         binary_stored_session = self.redis.hgetall(key)
         stored_session = dict()
@@ -58,6 +61,7 @@ class AuthRedis(object):
                 continue
             stored_session[key] = val
 
+        logger.info("user info for {}: {}".format(user_id, stored_session))
         self.env.cache.set_user_info(user_id, stored_session)
         return stored_session
 

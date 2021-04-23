@@ -1204,7 +1204,6 @@ def filter_channels_by_acl(activity, channels_with_acls, session_to_use=None):
     for channel_info in channels_with_acls:
         channel_id = channel_info['id']
         list_acls = get_acls_in_channel_for_action(channel_id, ApiActions.LIST)
-        logger.info("list acls for channel {}: {}".format(channel_id, list_acls))
 
         activity.object.url = channel_id
         activity.target.object_type = 'channel'
