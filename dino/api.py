@@ -517,7 +517,6 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
         # owner id 0 is the default "admin" owner of static rooms, no need to check them
         if owner is None or not len(owner.strip()) or owner == "0":
             return False
-
         return owner in excluded_users
 
     filtered_rooms = dict()
@@ -532,7 +531,9 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
         try:
             acls = utils.get_acls_in_room_for_action(room_id, ApiActions.LIST)
             is_valid, err_msg = validation.acl.validate_acl_for_action(
-                    activity, ApiTargets.ROOM, ApiActions.LIST, acls, target_id=room_id, object_type='room')
+                activity, ApiTargets.ROOM, ApiActions.LIST,
+                acls, target_id=room_id, object_type='room'
+            )
         except Exception as e:
             logger.warning('could not check acls for room %s in on_list_rooms: %s' % (room_id, str(e)))
 

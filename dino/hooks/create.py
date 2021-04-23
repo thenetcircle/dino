@@ -55,9 +55,10 @@ class OnCreateHooks(object):
             room_name = utils.b64d(room_name)
         environ.env.db.create_room(room_name, room_id, channel_id, user_id, user_name, ephemeral=is_ephemeral)
 
-        logger.debug('settings "{}" as owners of room {}'.format(','.join(owners), room_id))
-        for owner_id in owners:
-            environ.env.db.set_owner(room_id, owner_id)
+        if len(owners):
+            logger.debug('settings "{}" as owners of room {}'.format(','.join(owners), room_id))
+            for owner_id in owners:
+                environ.env.db.set_owner(room_id, owner_id)
 
     @staticmethod
     def emit_creation_event(arg: tuple) -> None:
