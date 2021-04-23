@@ -4,6 +4,8 @@ import traceback
 import random
 import sys
 import socket
+from typing import Set
+
 import pytz
 
 from zope.interface import implementer
@@ -1162,6 +1164,31 @@ class CacheRedis(object):
             return None
 
         return str(status, 'utf-8')
+
+    def get_room_owners(self, room_id: str) -> Optional[Set]:
+        key = RedisKeys.room_owners(room_id)
+
+        value = self.cache.get(key)
+        if value is not None:
+            return value
+
+        value = self.redis.get(key)
+        if value is None:
+            return None
+
+        value = str(value, 'utf-8')
+        value = set(value.split(","))
+        self.cache.set(key, value, ttl=int(ONE_HOUR + random.random() * ONE_HOUR))
+
+        return value
+
+    def set_room_owners(self, room_id, owners: Set[str]) -> None:
+        key = RedisKeys.room_owners(room_id)
+        owners_str = ",".join(owners)
+
+        self.cache.set(key, owners, ttl=int(ONE_HOUR + random.random() * ONE_HOUR))
+        self.redis.set(key, owners_str)
+        self.redis.expire(key, int(EIGHT_HOURS_IN_SECONDS + random.random() * EIGHT_HOURS_IN_SECONDS))
 
     def set_user_status(self, user_id: str, status: str) -> None:
         key = RedisKeys.user_status(user_id)

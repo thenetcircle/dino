@@ -387,6 +387,11 @@ class RedisKeys(object):
     RKEY_JOIN_COUNTS = 'rooms:joins:{}'  # rooms:joins:room_id
     RKEY_JOIN_COUNTS_BY_NAME = 'rooms:joins:name:{}'  # rooms:joins:name:room_name
     RKEY_DEFAULT_CHANNEL_ID = 'channel:default:id'
+    RKEY_ROOM_OWNERS = 'room:owners:{}'  # room:owners:room_id
+
+    @staticmethod
+    def room_owners(room_id: str) -> str:
+        return RedisKeys.RKEY_ROOM_OWNERS.format(room_id)
 
     @staticmethod
     def default_channel_id() -> str:
