@@ -1339,7 +1339,7 @@ class DatabaseRedis(object):
 
     def set_user_invisible(self, user_id: str, is_offline=False) -> None:
         if is_offline:
-            self.env.cache.setUser_status_invisible(user_id)
+            self.env.cache.set_user_status_invisible(user_id)
         else:
             self.env.cache.set_user_invisible(user_id)
 
