@@ -122,13 +122,11 @@ def can_use_room_name():
 
                 if data['target']['objectType'] == 'name':
                     room_id = utils.get_room_id(data['target']['id'], use_default_channel=True)
-                    logger.debug('replacing room_id {} with {}'.format(data['target']['id'], room_id))
                     data['target']['id'] = room_id
 
                 return data
 
             try:
-                logger.debug("can_use_room_name() *args are: {}".format(args))
                 data = args[0]
                 data = add_target_id_if_missing(data)
                 return view_func(*(data, *args[1:]), **kwargs)
@@ -144,7 +142,6 @@ def pre_process(validation_name, should_validate_request=True):
         @wraps(view_func)
         def decorator(*a, **k):
             def _pre_process(*args, **kwargs):
-                logger.debug("pre_process() *args are: {}".format(args))
                 if not hasattr(validation.request, validation_name):
                     raise RuntimeError('no such attribute on validation.request: %s' % validation_name)
 

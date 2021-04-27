@@ -27,7 +27,7 @@ class OnLeaveHooks(object):
             sids = activity.actor.content.split(",")
             is_out_of_scope = True
 
-        # otherwise, this is a leave request from socket api, in so only leave with this sid
+        # otherwise, this is a leave request from socket api, so only leave with this sid
         else:
             utils.remove_sid_for_user_in_room(user_id, room_id, environ.env.request.sid)
 
