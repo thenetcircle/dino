@@ -346,9 +346,9 @@ def on_history(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
 
 
 @socketio.on('join', namespace='/ws')
+@can_use_room_name()
 @respond_with('gn_join')
 @pre_process('on_join')
-@can_use_room_name()
 def on_join(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_join(data, activity)
 
@@ -396,9 +396,9 @@ def on_list_channels(data: dict, activity: Activity) -> (int, Union[str, dict, N
 
 
 @socketio.on('leave', namespace='/ws')
+@can_use_room_name()
 @respond_with('gn_leave')
 @pre_process('on_leave')
-@can_use_room_name()
 def on_leave(data: dict, activity: Activity) -> (int, Union[str, dict, None]):
     return api.on_leave(data, activity)
 

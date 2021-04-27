@@ -126,9 +126,12 @@ def can_use_room_name():
                     logger.debug('replacing room_id {} with {}'.format(data['target']['id'], room_id))
                     data['target']['id'] = room_id
 
+                return data
+
             try:
-                add_target_id_if_missing(args[0])
-                return view_func(*args, **kwargs)
+                data, activity = args
+                data = add_target_id_if_missing(data)
+                return view_func((data, activity), **kwargs)
             except Exception as e:
                 logger.error(str(e))
                 environ.env.capture_exception(sys.exc_info())
