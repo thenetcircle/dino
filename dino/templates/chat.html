@@ -488,6 +488,16 @@
                     });
                 });
 
+                $('button#join-name').click(function() {
+                    socket.emit('join', {
+                        verb: 'join',
+                        target: {
+                            id: $('#room-name').val(),
+                            objectType: 'name'
+                        }
+                    });
+                });
+
                 $('button#remove-room').click(function() {
                     socket.emit('remove_room', {
                         verb: 'remove',
@@ -664,6 +674,10 @@
         <button id="request-admin">Request admin</button>
         <button id="set-streaming-on">Streaming on</button>
         <button id="set-streaming-off">Streaming off</button>
+        <button id="join-name">Join by room name</button>
+
+        <label for="room-name">Room Name: </label>
+        <input id="room-name" />
 
         <input id="target" type="hidden" />
         <input id="room-id" type="hidden" />
