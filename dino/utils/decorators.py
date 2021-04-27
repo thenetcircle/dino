@@ -17,7 +17,7 @@ from dino.config import ConfigKeys
 from dino.config import SessionKeys
 from dino.config import ErrorCodes
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def timeit(_logger, tag: str):
@@ -117,11 +117,13 @@ def can_use_room_name():
         @wraps(view_func)
         def decorator(*args, **kwargs):
             def add_target_id_if_missing(data):
+                logger.debug('can_use_room_name(): {}'.format(data))
                 if 'target' not in data or 'objectType' not in data['target']:
                     return
 
                 if data['target']['objectType'] == 'name':
                     room_id = utils.get_room_id(data['target']['id'], use_default_channel=True)
+                    logger.debug('replacing room_id {} with {}'.format(data['target']['id'], room_id))
                     data['target']['id'] = room_id
 
             try:
