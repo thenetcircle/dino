@@ -117,9 +117,8 @@ def can_use_room_name():
         @wraps(view_func)
         def decorator(*args, **kwargs):
             def add_target_id_if_missing(data):
-                logger.debug('can_use_room_name(): {}'.format(data))
                 if 'target' not in data or 'objectType' not in data['target']:
-                    return
+                    return data
 
                 if data['target']['objectType'] == 'name':
                     room_id = utils.get_room_id(data['target']['id'], use_default_channel=True)
