@@ -129,9 +129,9 @@ def can_use_room_name():
                 return data
 
             try:
-                data, activity = args
+                data = args[0]
                 data = add_target_id_if_missing(data)
-                return view_func((data, activity), **kwargs)
+                return view_func((data,), **kwargs)
             except Exception as e:
                 logger.error(str(e))
                 environ.env.capture_exception(sys.exc_info())
