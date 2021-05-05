@@ -18,7 +18,7 @@
   <script>
     // Current page data
     var mkdocs_page_name = "API";
-    var mkdocs_page_input_path = "md\\api.md";
+    var mkdocs_page_input_path = "md/api.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -80,6 +80,12 @@
     
 
     <li class="toctree-l2"><a href="#login">login</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#invisible-login">Invisible login</a></li>
+        
+        </ul>
     
 
     <li class="toctree-l2"><a href="#list_channels">list_channels</a></li>
@@ -368,6 +374,29 @@ room/channel/global.</p>
 </ul>
 <p>The only difference between global moderator and super user is that the global moderators can't remove static rooms 
 (ephemeral set to <code>false</code> in room list).</p>
+<h3 id="invisible-login">Invisible login</h3>
+<p>When doing an invisible login, the <code>last_online_at</code> will not be updated, and the user status in the cache
+will be <code>3</code> (invisible, see <a href="../wio/">the WIO docs</a> for more info).</p>
+<p>To do an invisible login, there are two options. Either call the <a href="../rest/#post-status"><code>REST API /status</code></a> 
+with stage set to <code>login</code>, then call this WS API normally. The other option is to set <code>actor.content</code> to 
+<code>invisible</code> in the WS login request:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;login&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
+        &quot;displayName&quot;: &quot;&lt;user name&gt;&quot;,
+        &quot;content&quot;:  &quot;invisible&quot;,
+        &quot;attachments&quot;: [
+            {
+                &quot;objectType&quot;: &quot;token&quot;,
+                &quot;content&quot;: &quot;&lt;user token&gt;&quot;
+            }
+        ]
+    }
+}
+</code></pre>
+
+<p>The response <code>gn_login</code> is the same as the example above. </p>
 <h2 id="list_channels"><code>list_channels</code></h2>
 <p>Responds with event name <code>gn_list_channels</code>.</p>
 <p>Request contains:</p>
@@ -526,7 +555,9 @@ that if multiple messages are being acknowledged at the same time, they all have
 }
 </code></pre>
 
-<p>If the <code>target.id</code> is specified, the request will be relayed to online users in that room. E.g., user A sends message X to the room, user B then sends a <code>read</code> event after receiving it; this <code>read</code> event will then be sent to user A with the event name <a href="../events/#message-read"><code>gn_message_read</code></a>.</p>
+<p>If the <code>target.id</code> is specified, the request will be relayed to online users in that room. E.g., user A sends 
+message X to the room, user B then sends a <code>read</code> event after receiving it; this <code>read</code> event will then be sent 
+to user A with the event name <a href="../events/#message-read"><code>gn_message_read</code></a>.</p>
 <h2 id="list_rooms"><code>list_rooms</code></h2>
 <p>Get a list of all rooms for a channel.</p>
 <p>Responds with event name <code>gn_list_rooms</code>.</p>
