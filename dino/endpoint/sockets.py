@@ -186,6 +186,7 @@ def chat():
             image=environ.env.session.get('image', ''),
             country=environ.env.session.get('country', ''),
             city=environ.env.session.get('city', ''),
+            invisible=environ.env.session.get('invisible', ''),
             token=environ.env.session.get('token', ''))
 
 
