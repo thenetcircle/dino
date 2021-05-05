@@ -101,7 +101,7 @@ class OnStatusHooks(object):
 
     @staticmethod
     def set_invisible(user_id: str, user_name: str, stage: str) -> None:
-        user_status = utils.get_user_status(user_id, skip_cache=True)
+        user_status = utils.get_user_status(user_id)
 
         # no need to set it again if already invisible
         if user_status == UserKeys.STATUS_INVISIBLE:
