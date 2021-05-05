@@ -161,6 +161,34 @@ Possible roles are:
 The only difference between global moderator and super user is that the global moderators can't remove static rooms 
 (ephemeral set to `false` in room list).
 
+### Invisible login
+
+When doing an invisible login, the `last_online_at` will not be updated, and the user status in the cache
+will be `3` (invisible, see [the WIO docs](wio.md) for more info).
+
+To do an invisible login, there are two options. Either call the [`REST API /status`](rest.md#post-status) 
+with stage set to `login`, then call this WS API normally. The other option is to set `actor.content` to 
+`invisible` in the WS login request:
+
+```json
+{
+    "verb": "login",
+    "actor": {
+        "id": "<user ID>",
+        "displayName": "<user name>",
+        "content":  "invisible",
+        "attachments": [
+            {
+                "objectType": "token",
+                "content": "<user token>"
+            }
+        ]
+    }
+}
+```
+
+The response `gn_login` is the same as the example above. 
+
 ## `list_channels`
 
 Responds with event name `gn_list_channels`.
@@ -345,7 +373,9 @@ Request contains:
 }
 ```
 
-If the `target.id` is specified, the request will be relayed to online users in that room. E.g., user A sends message X to the room, user B then sends a `read` event after receiving it; this `read` event will then be sent to user A with the event name [`gn_message_read`](events.md#message-read).
+If the `target.id` is specified, the request will be relayed to online users in that room. E.g., user A sends 
+message X to the room, user B then sends a `read` event after receiving it; this `read` event will then be sent 
+to user A with the event name [`gn_message_read`](events.md#message-read).
 
 ## `list_rooms`
 
