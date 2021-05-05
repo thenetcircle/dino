@@ -5,6 +5,7 @@ _required = environ.env.DataRequired
 _select = environ.env.SelectField
 _string = environ.env.StringField
 _hidden = environ.env.HiddenField
+_checkbox = environ.env.BooleanField
 
 choice_gender = [('m', 'male'), ('f', 'female'), ('ts', 'TS')]
 choice_membership = [('0', '0'), ('1', '1'), ('2', '2')]
@@ -30,8 +31,9 @@ class _MockLoginForm(object):
         self.has_webcam = _select('Has webcam?', choices=choice_yes_no, validators=[_required()])
         self.fake_checked = _select('Fake checked?', choices=choice_yes_no, validators=[_required()])
         self.country = _select('Country', choices=choice_country, validators=[_required()])
-        self.age = _string('Age', validators=[_required()])
-        self.city = _string('City', validators=[_required()])
+        self.age = _string('Age')
+        self.city = _string('City')
+        self.invisible = _checkbox('Invisible')
         self.token = _hidden('token')
         self.submit = environ.env.SubmitField('Login')
 
@@ -47,7 +49,8 @@ class _LoginForm(environ.env.Form):
     has_webcam = _select('Has webcam?', choices=choice_yes_no, validators=[_required()])
     fake_checked = _select('Fake checked?', choices=choice_yes_no, validators=[_required()])
     country = _select('Country', choices=choice_country, validators=[_required()])
-    age = _string('Age', validators=[_required()])
+    age = _string('Age')
     token = _hidden('token')
-    city = _string('City', validators=[_required()])
+    invisible = _checkbox('Invisible')
+    city = _string('City')
     submit = environ.env.SubmitField('Login')

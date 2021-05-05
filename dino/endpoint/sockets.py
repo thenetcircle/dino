@@ -158,6 +158,7 @@ def index():
         form.country.data = environ.env.session.get('country', '')
         form.city.data = environ.env.session.get('city', '')
         form.token.data = environ.env.session.get('token', '')
+        form.invisible.data = environ.env.session.get('invisible', '')
     return environ.env.render_template('index.html', form=form)
 
 

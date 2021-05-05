@@ -31,6 +31,7 @@ from wtforms.fields import StringField as _wtf_StringField
 from wtforms.fields import SubmitField as _wtf_SubmitField
 from wtforms.fields import SelectField as _wtf_SelectField
 from wtforms.fields import HiddenField as _wtf_HiddenField
+from wtforms.fields import BooleanField as _wtf_BooleanField
 from wtforms.validators import DataRequired as _wtf_DataRequired
 
 from flask import redirect as _flask_redirect
@@ -209,6 +210,7 @@ class GNEnvironment(object):
         self.StringField = _wtf_StringField
         self.SelectField = _wtf_SelectField
         self.HiddenField = _wtf_HiddenField
+        self.BooleanField = _wtf_BooleanField
 
         self.redirect = _flask_redirect
         self.url_for = _flask_url_for
