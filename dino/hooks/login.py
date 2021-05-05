@@ -106,8 +106,6 @@ class OnLoginHooks(object):
         user_status = utils.get_user_status(user_id)
         invisible_login = False
 
-        logger.info("login request: {}".format(data))
-
         # if the rest api is not called before login to set the status to invisible, it can be
         # specified on the login request, causing the 'last_online_at' to not be updated
         if hasattr(activity.actor, "content"):
