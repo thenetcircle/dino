@@ -79,6 +79,7 @@ class SessionKeys(Enum):
     is_streaming = 'is_streaming'
     spoken_language = 'spoken_language'
     excluded_list = 'excluded_list'
+    invisible = 'invisible'
 
     avatar = 'avatar'
     app_avatar = 'app_avatar'
