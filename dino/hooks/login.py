@@ -104,6 +104,17 @@ class OnLoginHooks(object):
         data, activity = arg
         user_id = activity.actor.id
         user_status = utils.get_user_status(user_id)
+        invisible_login = False
+
+        logger.info("login request: {}".format(data))
+
+        # if the rest api is not called before login to set the status to invisible, it can be
+        # specified on the login request, causing the 'last_online_at' to not be updated
+        if hasattr(activity.actor, "content"):
+            content = activity.actor.content
+            invisible_login = content == "invisible"
+
+        logger.info("invisible login for {}? {}".format(user_id, invisible_login))
 
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             try:
@@ -122,12 +133,12 @@ class OnLoginHooks(object):
                 logger.exception(e)
                 environ.env.capture_exception(sys.exc_info())
 
-        if user_status != UserKeys.STATUS_INVISIBLE:
+        if user_status == UserKeys.STATUS_INVISIBLE or invisible_login:
+            # if login after server restart the cache value user:status:<user id> is non-existent, re-set to invisible
+            environ.env.cache.set_user_invisible(user_id, update_last_online=False)
+        else:
             logger.info('setting user {} to online'.format(user_id))
             environ.env.db.set_user_online(user_id)
-        else:
-            # if login after server restart the cache value user:status:<user id> is non-existent, set to invisible
-            environ.env.cache.set_user_invisible(user_id)
 
     @staticmethod
     def autojoin_rooms(arg: tuple) -> None:

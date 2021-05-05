@@ -1308,7 +1308,7 @@ class CacheRedis(object):
         self.redis.set(last_online_key, unix_time)
         self.redis.expire(last_online_key, SEVEN_DAYS)
 
-    def set_user_invisible(self, user_id: str) -> None:
+    def set_user_invisible(self, user_id: str, update_last_online: bool = True) -> None:
         try:
             user_id_str = str(user_id).strip()
             user_id_int = int(float(user_id))
@@ -1318,7 +1318,8 @@ class CacheRedis(object):
             self.redis.sadd(RedisKeys.users_multi_cast(), user_id_str)
             self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
 
-            self._set_last_online(user_id_str)
+            if update_last_online:
+                self._set_last_online(user_id_str)
         except Exception as e:
             logger.error('could not set_user_invisible(): %s' % str(e))
             logger.exception(traceback.format_exc())

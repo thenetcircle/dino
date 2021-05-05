@@ -88,20 +88,25 @@
                 //socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {path: '/ws', transports:['websocket']});
                 socket = io.connect('ws://' + document.domain + ':' + location.port + '/ws', {transports:['websocket']});
 
+                let login_object = {
+                    verb: 'login',
+                    actor: {
+                        id: '{{ user_id }}',
+                        displayName: b64e('{{ user_name }}'),
+                        attachments: [
+                            {
+                                objectType: 'token',
+                                content: '{{ token }}'
+                            }
+                        ]
+                    }
+                }
+                if ($('input#invisible-login').val() === "yes") {
+                    login_object.actor.content = "invisible"
+                }
+
                 socket.on('connect', function() {
-                    socket.emit('login', {
-                        verb: 'login',
-                        actor: {
-                            id: '{{ user_id }}',
-                            displayName: b64e('{{ user_name }}'),
-                            attachments: [
-                                {
-                                    objectType: 'token',
-                                    content: '{{ token }}'
-                                }
-                            ]
-                        }
-                    }, function(data) {
+                    socket.emit('login', login_object, function(data) {
                         console.log(data);
                     });
                 });
@@ -610,6 +615,8 @@
         image: <b>{{ image }}</b>, has webcam: <b>{{ has_webcam }}</b>, country: <b>{{ country }}</b>, city: <b>{{ city }}</b><br />
         Current room: <span id="current-room" style="font-weight: bold;">none</span>,
         Owner(s) of room: <span id="current-owners" style="font-weight: bold;">none</span><br />
+
+        <input id="invisible-login" type="hidden" value="{{ invisible_login }}" />
 
         <div class="pure-g">
             <div class="pure-u-1 pure-u-md-1-2">
