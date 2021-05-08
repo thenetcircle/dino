@@ -580,10 +580,11 @@ class DatabaseRdbms(object):
     def get_user_status(self, user_id: str, skip_cache: bool = False) -> str:
         @with_session
         def _get_user_status(session=None):
-            status = session.query(UserStatus).filter_by(uuid=user_id).first()
-            if status is None:
+            s = session.query(UserStatus).filter_by(uuid=user_id).first()
+            if s is None:
+                logger.warning("no UserStatus in db for user {}".format(user_id))
                 return UserKeys.STATUS_UNAVAILABLE
-            return status.status
+            return s.status
 
         if not skip_cache:
             status = self.env.cache.get_user_status(user_id)
@@ -594,18 +595,18 @@ class DatabaseRdbms(object):
         self.env.cache.set_user_status(user_id, status)
         return status
 
+    @with_session
+    def set_user_status_invisible(self, user_id: str, session=None):
+        user_status = session.query(UserStatus).filter(UserStatus.uuid == user_id).first()
+        if user_status is None:
+            user_status = UserStatus()
+            user_status.uuid = user_id
+
+        user_status.status = UserKeys.STATUS_INVISIBLE
+        session.add(user_status)
+        session.commit()
+
     def set_user_invisible(self, user_id: str, is_offline=False) -> None:
-        @with_session
-        def _set_user_invisible(session=None):
-            user_status = session.query(UserStatus).filter(UserStatus.uuid == user_id).first()
-            if user_status is None:
-                user_status = UserStatus()
-                user_status.uuid = user_id
-
-            user_status.status = UserKeys.STATUS_INVISIBLE
-            session.add(user_status)
-            session.commit()
-
         if is_offline:
             self.env.cache.set_user_status_invisible(user_id)
         else:
@@ -613,11 +614,11 @@ class DatabaseRdbms(object):
             self.env.cache.set_user_invisible(user_id)
 
         try:
-            _set_user_invisible()
+            self.set_user_status_invisible(user_id)
         except (IntegrityError, StaleDataError) as e:
             logger.warning('could not set user %s invisible, will try again: %s' % (user_id, str(e)))
             try:
-                _set_user_invisible()
+                self.set_user_status_invisible(user_id)
             except (IntegrityError, StaleDataError) as e:
                 logger.error('could not set user %s invisible second time, logging to sentry: %s' % (user_id, str(e)))
                 self.env.capture_exception(sys.exc_info())

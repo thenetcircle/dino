@@ -133,6 +133,7 @@ class OnLoginHooks(object):
         if user_status == UserKeys.STATUS_INVISIBLE or invisible_login:
             # if login after server restart the cache value user:status:<user id> is non-existent, re-set to invisible
             environ.env.cache.set_user_invisible(user_id, update_last_online=False)
+            environ.env.db.set_user_status_invisible(user_id)
         else:
             logger.info('setting user {} to online'.format(user_id))
             environ.env.db.set_user_online(user_id)
