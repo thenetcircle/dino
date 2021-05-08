@@ -976,13 +976,6 @@ class ICache(Interface):
         :return:
         """
 
-    def set_user_offline(self, user_id: str) -> None:
-        """
-
-        :param user_id:
-        :return:
-        """
-
     def set_user_online(self, user_id: str) -> None:
         """
 

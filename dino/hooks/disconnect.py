@@ -60,6 +60,7 @@ class OnDisconnectHooks(object):
                 if user_status == UserKeys.STATUS_INVISIBLE:
                     environ.env.cache.remove_from_multicast_on_disconnect(user_id)
                 else:
+                    logger.info("63 setting user {} to offline from disconnect hook".format(user_id))
                     environ.env.db.set_user_offline(user_id)
             except Exception as e:
                 logger.error('could not set user offline: %s' % str(e))

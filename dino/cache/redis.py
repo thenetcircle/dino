@@ -1258,6 +1258,8 @@ class CacheRedis(object):
         pipe.execute()
 
     def set_user_offline(self, user_id: str) -> None:
+        logger.info("set_user_offline() called for {}".format(user_id))
+
         try:
             user_id_str = str(user_id).strip()
             user_id_int = int(float(user_id))
