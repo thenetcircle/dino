@@ -27,7 +27,6 @@ class OnDisconnectHooks(object):
         def set_user_offline(user_id, current_sid):
             all_sids = utils.get_sids_for_user_id(user_id)
             user_status = utils.get_user_status(user_id, skip_cache=True)
-            logger.info("user status for {} is {}".format(user_id, user_status))
 
             # update last_online on every session closure
             if user_status != UserKeys.STATUS_INVISIBLE:
@@ -60,7 +59,6 @@ class OnDisconnectHooks(object):
                 if user_status == UserKeys.STATUS_INVISIBLE:
                     environ.env.cache.remove_from_multicast_on_disconnect(user_id)
                 else:
-                    logger.info("63 setting user {} to offline from disconnect hook".format(user_id))
                     environ.env.db.set_user_offline(user_id)
             except Exception as e:
                 logger.error('could not set user offline: %s' % str(e))

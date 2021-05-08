@@ -588,12 +588,10 @@ class DatabaseRdbms(object):
 
         if not skip_cache:
             status = self.env.cache.get_user_status(user_id)
-            logger.info("591 user status in redis for {} was {}".format(user_id, status))
             if status is not None:
                 return status
 
         status = _get_user_status()
-        logger.info("596 user status in db for {} was {}".format(user_id, status))
         self.env.cache.set_user_status(user_id, status)
         return status
 
@@ -612,7 +610,6 @@ class DatabaseRdbms(object):
         if is_offline:
             self.env.cache.set_user_status_invisible(user_id)
         else:
-            logger.info("settings last online for {} from set_user_invisible()".format(user_id))
             self._set_last_online(user_id)
             self.env.cache.set_user_invisible(user_id)
 
