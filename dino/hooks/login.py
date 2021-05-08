@@ -111,7 +111,7 @@ class OnLoginHooks(object):
         if hasattr(activity.actor, "content"):
             content = activity.actor.content
             invisible_login = content == "invisible"
-            logger.info("invisible login for {}".format(user_id))
+            logger.info("invisible login for {}? {}".format(user_id, invisible_login))
 
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             try:

@@ -588,10 +588,12 @@ class DatabaseRdbms(object):
 
         if not skip_cache:
             status = self.env.cache.get_user_status(user_id)
+            logger.info("user status in redis for {} was {}".format(user_id, status))
             if status is not None:
                 return status
 
         status = _get_user_status()
+        logger.info("user status in db for {} was {}".format(user_id, status))
         self.env.cache.set_user_status(user_id, status)
         return status
 
