@@ -26,7 +26,7 @@ class OnDisconnectHooks(object):
 
         def set_user_offline(user_id, current_sid):
             all_sids = utils.get_sids_for_user_id(user_id)
-            user_status = utils.get_user_status(user_id)
+            user_status = utils.get_user_status(user_id, skip_cache=True)
             logger.info("user status for {} is {}".format(user_id, user_status))
 
             # update last_online on every session closure
