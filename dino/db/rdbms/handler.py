@@ -612,6 +612,7 @@ class DatabaseRdbms(object):
         if is_offline:
             self.env.cache.set_user_status_invisible(user_id)
         else:
+            logger.info("settings last online for {} from set_user_invisible()".format(user_id))
             self._set_last_online(user_id)
             self.env.cache.set_user_invisible(user_id)
 

@@ -1159,11 +1159,18 @@ class CacheRedis(object):
 
     def get_user_status(self, user_id: str):
         key = RedisKeys.user_status(user_id)
+
+        status = self.cache.get(key)
+        if status is not None:
+            return status
+
         status = self.redis.get(key)
         if status is None or status == '':
             return None
 
-        return str(status, 'utf-8')
+        status = str(status, 'utf-8')
+        self.cache.set(key, status, ttl=TEN_SECONDS)
+        return status
 
     def get_room_owners(self, room_id: str) -> Optional[Set]:
         key = RedisKeys.room_owners(room_id)
@@ -1192,6 +1199,7 @@ class CacheRedis(object):
 
     def set_user_status(self, user_id: str, status: str) -> None:
         key = RedisKeys.user_status(user_id)
+        self.cache.set(key, status, ttl=TEN_SECONDS)
         self.redis.set(key, status)
 
     def get_user_info(self, user_id: str) -> dict:
@@ -1266,7 +1274,7 @@ class CacheRedis(object):
 
             self._set_last_online(user_id_str)
 
-            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
+            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE, ttl=TEN_SECONDS)
             self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
             self.redis.srem(RedisKeys.online_set(), user_id_str)
             self.redis.srem(RedisKeys.users_multi_cast(), user_id_str)
@@ -1280,7 +1288,7 @@ class CacheRedis(object):
         try:
             user_id_str = str(user_id).strip()
             user_id_int = int(float(user_id))
-            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_AVAILABLE)
+            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_AVAILABLE, ttl=TEN_SECONDS)
             self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 1)
             self.redis.sadd(RedisKeys.online_set(), user_id_str)
             self.redis.sadd(RedisKeys.users_multi_cast(), user_id_str)
@@ -1292,7 +1300,7 @@ class CacheRedis(object):
     def set_user_status_invisible(self, user_id: str) -> None:
         try:
             user_id_str = str(user_id).strip()
-            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
+            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE, ttl=TEN_SECONDS)
             self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
         except Exception as e:
             logger.error('could not set_user_status_invisible(): %s' % str(e))
@@ -1314,7 +1322,7 @@ class CacheRedis(object):
         try:
             user_id_str = str(user_id).strip()
             user_id_int = int(float(user_id))
-            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
+            self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE, ttl=TEN_SECONDS)
             self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
             self.redis.srem(RedisKeys.online_set(), user_id_str)
             self.redis.sadd(RedisKeys.users_multi_cast(), user_id_str)
