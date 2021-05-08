@@ -1323,10 +1323,12 @@ class DatabaseRedis(object):
     def get_user_status(self, user_id: str, skip_cache: bool = False) -> str:
         status = self.env.cache.get_user_status(user_id)
         if status is not None:
+            logger.info("user status in memory for {} was {}".format(user_id, status))
             return status
 
         status = self.redis.get(RedisKeys.user_status(user_id))
         if status is None:
+            logger.info("user status in redis for {} was None, returning 4".format(user_id))
             return UserKeys.STATUS_UNAVAILABLE
         return str(status, 'utf-8')
 
