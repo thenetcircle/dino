@@ -223,6 +223,7 @@ class AckStatus(object):
 
 
 class ConfigKeys(object):
+    SEND_RESTART_EVENT = 'send_restart_event'
     COUNT_CUMULATIVE_JOINS = 'count_cumulative_join'
     INVISIBLE_UNRESTRICTED = 'invisible_unrestricted'
     REQ_LOG_LOC = 'request_log_location'

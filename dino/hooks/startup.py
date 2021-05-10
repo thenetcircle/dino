@@ -15,6 +15,12 @@ class OnStartupDoneHooks(object):
             # assume we're testing
             return
 
+        # if e.g. the staging environment is sharing online status state with e.g. the production
+        # environment for easier live debugging, we don't want to send restart event when we restart
+        # the staging environment
+        if not environ.env.config.get(ConfigKeys.SEND_RESTART_EVENT, True):
+            return
+
         if environ.env.node != 'web':
             # avoid publishing duplicate events by only letting the web node publish external events
             return
