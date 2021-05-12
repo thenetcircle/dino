@@ -104,7 +104,8 @@ class BanResource(BaseResource):
         duration = ban_info.get('duration', '')
         reason = ban_info.get('reason', '')
         banner_id = ban_info.get('admin_id', '')
-        room_name = None
+        room_name = ban_info.get('room_name', '')
+        target_id = ban_info.get('target', '')
 
         if 'target' in ban_info:
             target_id = ban_info.get('target')
