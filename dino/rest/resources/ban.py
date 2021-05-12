@@ -95,8 +95,9 @@ class BanResource(BaseResource):
             try:
                 self.ban_user(user_id, ban_info)
             except Exception as e:
-                self.env.capture_exception(sys.exc_info())
                 logger.error('could not ban user %s: %s' % (user_id, str(e)))
+                logger.exception(e)
+                self.env.capture_exception(sys.exc_info())
 
     def ban_user(self, user_id: str, ban_info: dict):
         target_type = ban_info.get('type', '')
@@ -111,11 +112,14 @@ class BanResource(BaseResource):
         elif 'room_id' in ban_info:
             target_id = ban_info.get('room_id')
 
-        # already validated that one of the three is in the request
-        else:
+        elif 'room_name' in ban_info:
             room_name = ban_info.get('room_name')
             room_name = utils.b64d(room_name)
             target_id = utils.get_room_id(room_name, use_default_channel=True)
+
+        else:
+            # otherwise it's a global ban
+            pass
 
         try:
             user_name = ban_info['name']
