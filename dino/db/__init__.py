@@ -29,6 +29,28 @@ class IDatabase(Interface):
         :return: nothing
         """
 
+    def set_user_status_invisible(self, user_id: str):
+        """
+
+        :param user_id:
+        :param session:
+        :return:
+        """
+
+    def get_room_owners(self, room_id: str):
+        """
+
+        :param room_id:
+        :return:
+        """
+
+    def get_joins_in_room_by_name(self, room_name: str) -> int:
+        """
+
+        :param room_name:
+        :return:
+        """
+
     def get_all_permanent_rooms(self):
         """
 
