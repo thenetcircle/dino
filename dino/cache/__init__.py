@@ -1,3 +1,5 @@
+from typing import Set
+
 from zope.interface import Interface
 from typing import Union, Dict, List, Optional
 
@@ -9,6 +11,42 @@ class ICache(Interface):
 
         :param sid: the s session id
         :return: the user id or none
+        """
+
+    def set_room_owners(self, room_id, owners: Set[str]) -> None:
+        """
+        set room owners
+
+        :param room_id:
+        :param owners:
+        :return:
+        """
+
+    def set_users_in_room_by_name(self, room_name: str, users: dict, is_super_user: bool) -> None:
+        """
+        for join/leave by room name
+
+        :param room_name:
+        :param users:
+        :param is_super_user:
+        :return:
+        """
+
+    def get_users_in_room_by_name(self, room_name: str, is_super_user: bool) -> dict:
+        """
+        for join/leave by room name
+
+        :param room_name:
+        :param is_super_user:
+        :return:
+        """
+
+    def get_room_owners(self, room_id: str) -> Optional[Set]:
+        """
+        for join/leave by room name
+
+        :param room_id:
+        :return:
         """
 
     def get_all_permanent_rooms(self):

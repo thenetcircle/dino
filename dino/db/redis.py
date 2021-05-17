@@ -591,7 +591,7 @@ class DatabaseRedis(object):
         return self.redis.hexists(RedisKeys.users_in_room(room_id), user_id)
 
     def users_in_room(
-            self, room_id: str, this_user_id: str = None, skip_cache: bool = False, user_name: str = None
+            self, room_id: str, this_user_id: str = None, skip_cache: bool = False, user_name: str = None, room_name: str = None
     ) -> dict:
         # TODO: support room name
         try:
@@ -1344,6 +1344,15 @@ class DatabaseRedis(object):
             self.env.cache.set_user_status_invisible(user_id)
         else:
             self.env.cache.set_user_invisible(user_id)
+
+    def set_user_status_invisible(self, user_id: str):
+        raise NotImplementedError()
+
+    def get_room_owners(self, room_id: str):
+        raise NotImplementedError()
+
+    def get_joins_in_room_by_name(self, room_name: str) -> int:
+        raise NotImplementedError()
 
     def update_last_read_for(self, users: set, room_id: str, time_stamp: int) -> None:
         self.get_room_name(room_id)
