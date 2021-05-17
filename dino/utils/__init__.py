@@ -970,6 +970,13 @@ def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
     return response
 
 
+def should_exclude_user(user_to_check, excluded_users):
+    # user id 0 is the default "admin" owner of static rooms, no need to check them
+    if user_to_check is None or not len(user_to_check.strip()) or user_to_check == "0":
+        return False
+    return user_to_check in excluded_users
+
+
 def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
     users = users_orig.copy()
     response = ActivityBuilder.enrich({
@@ -986,6 +993,7 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
     response['object']['attachments'] = list()
     this_user_id = environ.env.session.get(SessionKeys.user_id.value)
     this_user_is_super_user = is_super_user(this_user_id) or is_global_moderator(this_user_id)
+    excluded_users = get_excluded_users(this_user_id)
 
     for user_id, user_name in users.items():
         user_info = get_user_info_attachments_for(user_id)
@@ -1006,6 +1014,10 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
         # temporary fix for avoiding dead users
         if len(user_info) == 0:
             environ.env.db.leave_room(user_id, activity.target.id)
+            continue
+
+        # superusers should see everyone
+        if not this_user_is_super_user and should_exclude_user(user_id, excluded_users):
             continue
 
         user_roles = environ.env.db.get_user_roles_in_room(user_id, activity.target.id)
