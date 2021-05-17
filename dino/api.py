@@ -521,11 +521,17 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
 
     filtered_rooms = dict()
     for room_id, room_details in rooms.items():
+        exclude_room = False
+
         # don't show rooms if the I ignored the owner, or if the owner ignored me; both cases should be in the
         # same set of "excluded" users; owner lists are cached per room, so don't query db for all at once
         for owner_id in environ.env.db.get_room_owners(room_id):
             if should_exclude_room(owner_id):
-                continue
+                exclude_room = True
+                break
+
+        if exclude_room:
+            continue
 
         try:
             acls = utils.get_acls_in_room_for_action(room_id, ApiActions.LIST)
