@@ -27,6 +27,7 @@ class OnStartupDoneHooks(object):
 
         json_event = ActivityBuilder.enrich({
             'verb': 'restart',
+            'actor': {'id': '0'},
             'content': environ.env.config.get(ConfigKeys.ENVIRONMENT),
         })
 
