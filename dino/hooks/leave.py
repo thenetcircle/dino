@@ -90,7 +90,7 @@ class OnLeaveHooks(object):
                 broadcast=True, include_self=False, namespace='/ws'
             )
 
-        utils.check_if_remove_room_empty(activity, user_name=user_name)
+        utils.check_if_remove_room_empty(activity, user_name=user_name, is_delayed_removal=False)
 
 
 @environ.env.observer.on('on_leave')

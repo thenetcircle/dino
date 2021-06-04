@@ -146,7 +146,7 @@ class OnDisconnectHooks(object):
                         room=room_id,
                         namespace='/ws'
                     )
-                    utils.check_if_remove_room_empty(activity)
+                    utils.check_if_remove_room_empty(activity, is_delayed_removal=True)
 
                 environ.env.db.remove_current_rooms_for_user(user_id)
             except Exception as e:

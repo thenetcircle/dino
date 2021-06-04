@@ -753,8 +753,8 @@ def activity_for_join(
     return response
 
 
-def remove_room(channel_id, room_id, user_id, user_name, room_name, check_if_empty_again: bool = False):
-    if check_if_empty_again:
+def remove_room(channel_id, room_id, user_id, user_name, room_name, is_delayed_removal: bool = False):
+    if is_delayed_removal:
         users_in_room = get_users_in_room(room_id)
         if len(users_in_room) > 0:
             logger.info('ignoring delayed room removal, room {} ({}) is not empty anymore'.format(room_id, room_name))
@@ -766,10 +766,18 @@ def remove_room(channel_id, room_id, user_id, user_name, room_name, check_if_emp
     # no need to notify for wio
     if environ.env.node is not None and 'wio' not in environ.env.node:
         remove_activity = activity_for_remove_room(user_id, user_name, room_id, room_name)
-        environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
+
+        if is_delayed_removal:
+            environ.env.out_of_scope_emit(
+                'gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws'
+            )
+        else:
+            environ.env.emit(
+                'gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws'
+            )
 
 
-def check_if_remove_room_empty(activity: Activity, user_name=None):
+def check_if_remove_room_empty(activity: Activity, user_name=None, is_delayed_removal: bool = False):
     user_id = activity.actor.id
     room_id = activity.target.id
 
@@ -795,19 +803,21 @@ def check_if_remove_room_empty(activity: Activity, user_name=None):
     if len(users_in_room) > 0:
         return
 
-    # delay the removal, so that if a user is alone in a room, and get
-    # disconnected briefly then reconnected, their room isn't removed
-    spawn_after(
-        seconds=2 * 60,
-        func=remove_room,
-        channel_id=channel_id,
-        room_id=room_id,
-        user_id=user_id,
-        user_name=user_name,
-        room_name=room_name,
-        check_if_empty_again=True,
-    )
-    # remove_room(channel_id, room_id, user_id, user_name, room_name)
+    if is_delayed_removal:
+        # delay the removal, so that if a user is alone in a room, and get
+        # disconnected briefly then reconnected, their room isn't removed
+        spawn_after(
+            seconds=2 * 60,
+            func=remove_room,
+            channel_id=channel_id,
+            room_id=room_id,
+            user_id=user_id,
+            user_name=user_name,
+            room_name=room_name,
+            is_delayed_removal=True
+        )
+    else:
+        remove_room(channel_id, room_id, user_id, user_name, room_name)
 
 
 # currently not used, rooms are removed if empty, not if owner leaves
