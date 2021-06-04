@@ -1,37 +1,39 @@
 import ast
+import logging
+import os
+import re
+import sys
+import traceback
+from base64 import b64decode
+from base64 import b64encode
+from datetime import datetime
+from datetime import timedelta
 from typing import Set
+from typing import Union
 
 from activitystreams import Activity
 from activitystreams import parse as as_parser
-from typing import Union
+from eventlet import spawn_after
 
-import logging
-import traceback
-import sys
-import os
-import re
-
-from dino.config import ConfigKeys, ErrorCodes
 from dino import environ
-from dino.validation.duration import DurationValidator
-from dino.validation.generic import GenericValidator
 from dino import validation
-from dino.config import UserKeys
 from dino.config import ApiActions
 from dino.config import ApiTargets
+from dino.config import ConfigKeys
+from dino.config import ErrorCodes
 from dino.config import SessionKeys
-from dino.utils.blacklist import BlackListChecker
-from dino.utils.activity_helper import ActivityBuilder
-from datetime import timedelta
-from datetime import datetime
-from base64 import b64encode
-from base64 import b64decode
-
-from dino.exceptions import NoOriginRoomException, RoomExistsException, ChannelExistsException
-from dino.exceptions import NoTargetRoomException
-from dino.exceptions import UserExistsException
-from dino.exceptions import NoSuchUserException
+from dino.config import UserKeys
+from dino.exceptions import ChannelExistsException
+from dino.exceptions import NoOriginRoomException
 from dino.exceptions import NoSuchRoomException
+from dino.exceptions import NoSuchUserException
+from dino.exceptions import NoTargetRoomException
+from dino.exceptions import RoomExistsException
+from dino.exceptions import UserExistsException
+from dino.utils.activity_helper import ActivityBuilder
+from dino.utils.blacklist import BlackListChecker
+from dino.validation.duration import DurationValidator
+from dino.validation.generic import GenericValidator
 
 logger = logging.getLogger(__name__)
 DINO_DEBUG = os.environ.get('DINO_DEBUG')
@@ -751,7 +753,13 @@ def activity_for_join(
     return response
 
 
-def remove_room(channel_id, room_id, user_id, user_name, room_name):
+def remove_room(channel_id, room_id, user_id, user_name, room_name, check_if_empty_again: bool = False):
+    if check_if_empty_again:
+        users_in_room = get_users_in_room(room_id)
+        if len(users_in_room) > 0:
+            logger.info('ignoring delayed room removal, room {} ({}) is not empty anymore'.format(room_id, room_name))
+            return
+
     logger.info('removing room %s (%s), last owner has left/disconnected' % (room_id, room_name))
     environ.env.db.remove_room(channel_id, room_id)
 
@@ -787,7 +795,19 @@ def check_if_remove_room_empty(activity: Activity, user_name=None):
     if len(users_in_room) > 0:
         return
 
-    remove_room(channel_id, room_id, user_id, user_name, room_name)
+    # delay the removal, so that if a user is alone in a room, and get
+    # disconnected briefly then reconnected, their room isn't removed
+    spawn_after(
+        seconds=2 * 60,
+        func=remove_room,
+        channel_id=channel_id,
+        room_id=room_id,
+        user_id=user_id,
+        user_name=user_name,
+        room_name=room_name,
+        check_if_empty_again=True,
+    )
+    # remove_room(channel_id, room_id, user_id, user_name, room_name)
 
 
 # currently not used, rooms are removed if empty, not if owner leaves
