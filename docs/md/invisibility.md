@@ -51,7 +51,19 @@ Now the user has logged in invisibly.
 **Note: There's no need for `actor.summary: 'login'` here, since we already set the user to invisibly using the rest
 API before the user logged in.**
 
-**Note: There's no need to call the WS `status` API now, the user is already invisible.**
+**Note: There's no need to call the WS `status` API now, the user is already invisible, but there's no harm in doing it, 
+as long as `actor.summary` is set to `login`.**
+
+For example:
+
+```json
+{
+	"verb": "invisible",
+	"actor": {
+		"summary": "login"
+	}
+}
+```
 
 ### Using the WS api for invisible login
 
@@ -80,7 +92,19 @@ Invisible login using the WS `login` api looks are follows:
 
 Now the user has logged in invisibly. 
 
-**Note: There's no need to call the WS `status` API now, the user is already invisible.**
+**Note: There's no need to call the WS `status` API now, the user is already invisible, but there's no harm in doing it, 
+as long as `actor.summary` is set to `login`.**
+
+For example:
+
+```json
+{
+	"verb": "invisible",
+	"actor": {
+		"summary": "login"
+	}
+}
+```
 
 ### Changing status to invisible while online
 
@@ -97,5 +121,42 @@ The request looks as follows:
 The user will not become invisible, and the `last_online_at` will be updated to this time. A fake `gn_user_disconnected` 
 event will be sent to relevant users.
 
-**Note: If the request contains `actor.summary: "login"`, then `last_online_at` _will_ be updated. Thus, when a user is already 
-online, don't set the `summary` to `login`; you can leave it out of the request.**
+**Note: If the request contains `actor.summary: "login"`, then `last_online_at` _will_ be updated. Thus, when a user is 
+already online, don't set the `summary` to `login`; you can leave it out of the request.**
+
+### Using the WS api for visible login
+
+If a user is _not_ logging is as `invisible`, the WS `status` api should be called anyway, in case the user was 
+invisible the last time he/she logged out. This will update the necessary statuses, e.g. `last_online_at`.
+
+The WS `login` request would look as follows:
+
+```json
+{
+    "verb": "login",
+    "actor": {
+		"id": "5666",
+		"displayName": "Zm9vYmFy",
+        "attachments": [{
+            "objectType": "token",
+			"content": "some-token"
+        }]
+    }
+}
+```
+
+Note that the request does not contain the `actor.content` field, so the login will default to `visible`.
+
+Next, call the WS `status` api:
+
+```json
+{
+	"verb": "online",
+	"actor": {
+		"summary": "login"
+	}
+}
+```
+
+**Note: the `summary` field is not required when setting a user `online`, so it can be omitted, but it's okay to 
+specify it too, as long as it's set to `login`.**
