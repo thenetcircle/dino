@@ -163,31 +163,7 @@ The only difference between global moderator and super user is that the global m
 
 ### Invisible login
 
-When doing an invisible login, the `last_online_at` will not be updated, and the user status in the cache
-will be `3` (invisible, see [the WIO docs](wio.md) for more info).
-
-To do an invisible login, there are two options. Either call the [`REST API /status`](rest.md#post-status) 
-with stage set to `login`, then call this WS API normally. The other option is to set `actor.content` to 
-`invisible` in the WS login request:
-
-```json
-{
-    "verb": "login",
-    "actor": {
-        "id": "<user ID>",
-        "displayName": "<user name>",
-        "content":  "invisible",
-        "attachments": [
-            {
-                "objectType": "token",
-                "content": "<user token>"
-            }
-        ]
-    }
-}
-```
-
-The response `gn_login` is the same as the example above. 
+See [Invisibility](invisibility.md) docs.
 
 ## `list_channels`
 

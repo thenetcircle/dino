@@ -610,8 +610,7 @@ class DatabaseRdbms(object):
         if is_offline:
             self.env.cache.set_user_status_invisible(user_id)
         else:
-            self._set_last_online(user_id)
-            self.env.cache.set_user_invisible(user_id)
+            self.env.cache.set_user_invisible(user_id, update_last_online=True)
 
         try:
             self.set_user_status_invisible(user_id)

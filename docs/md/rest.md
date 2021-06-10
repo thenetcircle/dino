@@ -858,7 +858,7 @@ Request contains:
 {   
     "id": "<user ID>",
     "status": "<one of online/offline/invisible/visible>",
-    "stage": "<one of login/online>"
+    "stage": "<one of login/status>"
 }   
 ```
 
