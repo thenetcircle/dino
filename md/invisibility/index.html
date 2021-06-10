@@ -78,6 +78,8 @@
         
             <li><a class="toctree-l3" href="#changing-status-to-invisible-while-online">Changing status to invisible while online</a></li>
         
+            <li><a class="toctree-l3" href="#using-the-ws-api-for-visible-login">Using the WS api for visible login</a></li>
+        
         </ul>
     
 
@@ -203,7 +205,17 @@ will not be updated.</p>
 <p>Now the user has logged in invisibly. </p>
 <p><strong>Note: There's no need for <code>actor.summary: 'login'</code> here, since we already set the user to invisibly using the rest
 API before the user logged in.</strong></p>
-<p><strong>Note: There's no need to call the WS <code>status</code> API now, the user is already invisible.</strong></p>
+<p><strong>Note: There's no need to call the WS <code>status</code> API now, the user is already invisible, but there's no harm in doing it, 
+as long as <code>actor.summary</code> is set to <code>login</code>.</strong></p>
+<p>For example:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;invisible&quot;,
+    &quot;actor&quot;: {
+        &quot;summary&quot;: &quot;login&quot;
+    }
+}
+</code></pre>
+
 <h3 id="using-the-ws-api-for-invisible-login">Using the WS api for invisible login</h3>
 <p>The other option is to set <code>actor.content</code> to <code>invisible</code> in the WS login request, in which case there's no need to 
 call the REST api. The REST api approach is preferred though, since only paying users should be allowed to be invisible, 
@@ -226,7 +238,17 @@ the request on client side to circumvent the restriction.</p>
 </code></pre>
 
 <p>Now the user has logged in invisibly. </p>
-<p><strong>Note: There's no need to call the WS <code>status</code> API now, the user is already invisible.</strong></p>
+<p><strong>Note: There's no need to call the WS <code>status</code> API now, the user is already invisible, but there's no harm in doing it, 
+as long as <code>actor.summary</code> is set to <code>login</code>.</strong></p>
+<p>For example:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;invisible&quot;,
+    &quot;actor&quot;: {
+        &quot;summary&quot;: &quot;login&quot;
+    }
+}
+</code></pre>
+
 <h3 id="changing-status-to-invisible-while-online">Changing status to invisible while online</h3>
 <p>When a user is online, and wants to change his/her status to <code>invisible</code>, the WS api <code>status</code> can be used.</p>
 <p>The request looks as follows:</p>
@@ -237,8 +259,37 @@ the request on client side to circumvent the restriction.</p>
 
 <p>The user will not become invisible, and the <code>last_online_at</code> will be updated to this time. A fake <code>gn_user_disconnected</code> 
 event will be sent to relevant users.</p>
-<p><strong>Note: If the request contains <code>actor.summary: "login"</code>, then <code>last_online_at</code> <em>will</em> be updated. Thus, when a user is already 
-online, don't set the <code>summary</code> to <code>login</code>; you can leave it out of the request.</strong></p>
+<p><strong>Note: If the request contains <code>actor.summary: "login"</code>, then <code>last_online_at</code> <em>will</em> be updated. Thus, when a user is 
+already online, don't set the <code>summary</code> to <code>login</code>; you can leave it out of the request.</strong></p>
+<h3 id="using-the-ws-api-for-visible-login">Using the WS api for visible login</h3>
+<p>If a user is <em>not</em> logging is as <code>invisible</code>, the WS <code>status</code> api should be called anyway, in case the user was 
+invisible the last time he/she logged out. This will update the necessary statuses, e.g. <code>last_online_at</code>.</p>
+<p>The WS <code>login</code> request would look as follows:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;login&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;5666&quot;,
+        &quot;displayName&quot;: &quot;Zm9vYmFy&quot;,
+        &quot;attachments&quot;: [{
+            &quot;objectType&quot;: &quot;token&quot;,
+            &quot;content&quot;: &quot;some-token&quot;
+        }]
+    }
+}
+</code></pre>
+
+<p>Note that the request does not contain the <code>actor.content</code> field, so the login will default to <code>visible</code>.</p>
+<p>Next, call the WS <code>status</code> api:</p>
+<pre><code class="json">{
+    &quot;verb&quot;: &quot;online&quot;,
+    &quot;actor&quot;: {
+        &quot;summary&quot;: &quot;login&quot;
+    }
+}
+</code></pre>
+
+<p><strong>Note: the <code>summary</code> field is not required when setting a user <code>online</code>, so it can be omitted, but it's okay to 
+specify it too, as long as it's set to <code>login</code>.</strong></p>
               
             </div>
           </div>
