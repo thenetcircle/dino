@@ -118,11 +118,11 @@ The request looks as follows:
 }
 ```
 
-The user will not become invisible, and the `last_online_at` will be updated to this time. A fake `gn_user_disconnected` 
+The user will now become invisible, and the `last_online_at` will be updated to this time. A fake `gn_user_disconnected` 
 event will be sent to relevant users.
 
-**Note: If the request contains `actor.summary: "login"`, then `last_online_at` _will_ be updated. Thus, when a user is 
-already online, don't set the `summary` to `login`; you can leave it out of the request.**
+**Note: If the request contains `actor.summary: "login"`, then `last_online_at` _will not_ be updated. Thus, when a user is 
+already online, don't set the `summary` to `login`; you can leave it out of the request, or set it to `status`.**
 
 ### Using the WS api for visible login
 
@@ -145,7 +145,9 @@ The WS `login` request would look as follows:
 }
 ```
 
-Note that the request does not contain the `actor.content` field, so the login will default to `visible`.
+Note that the request does not contain the `actor.content` field, so the login will default to `visible`. Though, if 
+the user was previously invisible, the user will now be online but invisible again, to preserve the visibility status. 
+To change to visible, we'll call the `status` api below.
 
 Next, call the WS `status` api:
 
