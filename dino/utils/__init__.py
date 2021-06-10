@@ -755,7 +755,7 @@ def activity_for_join(
 
 def remove_room(channel_id, room_id, user_id, user_name, room_name, is_delayed_removal: bool = False):
     if is_delayed_removal:
-        users_in_room = get_users_in_room(room_id)
+        users_in_room = get_users_in_room(room_id, skip_cache=True)
         if len(users_in_room) > 0:
             logger.info('ignoring delayed room removal, room {} ({}) is not empty anymore'.format(room_id, room_name))
             return
@@ -796,7 +796,7 @@ def check_if_remove_room_empty(activity: Activity, user_name=None, is_delayed_re
         logger.info('room %s (%s) is not ephemeral, not considering removal' % (room_name, room_id))
         return
 
-    users_in_room = get_users_in_room(room_id)
+    users_in_room = get_users_in_room(room_id, skip_cache=True)
 
     if user_id in users_in_room:
         del users_in_room[user_id]

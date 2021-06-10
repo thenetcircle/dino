@@ -451,6 +451,10 @@ def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
     remove_activity = utils.activity_for_remove_room(
             activity.actor.id, activity.actor.display_name, room_id, room_name, reason)
 
+    logger.info("api remove_room called for room_id {} by user {}, reason: {}".format(
+        room_id, activity.actor.id, reason
+    ))
+
     environ.env.db.remove_room(channel_id, room_id)
     environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
     environ.env.observer.emit('on_remove_room', (data, activity))
