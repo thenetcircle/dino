@@ -1,8 +1,9 @@
 site_name: Dino
-pages:
+nav:
     - Home: index.md
     - Installation: md/installation.md
     - Getting Started: md/getting_started.md
+    - Invisibility: md/invisibility.md
     - Usage: md/usage.md
     - API: md/api.md
     - Web UI API: md/web.md
