@@ -18,7 +18,7 @@
   <script>
     // Current page data
     var mkdocs_page_name = "API";
-    var mkdocs_page_input_path = "md/api.md";
+    var mkdocs_page_input_path = "md\\api.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -61,6 +61,11 @@
             <li class="toctree-l1">
 		
     <a class="" href="../getting_started/">Getting Started</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../invisibility/">Invisibility</a>
 	    </li>
           
             <li class="toctree-l1">
@@ -375,28 +380,7 @@ room/channel/global.</p>
 <p>The only difference between global moderator and super user is that the global moderators can't remove static rooms 
 (ephemeral set to <code>false</code> in room list).</p>
 <h3 id="invisible-login">Invisible login</h3>
-<p>When doing an invisible login, the <code>last_online_at</code> will not be updated, and the user status in the cache
-will be <code>3</code> (invisible, see <a href="../wio/">the WIO docs</a> for more info).</p>
-<p>To do an invisible login, there are two options. Either call the <a href="../rest/#post-status"><code>REST API /status</code></a> 
-with stage set to <code>login</code>, then call this WS API normally. The other option is to set <code>actor.content</code> to 
-<code>invisible</code> in the WS login request:</p>
-<pre><code class="json">{
-    &quot;verb&quot;: &quot;login&quot;,
-    &quot;actor&quot;: {
-        &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
-        &quot;displayName&quot;: &quot;&lt;user name&gt;&quot;,
-        &quot;content&quot;:  &quot;invisible&quot;,
-        &quot;attachments&quot;: [
-            {
-                &quot;objectType&quot;: &quot;token&quot;,
-                &quot;content&quot;: &quot;&lt;user token&gt;&quot;
-            }
-        ]
-    }
-}
-</code></pre>
-
-<p>The response <code>gn_login</code> is the same as the example above. </p>
+<p>See <a href="../invisibility/">Invisibility</a> docs.</p>
 <h2 id="list_channels"><code>list_channels</code></h2>
 <p>Responds with event name <code>gn_list_channels</code>.</p>
 <p>Request contains:</p>
