@@ -257,10 +257,10 @@ as long as <code>actor.summary</code> is set to <code>login</code>.</strong></p>
 }
 </code></pre>
 
-<p>The user will not become invisible, and the <code>last_online_at</code> will be updated to this time. A fake <code>gn_user_disconnected</code> 
+<p>The user will now become invisible, and the <code>last_online_at</code> will be updated to this time. A fake <code>gn_user_disconnected</code> 
 event will be sent to relevant users.</p>
-<p><strong>Note: If the request contains <code>actor.summary: "login"</code>, then <code>last_online_at</code> <em>will</em> be updated. Thus, when a user is 
-already online, don't set the <code>summary</code> to <code>login</code>; you can leave it out of the request.</strong></p>
+<p><strong>Note: If the request contains <code>actor.summary: "login"</code>, then <code>last_online_at</code> <em>will not</em> be updated. Thus, when a user is 
+already online, don't set the <code>summary</code> to <code>login</code>; you can leave it out of the request, or set it to <code>status</code>.</strong></p>
 <h3 id="using-the-ws-api-for-visible-login">Using the WS api for visible login</h3>
 <p>If a user is <em>not</em> logging is as <code>invisible</code>, the WS <code>status</code> api should be called anyway, in case the user was 
 invisible the last time he/she logged out. This will update the necessary statuses, e.g. <code>last_online_at</code>.</p>
@@ -278,7 +278,9 @@ invisible the last time he/she logged out. This will update the necessary status
 }
 </code></pre>
 
-<p>Note that the request does not contain the <code>actor.content</code> field, so the login will default to <code>visible</code>.</p>
+<p>Note that the request does not contain the <code>actor.content</code> field, so the login will default to <code>visible</code>. Though, if 
+the user was previously invisible, the user will now be online but invisible again, to preserve the visibility status. 
+To change to visible, we'll call the <code>status</code> api below.</p>
 <p>Next, call the WS <code>status</code> api:</p>
 <pre><code class="json">{
     &quot;verb&quot;: &quot;online&quot;,
