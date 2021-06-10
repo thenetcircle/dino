@@ -798,9 +798,10 @@ def check_if_remove_room_empty(activity: Activity, user_name=None, is_delayed_re
 
     users_in_room = get_users_in_room(room_id, skip_cache=True)
 
+    n_users = len(users_in_room)
     if user_id in users_in_room:
-        del users_in_room[user_id]
-    if len(users_in_room) > 0:
+        n_users -= 1
+    if n_users > 0:
         return
 
     if is_delayed_removal:

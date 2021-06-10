@@ -926,6 +926,8 @@ class DatabaseRdbms(object):
             for user in room.users:
                 users_in_room[user.uuid] = user.name
 
+            logger.info("found {} users in room {}: {}".format(len(room.users), room_id, users_in_room))
+
             return users_in_room
 
         def _user_statuses(user_ids: dict):
