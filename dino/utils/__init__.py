@@ -23,7 +23,7 @@ from dino.config import ConfigKeys
 from dino.config import ErrorCodes
 from dino.config import SessionKeys
 from dino.config import UserKeys
-from dino.exceptions import ChannelExistsException
+from dino.exceptions import ChannelExistsException, InvalidAclTypeException
 from dino.exceptions import NoOriginRoomException
 from dino.exceptions import NoSuchRoomException
 from dino.exceptions import NoSuchUserException
@@ -1641,6 +1641,14 @@ def filter_whisper_messages_not_for_me(messages, user_id: str):
     return filtered
 
 
+def user_can_see_history_in_room(user_id: str, room_id: str) -> bool:
+    if is_global_moderator(user_id) or is_super_user(user_id):
+        return True
+
+    acls = environ.env.db.get_acls_in_room_for_action(room_id, ApiActions.HISTORY)
+    return 'disallow' not in acls.keys()
+
+
 def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> list:
     history = environ.env.config.get(
             ConfigKeys.TYPE,
@@ -1662,6 +1670,9 @@ def get_history_for_room(room_id: str, user_id: str, last_read: str = None) -> l
                 return list()
 
         return environ.env.storage.get_unread_history(room_id, _last_read)
+
+    if not user_can_see_history_in_room(user_id, room_id):
+        return list()
 
     messages = _history(last_read)
     messages = filter_whisper_messages_not_for_me(messages, user_id)
