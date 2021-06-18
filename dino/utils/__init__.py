@@ -804,7 +804,9 @@ def check_if_remove_room_empty(activity: Activity, user_name=None, is_delayed_re
     if n_users > 0:
         return
 
-    if is_delayed_removal:
+    delayed_removal_enabled = environ.env.config.get(ConfigKeys.DELAYED_REMOVAL, default=False)
+
+    if is_delayed_removal and delayed_removal_enabled:
         # delay the removal, so that if a user is alone in a room, and get
         # disconnected briefly then reconnected, their room isn't removed
         spawn_after(
@@ -819,53 +821,6 @@ def check_if_remove_room_empty(activity: Activity, user_name=None, is_delayed_re
         )
     else:
         remove_room(channel_id, room_id, user_id, user_name, room_name)
-
-
-# currently not used, rooms are removed if empty, not if owner leaves
-def check_if_remove_room_owner(activity: Activity):
-    user_id = activity.actor.id
-    user_name = environ.env.session.get(SessionKeys.user_name.value)
-    room_id = activity.target.id
-    room_name = get_room_name(room_id)
-    channel_id = get_channel_for_room(room_id)
-
-    if not environ.env.db.is_room_ephemeral(room_id):
-        logger.info('room %s (%s) is not ephemeral, not considering removal' % (room_name, room_id))
-        return
-
-    owners = get_owners_for_room(room_id)
-    users_in_room = get_users_in_room(room_id)
-
-    if user_id in users_in_room:
-        del users_in_room[user_id]
-
-    for owner_id, owner_name in owners.items():
-        if owner_id in users_in_room:
-            logger.info('owner %s (%s) is still in room %s (%s), not considering removal' %
-                        (owner_name, owner_id, room_name, room_id))
-            return
-
-    for user_id_still_in_room, user_name_still_in_room in users_in_room.items():
-        kick_activity = ActivityBuilder.enrich({
-            'actor': {
-                'id': user_id,
-                'displayName': b64e(user_name)
-            },
-            'verb': 'kick',
-            'object': {
-                'id': user_id_still_in_room,
-                'displayName': b64e(user_name_still_in_room),
-                'content': b64e('All owners have left the room')
-            },
-            'target': {
-                'url': environ.env.request.namespace,
-                'id': room_id,
-                'displayName': b64e(room_name)
-            }
-        })
-        environ.env.publish(kick_activity)
-
-    remove_room(channel_id, room_id, user_id, user_name, room_name)
 
 
 def activity_for_owners(activity: Activity, owners: dict) -> dict:
