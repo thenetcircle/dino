@@ -27,6 +27,7 @@ import pytz
 from activitystreams import Activity
 from sqlalchemy import func
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import StaleDataError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy.exc import IntegrityError
@@ -3113,7 +3114,10 @@ class DatabaseRdbms(object):
                 'rooms': dict()
             }
 
-            all_bans = session.query(Bans).outerjoin(Bans.room).outerjoin(Bans.channel).all()
+            all_bans = session.query(Bans).options(
+                joinedload(Bans.room, innerjoin=False).joinedload(Bans.channel, innerjoin=False)
+            ).all()
+
             if all_bans is None or len(all_bans) == 0:
                 return output
 
