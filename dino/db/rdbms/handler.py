@@ -3149,8 +3149,13 @@ class DatabaseRdbms(object):
                         'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                     }
                 elif ban.is_global:
+                    try:
+                        user_name = b64e(self.get_user_name(ban.user_id))
+                    except NoSuchUserException:
+                        user_name = b64e("[unknown]")
+
                     output['global'][ban.user_id] = {
-                        'name': b64e(self.get_user_name(ban.user_id)),
+                        'name': user_name,
                         'duration': ban.duration,
                         'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
                     }
