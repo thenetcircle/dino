@@ -279,6 +279,31 @@ It's also possible to broadcast to only a single room, by specifying a `room_nam
 }
 ```
 
+Event sent to clients:
+
+```json
+{
+    "content": "YXNkZgo=",
+    "published": "2021-11-22T02:48:38Z",
+    "target": {
+        "id": "0c643854-4b3d-11ec-b5c8-1325d666ae4c",
+        "objectType": "room",
+        "displayName": "ZGUtdmlw"
+    },
+    "id": "2fd3c08a-62d1-46c3-96d7-b181264f6bcb",
+    "verb": "broadcast",
+    "actor": {
+        "id": "0",
+        "displayName": "QWRtaW4="
+    },
+    "provider": {
+        "id": "foobar"
+    }
+}
+```
+
+Note, if no `room_name` is specified, there's no `target` in the above event to clients.
+
 ## POST /blacklist
 
 Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:
