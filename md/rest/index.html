@@ -18,7 +18,7 @@
   <script>
     // Current page data
     var mkdocs_page_name = "REST API";
-    var mkdocs_page_input_path = "md\\rest.md";
+    var mkdocs_page_input_path = "md/rest.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -453,6 +453,14 @@ instead.</p>
 </code></pre>
 
 <p>Body needs to be in base64. The verb may be anything, it's up to clients to handle it.</p>
+<p>It's also possible to broadcast to only a single room, by specifying a <code>room_name</code> (in base64):</p>
+<pre><code class="json">{
+    &quot;body&quot;: &quot;aGkgdGhlcmU=&quot;,
+    &quot;verb&quot;: &quot;broadcast&quot;,
+    &quot;room_name&quot;: &quot;ZGU=&quot;
+}
+</code></pre>
+
 <h2 id="post-blacklist">POST /blacklist</h2>
 <p>Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:</p>
 <pre><code class="json">{
