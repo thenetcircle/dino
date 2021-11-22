@@ -283,12 +283,12 @@ Event sent to clients:
 
 ```json
 {
-    "content": "YXNkZgo=",
+    "content": "aGkgdGhlcmU=",
     "published": "2021-11-22T02:48:38Z",
     "target": {
         "id": "0c643854-4b3d-11ec-b5c8-1325d666ae4c",
         "objectType": "room",
-        "displayName": "ZGUtdmlw"
+        "displayName": "ZGU="
     },
     "id": "2fd3c08a-62d1-46c3-96d7-b181264f6bcb",
     "verb": "broadcast",
