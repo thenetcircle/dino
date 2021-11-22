@@ -461,6 +461,28 @@ instead.</p>
 }
 </code></pre>
 
+<p>Event sent to clients:</p>
+<pre><code class="json">{
+    &quot;content&quot;: &quot;YXNkZgo=&quot;,
+    &quot;published&quot;: &quot;2021-11-22T02:48:38Z&quot;,
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;0c643854-4b3d-11ec-b5c8-1325d666ae4c&quot;,
+        &quot;objectType&quot;: &quot;room&quot;,
+        &quot;displayName&quot;: &quot;ZGUtdmlw&quot;
+    },
+    &quot;id&quot;: &quot;2fd3c08a-62d1-46c3-96d7-b181264f6bcb&quot;,
+    &quot;verb&quot;: &quot;broadcast&quot;,
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;displayName&quot;: &quot;QWRtaW4=&quot;
+    },
+    &quot;provider&quot;: {
+        &quot;id&quot;: &quot;foobar&quot;
+    }
+}
+</code></pre>
+
+<p>Note, if no <code>room_name</code> is specified, there's no <code>target</code> in the above event to clients.</p>
 <h2 id="post-blacklist">POST /blacklist</h2>
 <p>Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:</p>
 <pre><code class="json">{
