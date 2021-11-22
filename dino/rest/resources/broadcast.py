@@ -71,13 +71,13 @@ class BroadcastResource(BaseResource):
         if verb is None or len(verb.strip()) == 0:
             raise RuntimeError('verb may not be blank')
 
-        room_name = json.get('room_name')
+        room_name_b64 = json.get('room_name')
         room_id = None
 
         # choose room by name
-        if room_name:
+        if room_name_b64:
             try:
-                room_name = utils.b64d(room_name)
+                room_name = utils.b64d(room_name_b64)
             except Exception as e:
                 logger.error('could not decode room_name as base64: {}'.format(str(e)))
                 raise RuntimeError('room name is not base64')
@@ -90,7 +90,7 @@ class BroadcastResource(BaseResource):
 
             logger.debug("broadcasting to room id {} ({})".format(room_id, room_name))
 
-        data = utils.activity_for_broadcast(body, verb)
+        data = utils.activity_for_broadcast(body, verb, room_id, room_name_b64)
 
         # if 'room_to_broadcast_to' is None, the event will be broadcasted to all connected users
         environ.env.out_of_scope_emit(

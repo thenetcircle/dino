@@ -915,8 +915,8 @@ def activity_for_whisper(
     })
 
 
-def activity_for_broadcast(body: str, verb: str='broadcast') -> dict:
-    return ActivityBuilder.enrich({
+def activity_for_broadcast(body: str, verb: str = 'broadcast', room_id: str = None, room_name: str = None) -> dict:
+    data = ActivityBuilder.enrich({
         'actor': {
             'displayName': ADMIN_B64,  # 'Admin' in base64
             'id': '0'
@@ -924,6 +924,15 @@ def activity_for_broadcast(body: str, verb: str='broadcast') -> dict:
         'content': body,
         'verb': verb
     })
+
+    if room_id is not None:
+        data["target"] = {
+            "id": room_id,
+            "objectType": "room",
+            "displayName": room_name
+        }
+
+    return data
 
 
 def activity_for_list_rooms(activity: Activity, rooms: dict) -> dict:
