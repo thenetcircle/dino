@@ -69,5 +69,17 @@ class BroadcastResource(BaseResource):
         if verb is None or len(verb.strip()) == 0:
             raise RuntimeError('verb may not be blank')
 
+        room_name = json.get('room_name')
+        room_id = None
+
+        # choose room by name
+        if room_name:
+            room_id = utils.get_room_id(room_name, use_default_channel=True)
+
         data = utils.activity_for_broadcast(body, verb)
-        environ.env.out_of_scope_emit('gn_broadcast', data, json=True, namespace='/ws', broadcast=True)
+
+        # if 'room_to_broadcast_to' is None, the event will be broadcasted to all connected users
+        environ.env.out_of_scope_emit(
+            'gn_broadcast', data, room=room_id,
+            json=True, namespace='/ws', broadcast=True
+        )
