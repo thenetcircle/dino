@@ -8,7 +8,7 @@ _hidden = environ.env.HiddenField
 _checkbox = environ.env.BooleanField
 
 choice_gender = [('m', 'male'), ('f', 'female'), ('ts', 'TS')]
-choice_membership = [('0', '0'), ('1', '1'), ('2', '2')]
+choice_membership = [('0', '0'), ('1', '1'), ('2', '2'), ('vip', 'vip')]
 choice_yes_no = [('y', 'Yes'), ('n', 'No')]
 choice_country = [('cn', 'China'), ('de', 'Germany'), ('se', 'Sweden')]
 
