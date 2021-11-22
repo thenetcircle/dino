@@ -14,6 +14,8 @@
 
 import logging
 
+from dino.exceptions import NoSuchRoomException
+
 from dino import environ
 from dino import utils
 from dino.utils.decorators import timeit
@@ -74,7 +76,19 @@ class BroadcastResource(BaseResource):
 
         # choose room by name
         if room_name:
-            room_id = utils.get_room_id(room_name, use_default_channel=True)
+            try:
+                room_name = utils.b64d(room_name)
+            except Exception as e:
+                logger.error('could not decode room_name as base64: {}'.format(str(e)))
+                raise RuntimeError('room name is not base64')
+
+            try:
+                room_id = utils.get_room_id(room_name, use_default_channel=True)
+            except NoSuchRoomException:
+                logger.error('no such room for name "{}"'.format(room_name))
+                raise RuntimeError('no room found for name')
+
+            logger.debug("broadcasting to room id {} ({})".format(room_id, room_name))
 
         data = utils.activity_for_broadcast(body, verb)
 
