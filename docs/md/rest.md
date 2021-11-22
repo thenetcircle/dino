@@ -269,6 +269,16 @@ Broadcasts a message to everyone on the server. Request needs the `body` and `ve
 
 Body needs to be in base64. The verb may be anything, it's up to clients to handle it.
 
+It's also possible to broadcast to only a single room, by specifying a `room_name` (in base64):
+
+```json
+{
+    "body": "aGkgdGhlcmU=",
+    "verb": "broadcast",
+    "room_name": "ZGU="
+}
+```
+
 ## POST /blacklist
 
 Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:
