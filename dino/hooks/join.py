@@ -11,6 +11,13 @@ from dino.utils.decorators import timeit
 logger = logging.getLogger(__name__)
 
 
+def should_skip_emit_event(activity):
+    # no need to emit events for autojoin
+    try:
+        return activity.target.content == 'autojoin'
+    except KeyError:
+        return False
+
 
 class OnJoinHooks(object):
     @staticmethod
@@ -73,6 +80,9 @@ class OnJoinHooks(object):
 
     @staticmethod
     def emit_join_event(activity, user_id, user_name, image) -> None:
+        if should_skip_emit_event(activity):
+            return
+
         room_id = activity.target.id
         room_name = utils.get_room_name(room_id)
 

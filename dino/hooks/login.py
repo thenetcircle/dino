@@ -179,7 +179,9 @@ class OnLoginHooks(object):
                     'id': activity.actor.id
                 },
                 'target': {
-                    'id': room_id
+                    'id': room_id,
+                    'objectType': 'room',
+                    'content': 'autojoin'
                 }
             })
             environ.env.observer.emit('on_join', (join_data, activitystreams.parse(join_data)))
