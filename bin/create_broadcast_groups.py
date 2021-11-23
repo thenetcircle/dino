@@ -31,8 +31,9 @@ if sys.argv[1] == "list":
         print("type \t value".expandtabs(20))
         print("---- \t -----".expandtabs(20))
 
-        for acl_type, acl_value in acls.items():
-            print("{} \t {}".format(acl_type, acl_value).expandtabs(20))
+        if len(acls):
+            for acl_type, acl_value in acls.items():
+                print("{} \t {}".format(acl_type, acl_value).expandtabs(20))
         else:
             print('<no acls>')
 
