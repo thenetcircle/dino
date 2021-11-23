@@ -1,173 +1,50 @@
-import os
-import yaml
+from uuid import uuid4 as uuid
+import sys
 
-config_path = os.environ['DINO_CONFIG']
-gn_environment = os.environ['DINO_ENV']
+from dino.config import ApiActions
+from dino.db.manager import AclManager
+from dino.environ import env
+
+if len(sys.argv) < 2 or sys.argv[1] not in {"list", "add"}:
+    print("usage: DINO_ENVIRONMENT=<env> ./create_broadcast_groups.py list")
+    print("usage: DINO_ENVIRONMENT=<env> ./create_broadcast_groups.py add <name> <acl_value>")
+    sys.exit(1)
 
 
-class ConfigDict:
-    class DefaultValue:
-        def __init__(self):
-            pass
+acl_manager = AclManager(env)
 
-        def lower(self):
-            raise NotImplementedError()
 
-        def format(self):
-            raise NotImplementedError()
+if sys.argv[1] == "list":
+    room_acls = env.db.get_room_acls_for_action(ApiActions.AUTOJOIN)
 
-    def __init__(self, params=None, override=None):
-        self.params = params or dict()
-        self.override = override
+    for room_id, acls in room_acls.items():
+        # sometimes room_id is None, if no autojoin rooms exist
+        if room_id is None or len(room_id.strip()) == 0:
+            continue
 
-    def subp(self, parent):
-        p = dict(parent.params)
-        p.update(self.params)
-        if self.override is not None:
-            p.update(self.override)
-        return ConfigDict(p, self.override)
+        # acls = acl_manager.get_acls_room(room_id, encode_result=False)
 
-    def sub(self, **params):
-        p = dict(self.params)
-        p.update(params)
-        if self.override is not None:
-            p.update(self.override)
-        return ConfigDict(p, self.override)
+        print("{}: {}".format(room_id, env.db.get_room_name(room_id)))
+        print("type \t value".expandtabs(20))
+        print("---- \t -----".expandtabs(20))
 
-    def set(self, key, val, domain: str=None):
-        if domain is None:
-            self.params[key] = val
+        for acl_type, acl_value in acls.items():
+            print("{} \t {}".format(acl_type, acl_value).expandtabs(20))
         else:
-            if domain not in self.params:
-                self.params[domain] = dict()
-            self.params[domain][key] = val
+            print('<no acls>')
 
-    def keys(self):
-        return self.params.keys()
+        print()
 
-    def get(self, key, default: Union[None, object]=DefaultValue, params=None, domain=None):
-        def config_format(s, _params):
-            if s is None:
-                return s
+    sys.exit(0)
 
-            if isinstance(s, list):
-                return [config_format(r, _params) for r in s]
+# add
+new_acl_type = sys.argv[2]
+new_acl_value = sys.argv[3]
 
-            if isinstance(s, dict):
-                kw = dict()
-                for k, v in s.items():
-                    kw[k] = config_format(v, _params)
-                return kw
+room_id = str(uuid())
+env.db.add_default_room(room_id)
 
-            if not isinstance(s, str):
-                return s
+channel_id = env.db.channel_for_room(room_id)
+acl_manager.update_room_acl(channel_id, room_id, ApiActions.AUTOJOIN, new_acl_type, new_acl_value)
 
-            if s.lower() == 'null' or s.lower() == 'none':
-                return ''
-
-            try:
-                import re
-                keydb = set('{' + key + '}')
-
-                while True:
-                    sres = re.search("{.*?}", s)
-                    if sres is None:
-                        break
-
-                    # avoid using the same reference twice
-                    if sres.group() in keydb:
-                        raise RuntimeError(
-                                "found circular dependency in config value '{0}' using reference '{1}'".format(
-                                        s, sres.group()))
-                    keydb.add(sres.group())
-                    s = s.format(**_params)
-
-                return s
-            except KeyError as e:
-                raise RuntimeError("missing configuration key: " + str(e))
-
-        if params is None:
-            params = self.params
-
-        if domain is not None:
-            if domain in self.params:
-                # domain keys are allowed to be empty, e.g. for default amqp exchange etc.
-                value = self.params.get(domain).get(key)
-                if value is None:
-                    if default is None:
-                        return ''
-                    return default
-
-                return config_format(value, params)
-
-        if key in self.params:
-            return config_format(self.params.get(key), params)
-
-        if default == ConfigDict.DefaultValue:
-            raise KeyError(key)
-
-        return config_format(default, params)
-
-    def __contains__(self, key):
-        if key in self.params:
-            return True
-        return False
-
-    def __iter__(self):
-        for k in sorted(self.params.keys()):
-            yield k
-
-    def __len__(self, *args, **kwargs):
-        return len(self.params)
-
-
-def find_config(config_path: str) -> dict:
-    default_path = "dino.yaml"
-
-    path = os.path.join(config_path, default_path)
-
-    if not os.path.isfile(path):
-        raise RuntimeError('no such path: {}'.format(path))
-
-    try:
-        config_dict = yaml.safe_load(open(path))
-    except Exception as e:
-        raise RuntimeError("Failed to open configuration {0}: {1}".format(path, str(e)))
-
-    return config_dict
-
-
-def load_secrets_file(config_dict: dict) -> dict:
-    from string import Template
-    import ast
-
-    secrets_path = 'secrets/%s.yaml' % gn_environment
-
-    # first substitute environment variables, which holds precedence over the yaml config (if it exists)
-    template = Template(str(config_dict))
-    template = template.safe_substitute(os.environ)
-
-    if os.path.isfile(secrets_path):
-        try:
-            secrets = yaml.safe_load(open(secrets_path))
-        except Exception as e:
-            raise RuntimeError("Failed to open secrets configuration {0}: {1}".format(secrets_path, str(e)))
-        template = Template(template)
-        template = template.safe_substitute(secrets)
-
-    return ast.literal_eval(template)
-
-
-def create_conf():
-    config_dict = find_config(config_path)
-
-    if gn_environment not in config_dict:
-        raise RuntimeError('no configuration found for environment "%s"' % gn_environment)
-
-    config_dict = config_dict[gn_environment]
-    config_dict = load_secrets_file(config_dict)
-
-    return config_dict
-
-
-conf = create_conf()
+print("added room {} with acls {}={}".format(room_id, new_acl_type, new_acl_value))
