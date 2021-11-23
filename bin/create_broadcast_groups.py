@@ -3,55 +3,66 @@ import sys
 
 from dino.environ import env
 from dino.config import ApiActions
-from dino.db.manager import AclManager
+from dino.db.manager import AclManager, RoomManager
 
 print("\n"*10)
 
 if len(sys.argv) < 2 or sys.argv[1] not in {"list", "add"}:
     print("usage: DINO_ENVIRONMENT=<env> ./create_broadcast_groups.py list")
-    print("usage: DINO_ENVIRONMENT=<env> ./create_broadcast_groups.py add <name> <acl_value>")
+    print("usage: DINO_ENVIRONMENT=<env> ./create_broadcast_groups.py add country=de,it,gb membership=normal,vip user_type=1,2,3")
     print("\n"*10)
     sys.exit(1)
 
 
 acl_manager = AclManager(env)
+room_manager = RoomManager(env)
 
+room_acls = env.db.get_room_acls_for_action(ApiActions.AUTOJOIN)
 
 if sys.argv[1] == "list":
-    room_acls = env.db.get_room_acls_for_action(ApiActions.AUTOJOIN)
-
     for room_id, acls in room_acls.items():
-        # sometimes room_id is None, if no autojoin rooms exist
         if room_id is None or len(room_id.strip()) == 0:
             continue
-
-        # acls = acl_manager.get_acls_room(room_id, encode_result=False)
 
         print("{}: {}".format(room_id, env.db.get_room_name(room_id)))
         print("type \t value".expandtabs(20))
         print("---- \t -----".expandtabs(20))
-
         if len(acls):
             for acl_type, acl_value in acls.items():
                 print("{} \t {}".format(acl_type, acl_value).expandtabs(20))
         else:
             print('<no acls>')
-
         print()
 
     print("\n" * 10)
-    sys.exit(0)
 
 # add
-new_acl_type = sys.argv[2]
-new_acl_value = sys.argv[3]
+else:
+    channel_id = env.db.channel_for_room(room_acls.keys()[0])
+    args = list()
 
-room_id = str(uuid())
-env.db.add_default_room(room_id)
+    for arg in sys.argv[2:]:
+        k, v = arg.split("=")
+        v = v.split(",")
+        args.append((k, v))
 
-channel_id = env.db.channel_for_room(room_id)
-acl_manager.update_room_acl(channel_id, room_id, ApiActions.AUTOJOIN, new_acl_type, new_acl_value)
+    for i in range(len(args[2][1])):
+        for j in range(len(args[1][1])):
+            for k in range(len(args[0][1])):
+                room_id = str(uuid())
 
-print("added room {} with acls {}={}".format(room_id, new_acl_type, new_acl_value))
+                # country=de,it,gb membership=normal,vip user_type=1,2,3
+                room_name = "{}-{}-{}".format(args[0][1][k], args[1][1][j], args[2][1][i])
+                room_manager.create_room(room_name, room_id, channel_id, "0")
 
-print("\n"*10)
+                acl_manager.update_room_acl(channel_id, room_id, ApiActions.AUTOJOIN, args[0][0], args[0][1][k])
+                acl_manager.update_room_acl(channel_id, room_id, ApiActions.AUTOJOIN, args[1][0], args[1][1][j])
+                acl_manager.update_room_acl(channel_id, room_id, ApiActions.AUTOJOIN, args[2][0], args[2][1][i])
+
+                print("added room {} with acls:".format(room_id))
+                print("{}={}".format(args[0][0], args[0][1][k]))
+                print("{}={}".format(args[1][0], args[1][1][j]))
+                print("{}={}".format(args[2][0], args[2][1][i]))
+                print()
+
+    print("\n" * 10)
