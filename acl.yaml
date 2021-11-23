@@ -6,6 +6,7 @@ available: &AVAILABLE
     - group
     - country
     - city
+    - user_type
     - spoken_language
     - image
     - has_webcam
@@ -39,6 +40,8 @@ validation:
     age:
         type: "range"
     group:
+        type: "str_in_csv"
+    user_type:
         type: "str_in_csv"
     country:
         type: "str_in_csv"
