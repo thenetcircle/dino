@@ -72,6 +72,7 @@ class SessionKeys(Enum):
     country = 'country'
     city = 'city'
     image = 'image'
+    user_type = 'user_type'
     crossgroup = 'crossgroup'  # TODO: rename to crossroom
     has_webcam = 'has_webcam'
     fake_checked = 'fake_checked'

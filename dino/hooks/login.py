@@ -54,6 +54,7 @@ class OnLoginHooks(object):
             SessionKeys.app_avatar_safe.value: environ.env.session.get(SessionKeys.app_avatar_safe.value) or '',
             SessionKeys.age.value: environ.env.session.get(SessionKeys.age.value) or '',
             SessionKeys.gender.value: environ.env.session.get(SessionKeys.gender.value) or '',
+            SessionKeys.user_type.value: environ.env.session.get(SessionKeys.user_type.value) or '',
             SessionKeys.membership.value: environ.env.session.get(SessionKeys.membership.value) or '',
             SessionKeys.group.value: environ.env.session.get(SessionKeys.group.value) or '',
             SessionKeys.country.value: environ.env.session.get(SessionKeys.country.value) or '',
