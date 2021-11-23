@@ -53,7 +53,13 @@ else:
 
                 # country=de,it,gb membership=normal,vip user_type=1,2,3
                 room_name = "{}-{}-{}".format(args[0][1][k], args[1][1][j], args[2][1][i])
-                room_manager.create_room(room_name, room_id, channel_id, "0")
+                error_msg = room_manager.create_room(room_name, room_id, channel_id, "0")
+
+                if error_msg:
+                    print(error_msg)
+                    print("\n" * 10)
+                    sys.exit(1)
+
                 print("added room {} \t {}".format(room_id, room_name).expandtabs(25))
 
                 acl_manager.update_room_acl(channel_id, room_id, ApiActions.AUTOJOIN, args[0][0], args[0][1][k])
