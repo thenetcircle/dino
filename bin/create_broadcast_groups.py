@@ -38,7 +38,7 @@ if sys.argv[1] == "list":
 
 # add
 else:
-    channel_id = env.db.channel_for_room(room_acls.keys()[0])
+    channel_id = env.db.channel_for_room(list(room_acls.keys())[0])
     args = list()
 
     for arg in sys.argv[2:]:
