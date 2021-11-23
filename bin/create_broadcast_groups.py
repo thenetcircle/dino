@@ -56,6 +56,7 @@ else:
                 error_msg = room_manager.create_room(room_name, room_id, channel_id, "0")
 
                 if error_msg:
+                    print("room name: {}".format(room_name))
                     print(error_msg)
                     print("\n" * 10)
                     sys.exit(1)

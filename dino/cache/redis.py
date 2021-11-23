@@ -131,6 +131,10 @@ class CacheRedis(object):
         self.redis.set(key, rooms_str)
         self.redis.expire(key, FIVE_MINUTES)
 
+    def reset_room_acls_for_action(self, action: str) -> None:
+        key = RedisKeys.rooms_with_action(action)
+        self.redis.delete(key)
+
     def get_room_acls_for_action(self, action: str) -> Union[None, Dict[str, Dict[str, str]]]:
         key = RedisKeys.rooms_with_action(action)
         room_ids_bytes = self.redis.get(key)
