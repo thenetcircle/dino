@@ -1,13 +1,16 @@
 from uuid import uuid4 as uuid
 import sys
 
+from dino.environ import env
 from dino.config import ApiActions
 from dino.db.manager import AclManager
-from dino.environ import env
+
+print("\n"*10)
 
 if len(sys.argv) < 2 or sys.argv[1] not in {"list", "add"}:
     print("usage: DINO_ENVIRONMENT=<env> ./create_broadcast_groups.py list")
     print("usage: DINO_ENVIRONMENT=<env> ./create_broadcast_groups.py add <name> <acl_value>")
+    print("\n"*10)
     sys.exit(1)
 
 
@@ -35,6 +38,7 @@ if sys.argv[1] == "list":
 
         print()
 
+    print("\n" * 10)
     sys.exit(0)
 
 # add
@@ -48,3 +52,5 @@ channel_id = env.db.channel_for_room(room_id)
 acl_manager.update_room_acl(channel_id, room_id, ApiActions.AUTOJOIN, new_acl_type, new_acl_value)
 
 print("added room {} with acls {}={}".format(room_id, new_acl_type, new_acl_value))
+
+print("\n"*10)
