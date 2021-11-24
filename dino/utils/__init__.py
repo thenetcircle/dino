@@ -1179,28 +1179,14 @@ def get_excluded_users(user_id: str, skip_cache: bool = False) -> Set:
 
 
 def create_or_update_user(user_id: str, user_name: str) -> None:
+    # is none when running tests; don't create users for wio
+    if environ.env.node is not None and 'wio' in environ.env.node:
+        return
+
     try:
         environ.env.db.create_user(user_id, user_name)
     except UserExistsException:
         pass
-
-    # is none when running tests
-    if environ.env.node is not None and 'wio' in environ.env.node:
-        channel_id = str(int(user_id) % 1000)
-
-        try:
-            environ.env.db.create_channel(channel_id, channel_id, '0')
-        except ChannelExistsException:
-            pass
-
-        try:
-            environ.env.db.create_room(
-                room_name=user_id, room_id=user_id, user_id=user_id,
-                channel_id=channel_id, user_name=user_name,
-                ephemeral=True
-            )
-        except RoomExistsException:
-            pass
 
     environ.env.db.set_user_name(user_id, user_name)
 

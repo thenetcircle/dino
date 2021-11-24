@@ -19,7 +19,6 @@ from dino.exceptions import NoSuchRoomException
 from dino import environ
 from dino import utils
 from dino.utils.decorators import timeit
-from dino.db.manager import UserManager
 from dino.rest.resources.base import BaseResource
 
 from flask import request
@@ -39,7 +38,6 @@ def fail(error_message):
 class BroadcastResource(BaseResource):
     def __init__(self):
         super(BroadcastResource, self).__init__()
-        self.user_manager = UserManager(environ.env)
         self.request = request
 
     @timeit(logger, 'on_rest_broadcast')

@@ -103,6 +103,10 @@ class OnDisconnectHooks(object):
                 environ.env.capture_exception(sys.exc_info())
 
         def leave_all_public_rooms_and_emit_leave_events(user_id, current_sid):
+            # we don't involve db join/leave for public rooms in wio, and don't emit events for it either
+            if environ.env.node == 'wio':
+                return
+
             try:
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
                 rooms = environ.env.db.rooms_for_user(user_id, skip_cache=True)
