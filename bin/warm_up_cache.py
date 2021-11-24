@@ -38,23 +38,25 @@ except Exception as e:
 
 logger.info('caching all user ids...')
 
-try:
-    all_users = env.db.get_all_user_ids()
-    logger.info('caching all user roles ({})...'.format(len(all_users)))
-    env.db.get_users_roles(all_users)
-except NotImplementedError:
-    pass
+# not needed for wio
+if 'wio' not in os.getenv('DINO_ENVIRONMENT'):
+    try:
+        all_users = env.db.get_all_user_ids()
+        logger.info('caching all user roles ({})...'.format(len(all_users)))
+        env.db.get_users_roles(all_users)
+    except NotImplementedError:
+        pass
+    
+    logger.info('caching all rooms...')
 
-logger.info('caching all rooms...')
-
-try:
-    channels = env.db.get_channels()
-    logger.info('caching all rooms for channels ({})...'.format(len(channels)))
-    for channel_id in channels.keys():
-        env.db.rooms_for_channel(channel_id)
-        env.db.get_acls_in_channel_for_action(channel_id, 'list')
-except NotImplementedError:
-    pass
+    try:
+        channels = env.db.get_channels()
+        logger.info('caching all rooms for channels ({})...'.format(len(channels)))
+        for channel_id in channels.keys():
+            env.db.rooms_for_channel(channel_id)
+            env.db.get_acls_in_channel_for_action(channel_id, 'list')
+    except NotImplementedError:
+        pass
 
 logger.info('caching last {} days of online time...'.format(days))
 
