@@ -11,7 +11,7 @@ from dino.utils.decorators import timeit
 logger = logging.getLogger(__name__)
 
 
-def should_skip_emit_event(activity):
+def is_autojoin(activity):
     # no need to emit events for autojoin
     try:
         return activity.target.content == 'autojoin'
@@ -43,13 +43,17 @@ class OnJoinHooks(object):
         # row to the db, but not for any other sessions that are open
         skip_db_join = False
 
+        # also don't need to update the db if it's wio autojoin
+        if environ.env.node == 'wio':
+            skip_db_join = True
+
         # joins from rest api is outside the flask request scope
         is_out_of_scope = False
         if hasattr(activity.target, "content"):
             is_out_of_scope = activity.target.content == "out_of_scope"
 
         for sid in sids:
-            logger.info("user {} ({}) is joining room {} ({}) with sid {} on ns {} (db? {})".format(
+            logger.info("user {} ({}) is joining room {} ({}) with sid {} on ns {} (skip db? {})".format(
                 user_id, user_name, room_id, room_name, sid, namespace, skip_db_join
             ))
 
@@ -80,7 +84,8 @@ class OnJoinHooks(object):
 
     @staticmethod
     def emit_join_event(activity, user_id, user_name, image) -> None:
-        if should_skip_emit_event(activity):
+        # no need if it's wio
+        if environ.env.node == 'wio':
             return
 
         room_id = activity.target.id
