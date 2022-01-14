@@ -1612,7 +1612,11 @@ def filter_whisper_messages_not_for_me(messages, user_id: str):
     """
     filtered = list()
 
-    user_name = get_user_name_for(user_id)
+    # don't always have username, especially in WIO when livestreaming
+    try:
+        user_name = get_user_name_for(user_id)
+    except Exception:
+        user_name = str(user_id)
 
     for message in messages:
         parsed_message = parse_message(message['body'], encoded=False)
