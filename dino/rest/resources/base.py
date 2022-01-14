@@ -83,7 +83,7 @@ class RoomNameBaseResource(BaseResource):
         self.env = env
         self.user_manager = UserManager(env)
 
-    def _prepare_session_ids(self, user_id, room_id):
+    def _prepare_session_ids(self, user_id, room_id, need_user_names: bool):
         session_ids = self.env.db.get_sids_for_user(user_id)
 
         if len(session_ids) == 0:
@@ -93,12 +93,15 @@ class RoomNameBaseResource(BaseResource):
         if len(session_ids) > 1:
             logger.warning("multiple session ids found for user {}, will make all join".format(user_id))
 
-        user_name = utils.get_user_name_for(user_id)
+        if need_user_names:
+            user_name = utils.get_user_name_for(user_id)
+        else:
+            return str(user_id)
 
         return session_ids, user_name
 
-    def room_created(self, user_id, room_id, room_name):
-        session_ids, user_name = self._prepare_session_ids(user_id, room_id)
+    def room_created(self, user_id, room_id, room_name, need_user_names: bool = True):
+        session_ids, user_name = self._prepare_session_ids(user_id, room_id, need_user_names)
 
         # need to find the correct node the user is on
         self.user_manager.room_created(user_id, user_name, room_id, room_name, session_ids, self.namespace)
