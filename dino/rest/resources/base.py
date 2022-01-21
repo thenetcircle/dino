@@ -96,7 +96,7 @@ class RoomNameBaseResource(BaseResource):
         if need_user_names:
             user_name = utils.get_user_name_for(user_id)
         else:
-            return str(user_id)
+            user_name = str(user_id)
 
         return session_ids, user_name
 
@@ -106,8 +106,8 @@ class RoomNameBaseResource(BaseResource):
         # need to find the correct node the user is on
         self.user_manager.room_created(user_id, user_name, room_id, room_name, session_ids, self.namespace)
 
-    def join(self, user_id, room_id):
-        session_ids, user_name = self._prepare_session_ids(user_id, room_id)
+    def join(self, user_id, room_id, need_user_names: bool = True):
+        session_ids, user_name = self._prepare_session_ids(user_id, room_id, need_user_names)
 
         # need to find the correct node the user is on
         self.user_manager.join_room(user_id, user_name, room_id, session_ids, self.namespace)

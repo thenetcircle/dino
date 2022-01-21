@@ -24,7 +24,7 @@ class JoinRoomResource(RoomNameBaseResource):
             room_id = utils.get_room_id(room_name)
 
         for user_id in user_ids:
-            self.join(user_id, room_id)
+            self.join(user_id, room_id, need_user_names=False)
 
     @timeit(logger, "on_rest_join_room")
     def do_post(self):
