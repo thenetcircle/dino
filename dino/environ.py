@@ -961,7 +961,6 @@ def init_logging(gn_env: GNEnvironment) -> None:
         logger.warning('sentry logging selected but no DSN supplied, not configuring senty')
         return
 
-    import raven
     import socket
     from git.cmd import Git
 
@@ -970,21 +969,30 @@ def init_logging(gn_env: GNEnvironment) -> None:
         home_dir = '.'
     tag_name = Git(home_dir).describe()
 
-    gn_env.sentry = raven.Client(
+    import sentry_sdk
+    from sentry_sdk import capture_exception as sentry_capture_exception
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
+
+    sentry_sdk.init(
         dsn=dsn,
-        environment=os.getenv(ENV_KEY_ENVIRONMENT),
-        name=socket.gethostname(),
-        release=tag_name
+        environment=os.getenv(ENV_KEY_ENVIRONMENT),  # TODO: fix DINO_ENVIRONMENT / ENVIRONMENT discrepancy
+        server_name=socket.gethostname(),
+        release=tag_name,
+        integrations=[
+            SqlalchemyIntegration(),
+            RedisIntegration()
+        ],
     )
 
-    def capture_exception(e_info) -> None:
+    def capture_wrapper(e_info) -> None:
         try:
-            gn_env.sentry.captureException(e_info)
+            sentry_capture_exception(e_info)
         except Exception as e2:
             logger.exception(e_info)
-            logger.error('could not capture exception with sentry: %s' % str(e2))
+            logger.error(f"could not capture exception with sentry: {str(e2)}")
 
-    gn_env.capture_exception = capture_exception
+    gn_env.capture_exception = capture_wrapper
 
 
 @timeit(logger, 'init spam service')
