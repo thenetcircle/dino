@@ -73,7 +73,7 @@ class StorageRedis(object):
                 found_msg = history
                 break
 
-        self.redis.lrem(RedisKeys.room_history(room_id), found_msg, 1)
+        self.redis.lrem(RedisKeys.room_history(room_id), 1, found_msg)
 
     def get_history(self, room_id: str, limit: int = 100):
         if limit is None:

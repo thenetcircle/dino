@@ -25,6 +25,9 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class FakeDb(object):
     _rooms_for_user = dict()
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def rooms_for_user(self, user_id):
         if user_id not in FakeDb._rooms_for_user:
             return dict()

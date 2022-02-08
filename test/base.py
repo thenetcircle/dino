@@ -196,6 +196,14 @@ class BaseTest(unittest.TestCase):
         method = 'GET'
         sid = '124'
         namespace = '/chat'
+        headers = {
+            'User-Agent': {
+                'browser': '',
+                'language': '',
+                'platform': '',
+                'version': '',
+            }
+        }
 
         def __init__(self, sid=None):
             if sid is not None:
@@ -360,7 +368,9 @@ class BaseTest(unittest.TestCase):
         environ.env.db.redis.flushall()
         environ.env.cache._flushall()
 
-        environ.env.auth.redis.hmset(RedisKeys.auth_key(BaseTest.USER_ID), self.session)
+        for k, v in self.session.items():
+            environ.env.auth.redis.hset(RedisKeys.auth_key(BaseTest.USER_ID), k, v)
+
         environ.env.redis.hset(RedisKeys.room_name_for_id(), BaseTest.ROOM_ID, BaseTest.ROOM_NAME)
         environ.env.redis.sadd(RedisKeys.non_ephemeral_rooms(), BaseTest.ROOM_ID)
         environ.env.redis.hset(RedisKeys.channels(), BaseTest.CHANNEL_ID, BaseTest.CHANNEL_NAME)
@@ -575,7 +585,8 @@ class BaseTest(unittest.TestCase):
     def activity_for_create(self):
         return {
             'actor': {
-                'id': BaseTest.USER_ID
+                'id': BaseTest.USER_ID,
+                'displayName': BaseTest.USER_NAME
             },
             'object': {
                 'url': BaseTest.CHANNEL_ID

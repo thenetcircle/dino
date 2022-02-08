@@ -26,6 +26,9 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class FakeDb(object):
     _banned = dict()
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def get_banned_users(self):
         return FakeDb._banned
 

@@ -182,7 +182,7 @@ class BaseDatabaseTest(BaseTest):
             self.db = DatabaseRdbms(self.env)
         elif db == 'redis':
             from dino.db.redis import DatabaseRedis
-            self.db = DatabaseRedis(self.env, 'mock', db=99)
+            self.db = DatabaseRedis(self.env, 'mock', db=15)
             self.db.redis.flushall()
         else:
             raise ValueError('unknown type %s' % db)
@@ -1720,7 +1720,7 @@ class BaseDatabaseTest(BaseTest):
 
     def _test_remove_room_before_create_channel(self):
         self.assertFalse(self.db.room_exists(BaseTest.CHANNEL_ID, BaseTest.ROOM_ID))
-        self.assertRaises(NoSuchChannelException, self.db.remove_room, BaseTest.CHANNEL_ID, BaseTest.ROOM_ID)
+        self.assertRaises(NoSuchRoomException, self.db.remove_room, BaseTest.CHANNEL_ID, BaseTest.ROOM_ID)
 
     def _test_update_last_read_for(self):
         self._create_channel()

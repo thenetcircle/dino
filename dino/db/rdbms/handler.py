@@ -1286,6 +1286,9 @@ class DatabaseRdbms(object):
 
             return exists
 
+        if channel_id is None:
+            return False
+
         exists = self.env.cache.get_channel_exists(channel_id)
         if exists is not None:
             return exists
@@ -3113,7 +3116,8 @@ class DatabaseRdbms(object):
             }
 
             all_bans = session.query(Bans).options(
-                joinedload(Bans.room, innerjoin=False).joinedload(Bans.channel, innerjoin=False)
+                joinedload(Bans.room, innerjoin=False),
+                joinedload(Bans.channel, innerjoin=False)
             ).all()
 
             if all_bans is None or len(all_bans) == 0:

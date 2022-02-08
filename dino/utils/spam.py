@@ -1,9 +1,6 @@
 import os
 import logging
 
-from scipy import sparse
-from sklearn.externals import joblib
-
 from dino.utils import suppress_stdout_stderr
 from dino.environ import GNEnvironment
 from dino.utils.decorators import timeit
@@ -15,6 +12,10 @@ logger = logging.getLogger(__name__)
 
 class SpamClassifier(object):
     def __init__(self, env: GNEnvironment, skip_loading: bool=False):
+        from scipy import sparse
+        from sklearn.externals import joblib
+
+        self.sparse = sparse
         self.env = env
 
         if skip_loading:
@@ -48,7 +49,7 @@ class SpamClassifier(object):
 
     @timeit(logger, 'on_transform')
     def transform(self, x):
-        x = sparse.hstack((self.tfidf_char.transform(x), self.tfidf_word.transform(x))).A
+        x = self.sparse.hstack((self.tfidf_char.transform(x), self.tfidf_word.transform(x))).A
         return self.pca.transform(x)
 
     @timeit(logger, 'on_predict')

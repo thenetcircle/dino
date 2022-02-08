@@ -284,12 +284,13 @@ def find_config(config_paths: list) -> tuple:
             continue
 
         try:
-            if conf.endswith(".yaml"):
-                config_dict = yaml.safe_load(open(path))
-            elif conf.endswith(".json"):
-                config_dict = json.load(open(path))
-            else:
-                raise RuntimeError("Unsupported file extension: {0}".format(conf))
+            with open(path) as f:
+                if conf.endswith(".yaml"):
+                    config_dict = yaml.safe_load(f)
+                elif conf.endswith(".json"):
+                    config_dict = json.load(f)
+                else:
+                    raise RuntimeError("Unsupported file extension: {0}".format(conf))
 
         except Exception as e:
             raise RuntimeError("Failed to open configuration {0}: {1}".format(conf, str(e)))

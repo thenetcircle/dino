@@ -58,6 +58,9 @@ class FakeDb(object):
         'crossroom': {'samechannel': ''},
     }
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def get_room_name(self, room_id):
         if room_id not in FakeDb._room_names:
             raise NoSuchRoomException(room_id)

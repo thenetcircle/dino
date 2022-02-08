@@ -327,18 +327,24 @@ class DatabaseRedis(object):
         return ''
 
     def _has_role_in_room(self, role: str, room_id: str, user_id: str) -> bool:
+        if user_id is None:
+            return False
         roles = self.redis.hget(RedisKeys.room_roles(room_id), user_id)
         if roles is None:
             return False
         return role in str(roles, 'utf-8').split(',')
 
     def _has_role_in_channel(self, role: str, channel_id: str, user_id: str) -> bool:
+        if user_id is None:
+            return False
         roles = self.redis.hget(RedisKeys.channel_roles(channel_id), user_id)
         if roles is None:
             return False
         return role in str(roles, 'utf-8').split(',')
 
     def _has_global_role(self, user_id: str, role: str) -> bool:
+        if user_id is None:
+            return False
         roles = self.redis.hget(RedisKeys.global_roles(), user_id)
         if roles is None:
             return False
@@ -1307,12 +1313,12 @@ class DatabaseRedis(object):
         return user_name
 
     def remove_room(self, channel_id: str, room_id: str) -> None:
+        if not self.room_exists(channel_id, room_id):
+            raise NoSuchRoomException(room_id)
+
         if self.env.cache.get_channel_exists(channel_id) is None:
             if not self.channel_exists(channel_id):
                 raise NoSuchChannelException(channel_id)
-
-        if not self.room_exists(channel_id, room_id):
-            raise NoSuchRoomException(room_id)
 
         self.redis.srem(RedisKeys.non_ephemeral_rooms(), room_id)
         self.redis.hdel(RedisKeys.room_name_for_id(), room_id)
@@ -1349,7 +1355,7 @@ class DatabaseRedis(object):
         raise NotImplementedError()
 
     def get_room_owners(self, room_id: str):
-        raise NotImplementedError()
+        return set()
 
     def get_joins_in_room_by_name(self, room_name: str) -> int:
         raise NotImplementedError()

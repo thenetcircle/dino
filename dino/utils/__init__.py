@@ -1144,6 +1144,8 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
 
 
 def is_user_in_room(user_id, room_id):
+    if user_id is None:
+        return False
     if room_id is None or len(room_id.strip()) == 0:
         return False
     return environ.env.db.room_contains(room_id, user_id)
@@ -1232,6 +1234,8 @@ def filter_channels_by_acl(activity, channels_with_acls, session_to_use=None):
 
 
 def is_banned_globally(user_id: str) -> (bool, Union[str, None]):
+    if user_id is None:
+        return False, None
     user_is_banned, timestamp = environ.env.db.is_banned_globally(user_id)
     if not user_is_banned or timestamp is None or timestamp == '':
         return False, None
@@ -1381,10 +1385,14 @@ def is_multiple_sessions_allowed():
 
 
 def is_moderator(room_id: str, user_id: str) -> bool:
+    if user_id is None:
+        return False
     return environ.env.db.is_moderator(room_id, user_id)
 
 
 def is_admin(channel_id: str, user_id: str) -> bool:
+    if user_id is None:
+        return False
     return environ.env.db.is_admin(channel_id, user_id)
 
 

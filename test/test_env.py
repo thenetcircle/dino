@@ -21,6 +21,9 @@ from dino.exceptions import AclValueNotFoundException
 
 
 class FakeDb(object):
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def get_acl_validation_value(self, *args):
         raise AclValueNotFoundException('asdf', 'asdf')
 
@@ -29,47 +32,54 @@ class TestEnvironment(unittest.TestCase):
     def test_env(self):
         if 'DINO_ENVIRONMENT' in os.environ:
             del os.environ['DINO_ENVIRONMENT']
-        env = create_env()
+        env = create_env(['../dino.yaml'])
         self.assertEqual(0, len(env.config))
 
     def test_create_with_environment(self):
+        os.environ['DINO_ACL'] = '../acl.yaml'
         os.environ['DINO_ENVIRONMENT'] = 'integration'
-        env = create_env()
+        env = create_env(['../dino.yaml'])
         self.assertTrue(ConfigKeys.LOG_FORMAT in env.config.keys())
         self.assertTrue(ConfigKeys.LOG_LEVEL in env.config.keys())
         self.assertTrue(ConfigKeys.SESSION in env.config.keys())
 
     def test_init_cache_service(self):
+        os.environ['DINO_ACL'] = '../acl.yaml'
         os.environ['DINO_ENVIRONMENT'] = 'integration'
-        env = create_env()
+        env = create_env(['../dino.yaml'])
         env.db = FakeDb()
         environ.init_cache_service(env)
 
     def test_init_auth_service(self):
+        os.environ['DINO_ACL'] = '../acl.yaml'
         os.environ['DINO_ENVIRONMENT'] = 'integration'
-        env = create_env()
+        env = create_env(['../dino.yaml'])
         env.db = FakeDb()
         environ.init_auth_service(env)
 
     def test_init_storage_engine(self):
+        os.environ['DINO_ACL'] = '../acl.yaml'
         os.environ['DINO_ENVIRONMENT'] = 'integration'
-        env = create_env()
+        env = create_env(['../dino.yaml'])
         env.db = FakeDb()
         environ.init_storage_engine(env)
 
     def test_init_database(self):
+        os.environ['DINO_ACL'] = '../acl.yaml'
         os.environ['DINO_ENVIRONMENT'] = 'integration'
-        env = create_env()
+        env = create_env(['../dino.yaml'])
         env.db = FakeDb()
         environ.init_database(env)
 
     def test_init_acl_validators(self):
+        os.environ['DINO_ACL'] = '../acl.yaml'
         os.environ['DINO_ENVIRONMENT'] = 'integration'
-        env = create_env()
+        env = create_env(['../dino.yaml'])
         env.db = FakeDb()
         environ.init_acl_validators(env)
 
     def test_create_non_existing_config_file(self):
+        os.environ['DINO_ACL'] = '../acl.yaml'
         os.environ['DINO_ENVIRONMENT'] = 'test'
         self.assertRaises(RuntimeError, create_env, ['foo.yaml', 'bar.json'])
 
@@ -79,7 +89,9 @@ class TestEnvironment(unittest.TestCase):
                 '       type: "mock"\n    queue:\n        type: "mock"')
         f.close()
 
+
         try:
+            os.environ['DINO_ACL'] = '../acl.yaml'
             os.environ['DINO_ENVIRONMENT'] = 'test'
             create_env([f.name])
         finally:
@@ -91,6 +103,7 @@ class TestEnvironment(unittest.TestCase):
         f.close()
 
         try:
+            os.environ['DINO_ACL'] = '../acl.yaml'
             os.environ['DINO_ENVIRONMENT'] = 'test'
             env = create_env([f.name])
             self.assertIsNotNone(env.config.get(ConfigKeys.LOG_LEVEL))
@@ -103,6 +116,7 @@ class TestEnvironment(unittest.TestCase):
         f.close()
 
         try:
+            os.environ['DINO_ACL'] = '../acl.yaml'
             os.environ['DINO_ENVIRONMENT'] = 'should_not_find'
             self.assertRaises(RuntimeError, create_env, [f.name])
         finally:
@@ -114,6 +128,7 @@ class TestEnvironment(unittest.TestCase):
         f.close()
 
         try:
+            os.environ['DINO_ACL'] = '../acl.yaml'
             os.environ['DINO_ENVIRONMENT'] = 'test'
             self.assertRaises(RuntimeError, create_env, [f.name])
         finally:
@@ -125,6 +140,7 @@ class TestEnvironment(unittest.TestCase):
         f.close()
 
         try:
+            os.environ['DINO_ACL'] = '../acl.yaml'
             os.environ['DINO_ENVIRONMENT'] = 'test'
             create_env([f.name])
         finally:

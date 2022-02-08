@@ -22,8 +22,8 @@ from dino.config import RedisKeys
 
 class ApiLoginTest(BaseTest):
     def setUp(self):
-        super(ApiLoginTest, self).setUp()
-        self.clear_session()
+        super().setUp()
+        # self.clear_session()
 
     def test_login(self):
         self.assert_login_succeeds()

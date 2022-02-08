@@ -65,6 +65,9 @@ class FakeDb(object):
         },
     }
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def channel_for_room(self, room_id: str) -> str:
         if room_id is None or room_id.strip() == '':
             raise NoSuchRoomException(room_id)

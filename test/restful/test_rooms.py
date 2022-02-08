@@ -26,6 +26,9 @@ from dino.rest.resources.rooms import RoomsResource
 
 
 class FakeDb(object):
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def set_all_rooms(self):
         pass
 

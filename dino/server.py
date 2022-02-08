@@ -16,7 +16,7 @@ import os
 import logging
 from flask import Flask
 from flask_socketio import SocketIO
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from dino import environ
 from dino.config import ConfigKeys

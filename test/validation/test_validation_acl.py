@@ -43,6 +43,9 @@ class FakeDb(object):
     _super_users = set()
     _owners = dict()
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def is_admin(self, channel_id, user_id):
         if channel_id not in FakeDb._admins:
             return False

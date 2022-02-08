@@ -1,5 +1,7 @@
 import logging
 import traceback
+from datetime import datetime
+
 import redis
 from typing import Union
 
@@ -61,9 +63,14 @@ class AuthRedis(object):
         self.env.cache.set_user_info(user_id, stored_session)
         return stored_session
 
-    def update_session_for_key(self, user_id: str, session_key: str, session_value: str) -> None:
+    def update_session_for_key(self, user_id: str, session_key: str, session_value: Union[str, datetime]) -> None:
         key = RedisKeys.auth_key(user_id)
         try:
+            if type(session_value) == datetime:
+                session_value = session_value.timestamp()
+            elif type(session_value) == bool:
+                session_value = int(session_value)
+
             self.redis.hset(key, session_key, session_value)
         except Exception as e:
             logger.error(

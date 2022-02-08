@@ -26,6 +26,9 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 class FakeDb(object):
     _channel_names = dict()
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def get_channels(self):
         return {ChannelManagerTest.CHANNEL_ID: (ChannelManagerTest.CHANNEL_NAME, 1, 'normal')}
 

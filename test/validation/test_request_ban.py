@@ -60,6 +60,9 @@ class FakeDb(object):
         'crossroom': {'samechannel': ''},
     }
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def is_admin(self, channel_id, user_id):
         if channel_id not in FakeDb._admins:
             return False

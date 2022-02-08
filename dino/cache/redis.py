@@ -1061,7 +1061,7 @@ class CacheRedis(object):
     def set_channel_exists(self, channel_id: str) -> None:
         key = RedisKeys.channel_exists()
         cache_key = '%s-%s' % (key, channel_id)
-        self.redis.hset(key, channel_id, True)
+        self.redis.hset(key, channel_id, int(True))
         self.redis.expire(key, ONE_MINUTE)
         self.cache.set(cache_key, True)
 

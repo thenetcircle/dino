@@ -54,6 +54,9 @@ class FakeDb(object):
         'crossroom': {'samechannel': ''},
     }
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def is_admin(self, *args):
         return False
 

@@ -27,3 +27,4 @@ strict-rfc3339==0.7
 urllib3==1.26.8
 Yapsy==1.12.2
 zope.interface==5.4.0
+kombu==5.2.3

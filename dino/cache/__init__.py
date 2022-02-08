@@ -13,6 +13,13 @@ class ICache(Interface):
         :return: the user id or none
         """
 
+    def reset_room_acls_for_action(self, action: str) -> None:
+        """
+
+        :param action:
+        :return:
+        """
+
     def set_room_owners(self, room_id, owners: Set[str]) -> None:
         """
         set room owners

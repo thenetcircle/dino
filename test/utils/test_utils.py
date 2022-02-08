@@ -90,6 +90,9 @@ class FakeDb(object):
     def set_user_name(self, user_id, user_name):
         pass
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def get_user_ban_status(self, room_id, user_id):
         return FakeDb._bans
 
@@ -299,6 +302,7 @@ class UtilsActivityForTest(TestCase):
 
     def test_activity_for_list_channels(self):
         channels = {'id': ('namne', 1, 'normal'), 'other-id': ('other-name', 2, 'normal')}
+        utils.is_channel_static_or_temporary_or_mix = lambda c: "temporary"
         self.assertIsNotNone(utils.activity_for_list_channels(channels))
 
     def test_activity_for_invite(self):

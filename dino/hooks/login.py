@@ -26,21 +26,11 @@ class OnLoginHooks(object):
         environ.env.session[SessionKeys.user_id.value] = user_id
         environ.env.session[SessionKeys.user_name.value] = user_name
 
-        try:
-            user_agent_string = environ.env.request.user_agent.string
-            user_agent_platform = environ.env.request.user_agent.platform
-            user_agent_browser = environ.env.request.user_agent.browser
-            user_agent_version = environ.env.request.user_agent.version
-            user_agent_language = environ.env.request.user_agent.language
-        except Exception as e:
-            logger.error('could not get user agent for user "{}": {}'.format(user_id, str(e)))
-            logger.exception(traceback.format_exc())
-            environ.env.capture_exception(sys.exc_info())
-            user_agent_string = ''
-            user_agent_platform = ''
-            user_agent_browser = ''
-            user_agent_version = ''
-            user_agent_language = ''
+        user_agent_string = ''
+        user_agent_platform = ''
+        user_agent_browser = ''
+        user_agent_version = ''
+        user_agent_language = ''
 
         environ.env.session[SessionKeys.user_agent.value] = user_agent_string or ''
         environ.env.session[SessionKeys.user_agent_browser.value] = user_agent_browser or ''

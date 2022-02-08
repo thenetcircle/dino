@@ -14,8 +14,8 @@ class DatabaseRedisTest(BaseDatabaseTest):
         self.env.cache._flushall()
 
     def test_get_user_infos(self):
-        self.db.set_user_info(BaseTest.USER_ID, {SessionKeys.gender.value: 'm', 'last_login': datetime.utcnow()})
-        self.db.set_user_info(BaseTest.OTHER_USER_ID, {SessionKeys.gender.value: 'w', 'last_login': datetime.utcnow()})
+        self.db.set_user_info(BaseTest.USER_ID, {SessionKeys.gender.value: 'm', 'last_login': datetime.utcnow().timestamp()})
+        self.db.set_user_info(BaseTest.OTHER_USER_ID, {SessionKeys.gender.value: 'w', 'last_login': datetime.utcnow().timestamp()})
 
         infos = self.db.get_user_infos({BaseTest.USER_ID, BaseTest.OTHER_USER_ID})
 

@@ -30,6 +30,9 @@ class FakeDb:
     _channel_names = dict()
     _room_names = dict()
 
+    def type_of_rooms_in_channel(self, _):
+        return "temporary"
+
     def get_user_name(self, user_id):
         if user_id not in FakeDb._user_names:
             raise NoSuchUserException(user_id)
