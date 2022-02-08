@@ -3,7 +3,7 @@ import os
 from flask import Flask
 from flask_restful import Api
 from flask_socketio import SocketIO
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from dino.hooks import *
 from dino.rest.resources.acl import AclResource
