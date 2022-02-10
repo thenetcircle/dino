@@ -9,6 +9,9 @@ time.sleep(5)
 
 import logging
 logging.getLogger('kafka').setLevel(logging.INFO)
+logging.getLogger('kafka.protocol.parser').setLevel(logging.INFO)
+logging.getLogger('kafka.producer.sender').setLevel(logging.INFO)
+logging.getLogger('kafka.producer.record_accumulator').setLevel(logging.INFO)
 
 # keep this import; even though unused, gunicorn needs it, otherwise it will not start
 from dino.server import socketio, app
