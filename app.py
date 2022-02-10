@@ -12,6 +12,9 @@ time.sleep(int(5+random.random()*10))
 
 import logging
 logging.getLogger('kafka').setLevel(logging.INFO)
+logging.getLogger('kafka.protocol.parser').setLevel(logging.INFO)
+logging.getLogger('kafka.producer.sender').setLevel(logging.INFO)
+logging.getLogger('kafka.producer.record_accumulator').setLevel(logging.INFO)
 logging.getLogger('yapsy').setLevel(logging.INFO)
 
 # keep this import; even though unused, gunicorn needs it, otherwise it will not start
