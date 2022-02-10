@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.19.35-dev'
+version = '0.20.0'
 
 setup(
     name='dino',
@@ -39,10 +39,6 @@ setup(
         'fakeredis',
         'nose',
         'emoji',
-        'xgboost',
-        'scikit-learn',
-        'numpy',
-        'scipy',
         'codecov',
         'coverage',
         'cassandra-driver',
@@ -55,5 +51,5 @@ setup(
         'pymitter',
         'psutil',
         'gitpython',
-        'raven'
+        'sentry-sdk'
     ])
