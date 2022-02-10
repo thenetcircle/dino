@@ -45,13 +45,13 @@ acl_room_choices = [(a, a.capitalize()) for a in room_acls]
 
 
 class CreateChannelForm(Form):
-    name = StringField('Name', validators=[validators.DataRequired], description='Channel name')
-    owner = StringField('Owner', validators=[validators.DataRequired], description='Owner ID')
+    name = StringField('Name', validators=[validators.DataRequired()], description='Channel name')
+    owner = StringField('Owner', validators=[validators.DataRequired()], description='Owner ID')
 
 
 class CreateRoomForm(Form):
-    name = StringField('Name', validators=[validators.DataRequired], description='Room name')
-    owner = StringField('Owner', validators=[validators.DataRequired], description='Owner ID')
+    name = StringField('Name', validators=[validators.DataRequired()], description='Room name')
+    owner = StringField('Owner', validators=[validators.DataRequired()], description='Owner ID')
 
 
 class TargetRequiredIfNotGlobal(object):
