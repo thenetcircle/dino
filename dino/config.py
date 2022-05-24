@@ -347,6 +347,7 @@ class RedisKeys(object):
     RKEY_ONLINE_SET = 'users:online:set'
     RKEY_MULTI_CAST = 'users:multicast'
     RKEY_USER_STATUS = 'user:status:%s'  # user:status:user_id
+    RKEY_USER_STATUS_CHANGED_AT = 'user:status:changed'
     RKEY_USER_LAST_ONLINE = 'user:online:last:{}'  # user:online:last:user_id
     RKEY_ROOM_NAME = 'room:names'
     RKEY_ROOM_ACL = 'room:acl:%s'  # room:acl:room_id
@@ -392,6 +393,10 @@ class RedisKeys(object):
     RKEY_JOIN_COUNTS_BY_NAME = 'rooms:joins:name:{}'  # rooms:joins:name:room_name
     RKEY_DEFAULT_CHANNEL_ID = 'channel:default:id'
     RKEY_ROOM_OWNERS = 'room:owners:{}'  # room:owners:room_id
+
+    @staticmethod
+    def user_status_changed_at() -> str:
+        return RedisKeys.RKEY_USER_STATUS_CHANGED_AT
 
     @staticmethod
     def room_owners(room_id: str) -> str:

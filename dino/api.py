@@ -521,7 +521,7 @@ def on_list_rooms(data: dict, activity: Activity) -> (int, Union[dict, str]):
     for room_id, room_details in rooms.items():
         exclude_room = False
 
-        # don't show rooms if the I ignored the owner, or if the owner ignored me; both cases should be in the
+        # don't show rooms if I ignored the owner, or if the owner ignored me; both cases should be in the
         # same set of "excluded" users; owner lists are cached per room, so don't query db for all at once
         for owner_id in environ.env.db.get_room_owners(room_id):
             if utils.should_exclude_user(owner_id, excluded_users):

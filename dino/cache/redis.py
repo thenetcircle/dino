@@ -32,6 +32,7 @@ THIRTY_SECONDS = 30
 ONE_HOUR = 60*60
 TEN_SECONDS = 10
 SEVEN_DAYS = 7 * 24 * ONE_HOUR
+LONG_AGO = 789000000  # january 1995
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +191,7 @@ class CacheRedis(object):
 
     def has_heartbeat(self, user_id: str) -> bool:
         redis_key = RedisKeys.heartbeat_user(user_id)
-        return self.redis.exists(redis_key)
+        return self.redis.exists(redis_key) == 1
 
     def get_rooms_for_user(self, user_id: str):
         clean_rooms = dict()
@@ -1273,14 +1274,20 @@ class CacheRedis(object):
         try:
             user_id_str = str(user_id).strip()
             user_id_int = int(float(user_id))
+            now = int(datetime.utcnow().timestamp())
 
             self._set_last_online(user_id_str)
-
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE, ttl=THIRTY_SECONDS)
-            self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
-            self.redis.srem(RedisKeys.online_set(), user_id_str)
-            self.redis.srem(RedisKeys.users_multi_cast(), user_id_str)
-            self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
+
+            p = self.redis.pipeline()
+            p.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
+            p.srem(RedisKeys.online_set(), user_id_str)
+            p.srem(RedisKeys.users_multi_cast(), user_id_str)
+            p.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE)
+            p.zadd(RedisKeys.user_status_changed_at(), {user_id_str: now})
+            p.execute()
+
+            self.trim_user_changed_at()
         except Exception as e:
             logger.error('could not set_user_offline(): %s' % str(e))
             logger.exception(traceback.format_exc())
@@ -1290,11 +1297,19 @@ class CacheRedis(object):
         try:
             user_id_str = str(user_id).strip()
             user_id_int = int(float(user_id))
+            now = int(datetime.utcnow().timestamp())
+
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_AVAILABLE, ttl=THIRTY_SECONDS)
-            self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 1)
-            self.redis.sadd(RedisKeys.online_set(), user_id_str)
-            self.redis.sadd(RedisKeys.users_multi_cast(), user_id_str)
-            self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_AVAILABLE)
+
+            p = self.redis.pipeline()
+            p.setbit(RedisKeys.online_bitmap(), user_id_int, 1)
+            p.sadd(RedisKeys.online_set(), user_id_str)
+            p.sadd(RedisKeys.users_multi_cast(), user_id_str)
+            p.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_AVAILABLE)
+            p.zadd(RedisKeys.user_status_changed_at(), {user_id_str: now})
+            p.execute()
+
+            self.trim_user_changed_at()
         except Exception as e:
             logger.error('could not set_user_online(): %s' % str(e))
             logger.exception(traceback.format_exc())
@@ -1302,8 +1317,16 @@ class CacheRedis(object):
     def set_user_status_invisible(self, user_id: str) -> None:
         try:
             user_id_str = str(user_id).strip()
+            now = int(datetime.utcnow().timestamp())
+
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE, ttl=THIRTY_SECONDS)
-            self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
+
+            p = self.redis.pipeline()
+            p.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
+            p.zadd(RedisKeys.user_status_changed_at(), {user_id_str: now})
+            p.execute()
+
+            self.trim_user_changed_at()
         except Exception as e:
             logger.error('could not set_user_status_invisible(): %s' % str(e))
             logger.exception(traceback.format_exc())
@@ -1324,11 +1347,19 @@ class CacheRedis(object):
         try:
             user_id_str = str(user_id).strip()
             user_id_int = int(float(user_id))
+            now = int(datetime.utcnow().timestamp())
+
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE, ttl=THIRTY_SECONDS)
-            self.redis.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
-            self.redis.srem(RedisKeys.online_set(), user_id_str)
-            self.redis.sadd(RedisKeys.users_multi_cast(), user_id_str)
-            self.redis.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
+
+            p = self.redis.pipeline()
+            p.setbit(RedisKeys.online_bitmap(), user_id_int, 0)
+            p.srem(RedisKeys.online_set(), user_id_str)
+            p.sadd(RedisKeys.users_multi_cast(), user_id_str)
+            p.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
+            p.zadd(RedisKeys.user_status_changed_at(), {user_id_str: now})
+            p.execute()
+
+            self.trim_user_changed_at()
 
             if update_last_online:
                 self._set_last_online(user_id_str)
@@ -1339,3 +1370,9 @@ class CacheRedis(object):
     def set_session_count(self, session_count: int) -> None:
         node_key = '{}-{}'.format(self.listen_host, self.listen_port)
         self.redis.hset(RedisKeys.session_count(), node_key, session_count)
+
+    def trim_user_changed_at(self):
+        # just trim sometimes, O(log(n)+m) to remove
+        if int(random.random() * 100000) == 1:
+            minus_24h = (datetime.utcnow() - timedelta(hours=24)).timestamp()
+            self.redis.zremrangebyscore(RedisKeys.user_status_changed_at(), LONG_AGO, minus_24h)
