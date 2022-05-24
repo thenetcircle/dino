@@ -644,6 +644,23 @@ class DatabaseRdbms(object):
 
         return [(last.uuid, last.at) for last in lasts]
 
+    def get_last_online(self, user_id: str) -> Union[int, None]:
+        @with_session
+        def _get_last_online(session=None):
+            last_online = session.query(LastOnline).filter(LastOnline.uuid == user_id).first()
+            if last_online is None:
+                return
+            return last_online.at
+
+        online_at = self.env.cache.get_last_online(user_id)
+        if online_at is not None:
+            return int(float(online_at))
+
+        online_at = _get_last_online()
+        self.env.cache.set_last_online(user_id, [(user_id, online_at)])
+
+        return online_at
+
     @with_session
     def _set_last_online(self, user_id: str, session=None):
         u = datetime.utcnow()
