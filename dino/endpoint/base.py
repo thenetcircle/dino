@@ -56,7 +56,7 @@ class BasePublisher(ABC):
                 declare=[self.exchange, self.queue]
             )
 
-    def publish(self, message: dict) -> None:
+    def publish(self, message: dict, topic: str = None) -> None:
         if self.recently_sent_has(message['id']):
             self.logger.debug('ignoring external event with verb %s and id %s, already sent' %
                          (message['verb'], message['id']))
@@ -68,7 +68,7 @@ class BasePublisher(ABC):
 
         for current_try in range(n_tries):
             try:
-                self.try_publish(message)
+                self.try_publish(message, topic)
                 failed = False
                 self.update_recently_sent(message['id'])
                 break
