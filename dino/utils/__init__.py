@@ -151,7 +151,8 @@ def is_a_user_name(user_name: str) -> bool:
 
 def add_last_online_at_to_event(data: dict):
     try:
-        data["updated"] = environ.env.db.get_last_online(data["actor"]["id"])
+        last_online_at = environ.env.db.get_last_online(data["actor"]["id"])
+        data["updated"] = datetime.utcfromtimestamp(last_online_at).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
     except Exception as e:
         logger.error("could not get last online time, ignoring: {}".format(str(e)))
         logger.exception(e)
