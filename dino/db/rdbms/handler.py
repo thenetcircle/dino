@@ -608,6 +608,8 @@ class DatabaseRdbms(object):
         session.commit()
 
     def set_user_invisible(self, user_id: str, is_offline=False) -> None:
+        # TODO: send to "status" topic that the user changed status
+
         if is_offline:
             self.env.cache.set_user_status_invisible(user_id)
         else:
@@ -686,6 +688,7 @@ class DatabaseRdbms(object):
             session.delete(status)
             session.commit()
 
+        # TODO: send to "status" topic that the user changed status
         logger.debug('setting user %s as offline in cache' % user_id)
         self.env.cache.set_user_offline(user_id)
 
@@ -722,6 +725,7 @@ class DatabaseRdbms(object):
             user_status.status = UserKeys.STATUS_AVAILABLE
             session.commit()
 
+        # TODO: send to "status" topic that the user changed status
         self.env.cache.set_user_online(user_id)
 
         try:

@@ -24,6 +24,8 @@ import redis
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
+from dino.utils import activity_for_user_joined, activity_for_status_change
+
 EIGHT_HOURS_IN_SECONDS = 8*60*60
 TEN_MINUTES = 10*60
 FIVE_MINUTES = 5*60
@@ -82,6 +84,12 @@ class CacheRedis(object):
             self.redis_instance = None
 
         self.cache = MemoryCache()
+        self.env = env
+        self.status_topic = None
+
+        # only need status changes tracked if this is a wio node
+        if 'wio' in env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
+            self.status_topic = self.env.config.get(ConfigKeys.STATUS_QUEUE, ConfigKeys.EXTERNAL_QUEUE)
 
         args = sys.argv
         for a in ['--bind', '-b']:
@@ -1239,7 +1247,7 @@ class CacheRedis(object):
             user_id_str = str(user_id).strip()
             self.redis.srem(RedisKeys.users_multi_cast(), user_id_str)
         except Exception as e:
-            logger.error('could remove user form multicast: %s' % str(e))
+            logger.error('could remove user from multicast: %s' % str(e))
             logger.exception(traceback.format_exc())
             raise e  # force catch from caller
 
@@ -1261,6 +1269,9 @@ class CacheRedis(object):
         return last_online
 
     def set_last_online(self, last_online_times: list):
+        """
+        only called while warming up the cache
+        """
         pipe = self.redis.pipeline()
 
         for user_id, at in last_online_times:
@@ -1287,6 +1298,13 @@ class CacheRedis(object):
             p.zadd(RedisKeys.user_status_changed_at(), {user_id_str: now})
             p.execute()
 
+            if self.status_topic is not None:
+                self.env.publish(
+                    activity_for_status_change(user_id, "offline"),
+                    external=True,
+                    topic=self.status_topic
+                )
+
             self.trim_user_changed_at()
         except Exception as e:
             logger.error('could not set_user_offline(): %s' % str(e))
@@ -1309,12 +1327,23 @@ class CacheRedis(object):
             p.zadd(RedisKeys.user_status_changed_at(), {user_id_str: now})
             p.execute()
 
+            if self.status_topic is not None:
+                self.env.publish(
+                    activity_for_status_change(user_id, "online"),
+                    external=True,
+                    topic=self.status_topic
+                )
+
             self.trim_user_changed_at()
         except Exception as e:
             logger.error('could not set_user_online(): %s' % str(e))
             logger.exception(traceback.format_exc())
 
     def set_user_status_invisible(self, user_id: str) -> None:
+        """
+        if status is changed to "invisible" using the rest api when the user is
+        not online, e.g. during "invisible login"
+        """
         try:
             user_id_str = str(user_id).strip()
             now = int(datetime.utcnow().timestamp())
@@ -1325,6 +1354,13 @@ class CacheRedis(object):
             p.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
             p.zadd(RedisKeys.user_status_changed_at(), {user_id_str: now})
             p.execute()
+
+            if self.status_topic is not None:
+                self.env.publish(
+                    activity_for_status_change(user_id, "invisible"),
+                    external=True,
+                    topic=self.status_topic
+                )
 
             self.trim_user_changed_at()
         except Exception as e:
@@ -1339,9 +1375,19 @@ class CacheRedis(object):
         logger.info('setting last online for {} to {}'.format(user_id, unix_time))
 
         last_online_key = RedisKeys.user_last_online(user_id)
-        self.cache.set(last_online_key, unix_time)
-        self.redis.set(last_online_key, unix_time)
-        self.redis.expire(last_online_key, SEVEN_DAYS)
+        self.cache.set(last_online_key, unix_time, ttl=ONE_HOUR * 6)
+
+        p = self.redis.pipeline()
+        p.set(last_online_key, unix_time)
+        p.expire(last_online_key, SEVEN_DAYS)
+        p.execute()
+
+        if self.status_topic is not None:
+            self.env.publish(
+                activity_for_status_change(user_id, "lastonline"),
+                external=True,
+                topic=self.status_topic
+            )
 
     def set_user_invisible(self, user_id: str, update_last_online: bool = True) -> None:
         try:
@@ -1358,6 +1404,13 @@ class CacheRedis(object):
             p.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_INVISIBLE)
             p.zadd(RedisKeys.user_status_changed_at(), {user_id_str: now})
             p.execute()
+
+            if self.status_topic is not None:
+                self.env.publish(
+                    activity_for_status_change(user_id, "invisible"),
+                    external=True,
+                    topic=self.status_topic
+                )
 
             self.trim_user_changed_at()
 

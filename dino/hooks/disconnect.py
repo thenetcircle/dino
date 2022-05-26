@@ -211,6 +211,7 @@ class OnDisconnectHooks(object):
 
                 if user_id != '-1':
                     activity_json = utils.activity_for_disconnect(user_id, user_name)
+                    utils.add_last_online_at_to_event(activity_json)
                     environ.env.publish(activity_json, external=True)
 
             except Exception as e:

@@ -149,6 +149,14 @@ def is_a_user_name(user_name: str) -> bool:
     return exists
 
 
+def add_last_online_at_to_event(data: dict):
+    try:
+        data["updated"] = environ.env.db.get_last_online(data["actor"]["id"])
+    except Exception as e:
+        logger.error("could not get last online time, ignoring: {}".format(str(e)))
+        logger.exception(e)
+
+
 def get_whisper_users_from_message(message) -> set:
     users = set()
 
@@ -325,6 +333,16 @@ def activity_for_going_visible(user_id: str) -> dict:
             'id': user_id
         },
         'verb': 'visible'
+    })
+
+
+def activity_for_status_change(user_id: str, status: str) -> dict:
+    return ActivityBuilder.enrich({
+        'actor': {
+            'id': user_id
+        },
+        'verb': status,
+        'title': f"dino.wio.status.{status}"
     })
 
 

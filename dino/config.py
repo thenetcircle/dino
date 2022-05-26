@@ -238,6 +238,7 @@ class ConfigKeys(object):
     DEBUG = 'debug'
     QUEUE = 'queue'
     EXTERNAL_QUEUE = 'ext_queue'
+    STATUS_QUEUE = 'status_queue'
     EXCHANGE = 'exchange'
     TESTING = 'testing'
     STORAGE = 'storage'

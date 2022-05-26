@@ -82,6 +82,7 @@ class OnLoginHooks(object):
         activity_json = utils.activity_for_login(
             user_id, user_name, encode_attachments=False, user_status=user_status)
 
+        utils.add_last_online_at_to_event(activity_json)
         environ.env.publish(activity_json, external=True)
 
     @staticmethod

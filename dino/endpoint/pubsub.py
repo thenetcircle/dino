@@ -80,23 +80,23 @@ class PubSub(object):
                     ext_queue_type)
             )
 
-    def do_publish(self, message: dict, external: bool=None):
+    def do_publish(self, message: dict, external: bool = None, topic: str = None):
         logger.debug('publish: verb %s id %s external? %s' % (message['verb'], message['id'], str(external or False)))
         if external is None or not external:
             external = False
 
         # avoid hanging clients
-        eventlet.spawn(self._do_publish_async, message, external)
+        eventlet.spawn(self._do_publish_async, message, external, topic)
 
-    def _do_publish_async(self, message: dict, external: bool):
+    def _do_publish_async(self, message: dict, external: bool, topic: str):
         if external:
-            return self._do_publish_external(message)
+            return self._do_publish_external(message, topic)
         else:
             return self._do_publish_internal(message)
 
-    def _do_publish_external(self, message: dict):
+    def _do_publish_external(self, message: dict, topic: str):
         try:
-            return self.env.external_publisher.publish(message)
+            return self.env.external_publisher.publish(message, topic)
         except PublishException:
             logger.error('failed to publish external event multiple times! Republishing to internal queue')
             return self.env.internal_publisher.publish(message)

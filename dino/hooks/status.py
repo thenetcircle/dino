@@ -46,6 +46,9 @@ class OnStatusHooks(object):
         elif status == 'offline':
             OnStatusHooks.set_offline(user_id, user_name)
 
+        if status in {"offline", "invisible"}:
+            utils.add_last_online_at_to_event(data)
+
         environ.env.publish(data, external=True)
 
     @staticmethod

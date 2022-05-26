@@ -43,7 +43,7 @@ class KafkaPublisher(BasePublisher):
         )
         logger.info('setting up pubsub for type "{}: and host(s) "{}"'.format(self.queue_type, ','.join(eq_host)))
 
-    def try_publish(self, message):
+    def try_publish(self, message, topic: str = None):
         if self.env.enrichment_manager is not None:
             message = self.env.enrichment_manager.handle(message)
 
@@ -67,4 +67,4 @@ class KafkaPublisher(BasePublisher):
 
         # for kafka, the queue_connection is the KafkaProducer and queue is the topic name
         self.queue_connection.send(
-            topic=self.queue, value=message, key=topic_key)
+            topic=topic or self.queue, value=message, key=topic_key)

@@ -39,7 +39,7 @@ class BasePublisher(ABC):
     def error_callback(self, exc, interval) -> None:
         self.logger.warning('could not connect to MQ (interval: %s): %s' % (str(interval), str(exc)))
 
-    def try_publish(self, message):
+    def try_publish(self, message, topic: str = None):
         self.logger.info('sending "{}" with "{}"'.format(self.message_type, str(self.queue_connection)))
 
         with producers[self.queue_connection].acquire(block=False) as producer:
