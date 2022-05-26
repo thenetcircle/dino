@@ -142,7 +142,7 @@ def index():
             if not hasattr(form, key):
                 continue
             form_value = form.__getattribute__(key).data
-            environ.env.session[key] = form_value
+            environ.env.session[key] = str(form_value)
             environ.env.auth.redis.hset(RedisKeys.auth_key(str(user_id)), key, form_value)
 
         return environ.env.redirect(environ.env.url_for('.chat'))
