@@ -89,7 +89,7 @@ class CacheRedis(object):
 
         # only need status changes tracked if this is a wio node
         if 'wio' in env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
-            self.status_topic = self.env.config.get(ConfigKeys.STATUS_QUEUE, ConfigKeys.EXTERNAL_QUEUE)
+            self.status_topic = self.env.config.get(ConfigKeys.STATUS_QUEUE, domain=ConfigKeys.EXTERNAL_QUEUE)
 
         logger.info("status topic is: {}".format(self.status_topic))
 
