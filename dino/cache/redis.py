@@ -91,6 +91,8 @@ class CacheRedis(object):
         if 'wio' in env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
             self.status_topic = self.env.config.get(ConfigKeys.STATUS_QUEUE, ConfigKeys.EXTERNAL_QUEUE)
 
+        logger.info("status topic is: {}".format(self.status_topic))
+
         args = sys.argv
         for a in ['--bind', '-b']:
             bind_arg_pos = [i for i, x in enumerate(args) if x == a]
