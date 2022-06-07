@@ -659,7 +659,7 @@ class DatabaseRdbms(object):
             return int(float(online_at))
 
         online_at = _get_last_online()
-        self.env.cache.set_last_online(user_id, [(user_id, online_at)])
+        self.env.cache.set_last_online([(user_id, online_at)])
 
         return online_at
 
