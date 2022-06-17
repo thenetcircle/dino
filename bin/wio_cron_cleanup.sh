@@ -36,7 +36,7 @@ if ! python bin/clear_db_acls_bans_table.py ${DINO_ENV} ${DINO_HOME}; then
     exit 1
 fi
 
-echo "clearing expired bans and hanging acls... "
+echo "clearing old room roles and rooms... "
 if ! python bin/clear_db_rooms_table.py ${DINO_ENV} ${DINO_HOME}; then
     echo "error: could not clear rooms/roles tables"
     exit 1
