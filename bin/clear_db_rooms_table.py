@@ -64,5 +64,6 @@ else:
 
     # old rooms
     four_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=4)).strftime("%Y-%m-%d %H:%M:%S")
+    cur.execute("delete from room_roles rr where rr.room_id in (select r.id from rooms r left outer join acls a on r.id = a.room_id where r.created < '{}' and a.id is null and r.ephemeral = true limit 10000)".format(four_days_ago))
     cur.execute("delete from rooms r where r.id in (select r.id from rooms r left outer join acls a on r.id = a.room_id where r.created < '{}' and a.id is null and r.ephemeral = true limit 10000)".format(four_days_ago))
     conn.commit()
