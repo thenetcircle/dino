@@ -3,8 +3,13 @@ import datetime
 import yaml
 import os
 import psycopg2
-import sys
 import redis
+import time
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 dino_env = os.getenv('DINO_ENVIRONMENT') or sys.argv[1]
 dino_home = os.getenv('DINO_HOME') or sys.argv[2]
@@ -64,6 +69,15 @@ else:
 
     # old rooms
     four_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=4)).strftime("%Y-%m-%d %H:%M:%S")
-    cur.execute("delete from room_roles rr where rr.room_id in (select r.id from rooms r left outer join acls a on r.id = a.room_id where r.created < '{}' and a.id is null and r.ephemeral = true limit 10000)".format(four_days_ago))
-    cur.execute("delete from rooms r where r.id in (select r.id from rooms r left outer join acls a on r.id = a.room_id where r.created < '{}' and a.id is null and r.ephemeral = true limit 10000)".format(four_days_ago))
-    conn.commit()
+    logger.info("removing old rooms, until {}".format(four_days_ago))
+    before = time.time()
+
+    try:
+        cur.execute("delete from room_roles rr where rr.room_id in (select r.id from rooms r left outer join acls a on r.id = a.room_id where r.created < '{}' and a.id is null and r.ephemeral = true limit 10000)".format(four_days_ago))
+        cur.execute("delete from rooms r where r.id in (select r.id from rooms r left outer join acls a on r.id = a.room_id where r.created < '{}' and a.id is null and r.ephemeral = true limit 10000)".format(four_days_ago))
+        conn.commit()
+    except Exception as e:
+        logger.error("could not remove old rooms: {}".format(str(e)))
+
+    after = time.time()
+    logger.info("time to delete rooms was: {} seconds".format(after-before))
