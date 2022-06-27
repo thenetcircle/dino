@@ -3294,7 +3294,7 @@ class DatabaseRdbms(object):
             sid_entity = session.query(Sids).filter(Sids.sid == sid).first()
             if sid_entity is None:
                 return None
-            return sid_entity.user_id
+            return sid_entity.user_uuid
 
         if sid is None or len(sid.strip()) == 0:
             raise EmptyUserIdException(sid)
