@@ -66,7 +66,14 @@
                             url: channel_id
                         },
                         verb: 'list'
-                    });
+                    }, function(response) {
+                        console.log('list_room callback called')
+                        console.log(response);
+
+                        rooms = response.data.object.attachments
+                        console.log(rooms);
+                        // ...
+                    })
                 });
             };
 
@@ -245,9 +252,6 @@
 
                 socket.on('gn_list_rooms', function(response) {
                     console.log(response);
-                    if (response.status_code != 200) {
-                        return;
-                    }
 
                     rooms = response.data.object.attachments
 
