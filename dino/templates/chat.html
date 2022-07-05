@@ -66,8 +66,9 @@
                             url: channel_id
                         },
                         verb: 'list'
-                    }, function(response) {
+                    }, function(response_code, response) {
                         console.log('list_room callback called')
+                        console.log(response_code)
                         console.log(response);
 
                         rooms = response.data.object.attachments
