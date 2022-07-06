@@ -236,14 +236,14 @@ def on_login(data: dict, activity: Activity) -> (int, str):
 
 
 @socketio.on('received', namespace='/ws')
-@respond_with('gn_received', emit_response=False)  # the callback with status_code is enough for this api so don't emit
+@respond_with('gn_received', use_callback=False)  # the callback with status_code is enough for this api so don't emit
 @pre_process('on_received')
 def on_received(data: dict, activity: Activity) -> (int, str):
     return api.on_received(data, activity)
 
 
 @socketio.on('read', namespace='/ws')
-@respond_with('gn_read', emit_response=False)  # the callback with status_code is enough for this api so don't emit
+@respond_with('gn_read', use_callback=False)  # the callback with status_code is enough for this api so don't emit
 @pre_process('on_read')
 def on_read(data: dict, activity: Activity) -> (int, str):
     return api.on_read(data, activity)
