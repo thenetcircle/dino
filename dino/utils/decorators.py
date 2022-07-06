@@ -85,7 +85,7 @@ def respond_with(gn_event_name=None, should_disconnect=False, use_callback=True)
             # in some cases the callback is enough
             response_message = environ.env.response_formatter(status_code, data)
             if use_callback:
-                return status_code, response_message
+                return response_message
             else:
                 environ.env.emit(gn_event_name, response_message)
 

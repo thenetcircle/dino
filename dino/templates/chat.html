@@ -114,15 +114,15 @@
                     login_object.actor.content = "invisible"
                 }
 
-                function gn_list_channels(status_code, data) {
-                    console.log('gn_list_channels status_code: ' + status_code + ', data:')
-                    console.log(data)
+                function gn_list_channels(response) {
+                    console.log('gn_list_channels status_code: ' + response.status_code + ', data:')
+                    console.log(response.data)
                 }
 
                 socket.on('connect', function() {
-                    socket.emit('login', login_object, function(status_code, data) {
-                        console.log('gn_login status_code: ' + status_code + ', data:')
-                        console.log(data);
+                    socket.emit('login', login_object, function(response) {
+                        console.log('gn_login status_code: ' + response.status_code + ', data:')
+                        console.log(response.data);
 
                         socket.emit('list_channels', {verb: 'list'}, gn_list_channels)
                     });
