@@ -251,10 +251,13 @@
                     }
                 });
 
-                socket.on('gn_list_rooms', function(response) {
+                socket.on('gn_list_rooms', function(status_code, response) {
+                    console.log('status_code: ' + status_code + ', response data:')
                     console.log(response);
 
                     rooms = response.data.object.attachments
+                    console.log('rooms:')
+                    console.log(rooms)
 
                     $('#rooms').html('');
                     for (i = 0; i < rooms.length; i++) {
