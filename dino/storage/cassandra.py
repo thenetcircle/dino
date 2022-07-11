@@ -34,12 +34,13 @@ class CassandraStorage(object):
     driver = None
     session = None
 
-    def __init__(self, hosts: list, replications=None, strategy=None, key_space='dino'):
+    def __init__(self, hosts: list, replications=None, strategy=None, protocol_version: int = 4, key_space='dino'):
         if replications is None:
             replications = 2
         if strategy is None:
             strategy = 'SimpleStrategy'
 
+        self.protocol_version = protocol_version
         self.hosts = hosts
         self.key_space = key_space
         self.strategy = strategy
@@ -49,7 +50,8 @@ class CassandraStorage(object):
     def init(self):
         from cassandra.cluster import Cluster
         from dino.storage.cassandra_driver import Driver
-        cluster = Cluster(self.hosts)
+
+        cluster = Cluster(self.hosts, protocol_version=self.protocol_version)
         self.driver = Driver(cluster.connect(), self.key_space, self.strategy, self.replications)
         self.driver.init()
 

@@ -242,6 +242,7 @@ class ConfigKeys(object):
     EXCHANGE = 'exchange'
     TESTING = 'testing'
     STORAGE = 'storage'
+    PROTOCOL_VERSION = 'protocol_version'
     AUTH_SERVICE = 'auth'
     CACHE_SERVICE = 'cache'
     STATS_SERVICE = 'stats'
