@@ -973,6 +973,7 @@ def init_logging(gn_env: GNEnvironment) -> None:
     from sentry_sdk import capture_exception as sentry_capture_exception
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
+    from sentry_sdk.integrations.flask import FlaskIntegration
 
     sentry_sdk.init(
         dsn=dsn,
@@ -981,8 +982,10 @@ def init_logging(gn_env: GNEnvironment) -> None:
         release=tag_name,
         integrations=[
             SqlalchemyIntegration(),
-            RedisIntegration()
+            RedisIntegration(),
+            FlaskIntegration()
         ],
+        traces_sample_rate=0.005
     )
 
     def capture_wrapper(e_info) -> None:
