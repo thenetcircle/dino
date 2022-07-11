@@ -1248,6 +1248,10 @@ def filter_channels_by_acl(activity, channels_with_acls, session_to_use=None):
         if not is_valid:
             continue
 
+        acls = get_acls_for_channel(channel_id)
+        acl_activity = activity_for_get_acl(activity, acls)
+        channel_info['attachments'] = acl_activity['object']['attachments']
+
         filtered_channels.append(channel_info)
 
     return filtered_channels
