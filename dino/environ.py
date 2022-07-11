@@ -829,7 +829,7 @@ def init_observer(gn_env: GNEnvironment) -> None:
 @timeit(logger, 'init request validators')
 def init_request_validators(gn_env: GNEnvironment) -> None:
     from yapsy.PluginManager import PluginManager
-    logging.getLogger('yapsy').setLevel(gn_env.config.get(ConfigKeys.LOG_LEVEL, logging.INFO))
+    logging.getLogger('yapsy').setLevel(logging.DEBUG)
 
     plugin_manager = PluginManager()
     plugin_manager.setPluginPlaces(['dino/validation/events'])
