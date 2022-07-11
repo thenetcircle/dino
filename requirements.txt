@@ -1,4 +1,5 @@
 activitystreams==0.2.1
+blinker==1.4
 cassandra-driver==3.25.0
 emoji==1.6.3
 eventlet==0.30.2

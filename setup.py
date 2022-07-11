@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.21.1'
+version = '0.21.2-dev'
 
 setup(
     name='dino',
@@ -51,5 +51,6 @@ setup(
         'pymitter',
         'psutil',
         'gitpython',
-        'sentry-sdk'
+        'sentry-sdk',
+        'blinker'
     ])
