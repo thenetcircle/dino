@@ -1140,13 +1140,15 @@ def get_user_info_attachments_for(user_id: str, encode_attachments: bool=True, i
     return attachments
 
 
-def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
+def activity_for_get_acl(activity: Activity, acl_values: dict, ignore: set = None) -> dict:
     response = ActivityBuilder.enrich({
         'object': {
             'objectType': 'acl'
         },
         'verb': 'get'
     })
+    if ignore is None:
+        ignore = set()
 
     if hasattr(activity, 'target') and hasattr(activity.target, 'id'):
         response['target'] = {'id': activity.target.id}
@@ -1154,6 +1156,11 @@ def activity_for_get_acl(activity: Activity, acl_values: dict) -> dict:
     response['object']['attachments'] = list()
     for api_action, acls in acl_values.items():
         for acl_type, acl_value in acls.items():
+            # some acls we don't want to send to FE, since FE also filters;
+            # for superusers the server decides what to filter
+            if acl_type in ignore:
+                continue
+
             response['object']['attachments'].append({
                 'objectType': acl_type,
                 'content': acl_value,
@@ -1249,7 +1256,7 @@ def filter_channels_by_acl(activity, channels_with_acls, session_to_use=None):
             continue
 
         acls = get_acls_for_channel(channel_id)
-        acl_activity = activity_for_get_acl(activity, acls)
+        acl_activity = activity_for_get_acl(activity, acls, ignore={"spoken_language"})
         channel_info['attachments'] = acl_activity['object']['attachments']
 
         filtered_channels.append(channel_info)
