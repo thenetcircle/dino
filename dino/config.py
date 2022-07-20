@@ -324,6 +324,7 @@ class ConfigKeys(object):
     REMOTE = 'remote'
     PRIVATE_KEY = 'private_key'
     VALIDATE_WHISPERS = 'validate_whispers'
+    TRACE_SAMPLE_RATE = 'trace_sample_rate'
 
 
 class RedisKeys(object):

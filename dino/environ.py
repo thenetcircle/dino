@@ -983,6 +983,18 @@ def init_logging(gn_env: GNEnvironment) -> None:
     from sentry_sdk.integrations.redis import RedisIntegration
     from sentry_sdk.integrations.flask import FlaskIntegration
 
+    sample_rate = gn_env.config.get(
+        ConfigKeys.TRACE_SAMPLE_RATE,
+        domain=ConfigKeys.LOGGING,
+        default=0.005
+    )
+
+    try:
+        sample_rate = float(sample_rate)
+    except ValueError:
+        sample_rate = 0.005
+
+    logger.info("using sentry tracing sample rate of {}".format(sample_rate))
     sentry_sdk.init(
         dsn=dsn,
         environment=os.getenv(ENV_KEY_ENVIRONMENT),  # TODO: fix DINO_ENVIRONMENT / ENVIRONMENT discrepancy
@@ -993,7 +1005,7 @@ def init_logging(gn_env: GNEnvironment) -> None:
             RedisIntegration(),
             FlaskIntegration()
         ],
-        traces_sample_rate=0.005
+        traces_sample_rate=sample_rate
     )
 
     def capture_wrapper(e_info) -> None:
