@@ -67,7 +67,12 @@ class Database(object):
         if database is not None and database != '':
             params['database'] = database
 
-        return create_engine(URL(**params), pool_recycle=280, pool_size=pool_size)
+        return create_engine(
+            URL(**params),
+            pool_recycle=3600,
+            pool_size=pool_size,
+            pool_pre_ping=True
+        )
 
     def truncate(self):
         DeclarativeBase.metadata.drop_all(self.engine)
