@@ -78,6 +78,11 @@ def create_app():
         cors_allowed_origins=cors
     )
 
+    # TODO: test
+    @socketio.on_error_default
+    def grasp_default_error_handler(e):
+        environ.env.capture_exception(e)
+
     def out_of_scope_join(room_id, sid, namespace):
         _socketio.server.enter_room(sid, room_id, namespace=namespace)
 

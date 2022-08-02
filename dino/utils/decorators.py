@@ -82,20 +82,7 @@ def respond_with(gn_event_name=None, should_disconnect=False, use_callback=True)
                 if should_disconnect and environ.env.config.get(ConfigKeys.DISCONNECT_ON_FAILED_LOGIN, False):
                     eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
 
-            # TODO: switch to only callbacks later; for now do both callback and emit event, to avoid
-            #  breaking old app version which rely on emitting events
-            """
-            # in some cases the callback is enough
-            if use_callback:
-                return response_message
-            else:
-                environ.env.emit(gn_event_name, response_message)
-            """
-
-            response_message = environ.env.response_formatter(status_code, data)
-            environ.env.emit(gn_event_name, response_message)
-            return response_message
-
+            return environ.env.response_formatter(status_code, data)
         return decorator
     return factory
 
