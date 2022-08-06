@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LOG_DIR=/var/log/dino
+LOG_DIR=/data/log/dino
 
 if [ $# -lt 3 ]; then
     echo "usage: $0 <environment> <port> <app/rest/web> [conda environment name (if used), defaults to 'env']"
@@ -42,7 +42,7 @@ if [ $# -gt 3 ]; then
     DINO_CONDA_ENV="$4"
 fi
 
-if [ ! -d /var/log/dino/ ]; then
+if [ ! -d ${LOG_DIR} ]; then
     if ! [ mkdir -p ${LOG_DIR} ]; then
         echo "error: could not create missing log directory '$LOG_DIR'"
         exit 1
