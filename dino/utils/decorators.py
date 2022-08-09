@@ -18,7 +18,6 @@ from dino.config import SessionKeys
 from dino.config import ErrorCodes
 
 logger = logging.getLogger(__name__)
-emit_responses = environ.env.config.get(ConfigKeys.EMIT_RESPONSES, default=True)
 
 
 def timeit(_logger, tag: str):
@@ -86,7 +85,7 @@ def respond_with(gn_event_name=None, should_disconnect=False, use_callback=True)
             response_message = environ.env.response_formatter(status_code, data)
 
             # avoid breaking old app versions by still emitting events
-            if emit_responses:
+            if environ.env.config.get(ConfigKeys.EMIT_RESPONSES, default=True):
                 environ.env.emit(gn_event_name, response_message)
 
             return response_message
