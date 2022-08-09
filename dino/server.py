@@ -18,12 +18,16 @@ from datetime import timedelta
 
 from flask import Flask
 from flask_socketio import SocketIO
+from flask_restful import Api
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from dino import environ
 from dino.config import ConfigKeys
 
 __author__ = 'Oscar Eriksson <oscar@gmail.com>'
+
+from dino.rest.resources.cache_cleanup import CacheCleanupResource
+from dino.rest.resources.dump_cache import DumpCacheResource
 
 logger = logging.getLogger(__name__)
 socket_logger = logging.getLogger('socketio')
@@ -70,6 +74,8 @@ def create_app():
     if cors == ['*']:
         cors = cors[0]
 
+    _api = Api(_app)
+
     _socketio = SocketIO(
         _app,
         logger=socket_logger,
@@ -92,9 +98,12 @@ def create_app():
     environ.env.out_of_scope_leave = out_of_scope_leave
 
     _app.wsgi_app = ProxyFix(_app.wsgi_app)
-    return _app, _socketio
+    return _app, _api, _socketio
 
 
-app, socketio = create_app()
+app, api, socketio = create_app()
+
+api.add_resource(CacheCleanupResource, '/cache-cleanup')
+api.add_resource(DumpCacheResource, '/dump-cache')
 
 import dino.endpoint.sockets
