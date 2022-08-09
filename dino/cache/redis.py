@@ -63,6 +63,31 @@ class MemoryCache(object):
         except:
             return None
 
+    def cleanup(self):
+        """
+        avoid in-memory cache buildup, since keys are only deleted if
+        the expiry time has passed when accessing them
+        """
+        # skip cleaning up keys that expire <30 seconds from now, usually
+        # they will be cleaned up normally through being accessed, or else
+        # they'll be cleaned up next time this method is called
+        now = (datetime.utcnow() + timedelta(seconds=31)).timestamp()
+
+        # in case it gets modified while we iterate
+        values = self.vals.copy()
+        n_keys_before = len(values)
+
+        for key, (expires_at, _) in values.items():
+            if now > expires_at:
+                try:
+                    del self.vals[key]
+                except KeyError:
+                    # already deleted since we copied the dict
+                    pass
+
+        n_keys_after = len(self.vals)
+        logger.info(f"cleaned up {n_keys_before}-{n_keys_after}={n_keys_before-n_keys_after} in-memory keys")
+
     def delete(self, key):
         if key in self.vals:
             del self.vals[key]
@@ -334,14 +359,14 @@ class CacheRedis(object):
         cache_key = RedisKeys.black_list()
         the_cached_list = self.cache.get(cache_key)
         the_cached_list.remove(word)
-        self.cache.set(cache_key, the_cached_list, ttl=60*10)
+        self.cache.set(cache_key, the_cached_list, ttl=TEN_MINUTES)
         self.redis.srem(cache_key, word)
 
     def add_to_black_list(self, word: str) -> None:
         cache_key = RedisKeys.black_list()
         the_cached_list = self.cache.get(cache_key)
         the_cached_list.add(word)
-        self.cache.set(cache_key, the_cached_list, ttl=60*10)
+        self.cache.set(cache_key, the_cached_list, ttl=TEN_MINUTES)
         self.redis.sadd(cache_key, word)
 
     def _set_ban_timestamp(self, key: str, user_id: str, timestamp: str) -> None:
@@ -373,7 +398,7 @@ class CacheRedis(object):
         value = self.redis.get(redis_key)
         if value is not None:
             value = json.loads(str(value, 'utf-8'))
-            self.cache.set(cache_key, value, ttl=int(TEN_MINUTES + random.random()*FIVE_MINUTES))
+            self.cache.set(cache_key, value, ttl=int(FIVE_MINUTES + random.random()*FIVE_MINUTES))
         return value
 
     def set_user_roles(self, user_id: str, roles: dict) -> None:
@@ -381,7 +406,7 @@ class CacheRedis(object):
         redis_key = '%s-%s' % (key, user_id)
         self.redis.set(redis_key, json.dumps(roles))
         self.redis.expire(redis_key, TEN_MINUTES)
-        self.cache.set(redis_key, roles, ttl=int(TEN_MINUTES + random.random()*FIVE_MINUTES))
+        self.cache.set(redis_key, roles, ttl=int(FIVE_MINUTES + random.random()*FIVE_MINUTES))
 
     def reset_user_roles(self, user_id: str) -> None:
         key = RedisKeys.user_roles()
@@ -400,13 +425,13 @@ class CacheRedis(object):
             return None
 
         room_id = str(room_id, 'utf-8')
-        self.cache.set(key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
+        self.cache.set(key, room_id, ttl=TEN_MINUTES)
         return room_id
 
     def set_admin_room(self, room_id: str) -> None:
         key = RedisKeys.admin_room()
         self.redis.set(key, room_id)
-        self.cache.set(key, room_id, ttl=EIGHT_HOURS_IN_SECONDS)
+        self.cache.set(key, room_id, ttl=TEN_MINUTES)
 
     def remove_admin_room(self) -> None:
         key = RedisKeys.admin_room()
@@ -750,7 +775,7 @@ class CacheRedis(object):
 
     def set_users_in_room_for_role(self, room_id: str, role: str, users: dict) -> None:
         key = RedisKeys.users_in_room_for_role(room_id, role)
-        self.cache.set(key, users, ttl=int(TEN_MINUTES + random.random()*TEN_MINUTES))
+        self.cache.set(key, users, ttl=int(FIVE_MINUTES + random.random()*FIVE_MINUTES))
 
     def reset_users_in_room_for_role(self, room_id: str, role: str) -> None:
         key = RedisKeys.users_in_room_for_role(room_id, role)
@@ -762,7 +787,7 @@ class CacheRedis(object):
 
     def set_users_in_channel_for_role(self, channel_id: str, role: str, users: dict) -> None:
         key = RedisKeys.users_in_channel_for_role(channel_id, role)
-        self.cache.set(key, users, ttl=int(TEN_MINUTES + random.random()*TEN_MINUTES))
+        self.cache.set(key, users, ttl=int(FIVE_MINUTES + random.random()*FIVE_MINUTES))
 
     def reset_users_in_channel_for_role(self, channel_id: str, role: str) -> None:
         key = RedisKeys.users_in_channel_for_role(channel_id, role)
@@ -820,7 +845,7 @@ class CacheRedis(object):
 
     def set_all_acls_for_channel(self, channel_id: str, acls: dict) -> None:
         key = RedisKeys.acls_in_channel(channel_id)
-        self.cache.set(key, acls, ttl=int(ONE_HOUR + random.random() * FIVE_MINUTES))
+        self.cache.set(key, acls, ttl=int(FIVE_MINUTES + random.random() * FIVE_MINUTES))
 
     def set_all_acls_for_room(self, room_id: str, acls: dict) -> None:
         key = RedisKeys.acls_in_room(room_id)
@@ -877,7 +902,7 @@ class CacheRedis(object):
             str(reason_code)
         ])
 
-        self.cache.set(cache_key, (allowed, reason_code), ttl=ONE_HOUR)
+        self.cache.set(cache_key, (allowed, reason_code), ttl=TEN_MINUTES)
         self.redis.hset(key, target_user_name, can_whisper_and_reason)
         self.redis.expire(key, EIGHT_HOURS_IN_SECONDS)
 
@@ -1081,7 +1106,7 @@ class CacheRedis(object):
         cache_key = '%s-%s' % (key, room_id)
         self.redis.hset(key, room_id, channel_id)
         self.redis.expire(key, ONE_HOUR)
-        self.cache.set(cache_key, channel_id, ttl=ONE_HOUR)
+        self.cache.set(cache_key, channel_id, ttl=TEN_MINUTES)
 
     def get_channel_exists(self, channel_id):
         key = RedisKeys.channel_exists()
@@ -1117,7 +1142,7 @@ class CacheRedis(object):
         key = RedisKeys.user_names_set()
         cache_key = '{}-{}'.format(key, user_name)
 
-        self.cache.set(cache_key, True, ttl=EIGHT_HOURS_IN_SECONDS)
+        self.cache.set(cache_key, True, ttl=TEN_MINUTES)
         self.redis.sadd(key, user_name)
 
     def get_channel_name(self, channel_id: str) -> str:
@@ -1153,7 +1178,7 @@ class CacheRedis(object):
     def set_room_name(self, room_id: str, room_name: str) -> None:
         key = RedisKeys.room_name_for_id()
         cache_key = '%s-%s-name' % (key, room_id)
-        self.cache.set(cache_key, room_name, ttl=int(TEN_MINUTES + random.random()*FIVE_MINUTES))
+        self.cache.set(cache_key, room_name, ttl=int(FIVE_MINUTES + random.random()*ONE_MINUTE))
         self.redis.hset(key, room_id, room_name)
         self.redis.expire(key, TEN_MINUTES)
 
@@ -1200,7 +1225,7 @@ class CacheRedis(object):
 
         value = str(value, 'utf-8')
         value = set(value.split(","))
-        self.cache.set(key, value, ttl=int(ONE_HOUR + random.random() * ONE_HOUR))
+        self.cache.set(key, value, ttl=int(TEN_MINUTES + random.random() * TEN_MINUTES))
 
         return value
 
@@ -1208,7 +1233,7 @@ class CacheRedis(object):
         key = RedisKeys.room_owners(room_id)
         owners_str = ",".join(owners)
 
-        self.cache.set(key, owners, ttl=int(ONE_HOUR + random.random() * ONE_HOUR))
+        self.cache.set(key, owners, ttl=int(TEN_MINUTES + random.random() * TEN_MINUTES))
         self.redis.set(key, owners_str)
         self.redis.expire(key, int(EIGHT_HOURS_IN_SECONDS + random.random() * EIGHT_HOURS_IN_SECONDS))
 
@@ -1377,7 +1402,7 @@ class CacheRedis(object):
         logger.info('setting last online for {} to {}'.format(user_id, unix_time))
 
         last_online_key = RedisKeys.user_last_online(user_id)
-        self.cache.set(last_online_key, unix_time, ttl=ONE_HOUR * 6)
+        self.cache.set(last_online_key, unix_time, ttl=ONE_HOUR)
 
         p = self.redis.pipeline()
         p.set(last_online_key, unix_time)
