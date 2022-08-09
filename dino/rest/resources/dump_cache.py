@@ -22,5 +22,5 @@ class DumpCacheResource(BaseResource):
     def do_post(self):
         # mock cache doesn't have in-memory cache
         if hasattr(environ.env.cache, "cache"):
-            with open("/tmp/dino-cache-dump.pickle", "w") as f:
+            with open("/tmp/dino-cache-dump.pickle", "wb") as f:
                 pickle.dump(environ.env.cache.cache.vals, f)
