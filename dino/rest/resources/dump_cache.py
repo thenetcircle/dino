@@ -1,9 +1,9 @@
 import logging
-from functools import lru_cache
+import pickle
+from datetime import datetime
 
 from flask import request
 
-from datetime import datetime
 from dino import environ
 from dino.rest.resources.base import BaseResource
 from dino.utils.decorators import timeit
@@ -18,21 +18,9 @@ class DumpCacheResource(BaseResource):
         self.request = request
         self.namespace = "/ws"
 
-    def _get_lru_method(self):
-        return self.get_cache
-
-    def _get_last_cleared(self):
-        return self.last_cleared
-
-    def _set_last_cleared(self, last_cleared):
-        self.last_cleared = last_cleared
-
-    @lru_cache()
-    def get_cache(self):
+    @timeit(logger, "on_rest_dump_cache_cache")
+    def do_post(self):
         # mock cache doesn't have in-memory cache
         if hasattr(environ.env.cache, "cache"):
-            return environ.env.cache.cache.vals
-
-    @timeit(logger, "on_rest_dump_cache_cache")
-    def do_get(self):
-        return self.get_cache()
+            with open("/tmp/dino-cache-dump.pickle", "r") as f:
+                pickle.dump(environ.env.cache.cache.vals, f)
