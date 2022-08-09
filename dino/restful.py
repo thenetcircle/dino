@@ -11,6 +11,7 @@ from dino.rest.resources.ban import BanResource
 from dino.rest.resources.banned import BannedResource
 from dino.rest.resources.blacklist import BlacklistResource
 from dino.rest.resources.broadcast import BroadcastResource
+from dino.rest.resources.cache_cleanup import CacheCleanupResource
 from dino.rest.resources.clear_history import ClearHistoryResource
 from dino.rest.resources.create import CreateRoomResource
 from dino.rest.resources.full_history import FullHistoryResource
@@ -111,3 +112,4 @@ api.add_resource(JoinsInRoomResource, '/count-joins')
 api.add_resource(CreateRoomResource, '/create')
 api.add_resource(JoinRoomResource, '/join')
 api.add_resource(LeaveRoomResource, '/leave')
+api.add_resource(CacheCleanupResource, '/cache-cleanup')

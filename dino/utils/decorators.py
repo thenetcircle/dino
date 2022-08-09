@@ -18,6 +18,7 @@ from dino.config import SessionKeys
 from dino.config import ErrorCodes
 
 logger = logging.getLogger(__name__)
+emit_responses = environ.env.config.get(ConfigKeys.EMIT_RESPONSES, default=True)
 
 
 def timeit(_logger, tag: str):
@@ -82,7 +83,13 @@ def respond_with(gn_event_name=None, should_disconnect=False, use_callback=True)
                 if should_disconnect and environ.env.config.get(ConfigKeys.DISCONNECT_ON_FAILED_LOGIN, False):
                     eventlet.spawn_after(seconds=1, func=_delayed_disconnect, sid=environ.env.request.sid)
 
-            return environ.env.response_formatter(status_code, data)
+            response_message = environ.env.response_formatter(status_code, data)
+
+            # avoid breaking old app versions by still emitting events
+            if emit_responses:
+                environ.env.emit(gn_event_name, response_message)
+
+            return response_message
         return decorator
     return factory
 

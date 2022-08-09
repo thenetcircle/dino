@@ -278,6 +278,7 @@ class ConfigKeys(object):
     SENDER_CAN_DELETE = 'sender_can_delete'
     DELIVERY_GUARANTEE = 'delivery_guarantee'
     WARMUP_DAYS = 'warmup_days'
+    EMIT_RESPONSES = 'emit_responses'
 
     ENRICH = 'enrich'
     TITLE = 'title'
