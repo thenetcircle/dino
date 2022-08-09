@@ -14,6 +14,7 @@ from dino.rest.resources.broadcast import BroadcastResource
 from dino.rest.resources.cache_cleanup import CacheCleanupResource
 from dino.rest.resources.clear_history import ClearHistoryResource
 from dino.rest.resources.create import CreateRoomResource
+from dino.rest.resources.dump_cache import DumpCacheResource
 from dino.rest.resources.full_history import FullHistoryResource
 from dino.rest.resources.heartbeat import HeartbeatResource
 from dino.rest.resources.history import HistoryResource
@@ -113,3 +114,4 @@ api.add_resource(CreateRoomResource, '/create')
 api.add_resource(JoinRoomResource, '/join')
 api.add_resource(LeaveRoomResource, '/leave')
 api.add_resource(CacheCleanupResource, '/cache-cleanup')
+api.add_resource(DumpCacheResource, '/dump-cache')
