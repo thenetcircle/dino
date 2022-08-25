@@ -11,6 +11,7 @@ from datetime import timedelta
 from typing import Set
 from typing import Union
 
+import pytz
 from activitystreams import Activity
 from activitystreams import parse as as_parser
 from eventlet import spawn_after
@@ -23,12 +24,10 @@ from dino.config import ConfigKeys
 from dino.config import ErrorCodes
 from dino.config import SessionKeys
 from dino.config import UserKeys
-from dino.exceptions import ChannelExistsException, InvalidAclTypeException
 from dino.exceptions import NoOriginRoomException
 from dino.exceptions import NoSuchRoomException
 from dino.exceptions import NoSuchUserException
 from dino.exceptions import NoTargetRoomException
-from dino.exceptions import RoomExistsException
 from dino.exceptions import UserExistsException
 from dino.utils.activity_helper import ActivityBuilder
 from dino.utils.blacklist import BlackListChecker
@@ -149,14 +148,22 @@ def is_a_user_name(user_name: str) -> bool:
     return exists
 
 
-def add_last_online_at_to_event(data: dict):
-    try:
-        last_online_at = environ.env.db.get_last_online(data["actor"]["id"])
-        if last_online_at is not None:
-            data["updated"] = datetime.utcfromtimestamp(last_online_at).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-    except Exception as e:
-        logger.error("could not get last online time, ignoring: {}".format(str(e)))
-        logger.exception(e)
+def add_last_online_at_to_event(data: dict, use_now: bool = False):
+    last_online_at = None
+
+    # when disconnecting, we'll send the event before setting the user offline, so the cached
+    # last_online_at will not have been updated yet, so use now() instead
+    if use_now:
+        last_online_at = datetime.utcnow().replace(tzinfo=pytz.utc).timestamp()
+    else:
+        try:
+            last_online_at = environ.env.db.get_last_online(data["actor"]["id"])
+        except Exception as e:
+            logger.error("could not get last online time, ignoring: {}".format(str(e)))
+            logger.exception(e)
+
+    if last_online_at is not None:
+        data["updated"] = datetime.utcfromtimestamp(last_online_at).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
 
 
 def get_whisper_users_from_message(message) -> set:

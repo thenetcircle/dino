@@ -357,6 +357,7 @@ class Driver(object):
                     """
             )
 
+        """
         # create keyspace and tables for tests
         create_test_key_space()
         set_test_key_space()
@@ -368,6 +369,7 @@ class Driver(object):
         set_key_space()
         create_tables()
         create_views()
+        """
         prepare_statements()
 
     def msg_insert(self, msg_id, from_user_id, from_user_name, target_id, target_name, body, domain, sent_time, channel_id, channel_name, deleted=False) -> None:
