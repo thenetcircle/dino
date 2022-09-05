@@ -1089,7 +1089,7 @@ def activity_for_room_removed(activity: Activity, room_name: str, reason: str=No
     return act
 
 
-def activity_for_rename_room(user_id: str, user_name: str, room_id: str, room_name: str) -> dict:
+def activity_for_rename_room(user_id: str, user_name: str, room_id: str, room_name: str, old_room_name: str) -> dict:
     act = ActivityBuilder.enrich({
         'actor': {
             'id': user_id,
@@ -1098,6 +1098,7 @@ def activity_for_rename_room(user_id: str, user_name: str, room_id: str, room_na
         'target': {
             'id': room_id,
             'displayName': room_name,
+            'summary': old_room_name,
             'objectType': 'room'
         },
         'verb': 'rename'

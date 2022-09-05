@@ -418,11 +418,12 @@ def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
 def on_rename_room(data: dict, activity: Activity) -> (int, Union[str, None]):
     room_id = activity.target.id
     new_room_name = activity.target.display_name
+    old_room_name = utils.b64e(environ.env.db.get_room_name(room_id))
 
     channel_id = utils.get_channel_for_room(room_id)
 
     rename_activity = utils.activity_for_rename_room(
-            activity.actor.id, activity.actor.display_name, room_id, new_room_name)
+            activity.actor.id, activity.actor.display_name, room_id, new_room_name, old_room_name)
 
     environ.env.db.rename_room(channel_id, room_id, utils.b64d(new_room_name))
     environ.env.emit('gn_room_renamed', rename_activity, broadcast=True, include_self=True, namespace='/ws')

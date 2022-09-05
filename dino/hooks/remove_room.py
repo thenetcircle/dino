@@ -1,17 +1,24 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+import logging
 
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+from dino import environ
+from dino.config import ConfigKeys
+
+logger = logging.getLogger(__name__)
 
 
 class OnRemoveRoomHooks(object):
-    pass
+    @staticmethod
+    def publish_event(arg: tuple) -> None:
+        _, activity = arg
+
+        if len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING, False):
+            # assume we're testing
+            return
+
+        logger.debug('publishing remove room event to external queue: %s' % str(activity))
+        environ.env.publish(activity, external=True)
+
+
+@environ.env.observer.on('on_remove_room')
+def _on_remove_room(arg) -> None:
+    OnRemoveRoomHooks.publish_event(arg)
