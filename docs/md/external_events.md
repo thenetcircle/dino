@@ -1,5 +1,64 @@
 External events are activity streams send to the configured external queue (e.g. RabbitMQ).
 
+## A room was renamed
+
+Example of activity posted to the external queue:
+
+```json
+{
+    "actor": {
+        "displayName": "username",
+        "id": "1243"
+    },
+    "target": {
+        "displayName": "Y29vbCBndXlz",
+        "summary": "Y29vbCBndXlz",
+        "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7",
+        "objectType": "room"
+    },
+    "verb": "rename",
+    "id": "<server-generated UUID>",
+    "published": "<server-generated timestamp, RFC3339 format>"
+}
+```
+
+* actor.id: ID of the user who renamed the room, or 0 if from admin interface,
+* actor.displayName: name of the user who renamed the room, or "admin" if from admin interface,
+* target.displayName: base64 encoded new room name,
+* target.summary: base64 encoded old room name,
+* target.id: UUID of the room.
+
+## A room was removed
+
+Example of activity posted to the external queue:
+
+```json
+{
+    "actor": {
+        "displayName": "username",
+        "id": "1243"
+    },
+    "target": {
+        "displayName": "Y29vbCBndXlz",
+        "summary": "Y29vbCBndXlz",
+        "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7",
+        "objectType": "room"
+    },
+    "object": {
+        "content": "<base64 encoded reason for room removal>"
+    },
+    "verb": "removed",
+    "id": "<server-generated UUID>",
+    "published": "<server-generated timestamp, RFC3339 format>"
+}
+```
+
+* actor.id: ID of the user who removed the room, or 0 if from admin interface,
+* actor.displayName: name of the user who removed the room, or "admin" if from admin interface,
+* target.displayName: base64 encoded room name,
+* target.id: UUID of the room,
+* object.content: base64 reason for room removal.
+
 ## User was kicked from a room
 
 Example of activity posted to the external queue:
@@ -233,7 +292,7 @@ level of users. Example activity:
         "id": "<user ID>",
         "displayName": "<base64 encoded username>"
     },
-    "object" {
+    "object": {
         "id": "<uuid of the message that was sent>"
     },
     "verb": "send",
