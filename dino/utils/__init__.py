@@ -1123,7 +1123,8 @@ def activity_for_remove_room(user_id: str, user_name: str, room_id: str, room_na
 
     if reason is not None and len(reason.strip()) > 0:
         act['object'] = {
-            'content': b64e(reason)
+            'content': b64e(reason),
+            'objectType': 'reason'
         }
 
     return act
