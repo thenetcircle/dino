@@ -1,1 +1,16 @@
 site_name: Dino
+pages:
+- [index.md, Home]
+- [md/installation.md, Installation]
+- [md/getting_started.md, Getting Started]
+- [md/invisibility.md, Invisibility]
+- [md/usage.md, Usage]
+- [md/api.md, API]
+- [md/web.md, Web UI API]
+- [md/events.md, Events]
+- [md/external_events.md, External Events]
+- [md/acl.md, ACL]
+- [md/rest.md, REST]
+- [md/wio.md, Who Is Online?]
+- [md/storage.md, Storage]
+theme: readthedocs
