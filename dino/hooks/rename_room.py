@@ -21,11 +21,8 @@ class OnRenameRoomHooks(object):
             'target': {
                 'id': activity.target.id,
                 'displayName': activity.target.display_name,
-                'objectType': activity.target.object_type
-            },
-            'object': {
-                'content': activity.object.content,
-                'objectType': activity.object.object_type
+                'objectType': activity.target.object_type,
+                'summary': activity.target.summary
             },
             'verb': activity.verb,
             'provider': {

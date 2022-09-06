@@ -21,8 +21,11 @@ class OnRemoveRoomHooks(object):
             'target': {
                 'id': activity.target.id,
                 'displayName': activity.target.display_name,
-                'summary': activity.target.summary,
                 'objectType': activity.target.object_type
+            },
+            'object': {
+                'content': activity.object.content,
+                'objectType': activity.object.object_type
             },
             'verb': activity.verb,
             'provider': {
