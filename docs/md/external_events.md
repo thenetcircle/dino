@@ -45,7 +45,8 @@ Example of activity posted to the external queue:
         "objectType": "room"
     },
     "object": {
-        "content": "<base64 encoded reason for room removal>"
+        "content": "<base64 encoded reason for room removal>",
+        "objectType": "reason"
     },
     "verb": "removed",
     "id": "<server-generated UUID>",
