@@ -1,232 +1,263 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>REST API - Dino</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Rest - Dino</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
 
-  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "REST API";
-    var mkdocs_page_input_path = "md/rest.md";
-    var mkdocs_page_url = null;
-  </script>
-  
-  <script src="../../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
-</head>
+        <script src="../../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
 
-<body class="wy-body-for-nav" role="document">
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Dino</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-  <div class="wy-grid-for-nav">
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href="../.." class="nav-link">Dino</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Md <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../acl/" class="dropdown-item">Acl</a>
+</li>
+                                    
+<li>
+    <a href="../api/" class="dropdown-item">Api</a>
+</li>
+                                    
+<li>
+    <a href="../events/" class="dropdown-item">Events</a>
+</li>
+                                    
+<li>
+    <a href="../external_events/" class="dropdown-item">External events</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting started</a>
+</li>
+                                    
+<li>
+    <a href="../installation/" class="dropdown-item">Installation</a>
+</li>
+                                    
+<li>
+    <a href="../invisibility/" class="dropdown-item">Invisibility</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Rest</a>
+</li>
+                                    
+<li>
+    <a href="../storage/" class="dropdown-item">Storage</a>
+</li>
+                                    
+<li>
+    <a href="../usage/" class="dropdown-item">Create rooms and send messages using the room _name_ instead of _ID_</a>
+</li>
+                                    
+<li>
+    <a href="../web/" class="dropdown-item">Web</a>
+</li>
+                                    
+<li>
+    <a href="../wio/" class="dropdown-item">Wio</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../invisibility/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../storage/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
 
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-      <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> Dino</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
-  </form>
-</div>
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../..">Home</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../installation/">Installation</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../getting_started/">Getting Started</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../invisibility/">Invisibility</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../usage/">Usage</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../api/">API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../web/">Web UI API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../events/">Events</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../external_events/">External Events</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../acl/">ACL</a>
-	    </li>
-          
-            <li class="toctree-l1 current">
-		
-    <a class="current" href="./">REST API</a>
-    <ul class="subnav">
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
             
-    <li class="toctree-l2"><a href="#get-acl">GET /acl</a></li>
-    
-
-    <li class="toctree-l2"><a href="#get-rooms">GET /rooms</a></li>
-    
-
-    <li class="toctree-l2"><a href="#get-rooms-acl">GET /rooms-acl</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-acl">POST /acl</a></li>
-    
-
-    <li class="toctree-l2"><a href="#get-history">GET /history</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-heartbeat">POST /heartbeat</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-full-history">POST /full-history</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-broadcast">POST /broadcast</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-blacklist">POST /blacklist</a></li>
-    
-
-    <li class="toctree-l2"><a href="#delete-blacklist">DELETE /blacklist</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-set-admin">POST /set-admin</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-remove-admin">POST /remove-admin</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-ban">POST /ban</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-kick">POST /kick</a></li>
-    
-
-    <li class="toctree-l2"><a href="#get-roles">GET /roles</a></li>
-    
-
-    <li class="toctree-l2"><a href="#get-count-joins">GET /count-joins</a></li>
-    
-
-    <li class="toctree-l2"><a href="#get-users-in-rooms">GET /users-in-rooms</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-create">POST /create</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-join">POST /join</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-leave">POST /leave</a></li>
-    
-
-    <li class="toctree-l2"><a href="#get-rooms-for-users">GET /rooms-for-users</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-delete-messages">POST /delete-messages</a></li>
-    
-
-    <li class="toctree-l2"><a href="#get-banned">GET /banned</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-status">POST /status</a></li>
-    
-
-    <li class="toctree-l2"><a href="#post-send">POST /send</a></li>
-    
-
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../wio/">Who Is Online?</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../storage/">Storage</a>
-	    </li>
-          
+            <li class="nav-item" data-level="2"><a href="#get-acl" class="nav-link">GET /acl</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#get-rooms" class="nav-link">GET /rooms</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#get-rooms-acl" class="nav-link">GET /rooms-acl</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-acl" class="nav-link">POST /acl</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#get-history" class="nav-link">GET /history</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-heartbeat" class="nav-link">POST /heartbeat</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-full-history" class="nav-link">POST /full-history</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-broadcast" class="nav-link">POST /broadcast</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-blacklist" class="nav-link">POST /blacklist</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#delete-blacklist" class="nav-link">DELETE /blacklist</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-set-admin" class="nav-link">POST /set-admin</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-remove-admin" class="nav-link">POST /remove-admin</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-ban" class="nav-link">POST /ban</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-kick" class="nav-link">POST /kick</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#get-roles" class="nav-link">GET /roles</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#get-count-joins" class="nav-link">GET /count-joins</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#get-users-in-rooms" class="nav-link">GET /users-in-rooms</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-create" class="nav-link">POST /create</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-join" class="nav-link">POST /join</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-leave" class="nav-link">POST /leave</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#get-rooms-for-users" class="nav-link">GET /rooms-for-users</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-delete-messages" class="nav-link">POST /delete-messages</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#get-banned" class="nav-link">GET /banned</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-status" class="nav-link">POST /status</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#post-send" class="nav-link">POST /send</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
         </ul>
-      </div>
-      &nbsp;
-    </nav>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">Dino</a>
-      </nav>
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../..">Docs</a> &raquo;</li>
-    
-      
-    
-    <li>REST API</li>
-    <li class="wy-breadcrumbs-aside">
-      
-    </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main">
-            <div class="section">
-              
-                <h2 id="get-acl">GET /acl</h2>
+<h2 id="get-acl">GET /acl</h2>
 <p>Retrieve all ACLs for all non-temporary rooms in all channels.</p>
 <p>Example response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: {
         &quot;status&quot;: &quot;OK&quot;,
         &quot;data&quot;: {
@@ -249,11 +280,10 @@
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="get-rooms">GET /rooms</h2>
 <p>Returns a list of all rooms currently existing. Result is cached for 1 minute and might thus not be always up-to-date.</p>
 <p>Example response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: [{
         &quot;name&quot;: &quot;default&quot;,
         &quot;status&quot;: &quot;static&quot;,
@@ -273,20 +303,18 @@
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="get-rooms-acl">GET /rooms-acl</h2>
 <p>Returns a list of all rooms currently existing, that a specific user is 
 allowed to join (if a user is not allowed to list a channel, no rooms 
 from that channel will be included either). Result is cached for 1 
 minute per user id and might thus not be always up-to-date.</p>
 <p>Request:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;user_id&quot;: &quot;1234&quot;
 }
 </code></pre>
-
 <p>Response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: [{
         &quot;status&quot;: &quot;static&quot;,
         &quot;room_id&quot;: &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
@@ -312,39 +340,35 @@ minute per user id and might thus not be always up-to-date.</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="post-acl">POST /acl</h2>
 <p>Request:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;room_id&quot;: &quot;a81e4726-784a-11e9-bbdd-bbfdfd886868&quot;,
     &quot;action&quot;: &quot;autojoin&quot;,
     &quot;acl_type&quot;: &quot;gender&quot;,
     &quot;acl_value&quot;: &quot;age=35,(gender=f|membership=normal)&quot;
 }
 </code></pre>
-
 <p>For more examples on the format of the <code>acl_value</code> field, see the <a href="../acl/">ACL</a> section. </p>
 <p>Response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: {
         &quot;status&quot;: &quot;OK&quot;
     }, 
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="get-history">GET /history</h2>
 <p>Request contains info on what time slice, target, origin to get history for:</p>
-<pre><code class="json">    {
+<pre><code class="language-json">    {
         &quot;from_time&quot;: &quot;2016-12-26T08:39:54Z&quot;,
         &quot;to_time&quot;: &quot;2016-12-28T08:39:54Z&quot;,
         &quot;user_id&quot;: &quot;124352&quot;,
         &quot;room_id&quot;: &quot;dedf878e-b25d-4713-8058-20c6f0547c59&quot; # optional
     }
 </code></pre>
-
 <p>Response would be something similar to the following:</p>
-<pre><code class="json">    {
+<pre><code class="language-json">    {
         &quot;status_code&quot;: 200,
         &quot;data&quot;: [{
             &quot;deleted&quot;: false,
@@ -385,7 +409,6 @@ minute per user id and might thus not be always up-to-date.</p>
         }]
     }
 </code></pre>
-
 <ul>
 <li>If neither <code>from_time</code> nor <code>to_time</code> is specified, the last 7 days will be used as limit,</li>
 <li>If <code>from_time</code> is specified but no <code>to_time</code>, <code>to_time</code> will be <code>from_time + 7 days</code>,</li>
@@ -400,33 +423,30 @@ instead.</p>
 <p>With regular <code>/heartbeat</code> calls, a user will not be marked as offline until no more heartbeats are being received.</p>
 <p>Multiple user IDs can be batched together into a single <code>/heartbeat</code> call.</p>
 <p>Request:</p>
-<pre><code class="json">[
+<pre><code class="language-json">[
     &quot;&lt;user ID 1&gt;&quot;,
     &quot;&lt;user ID 2&gt;&quot;,
     &quot;&lt;user ID n&gt;&quot;
 ]
 </code></pre>
-
 <p>Response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: {
         &quot;status&quot;: &quot;OK&quot;
     }, 
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="post-full-history">POST /full-history</h2>
 <p>To get all messages sent by a user, call this endpoint with the following data:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;user_id&quot;: 1971
     &quot;from_time&quot;: &quot;2016-12-26T08:39:54Z&quot;, # optional (other needed if this one is specified)
     &quot;to_time&quot;: &quot;2016-12-28T08:39:54Z&quot; # optional  (other needed if this one is specified)
 }
 </code></pre>
-
 <p>Response looks like this:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: [{
         &quot;message_id&quot;: &quot;07bacdd8-42e6-4ace-acee-8d200dd14bfc&quot;,
@@ -443,26 +463,23 @@ instead.</p>
     }, {...}]
 }
 </code></pre>
-
 <h2 id="post-broadcast">POST /broadcast</h2>
 <p>Broadcasts a message to everyone on the server. Request needs the <code>body</code> and <code>verb</code> keys:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;body&quot;: &quot;aGkgdGhlcmU=&quot;,
     &quot;verb&quot;: &quot;broadcast&quot;
 }
 </code></pre>
-
 <p>Body needs to be in base64. The verb may be anything, it's up to clients to handle it.</p>
 <p>It's also possible to broadcast to only a single room, by specifying a <code>room_name</code> (in base64):</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;body&quot;: &quot;aGkgdGhlcmU=&quot;,
     &quot;verb&quot;: &quot;broadcast&quot;,
     &quot;room_name&quot;: &quot;ZGU=&quot;
 }
 </code></pre>
-
 <p>Event sent to clients:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;content&quot;: &quot;aGkgdGhlcmU=&quot;,
     &quot;published&quot;: &quot;2021-11-22T02:48:38Z&quot;,
     &quot;target&quot;: {
@@ -481,82 +498,71 @@ instead.</p>
     }
 }
 </code></pre>
-
 <p>Note, if no <code>room_name</code> is specified, there's no <code>target</code> in the above event to clients.</p>
 <h2 id="post-blacklist">POST /blacklist</h2>
 <p>Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;word&quot;: &quot;YmFkd29yZA==&quot;
 }
 </code></pre>
-
 <p>Response if OK:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="delete-blacklist">DELETE /blacklist</h2>
 <p>Remove a matching word from the blacklist. Encode the word in base64 first, then post a request on the following format:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;word&quot;: &quot;YmFkd29yZA==&quot;
 }
 </code></pre>
-
 <p>The sent word will be compared lowercase to find  matching lowercased word in the blacklist and remove all words with
 and exact match (when both lowercase).</p>
 <p>Response if OK:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="post-set-admin">POST /set-admin</h2>
 <p>Set a user as a global moderator.</p>
 <p>Request contains user ID and the user's name (in case the user doesn't exist):</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;id&quot;: &quot;1234&quot;,
     &quot;name&quot;: &quot;myuser&quot;
 }
 </code></pre>
-
 <p>Response if OK:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <p>Or if any errors:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: &quot;no name parameter in request&quot;, 
     &quot;status_code&quot;: 500
 }
 </code></pre>
-
 <h2 id="post-remove-admin">POST /remove-admin</h2>
 <p>Remove global moderator status for a user.</p>
 <p>Request contains the user's ID only:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;id&quot;: &quot;1234&quot;
 }
 </code></pre>
-
 <p>Response if OK:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <p>Or if any errors:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: &quot;no id parameter in request&quot;, 
     &quot;status_code&quot;: 500
 }
 </code></pre>
-
 <h2 id="post-ban">POST /ban</h2>
 <p>Request contains info on who to ban where. For banning globally:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;1234&quot;: {
         &quot;duration&quot;: &quot;24h&quot;,
         &quot;reason&quot;: &quot;&lt;optional base64 encoded free-text&gt;&quot;,
@@ -566,9 +572,8 @@ and exact match (when both lowercase).</p>
     }
 }
 </code></pre>
-
 <p>Can also ban multiple users at the same time:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;&lt;user id&gt;&quot;: {
         &quot;duration&quot;: &quot;24h&quot;,
         &quot;type&quot;: &quot;global&quot;,
@@ -592,7 +597,6 @@ and exact match (when both lowercase).</p>
     }
 }
 </code></pre>
-
 <p>The <code>name</code> field must be base64 encoded. The field is also optional and is only used if a ban request is received for 
 a user that doesn't exist on the server, e.g. if the user never logged in before it will not exist. If the name is 
 not specified, and the user has to be created before banning, the user ID will be set as the name (later when the user 
@@ -603,23 +607,21 @@ login the real username will overwrite this).</p>
 seconds). Negative or 0 durations are not allowed.</p>
 <p>When type is set to <code>global</code>, no target is specified (meaning user is banned from the whole chat server).</p>
 <p>Response will be something like the following (if failure):</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status&quot;: &quot;FAIL&quot;,
     &quot;message&quot;: &quot;missing target id for user id &lt;user id&gt; and request &lt;the request json&gt;&quot;
 }
 </code></pre>
-
 <p>The banning is done async so if any of the provided user bans has invalid parameters the response will only tell you the
 first non-valid parameter and for which user ID.</p>
 <p>For success the response looks like this:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status&quot;: &quot;OK&quot;
 }
 </code></pre>
-
 <h2 id="post-kick">POST /kick</h2>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;&lt;user id&gt;&quot;: {
         &quot;target&quot;: &quot;&lt;room uuid&gt;&quot;,
         &quot;reason&quot;: &quot;&lt;option reason field, base64 encoded&gt;&quot;,
@@ -637,11 +639,10 @@ first non-valid parameter and for which user ID.</p>
     }
 }
 </code></pre>
-
 <p>The "reason" field must be base64 encoded. If the "admin_id" field is specified it will be used, if not the default ID
 "0" will be used.</p>
 <p>Response will be something like the following:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;&lt;user id&gt;&quot;: {
         &quot;status&quot;: &quot;OK&quot;
     },
@@ -654,19 +655,17 @@ first non-valid parameter and for which user ID.</p>
     }
 }
 </code></pre>
-
 <h2 id="get-roles">GET /roles</h2>
 <p>Request contains a list of user IDs, e.g.:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;users&quot;: [
         &quot;124352&quot;,
         &quot;5678&quot;
     ]
 }
 </code></pre>
-
 <p>Response would be something similar to the following:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: {
         &quot;124352&quot;: {
             &quot;room&quot;: {
@@ -697,7 +696,6 @@ first non-valid parameter and for which user ID.</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <p>Possible roles are:</p>
 <ul>
 <li>global superuser (superuser)</li>
@@ -713,25 +711,23 @@ rooms.</p>
 <p>Count the cumulative number of joins for a room. Used for counting the number of "views" a live stream has had. The 
 count is cached for 8 hours, then fetched from db if requested again.</p>
 <p>Using curl:</p>
-<pre><code class="sh">curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d @- &lt;&lt; EOF
+<pre><code class="language-sh">curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d @- &lt;&lt; EOF
 {
     &quot;room_ids&quot;: [&quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;]
 }
 EOF
 </code></pre>
-
 <p>Instead of <code>room_ids</code>, we can use <code>room_names</code> (base64 encoded) instead (only works for rooms in the default channel, 
 e.g. created using <code>POST /create</code>):</p>
-<pre><code class="sh">curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d @- &lt;&lt; EOF
+<pre><code class="language-sh">curl localhost:7300/count-joins -X GET -H 'Content-Type: application/json' -d @- &lt;&lt; EOF
 {
     &quot;room_names&quot;: [&quot;c29tZSByb29tIG5hbWUK&quot;]
 }
 EOF
 </code></pre>
-
 <p>If room IDs were used in the request, the keys in the response will also be room IDs, but if room names were used, 
 the base64 encoded room name will be the key:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
   &quot;status_code&quot;: 200, 
   &quot;data&quot;: {
     &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;: 5,
@@ -740,10 +736,9 @@ the base64 encoded room name will be the key:</p>
   }
 }
 </code></pre>
-
 <h2 id="get-users-in-rooms">GET /users-in-rooms</h2>
 <p>Request contains a list of room IDs, and an optional <code>only_count</code> field (default is <code>false</code>), e.g.:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;room_ids&quot;: [
         &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;,
         &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;
@@ -751,20 +746,18 @@ the base64 encoded room name will be the key:</p>
     &quot;only_count&quot;: false
 }
 </code></pre>
-
 <p>Instead of room IDs, we can specify room names (base64 encoded):</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;room_names&quot;: [
         &quot;c29tZSByb29tIG5hbWUK&quot;
     ]
 }
 </code></pre>
-
 <p>Response would be all visible users in the specified rooms, with their user infos attached (<code>roles</code> is a 
 comma-separated list of roles, e.g. <code>owner,globalmod</code>).</p>
 <p>If room IDs were used in the request, the keys in the response will also be room IDs, but if room names were used, 
 the base64 encoded room name will be the key:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: {
         &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;: [{
             &quot;id&quot;: &quot;898121&quot;,
@@ -787,9 +780,8 @@ the base64 encoded room name will be the key:</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <p>Response if <code>only_count</code> is <code>true</code>:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;data&quot;: {
         &quot;2ddd90ac-1d44-4af5-9c7d-b9191bc35675&quot;: 5,
         &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;: 2
@@ -797,12 +789,11 @@ the base64 encoded room name will be the key:</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="post-create">POST /create</h2>
 <p>Creates and joins the room (if specified users are online). Rooms created using this API will always be in the default
 channel.</p>
 <p>Example request:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;user_ids&quot;: [
         &quot;1234&quot;,
         &quot;5678&quot;
@@ -812,9 +803,8 @@ channel.</p>
     &quot;owner_name&quot;: &quot;&lt;a user name, in base64&gt;&quot;
 }
 </code></pre>
-
 <p>Example response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;room_id&quot;: &quot;01eafcf0-4ab2-48bb-8ff5-833b056d2727&quot;,
@@ -823,14 +813,13 @@ channel.</p>
     }
 }
 </code></pre>
-
 <h2 id="post-join">POST /join</h2>
 <p>Joins the room (if specified users are online). Only works for rooms in the default channel (e.g. 
 rooms created using the <code>POST /create</code> API).</p>
 <p>If <code>room_id</code> is specified, it will be used, otherwise, the <code>room_name</code> will be used to lookup the 
 correct room in the default channel.</p>
 <p>Example request:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;user_ids&quot;: [
         &quot;1234&quot;,
         &quot;5678&quot;
@@ -839,20 +828,18 @@ correct room in the default channel.</p>
     &quot;room_name&quot;: &quot;&lt;a room name, in base64&gt;&quot;
 }
 </code></pre>
-
 <p>Example response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="post-leave">POST /leave</h2>
 <p>Leaves the room (if specified users are online). Only works for rooms in the default channel (e.g. 
 rooms created using the <code>POST /create</code> API).</p>
 <p>If <code>room_id</code> is specified, it will be used, otherwise, the <code>room_name</code> will be used to lookup the 
 correct room in the default channel.</p>
 <p>Example request:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;user_ids&quot;: [
         &quot;1234&quot;,
         &quot;5678&quot;
@@ -861,25 +848,22 @@ correct room in the default channel.</p>
     &quot;room_name&quot;: &quot;&lt;a room name, in base64&gt;&quot;
 }
 </code></pre>
-
 <p>Example response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="get-rooms-for-users">GET /rooms-for-users</h2>
 <p>Request contains a list of user IDs, e.g.:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;users&quot;: [
         &quot;1234&quot;,
         &quot;5678&quot;
     ]
 }
 </code></pre>
-
 <p>Response would be all rooms each user is currently in (room names and channel names are base64 encoded):</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;1234&quot;: [{
         &quot;room_id&quot;: &quot;efeca2fe-ba93-11e6-bc9a-4f6f56293063&quot;,
         &quot;room_name&quot;: &quot;b2gsIHNvIHlvdSBhY3R1YWxseSBjaGVja2VkIHdoYXQgaXMgd2FzPw==&quot;,
@@ -894,17 +878,15 @@ correct room in the default channel.</p>
     }]
 }
 </code></pre>
-
 <h2 id="post-delete-messages">POST /delete-messages</h2>
 <p>Used to delete ALL messages for a specific user ID.</p>
 <p>Request body looks like this:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;id&quot;: &quot;&lt;user ID&gt;&quot;
 }
 </code></pre>
-
 <p>Example response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200, 
     &quot;data&quot;: {
         &quot;success&quot;: 4, 
@@ -913,18 +895,16 @@ correct room in the default channel.</p>
     }
 }
 </code></pre>
-
 <p>Or if other kinds of failures:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 500, 
     &quot;data&quot;: &quot;&lt;error message, e.g. 'no id parameter in request'&gt;&quot;
 }
 </code></pre>
-
 <h2 id="get-banned">GET /banned</h2>
 <p>No data required in request.</p>
 <p>Response is all banned users, separated by channel, room and globally. Example response:</p>
-<pre><code class="json">    {
+<pre><code class="language-json">    {
         &quot;channels&quot;: {},
         &quot;global&quot;: {
             &quot;185626&quot;: {
@@ -947,7 +927,6 @@ correct room in the default channel.</p>
         }
     }
 </code></pre>
-
 <p>The "timestamp" in the response is the UTC timestamp for when the ban will expire. Names or channels, rooms and users
 are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the rooms, same for channels, while for users
 it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
@@ -955,26 +934,24 @@ keys.</p>
 <h2 id="post-status">POST /status</h2>
 <p>Set the online status or visibility status of a user.</p>
 <p>Request contains:</p>
-<pre><code class="json">{   
+<pre><code class="language-json">{   
     &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
     &quot;status&quot;: &quot;&lt;one of online/offline/invisible/visible&gt;&quot;,
     &quot;stage&quot;: &quot;&lt;one of login/status&gt;&quot;
 }   
 </code></pre>
-
 <p>Example response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="post-send">POST /send</h2>
 <p>If <code>target_id</code> is not specified in the request body, but <code>target_name</code> is, Dino will try to 
 send the message to the room with that name, but it only works for rooms that are in the 
 default channel (rooms created using <code>POST /create</code> are always in the default channel).</p>
 <p>The <code>target_name</code> field (if specified), must be base64 encoded.</p>
 <p>Request contains:</p>
-<pre><code class="json">{   
+<pre><code class="language-json">{   
     &quot;user_id&quot;: &quot;&lt;user ID&gt;&quot;,
     &quot;user_name&quot;: &quot;&lt;username, in base64&gt;&quot;,
     &quot;object_type&quot;: &quot;&lt;room/private&gt;&quot;,
@@ -983,15 +960,13 @@ default channel (rooms created using <code>POST /create</code> are always in the
     &quot;content&quot;: &quot;&lt;the body to send, in base64&gt;&quot;
 }   
 </code></pre>
-
 <p>Example response:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <p>User/room will get something similar to this in a <code>message</code> event:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;id&quot;: &quot;1d805e18-a773-11e8-a65f-8b33c55c9e1b&quot;,
     &quot;published&quot;: &quot;2017-01-26T04:58:31Z&quot;,
     &quot;actor&quot;: {
@@ -1008,53 +983,81 @@ default channel (rooms created using <code>POST /create</code> are always in the
         &quot;content&quot;: &quot;&lt;the body to send, in base64&gt;&quot;
     }
 }
-</code></pre>
-              
+</code></pre></div>
             </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../wio/" class="btn btn-neutral float-right" title="Who Is Online?">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../acl/" class="btn btn-neutral" title="ACL"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-    
-  </div>
-
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-</footer>
-      
         </div>
-      </div>
 
-    </section>
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js" defer></script>
+        <script src="../../search/main.js" defer></script>
 
-  </div>
-
-  <div class="rst-versions" role="note" style="cursor: pointer">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-      
-        <span><a href="../acl/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../wio/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js" defer></script>
-      <script src="../../search/main.js" defer></script>
 
-</body>
+    </body>
 </html>

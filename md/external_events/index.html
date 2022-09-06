@@ -1,199 +1,271 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>External Events - Dino</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>External events - Dino</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
 
-  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "External Events";
-    var mkdocs_page_input_path = "md/external_events.md";
-    var mkdocs_page_url = null;
-  </script>
-  
-  <script src="../../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
-</head>
+        <script src="../../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
 
-<body class="wy-body-for-nav" role="document">
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Dino</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-  <div class="wy-grid-for-nav">
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href="../.." class="nav-link">Dino</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Md <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../acl/" class="dropdown-item">Acl</a>
+</li>
+                                    
+<li>
+    <a href="../api/" class="dropdown-item">Api</a>
+</li>
+                                    
+<li>
+    <a href="../events/" class="dropdown-item">Events</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active">External events</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting started</a>
+</li>
+                                    
+<li>
+    <a href="../installation/" class="dropdown-item">Installation</a>
+</li>
+                                    
+<li>
+    <a href="../invisibility/" class="dropdown-item">Invisibility</a>
+</li>
+                                    
+<li>
+    <a href="../rest/" class="dropdown-item">Rest</a>
+</li>
+                                    
+<li>
+    <a href="../storage/" class="dropdown-item">Storage</a>
+</li>
+                                    
+<li>
+    <a href="../usage/" class="dropdown-item">Create rooms and send messages using the room _name_ instead of _ID_</a>
+</li>
+                                    
+<li>
+    <a href="../web/" class="dropdown-item">Web</a>
+</li>
+                                    
+<li>
+    <a href="../wio/" class="dropdown-item">Wio</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../events/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../getting_started/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
 
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-      <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> Dino</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
-  </form>
-</div>
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../..">Home</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../installation/">Installation</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../getting_started/">Getting Started</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../invisibility/">Invisibility</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../usage/">Usage</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../api/">API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../web/">Web UI API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../events/">Events</a>
-	    </li>
-          
-            <li class="toctree-l1 current">
-		
-    <a class="current" href="./">External Events</a>
-    <ul class="subnav">
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
             
-    <li class="toctree-l2"><a href="#user-was-kicked-from-a-room">User was kicked from a room</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-used-a-blacklisted-word">User used a blacklisted word</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-send-a-message-that-got-classified-as-a-spam-message">User send a message that got classified as a spam message</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-was-banned">User was banned</a></li>
-    
-
-    <li class="toctree-l2"><a href="#server-restarted">Server restarted</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-joins-room">User joins room</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-ban-was-removed">User ban was removed</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-sends-a-message-to-a-roomuser">User sends a message to a room/user</a></li>
-    
-
-    <li class="toctree-l2"><a href="#one-session-has-ended">One session has ended</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-successfully-logged-in">User successfully logged in</a></li>
-    
-
-    <li class="toctree-l2"><a href="#a-user-was-reported-for-a-message-heshe-sent">A user was reported for a message he/she sent</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-disconnected">User disconnected</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-becomes-invisible">User becomes invisible</a></li>
-    
-
-    <li class="toctree-l2"><a href="#user-becomes-visible-after-being-in-visible">User becomes visible after being in visible</a></li>
-    
-
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../acl/">ACL</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../rest/">REST API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../wio/">Who Is Online?</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../storage/">Storage</a>
-	    </li>
-          
+            <li class="nav-item" data-level="2"><a href="#a-room-was-renamed" class="nav-link">A room was renamed</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#a-room-was-removed" class="nav-link">A room was removed</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-was-kicked-from-a-room" class="nav-link">User was kicked from a room</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-used-a-blacklisted-word" class="nav-link">User used a blacklisted word</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-send-a-message-that-got-classified-as-a-spam-message" class="nav-link">User send a message that got classified as a spam message</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-was-banned" class="nav-link">User was banned</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#server-restarted" class="nav-link">Server restarted</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-joins-room" class="nav-link">User joins room</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-ban-was-removed" class="nav-link">User ban was removed</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-sends-a-message-to-a-roomuser" class="nav-link">User sends a message to a room/user</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#one-session-has-ended" class="nav-link">One session has ended</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-successfully-logged-in" class="nav-link">User successfully logged in</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#a-user-was-reported-for-a-message-heshe-sent" class="nav-link">A user was reported for a message he/she sent</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-disconnected" class="nav-link">User disconnected</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-becomes-invisible" class="nav-link">User becomes invisible</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#user-becomes-visible-after-being-in-visible" class="nav-link">User becomes visible after being in visible</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
         </ul>
-      </div>
-      &nbsp;
-    </nav>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">Dino</a>
-      </nav>
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../..">Docs</a> &raquo;</li>
-    
-      
-    
-    <li>External Events</li>
-    <li class="wy-breadcrumbs-aside">
-      
-    </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main">
-            <div class="section">
-              
-                <p>External events are activity streams send to the configured external queue (e.g. RabbitMQ).</p>
+<p>External events are activity streams send to the configured external queue (e.g. RabbitMQ).</p>
+<h2 id="a-room-was-renamed">A room was renamed</h2>
+<p>Example of activity posted to the external queue:</p>
+<pre><code class="language-json">{
+    &quot;actor&quot;: {
+        &quot;displayName&quot;: &quot;username&quot;,
+        &quot;id&quot;: &quot;1243&quot;
+    },
+    &quot;target&quot;: {
+        &quot;displayName&quot;: &quot;Y29vbCBndXlz&quot;,
+        &quot;summary&quot;: &quot;Y29vbCBndXlz&quot;,
+        &quot;id&quot;: &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;,
+        &quot;objectType&quot;: &quot;room&quot;
+    },
+    &quot;verb&quot;: &quot;rename&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
+}
+</code></pre>
+<ul>
+<li>actor.id: ID of the user who renamed the room, or 0 if from admin interface,</li>
+<li>actor.displayName: name of the user who renamed the room, or "admin" if from admin interface,</li>
+<li>target.displayName: base64 encoded new room name,</li>
+<li>target.summary: base64 encoded old room name,</li>
+<li>target.id: UUID of the room.</li>
+</ul>
+<h2 id="a-room-was-removed">A room was removed</h2>
+<p>Example of activity posted to the external queue:</p>
+<pre><code class="language-json">{
+    &quot;actor&quot;: {
+        &quot;displayName&quot;: &quot;username&quot;,
+        &quot;id&quot;: &quot;1243&quot;
+    },
+    &quot;target&quot;: {
+        &quot;displayName&quot;: &quot;Y29vbCBndXlz&quot;,
+        &quot;summary&quot;: &quot;Y29vbCBndXlz&quot;,
+        &quot;id&quot;: &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;,
+        &quot;objectType&quot;: &quot;room&quot;
+    },
+    &quot;object&quot;: {
+        &quot;content&quot;: &quot;&lt;base64 encoded reason for room removal&gt;&quot;
+    },
+    &quot;verb&quot;: &quot;removed&quot;,
+    &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
+    &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
+}
+</code></pre>
+<ul>
+<li>actor.id: ID of the user who removed the room, or 0 if from admin interface,</li>
+<li>actor.displayName: name of the user who removed the room, or "admin" if from admin interface,</li>
+<li>target.displayName: base64 encoded room name,</li>
+<li>target.id: UUID of the room,</li>
+<li>object.content: base64 reason for room removal.</li>
+</ul>
 <h2 id="user-was-kicked-from-a-room">User was kicked from a room</h2>
 <p>Example of activity posted to the external queue:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;displayName&quot;: &quot;admin&quot;,
         &quot;id&quot;: &quot;0&quot;
@@ -212,7 +284,6 @@
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <ul>
 <li>actor.id: ID of the user who kicked, or 0 if from admin interface,</li>
 <li>actor.displayName: name of the user who kicked, or admin if from admin interface,</li>
@@ -223,7 +294,7 @@
 <li>target.displayName: base64 encoded name of the room.</li>
 </ul>
 <h2 id="user-used-a-blacklisted-word">User used a blacklisted word</h2>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;displayName&quot;: &quot;YmF0bWFu&quot;,
         &quot;id&quot;: &quot;997110&quot;
@@ -241,7 +312,6 @@
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <ul>
 <li>target.displayName: name of the room the message was sent in,</li>
 <li>target.id: uuid of the room the message was sent in,</li>
@@ -251,7 +321,7 @@
 <li>object.summary: the forbidden word that was used.</li>
 </ul>
 <h2 id="user-send-a-message-that-got-classified-as-a-spam-message">User send a message that got classified as a spam message</h2>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;displayName&quot;: &quot;YmF0bWFu&quot;,
         &quot;id&quot;: &quot;997110&quot;
@@ -268,7 +338,6 @@
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <ul>
 <li>target.displayName: name of the room the message was sent in,</li>
 <li>target.id: uuid of the room the message was sent in,</li>
@@ -278,7 +347,7 @@
 </ul>
 <h2 id="user-was-banned">User was banned</h2>
 <p>Example of activity posted to the external queue:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;displayName&quot;: &quot;admin&quot;,
         &quot;id&quot;: &quot;0&quot;
@@ -300,7 +369,6 @@
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <ul>
 <li>actor.id: ID of the user who banned, or 0 if from admin interface,</li>
 <li>actor.displayName: name of the user who banned, or admin if from admin interface,</li>
@@ -315,16 +383,15 @@
 </ul>
 <h2 id="server-restarted">Server restarted</h2>
 <p>When the server REST node starts up it will sent a <code>restart</code> event in this format: </p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;restart&quot;,
     &quot;id&quot;: &quot;c694ddc3-1b2b-4d43-ae5a-a843c2dce8aa&quot;,
     &quot;published&quot;: &quot;2017-06-09T07:26:26Z&quot;
 }
 </code></pre>
-
 <h2 id="user-joins-room">User joins room</h2>
 <p>When a user joins a room the following activity is published to rabbitmq:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;object&quot;: {
         &quot;attachments&quot;: [{
             &quot;content&quot;: &quot;MA==&quot;,
@@ -368,10 +435,9 @@
     &quot;verb&quot;: &quot;join&quot;
 }
 </code></pre>
-
 <h2 id="user-ban-was-removed">User ban was removed</h2>
 <p>Example of activity when a user's ban was manually removed in the admin interface:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;0&quot;,
         &quot;displayName&quot;: &quot;YWRtaW4=&quot;
@@ -390,7 +456,6 @@
     }
 }
 </code></pre>
-
 <ul>
 <li>target.id: room ID or channel ID</li>
 <li>target.objectType: "room", "channel" or "global"</li>
@@ -401,12 +466,12 @@
 <h2 id="user-sends-a-message-to-a-roomuser">User sends a message to a room/user</h2>
 <p>Whenever a user sends a message an event will be published to the configured MQ, so another system can analyze activity
 level of users. Example activity: </p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
         &quot;displayName&quot;: &quot;&lt;base64 encoded username&gt;&quot;
     },
-    &quot;object&quot; {
+    &quot;object&quot;: {
         &quot;id&quot;: &quot;&lt;uuid of the message that was sent&gt;&quot;
     },
     &quot;verb&quot;: &quot;send&quot;,
@@ -414,10 +479,9 @@ level of users. Example activity: </p>
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <h2 id="one-session-has-ended">One session has ended</h2>
 <p>Multiple session can exist for a single user. A disconnect event is only sent when the last session has been closed, but a "session closed" event is sent for each session that is closed. Example activity:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
         &quot;displayName&quot;: &quot;&lt;base64 encoded username&gt;&quot;,
@@ -428,10 +492,9 @@ level of users. Example activity: </p>
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <h2 id="user-successfully-logged-in">User successfully logged in</h2>
 <p>Example of activity when a user successfully logs in:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;id&quot;: &quot;2190e4b9-6b80-4d86-992f-e107ae19be96&quot;,
     &quot;title&quot;: &quot;dino.wio.login&quot;,
     &quot;actor&quot;: {
@@ -501,10 +564,9 @@ level of users. Example activity: </p>
     &quot;published&quot;: &quot;2018-09-17T05:25:38Z&quot;
 }
 </code></pre>
-
 <h2 id="a-user-was-reported-for-a-message-heshe-sent">A user was reported for a message he/she sent</h2>
 <p>A message may be reported in the front-end, and a report will be published to the MQ. The event looks like this:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;&lt;user ID that reported the message&gt;&quot;,
         &quot;displayName&quot;: &quot;&lt;the user name who reported the message&gt;&quot;
@@ -523,10 +585,9 @@ level of users. Example activity: </p>
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <h2 id="user-disconnected">User disconnected</h2>
 <p>Example of activity when a user disconnects:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
         &quot;displayName&quot;: &quot;&lt;base64 encoded username&gt;&quot;
@@ -536,10 +597,9 @@ level of users. Example activity: </p>
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <h2 id="user-becomes-invisible">User becomes invisible</h2>
 <p>When a user changes the status to become invisible the following event is published to the external queue:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;635328&quot;,
@@ -549,10 +609,9 @@ level of users. Example activity: </p>
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <h2 id="user-becomes-visible-after-being-in-visible">User becomes visible after being in visible</h2>
 <p>When a user changes his status to become visible again after being invisible the following event is sent to the external queue:</p>
-<pre><code class="json">{   
+<pre><code class="language-json">{   
     &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;635328&quot;,
@@ -561,53 +620,81 @@ level of users. Example activity: </p>
     &quot;verb&quot;: &quot;online&quot;,
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }   
-</code></pre>
-              
+</code></pre></div>
             </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../acl/" class="btn btn-neutral float-right" title="ACL">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../events/" class="btn btn-neutral" title="Events"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-    
-  </div>
-
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-</footer>
-      
         </div>
-      </div>
 
-    </section>
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js" defer></script>
+        <script src="../../search/main.js" defer></script>
 
-  </div>
-
-  <div class="rst-versions" role="note" style="cursor: pointer">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-      
-        <span><a href="../events/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../acl/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js" defer></script>
-      <script src="../../search/main.js" defer></script>
 
-</body>
+    </body>
 </html>

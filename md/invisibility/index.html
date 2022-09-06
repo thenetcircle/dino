@@ -1,169 +1,140 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Invisibility - Dino</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Invisibility - Dino</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
 
-  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Invisibility";
-    var mkdocs_page_input_path = "md/invisibility.md";
-    var mkdocs_page_url = null;
-  </script>
-  
-  <script src="../../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
-</head>
+        <script src="../../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
 
-<body class="wy-body-for-nav" role="document">
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Dino</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-  <div class="wy-grid-for-nav">
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href="../.." class="nav-link">Dino</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Md <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../acl/" class="dropdown-item">Acl</a>
+</li>
+                                    
+<li>
+    <a href="../api/" class="dropdown-item">Api</a>
+</li>
+                                    
+<li>
+    <a href="../events/" class="dropdown-item">Events</a>
+</li>
+                                    
+<li>
+    <a href="../external_events/" class="dropdown-item">External events</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting started</a>
+</li>
+                                    
+<li>
+    <a href="../installation/" class="dropdown-item">Installation</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Invisibility</a>
+</li>
+                                    
+<li>
+    <a href="../rest/" class="dropdown-item">Rest</a>
+</li>
+                                    
+<li>
+    <a href="../storage/" class="dropdown-item">Storage</a>
+</li>
+                                    
+<li>
+    <a href="../usage/" class="dropdown-item">Create rooms and send messages using the room _name_ instead of _ID_</a>
+</li>
+                                    
+<li>
+    <a href="../web/" class="dropdown-item">Web</a>
+</li>
+                                    
+<li>
+    <a href="../wio/" class="dropdown-item">Wio</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../installation/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../rest/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
 
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-      <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> Dino</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
-  </form>
-</div>
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../..">Home</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../installation/">Installation</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../getting_started/">Getting Started</a>
-	    </li>
-          
-            <li class="toctree-l1 current">
-		
-    <a class="current" href="./">Invisibility</a>
-    <ul class="subnav">
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
             
-    <li class="toctree-l2"><a href="#invisibility">Invisibility</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l3" href="#using-the-rest-api-for-invisible-login">Using the REST api for invisible login</a></li>
-        
-            <li><a class="toctree-l3" href="#using-the-ws-api-for-invisible-login">Using the WS api for invisible login</a></li>
-        
-            <li><a class="toctree-l3" href="#changing-status-to-invisible-while-online">Changing status to invisible while online</a></li>
-        
-            <li><a class="toctree-l3" href="#using-the-ws-api-for-visible-login">Using the WS api for visible login</a></li>
-        
+            <li class="nav-item" data-level="2"><a href="#invisibility" class="nav-link">Invisibility</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
         </ul>
-    
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
 
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../usage/">Usage</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../api/">API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../web/">Web UI API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../events/">Events</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../external_events/">External Events</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../acl/">ACL</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../rest/">REST API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../wio/">Who Is Online?</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../storage/">Storage</a>
-	    </li>
-          
-        </ul>
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">Dino</a>
-      </nav>
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../..">Docs</a> &raquo;</li>
-    
-      
-    
-    <li>Invisibility</li>
-    <li class="wy-breadcrumbs-aside">
-      
-    </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main">
-            <div class="section">
-              
-                <h2 id="invisibility">Invisibility</h2>
+<h2 id="invisibility">Invisibility</h2>
 <p>There are multiple ways to change visibility status, either explicitly using the status api, or implicitly using the 
 login api:</p>
 <ul>
@@ -180,16 +151,15 @@ with the <code>stage</code> parameter set to <code>login</code> (instead of the 
 (without <code>actor.summary: 'login'</code>). The user will then be invisible <em>before</em> he/she logs in, and the <code>last_online_at</code>
 will not be updated.</p>
 <p>The REST api request would look as follows:</p>
-<pre><code class="json">{   
+<pre><code class="language-json">{   
     &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
     &quot;status&quot;: &quot;invisible&quot;,
     &quot;stage&quot;: &quot;login&quot;
 }   
 </code></pre>
-
 <p><strong>Note: if <code>stage</code> is set to <code>status</code> instead of <code>login</code>, then <code>last_online_at</code> <em>will</em> be updated.</strong></p>
 <p>Next, the WS login request would look as follows:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;login&quot;,
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;5666&quot;,
@@ -201,21 +171,19 @@ will not be updated.</p>
     }
 }
 </code></pre>
-
 <p>Now the user has logged in invisibly. </p>
 <p><strong>Note: There's no need for <code>actor.summary: 'login'</code> here, since we already set the user to invisibly using the rest
 API before the user logged in.</strong></p>
 <p><strong>Note: There's no need to call the WS <code>status</code> API now, the user is already invisible, but there's no harm in doing it, 
 as long as <code>actor.summary</code> is set to <code>login</code>.</strong></p>
 <p>For example:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;invisible&quot;,
     &quot;actor&quot;: {
         &quot;summary&quot;: &quot;login&quot;
     }
 }
 </code></pre>
-
 <h3 id="using-the-ws-api-for-invisible-login">Using the WS api for invisible login</h3>
 <p>The other option is to set <code>actor.content</code> to <code>invisible</code> in the WS login request, in which case there's no need to 
 call the REST api. The REST api approach is preferred though, since only paying users should be allowed to be invisible, 
@@ -223,7 +191,7 @@ so by using the REST api, the community backend can check the membership status 
 using the WS api for this, there's no validation if the user is allowed to be invisible or not, and a user could alter 
 the request on client side to circumvent the restriction.</p>
 <p>Invisible login using the WS <code>login</code> api looks are follows:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;login&quot;,
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;5666&quot;,
@@ -236,27 +204,24 @@ the request on client side to circumvent the restriction.</p>
     }
 }
 </code></pre>
-
 <p>Now the user has logged in invisibly. </p>
 <p><strong>Note: There's no need to call the WS <code>status</code> API now, the user is already invisible, but there's no harm in doing it, 
 as long as <code>actor.summary</code> is set to <code>login</code>.</strong></p>
 <p>For example:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;invisible&quot;,
     &quot;actor&quot;: {
         &quot;summary&quot;: &quot;login&quot;
     }
 }
 </code></pre>
-
 <h3 id="changing-status-to-invisible-while-online">Changing status to invisible while online</h3>
 <p>When a user is online, and wants to change his/her status to <code>invisible</code>, the WS api <code>status</code> can be used.</p>
 <p>The request looks as follows:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;invisible&quot;
 }
 </code></pre>
-
 <p>The user will now become invisible, and the <code>last_online_at</code> will be updated to this time. A fake <code>gn_user_disconnected</code> 
 event will be sent to relevant users.</p>
 <p><strong>Note: If the request contains <code>actor.summary: "login"</code>, then <code>last_online_at</code> <em>will not</em> be updated. Thus, when a user is 
@@ -265,7 +230,7 @@ already online, don't set the <code>summary</code> to <code>login</code>; you ca
 <p>If a user is <em>not</em> logging is as <code>invisible</code>, the WS <code>status</code> api should be called anyway, in case the user was 
 invisible the last time he/she logged out. This will update the necessary statuses, e.g. <code>last_online_at</code>.</p>
 <p>The WS <code>login</code> request would look as follows:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;login&quot;,
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;5666&quot;,
@@ -277,67 +242,93 @@ invisible the last time he/she logged out. This will update the necessary status
     }
 }
 </code></pre>
-
 <p>Note that the request does not contain the <code>actor.content</code> field, so the login will default to <code>visible</code>. Though, if 
 the user was previously invisible, the user will now be online but invisible again, to preserve the visibility status. 
 To change to visible, we'll call the <code>status</code> api below.</p>
 <p>Next, call the WS <code>status</code> api:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;online&quot;,
     &quot;actor&quot;: {
         &quot;summary&quot;: &quot;login&quot;
     }
 }
 </code></pre>
-
 <p><strong>Note: the <code>summary</code> field is not required when setting a user <code>online</code>, so it can be omitted, but it's okay to 
-specify it too, as long as it's set to <code>login</code>.</strong></p>
-              
+specify it too, as long as it's set to <code>login</code>.</strong></p></div>
             </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../usage/" class="btn btn-neutral float-right" title="Usage">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../getting_started/" class="btn btn-neutral" title="Getting Started"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-    
-  </div>
-
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-</footer>
-      
         </div>
-      </div>
 
-    </section>
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js" defer></script>
+        <script src="../../search/main.js" defer></script>
 
-  </div>
-
-  <div class="rst-versions" role="note" style="cursor: pointer">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-      
-        <span><a href="../getting_started/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../usage/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js" defer></script>
-      <script src="../../search/main.js" defer></script>
 
-</body>
+    </body>
 </html>

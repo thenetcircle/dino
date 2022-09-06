@@ -1,239 +1,266 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>API - Dino</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Api - Dino</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
 
-  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "API";
-    var mkdocs_page_input_path = "md/api.md";
-    var mkdocs_page_url = null;
-  </script>
-  
-  <script src="../../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
-</head>
+        <script src="../../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
 
-<body class="wy-body-for-nav" role="document">
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Dino</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-  <div class="wy-grid-for-nav">
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href="../.." class="nav-link">Dino</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Md <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../acl/" class="dropdown-item">Acl</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Api</a>
+</li>
+                                    
+<li>
+    <a href="../events/" class="dropdown-item">Events</a>
+</li>
+                                    
+<li>
+    <a href="../external_events/" class="dropdown-item">External events</a>
+</li>
+                                    
+<li>
+    <a href="../getting_started/" class="dropdown-item">Getting started</a>
+</li>
+                                    
+<li>
+    <a href="../installation/" class="dropdown-item">Installation</a>
+</li>
+                                    
+<li>
+    <a href="../invisibility/" class="dropdown-item">Invisibility</a>
+</li>
+                                    
+<li>
+    <a href="../rest/" class="dropdown-item">Rest</a>
+</li>
+                                    
+<li>
+    <a href="../storage/" class="dropdown-item">Storage</a>
+</li>
+                                    
+<li>
+    <a href="../usage/" class="dropdown-item">Create rooms and send messages using the room _name_ instead of _ID_</a>
+</li>
+                                    
+<li>
+    <a href="../web/" class="dropdown-item">Web</a>
+</li>
+                                    
+<li>
+    <a href="../wio/" class="dropdown-item">Wio</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../acl/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../events/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
 
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-      <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> Dino</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
-  </form>
-</div>
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../..">Home</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../installation/">Installation</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../getting_started/">Getting Started</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../invisibility/">Invisibility</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../usage/">Usage</a>
-	    </li>
-          
-            <li class="toctree-l1 current">
-		
-    <a class="current" href="./">API</a>
-    <ul class="subnav">
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
             
-    <li class="toctree-l2"><a href="#error-codes">Error Codes</a></li>
-    
-
-    <li class="toctree-l2"><a href="#connect">connect</a></li>
-    
-
-    <li class="toctree-l2"><a href="#login">login</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l3" href="#invisible-login">Invisible login</a></li>
-        
+            <li class="nav-item" data-level="2"><a href="#error-codes" class="nav-link">Error Codes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#connect" class="nav-link">connect</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#login" class="nav-link">login</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#list_channels" class="nav-link">list_channels</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#received" class="nav-link">received</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#msg_status" class="nav-link">msg_status</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#read" class="nav-link">read</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#list_rooms" class="nav-link">list_rooms</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#update_user_info" class="nav-link">update_user_info</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#request_admin" class="nav-link">request_admin</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#leave" class="nav-link">leave</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#users_in_room" class="nav-link">users_in_room</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#history" class="nav-link">history</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#status" class="nav-link">status</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#get_acl" class="nav-link">get_acl</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#set_acl" class="nav-link">set_acl</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#create" class="nav-link">create</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#invite" class="nav-link">invite</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#delete" class="nav-link">delete</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#kick" class="nav-link">kick</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#ban" class="nav-link">ban</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#message" class="nav-link">message</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#remove_room" class="nav-link">remove_room</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#report" class="nav-link">report</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#join" class="nav-link">join</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#rename_room" class="nav-link">rename_room</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
         </ul>
-    
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
 
-    <li class="toctree-l2"><a href="#list_channels">list_channels</a></li>
-    
-
-    <li class="toctree-l2"><a href="#received">received</a></li>
-    
-
-    <li class="toctree-l2"><a href="#msg_status">msg_status</a></li>
-    
-
-    <li class="toctree-l2"><a href="#read">read</a></li>
-    
-
-    <li class="toctree-l2"><a href="#list_rooms">list_rooms</a></li>
-    
-
-    <li class="toctree-l2"><a href="#update_user_info">update_user_info</a></li>
-    
-
-    <li class="toctree-l2"><a href="#request_admin">request_admin</a></li>
-    
-
-    <li class="toctree-l2"><a href="#leave">leave</a></li>
-    
-
-    <li class="toctree-l2"><a href="#users_in_room">users_in_room</a></li>
-    
-
-    <li class="toctree-l2"><a href="#history">history</a></li>
-    
-
-    <li class="toctree-l2"><a href="#status">status</a></li>
-    
-
-    <li class="toctree-l2"><a href="#get_acl">get_acl</a></li>
-    
-
-    <li class="toctree-l2"><a href="#set_acl">set_acl</a></li>
-    
-
-    <li class="toctree-l2"><a href="#create">create</a></li>
-    
-
-    <li class="toctree-l2"><a href="#invite">invite</a></li>
-    
-
-    <li class="toctree-l2"><a href="#delete">delete</a></li>
-    
-
-    <li class="toctree-l2"><a href="#kick">kick</a></li>
-    
-
-    <li class="toctree-l2"><a href="#ban">ban</a></li>
-    
-
-    <li class="toctree-l2"><a href="#message">message</a></li>
-    
-
-    <li class="toctree-l2"><a href="#remove_room">remove_room</a></li>
-    
-
-    <li class="toctree-l2"><a href="#report">report</a></li>
-    
-
-    <li class="toctree-l2"><a href="#join">join</a></li>
-    
-
-    <li class="toctree-l2"><a href="#rename_room">rename_room</a></li>
-    
-
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../web/">Web UI API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../events/">Events</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../external_events/">External Events</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../acl/">ACL</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../rest/">REST API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../wio/">Who Is Online?</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../storage/">Storage</a>
-	    </li>
-          
-        </ul>
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">Dino</a>
-      </nav>
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../..">Docs</a> &raquo;</li>
-    
-      
-    
-    <li>API</li>
-    <li class="wy-breadcrumbs-aside">
-      
-    </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main">
-            <div class="section">
-              
-                <h2 id="error-codes">Error Codes</h2>
-<pre><code class="ini">OK = 200
+<h2 id="error-codes">Error Codes</h2>
+<pre><code class="language-ini">OK = 200
 UNKNOWN_ERROR = 250
 
 MISSING_ACTOR_ID = 500
@@ -285,20 +312,18 @@ NO_ADMIN_ROOM_FOUND = 803
 NO_USER_IN_SESSION = 804
 NO_ADMIN_ONLINE = 805
 </code></pre>
-
 <h2 id="connect"><code>connect</code></h2>
 <p>Responds with event name <code>gn_connect</code>.</p>
 <p>Request contains no data.</p>
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="login"><code>login</code></h2>
 <p>Responds with event name <code>gn_login</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;login&quot;,
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
@@ -312,9 +337,8 @@ NO_ADMIN_ONLINE = 805
     }
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;id&quot;: &quot;&lt;server-generated UUID&gt;&quot;,
@@ -362,7 +386,6 @@ NO_ADMIN_ONLINE = 805
     }
 }
 </code></pre>
-
 <p>The object attachments are non-acked messages sent to any <code>private</code> <code>room</code>s (i.e. conversation based private 
 messaging). The <code>object.attachments[0].id</code> is the message UUID, while the <code>object.attachments[0].summary</code> is the 
 room UUID. Multiple attachments will be listed if more than one un-acked message was found during login.</p>
@@ -384,13 +407,12 @@ room/channel/global.</p>
 <h2 id="list_channels"><code>list_channels</code></h2>
 <p>Responds with event name <code>gn_list_channels</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;list&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;object&quot;: {
@@ -430,7 +452,6 @@ room/channel/global.</p>
     }
 }
 </code></pre>
-
 <p>Each channel has a <code>url</code> field, which is the sort order defined in the admin interface, in ascending order (lower <code>url</code>
 means higher up in the list).</p>
 <p>The <code>objectType</code> of a channel tells you if this channel only contains static rooms, only temporary rooms or a mix of 
@@ -448,7 +469,7 @@ both. Possible values are thus:</p>
 <p>Does not emit a response, only invokes the callback with the <code>status_code</code> and potentially and <code>error_message</code>. Note 
 that if multiple messages are being acknowledged at the same time, they all have to be for the same room (<code>target.id</code>).</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;receive&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;uuid of the room the messages are all in&gt;&quot;
@@ -462,10 +483,9 @@ that if multiple messages are being acknowledged at the same time, they all have
     }
 }
 </code></pre>
-
 <h2 id="msg_status"><code>msg_status</code></h2>
 <p>Check ack status of a set of messages sent to a single user. Request:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;check&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;uuid of the user to check ack status for&gt;&quot; 
@@ -479,11 +499,10 @@ that if multiple messages are being acknowledged at the same time, they all have
     }
 }
 </code></pre>
-
 <p>If message guarantee is not enabled on the server the <code>717</code> (<code>NOT_ENABLED</code>) error code will be retured as part of the 
 callback, and no <code>gn_msg_status</code> event will be sent back.</p>
 <p>Response will be sent as the <code>gn_msg_status</code> event with the following content:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;object&quot;: {
@@ -512,7 +531,6 @@ callback, and no <code>gn_msg_status</code> event will be sent back.</p>
     }
 }
 </code></pre>
-
 <p>The ack statuses are:</p>
 <ul>
 <li>0: not acknowledged (receiver has not acked it yet)</li>
@@ -524,7 +542,7 @@ callback, and no <code>gn_msg_status</code> event will be sent back.</p>
 <p>Does not emit a response, only invokes the callback with the <code>status_code</code> and potentially and <code>error_message</code>. Note 
 that if multiple messages are being acknowledged at the same time, they all have to be for the same room (<code>target.id</code>).</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;read&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;uuid of the room the messages are all in&gt;&quot; 
@@ -538,7 +556,6 @@ that if multiple messages are being acknowledged at the same time, they all have
     }    
 }
 </code></pre>
-
 <p>If the <code>target.id</code> is specified, the request will be relayed to online users in that room. E.g., user A sends 
 message X to the room, user B then sends a <code>read</code> event after receiving it; this <code>read</code> event will then be sent 
 to user A with the event name <a href="../events/#message-read"><code>gn_message_read</code></a>.</p>
@@ -546,16 +563,15 @@ to user A with the event name <a href="../events/#message-read"><code>gn_message
 <p>Get a list of all rooms for a channel.</p>
 <p>Responds with event name <code>gn_list_rooms</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;object&quot;: {
         &quot;url&quot;: &quot;&lt;channel UUID&gt;&quot;
     },
     &quot;verb&quot;: &quot;list&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;object&quot;: {
@@ -598,7 +614,6 @@ to user A with the event name <a href="../events/#message-read"><code>gn_message
     }
 }
 </code></pre>
-
 <p>The <code>url</code> field for <code>object</code> is the <code>UUID</code> of the channel that these rooms are for.  </p>
 <p>Each room has a <code>url</code> field, which is the sort order defined in the admin interface, in ascending order (lower <code>url</code>
 means higher up in the list).</p>
@@ -617,7 +632,7 @@ when empty, while temporary rooms are removed when the owner leaves (usually onl
 <h2 id="update_user_info"><code>update_user_info</code></h2>
 <p>If a user e.g. changes his/her avatar, the change can be broadcasted to users in the same rooms as this user is in. To
 e.g. let other users know this user is currently streaming video, the <code>objectType</code> <code>is_streaming</code> might be used:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;object&quot;: {
         &quot;attachments&quot;: [
             {
@@ -632,25 +647,22 @@ e.g. let other users know this user is currently streaming video, the <code>obje
     &quot;published&quot;: &quot;&lt;server-generated timestamp, RFC3339 format&gt;&quot;
 }
 </code></pre>
-
 <p>The <code>content</code> of the attachments needs to be base64 encoded.</p>
 <p>Updates are saved in redis and thus will be included in the user info returned in <a href="./#join"><code>gn_join</code></a> and 
 <a href="./#join"><code>gn_users_in_room</code></a>.</p>
 <p>Responds with event name <code>gn_update_user_info</code>. When the update is sent to other users it will be received as an event
 with name <a href="../events/#user-info-updated"><code>gn_user_info_updated</code></a>.</p>
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <p>Or if missing data, e.g.:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 509,
     &quot;message&quot;: &quot;no objectType on attachment for object&quot;
 }
 </code></pre>
-
 <h2 id="request_admin"><code>request_admin</code></h2>
 <p>When help is wanted in a room, a user can request for an admin to join and help out. Every channel has an Admin room,
 which only admins can see when listing rooms and only admins can join. When a <code>request_admin</code> event is sent to the server
@@ -662,7 +674,7 @@ online").</li>
 </ul>
 <p>Responds with event name <code>gn_request_admin</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room UUID to request help for&gt;&quot;
     },
@@ -672,20 +684,17 @@ online").</li>
     &quot;verb&quot;: &quot;help&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <p>If no admin is online, the response will be:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 805,
     &quot;message&quot;: &quot;no admin is online&quot;
 }
 </code></pre>
-
 <p>The <code>object.content</code> could be anything, e.g. a base64 encoded json message with link to backend, extra information, a 
 reason text etc. </p>
 <p>The event generated to be sent to the admin room is called <code>gn_admin_requested</code> (see 
@@ -694,16 +703,15 @@ reason text etc. </p>
 <p>Leave a room.</p>
 <p>Responds with event name <code>gn_leave</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;
     },
     &quot;verb&quot;: &quot;leave&quot;
 }
 </code></pre>
-
 <p>Or, if you want to leave a room based on the room name:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;join&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room name&gt;&quot;,
@@ -711,27 +719,24 @@ reason text etc. </p>
     }
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="users_in_room"><code>users_in_room</code></h2>
 <p>List all users in a room.</p>
 <p>Responds with event name <code>gn_users_in_room</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;
     },
     &quot;verb&quot;: &quot;list&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;object&quot;: {
@@ -773,7 +778,6 @@ reason text etc. </p>
     }
 }
 </code></pre>
-
 <p>The <code>content</code> of the user attachment describes the roles this user has in this room, plus any global roles. Examples:</p>
 <ul>
 <li><code>globalmod,moderator</code></li>
@@ -788,7 +792,7 @@ reason than the <code>history</code> event can be used. Can also be used to get 
 "target.id" is set to the user UUID instead of the room UUID.</p>
 <p>Responds with event name <code>gn_history</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;
     },
@@ -796,9 +800,8 @@ reason than the <code>history</code> event can be used. Can also be used to get 
     &quot;verb&quot;: &quot;list&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;object&quot;: {
@@ -831,27 +834,24 @@ reason than the <code>history</code> event can be used. Can also be used to get 
     }
 }
 </code></pre>
-
 <h2 id="status"><code>status</code></h2>
 <p>Change the online status for this user.</p>
 <p>Responds with <code>gn_status</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;&lt;one of online/offline/invisible&gt;&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="get_acl"><code>get_acl</code></h2>
 <p>Get the permissions (ACL) for a channel or room.</p>
 <p>Responds with <code>gn_get_acl</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">    {
+<pre><code class="language-json">    {
         &quot;target&quot;: {
             &quot;id&quot;: &quot;&lt;room UUID&gt;&quot;,
             &quot;objectType&quot;: &quot;&lt;room/channel&gt;&quot;
@@ -859,9 +859,8 @@ reason than the <code>history</code> event can be used. Can also be used to get 
         &quot;verb&quot;: &quot;get&quot;
     }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;target&quot;: {
@@ -887,14 +886,13 @@ reason than the <code>history</code> event can be used. Can also be used to get 
     }
 }
 </code></pre>
-
 <h2 id="set_acl"><code>set_acl</code></h2>
 <p>Update the permissions of a room/channel. If the "content" is blank, the ACL with that type for the specified action
 will be removed. Example "API actions" are "join", "create", "message", "kick". Example "permission types" are "age",
 "gender", "membership".</p>
 <p>Responds with <code>gn_set_acl</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room/channel UUID&gt;&quot;,
         &quot;objectType&quot;: &quot;&lt;room/channel&gt;&quot;
@@ -917,18 +915,16 @@ will be removed. Example "API actions" are "join", "create", "message", "kick". 
     &quot;verb&quot;: &quot;set&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="create"><code>create</code></h2>
 <p>Create a new room under a channel. The sender of the event will be set as the first owner of the new room.</p>
 <p>Responds with <code>gn_create</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;target&quot;: {
         &quot;displayName&quot;: &quot;&lt;name of the new room&gt;&quot;
     },
@@ -938,9 +934,8 @@ will be removed. Example "API actions" are "join", "create", "message", "kick". 
     &quot;verb&quot;: &quot;create&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;target&quot;: {
@@ -955,13 +950,12 @@ will be removed. Example "API actions" are "join", "create", "message", "kick". 
     }
 }
 </code></pre>
-
 <p>If the amount of private rooms already exceed 2, the error code <code>709</code> (<code>TOO_MANY_PRIVATE_ROOMS</code>) will be returned.</p>
 <p>The <code>target.objectType</code> will always be <code>temporary</code> since all rooms created using the API are user created rooms, meaning
 they will be automatically removed when the owner leaves.</p>
 <p>It is also possible to specify ACLs for a room while creating it, but adding <code>object.attachments</code> as in the <code>set_acl</code> 
 event:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;target&quot;: {
         &quot;displayName&quot;: &quot;&lt;name of the new room&gt;&quot;
     },
@@ -984,12 +978,11 @@ event:</p>
     &quot;verb&quot;: &quot;create&quot;
 }
 </code></pre>
-
 <h2 id="invite"><code>invite</code></h2>
 <p>Invite another user to a room the current user is already in.</p>
 <p>Responds with <code>gn_invite</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;UUID of the user to invite&gt;&quot;
     },
@@ -999,13 +992,11 @@ event:</p>
     &quot;verb&quot;: &quot;invite&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="delete"><code>delete</code></h2>
 <p>Delete a message from a room (needs to be superuser, admin for channel, owner of channel, moderator of the room, owner 
 of room or (configurable) sender of the message).</p>
@@ -1014,7 +1005,7 @@ deleted. If <code>object_type</code> is set to anything else, or not specified a
 of a single message.</p>
 <p>Responds with <code>gn_delete</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;UUID of the room to delete from&gt;&quot;
     },
@@ -1025,12 +1016,11 @@ of a single message.</p>
     &quot;verb&quot;: &quot;delete&quot;
 }
 </code></pre>
-
 <h2 id="kick"><code>kick</code></h2>
 <p>Kick a user from a room.</p>
 <p>Responds with <code>gn_kick</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;&lt;ID of the user who's kicking someone, leave black for admin ID&gt;&quot;
     },
@@ -1044,18 +1034,16 @@ of a single message.</p>
     &quot;verb&quot;: &quot;kick&quot;
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="ban"><code>ban</code></h2>
 <p>Ban a user from a room for a given amount of time.</p>
 <p>Responds with <code>gn_ban</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;&lt;ID of the user who's banning someone; leave empty for admin ID&gt;&quot;
     },
@@ -1071,7 +1059,6 @@ of a single message.</p>
     &quot;verb&quot;: &quot;ban&quot;
 }
 </code></pre>
-
 <p>If banning a used in a room, set objectType to <code>room</code> and <code>target.id</code> to the uuid of the room. If banning from a channel,
 set <code>objectType</code> to <code>channel</code> and <code>target.id</code> to the uuid of the channel. If banning globally, set objectType to <code>global</code>
 and skip <code>target.id</code>.</p>
@@ -1085,16 +1072,15 @@ Only one suffix can be used. E.g.:</p>
 <p>It's not possible to permanently ban a user, but you can set a very large duration for the same effect. The only
 restriction is that the date when the ban ends (<code>utcnow()+duration</code>) must be before the year 10000 (date lib restriction).</p>
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200
 }
 </code></pre>
-
 <h2 id="message"><code>message</code></h2>
 <p>Send a message to a <code>room</code> UUID (can be the user UUID or an actual room UUID).</p>
 <p>Responds with event name <code>gn_message</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;send&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room uuid&gt;&quot;,
@@ -1105,13 +1091,12 @@ restriction is that the date when the ban ends (<code>utcnow()+duration</code>) 
     }
 }
 </code></pre>
-
 <p>If request is for conversation-based private messaging, use <code>objectType: 'private'</code>. In this case, the other user(s)
 in this conversation (<code>owner</code>s of the <code>room</code>) will initially have a <code>NOT_ACKED</code> status for the message. If they are
 online they will receive it and they can acknowledge the message. If they are offline they will receive it in <code>gn_login</code>
 then they come online (all non-acked messages for rooms they are <code>owner</code> for).</p>
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;id&quot;: &quot;c42ebf01-3d50-4f27-a345-4ed213be045d&quot;,
@@ -1134,22 +1119,20 @@ then they come online (all non-acked messages for rooms they are <code>owner</co
     }
 }
 </code></pre>
-
 <p>The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the <code>published</code> field set to the time the server received the request (in RFC3339 format).</p>
 <h2 id="remove_room"><code>remove_room</code></h2>
 <p>Response with the event name <code>gn_remove_room</code>.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;remove&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room ID&gt;&quot;
     }
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;target&quot;: {
@@ -1163,11 +1146,10 @@ and the <code>published</code> field set to the time the server received the req
     }
 }
 </code></pre>
-
 <h2 id="report"><code>report</code></h2>
 <p>No response.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;report&quot;,
     &quot;object&quot;: {
         &quot;id&quot;: &quot;&lt;uuid of message&gt;&quot;,
@@ -1179,7 +1161,6 @@ and the <code>published</code> field set to the time the server received the req
     }
 }
 </code></pre>
-
 <p>A report will be sent to both the admin room and as an external event published on the MQ.</p>
 <h2 id="join"><code>join</code></h2>
 <p>Responds with the event name <code>gn_join</code>.</p>
@@ -1194,16 +1175,15 @@ separated value), plus any global roles. Possible roles are:</p>
 </ul>
 <p>Currently only the <code>superuser</code> and <code>globalmod</code> role is considered when the <code>request_admin</code> api is used.</p>
 <p>Request contains:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;join&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room ID&gt;&quot;
     }
 }
 </code></pre>
-
 <p>Or, if you want to join a room based on the room name:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;join&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room name&gt;&quot;,
@@ -1211,9 +1191,8 @@ separated value), plus any global roles. Possible roles are:</p>
     }
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;object&quot;: {
@@ -1282,13 +1261,12 @@ separated value), plus any global roles. Possible roles are:</p>
     }
 }
 </code></pre>
-
 <p>Attachments for each user contains the user data, e.g. user name, age, city etc.</p>
 <h2 id="rename_room"><code>rename_room</code></h2>
 <p>Responds with the event name <code>gn_rename_room</code>. Every other connected user will receive a 
 <a href="../events/#gn_room_renamed"><code>gn_room_renamed</code></a> event.</p>
 <p>Request example:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;verb&quot;: &quot;rename&quot;,
     &quot;target&quot;: {
         &quot;id&quot;: &quot;&lt;room ID&gt;&quot;,
@@ -1297,9 +1275,8 @@ separated value), plus any global roles. Possible roles are:</p>
     }
 }
 </code></pre>
-
 <p>Response data if successful:</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
     &quot;status_code&quot;: 200,
     &quot;data&quot;: {
         &quot;target&quot;: {
@@ -1312,53 +1289,81 @@ separated value), plus any global roles. Possible roles are:</p>
         &quot;verb&quot;: &quot;renamed&quot;
     }
 }
-</code></pre>
-              
+</code></pre></div>
             </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../web/" class="btn btn-neutral float-right" title="Web UI API">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../usage/" class="btn btn-neutral" title="Usage"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-    
-  </div>
-
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-</footer>
-      
         </div>
-      </div>
 
-    </section>
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js" defer></script>
+        <script src="../../search/main.js" defer></script>
 
-  </div>
-
-  <div class="rst-versions" role="note" style="cursor: pointer">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-      
-        <span><a href="../usage/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../web/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js" defer></script>
-      <script src="../../search/main.js" defer></script>
 
-</body>
+    </body>
 </html>
