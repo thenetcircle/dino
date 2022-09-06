@@ -427,7 +427,7 @@ def on_rename_room(data: dict, activity: Activity) -> (int, Union[str, None]):
 
     environ.env.db.rename_room(channel_id, room_id, utils.b64d(new_room_name))
     environ.env.emit('gn_room_renamed', rename_activity, broadcast=True, include_self=True, namespace='/ws')
-    environ.env.observer.emit('on_rename_room', (data, activity))
+    environ.env.observer.emit('on_rename_room', (data, rename_activity))
 
     return ECodes.OK, utils.activity_for_room_renamed(activity, new_room_name)
 
@@ -458,7 +458,7 @@ def on_remove_room(data: dict, activity: Activity) -> (int, Union[str, None]):
 
     environ.env.db.remove_room(channel_id, room_id)
     environ.env.emit('gn_room_removed', remove_activity, broadcast=True, include_self=True, namespace='/ws')
-    environ.env.observer.emit('on_remove_room', (data, activity))
+    environ.env.observer.emit('on_remove_room', (data, remove_activity))
 
     return ECodes.OK, utils.activity_for_room_removed(activity, room_name)
 
