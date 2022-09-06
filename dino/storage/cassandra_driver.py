@@ -370,6 +370,8 @@ class Driver(object):
         create_tables()
         create_views()
         """
+
+        set_key_space()
         prepare_statements()
 
     def msg_insert(self, msg_id, from_user_id, from_user_name, target_id, target_name, body, domain, sent_time, channel_id, channel_name, deleted=False) -> None:
