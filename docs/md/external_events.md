@@ -14,7 +14,12 @@ Example of activity posted to the external queue:
         "displayName": "Y29vbCBndXlz",
         "summary": "Y29vbCBndXlz",
         "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7",
-        "objectType": "room"
+        "objectType": "room",
+        "attachments": [{
+          "objectType": "owner",
+          "id": "1971",
+          "displayName": "Robby"
+        }]
     },
     "verb": "rename",
     "id": "<server-generated UUID>",
@@ -42,7 +47,12 @@ Example of activity posted to the external queue:
         "displayName": "Y29vbCBndXlz",
         "summary": "Y29vbCBndXlz",
         "id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7",
-        "objectType": "room"
+        "objectType": "room",
+        "attachments": [{
+          "objectType": "owner",
+          "id": "1971",
+          "displayName": "Robby"
+        }]
     },
     "object": {
         "content": "<base64 encoded reason for room removal>",

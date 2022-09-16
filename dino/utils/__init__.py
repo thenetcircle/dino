@@ -1099,10 +1099,20 @@ def activity_for_rename_room(user_id: str, user_name: str, room_id: str, room_na
             'id': room_id,
             'displayName': room_name,
             'summary': old_room_name,
-            'objectType': 'room'
+            'objectType': 'room',
+            'attachments': list()
         },
         'verb': 'rename'
     })
+
+    owners = get_owners_for_room(room_id)
+
+    for user_id, user_name in owners.items():
+        act['target']['attachments'].append({
+            'id': user_id,
+            "objectType": "owner",
+            'displayName': b64e(user_name)
+        })
 
     return act
 
