@@ -417,7 +417,7 @@ def on_history(data: dict, activity: Activity) -> (int, Union[str, None]):
 @timeit(logger, 'on_rename_room')
 def on_rename_room(data: dict, activity: Activity) -> (int, Union[str, None]):
     room_id = activity.target.id
-    new_room_name = utils.b64e(activity.target.display_name)
+    new_room_name = activity.target.display_name
     old_room_name = utils.b64e(environ.env.db.get_room_name(room_id))
 
     channel_id = utils.get_channel_for_room(room_id)
