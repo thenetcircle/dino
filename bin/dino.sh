@@ -54,25 +54,6 @@ if ! cd ${DINO_HOME}; then
     exit 1
 fi
 
-if [ -f env/bin/activate ]; then
-    if [ -z "$VIRTUAL_ENV" ]; then
-        if ! source env/bin/activate; then
-            echo "error: could not source virtual env"
-            exit 1
-        fi
-    fi
-else
-    source ~/.bashrc
-    if ! which conda >/dev/null; then
-        echo "error: no virtual environment found in $DINO_HOME/env and no conda executable found"
-        exit 1
-    fi
-    if ! source activate ${DINO_CONDA_ENV}; then
-        echo "error: could not activate conda environment $DINO_CONDA_ENV"
-        exit 1
-    fi
-fi
-
 STATSD_HOST=$(grep STATSD ${DINO_HOME}/secrets/${1}.yaml | sed "s/.*'\(.*\)'$/\1/g")
 if [[ -z "$STATSD_HOST" ]]; then
     STATSD_HOST="localhost"
