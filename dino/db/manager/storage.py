@@ -58,6 +58,10 @@ class StorageManager(BaseManager):
         self.env.storage.delete_message(message_id, clear_body=clear_body)
         self.env.db.mark_spam_deleted_if_exists(message_id)
 
+    def delete_messages(self, message_ids: list, clear_body: bool = True) -> None:
+        self.env.storage.delete_messages(message_ids, clear_body=clear_body)
+        self.env.db.mark_spams_deleted_if_exists(message_ids)
+
     def get_latest_messages(self, target_id: str, limit: int = 100):
         return self.env.storage.get_history(target_id, limit)
 

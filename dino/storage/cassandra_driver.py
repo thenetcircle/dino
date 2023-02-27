@@ -17,11 +17,16 @@ import pytz
 
 from datetime import datetime
 from enum import Enum
+
+from cassandra.cqlengine.operators import EqualsOperator
+from cassandra.cqlengine.statements import BaseCQLStatement
+from cassandra.cqlengine.statements import UpdateStatement
 from zope.interface import implementer
 
 from cassandra.cluster import ResultSet
 from cassandra.cluster import Session
 from cassandra.query import ValueSequence
+from cassandra.cqlengine.query import BatchQuery
 
 from dino.storage.cassandra_interface import IDriver
 from dino.config import ConfigKeys
@@ -58,7 +63,7 @@ class StatementKeys(Enum):
 @implementer(IDriver)
 class Driver(object):
     def __init__(self, session: Session, key_space: str, strategy: str, replications: int):
-        self.session = session
+        self.session: Session = session
         self.statements = dict()
         self.key_space = key_space
         self.key_space_test = key_space + 'test'
@@ -448,7 +453,52 @@ class Driver(object):
     def msg_delete(self, message_id: str, clear_body=True) -> None:
         self._msg_delete(message_id, deleted=True, clear_body=clear_body)
 
-    def _msg_delete(self, message_id: str, deleted: bool, clear_body: bool=True) -> None:
+    def msgs_delete(self, message_ids: list, clear_body=True) -> None:
+        """
+        do the updates in a batch; can't do the selects in a batch
+        """
+        to_update = list()
+
+        for message_id in message_ids:
+            keys = self._execute(StatementKeys.msg_select, message_id)
+            if keys is None or len(keys.current_rows) == 0:
+                # not found
+                continue
+
+            if len(keys.current_rows) > 1:
+                logger.warning('found %s msgs when deleting with message_id %s' % (len(keys.current_rows), message_id))
+
+            for key in keys.current_rows:
+                target_id, from_user_id, timestamp = key.target_id, key.from_user_id, key.sent_time
+                message_rows = self._execute(StatementKeys.msg_select_one, target_id, from_user_id, timestamp)
+
+                if len(message_rows.current_rows) > 1:
+                    logger.warning(
+                        'found %s msgs when deleting with target_id %s, from_user_id %s and timestamp %s' %
+                        (len(message_rows.current_rows), target_id, from_user_id, timestamp))
+
+                for message_row in message_rows.current_rows:
+                    body = message_row.body
+
+                    if clear_body:
+                        body = ''
+
+                    to_update.append((from_user_id, target_id, body, timestamp))
+
+        with BatchQuery() as b:
+            for from_user_id, target_id, body, timestamp in to_update:
+                query = UpdateStatement("messages")
+                query.add_where("from_user_id", EqualsOperator(), from_user_id)
+                query.add_where("target_id", EqualsOperator(), target_id)
+                query.add_where("timestamp", EqualsOperator(), timestamp)
+
+                query.add_assignment("deleted", True)
+                if body == "":
+                    query.add_assignment("body", body)
+
+                b.add_query(query)
+
+    def _msg_delete(self, message_id: str, deleted: bool, clear_body: bool = True) -> None:
         """
         We're doing three queries here, one to get primary index of messages table from message_id, then getting the
         complete row from messages table, and finally updating that row. This could be lowered to two queries by

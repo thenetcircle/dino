@@ -103,6 +103,12 @@ def with_session(view_func):
     return wrapped
 
 
+def split_into_chunks(objects, n):
+    for i in range(0, len(objects), n):
+        # yields successive n-sized chunks of data
+        yield objects[i:i + n]
+
+
 @implementer(IDatabase)
 class DatabaseRdbms(object):
     def __init__(self, env: GNEnvironment):
@@ -2354,6 +2360,17 @@ class DatabaseRdbms(object):
             spam.message_deleted = True
             session.add(spam)
             session.commit()
+
+    @with_session
+    def mark_spams_deleted_if_exists(self, message_ids: list, session=None) -> None:
+        for id_chunk in split_into_chunks(message_ids, 500):
+            _ = (
+                session.query(Spams)
+                .filter(Spams.message_id.in_(id_chunk))
+                .update({
+                    Spams.deleted: True
+                })
+            )
 
     @with_session
     def mark_spam_not_deleted_if_exists(self, message_id: str, session=None) -> None:

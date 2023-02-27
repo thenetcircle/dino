@@ -101,3 +101,13 @@ class IStorage(Interface):
         :param message_id: the uuid of the message to delete
         :return: nothing
         """
+
+    def delete_message(self, message_ids: list, room_id: str=None, clear_body: bool=True) -> None:
+        """
+        delete messages in batches
+
+        :param message_ids: a list of message ids to delete
+        :param room_id: not used
+        :param clear_body: hard vs soft delete; either only mark as deleted or also clear the body
+        :return: nothing
+        """

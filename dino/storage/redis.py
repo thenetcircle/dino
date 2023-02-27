@@ -58,7 +58,7 @@ class StorageRedis(object):
     def get_all_message_ids_for_user(self, user_id: str):
         return list()
 
-    def delete_message(self, message_id: str, room_id: str=None):
+    def delete_message(self, message_id: str, room_id: str = None, clear_body: bool = True):
         if room_id is None:
             raise RuntimeError('redis storage needs room_id parameter to delete message')
 
@@ -74,6 +74,10 @@ class StorageRedis(object):
                 break
 
         self.redis.lrem(RedisKeys.room_history(room_id), 1, found_msg)
+
+    def delete_messages(self, message_ids: list, room_id: str = None, clear_body: bool = True):
+        for message_id in message_ids:
+            self.delete_message(message_id, room_id, clear_body)
 
     def get_history(self, room_id: str, limit: int = 100):
         if limit is None:

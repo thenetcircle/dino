@@ -72,17 +72,9 @@ class ClearHistoryResource(BaseResource):
 
         before = time.time()
         failures = 0
-        successes = 0
+        successes = len(messages)
 
-        for message_id in messages:
-            try:
-                self.storage_manager.delete_message(message_id, clear_body=clear_body)
-                successes += 1
-            except Exception as e:
-                logger.error('could not delete message with id %s because: %s' % (message_id, str(e)))
-                logger.exception(traceback.format_exc())
-                failures += 1
-
+        self.storage_manager.delete_messages(messages, clear_body=clear_body)
         logger.info('finished deleting %s message for user %s (deletion took %.2fs)' % (len(messages), user_id, time.time()-before))
 
         return {'status': 'OK', 'failed': failures, 'success': successes, 'total': failures+successes}
