@@ -284,21 +284,22 @@ class QueueHandler(object):
         }
 
         self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
+        self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=user_id, broadcast=True)
         self.send_kick_event_to_external_queue(activity)
 
         for user_sid in user_sids:
             if user_sid in _users:
                 logger.info('about to kick user %s' % user_sid)
                 try:
+                    self.env.db.leave_room(user_id, room_id)
+                except Exception as e:
+                    logger.warning('could not remove user from room in db (maybe room is already deleted): %s' % str(e))
+
+                try:
                     self.socketio.server.leave_room(user_sid, room_id, '/ws')
                 except Exception as e:
                     logger.error('could not kick user %s from room %s: %s' % (user_id, room_id, str(e)))
                     logger.exception(traceback.format_exc())
-
-                try:
-                    self.env.db.leave_room(user_id, room_id)
-                except Exception as e:
-                    logger.warning('could not remove user from room in db (maybe room is already deleted): %s' % str(e))
 
         self.delete_for_user_in_room(user_id, room_id)
 
