@@ -262,10 +262,10 @@ class QueueHandler(object):
         if room_id is None:
             raise RuntimeError('trying to kick when room is none')
 
-        # TODO: don't kick super users / global mods
+        _users = list()
 
+        # TODO: don't kick super users / global mods
         try:
-            _users = list()
             if room_id in self.socketio.server.manager.rooms[namespace]:
                 _users = self.socketio.server.manager.rooms[namespace][room_id]
             else:
@@ -283,7 +283,6 @@ class QueueHandler(object):
             'id': room_id
         }
 
-        self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
         self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=user_id, broadcast=True)
         self.send_kick_event_to_external_queue(activity)
 
@@ -301,6 +300,8 @@ class QueueHandler(object):
                     logger.error('could not kick user %s from room %s: %s' % (user_id, room_id, str(e)))
                     logger.exception(traceback.format_exc())
 
+        # send the event to the room after the user left it
+        self.env.out_of_scope_emit('gn_user_kicked', data, json=True, namespace=namespace, room=room_id, broadcast=True)
         self.delete_for_user_in_room(user_id, room_id)
 
     def ban_room(self, data: dict, act: Activity, room_id: str, user_id: str, user_sids: list, namespace: str) -> None:
