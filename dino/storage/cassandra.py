@@ -156,7 +156,7 @@ class CassandraStorage(object):
         self.driver.msg_delete(message_id, clear_body=clear_body)
 
     @timeit(logger, 'on_cassandra_delete_messages')
-    def delete_message(self, message_ids: list, room_id: str=None, clear_body: bool=True) -> None:
+    def delete_messages(self, message_ids: list, room_id: str=None, clear_body: bool=True) -> None:
         self.driver.msgs_delete(message_ids, clear_body=clear_body)
 
     @timeit(logger, 'on_cassandra_delete_message')
