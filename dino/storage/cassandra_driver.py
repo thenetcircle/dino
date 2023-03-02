@@ -118,7 +118,7 @@ class Driver(object):
                     channel_name text,
                     deleted boolean,
                     PRIMARY KEY (target_id, from_user_id, sent_time, time_stamp)
-                )
+                );
                 """
             )
             self.session.execute(
@@ -129,7 +129,7 @@ class Driver(object):
                     status int, 
                     target_id varchar,
                     primary key(for_user_id, message_id)
-                )
+                );
                 """
             )
 
@@ -144,7 +144,7 @@ class Driver(object):
                                 status IS NOT NULL AND
                                 target_id IS NOT NULL
                         PRIMARY KEY (for_user_id, status, message_id)
-                        WITH CLUSTERING ORDER BY (status DESC)
+                        WITH CLUSTERING ORDER BY (status DESC);
                     """
             )
             self.session.execute(
@@ -158,7 +158,7 @@ class Driver(object):
                                 sent_time IS NOT NULL AND
                                 time_stamp IS NOT NULL
                         PRIMARY KEY (message_id, target_id, from_user_id, sent_time, time_stamp)
-                        WITH CLUSTERING ORDER BY (time_stamp DESC)
+                        WITH CLUSTERING ORDER BY (time_stamp DESC);
                     """
             )
             self.session.execute(
@@ -173,7 +173,7 @@ class Driver(object):
                                 sent_time IS NOT NULL AND
                                 time_stamp IS NOT NULL
                         PRIMARY KEY (target_id, time_stamp, from_user_id, sent_time)
-                        WITH CLUSTERING ORDER BY (time_stamp DESC)
+                        WITH CLUSTERING ORDER BY (time_stamp DESC);
                     """
             )
             self.session.execute(
@@ -189,7 +189,7 @@ class Driver(object):
                                 deleted IS NOT NULL AND
                                 time_stamp IS NOT NULL
                         PRIMARY KEY (target_id, deleted, time_stamp, from_user_id, sent_time)
-                        WITH CLUSTERING ORDER BY (time_stamp DESC)
+                        WITH CLUSTERING ORDER BY (time_stamp DESC);
                     """
             )
             self.session.execute(
@@ -204,7 +204,7 @@ class Driver(object):
                                 sent_time IS NOT NULL AND
                                 time_stamp IS NOT NULL
                         PRIMARY KEY (from_user_id, target_id, time_stamp, sent_time)
-                        WITH CLUSTERING ORDER BY (time_stamp DESC)
+                        WITH CLUSTERING ORDER BY (time_stamp DESC);
                     """
             )
 
