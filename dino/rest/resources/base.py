@@ -6,6 +6,7 @@ from dino import utils
 from flask_restful import Resource
 
 from dino.db.manager import UserManager
+from dino.exceptions import NoSuchUserException
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +89,7 @@ class RoomNameBaseResource(BaseResource):
 
         if len(session_ids) == 0:
             logger.warning("no sessions found for user {}, can not join room {}".format(user_id, room_id))
-            return
+            return None, None
 
         if len(session_ids) > 1:
             logger.warning("multiple session ids found for user {}, will make all join".format(user_id))
@@ -108,6 +109,8 @@ class RoomNameBaseResource(BaseResource):
 
     def join(self, user_id, room_id, need_user_names: bool = True):
         session_ids, user_name = self._prepare_session_ids(user_id, room_id, need_user_names)
+        if session_ids is None:
+            raise NoSuchUserException(user_id)
 
         # need to find the correct node the user is on
         self.user_manager.join_room(user_id, user_name, room_id, session_ids, self.namespace)

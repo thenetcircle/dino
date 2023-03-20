@@ -5,6 +5,7 @@ from flask import request
 
 from dino import environ
 from dino import utils
+from dino.exceptions import NoSuchUserException
 from dino.rest.resources.base import RoomNameBaseResource
 from dino.utils.decorators import timeit
 
@@ -23,8 +24,19 @@ class JoinRoomResource(RoomNameBaseResource):
             # try to join by room name instead of room id
             room_id = utils.get_room_id(room_name)
 
+        errors = list()
+
         for user_id in user_ids:
-            self.join(user_id, room_id, need_user_names=False)
+            try:
+                self.join(user_id, room_id, need_user_names=False)
+            except NoSuchUserException as e:
+                errors.append(f"user not online: {e.uuid}")
+
+        return {
+            "success": len(user_ids) - len(errors),
+            "failures": len(errors),
+            "errors": errors
+        }
 
     @timeit(logger, "on_rest_join_room")
     def do_post(self):
