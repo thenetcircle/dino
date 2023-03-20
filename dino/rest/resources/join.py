@@ -28,7 +28,10 @@ class JoinRoomResource(RoomNameBaseResource):
                 return {
                     "success": 0,
                     "failures": len(user_ids),
-                    "errors": ["no room exists with id {} or name {}".format(room_id, room_name)]
+                    "errors": [{
+                        "code": 601,
+                        "message": "no room exists with id {} or name {}".format(room_id, room_name)
+                    }]
                 }
 
         errors = list()
@@ -37,7 +40,10 @@ class JoinRoomResource(RoomNameBaseResource):
             try:
                 self.join(user_id, room_id, need_user_names=False)
             except NoSuchUserException as e:
-                errors.append(f"user not online: {e.uuid}")
+                errors.append({
+                    "code": 602,
+                    "message": "user not online: {}".format(e.uuid)
+                })
 
         return {
             "success": len(user_ids) - len(errors),
