@@ -5,7 +5,7 @@ from flask import request
 
 from dino import environ
 from dino import utils
-from dino.exceptions import NoSuchUserException
+from dino.exceptions import NoSuchUserException, NoSuchRoomException
 from dino.rest.resources.base import RoomNameBaseResource
 from dino.utils.decorators import timeit
 
@@ -22,7 +22,14 @@ class JoinRoomResource(RoomNameBaseResource):
     def _do_post(self, room_id, room_name, user_ids):
         if room_id is None and room_name is not None:
             # try to join by room name instead of room id
-            room_id = utils.get_room_id(room_name)
+            try:
+                room_id = utils.get_room_id(room_name)
+            except NoSuchRoomException:
+                return {
+                    "success": 0,
+                    "failures": len(user_ids),
+                    "errors": ["no room exists with id {} or name {}".format(room_id, room_name)]
+                }
 
         errors = list()
 
