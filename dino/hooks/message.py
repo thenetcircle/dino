@@ -210,11 +210,6 @@ class OnMessageHooks(object):
             blacklist_activity = utils.activity_for_blacklisted_word(activity, word_used_if_any)
             environ.env.publish(blacklist_activity, external=True)
             send(data, _room=user_id, _broadcast=False)
-
-            admins_in_room = environ.env.db.get_admins_in_room(activity.target.id)
-            if len(admins_in_room) > 0:
-                for admin_user_id in admins_in_room:
-                    send(data, _room=admin_user_id, _broadcast=False)
         else:
             if is_chat_op:
                 is_spam, spam_id = False, None
