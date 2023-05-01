@@ -446,6 +446,10 @@ Can also ban multiple users at the same time:
 }
 ```
 
+For banning as user in a room, you can either use `"target": "<room uuid>"`, `"room_id": "<room_uuid>"` or 
+`"room_name": "<room name in base64>"` (if using `room_name`, the room must be in the default channel, which is true
+for all rooms created using the `/create` API).
+
 The `name` field must be base64 encoded. The field is also optional and is only used if a ban request is received for 
 a user that doesn't exist on the server, e.g. if the user never logged in before it will not exist. If the name is 
 not specified, and the user has to be created before banning, the user ID will be set as the name (later when the user 
