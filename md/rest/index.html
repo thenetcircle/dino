@@ -813,35 +813,77 @@ correct room in the default channel.</p>
 }
 </code></pre>
 <h2 id="get-banned">GET /banned</h2>
-<p>No data required in request.</p>
-<p>Response is all banned users, separated by channel, room and globally. Example response:</p>
-<pre><code class="language-json">    {
-        &quot;channels&quot;: {},
-        &quot;global&quot;: {
-            &quot;185626&quot;: {
-                &quot;name&quot;: &quot;bHVlbA==&quot;,
-                &quot;duration&quot;: &quot;1h&quot;,
-                &quot;timestamp&quot;: &quot;2016-12-05T03:50:24Z&quot;
-            }
-        },
-        &quot;rooms&quot;: {
-            &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;: {
-                &quot;name&quot;: &quot;Y29vbCBndXlz&quot;,
-                &quot;users&quot;: {
-                    &quot;101108&quot;: {
-                        &quot;name&quot;: &quot;bHVlbA==&quot;,
-                        &quot;duration&quot;: &quot;30m&quot;,
-                        &quot;timestamp&quot;: &quot;2016-12-05T03:20:24Z&quot;
-                    }
-                }
-            }
+<p>If no request data is sent, the response is all banned users, separated by channel, room and globally. Example response:</p>
+<pre><code class="language-json">{
+  &quot;status_code&quot;: 200,
+  &quot;data&quot;: {
+    &quot;channels&quot;: {},
+    &quot;global&quot;: {
+      &quot;185626&quot;: {
+        &quot;name&quot;: &quot;bHVlbA==&quot;,
+        &quot;duration&quot;: &quot;1h&quot;,
+        &quot;timestamp&quot;: &quot;2016-12-05T03:50:24Z&quot;
+      }
+    },
+    &quot;rooms&quot;: {
+      &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;: {
+        &quot;name&quot;: &quot;Y29vbCBndXlz&quot;,
+        &quot;users&quot;: {
+          &quot;101108&quot;: {
+            &quot;name&quot;: &quot;bHVlbA==&quot;,
+            &quot;duration&quot;: &quot;30m&quot;,
+            &quot;timestamp&quot;: &quot;2016-12-05T03:20:24Z&quot;
+          }
         }
+      }
     }
+  }
+}
 </code></pre>
-<p>The "timestamp" in the response is the UTC timestamp for when the ban will expire. Names or channels, rooms and users
-are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the rooms, same for channels, while for users
-it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
+<p>The <code>timestamp</code> in the response is the UTC timestamp for when the ban will expire. Names or channels, rooms and users
+are all base64 encoded. The dictionary keys for <code>rooms</code> are the UUIDs of the rooms, same for channels, while for users
+it's their user IDs as keys. The bans for <code>global</code> have no separation by room/channel IDs, and no "name" or "users" 
 keys.</p>
+<p>If <code>room_id</code> is specified in the request, the response will only contain bans for that room. If <code>channel_id</code> is 
+specified, the response will only contain bans for that channel. Example request for bans in a certain room:</p>
+<pre><code class="language-json">{
+    &quot;room_id&quot;: &quot;1aa3f5f5-ba46-4aca-999a-978c7f2237c7&quot;
+}
+</code></pre>
+<p>Then the response would be (the key is the user ID; same format if <code>room_name</code> in base64 is used instead of <code>room_id</code>):</p>
+<pre><code class="language-json">{
+  &quot;status_code&quot;: 200,
+  &quot;data&quot;: {
+    &quot;1234&quot;: {
+        &quot;name&quot;: &quot;&lt;username in base64&gt;&quot;,
+        &quot;duration&quot;: &quot;&lt;seconds left until the ban is lifted&gt;&quot;,
+        &quot;reason&quot;: &quot;&lt;ban reason in base64&gt;&quot;,
+        &quot;timestamp&quot;: &quot;2016-12-05T03:20:24Z&quot;
+    },
+    &quot;5678&quot;: {
+        &quot;name&quot;: &quot;&lt;username in base64&gt;&quot;,
+        &quot;duration&quot;: &quot;&lt;seconds left until the ban is lifted&gt;&quot;,
+        &quot;reason&quot;: &quot;&lt;ban reason in base64&gt;&quot;,
+        &quot;timestamp&quot;: &quot;2016-12-05T03:20:24Z&quot;
+    }
+  }
+}
+</code></pre>
+<p>If only global bans are needed, use the <code>global</code> key, and no other keys. Example request:</p>
+<pre><code class="language-json">{
+    &quot;global&quot;: true
+}
+</code></pre>
+<p>Response is in the same format as above.</p>
+<p>If the room doesn't exist, error <code>802</code> is returned:</p>
+<pre><code class="language-json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;code&quot;: 802,
+        &quot;message&quot;: &quot;no room exists with name &lt;room name&gt;&quot;
+    }
+}
+</code></pre>
 <h2 id="post-status">POST /status</h2>
 <p>Set the online status or visibility status of a user.</p>
 <p>Request contains:</p>
