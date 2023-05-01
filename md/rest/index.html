@@ -13,7 +13,7 @@
       <script>
         // Current page data
         var mkdocs_page_name = "REST";
-        var mkdocs_page_input_path = "md/rest.md";
+        var mkdocs_page_input_path = "md\\rest.md";
         var mkdocs_page_url = null;
       </script>
     
@@ -460,6 +460,9 @@ and exact match (when both lowercase).</p>
     }
 }
 </code></pre>
+<p>For banning as user in a room, you can either use <code>"target": "&lt;room uuid&gt;"</code>, <code>"room_id": "&lt;room_uuid&gt;"</code> or 
+<code>"room_name": "&lt;room name in base64&gt;"</code> (if using <code>room_name</code>, the room must be in the default channel, which is true
+for all rooms created using the <code>/create</code> API).</p>
 <p>The <code>name</code> field must be base64 encoded. The field is also optional and is only used if a ban request is received for 
 a user that doesn't exist on the server, e.g. if the user never logged in before it will not exist. If the name is 
 not specified, and the user has to be created before banning, the user ID will be set as the name (later when the user 
