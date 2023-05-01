@@ -71,7 +71,7 @@ class BannedResource(BaseResource):
             room_name = utils.b64d(json['room_name'])
             try:
                 room_id = utils.get_room_id(room_name)
-                output = environ.env.db.get_banned_users_for_room(room_id)
+                output = environ.env.db.get_banned_users_for_room(room_id, encode_response=True)
             except NoSuchRoomException:
                 logger.error('no such room: %s' % json['room_name'])
                 return {
