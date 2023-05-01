@@ -950,7 +950,7 @@ specified, the response will only contain bans for that channel. Example request
 }
 ```
 
-Then the response would be (the key is the user ID; same format if `room_name` is used instead of `room_id`):
+Then the response would be (the key is the user ID; same format if `room_name` in base64 is used instead of `room_id`):
 
 ```json
 {

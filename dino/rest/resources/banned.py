@@ -65,10 +65,10 @@ class BannedResource(BaseResource):
                 output[user_id] = self.do_get_with_params(user_id)
 
         elif 'room_id' in json:
-            output = environ.env.db.get_banned_users_for_room(json['room_id'])
+            output = environ.env.db.get_banned_users_for_room(json['room_id'], encode_response=True)
 
         elif 'room_name' in json:
-            room_name = json['room_name']
+            room_name = utils.b64d(json['room_name'])
             try:
                 room_id = utils.get_room_id(room_name)
                 output = environ.env.db.get_banned_users_for_room(room_id)

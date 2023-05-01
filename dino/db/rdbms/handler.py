@@ -3105,7 +3105,7 @@ class DatabaseRdbms(object):
         session.delete(ban)
         session.commit()
 
-    def _get_banned_users(self, all_bans, session=None):
+    def _get_banned_users(self, all_bans, encode_response: bool = False, session=None):
         output = dict()
         if all_bans is None or len(all_bans) == 0:
             return output
@@ -3120,9 +3120,9 @@ class DatabaseRdbms(object):
                 continue
 
             output[ban.user_id] = {
-                'name': ban.user_name,
+                'name': b64e(ban.user_name) if encode_response and ban.user_name else ban.user_name,
                 'duration': ban.duration,
-                'reason': ban.reason,
+                'reason': b64e(ban.reason) if encode_response and ban.reason else ban.reason,
                 'timestamp': ban.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
 
@@ -3141,9 +3141,9 @@ class DatabaseRdbms(object):
         return self._get_banned_users(all_bans, session)
 
     @with_session
-    def get_banned_users_for_room(self, room_id: str, session=None) -> dict:
+    def get_banned_users_for_room(self, room_id: str, encode_response: bool = False, session=None) -> dict:
         all_bans = session.query(Bans).join(Bans.room).filter(Rooms.uuid == room_id).all()
-        return self._get_banned_users(all_bans, session)
+        return self._get_banned_users(all_bans, encode_response=encode_response, session=session)
 
     def get_banned_users(self):
         @with_session
