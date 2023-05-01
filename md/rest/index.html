@@ -696,7 +696,52 @@ correct room in the default channel.</p>
 </code></pre>
 <p>Example response:</p>
 <pre><code class="language-json">{
-    &quot;status_code&quot;: 200
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;success&quot;: 1,
+        &quot;failures&quot;: 0,
+        &quot;errors&quot;: []
+    }
+}
+</code></pre>
+<p>If the room does not exist, error code <code>802</code> will be returned:</p>
+<pre><code class="language-json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;success&quot;: 0,
+        &quot;failures&quot;: 1,
+        &quot;errors&quot;: [{
+            &quot;status_code&quot;: 802,
+            &quot;error&quot;: &quot;no room exists with id 01eafcf0-4ab2-48bb-8ff5-833b056d2727 or name &lt;some name&gt;&quot;
+        }]
+    }
+}
+</code></pre>
+<p>If the user does not exist (i.e. the user is not online), error code <code>800</code> will be returned:</p>
+<pre><code class="language-json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;success&quot;: 0,
+        &quot;failures&quot;: 1,
+        &quot;errors&quot;: [{
+            &quot;status_code&quot;: 800,
+            &quot;error&quot;: &quot;user not online: 1234&quot;
+        }]
+    }
+}
+</code></pre>
+<p>If a user in the <code>user_ids</code> list is banned from joining the room (or the channel, or globally), error <code>703</code> will be 
+returned for that user:</p>
+<pre><code class="language-json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;success&quot;: 0,
+        &quot;failures&quot;: 1,
+        &quot;errors&quot;: [{
+            &quot;status_code&quot;: 703,
+            &quot;error&quot;: &quot;user 1234 is banned from room/channel/global &lt;some name&gt; for 3601 seconds. Reason: &lt;some reason specified when the user was banned&gt;&quot;
+        }]
+    }
 }
 </code></pre>
 <h2 id="post-leave">POST /leave</h2>
