@@ -112,6 +112,11 @@ class ValidationException(Exception):
         self.msg = msg
 
 
+class UserIsBannedException(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+
 class UserExistsException(Exception):
     def __init__(self, uuid):
         self.uuid = uuid

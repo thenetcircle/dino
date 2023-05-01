@@ -751,7 +751,49 @@ Example response:
 
 ```json
 {
-    "status_code": 200
+    "success": 1,
+    "failures": 0,
+    "errors": []
+}
+```
+
+If the room does not exist, error code `802` will be returned:
+
+```json
+{
+    "success": 0,
+    "failures": 1,
+    "errors": [{
+      "status_code": 802,
+      "error": "no room exists with id 01eafcf0-4ab2-48bb-8ff5-833b056d2727 or name <some name>"
+    }]
+}
+```
+
+If the user does not exist (i.e. the user is not online), error code `800` will be returned:
+
+```json
+{
+    "success": 0,
+    "failures": 1,
+    "errors": [{
+      "status_code": 800,
+      "error": "user not online: 1234"
+    }]
+}
+```
+
+If a user in the `user_ids` list is banned from joining the room (or the channel, or globally), error `703` will be 
+returned for that user:
+
+```json
+{
+    "success": 0,
+    "failures": 1,
+    "errors": [{
+      "status_code": 703,
+      "error": "user 1234 is banned from room/channel/global <some name> for 3601 seconds. Reason: <some reason specified when the user was banned>"
+    }]
 }
 ```
 

@@ -5,7 +5,8 @@ from flask import request
 
 from dino import environ
 from dino import utils
-from dino.exceptions import NoSuchUserException, NoSuchRoomException
+from dino.config import ErrorCodes
+from dino.exceptions import NoSuchUserException, NoSuchRoomException, UserIsBannedException
 from dino.rest.resources.base import RoomNameBaseResource
 from dino.utils.decorators import timeit
 
@@ -29,7 +30,7 @@ class JoinRoomResource(RoomNameBaseResource):
                     "success": 0,
                     "failures": len(user_ids),
                     "errors": [{
-                        "code": 601,
+                        "code": ErrorCodes.NO_SUCH_ROOM,
                         "message": "no room exists with id {} or name {}".format(room_id, room_name)
                     }]
                 }
@@ -39,9 +40,14 @@ class JoinRoomResource(RoomNameBaseResource):
         for user_id in user_ids:
             try:
                 self.join(user_id, room_id, need_user_names=False)
+            except UserIsBannedException as e:
+                errors.append({
+                    "code": ErrorCodes.USER_IS_BANNED,
+                    "message": e.msg
+                })
             except NoSuchUserException as e:
                 errors.append({
-                    "code": 602,
+                    "code": ErrorCodes.NO_SUCH_USER,
                     "message": "user not online: {}".format(e.uuid)
                 })
 

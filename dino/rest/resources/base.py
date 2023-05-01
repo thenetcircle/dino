@@ -6,7 +6,7 @@ from dino import utils
 from flask_restful import Resource
 
 from dino.db.manager import UserManager
-from dino.exceptions import NoSuchUserException
+from dino.exceptions import NoSuchUserException, UserIsBannedException
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +108,22 @@ class RoomNameBaseResource(BaseResource):
         self.user_manager.room_created(user_id, user_name, room_id, room_name, session_ids, self.namespace)
 
     def join(self, user_id, room_id, need_user_names: bool = True):
+        is_banned, info_dict = utils.is_banned(user_id, room_id)
+        if is_banned:
+            scope = info_dict['scope']
+            seconds_left = info_dict['seconds']
+            target_id = info_dict['id']
+            target_name = ''
+            if scope == 'room':
+                target_name = utils.get_room_name(target_id)
+            elif scope == 'channel':
+                target_name = utils.get_channel_name(target_id)
+            reason = utils.reason_for_ban(user_id, scope, target_id)
+
+            raise UserIsBannedException(
+                f"user {user_id} is banned from {scope} {target_name} for {seconds_left} seconds. Reason: {reason}"
+            )
+
         session_ids, user_name = self._prepare_session_ids(user_id, room_id, need_user_names)
         if session_ids is None:
             raise NoSuchUserException(user_id)
