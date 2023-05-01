@@ -17,9 +17,12 @@ from flask import request
 
 import logging
 
+from dino.config import ErrorCodes
+from dino.exceptions import NoSuchUserException, NoSuchRoomException
 from dino.rest.resources.base import BaseResource
 from dino.utils.decorators import timeit
 from dino import environ
+from dino import utils
 
 logger = logging.getLogger(__name__)
 
@@ -54,11 +57,26 @@ class BannedResource(BaseResource):
         if json is None:
             return environ.env.db.get_banned_users()
 
-        if 'users' not in json:
-            return dict()
         logger.debug('GET request: %s' % str(json))
-
         output = dict()
-        for user_id in json['users']:
-            output[user_id] = self.do_get_with_params(user_id)
+
+        if 'users' in json:
+            for user_id in json['users']:
+                output[user_id] = self.do_get_with_params(user_id)
+
+        elif 'room_id' in json:
+            output = environ.env.db.get_banned_users_for_room(json['room_id'])
+
+        elif 'room_name' in json:
+            room_name = json['room_name']
+            try:
+                room_id = utils.get_room_id(room_name)
+                output = environ.env.db.get_banned_users_for_room(room_id)
+            except NoSuchRoomException:
+                logger.error('no such room: %s' % json['room_name'])
+                return {
+                    "code": ErrorCodes.NO_SUCH_ROOM,
+                    "message": "no room exists with name {}".format(room_name)
+                }
+
         return output

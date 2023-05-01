@@ -906,39 +906,93 @@ Or if other kinds of failures:
 
 ## GET /banned
 
-No data required in request.
-
-Response is all banned users, separated by channel, room and globally. Example response:
+If no request data is sent, the response is all banned users, separated by channel, room and globally. Example response:
 
 ```json
-    {
-        "channels": {},
-        "global": {
-            "185626": {
-                "name": "bHVlbA==",
-                "duration": "1h",
-                "timestamp": "2016-12-05T03:50:24Z"
-            }
-        },
-        "rooms": {
-            "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
-                "name": "Y29vbCBndXlz",
-                "users": {
-                    "101108": {
-                        "name": "bHVlbA==",
-                        "duration": "30m",
-                        "timestamp": "2016-12-05T03:20:24Z"
-                    }
-                }
-            }
+{
+  "status_code": 200,
+  "data": {
+    "channels": {},
+    "global": {
+      "185626": {
+        "name": "bHVlbA==",
+        "duration": "1h",
+        "timestamp": "2016-12-05T03:50:24Z"
+      }
+    },
+    "rooms": {
+      "1aa3f5f5-ba46-4aca-999a-978c7f2237c7": {
+        "name": "Y29vbCBndXlz",
+        "users": {
+          "101108": {
+            "name": "bHVlbA==",
+            "duration": "30m",
+            "timestamp": "2016-12-05T03:20:24Z"
+          }
         }
+      }
     }
+  }
+}
 ```
 
-The "timestamp" in the response is the UTC timestamp for when the ban will expire. Names or channels, rooms and users
-are all base64 encoded. The dictionary keys for "rooms" are the UUIDs of the rooms, same for channels, while for users
-it's their user IDs as keys. The bans for "global" have no separation by room/channel IDs, and no "name" or "users" 
+The `timestamp` in the response is the UTC timestamp for when the ban will expire. Names or channels, rooms and users
+are all base64 encoded. The dictionary keys for `rooms` are the UUIDs of the rooms, same for channels, while for users
+it's their user IDs as keys. The bans for `global` have no separation by room/channel IDs, and no "name" or "users" 
 keys.
+
+If `room_id` is specified in the request, the response will only contain bans for that room. If `channel_id` is 
+specified, the response will only contain bans for that channel. Example request for bans in a certain room:
+
+```json
+{
+    "room_id": "1aa3f5f5-ba46-4aca-999a-978c7f2237c7"
+}
+```
+
+Then the response would be (the key is the user ID; same format if `room_name` is used instead of `room_id`):
+
+```json
+{
+  "status_code": 200,
+  "data": {
+    "1234": {
+        "name": "<username in base64>",
+        "duration": "<seconds left until the ban is lifted>",
+        "reason": "<ban reason in base64>",
+        "timestamp": "2016-12-05T03:20:24Z"
+    },
+    "5678": {
+        "name": "<username in base64>",
+        "duration": "<seconds left until the ban is lifted>",
+        "reason": "<ban reason in base64>",
+        "timestamp": "2016-12-05T03:20:24Z"
+    }
+  }
+}
+```
+
+If only global bans are needed, use the `global` key, and no other keys. Example request:
+
+```json
+{
+    "global": true
+}
+```
+
+Response is in the same format as above.
+
+If the room doesn't exist, error `802` is returned:
+
+```json
+{
+    "status_code": 200,
+    "data": {
+        "code": 802,
+        "message": "no room exists with name <room name>"
+    }
+}
+```
 
 ## POST /status
 
