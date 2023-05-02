@@ -675,10 +675,13 @@ channel.</p>
     &quot;data&quot;: {
         &quot;room_id&quot;: &quot;01eafcf0-4ab2-48bb-8ff5-833b056d2727&quot;,
         &quot;room_name&quot;: &quot;tr19&quot;,
-        &quot;channel_id&quot;: &quot;8d43181a-13e0-4ccc-a64b-ae8e93d36bcd&quot;
+        &quot;channel_id&quot;: &quot;8d43181a-13e0-4ccc-a64b-ae8e93d36bcd&quot;,
+        &quot;user_ids_not_joined&quot;: [&quot;1234&quot;]
     }
 }
 </code></pre>
+<p>If some users could not be made to join the newly created room, because they're offline, their IDs will be returned in
+the <code>user_ids_not_joined</code> list.</p>
 <h2 id="post-join">POST /join</h2>
 <p>Joins the room (if specified users are online). Only works for rooms in the default channel (e.g. 
 rooms created using the <code>POST /create</code> API).</p>
