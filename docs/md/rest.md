@@ -721,10 +721,14 @@ Example response:
 	"data": {
 		"room_id": "01eafcf0-4ab2-48bb-8ff5-833b056d2727",
 		"room_name": "tr19",
-		"channel_id": "8d43181a-13e0-4ccc-a64b-ae8e93d36bcd"
+		"channel_id": "8d43181a-13e0-4ccc-a64b-ae8e93d36bcd",
+        "user_ids_not_joined": ["1234"]
 	}
 }
 ```
+
+If some users could not be made to join the newly created room, because they're offline, their IDs will be returned in
+the `user_ids_not_joined` list.
 
 ## POST /join
 

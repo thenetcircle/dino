@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from uuid import uuid4 as uuid
 
+from dino.exceptions import NoSuchUserException
 from dino.utils import b64d
 from flask import request
 
@@ -27,13 +28,19 @@ class CreateRoomResource(RoomNameBaseResource):
 
         environ.env.db.create_room(room_name, room_id, channel_id, owner_id, owner_name, ephemeral=True)
 
+        offline_user_ids = list()
         for user_id in user_ids:
-            self.room_created(user_id, room_id, room_name, need_user_names=False)
+            try:
+                self.room_created(user_id, room_id, room_name, need_user_names=False)
+            except NoSuchUserException:
+                logger.warning("user {} not found online, can not join room {}".format(user_id, room_id))
+                offline_user_ids.append(str(user_id))
 
         return {
             "room_id": room_id,
             "room_name": room_name,
-            "channel_id": channel_id
+            "channel_id": channel_id,
+            "user_ids_not_joined": offline_user_ids
         }
 
     @timeit(logger, "on_rest_create_room")

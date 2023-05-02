@@ -103,6 +103,8 @@ class RoomNameBaseResource(BaseResource):
 
     def room_created(self, user_id, room_id, room_name, need_user_names: bool = True):
         session_ids, user_name = self._prepare_session_ids(user_id, room_id, need_user_names)
+        if not session_ids:
+            raise NoSuchUserException(user_id)
 
         # need to find the correct node the user is on
         self.user_manager.room_created(user_id, user_name, room_id, room_name, session_ids, self.namespace)
