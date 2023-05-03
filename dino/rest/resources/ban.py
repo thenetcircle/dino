@@ -8,7 +8,7 @@ from flask import request
 from dino import environ
 from dino import utils
 from dino.db.manager import UserManager
-from dino.exceptions import NoSuchUserException
+from dino.exceptions import NoSuchUserException, NoSuchRoomException
 from dino.exceptions import UnknownBanTypeException
 from dino.rest.resources.base import BaseResource
 from dino.utils.decorators import timeit
@@ -42,6 +42,42 @@ class BanResource(BaseResource):
             json = self._validate_params()
             self.schedule_execution(json)
             return ok()
+        except Exception as e:
+            logger.error('could not ban user: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
+            return fail(str(e))
+
+    def do_delete(self):
+        try:
+            is_valid, msg, json = self.validate_json(self.request, silent=False)
+            if not is_valid or 'user_id' not in json:
+                raise RuntimeError('invalid json: %s' % msg)
+
+            user_id = str(int(float(json.get('user_id'))))
+            room_id = ''
+
+            if 'room_name' in json:
+                room_name = utils.b64d(json.get('room_name'))
+                room_id = utils.get_room_id(room_name)
+                target_type = 'room'
+            elif 'room_id' in json:
+                room_id = json.get('room_id')
+                target_type = 'room'
+            elif 'global' in json and json.get('global'):
+                target_type = 'global'
+            else:
+                raise RuntimeError('invalid json: no room name or room id or global ban')
+
+            self.user_manager.remove_ban(user_id, room_id, target_type)
+            return ok()
+
+        except NoSuchRoomException as e:
+            logger.error('could not ban user: %s' % str(e))
+            logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
+            return fail(f"no room exists with name: {str(e.uuid)}")
+
         except Exception as e:
             logger.error('could not ban user: %s' % str(e))
             logger.exception(traceback.format_exc())

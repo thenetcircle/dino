@@ -483,6 +483,58 @@ For success the response looks like this:
 }
 ```
 
+## DELETE /ban
+
+To remove a ban in a room using the room name, send the following request:
+
+```json
+{
+  "user_id": "1234",
+  "room_name": "<room name in base64>"
+}
+```
+
+To remove a ban in a room using the room ID, send the following request:
+
+```json
+{
+  "user_id": "1234",
+  "room_id": "<room uuid>"
+}
+```
+
+To remove a global ban, send the following request:
+
+```json
+{
+  "user_id": "1234",
+  "global": true
+}
+```
+
+If successful, the response looks like this:
+
+```json
+{
+  "status_code": 200,
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
+If the request fails (room name doesn't exist, invalid json, etc.), the response will look like this:
+
+```json
+{
+  "status_code": 500,
+  "data": {
+    "status": "FAIL",
+    "message": "no room exists with name: <the room name in the request>"
+  }
+}
+```
+
 ## POST /kick
 
 Request contains:
