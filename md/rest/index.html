@@ -485,6 +485,42 @@ first non-valid parameter and for which user ID.</p>
     &quot;status&quot;: &quot;OK&quot;
 }
 </code></pre>
+<h2 id="delete-ban">DELETE /ban</h2>
+<p>To remove a ban in a room using the room name, send the following request:</p>
+<pre><code class="language-json">{
+  &quot;user_id&quot;: &quot;1234&quot;,
+  &quot;room_name&quot;: &quot;&lt;room name in base64&gt;&quot;
+}
+</code></pre>
+<p>To remove a ban in a room using the room ID, send the following request:</p>
+<pre><code class="language-json">{
+  &quot;user_id&quot;: &quot;1234&quot;,
+  &quot;room_id&quot;: &quot;&lt;room uuid&gt;&quot;
+}
+</code></pre>
+<p>To remove a global ban, send the following request:</p>
+<pre><code class="language-json">{
+  &quot;user_id&quot;: &quot;1234&quot;,
+  &quot;global&quot;: true
+}
+</code></pre>
+<p>If successful, the response looks like this:</p>
+<pre><code class="language-json">{
+  &quot;status_code&quot;: 200,
+  &quot;data&quot;: {
+    &quot;status&quot;: &quot;OK&quot;
+  }
+}
+</code></pre>
+<p>If the request fails (room name doesn't exist, invalid json, etc.), the response will look like this:</p>
+<pre><code class="language-json">{
+  &quot;status_code&quot;: 500,
+  &quot;data&quot;: {
+    &quot;status&quot;: &quot;FAIL&quot;,
+    &quot;message&quot;: &quot;no room exists with name: &lt;the room name in the request&gt;&quot;
+  }
+}
+</code></pre>
 <h2 id="post-kick">POST /kick</h2>
 <p>Request contains:</p>
 <pre><code class="language-json">{
