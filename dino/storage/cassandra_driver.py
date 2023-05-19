@@ -47,6 +47,7 @@ class StatementKeys(Enum):
     msg_select_all = 'msg_select_all'
     msgs_select = 'msgs_select'
     msgs_select_all_in = 'msgs_select_all_in'
+    msgs_select_pagination = 'msgs_select_pagination'
     msgs_select_time_slice = 'msgs_select_time_slice'
     msgs_select_by_time_stamp = 'msgs_select_by_time_stamp'
     msgs_select_latest_non_deleted = 'msgs_select_latest_non_deleted'
@@ -280,6 +281,11 @@ class Driver(object):
                     SELECT * FROM messages_by_time_stamp_non_deleted WHERE target_id = ? AND deleted = False LIMIT ?
                     """
             )
+            self.statements[StatementKeys.msgs_select_pagination] = self.session.prepare(
+                    """
+                    SELECT * FROM messages_by_time_stamp_non_deleted WHERE target_id = ? AND deleted = False AND time_stamp < ? LIMIT ?
+                    """
+            )
             self.statements[StatementKeys.msgs_select_time_slice] = self.session.prepare(
                     """
                     SELECT * FROM messages_by_time_stamp WHERE target_id = ? AND time_stamp > ? AND time_stamp < ?
@@ -405,6 +411,9 @@ class Driver(object):
 
     def update_acks_with_status(self, message_ids: set, receiver_id: str, status: int):
         return self._execute(StatementKeys.acks_update, status, receiver_id, message_ids)
+
+    def msgs_select_pagination(self, target_id: str, to_time: int, limit: int):
+        return self._execute(StatementKeys.msgs_select_pagination, target_id, to_time, limit)
 
     def msgs_select_time_slice(self, target_id: str, from_time: int, to_time: int) -> ResultSet:
         return self._execute(StatementKeys.msgs_select_time_slice, target_id, from_time, to_time)
