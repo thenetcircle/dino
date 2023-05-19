@@ -210,11 +210,12 @@ Response would be something similar to the following:
     }
 ```
 
-* If neither `from_time` nor `to_time` is specified, the last 7 days will be used as limit,
+* If neither `from_time` nor `to_time` is specified, the last 7 days will be used,
 * If `from_time` is specified but no `to_time`, `to_time` will be `from_time + 7 days`,
 * If `to_time` is specified but no `from_time`, `from_time` will be `to_time - 7 days`,
-* Either `user_id` or `room_id` is required (both can be specified at the same time),
-* `to_time` needs to be after `from_time`.
+* Either `user_id` or `room_id`/`room_name` is required (both can be specified at the same time),
+* `to_time` needs to be after `from_time`,
+* if `limit` is used, the `from_time` and `user_id` parameters are ignored.
 
 # POST /heartbeat
 
