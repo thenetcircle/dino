@@ -306,11 +306,12 @@ the next request, the querying is exclusive of the <code>to_time</code> (strictl
     }
 </code></pre>
 <ul>
-<li>If neither <code>from_time</code> nor <code>to_time</code> is specified, the last 7 days will be used as limit,</li>
+<li>If neither <code>from_time</code> nor <code>to_time</code> is specified, the last 7 days will be used,</li>
 <li>If <code>from_time</code> is specified but no <code>to_time</code>, <code>to_time</code> will be <code>from_time + 7 days</code>,</li>
 <li>If <code>to_time</code> is specified but no <code>from_time</code>, <code>from_time</code> will be <code>to_time - 7 days</code>,</li>
-<li>Either <code>user_id</code> or <code>room_id</code> is required (both can be specified at the same time),</li>
-<li><code>to_time</code> needs to be after <code>from_time</code>.</li>
+<li>Either <code>user_id</code> or <code>room_id</code>/<code>room_name</code> is required (both can be specified at the same time),</li>
+<li><code>to_time</code> needs to be after <code>from_time</code>,</li>
+<li>if <code>limit</code> is used, the <code>from_time</code> and <code>user_id</code> parameters are ignored.</li>
 </ul>
 <h1 id="post-heartbeat">POST /heartbeat</h1>
 <p>For mobile clients, it is sometimes tricky to maintain a constant connection due to fluctuations in network quality 
