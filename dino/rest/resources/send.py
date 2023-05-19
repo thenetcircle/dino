@@ -1,5 +1,7 @@
 import logging
 import traceback
+
+import activitystreams
 import eventlet
 
 import sys
@@ -44,6 +46,7 @@ class SendResource(BaseResource):
         target_id = str(json.get('target_id', ''))
         namespace = json.get('namespace', '/ws')
         target_name = json.get('target_name')
+        persist = json.get('persist', False)
 
         if not len(target_id.strip()):
             if target_name is not None and len(target_name.strip()):
@@ -68,6 +71,18 @@ class SendResource(BaseResource):
             return
 
         logger.info("sending 'message' to room {}: {}".format(target_id, data))
+
+        if persist:
+            try:
+                activity = activitystreams.parse(data)
+                message_id = environ.env.storage.store_message(activity, deleted=False)
+                data['object']['id'] = message_id
+            except Exception as e:
+                logger.error('could not store message %s because: %s' % (data["id"], str(e)))
+                logger.error(str(data))
+                logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
+                return
 
         try:
             environ.env.out_of_scope_emit('message', data, room=target_id, json=True, namespace='/ws', broadcast=True)
