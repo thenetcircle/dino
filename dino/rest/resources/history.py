@@ -61,7 +61,7 @@ class HistoryResource(BaseResource):
         limit = the_json.get('limit', None)
 
         if room_name is not None:
-            room_id = utils.get_room_id(room_name)
+            room_id = utils.get_room_id(utils.b64d(room_name))
 
         if limit is None:
             try:
