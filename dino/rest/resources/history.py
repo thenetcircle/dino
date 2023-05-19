@@ -54,7 +54,7 @@ class HistoryResource(BaseResource):
         logger.debug('GET request: %s' % str(the_json))
 
         room_id = the_json.get('room_id', '')
-        room_name = the_json.get('room_id', None)
+        room_name = the_json.get('room_name', None)
         user_id = the_json.get('user_id', None)
         from_time = the_json.get('from_time', None)
         to_time = the_json.get('to_time', None)
