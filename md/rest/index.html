@@ -133,7 +133,7 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="get-acl">GET /acl</h1>
+                <h2 id="get-acl">GET acl</h2>
 <p>Retrieve all ACLs for all non-temporary rooms in all channels.</p>
 <p>Example response:</p>
 <pre><code class="language-json">{
@@ -159,7 +159,7 @@
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="get-rooms">GET /rooms</h1>
+<h2 id="get-rooms">GET rooms</h2>
 <p>Returns a list of all rooms currently existing. Result is cached for 1 minute and might thus not be always up-to-date.</p>
 <p>Example response:</p>
 <pre><code class="language-json">{
@@ -182,7 +182,7 @@
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="get-rooms-acl">GET /rooms-acl</h1>
+<h2 id="get-rooms-acl">GET rooms-acl</h2>
 <p>Returns a list of all rooms currently existing, that a specific user is 
 allowed to join (if a user is not allowed to list a channel, no rooms 
 from that channel will be included either). Result is cached for 1 
@@ -219,7 +219,7 @@ minute per user id and might thus not be always up-to-date.</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="post-acl">POST /acl</h1>
+<h2 id="post-acl">POST acl</h2>
 <p>Request:</p>
 <pre><code class="language-json">{
     &quot;room_id&quot;: &quot;a81e4726-784a-11e9-bbdd-bbfdfd886868&quot;,
@@ -237,7 +237,7 @@ minute per user id and might thus not be always up-to-date.</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="get-history">GET /history</h1>
+<h2 id="get-history">GET history</h2>
 <p>Request contains info on what time slice, target, origin to get history for:</p>
 <pre><code class="language-json">{
     &quot;from_time&quot;: &quot;2016-12-26T08:39:54Z&quot;,
@@ -313,7 +313,7 @@ the next request, the querying is exclusive of the <code>to_time</code> (strictl
 <li><code>to_time</code> needs to be after <code>from_time</code>,</li>
 <li>if <code>limit</code> is used, the <code>from_time</code> and <code>user_id</code> parameters are ignored.</li>
 </ul>
-<h1 id="post-heartbeat">POST /heartbeat</h1>
+<h2 id="post-heartbeat">POST heartbeat</h2>
 <p>For mobile clients, it is sometimes tricky to maintain a constant connection due to fluctuations in network quality 
 and data loss. To keep a user in an online state without keeping a connection open, the <code>/heartbeat</code> api can be used
 instead.</p>
@@ -334,7 +334,7 @@ instead.</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="post-full-history">POST /full-history</h1>
+<h2 id="post-full-history">POST full-history</h2>
 <p>To get all messages sent by a user, call this endpoint with the following data:</p>
 <pre><code class="language-json">{
     &quot;user_id&quot;: 1971
@@ -360,7 +360,7 @@ instead.</p>
     }, {...}]
 }
 </code></pre>
-<h1 id="post-broadcast">POST /broadcast</h1>
+<h2 id="post-broadcast">POST broadcast</h2>
 <p>Broadcasts a message to everyone on the server. Request needs the <code>body</code> and <code>verb</code> keys:</p>
 <pre><code class="language-json">{
     &quot;body&quot;: &quot;aGkgdGhlcmU=&quot;,
@@ -396,7 +396,7 @@ instead.</p>
 }
 </code></pre>
 <p>Note, if no <code>room_name</code> is specified, there's no <code>target</code> in the above event to clients.</p>
-<h1 id="post-blacklist">POST /blacklist</h1>
+<h2 id="post-blacklist">POST blacklist</h2>
 <p>Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:</p>
 <pre><code class="language-json">{
     &quot;word&quot;: &quot;YmFkd29yZA==&quot;
@@ -407,7 +407,7 @@ instead.</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="delete-blacklist">DELETE /blacklist</h1>
+<h2 id="delete-blacklist">DELETE blacklist</h2>
 <p>Remove a matching word from the blacklist. Encode the word in base64 first, then post a request on the following format:</p>
 <pre><code class="language-json">{
     &quot;word&quot;: &quot;YmFkd29yZA==&quot;
@@ -420,7 +420,7 @@ and exact match (when both lowercase).</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="post-set-admin">POST /set-admin</h1>
+<h2 id="post-set-admin">POST set-admin</h2>
 <p>Set a user as a global moderator.</p>
 <p>Request contains user ID and the user's name (in case the user doesn't exist):</p>
 <pre><code class="language-json">{
@@ -439,7 +439,7 @@ and exact match (when both lowercase).</p>
     &quot;status_code&quot;: 500
 }
 </code></pre>
-<h1 id="post-remove-admin">POST /remove-admin</h1>
+<h2 id="post-remove-admin">POST remove-admin</h2>
 <p>Remove global moderator status for a user.</p>
 <p>Request contains the user's ID only:</p>
 <pre><code class="language-json">{
@@ -457,7 +457,7 @@ and exact match (when both lowercase).</p>
     &quot;status_code&quot;: 500
 }
 </code></pre>
-<h1 id="post-ban">POST /ban</h1>
+<h2 id="post-ban">POST ban</h2>
 <p>Request contains info on who to ban where. For banning globally:</p>
 <pre><code class="language-json">{
     &quot;1234&quot;: {
@@ -519,7 +519,7 @@ first non-valid parameter and for which user ID.</p>
     &quot;status&quot;: &quot;OK&quot;
 }
 </code></pre>
-<h1 id="delete-ban">DELETE /ban</h1>
+<h2 id="delete-ban">DELETE ban</h2>
 <p>To remove a ban in a room using the room name, send the following request:</p>
 <pre><code class="language-json">{
   &quot;user_id&quot;: &quot;1234&quot;,
@@ -555,7 +555,7 @@ first non-valid parameter and for which user ID.</p>
   }
 }
 </code></pre>
-<h1 id="post-kick">POST /kick</h1>
+<h2 id="post-kick">POST kick</h2>
 <p>Request contains:</p>
 <pre><code class="language-json">{
     &quot;&lt;user id&gt;&quot;: {
@@ -591,7 +591,7 @@ first non-valid parameter and for which user ID.</p>
     }
 }
 </code></pre>
-<h1 id="get-roles">GET /roles</h1>
+<h2 id="get-roles">GET roles</h2>
 <p>Request contains a list of user IDs, e.g.:</p>
 <pre><code class="language-json">{
     &quot;users&quot;: [
@@ -643,7 +643,7 @@ first non-valid parameter and for which user ID.</p>
 </ul>
 <p>The only difference between global superusers and global moderators is that global superusers can also remove static 
 rooms.</p>
-<h1 id="get-count-joins">GET /count-joins</h1>
+<h2 id="get-count-joins">GET count-joins</h2>
 <p>Count the cumulative number of joins for a room. Used for counting the number of "views" a live stream has had. The 
 count is cached for 8 hours, then fetched from db if requested again.</p>
 <p>Using curl:</p>
@@ -672,7 +672,7 @@ the base64 encoded room name will be the key:</p>
   }
 }
 </code></pre>
-<h1 id="get-users-in-rooms">GET /users-in-rooms</h1>
+<h2 id="get-users-in-rooms">GET users-in-rooms</h2>
 <p>Request contains a list of room IDs, and an optional <code>only_count</code> field (default is <code>false</code>), e.g.:</p>
 <pre><code class="language-json">{
     &quot;room_ids&quot;: [
@@ -725,7 +725,7 @@ the base64 encoded room name will be the key:</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="post-create">POST /create</h1>
+<h2 id="post-create">POST create</h2>
 <p>Creates and joins the room (if specified users are online). Rooms created using this API will always be in the default
 channel.</p>
 <p>Example request:</p>
@@ -752,7 +752,7 @@ channel.</p>
 </code></pre>
 <p>If some users could not be made to join the newly created room, because they're offline, their IDs will be returned in
 the <code>user_ids_not_joined</code> list.</p>
-<h1 id="post-join">POST /join</h1>
+<h2 id="post-join">POST join</h2>
 <p>Joins the room (if specified users are online). Only works for rooms in the default channel (e.g. 
 rooms created using the <code>POST /create</code> API).</p>
 <p>If <code>room_id</code> is specified, it will be used, otherwise, the <code>room_name</code> will be used to lookup the 
@@ -817,7 +817,7 @@ returned for that user:</p>
     }
 }
 </code></pre>
-<h1 id="post-leave">POST /leave</h1>
+<h2 id="post-leave">POST leave</h2>
 <p>Leaves the room (if specified users are online). Only works for rooms in the default channel (e.g. 
 rooms created using the <code>POST /create</code> API).</p>
 <p>If <code>room_id</code> is specified, it will be used, otherwise, the <code>room_name</code> will be used to lookup the 
@@ -837,7 +837,7 @@ correct room in the default channel.</p>
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="get-rooms-for-users">GET /rooms-for-users</h1>
+<h2 id="get-rooms-for-users">GET rooms-for-users</h2>
 <p>Request contains a list of user IDs, e.g.:</p>
 <pre><code class="language-json">{
     &quot;users&quot;: [
@@ -862,7 +862,7 @@ correct room in the default channel.</p>
     }]
 }
 </code></pre>
-<h1 id="post-delete-messages">POST /delete-messages</h1>
+<h2 id="post-delete-messages">POST delete-messages</h2>
 <p>Used to delete ALL messages for a specific user ID.</p>
 <p>Request body looks like this:</p>
 <pre><code class="language-json">{
@@ -885,7 +885,7 @@ correct room in the default channel.</p>
     &quot;data&quot;: &quot;&lt;error message, e.g. 'no id parameter in request'&gt;&quot;
 }
 </code></pre>
-<h1 id="get-banned">GET /banned</h1>
+<h2 id="get-banned">GET banned</h2>
 <p>If no request data is sent, the response is all banned users, separated by channel, room and globally. Example response:</p>
 <pre><code class="language-json">{
   &quot;status_code&quot;: 200,
@@ -957,7 +957,7 @@ specified, the response will only contain bans for that channel. Example request
     }
 }
 </code></pre>
-<h1 id="post-status">POST /status</h1>
+<h2 id="post-status">POST status</h2>
 <p>Set the online status or visibility status of a user.</p>
 <p>Request contains:</p>
 <pre><code class="language-json">{   
@@ -971,7 +971,7 @@ specified, the response will only contain bans for that channel. Example request
     &quot;status_code&quot;: 200
 }
 </code></pre>
-<h1 id="post-send">POST /send</h1>
+<h2 id="post-send">POST send</h2>
 <p>If <code>target_id</code> is not specified in the request body, but <code>target_name</code> is, Dino will try to 
 send the message to the room with that name, but it only works for rooms that are in the 
 default channel (rooms created using <code>POST /create</code> are always in the default channel).</p>
