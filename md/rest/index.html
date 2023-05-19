@@ -89,6 +89,58 @@
                 <ul class="current">
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">REST</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#get-acl">GET acl</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-rooms">GET rooms</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-rooms-acl">GET rooms-acl</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-acl">POST acl</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-history">GET history</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-heartbeat">POST heartbeat</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-full-history">POST full-history</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-broadcast">POST broadcast</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-blacklist">POST blacklist</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#delete-blacklist">DELETE blacklist</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-set-admin">POST set-admin</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-remove-admin">POST remove-admin</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-ban">POST ban</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#delete-ban">DELETE ban</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-kick">POST kick</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-roles">GET roles</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-count-joins">GET count-joins</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-users-in-rooms">GET users-in-rooms</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-create">POST create</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-join">POST join</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-leave">POST leave</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-rooms-for-users">GET rooms-for-users</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-delete-messages">POST delete-messages</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-banned">GET banned</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-status">POST status</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-send">POST send</a>
+    </li>
     </ul>
                     </li>
                 </ul>
@@ -133,7 +185,8 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="get-acl">GET acl</h2>
+                <h1 id="rest-api">REST API</h1>
+<h2 id="get-acl">GET acl</h2>
 <p>Retrieve all ACLs for all non-temporary rooms in all channels.</p>
 <p>Example response:</p>
 <pre><code class="language-json">{
