@@ -133,13 +133,37 @@ Response:
 Request contains info on what time slice, target, origin to get history for:
 
 ```json
-    {
-        "from_time": "2016-12-26T08:39:54Z",
-        "to_time": "2016-12-28T08:39:54Z",
-        "user_id": "124352",
-        "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59" # optional
-    }
+{
+    "from_time": "2016-12-26T08:39:54Z",
+    "to_time": "2016-12-28T08:39:54Z",
+    "user_id": "124352",
+    "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+}
 ```
+
+History can also be queried by `room_name` (base64):
+
+```json
+{
+    "from_time": "2016-12-26T08:39:54Z",
+    "to_time": "2016-12-28T08:39:54Z",
+    "user_id": "124352",
+    "room_name": "MTY4Mjk5MDgxOQ=="
+}
+```
+
+If pagination is required, use only `to_time` and `limit`, together with either `room_id` or `room_name`:
+
+```json
+{
+    "to_time": "2023-05-19T08:39:54Z",
+    "room_name": "MTY4Mjk5MDgxOQ==",
+    "limit": 50
+}
+```
+
+For the next page of messages, use the `timestamp` of the oldest message in the response as the `to_time` parameter in 
+the next request, the querying is exclusive of the `to_time` (strictly `timestamp < to_time`).
 
 Response would be something similar to the following:
 
@@ -1081,6 +1105,9 @@ default channel (rooms created using `POST /create` are always in the default ch
 
 The `target_name` field (if specified), must be base64 encoded.
 
+The `persist` parameter is by default `false`, so if you need to be able to query the history
+all `/send` requests needs to have `"persist": true`.
+
 Request contains:
 
 ```json
@@ -1090,7 +1117,8 @@ Request contains:
     "object_type": "<room/private>",
     "target_id": "<user ID to send to or UUID of room to send to>",
     "target_name": "<the name of the user/room to send to, in base64>",
-    "content": "<the body to send, in base64>"
+    "content": "<the body to send, in base64>",
+    "persist": false
 }   
 ```
 
@@ -1119,6 +1147,7 @@ User/room will get something similar to this in a `message` event:
         "displayName": "<the name of the user/room to send to, in base64>"
     },
     "object": {
+        "id": "<uuid of the message IF persist=true>",
         "content": "<the body to send, in base64>"
     }
 }
