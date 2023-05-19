@@ -1,3 +1,5 @@
+# REST API
+
 ## GET acl
 
 Retrieve all ACLs for all non-temporary rooms in all channels.
