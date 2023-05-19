@@ -17,6 +17,7 @@ from datetime import datetime
 from flask import request
 from functools import lru_cache
 
+from dino import utils
 from dino.rest.resources.base import BaseResource
 from dino.admin.orm import storage_manager
 from dino.utils import b64e
@@ -53,10 +54,14 @@ class HistoryResource(BaseResource):
         logger.debug('GET request: %s' % str(the_json))
 
         room_id = the_json.get('room_id', '')
+        room_name = the_json.get('room_id', None)
         user_id = the_json.get('user_id', None)
         from_time = the_json.get('from_time', None)
         to_time = the_json.get('to_time', None)
         limit = the_json.get('limit', None)
+
+        if room_name is not None:
+            room_id = utils.get_room_id(room_name)
 
         if limit is None:
             try:
