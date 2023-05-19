@@ -70,6 +70,7 @@ class HistoryResource(BaseResource):
                 logger.error('could not get messages: %s' % str(e))
                 raise e
         else:
+            logger.info("[paginate] room_id: {}, to_time: {}, limit: {}".format(room_id, to_time, limit))
             try:
                 messages = storage_manager.paginate_history(room_id, to_time, limit)
             except Exception as e:
