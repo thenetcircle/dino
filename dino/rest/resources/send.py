@@ -74,7 +74,12 @@ class SendResource(BaseResource):
 
         if persist:
             try:
-                activity = activitystreams.parse(data)
+                data_cassandra = data.copy()
+                data_cassandra['object']['content'] = utils.b64d(data_cassandra['object']['content'])
+                if target_name and len(target_name):
+                    data_cassandra['target']['displayName'] = utils.b64d(data_cassandra['target']['displayName'])
+
+                activity = activitystreams.parse(data_cassandra)
                 message_id = environ.env.storage.store_message(activity, deleted=False)
                 data['object']['id'] = message_id
             except Exception as e:
