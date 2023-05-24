@@ -75,7 +75,6 @@ class SendResource(BaseResource):
         if persist:
             try:
                 data_cassandra = data.copy()
-                data_cassandra['object']['content'] = utils.b64d(data_cassandra['object']['content'])
                 if target_name and len(target_name):
                     data_cassandra['target']['displayName'] = utils.b64d(data_cassandra['target']['displayName'])
 
