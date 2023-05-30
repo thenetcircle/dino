@@ -1031,6 +1031,8 @@ default channel (rooms created using <code>POST /create</code> are always in the
 <p>The <code>target_name</code> field (if specified), must be base64 encoded.</p>
 <p>The <code>persist</code> parameter is by default <code>false</code>, so if you need to be able to query the history
 all <code>/send</code> requests needs to have <code>"persist": true</code>.</p>
+<p>The <code>include_user_info</code> parameter can be set to <code>true</code> to include the auth info (values in 
+base64) that exists in redis (default is <code>false</code>).</p>
 <p>Request contains:</p>
 <pre><code class="language-json">{   
     &quot;user_id&quot;: &quot;&lt;user ID&gt;&quot;,
@@ -1039,7 +1041,8 @@ all <code>/send</code> requests needs to have <code>"persist": true</code>.</p>
     &quot;target_id&quot;: &quot;&lt;user ID to send to or UUID of room to send to&gt;&quot;,
     &quot;target_name&quot;: &quot;&lt;the name of the user/room to send to, in base64&gt;&quot;,
     &quot;content&quot;: &quot;&lt;the body to send, in base64&gt;&quot;,
-    &quot;persist&quot;: false
+    &quot;persist&quot;: false,
+    &quot;include_user_info&quot;: true
 }   
 </code></pre>
 <p>Example response:</p>
@@ -1053,7 +1056,20 @@ all <code>/send</code> requests needs to have <code>"persist": true</code>.</p>
     &quot;published&quot;: &quot;2017-01-26T04:58:31Z&quot;,
     &quot;actor&quot;: {
         &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
-        &quot;displayName&quot;: &quot;&lt;username, in base64&gt;&quot;
+        &quot;displayName&quot;: &quot;&lt;username, in base64&gt;&quot;,
+        &quot;attachments&quot;: [{
+            &quot;content&quot;: &quot;ZGU=&quot;,
+            &quot;objectType&quot;: &quot;country&quot;
+        }, {
+            &quot;content&quot;: &quot;bm9ybWFs&quot;,
+            &quot;objectType&quot;: &quot;user_type&quot;
+        }, {
+            &quot;content&quot;: &quot;dmlw&quot;,
+            &quot;objectType&quot;: &quot;membership&quot;
+        }, {
+            &quot;content&quot;: &quot;MA==&quot;,
+            &quot;objectType&quot;: &quot;is_streaming&quot;
+        }]
     },
     &quot;verb&quot;: &quot;send&quot;,
     &quot;target&quot;: {
