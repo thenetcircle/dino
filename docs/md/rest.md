@@ -1111,6 +1111,9 @@ The `target_name` field (if specified), must be base64 encoded.
 The `persist` parameter is by default `false`, so if you need to be able to query the history
 all `/send` requests needs to have `"persist": true`.
 
+The `include_user_info` parameter can be set to `true` to include the auth info (values in 
+base64) that exists in redis (default is `false`).
+
 Request contains:
 
 ```json
@@ -1121,7 +1124,8 @@ Request contains:
     "target_id": "<user ID to send to or UUID of room to send to>",
     "target_name": "<the name of the user/room to send to, in base64>",
     "content": "<the body to send, in base64>",
-    "persist": false
+    "persist": false,
+    "include_user_info": true
 }   
 ```
 
@@ -1141,7 +1145,20 @@ User/room will get something similar to this in a `message` event:
     "published": "2017-01-26T04:58:31Z",
     "actor": {
         "id": "<user ID>",
-        "displayName": "<username, in base64>"
+        "displayName": "<username, in base64>",
+        "attachments": [{
+            "content": "ZGU=",
+            "objectType": "country"
+        }, {
+            "content": "bm9ybWFs",
+            "objectType": "user_type"
+        }, {
+            "content": "dmlw",
+            "objectType": "membership"
+        }, {
+            "content": "MA==",
+            "objectType": "is_streaming"
+        }]
     },
     "verb": "send",
     "target": {

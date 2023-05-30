@@ -47,6 +47,7 @@ class SendResource(BaseResource):
         namespace = json.get('namespace', '/ws')
         target_name = json.get('target_name')
         persist = json.get('persist', False)
+        include_user_info = json.get('include_user_info', False)
 
         if not len(target_id.strip()):
             if target_name is not None and len(target_name.strip()):
@@ -87,6 +88,9 @@ class SendResource(BaseResource):
                 logger.exception(traceback.format_exc())
                 environ.env.capture_exception(sys.exc_info())
                 return
+
+        if include_user_info:
+            data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
 
         try:
             environ.env.out_of_scope_emit('message', data, room=target_id, json=True, namespace='/ws', broadcast=True)
