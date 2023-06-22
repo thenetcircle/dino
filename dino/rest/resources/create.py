@@ -20,13 +20,13 @@ class CreateRoomResource(RoomNameBaseResource):
         self.request = request
         self.namespace = "/ws"
 
-    def _do_post(self, room_name, user_ids, owner_id, owner_name, channel_id):
+    def _do_post(self, room_name, user_ids, owner_id, owner_name, channel_id, temporary: bool = True):
         room_id = str(uuid())
 
         if channel_id is None:
             channel_id = environ.env.db.get_or_create_default_channel()
 
-        environ.env.db.create_room(room_name, room_id, channel_id, owner_id, owner_name, ephemeral=True)
+        environ.env.db.create_room(room_name, room_id, channel_id, owner_id, owner_name, ephemeral=temporary)
 
         offline_user_ids = list()
         for user_id in user_ids:
@@ -55,8 +55,9 @@ class CreateRoomResource(RoomNameBaseResource):
         user_ids = json["user_ids"]
         owner_id = json["owner_id"]
         owner_name = b64d(json["owner_name"])
+        temporary = json.get("temporary", True)  # optional, will use default if not specified
 
         # optional, will use default if not specified
         channel_id = json.get("channel_id")
 
-        return self._do_post(room_name, user_ids, owner_id, owner_name, channel_id)
+        return self._do_post(room_name, user_ids, owner_id, owner_name, channel_id, temporary)

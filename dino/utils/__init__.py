@@ -820,7 +820,6 @@ def check_if_remove_room_empty(activity: Activity, user_name=None, is_delayed_re
         return
 
     if not environ.env.db.is_room_ephemeral(room_id):
-        logger.info('room %s (%s) is not ephemeral, not considering removal' % (room_name, room_id))
         return
 
     users_in_room = get_users_in_room(room_id, skip_cache=True)

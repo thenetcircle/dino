@@ -749,7 +749,9 @@ Response if `only_count` is `true`:
 ## POST /create
 
 Creates and joins the room (if specified users are online). Rooms created using this API will always be in the default
-channel.
+channel. If `temporary=true` (default is `true`), the room will be deleted when the last user leaves it (or 2 minutes
+after, depending on the configuration `delayed_removal: true/false`). With `temporary=false`, the room will never be
+removed automatically.
 
 Example request:
 
@@ -761,7 +763,8 @@ Example request:
     ],
     "room_name": "<a room name, in base64>",
     "owner_id": "<a user id>",
-    "owner_name": "<a user name, in base64>"
+    "owner_name": "<a user name, in base64>",
+    "temporary": true
 }
 ```
 

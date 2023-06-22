@@ -133,7 +133,6 @@ class OnDisconnectHooks(object):
                             continue
                     """
 
-                    logger.info('checking whether to remove room %s or not' % room_id)
                     if 'target' not in data:
                         data['target'] = dict()
                     data['target']['id'] = room_id
