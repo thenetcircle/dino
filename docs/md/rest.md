@@ -1,4 +1,6 @@
-## GET /acl
+# REST API
+
+## GET acl
 
 Retrieve all ACLs for all non-temporary rooms in all channels.
 
@@ -29,7 +31,7 @@ Example response:
 }
 ```
 
-## GET /rooms
+## GET rooms
 
 Returns a list of all rooms currently existing. Result is cached for 1 minute and might thus not be always up-to-date.
 
@@ -57,7 +59,7 @@ Example response:
 }
 ```
 
-## GET /rooms-acl
+## GET rooms-acl
 
 Returns a list of all rooms currently existing, that a specific user is 
 allowed to join (if a user is not allowed to list a channel, no rooms 
@@ -102,7 +104,7 @@ Response:
 }
 ```
 
-## POST /acl
+## POST acl
 
 Request:
 
@@ -128,18 +130,42 @@ Response:
 }
 ```
 
-## GET /history
+## GET history
 
 Request contains info on what time slice, target, origin to get history for:
 
 ```json
-    {
-        "from_time": "2016-12-26T08:39:54Z",
-        "to_time": "2016-12-28T08:39:54Z",
-        "user_id": "124352",
-        "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59" # optional
-    }
+{
+    "from_time": "2016-12-26T08:39:54Z",
+    "to_time": "2016-12-28T08:39:54Z",
+    "user_id": "124352",
+    "room_id": "dedf878e-b25d-4713-8058-20c6f0547c59"
+}
 ```
+
+History can also be queried by `room_name` (base64):
+
+```json
+{
+    "from_time": "2016-12-26T08:39:54Z",
+    "to_time": "2016-12-28T08:39:54Z",
+    "user_id": "124352",
+    "room_name": "MTY4Mjk5MDgxOQ=="
+}
+```
+
+If pagination is required, use only `to_time` and `limit`, together with either `room_id` or `room_name`:
+
+```json
+{
+    "to_time": "2023-05-19T08:39:54Z",
+    "room_name": "MTY4Mjk5MDgxOQ==",
+    "limit": 50
+}
+```
+
+For the next page of messages, use the `timestamp` of the oldest message in the response as the `to_time` parameter in 
+the next request, the querying is exclusive of the `to_time` (strictly `timestamp < to_time`).
 
 Response would be something similar to the following:
 
@@ -186,13 +212,14 @@ Response would be something similar to the following:
     }
 ```
 
-* If neither `from_time` nor `to_time` is specified, the last 7 days will be used as limit,
+* If neither `from_time` nor `to_time` is specified, the last 7 days will be used,
 * If `from_time` is specified but no `to_time`, `to_time` will be `from_time + 7 days`,
 * If `to_time` is specified but no `from_time`, `from_time` will be `to_time - 7 days`,
-* Either `user_id` or `room_id` is required (both can be specified at the same time),
-* `to_time` needs to be after `from_time`.
+* Either `user_id` or `room_id`/`room_name` is required (both can be specified at the same time),
+* `to_time` needs to be after `from_time`,
+* if `limit` is used, the `from_time` and `user_id` parameters are ignored.
 
-## POST /heartbeat
+## POST heartbeat
 
 For mobile clients, it is sometimes tricky to maintain a constant connection due to fluctuations in network quality 
 and data loss. To keep a user in an online state without keeping a connection open, the `/heartbeat` api can be used
@@ -223,7 +250,7 @@ Response:
 }
 ```
 
-## POST /full-history
+## POST full-history
 
 To get all messages sent by a user, call this endpoint with the following data:
 
@@ -256,7 +283,7 @@ Response looks like this:
 }
 ```
 
-## POST /broadcast
+## POST broadcast
 
 Broadcasts a message to everyone on the server. Request needs the `body` and `verb` keys:
 
@@ -304,7 +331,7 @@ Event sent to clients:
 
 Note, if no `room_name` is specified, there's no `target` in the above event to clients.
 
-## POST /blacklist
+## POST blacklist
 
 Add a new word to the blacklist. Encode the word in base64 first, then post a request on the following format:
 
@@ -322,7 +349,7 @@ Response if OK:
 }
 ```
 
-## DELETE /blacklist
+## DELETE blacklist
 
 Remove a matching word from the blacklist. Encode the word in base64 first, then post a request on the following format:
 
@@ -343,7 +370,7 @@ Response if OK:
 }
 ```
 
-## POST /set-admin
+## POST set-admin
 
 Set a user as a global moderator.
 
@@ -373,7 +400,7 @@ Or if any errors:
 }
 ```
 
-## POST /remove-admin
+## POST remove-admin
 
 Remove global moderator status for a user.
 
@@ -402,7 +429,7 @@ Or if any errors:
 }
 ```
 
-## POST /ban
+## POST ban
 
 Request contains info on who to ban where. For banning globally:
 
@@ -483,7 +510,7 @@ For success the response looks like this:
 }
 ```
 
-## DELETE /ban
+## DELETE ban
 
 To remove a ban in a room using the room name, send the following request:
 
@@ -535,7 +562,7 @@ If the request fails (room name doesn't exist, invalid json, etc.), the response
 }
 ```
 
-## POST /kick
+## POST kick
 
 Request contains:
 
@@ -579,7 +606,7 @@ Response will be something like the following:
 }
 ```
 
-## GET /roles
+## GET roles
 
 Request contains a list of user IDs, e.g.:
 
@@ -639,7 +666,7 @@ Possible roles are:
 The only difference between global superusers and global moderators is that global superusers can also remove static 
 rooms.
 
-## GET /count-joins
+## GET count-joins
 
 Count the cumulative number of joins for a room. Used for counting the number of "views" a live stream has had. The 
 count is cached for 8 hours, then fetched from db if requested again.
@@ -679,7 +706,7 @@ the base64 encoded room name will be the key:
 }
 ```
 
-## GET /users-in-rooms
+## GET users-in-rooms
 
 Request contains a list of room IDs, and an optional `only_count` field (default is `false`), e.g.:
 
@@ -746,7 +773,7 @@ Response if `only_count` is `true`:
 }
 ```
 
-## POST /create
+## POST create
 
 Creates and joins the room (if specified users are online). Rooms created using this API will always be in the default
 channel. If `temporary=true` (default is `true`), the room will be deleted when the last user leaves it (or 2 minutes
@@ -785,7 +812,7 @@ Example response:
 If some users could not be made to join the newly created room, because they're offline, their IDs will be returned in
 the `user_ids_not_joined` list.
 
-## POST /join
+## POST join
 
 Joins the room (if specified users are online). Only works for rooms in the default channel (e.g. 
 rooms created using the `POST /create` API).
@@ -868,7 +895,7 @@ returned for that user:
 }
 ```
 
-## POST /leave
+## POST leave
 
 Leaves the room (if specified users are online). Only works for rooms in the default channel (e.g. 
 rooms created using the `POST /create` API).
@@ -897,7 +924,7 @@ Example response:
 }
 ```
 
-## GET /rooms-for-users
+## GET rooms-for-users
 
 Request contains a list of user IDs, e.g.:
 
@@ -929,7 +956,7 @@ Response would be all rooms each user is currently in (room names and channel na
 }
 ```
 
-## POST /delete-messages
+## POST delete-messages
 
 Used to delete ALL messages for a specific user ID.
 
@@ -963,7 +990,7 @@ Or if other kinds of failures:
 }
 ```
 
-## GET /banned
+## GET banned
 
 If no request data is sent, the response is all banned users, separated by channel, room and globally. Example response:
 
@@ -1053,7 +1080,7 @@ If the room doesn't exist, error `802` is returned:
 }
 ```
 
-## POST /status
+## POST status
 
 Set the online status or visibility status of a user.
 
@@ -1076,13 +1103,19 @@ Example response:
 }
 ```
 
-## POST /send
+## POST send
 
 If `target_id` is not specified in the request body, but `target_name` is, Dino will try to 
 send the message to the room with that name, but it only works for rooms that are in the 
 default channel (rooms created using `POST /create` are always in the default channel).
 
 The `target_name` field (if specified), must be base64 encoded.
+
+The `persist` parameter is by default `false`, so if you need to be able to query the history
+all `/send` requests needs to have `"persist": true`.
+
+The `include_user_info` parameter can be set to `true` to include the auth info (values in 
+base64) that exists in redis (default is `false`).
 
 Request contains:
 
@@ -1093,7 +1126,9 @@ Request contains:
     "object_type": "<room/private>",
     "target_id": "<user ID to send to or UUID of room to send to>",
     "target_name": "<the name of the user/room to send to, in base64>",
-    "content": "<the body to send, in base64>"
+    "content": "<the body to send, in base64>",
+    "persist": false,
+    "include_user_info": true
 }   
 ```
 
@@ -1113,7 +1148,20 @@ User/room will get something similar to this in a `message` event:
     "published": "2017-01-26T04:58:31Z",
     "actor": {
         "id": "<user ID>",
-        "displayName": "<username, in base64>"
+        "displayName": "<username, in base64>",
+        "attachments": [{
+            "content": "ZGU=",
+            "objectType": "country"
+        }, {
+            "content": "bm9ybWFs",
+            "objectType": "user_type"
+        }, {
+            "content": "dmlw",
+            "objectType": "membership"
+        }, {
+            "content": "MA==",
+            "objectType": "is_streaming"
+        }]
     },
     "verb": "send",
     "target": {
@@ -1122,6 +1170,7 @@ User/room will get something similar to this in a `message` event:
         "displayName": "<the name of the user/room to send to, in base64>"
     },
     "object": {
+        "id": "<uuid of the message IF persist=true>",
         "content": "<the body to send, in base64>"
     }
 }

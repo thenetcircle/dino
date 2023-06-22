@@ -227,6 +227,15 @@ class CassandraStorage(object):
         return msgs
 
     @timeit(logger, 'on_cassandra_get_history_for_time_slice')
+    def get_history_pagination(self, room_id: str, to_time: int, limit: int) -> list:
+        rows = self.driver.msgs_select_pagination(room_id, to_time, limit)
+
+        msgs = list()
+        for row in rows:
+            msgs.append(self._row_to_json(row))
+        return msgs
+
+    @timeit(logger, 'on_cassandra_get_history_for_time_slice')
     def get_history_for_time_slice(self, room_id: str, from_user_id: str, from_time: int, to_time: int) -> list:
         if room_id is not None and len(room_id.strip()) > 0:
             if from_user_id is not None and len(from_user_id.strip()) > 0:

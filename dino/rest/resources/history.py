@@ -17,6 +17,7 @@ from datetime import datetime
 from flask import request
 from functools import lru_cache
 
+from dino import utils
 from dino.rest.resources.base import BaseResource
 from dino.admin.orm import storage_manager
 from dino.utils import b64e
@@ -53,21 +54,35 @@ class HistoryResource(BaseResource):
         logger.debug('GET request: %s' % str(the_json))
 
         room_id = the_json.get('room_id', '')
-        user_id = the_json.get('user_id')
-        from_time = the_json.get('from_time')
-        to_time = the_json.get('to_time')
+        room_name = the_json.get('room_name', None)
+        user_id = the_json.get('user_id', None)
+        from_time = the_json.get('from_time', None)
+        to_time = the_json.get('to_time', None)
+        limit = the_json.get('limit', None)
 
-        try:
-            messages = self.do_get_with_params(room_id, user_id, from_time, to_time)
-            for message in messages:
-                message['from_user_name'] = b64e(message['from_user_name'])
-                message['body'] = b64e(message['body'])
-                message['target_name'] = b64e(message['target_name'])
-                message['channel_name'] = b64e(message['channel_name'])
-            return messages
-        except Exception as e:
-            logger.error('could not get messages: %s' % str(e))
-            raise e
+        if room_name is not None:
+            room_id = utils.get_room_id(utils.b64d(room_name))
+
+        if limit is None:
+            try:
+                messages = self.do_get_with_params(room_id, user_id, from_time, to_time)
+            except Exception as e:
+                logger.error('could not get messages: %s' % str(e))
+                raise e
+        else:
+            logger.info("[paginate] room_id: {}, to_time: {}, limit: {}".format(room_id, to_time, limit))
+            try:
+                messages = storage_manager.paginate_history(room_id, to_time, limit)
+            except Exception as e:
+                logger.error('could not get messages: %s' % str(e))
+                raise e
+
+        for message in messages:
+            message['from_user_name'] = b64e(message['from_user_name'])
+            message['body'] = b64e(message['body'])
+            message['target_name'] = b64e(message['target_name'])
+            message['channel_name'] = b64e(message['channel_name'])
+        return messages
 
     def validate_json(self):
         try:

@@ -28,6 +28,8 @@ def created_activity(user_id: str, user_name: str, target_id: str, target_name: 
             "url": namespace
         },
         "object": {
+            "id": user_id,
+            "displayName": user_name,
             "url": namespace
         },
         "verb": "created",

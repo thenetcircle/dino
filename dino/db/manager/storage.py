@@ -65,6 +65,21 @@ class StorageManager(BaseManager):
     def get_latest_messages(self, target_id: str, limit: int = 100):
         return self.env.storage.get_history(target_id, limit)
 
+    def paginate_history(self, room_id, to_time, limit: int):
+        try:
+            to_time = parser.parse(to_time).astimezone(tzutc())
+            to_time_int = int(to_time.strftime('%s'))
+        except Exception as e:
+            logger.error('invalid to time "%s": %s' % (str(to_time), str(e)))
+            raise RuntimeError('invalid to time "%s": %s' % (str(to_time), str(e)))
+
+        if limit <= 0:
+            raise RuntimeError("limit needs to be >0 but was '{}'".format(limit))
+
+        return self.env.storage.get_history_pagination(
+            room_id, to_time_int, limit
+        )
+
     def find_history(self, room_id, user_id, from_time, to_time) -> (list, datetime, datetime):
         if is_blank(user_id) and is_blank(room_id):
             raise RuntimeError('need user ID and/or room ID')

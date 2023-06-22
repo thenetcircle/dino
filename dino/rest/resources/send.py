@@ -1,5 +1,7 @@
 import logging
 import traceback
+
+import activitystreams
 import eventlet
 
 import sys
@@ -44,6 +46,8 @@ class SendResource(BaseResource):
         target_id = str(json.get('target_id', ''))
         namespace = json.get('namespace', '/ws')
         target_name = json.get('target_name')
+        persist = json.get('persist', False)
+        include_user_info = json.get('include_user_info', False)
 
         if not len(target_id.strip()):
             if target_name is not None and len(target_name.strip()):
@@ -66,6 +70,25 @@ class SendResource(BaseResource):
         if object_type == "private" and not environ.env.cache.user_is_in_multicast(target_id):
             logger.info('user {} is offline, dropping message: {}'.format(target_id, str(json)))
             return
+
+        if persist:
+            try:
+                data_cassandra = data.copy()
+                if target_name and len(target_name):
+                    data_cassandra['target']['displayName'] = utils.b64d(data_cassandra['target']['displayName'])
+
+                activity = activitystreams.parse(data_cassandra)
+                message_id = environ.env.storage.store_message(activity, deleted=False)
+                data['object']['id'] = message_id
+            except Exception as e:
+                logger.error('could not store message %s because: %s' % (data["id"], str(e)))
+                logger.error(str(data))
+                logger.exception(traceback.format_exc())
+                environ.env.capture_exception(sys.exc_info())
+                return
+
+        if include_user_info:
+            data['actor']['attachments'] = utils.get_user_info_attachments_for(user_id)
 
         logger.info("sending 'message' to room {}: {}".format(target_id, data))
 
