@@ -463,9 +463,6 @@ class Driver(object):
         self._msg_delete(message_id, deleted=True, clear_body=clear_body)
 
     def msgs_delete(self, message_ids: list, clear_body=True) -> None:
-        """
-        do the updates in a batch; can't do the selects in a batch
-        """
         to_update = list()
 
         for message_id in message_ids:
@@ -478,13 +475,13 @@ class Driver(object):
                 logger.warning('found %s msgs when deleting with message_id %s' % (len(keys.current_rows), message_id))
 
             for key in keys.current_rows:
-                target_id, from_user_id, timestamp = key.target_id, key.from_user_id, key.sent_time
-                message_rows = self._execute(StatementKeys.msg_select_one, target_id, from_user_id, timestamp)
+                target_id, from_user_id, sent_time = key.target_id, key.from_user_id, key.sent_time
+                message_rows = self._execute(StatementKeys.msg_select_one, target_id, from_user_id, sent_time)
 
                 if len(message_rows.current_rows) > 1:
                     logger.warning(
-                        'found %s msgs when deleting with target_id %s, from_user_id %s and timestamp %s' %
-                        (len(message_rows.current_rows), target_id, from_user_id, timestamp))
+                        'found %s msgs when deleting with target_id %s, from_user_id %s and sent_time %s' %
+                        (len(message_rows.current_rows), target_id, from_user_id, sent_time))
 
                 for message_row in message_rows.current_rows:
                     body = message_row.body
@@ -492,20 +489,17 @@ class Driver(object):
                     if clear_body:
                         body = ''
 
-                    to_update.append((from_user_id, target_id, body, timestamp))
+                    to_update.append((from_user_id, target_id, body, sent_time))
 
-        with BatchQuery() as b:
-            for from_user_id, target_id, body, timestamp in to_update:
-                query = UpdateStatement("messages")
-                query.add_where("from_user_id", EqualsOperator(), from_user_id)
-                query.add_where("target_id", EqualsOperator(), target_id)
-                query.add_where("timestamp", EqualsOperator(), timestamp)
+        update_query = self.session.prepare("""
+            UPDATE messages SET body = ?, deleted = true
+            WHERE target_id = ? AND from_user_id = ? AND sent_time = ?
+        """)
 
-                query.add_assignment("deleted", True)
-                if body == "":
-                    query.add_assignment("body", body)
-
-                b.add_query(query)
+        for from_user_id, target_id, body, sent_time in to_update:
+            self.session.execute(update_query.bind(
+                body, target_id, from_user_id, sent_time
+            ))
 
     def _msg_delete(self, message_id: str, deleted: bool, clear_body: bool = True) -> None:
         """
