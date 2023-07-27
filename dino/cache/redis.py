@@ -24,7 +24,7 @@ import redis
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-from dino.utils import activity_for_user_joined, activity_for_status_change
+from dino.utils import activity_for_user_joined, activity_for_status_change, split_into_chunks
 
 EIGHT_HOURS_IN_SECONDS = 8*60*60
 TEN_MINUTES = 10*60
@@ -1299,14 +1299,14 @@ class CacheRedis(object):
         """
         only called while warming up the cache
         """
-        pipe = self.redis.pipeline()
+        for chunk in split_into_chunks(last_online_times, 500):
+            pipe = self.redis.pipeline()
 
-        for user_id, at in last_online_times:
-            key = RedisKeys.user_last_online(user_id)
-            self.cache.set(key, str(at))
-            self.redis.set(key, str(at))
+            for user_id, at in chunk:
+                key = RedisKeys.user_last_online(user_id)
+                pipe.set(key, str(at))
 
-        pipe.execute()
+            pipe.execute()
 
     def set_user_offline(self, user_id: str) -> None:
         try:

@@ -166,6 +166,12 @@ def add_last_online_at_to_event(data: dict, use_now: bool = False):
         data["updated"] = datetime.utcfromtimestamp(last_online_at).strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
 
 
+def split_into_chunks(objects, n):
+    for i in range(0, len(objects), n):
+        # yields successive n-sized chunks of data
+        yield objects[i:i + n]
+
+
 def get_whisper_users_from_message(message) -> set:
     users = set()
 
