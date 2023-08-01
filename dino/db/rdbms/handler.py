@@ -2368,7 +2368,7 @@ class DatabaseRdbms(object):
                 session.query(Spams)
                 .filter(Spams.message_id.in_(id_chunk))
                 .update({
-                    Spams.deleted: True
+                    Spams.message_deleted: True
                 })
             )
 
