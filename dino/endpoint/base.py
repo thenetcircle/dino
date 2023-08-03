@@ -57,7 +57,7 @@ class BasePublisher(ABC):
             )
 
     def publish(self, message: dict, topic: str = None) -> None:
-        if self.recently_sent_has(message['id']):
+        if self.recently_sent_has(topic, message['id']):
             self.logger.debug('ignoring external event with verb %s and id %s, already sent' %
                          (message['verb'], message['id']))
             return
@@ -70,7 +70,7 @@ class BasePublisher(ABC):
             try:
                 self.try_publish(message, topic)
                 failed = False
-                self.update_recently_sent(message['id'])
+                self.update_recently_sent(topic, message['id'])
                 break
 
             except Exception as pe:
@@ -111,13 +111,16 @@ class BasePublisher(ABC):
         return socket.gethostname()
 
     @locked_method
-    def recently_sent_has(self, msg_id: str) -> bool:
-        return msg_id in self.recently_sent_external_hash
+    def recently_sent_has(self, topic: str, msg_id: str) -> bool:
+        topic_msg_hash = f"{topic or 'default'}|{msg_id}"
+        return topic_msg_hash in self.recently_sent_external_hash
 
     @locked_method
-    def update_recently_sent(self, msg_id: str) -> None:
-        self.recently_sent_external_hash.add(msg_id)
-        self.recently_sent_external_list.append(msg_id)
+    def update_recently_sent(self, topic: str, msg_id: str) -> None:
+        topic_msg_hash = f"{topic or 'default'}|{msg_id}"
+        self.recently_sent_external_hash.add(topic_msg_hash)
+        self.recently_sent_external_list.append(topic_msg_hash)
+
         if len(self.recently_sent_external_list) > 100:
             old_id = self.recently_sent_external_list.pop(0)
             self.recently_sent_external_hash.remove(old_id)
