@@ -34,6 +34,15 @@ class OnStartupDoneHooks(object):
         logger.debug('publishing restart-done event to external queue: %s' % str(json_event))
         environ.env.publish(json_event, external=True)
 
+        # only need status changes tracked if this is a wio node
+        if 'wio' in environ.env.config.get(ConfigKeys.ENVIRONMENT, 'default'):
+            status_topic = environ.env.config.get(ConfigKeys.STATUS_QUEUE, domain=ConfigKeys.EXTERNAL_QUEUE)
+            environ.env.publish(
+                json_event,
+                external=True,
+                topic=status_topic
+            )
+
 
 @environ.env.observer.on('on_startup_done')
 def _on_startup_done(arg) -> None:
