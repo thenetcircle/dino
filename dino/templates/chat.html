@@ -520,6 +520,21 @@
                     });
                 });
 
+                $('button#kick-user').click(function() {
+                    socket.emit('kick', {
+                        verb: "kick",
+                        target: {
+                            objectType: "room",
+                            id: $('#room-id').val()
+                        },
+                        object: {
+                            objectType: "user",
+                            id: "126231",
+                            content: "eyJkYXRhIjoiIn0="
+                        }
+                    });
+                });
+
                 $('button#leave-name').click(function() {
                     socket.emit('leave', {
                         verb: 'leave',
@@ -710,9 +725,13 @@
         <button id="set-streaming-off">Streaming off</button>
         <button id="join-name">Join by room name</button>
         <button id="leave-name">Leave by room name</button>
+        <button id="kick-user">Kick user</button>
 
         <label for="room-name">Room Name: </label>
         <input id="room-name" />
+
+        <label for="user-id">User ID: </label>
+        <input id="user-id" />
 
         <input id="target" type="hidden" />
         <input id="room-id" type="hidden" />

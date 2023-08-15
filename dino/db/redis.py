@@ -266,6 +266,7 @@ class DatabaseRedis(object):
             if status in [
                 UserKeys.STATUS_AVAILABLE,
                 UserKeys.STATUS_CHAT,
+                UserKeys.STATUS_AWAY,
                 UserKeys.STATUS_INVISIBLE
             ]]
 

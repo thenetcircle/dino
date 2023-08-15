@@ -577,7 +577,7 @@ def activity_for_blacklisted_word(activity: Activity, blacklisted_word: str=None
 
 
 def _user_status_int_to_str(user_status: str) -> str:
-    if user_status in {UserKeys.STATUS_AVAILABLE, UserKeys.STATUS_CHAT}:
+    if user_status in {UserKeys.STATUS_AVAILABLE, UserKeys.STATUS_CHAT, UserKeys.STATUS_AWAY}:
         return 'online'
     if user_status == UserKeys.STATUS_INVISIBLE:
         return 'invisible'
@@ -1802,7 +1802,8 @@ def user_is_online(user_id: str) -> bool:
     return get_user_status(user_id) in {
         UserKeys.STATUS_AVAILABLE,
         UserKeys.STATUS_CHAT,
-        UserKeys.STATUS_INVISIBLE
+        UserKeys.STATUS_INVISIBLE,
+        UserKeys.STATUS_AWAY
     }
 
 

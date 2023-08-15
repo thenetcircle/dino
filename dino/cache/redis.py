@@ -1338,6 +1338,11 @@ class CacheRedis(object):
             logger.exception(traceback.format_exc())
             raise e  # force catch from caller
 
+    def set_user_away(self, user_id: str) -> None:
+        key = RedisKeys.user_status(user_id)
+        self.cache.set(key, UserKeys.STATUS_AWAY, ttl=THIRTY_SECONDS)
+        self.redis.set(key, UserKeys.STATUS_AWAY)
+
     def set_user_online(self, user_id: str) -> None:
         try:
             user_id_str = str(user_id).strip()

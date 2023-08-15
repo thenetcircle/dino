@@ -1084,13 +1084,26 @@ If the room doesn't exist, error `802` is returned:
 
 Set the online status or visibility status of a user.
 
+When a user has been idle for X amount of time, you can set the status to `away` using this API. When the user is back,
+you can call this API with the status `back` to set the status back to `online`. Don't use `online` when a user is not
+away anymore, since `online` will trigger some other processing that's unnecessary for this case.
+
+If the user is invisible or offline, nothing happens when you call this API with `status` set to `away`. Similarly, if
+this user is `online` (that is, not `away`), nothing happens when you call this API with `status` set to `back`. For 
+`back` and `away`, we only check Redis, so there's no real performance hit for calling this API often with the status 
+set to `back` or `away`.
+
+The `stage` parameter is used to indicate if the user is logging in or changing status. If the user is logging in, the
+`stage` parameter should be set to `login`, otherwise it should be set to `status`.
+
+
 Request contains:
 
 
 ```json
 {   
     "id": "<user ID>",
-    "status": "<one of online/offline/invisible/visible>",
+    "status": "<one of online/offline/invisible/visible/away/back>",
     "stage": "<one of login/status>"
 }   
 ```

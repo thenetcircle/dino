@@ -198,6 +198,7 @@ class UserKeys(object):
     STATUS_INVISIBLE = '3'
     STATUS_UNAVAILABLE = '4'
     STATUS_UNKNOWN = '5'
+    STATUS_AWAY = '6'
 
 
 class AckStatus(object):

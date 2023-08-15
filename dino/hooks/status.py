@@ -1,6 +1,6 @@
-import logging
 import sys
 
+from loguru import logger
 from dino import environ
 from dino import utils
 from dino.config import SessionKeys
@@ -9,8 +9,6 @@ from dino.exceptions import NoSuchUserException
 
 
 class OnStatusHooks(object):
-    logger = logging.getLogger(__name__)
-
     @staticmethod
     def set_status(arg: tuple) -> None:
         data, activity = arg
@@ -27,7 +25,7 @@ class OnStatusHooks(object):
                 user_name = str(user_id)
 
         if not utils.is_valid_id(user_id):
-            OnStatusHooks.logger.warning('got invalid user id for activity: {}'.format(str(data)))
+            logger.warning('got invalid user id for activity: {}'.format(str(data)))
             return
 
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
@@ -45,11 +43,17 @@ class OnStatusHooks(object):
             OnStatusHooks.set_visible(user_id, user_name)
         elif status == 'offline':
             OnStatusHooks.set_offline(user_id, user_name)
+        elif status == 'away':
+            OnStatusHooks.set_away(user_id)
+        elif status == 'back':
+            OnStatusHooks.set_back(user_id)
 
         if status in {"offline", "invisible"}:
             utils.add_last_online_at_to_event(data)
 
-        environ.env.publish(data, external=True)
+        # don't need to send an event for these statuses
+        if status not in {'away', 'back'}:
+            environ.env.publish(data, external=True)
 
     @staticmethod
     def log_admin_activity(user_id, user_name, status):
@@ -61,17 +65,17 @@ class OnStatusHooks(object):
                     status,
                     utils.get_user_status(user_id)
                 )
-            OnStatusHooks.logger.info(info_message)
+            logger.info(info_message)
         except NoSuchUserException:
-            OnStatusHooks.logger.error('no username found for op user {}'.format(user_id))
+            logger.error('no username found for op user {}'.format(user_id))
         except Exception as e:
-            OnStatusHooks.logger.error('exception while getting username for op {}: {}'.format(user_id, str(e)))
-            OnStatusHooks.logger.exception(e)
+            logger.error('exception while getting username for op {}: {}'.format(user_id, str(e)))
+            logger.exception(e)
             environ.env.capture_exception(sys.exc_info())
 
     @staticmethod
     def set_offline(user_id: str, user_name: str) -> None:
-        OnStatusHooks.logger.info('setting user {} ({}) to offline'.format(
+        logger.info('setting user {} ({}) to offline'.format(
             user_id, user_name,
         ))
         environ.env.db.set_user_offline(user_id)
@@ -83,6 +87,26 @@ class OnStatusHooks(object):
                 include_self=False, namespace='/ws')
 
     @staticmethod
+    def set_away(user_id: str) -> None:
+        user_status = utils.get_user_status(user_id, skip_cache=False)
+
+        if user_status == UserKeys.STATUS_AVAILABLE:
+            # TODO: should we sync this to solr? otherwise it's not searchable
+            #  if not, saving to redis should be enough
+            logger.info(f"setting user {user_id} to away (was online)")
+            environ.env.cache.set_user_away(user_id)
+
+    @staticmethod
+    def set_back(user_id: str) -> None:
+        user_status = utils.get_user_status(user_id, skip_cache=False)
+
+        if user_status == UserKeys.STATUS_AWAY:
+            # TODO: should we sync this to solr? otherwise it's not searchable
+            #  if not, saving to redis should be enough
+            logger.info(f"setting user {user_id} back to online (was away)")
+            environ.env.cache.set_user_online(user_id)
+
+    @staticmethod
     def set_visible(user_id: str, user_name: str) -> None:
         user_status = utils.get_user_status(user_id, skip_cache=True)
         if user_status in {UserKeys.STATUS_AVAILABLE, UserKeys.STATUS_CHAT}:
@@ -90,7 +114,7 @@ class OnStatusHooks(object):
 
         # status is UserKeys.STATUS_VISIBLE, but is in multicast so the user is online
         if environ.env.cache.user_is_in_multicast(user_id):
-            OnStatusHooks.logger.info(
+            logger.info(
                 'setting user {} ({}) to visible (online), was invisible (online)'.format(user_id, user_name))
             OnStatusHooks.set_online(user_id, user_name)
 
@@ -98,7 +122,7 @@ class OnStatusHooks(object):
         # TODO: when choosing to login invisibly, this is called before the user connects to dino, so should NOT do set_offline()
         # TODO: should visible login call set_status with 'online' or 'visible'?
         else:
-            OnStatusHooks.logger.info(
+            logger.info(
                 'setting user {} ({}) to visible (offline), was invisible (offline)'.format(user_id, user_name))
             OnStatusHooks.set_offline(user_id, user_name)
 
@@ -110,7 +134,7 @@ class OnStatusHooks(object):
         if user_status == UserKeys.STATUS_INVISIBLE:
             return
 
-        OnStatusHooks.logger.info('setting user {} ({}) to invisible'.format(
+        logger.info('setting user {} ({}) to invisible'.format(
             user_id, user_name,
         ))
 
@@ -153,7 +177,7 @@ class OnStatusHooks(object):
     @staticmethod
     def set_online(user_id: str, user_name: str, image: str = '') -> None:
         was_invisible = utils.user_is_invisible(user_id)
-        OnStatusHooks.logger.info('setting user {} ({}) online (was invisible before? {})'.format(
+        logger.info('setting user {} ({}) online (was invisible before? {})'.format(
             user_id, user_name, was_invisible
         ))
         environ.env.db.set_user_online(user_id)

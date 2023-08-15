@@ -368,6 +368,7 @@ class DatabaseRdbms(object):
             .filter(UserStatus.status.in_([
                 UserKeys.STATUS_INVISIBLE,
                 UserKeys.STATUS_AVAILABLE,
+                UserKeys.STATUS_AWAY,
                 UserKeys.STATUS_CHAT]))\
             .filter(UserStatus.uuid.in_(admin_ids)).all()
         return [admin.uuid for admin in online_admins]
