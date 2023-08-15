@@ -493,12 +493,16 @@ class Driver(object):
 
         update_query = self.session.prepare("""
             UPDATE messages SET body = ?, deleted = true
-            WHERE target_id = ? AND from_user_id = ? AND sent_time = ?
+            WHERE target_id = ? AND from_user_id = ? AND sent_time = ? AND time_stamp = ?
         """)
 
         for from_user_id, target_id, body, sent_time in to_update:
+            dt = datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT)
+            dt = pytz.timezone('utc').localize(dt, is_dst=None)
+            time_stamp = int(dt.astimezone(pytz.utc).strftime('%s'))
+
             self.session.execute(update_query.bind(
-                body, target_id, from_user_id, sent_time
+                body, target_id, from_user_id, sent_time, time_stamp
             ))
 
     def _msg_delete(self, message_id: str, deleted: bool, clear_body: bool = True) -> None:
