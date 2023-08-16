@@ -442,6 +442,19 @@ class CacheRedis(object):
         self.redis.delete(key)
         self.cache.delete(key)
 
+    def _get_mute_timestamp(self, key: str, user_id: str) -> (str, str):
+        cache_key = '%s-%s' % (key, user_id)
+        value = self.cache.get(cache_key)
+        if value is not None:
+            return value.split('|', 1)
+
+        ban_info = self.redis.hget(key, user_id)
+        if ban_info is None:
+            return None, None
+
+        ban_info = str(ban_info, 'utf-8')
+        return ban_info.split('|', 1)
+
     def _get_ban_timestamp(self, key: str, user_id: str) -> (str, str, str):
         cache_key = '%s-%s' % (key, user_id)
         value = self.cache.get(cache_key)
@@ -957,6 +970,10 @@ class CacheRedis(object):
     def get_channel_ban_timestamp(self, channel_id: str, user_id: str) -> str:
         key = RedisKeys.banned_users_channel(channel_id)
         return self._get_ban_timestamp(key, user_id)
+
+    def get_room_mute_timestamp(self, room_id: str, user_id: str) -> (str, str):
+        key = RedisKeys.muted_users(room_id)
+        return self._get_mute_timestamp(key, user_id)
 
     def get_room_ban_timestamp(self, room_id: str, user_id: str) -> str:
         key = RedisKeys.banned_users(room_id)

@@ -2917,6 +2917,17 @@ class DatabaseRdbms(object):
         return None, None, None
 
     @with_session
+    def get_room_mute_timestamp(self, room_id: str, user_id: str, session=None) -> (str, str):
+        room_mute = session.query(Mutes)\
+            .filter(Mutes.room_id == room_id)\
+            .filter(Mutes.user_id == user_id)\
+            .first()
+
+        if room_mute is not None:
+            return room_mute.duration, room_mute.timestamp
+        return None, None
+
+    @with_session
     def get_room_ban_timestamp(self, room_id: str, user_id: str, session=None) -> (str, str, str):
         room_ban = session.query(Bans)\
             .join(Bans.room)\
@@ -2944,6 +2955,9 @@ class DatabaseRdbms(object):
                 for mute in mutes
             }
         }
+
+    def is_user_muted(self):
+
 
     @with_session
     def get_bans_for_user(self, user_id: str, session=None) -> dict:
@@ -3023,6 +3037,40 @@ class DatabaseRdbms(object):
 
         self.get_user_name(user_id)
         return _get_reason()
+
+    def get_user_mute_status(self, room_id: str, user_id: str) -> dict:
+        def _has_passed(the_time):
+            now = datetime.utcnow()
+            return now > datetime.fromtimestamp(int(float(the_time)))
+
+        def _set_in_cache_if_none(_rtime):
+            if _rtime is None:
+                duration, _rtime = self.get_room_mute_timestamp(room_id, user_id)
+                if _rtime is None:
+                    _rtime = ''
+                else:
+                    _rtime = _rtime.timestamp()
+                self.env.cache.set_room_mute_timestamp(room_id, user_id, duration, _rtime)
+            return _rtime
+
+        def _update_if_passed(_rtime):
+            if _rtime is not None and _rtime != '':
+                if _has_passed(_rtime):
+                    self.remove_room_mute(room_id, user_id)
+                    _rtime = ''
+            return _rtime or ''
+
+        _, rtime = self.env.cache.get_room_mute_timestamp(room_id, user_id)
+
+        # even if no mute, set in cache so that we don't have to check the db
+        rtime = _set_in_cache_if_none(rtime)
+
+        # empty string means there is no mute
+        rtime = _update_if_passed(rtime)
+
+        return {
+            'room': rtime
+        }
 
     def get_user_ban_status(self, room_id: str, user_id: str) -> dict:
         # TODO: fix this method, it's a horribly ugly friday night hack

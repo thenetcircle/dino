@@ -287,6 +287,10 @@ def should_validate_whispers() -> bool:
     return environ.env.config.get(ConfigKeys.VALIDATE_WHISPERS, False)
 
 
+def should_validate_mutes() -> bool:
+    return environ.env.config.get(ConfigKeys.VALIDATE_MUTES, False)
+
+
 def used_blacklisted_word(activity: Activity) -> (bool, Union[str, None]):
     word_used_if_any = environ.env.blacklist.contains_blacklisted_word(activity)
     return word_used_if_any is not None, word_used_if_any
@@ -379,6 +383,21 @@ def activity_for_user_joined(user_id: str, user_name: str, room_id: str, room_na
             'displayName': b64e(room_name)
         },
         'verb': 'join'
+    })
+
+
+def activity_for_already_muted(seconds_left: str, target_id: str, target_name: str) -> dict:
+    return ActivityBuilder.enrich({
+        'verb': 'mute',
+        'object': {
+            'content': '',
+            'summary': seconds_left
+        },
+        'target': {
+            'objectType': 'room',
+            'id': target_id,
+            'displayName': b64e(target_name)
+        }
     })
 
 
@@ -1347,6 +1366,22 @@ def is_banned(user_id: str, room_id: str) -> (bool, Union[str, None]):
         end = datetime.fromtimestamp(int(float(room_time)))
         seconds = str((end - now).seconds)
         logger.debug('user %s is banned in room %s for another %s seconds' %
+                     (user_id, room_id, str((end - now).seconds)))
+        return True, {'scope': 'room', 'seconds': seconds, 'id': room_id}
+
+    return False, None
+
+
+def is_muted(user_id: str, room_id: str) -> (bool, dict):
+    mutes = environ.env.db.get_user_mute_status(room_id, user_id)
+
+    room_time = mutes['room']
+    now = datetime.utcnow()
+
+    if room_time != '':
+        end = datetime.fromtimestamp(int(float(room_time)))
+        seconds = str((end - now).seconds)
+        logger.debug('user %s is muted in room %s for another %s seconds' %
                      (user_id, room_id, str((end - now).seconds)))
         return True, {'scope': 'room', 'seconds': seconds, 'id': room_id}
 

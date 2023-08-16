@@ -90,6 +90,15 @@ class RequestValidator(BaseValidator):
                     return False, ECodes.NOT_ALLOWED, \
                            'user not allowed to send cross-room msg from %s to %s' % (from_room_id, room_id)
 
+            if utils.should_validate_mutes():
+                is_muted, info_dict = utils.is_muted(user_id, room_id)
+                if is_muted:
+                    seconds_left = info_dict['seconds']
+                    target_id = info_dict['id']
+                    target_name = utils.get_room_name(target_id)
+                    json_act = utils.activity_for_already_muted(seconds_left, target_id, target_name)
+                    return False, ECodes.USER_IS_BANNED, json_act
+
             if utils.should_validate_whispers():
                 message = utils.parse_message(message)
                 if message is not None and utils.is_whisper(message):

@@ -140,6 +140,7 @@ class ErrorCodes(object):
     TOO_MANY_ATTACHMENTS = 716
     NOT_ENABLED = 717
     ROOM_NAME_RESTRICTED = 718
+    USER_MUTED = 719
 
     NOT_ALLOWED_TO_WHISPER_CHANNEL = 720
     NOT_ALLOWED_TO_WHISPER_NOT_A_CONTACT = 721
@@ -309,6 +310,7 @@ class ConfigKeys(object):
     REMOTE = 'remote'
     PRIVATE_KEY = 'private_key'
     VALIDATE_WHISPERS = 'validate_whispers'
+    VALIDATE_MUTES = 'validate_mutes'
     TRACE_SAMPLE_RATE = 'trace_sample_rate'
 
 
