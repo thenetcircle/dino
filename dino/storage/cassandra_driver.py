@@ -501,9 +501,9 @@ class Driver(object):
             dt = pytz.timezone('utc').localize(dt, is_dst=None)
             time_stamp = int(dt.astimezone(pytz.utc).strftime('%s'))
 
-            self.session.execute(update_query.bind(
+            self.session.execute(update_query.bind([
                 body, target_id, from_user_id, sent_time, time_stamp
-            ))
+            ]))
 
     def _msg_delete(self, message_id: str, deleted: bool, clear_body: bool = True) -> None:
         """
