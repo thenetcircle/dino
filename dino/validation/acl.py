@@ -133,12 +133,16 @@ class AclValidator(object):
         for acl_rule, acl_values in possible_acls.items():
             logger.info(f'checking acl rule: {acl_rule}, acl_values: {acl_values}')
             if acl_rule != 'acls':
+                logger.info(f'not acls, skipping')
                 continue
             for acl in acl_values:
+                logger.info(f'checking acl: {acl}')
                 if acl not in target_acls.keys():
+                    logger.info(f'not in target_acls.keys(), skipping: {target_acls}')
                     continue
 
                 is_valid_func = all_acls['validation'][acl]['value']
+                logger.info(f'checking acl: {acl}, is_valid_func: {is_valid_func}')
                 is_valid, msg = is_valid_func(activity, environ.env, acl, target_acls[acl], False, session_to_use)
                 if not is_valid:
                     return False, 'acl "%s" did not validate for target acl "%s": %s' % (
