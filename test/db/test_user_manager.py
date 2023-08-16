@@ -32,9 +32,14 @@ class UserManagerTest(BaseDatabaseTest):
     def _publish(activity: dict, external=False) -> None:
         UserManagerTest._act = activity
 
+    @staticmethod
+    def _emit_out_of_scope(name, act, json, room, broadcast, include_self, namespace):
+        UserManagerTest._act = act
+
     def setUp(self):
         self.set_up_env('redis')
         self.env.publish = UserManagerTest._publish
+        self.env.out_of_scope_emit = UserManagerTest._emit_out_of_scope
         self._act = None
         self.env.db = self.db
         self.manager = UserManager(self.env)
@@ -100,6 +105,16 @@ class UserManagerTest(BaseDatabaseTest):
         self._create_channel()
         self._create_room()
         self.manager.ban_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.ROOM_ID, '5m', 'room')
+        self.assertIsNotNone(UserManagerTest._act)
+        self.assertEqual(UserManagerTest._act['object']['id'], BaseDatabaseTest.USER_ID)
+        self.assertEqual(UserManagerTest._act['target']['id'], BaseDatabaseTest.ROOM_ID)
+        self.assertEqual(UserManagerTest._act['target']['objectType'], 'room')
+        self.assertEqual(b64d(UserManagerTest._act['object']['displayName']), BaseDatabaseTest.USER_NAME)
+
+    def test_mute_user_room(self):
+        self._create_channel()
+        self._create_room()
+        self.manager.mute_user(BaseDatabaseTest.USER_ID, BaseDatabaseTest.ROOM_ID, '5m')
         self.assertIsNotNone(UserManagerTest._act)
         self.assertEqual(UserManagerTest._act['object']['id'], BaseDatabaseTest.USER_ID)
         self.assertEqual(UserManagerTest._act['target']['id'], BaseDatabaseTest.ROOM_ID)

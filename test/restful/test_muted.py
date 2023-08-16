@@ -1,41 +1,25 @@
-#!/usr/bin/env python
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from datetime import datetime
 from datetime import timedelta
 from unittest import TestCase
 
 from dino import environ
 from dino.config import ConfigKeys
-from dino.rest.resources.banned import BannedResource
-
-__author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
+from dino.rest.resources.mute import MuteResource
 
 
 class FakeDb(object):
-    _banned = dict()
+    _muted = dict()
 
     def type_of_rooms_in_channel(self, _):
         return "temporary"
 
-    def get_banned_users(self):
-        return FakeDb._banned
+    def get_muted_users(self):
+        return FakeDb._muted
 
     def get_mutes_for_user(self, user_id):
         return  {
             'room': {
-                'name': BannedUsersTest.ROOM_NAME,
+                'name': MutedUsersTest.ROOM_NAME,
                 'duration': '5m',
                 'timestamp': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
             }
@@ -49,7 +33,7 @@ class FakeRequest(object):
         return FakeRequest._json
 
 
-class BannedUsersTest(TestCase):
+class MutedUsersTest(TestCase):
     USER_ID = '8888'
     ROOM_ID = '1234'
     ROOM_ID_2 = '4321'
@@ -60,11 +44,11 @@ class BannedUsersTest(TestCase):
 
     def setUp(self):
         environ.env.db = FakeDb()
-        FakeDb._banned = {BannedUsersTest.USER_ID}
-        self.resource = BannedResource()
+        FakeDb._muted = {MutedUsersTest.USER_ID}
+        self.resource = MuteResource()
         self.resource.request = FakeRequest()
         FakeRequest._json = {
-            'users': [BannedUsersTest.USER_ID]
+            'users': [MutedUsersTest.USER_ID]
         }
 
     def test_get(self):
