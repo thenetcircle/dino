@@ -2956,9 +2956,6 @@ class DatabaseRdbms(object):
             }
         }
 
-    def is_user_muted(self):
-
-
     @with_session
     def get_bans_for_user(self, user_id: str, session=None) -> dict:
         bans = session.query(Bans)\

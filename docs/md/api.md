@@ -1032,7 +1032,27 @@ Response data if successful:
 
 Send a message to a `room` UUID (can be the user UUID or an actual room UUID).
 
-If the user is muted in this room, error `719` will be returned.
+If the user is muted in this room, error `719` will be returned, along with a response json message with the remaining
+duration of the mute (`object.summary`, in seconds), e.g.:
+```json
+{
+    "status_code": 719,
+    "data": {
+        "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
+        "published": "2016-10-07T10:45:34Z",
+        "verb": "mute",
+        "object": {
+            "content": "",
+            "summary": "3600"
+        },
+        "target": {
+            "objectType": "room",
+            "id": "room-uuid",
+            "displayName": "<base64 room name>"
+        }
+    }
+}
+```
 
 Responds with event name `gn_message`.
 
