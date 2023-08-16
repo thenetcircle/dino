@@ -72,9 +72,6 @@ class AclValidator(object):
             session_to_use = environ.env.session
 
         all_acls = environ.env.config.get(ConfigKeys.ACL)
-        logger.info('all_acls:')
-        logger.info(all_acls)
-        logger.info("")
 
         if not hasattr(activity, 'target') or not hasattr(activity.target, 'object_type'):
             return False, 'target.objectType must not be none'
@@ -135,7 +132,6 @@ class AclValidator(object):
                     return False, 'acl "%s" did not validate for target acl "%s": %s' % (
                         acl, target_acls[acl], msg)
 
-        logger.info('all acls validated')
         return True, None
 
 
