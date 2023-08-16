@@ -41,7 +41,7 @@ from dino.config import UserKeys
 from dino.db import IDatabase
 from dino.db.rdbms.dbman import Database
 from dino.db.rdbms.mock import MockDatabase
-from dino.db.rdbms.models import AclConfigs, UserInfo, Joins
+from dino.db.rdbms.models import AclConfigs, UserInfo, Joins, Mutes
 from dino.db.rdbms.models import Spams
 from dino.db.rdbms.models import Config
 from dino.db.rdbms.models import Acls
@@ -2621,6 +2621,7 @@ class DatabaseRdbms(object):
         try:
             username = self.get_user_name(user_id, skip_cache=True)
             if username is not None:
+                logger.info(f"user with id '{user_id}' already exists and has name '{user_name}'")
                 raise UserExistsException(user_id)
         except NoSuchUserException:
             pass
@@ -2929,6 +2930,22 @@ class DatabaseRdbms(object):
         return None, None, None
 
     @with_session
+    def get_mutes_for_user(self, user_id: str, session=None) -> dict:
+        mutes = session.query(Mutes)\
+            .filter(Mutes.user_id == user_id).all()
+
+        return {
+            "room": {
+                mute.room_id: {
+                    'name': b64e(mute.room.name),
+                    'duration': mute.duration,
+                    'timestamp': mute.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                }
+                for mute in mutes
+            }
+        }
+
+    @with_session
     def get_bans_for_user(self, user_id: str, session=None) -> dict:
         bans = session.query(Bans)\
             .outerjoin(Bans.channel)\
@@ -3068,6 +3085,19 @@ class DatabaseRdbms(object):
             'channel': ctime,
             'room': rtime
         }
+
+    @with_session
+    def remove_room_mute(self, room_id: str, user_id: str, session=None) -> None:
+        self.env.cache.set_room_mute_timestamp(room_id, user_id, '', '')
+        mute = session.query(Mutes)\
+            .filter(Mutes.room_id == room_id)\
+            .filter(Mutes.user_id == user_id).first()
+
+        if mute is None:
+            return
+
+        session.delete(mute)
+        session.commit()
 
     @with_session
     def remove_global_ban(self, user_id: str, session=None) -> None:
@@ -3388,6 +3418,33 @@ class DatabaseRdbms(object):
 
         session.add(ban)
         session.commit()
+
+    def mute_user(self, room_id, user_id, mute_duration, mute_timestamp, room_name, muter_id, reason) -> None:
+        @with_session
+        def _mute_user(session=None):
+            mute = session.query(Mutes)\
+                .filter(Mutes.user_id == user_id)\
+                .filter(Mutes.room_id == room_id).first()
+
+            if mute is None:
+                mute = Mutes()
+                mute.user_id = user_id
+                mute.reason = DatabaseRdbms._decode_reason(reason)
+                mute.muter_id = muter_id
+                mute.room_id = room_id
+                mute.room_name = room_name
+
+            mute.timestamp = datetime.fromtimestamp(int(mute_timestamp))
+            mute.duration = mute_duration
+
+            session.add(mute)
+            session.commit()
+
+        self.env.cache.set_room_mute_timestamp(
+            room_id, user_id, mute_duration, mute_timestamp
+        )
+
+        _mute_user()
 
     def ban_user_room(self, user_id: str, ban_timestamp: str, ban_duration: str, room_id: str, reason: str=None, banner_id: str=None):
         @with_session

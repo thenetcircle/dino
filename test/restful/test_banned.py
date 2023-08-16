@@ -32,6 +32,15 @@ class FakeDb(object):
     def get_banned_users(self):
         return FakeDb._banned
 
+    def get_mutes_for_user(self, user_id):
+        return  {
+            'room': {
+                'name': RoomsForUsersTest.ROOM_NAME,
+                'duration': '5m',
+                'timestamp': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+            }
+        }
+
     def get_bans_for_user(self, user_id):
         return  {
             'global': dict(),

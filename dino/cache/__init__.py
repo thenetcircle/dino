@@ -742,6 +742,17 @@ class ICache(Interface):
         :return: nothing
         """
 
+    def set_room_mute_timestamp(self, room_id: str, user_id: str, duration: str, timestamp: str) -> None:
+        """
+        set the mute timestamp on a room for a user to a given timestamp
+
+        :param user_id: the id of the user
+        :param room_id: the uuid of the room
+        :param duration: the duration, e.g. 12d
+        :param timestamp: the timestamp
+        :return: nothing
+        """
+
     def set_room_ban_timestamp(self, room_id: str, user_id: str, duration: str, timestamp: str, username: str) -> None:
         """
         set the ban timestamp on a room for a user to a given timestamp

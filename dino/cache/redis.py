@@ -369,22 +369,26 @@ class CacheRedis(object):
         self.cache.set(cache_key, the_cached_list, ttl=TEN_MINUTES)
         self.redis.sadd(cache_key, word)
 
-    def _set_ban_timestamp(self, key: str, user_id: str, timestamp: str) -> None:
+    def _set_memory_cache_and_hset(self, key: str, user_id: str, timestamp: str) -> None:
         cache_key = '%s-%s' % (key, user_id)
         self.cache.set(cache_key, timestamp)
         self.redis.hset(key, user_id, timestamp)
 
     def set_global_ban_timestamp(self, user_id: str, duration: str, timestamp: str, username: str) -> None:
         key = RedisKeys.banned_users()
-        self._set_ban_timestamp(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
+        self._set_memory_cache_and_hset(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
 
     def set_channel_ban_timestamp(self, channel_id: str, user_id: str, duration: str, timestamp: str, username: str) -> None:
         key = RedisKeys.banned_users_channel(channel_id)
-        self._set_ban_timestamp(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
+        self._set_memory_cache_and_hset(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
 
     def set_room_ban_timestamp(self, room_id: str, user_id: str, duration: str, timestamp: str, username: str) -> None:
         key = RedisKeys.banned_users(room_id)
-        self._set_ban_timestamp(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
+        self._set_memory_cache_and_hset(key, user_id, '%s|%s|%s' % (duration, timestamp, username))
+
+    def set_room_mute_timestamp(self, room_id: str, user_id: str, duration: str, timestamp: str) -> None:
+        key = RedisKeys.muted_users(room_id)
+        self._set_memory_cache_and_hset(key, user_id, '%s|%s' % (duration, timestamp))
 
     def get_user_roles(self, user_id: str) -> None:
         key = RedisKeys.user_roles()

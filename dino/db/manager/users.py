@@ -190,6 +190,83 @@ class UserManager(BaseManager):
 
         self.env.publish(kick_activity)
 
+    def remove_mute(self, user_id: str, room_id: str, room_name: str) -> None:
+        mute_activity = {
+            'actor': {
+                'id': '0',
+                'displayName': utils.b64e('admin'),
+                'objectType': 'user'
+            },
+            'verb': 'unmute',
+            'object': {
+                'id': user_id,
+                'displayName': utils.b64e(utils.get_user_name_for(user_id)),
+                'objectType': 'user'
+            },
+            'target': {
+                'objectType': 'room',
+                'id': room_id,
+                'displayName': utils.b64e(room_name)
+            },
+            'id': str(uuid()),
+            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        }
+
+        self.env.db.remove_room_mute(room_id, user_id)
+        self.env.out_of_scope_emit(
+            'gn_unmute', mute_activity, json=True, room=user_id,
+            broadcast=True, include_self=True, namespace='/ws'
+        )
+
+    def mute_user(
+            self, user_id: str, room_id: str, duration: str,
+            reason: str = None, muter_id: str = None, user_name: str = None, room_name: str = None
+    ) -> None:
+        mute_dt = utils.ban_duration_to_datetime(duration)
+        end_time = mute_dt.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+
+        logger.info(f"muting {user_id} in room {room_id} ({room_name}) until {end_time}")
+        self.env.db.mute_user(
+            room_id=room_id, user_id=user_id, mute_duration=duration, mute_timestamp=mute_dt.timestamp(),
+            target_name=room_name, muter_id=muter_id, reason=reason
+        )
+
+        mute_activity = {
+            'actor': {
+                'id': '0',
+                'displayName': utils.b64e('admin'),
+                'objectType': 'user'
+            },
+            'verb': 'mute',
+            'object': {
+                'id': user_id,
+                'displayName': user_name,
+                'summary': duration,
+                'updated': end_time,
+                'objectType': 'user'
+            },
+            'target': {
+                'id': room_id,
+                'objectType': 'room'
+            },
+            'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+            'id': str(uuid())
+        }
+
+        if reason is not None:
+            mute_activity['object']['content'] = reason
+
+        if muter_id is not None:
+            mute_activity['actor']['id'] = muter_id
+
+        if room_name is not None:
+            mute_activity['target']['displayName'] = utils.b64e(room_name)
+
+        self.env.out_of_scope_emit(
+            'gn_mute', mute_activity, json=True, room=user_id,
+            broadcast=True, include_self=True, namespace='/ws'
+        )
+
     def ban_user(
             self, user_id: str, target_id: str, duration: str, target_type: str,
             reason: str = None, banner_id: str = None, user_name: str = None, target_name: str = None

@@ -367,6 +367,7 @@ class RedisKeys(object):
     RKEY_USER_ID_TO_SID = 'sid:user:map'
     RKEY_BANNED_USERS_GLOBAL = 'users:banned:global'
     RKEY_BANNED_USERS_ROOM = 'users:banned:room:%s'  # users:banned:room:room_id
+    RKEY_MUTED_USERS_ROOM = 'users:muted:room:%s'  # users:muted:room:room_id
     RKEY_BANNED_USERS_CHANNEL = 'users:banned:channel:%s'  # users:banned:channel:channel_id
 
     RKEY_HEARTBEAT = 'heartbeat:{}'
@@ -543,6 +544,10 @@ class RedisKeys(object):
         if room_id is None:
             return RedisKeys.RKEY_BANNED_USERS_GLOBAL
         return RedisKeys.RKEY_BANNED_USERS_ROOM % room_id
+
+    @staticmethod
+    def muted_users(room_id: str) -> str:
+        return RedisKeys.RKEY_MUTED_USERS_ROOM % room_id
 
     @staticmethod
     def banned_users_channel(channel_id: str):

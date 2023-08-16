@@ -697,6 +697,26 @@ class IDatabase(Interface):
         :return: (duration, timestamp, username) or (None, None, None) if no such ban
         """
 
+    def get_mutes_for_user(self, user_id: str) -> dict:
+        """
+        get all room mutes for this user, mostly used for the rest api
+
+        return format is:
+
+            {
+                "room" {
+                    "<room uuid>": {
+                        "timestamp": "2016-11-29T12:51:09Z",
+                        "duration": "12h",
+                        "name": "<room name>"
+                    }
+                }
+            }
+
+        :param user_id: the uuid of the user
+        :return: a dict of mutes
+        """
+
     def get_bans_for_user(self, user_id: str) -> dict:
         """
         get all channel and room bans for this user, mostly used for the rest api

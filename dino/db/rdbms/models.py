@@ -125,6 +125,21 @@ class DefaultRooms(DeclarativeBase):
     uuid = Column('uuid', String(128), nullable=False, index=True)
 
 
+class Mutes(DeclarativeBase):
+    __tablename__ = 'mutes'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column('user_id', String(128), nullable=False, index=True)
+    duration = Column('duration', String(128), nullable=False)
+    timestamp = Column('time_stamp', DateTime, nullable=False)
+
+    reason = Column('reason', Text(), nullable=True)
+    muter_id = Column('muter_id', String(128), nullable=True)
+
+    room_id = Column('room_id', String(128), nullable=False, index=True)
+    room_name = Column('room_id', String(128), nullable=True)
+
+
 class Bans(DeclarativeBase):
     __tablename__ = 'bans'
 
