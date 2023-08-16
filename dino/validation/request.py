@@ -617,6 +617,7 @@ class RequestValidator(BaseValidator):
         return True, None, None
 
     def on_kick(self, activity: Activity) -> (bool, int, str):
+        kicker_id = activity.actor.id
         room_id = activity.target.id
         user_id_to_kick = activity.object.id
 
@@ -635,26 +636,16 @@ class RequestValidator(BaseValidator):
             return False, ECodes.NOT_ALLOWED, "not allowed to kick operators"
 
         channel_id = utils.get_channel_for_room(room_id)
-        channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.KICK)
-        logger.info('=== [KICK] CHANNEL ACLS CHECK ===')
-        is_valid, msg = validation.acl.validate_acl_for_action(
-            activity, ApiTargets.CHANNEL, ApiActions.KICK, channel_acls)
 
-        if not is_valid:
-            return False, ECodes.NOT_ALLOWED, msg
-
-        try:
-            room_acls = utils.get_acls_in_room_for_action(room_id, ApiActions.KICK)
-        except NoSuchRoomException:
-            return False, ECodes.NO_SUCH_ROOM, 'no such room'
-
-        logger.info('=== [KICK] ROOM ACLS CHECK ===')
-        is_valid, msg = validation.acl.validate_acl_for_action(activity, ApiTargets.ROOM, ApiActions.KICK, room_acls)
-        if not is_valid:
-            return False, ECodes.NOT_ALLOWED, msg
-
-        logger.info('=== [KICK] DONE ===')
-        return True, None, None
+        # so common, so skip checking ACLs table for this; owners/admins can kick, others not
+        if (
+            utils.is_owner(room_id, kicker_id) or
+            utils.is_super_user(kicker_id) or
+            utils.is_global_moderator(kicker_id) or
+            utils.is_admin(channel_id, kicker_id)
+        ):
+            return True, None, None
+        return False, ECodes.NOT_ALLOWED, 'not allowed to kick'
 
     def on_invite(self, activity: Activity) -> (bool, int, str):
         if not hasattr(activity.actor, 'url'):

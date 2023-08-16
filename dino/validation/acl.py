@@ -98,51 +98,38 @@ class AclValidator(object):
                 channel_id = activity.object.url
 
         if utils.is_admin(channel_id, user_id):
-            logger.info(f'user {user_id} is admin')
             return True, None
         if utils.is_super_user(user_id):
-            logger.info(f'user {user_id} is super user')
             return True, None
         if utils.is_global_moderator(user_id):
-            logger.info(f'user {user_id} is global moderator')
             return True, None
 
         # no acls for this target (room/channel) and action (join/kick/etc)
         if target not in all_acls or action not in all_acls[target] or len(all_acls[target][action]) == 0:
-            logger.info('no acls for target "%s" and action "%s"' % (target, action))
-            logger.info(f'action: {action}, target: {target}, alL_acls[target]: {all_acls[target]}')
             return True, None  # 'no acl set that allows action "%s" for target type "%s"' % (action, target)
 
         if utils.is_owner_channel(channel_id, user_id):
-            logger.info(f'user {user_id} is owner of channel: {channel_id}')
             return True, None
 
         if target == 'channel':
             pass
         elif target == 'room':
             if utils.is_owner(target_id, user_id):
-                logger.info(f'user {user_id} is owner of room: {target_id}')
                 return True, None
 
         # no acls for this target and action
         if target_acls is None or len(target_acls) == 0:
-            logger.info('no target_acls')
             return True, None
 
         possible_acls = all_acls[target][action]
         for acl_rule, acl_values in possible_acls.items():
-            logger.info(f'checking acl rule: {acl_rule}, acl_values: {acl_values}')
             if acl_rule != 'acls':
-                logger.info(f'not acls, skipping')
                 continue
             for acl in acl_values:
-                logger.info(f'checking acl: {acl}')
                 if acl not in target_acls.keys():
-                    logger.info(f'not in target_acls.keys(), skipping: {target_acls}')
                     continue
 
                 is_valid_func = all_acls['validation'][acl]['value']
-                logger.info(f'checking acl: {acl}, is_valid_func: {is_valid_func}')
                 is_valid, msg = is_valid_func(activity, environ.env, acl, target_acls[acl], False, session_to_use)
                 if not is_valid:
                     return False, 'acl "%s" did not validate for target acl "%s": %s' % (

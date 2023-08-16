@@ -134,11 +134,14 @@ room:
     kick:
         acls:
             - owner
+            - room_owner
+            - disallow
             - moderator
             - admin
             - superuser
     ban:
         acls:
             - owner
+            - disallow
             - admin
             - superuser
