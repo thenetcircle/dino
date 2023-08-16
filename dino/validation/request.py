@@ -637,7 +637,7 @@ class RequestValidator(BaseValidator):
         channel_id = utils.get_channel_for_room(room_id)
         channel_acls = utils.get_acls_in_channel_for_action(channel_id, ApiActions.KICK)
         is_valid, msg = validation.acl.validate_acl_for_action(
-            activity, ApiTargets.CHANNEL, ApiActions.KICK, channel_acls)  # TODO: target should be room, no?
+            activity, ApiTargets.ROOM, ApiActions.KICK, channel_acls)
 
         if not is_valid:
             return False, ECodes.NOT_ALLOWED, msg
