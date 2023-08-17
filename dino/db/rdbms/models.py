@@ -137,7 +137,7 @@ class Mutes(DeclarativeBase):
     muter_id = Column('muter_id', String(128), nullable=True)
 
     room_id = Column('room_id', String(128), nullable=False, index=True)
-    room_name = Column('room_id', String(128), nullable=True)
+    room_name = Column('room_name', String(128), nullable=True)
 
 
 class Bans(DeclarativeBase):
