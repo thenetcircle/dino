@@ -3132,17 +3132,18 @@ class DatabaseRdbms(object):
         }
 
     @with_session
-    def remove_room_mute(self, room_id: str, user_id: str, session=None) -> None:
+    def remove_room_mute(self, room_id: str, user_id: str, session=None) -> bool:
         self.env.cache.set_room_mute_timestamp(room_id, user_id, '', '')
         mute = session.query(Mutes)\
             .filter(Mutes.room_id == room_id)\
             .filter(Mutes.user_id == user_id).first()
 
         if mute is None:
-            return
+            return False
 
         session.delete(mute)
         session.commit()
+        return True
 
     @with_session
     def remove_global_ban(self, user_id: str, session=None) -> None:

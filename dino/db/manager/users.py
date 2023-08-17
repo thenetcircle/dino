@@ -210,11 +210,12 @@ class UserManager(BaseManager):
             'published': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
         }
 
-        self.env.db.remove_room_mute(room_id, user_id)
-        self.env.out_of_scope_emit(
-            'gn_unmute', mute_activity, json=True, room=user_id,
-            broadcast=True, include_self=True, namespace='/ws'
-        )
+        # only send event if unmute was successful
+        if self.env.db.remove_room_mute(room_id, user_id):
+            self.env.out_of_scope_emit(
+                'gn_unmute', mute_activity, json=True, room=user_id,
+                broadcast=True, include_self=True, namespace='/ws'
+            )
 
     def mute_user(
             self, user_id: str, room_id: str, duration: str,

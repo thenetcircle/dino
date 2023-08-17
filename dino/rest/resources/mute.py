@@ -60,6 +60,7 @@ class MuteResource(BaseResource):
                 room_id = json.get('room_id')
             if 'room_name' in json:
                 room_name = utils.b64d(json.get('room_name'))
+                room_id = utils.get_room_id(room_name, use_default_channel=True)
 
             if room_id is None and room_name is None:
                 raise RuntimeError('invalid json: no room name or room id in unmute request')
