@@ -70,6 +70,46 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="./">Events</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#message-deleted">Message deleted</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#message-received">Message received</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#message-has-been-read">Message has been read</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#message-has-been-delivered">Message has been delivered</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#user-info-updated">User info updated</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#admin-presence-requested">Admin presence requested</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#a-room-was-removed">A room was removed</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#a-room-was-renamed">A room was renamed</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#invitation-received">Invitation received</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#another-user-joins-the-room">Another user joins the room</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#another-user-leaves-room">Another user leaves room</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#another-user-connects">Another user connects</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#another-user-disconnects">Another user disconnects</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#you-were-banned">You were banned</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#a-new-room-is-created">A new room is created</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#a-user-is-kicked-from-a-room">A user is kicked from a room</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#broadcast-received">Broadcast received</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#a-user-is-banned">A user is banned</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#user-was-muted">User was muted</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#user-was-un-muted">User was un-muted</a>
+    </li>
     </ul>
                 </li>
               </ul>
@@ -116,7 +156,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h2 id="message-deleted">Message deleted</h2>
+                <h1 id="frontend-client-events">Frontend Client Events</h1>
+<h2 id="message-deleted">Message deleted</h2>
 <p>When an admin/mod/etc. deletes a message from a room, everyone on that room will receive an event with the name 
 <code>gn_message_deleted</code> so they can remove it locally as well.</p>
 <pre><code class="language-json">{
@@ -545,6 +586,54 @@ they will be automatically removed when the owner leaves.</p>
 <h2 id="a-user-is-banned">A user is banned</h2>
 <p>TODO: currently the user will be banned, but the "kicked" event will be broadcasted to relevant users. There's currently
 no "banned" event for this.</p>
+<h2 id="user-was-muted">User was muted</h2>
+<p>If a user is muted (using the REST API), the <code>gn_mute</code> event will be sent to the user. The <code>object.summary</code> field is 
+the remaining seconds.</p>
+<p>Example event:</p>
+<pre><code class="language-json">[&quot;gn_mute&quot;, {
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;objectType&quot;: &quot;user&quot;
+    },
+    &quot;verb&quot;: &quot;mute&quot;,
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;5000439&quot;,
+        &quot;summary&quot;: &quot;1m&quot;,
+        &quot;updated&quot;: &quot;2023-08-17T07:05:33Z&quot;,
+        &quot;objectType&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;&quot;
+    },
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
+        &quot;objectType&quot;: &quot;room&quot;,
+        &quot;displayName&quot;: &quot;&quot;
+    },
+    &quot;published&quot;: &quot;2023-08-17T07:04:33Z&quot;,
+    &quot;id&quot;: &quot;039bc358-1034-4f1d-b716-7d014fa4bad5&quot;
+}]
+</code></pre>
+<h2 id="user-was-un-muted">User was un-muted</h2>
+<p>If a mute is removed for a user (using the REST API), the <code>gn_ummute</code> event will be sent to the user.</p>
+<p>Example event:</p>
+<pre><code class="language-json">[&quot;gn_unmute&quot;, {
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;objectType&quot;: &quot;user&quot;
+    },
+    &quot;verb&quot;: &quot;unmute&quot;,
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;5000439&quot;,
+        &quot;objectType&quot;: &quot;user&quot;
+    },
+    &quot;target&quot;: {
+        &quot;objectType&quot;: &quot;room&quot;,
+        &quot;id&quot;: &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
+        &quot;displayName&quot;: &quot;&quot;
+    },
+    &quot;id&quot;: &quot;c89dd0b0-3da0-4b24-9841-05adad714339&quot;,
+    &quot;published&quot;: &quot;2023-08-17T07:06:20Z&quot;
+}]
+</code></pre>
               
             </div>
           </div><footer>

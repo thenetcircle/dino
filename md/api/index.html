@@ -122,10 +122,6 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#rename_room">rename_room</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#gn_mute">gn_mute</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#gn_unmute">gn_unmute</a>
-    </li>
     </ul>
                 </li>
               </ul>
@@ -1248,54 +1244,6 @@ separated value), plus any global roles. Possible roles are:</p>
         &quot;verb&quot;: &quot;renamed&quot;
     }
 }
-</code></pre>
-<h2 id="gn_mute"><code>gn_mute</code></h2>
-<p>If a user is muted (using the REST API), the <code>gn_mute</code> event will be sent to the user. The <code>object.summary</code> field is 
-the remaining seconds.</p>
-<p>Example event:</p>
-<pre><code class="language-json">[&quot;gn_mute&quot;, {
-    &quot;actor&quot;: {
-        &quot;id&quot;: &quot;0&quot;,
-        &quot;objectType&quot;: &quot;user&quot;
-    },
-    &quot;verb&quot;: &quot;mute&quot;,
-    &quot;object&quot;: {
-        &quot;id&quot;: &quot;5000439&quot;,
-        &quot;summary&quot;: &quot;1m&quot;,
-        &quot;updated&quot;: &quot;2023-08-17T07:05:33Z&quot;,
-        &quot;objectType&quot;: &quot;user&quot;,
-        &quot;content&quot;: &quot;&quot;
-    },
-    &quot;target&quot;: {
-        &quot;id&quot;: &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
-        &quot;objectType&quot;: &quot;room&quot;,
-        &quot;displayName&quot;: &quot;&quot;
-    },
-    &quot;published&quot;: &quot;2023-08-17T07:04:33Z&quot;,
-    &quot;id&quot;: &quot;039bc358-1034-4f1d-b716-7d014fa4bad5&quot;
-}]
-</code></pre>
-<h2 id="gn_unmute"><code>gn_unmute</code></h2>
-<p>If a mute is removed for a user (using the REST API), the <code>gn_ummute</code> event will be sent to the user.</p>
-<p>Example event:</p>
-<pre><code class="language-json">[&quot;gn_unmute&quot;, {
-    &quot;actor&quot;: {
-        &quot;id&quot;: &quot;0&quot;,
-        &quot;objectType&quot;: &quot;user&quot;
-    },
-    &quot;verb&quot;: &quot;unmute&quot;,
-    &quot;object&quot;: {
-        &quot;id&quot;: &quot;5000439&quot;,
-        &quot;objectType&quot;: &quot;user&quot;
-    },
-    &quot;target&quot;: {
-        &quot;objectType&quot;: &quot;room&quot;,
-        &quot;id&quot;: &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
-        &quot;displayName&quot;: &quot;&quot;
-    },
-    &quot;id&quot;: &quot;c89dd0b0-3da0-4b24-9841-05adad714339&quot;,
-    &quot;published&quot;: &quot;2023-08-17T07:06:20Z&quot;
-}]
 </code></pre>
               
             </div>
