@@ -28,9 +28,9 @@ logger = logging.getLogger(__name__)
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
-class BannedResource(BaseResource):
+class MutedResource(BaseResource):
     def __init__(self):
-        super(BannedResource, self).__init__()
+        super(MutedResource, self).__init__()
         self.last_cleared = datetime.utcnow()
         self.request = request
 

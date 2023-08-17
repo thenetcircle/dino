@@ -23,6 +23,8 @@ from dino.rest.resources.joins import JoinsInRoomResource
 from dino.rest.resources.kick import KickResource
 from dino.rest.resources.latest_history import LatestHistoryResource
 from dino.rest.resources.leave import LeaveRoomResource
+from dino.rest.resources.mute import MuteResource
+from dino.rest.resources.muted import MutedResource
 from dino.rest.resources.remove_admin import RemoveAdminResource
 from dino.rest.resources.roles import RolesResource
 from dino.rest.resources.rooms import RoomsResource
@@ -93,6 +95,8 @@ api.add_resource(ClearHistoryResource, '/delete-messages')
 api.add_resource(RolesResource, '/roles')
 api.add_resource(BannedResource, '/banned')
 api.add_resource(BanResource, '/ban')
+api.add_resource(MutedResource, '/muted')
+api.add_resource(MuteResource, '/mute')
 api.add_resource(HistoryResource, '/history')
 api.add_resource(LatestHistoryResource, '/latest-history')
 api.add_resource(KickResource, '/kick')
