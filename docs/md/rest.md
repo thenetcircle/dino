@@ -1085,8 +1085,10 @@ If the room doesn't exist, error `802` is returned:
 Mute a user in a room. Calling this API again with the same user ID and room ID will overwrite the previous mute 
 duration, but nothing else.
 
-Duration is a number followed by a char for the unit, which can be one of `d`, `h`, `m`, `s` (days, hours, minutes, 
+`duration` is a number followed by a char for the unit, which can be one of `d`, `h`, `m`, `s` (days, hours, minutes, 
 seconds).
+
+**Note:** a mute is automatically removed when the timer runs out, and the user can then send messages again.
 
 Example request (`room_name` and `reason` must be in base64):
 

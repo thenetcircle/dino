@@ -1106,6 +1106,40 @@ Response data if successful:
 The response will send the same ActivityStreams as was in the request, with the addition of a server generated ID (uuid)
 and the `published` field set to the time the server received the request (in RFC3339 format).
 
+### If the user is muted
+
+If a user is muted in a room, and tries to send a message in that room, a `703` error code will be returned, along with 
+this example response (`object.summary` is the remaining seconds of the mute, and `object.content` is the reason for 
+the mute (if any) in base64):
+
+```json
+[
+  "gn_message",
+  {
+    "status_code": 703,
+    "data": {
+      "verb": "mute",
+      "object": {
+        "content": "",
+        "summary": "1608"
+      },
+      "target": {
+        "objectType": "room",
+        "id": "2e7d537e-bed5-47c5-a7f6-357075759e5d",
+        "displayName": "ZGVmYXVsdA=="
+      },
+      "id": "97fa6454-e93a-4379-876d-c9e45d6f9b86",
+      "published": "2023-08-17T06:46:18Z",
+      "provider": {
+        "id": "popp"
+      }
+    }
+  }
+]
+```
+
+Note: a mute is automatically removed when the timer runs out, and the user can then send messages again.
+
 ## `remove_room`
 
 Response with the event name `gn_remove_room`.
