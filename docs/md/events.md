@@ -1,3 +1,5 @@
+# Frontend Client Events
+
 ## Message deleted
 
 When an admin/mod/etc. deletes a message from a room, everyone on that room will receive an event with the name 
@@ -498,3 +500,61 @@ When a message is broadcasted to every user on the server, a `gn_broadcast` even
 
 TODO: currently the user will be banned, but the "kicked" event will be broadcasted to relevant users. There's currently
 no "banned" event for this.
+
+## User was muted
+
+If a user is muted (using the REST API), the `gn_mute` event will be sent to the user. The `object.summary` field is 
+the remaining seconds.
+
+Example event:
+
+```json
+["gn_mute", {
+	"actor": {
+		"id": "0",
+		"objectType": "user"
+	},
+	"verb": "mute",
+	"object": {
+		"id": "5000439",
+		"summary": "1m",
+		"updated": "2023-08-17T07:05:33Z",
+		"objectType": "user",
+		"content": ""
+	},
+	"target": {
+		"id": "2e7d537e-bed5-47c5-a7f6-357075759e5d",
+		"objectType": "room",
+		"displayName": ""
+	},
+	"published": "2023-08-17T07:04:33Z",
+	"id": "039bc358-1034-4f1d-b716-7d014fa4bad5"
+}]
+```
+
+## User was un-muted
+
+If a mute is removed for a user (using the REST API), the `gn_ummute` event will be sent to the user.
+
+Example event:
+
+```json
+["gn_unmute", {
+	"actor": {
+		"id": "0",
+		"objectType": "user"
+	},
+	"verb": "unmute",
+	"object": {
+		"id": "5000439",
+		"objectType": "user"
+	},
+	"target": {
+		"objectType": "room",
+		"id": "2e7d537e-bed5-47c5-a7f6-357075759e5d",
+		"displayName": ""
+	},
+	"id": "c89dd0b0-3da0-4b24-9841-05adad714339",
+	"published": "2023-08-17T07:06:20Z"
+}]
+```
