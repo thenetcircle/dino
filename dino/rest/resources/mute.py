@@ -122,7 +122,7 @@ class MuteResource(BaseResource):
     def mute_user(self, user_id: str, mute_info: dict):
         duration = mute_info.get('duration', '')
         reason = mute_info.get('reason', '')
-        muter_id = mute_info.get('admin_id', '')
+        muter_id = mute_info.get('muter_user_id', '')
         room_name = mute_info.get('room_name', '')
 
         if 'room_id' in mute_info:

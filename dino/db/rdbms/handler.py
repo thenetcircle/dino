@@ -3473,8 +3473,8 @@ class DatabaseRdbms(object):
 
             if mute is None:
                 mute = Mutes()
-                mute.user_id = user_id
                 mute.reason = DatabaseRdbms._decode_reason(reason)
+                mute.user_id = user_id
                 mute.muter_id = muter_id
                 mute.room_id = room_id
                 mute.room_name = room_name
