@@ -122,6 +122,10 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#rename_room">rename_room</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#gn_mute">gn_mute</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#gn_unmute">gn_unmute</a>
+    </li>
     </ul>
                 </li>
               </ul>
@@ -1004,26 +1008,6 @@ restriction is that the date when the ban ends (<code>utcnow()+duration</code>) 
 </code></pre>
 <h2 id="message"><code>message</code></h2>
 <p>Send a message to a <code>room</code> UUID (can be the user UUID or an actual room UUID).</p>
-<p>If the user is muted in this room, error <code>719</code> will be returned, along with a response json message with the remaining
-duration of the mute (<code>object.summary</code>, in seconds), e.g.:</p>
-<pre><code class="language-json">{
-    &quot;status_code&quot;: 719,
-    &quot;data&quot;: {
-        &quot;id&quot;: &quot;c42ebf01-3d50-4f27-a345-4ed213be045d&quot;,
-        &quot;published&quot;: &quot;2016-10-07T10:45:34Z&quot;,
-        &quot;verb&quot;: &quot;mute&quot;,
-        &quot;object&quot;: {
-            &quot;content&quot;: &quot;&quot;,
-            &quot;summary&quot;: &quot;3600&quot;
-        },
-        &quot;target&quot;: {
-            &quot;objectType&quot;: &quot;room&quot;,
-            &quot;id&quot;: &quot;room-uuid&quot;,
-            &quot;displayName&quot;: &quot;&lt;base64 room name&gt;&quot;
-        }
-    }
-}
-</code></pre>
 <p>Responds with event name <code>gn_message</code>.</p>
 <p>Request contains:</p>
 <pre><code class="language-json">{
@@ -1264,6 +1248,54 @@ separated value), plus any global roles. Possible roles are:</p>
         &quot;verb&quot;: &quot;renamed&quot;
     }
 }
+</code></pre>
+<h2 id="gn_mute"><code>gn_mute</code></h2>
+<p>If a user is muted (using the REST API), the <code>gn_mute</code> event will be sent to the user. The <code>object.summary</code> field is 
+the remaining seconds.</p>
+<p>Example event:</p>
+<pre><code class="language-json">[&quot;gn_mute&quot;, {
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;objectType&quot;: &quot;user&quot;
+    },
+    &quot;verb&quot;: &quot;mute&quot;,
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;5000439&quot;,
+        &quot;summary&quot;: &quot;1m&quot;,
+        &quot;updated&quot;: &quot;2023-08-17T07:05:33Z&quot;,
+        &quot;objectType&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;&quot;
+    },
+    &quot;target&quot;: {
+        &quot;id&quot;: &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
+        &quot;objectType&quot;: &quot;room&quot;,
+        &quot;displayName&quot;: &quot;&quot;
+    },
+    &quot;published&quot;: &quot;2023-08-17T07:04:33Z&quot;,
+    &quot;id&quot;: &quot;039bc358-1034-4f1d-b716-7d014fa4bad5&quot;
+}]
+</code></pre>
+<h2 id="gn_unmute"><code>gn_unmute</code></h2>
+<p>If a mute is removed for a user (using the REST API), the <code>gn_ummute</code> event will be sent to the user.</p>
+<p>Example event:</p>
+<pre><code class="language-json">[&quot;gn_unmute&quot;, {
+    &quot;actor&quot;: {
+        &quot;id&quot;: &quot;0&quot;,
+        &quot;objectType&quot;: &quot;user&quot;
+    },
+    &quot;verb&quot;: &quot;unmute&quot;,
+    &quot;object&quot;: {
+        &quot;id&quot;: &quot;5000439&quot;,
+        &quot;objectType&quot;: &quot;user&quot;
+    },
+    &quot;target&quot;: {
+        &quot;objectType&quot;: &quot;room&quot;,
+        &quot;id&quot;: &quot;2e7d537e-bed5-47c5-a7f6-357075759e5d&quot;,
+        &quot;displayName&quot;: &quot;&quot;
+    },
+    &quot;id&quot;: &quot;c89dd0b0-3da0-4b24-9841-05adad714339&quot;,
+    &quot;published&quot;: &quot;2023-08-17T07:06:20Z&quot;
+}]
 </code></pre>
               
             </div>
