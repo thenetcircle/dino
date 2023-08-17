@@ -138,7 +138,7 @@ class MuteResource(BaseResource):
             return
 
         try:
-            user_name = mute_info['name']
+            user_name = mute_info['user_name']
             user_name = utils.b64d(user_name)
         except KeyError:
             logger.warning('no name specified in mute info, if we have to create the user it will get the ID as name')
