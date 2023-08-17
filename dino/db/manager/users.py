@@ -220,7 +220,7 @@ class UserManager(BaseManager):
 
     def mute_user(
             self, user_id: str, room_id: str, duration: str,
-            reason: str = None, muter_id: str = None, user_name: str = None, room_name: str = None
+            reason: str = None, muter_id: str = None, room_name: str = None
     ) -> None:
         mute_dt = utils.ban_duration_to_datetime(duration)
         end_time = mute_dt.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
@@ -234,13 +234,11 @@ class UserManager(BaseManager):
         mute_activity = {
             'actor': {
                 'id': '0',
-                'displayName': utils.b64e('admin'),
                 'objectType': 'user'
             },
             'verb': 'mute',
             'object': {
                 'id': user_id,
-                'displayName': user_name,
                 'summary': duration,
                 'updated': end_time,
                 'objectType': 'user'

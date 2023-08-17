@@ -126,29 +126,21 @@ class MuteResource(BaseResource):
         room_name = mute_info.get('room_name', '')
 
         if 'room_id' in mute_info:
-            target_id = mute_info.get('room_id')
+            room_id = mute_info.get('room_id')
 
         elif 'room_name' in mute_info:
             room_name = mute_info.get('room_name')
             room_name = utils.b64d(room_name)
-            target_id = utils.get_room_id(room_name, use_default_channel=True)
+            room_id = utils.get_room_id(room_name, use_default_channel=True)
 
         else:
-            logger.error(f"no room_id or room_name in request, can't mute user")
+            logger.error(f"no room_id or room_name in request, can't mute user: {mute_info}")
             return
 
         try:
-            user_name = mute_info['user_name']
-            user_name = utils.b64d(user_name)
-        except KeyError:
-            logger.warning('no name specified in mute info, if we have to create the user it will get the ID as name')
-            user_name = user_id
-
-        try:
             self.user_manager.mute_user(
-                user_id, target_id, duration,
-                reason=reason, muter_id=muter_id,
-                user_name=user_name, room_name=room_name
+                user_id=user_id, room_id=room_id, duration=duration,
+                reason=reason, muter_id=muter_id, room_name=room_name
             )
 
         except ValueError as e:
