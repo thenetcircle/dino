@@ -1080,6 +1080,71 @@ If the room doesn't exist, error `802` is returned:
 }
 ```
 
+## POST mute
+
+Mute a user in a room. Calling this API again with the same user ID and room ID will overwrite the previous mute 
+duration, but nothing else.
+
+Duration is a number followed by a char for the unit, which can be one of `d`, `h`, `m`, `s` (days, hours, minutes, 
+seconds).
+
+Example request (`room_name` and `reason` must be in base64):
+
+```json
+{
+    "4942530": {
+        "room_name": "MTY4Mjk5ODIwOA==",
+        "duration": "99m",
+        "reason":"c29tZSByZWFzb24=",
+        "muter_user_id":"1971"
+    }
+}
+```
+
+Example response:
+
+```json
+{
+    "status_code": 200, 
+    "data": {
+        "status": "OK"
+    }
+}
+```
+
+## DELETE mute
+
+Unmute a user in a room. Calling this API again with the same user ID and room ID will remove the mute.
+
+Example request (`room_name` must be in base64):
+
+```json
+{
+    "user_id": "4942530",
+    "room_name": "Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl"
+}
+```
+
+Alternatively, use `room_id` instead of `room_name`:
+
+```json
+{
+    "user_id": "4942530",
+    "room_id": "5482a95b-5330-4e2e-9e7e-7896d908c674"
+}
+```
+
+Example response:
+
+```json
+{
+    "status_code": 200, 
+    "data": {
+        "status": "OK"
+    }
+}
+```
+
 ## GET muted
 
 Get muted users in one room, or get all the rooms a list of users are muted in. The request body must contain either
@@ -1091,7 +1156,7 @@ Example request with room name:
 
 ```json
 {
-    "room_name": "MTY4Mjk5ODIwOA=="
+    "room_name": "Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl"
 }
 ```
 
@@ -1109,12 +1174,21 @@ Example response:
 {
     "status_code": 200,
     "data": {
-        "4942530": {
-            "room_name": "MTY4Mjk5ODIwOA==",
-            "muter_user_id": "1971",
-            "duration": "99m",
+        "4942528": {
+            "room_id": "5482a95b-5330-4e2e-9e7e-7896d908c674",
+            "room_name": "Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl",
+            "muter_user_id": "",
+            "duration": "1h",
+            "reason": "",
+            "timestamp": "2023-08-17T07:04:05Z"
+        },
+        "4942529": {
+            "room_id": "5482a95b-5330-4e2e-9e7e-7896d908c674",
+            "room_name": "Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl",
+            "muter_user_id": "",
+            "duration": "30m",
             "reason": "c29tZSByZWFzb24=",
-            "timestamp": "2023-08-17T06:51:29Z"
+            "timestamp": "2023-08-17T07:04:16Z"
         }
     }
 }

@@ -194,13 +194,11 @@ class UserManager(BaseManager):
         mute_activity = {
             'actor': {
                 'id': '0',
-                'displayName': utils.b64e('admin'),
                 'objectType': 'user'
             },
             'verb': 'unmute',
             'object': {
                 'id': user_id,
-                'displayName': utils.b64e(utils.get_user_name_for(user_id)),
                 'objectType': 'user'
             },
             'target': {
