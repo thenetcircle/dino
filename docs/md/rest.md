@@ -1080,6 +1080,94 @@ If the room doesn't exist, error `802` is returned:
 }
 ```
 
+## GET muted
+
+Get muted users in one room, or get all the rooms a list of users are muted in. The request body must contain either
+`users`, or `room_id`/`room_name`.
+
+### Get muted users in one room
+
+Example request with room name:
+
+```json
+{
+    "room_name": "MTY4Mjk5ODIwOA=="
+}
+```
+
+Or with room ID:
+
+```json
+{
+    "room_id": "5482a95b-5330-4e2e-9e7e-7896d908c674"
+}
+```
+
+Example response:
+
+```json
+{
+    "status_code": 200,
+    "data": {
+        "4942530": {
+            "room_name": "MTY4Mjk5ODIwOA==",
+            "muter_user_id": "1971",
+            "duration": "99m",
+            "reason": "c29tZSByZWFzb24=",
+            "timestamp": "2023-08-17T06:51:29Z"
+        }
+    }
+}
+```
+
+### Get all rooms a list of users are muted in
+
+Example request:
+
+```json
+{
+    "user_ids": [
+        "4942530",
+        "4942529"
+    ]
+}
+```
+
+Example response:
+
+```json
+{
+    "status_code": 200,
+    "data": {
+        "4942530": {
+            "5482a95b-5330-4e2e-9e7e-7896d908c674": {
+                "muter_user_id": "1971",
+                "room_name": "Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl",
+                "duration": "10m",
+                "timestamp": "2023-08-17T05:16:00Z",
+                "reason": "c29tZSByZWFzb24="
+            },
+            "0ce88548-883a-4ab5-8e06-ca3eb67ae0f7": {
+                "muter_user_id": "1971",
+                "room_name": "OTIwMTE5ZmE5YmY5LTE2ODU2MDQ2NzI2OTYtMjA5ZDY4ZmUtYTVkZS00YmI0LWFhZTUtNWUxNzBjYzNmMGFh",
+                "duration": "99m",
+                "timestamp": "2023-08-17T06:46:21Z",
+                "reason": "c29tZSByZWFzb24="
+            }
+        },
+        "4942529": {
+            "5482a95b-5330-4e2e-9e7e-7896d908c674": {
+                "muter_user_id": "",
+                "room_name": "Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl",
+                "duration": "2h",
+                "timestamp": "2023-08-17T07:04:16Z",
+                "reason": "c29tZSByZWFzb24="
+            }
+        }
+    }
+}
+```
+
 ## POST status
 
 Set the online status or visibility status of a user.

@@ -2946,16 +2946,14 @@ class DatabaseRdbms(object):
             .filter(Mutes.user_id == user_id).all()
 
         return {
-            "room": {
-                mute.room_id: {
-                    'muter_user_id': mute.muter_id,
-                    'room_name': b64e(mute.room_name),
-                    'duration': mute.duration,
-                    'timestamp': mute.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
-                    'reason': b64e(mute.reason)
-                }
-                for mute in mutes
+            mute.room_id: {
+                'muter_user_id': mute.muter_id,
+                'room_name': b64e(mute.room_name),
+                'duration': mute.duration,
+                'timestamp': mute.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+                'reason': b64e(mute.reason)
             }
+            for mute in mutes
         }
 
     @with_session
