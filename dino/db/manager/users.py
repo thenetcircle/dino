@@ -228,7 +228,7 @@ class UserManager(BaseManager):
         logger.info(f"muting {user_id} in room {room_id} ({room_name}) until {end_time}")
         self.env.db.mute_user(
             room_id=room_id, user_id=user_id, mute_duration=duration, mute_timestamp=mute_dt.timestamp(),
-            target_name=room_name, muter_id=muter_id, reason=reason
+            room_name=room_name, muter_id=muter_id, reason=reason
         )
 
         mute_activity = {

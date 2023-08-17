@@ -100,15 +100,12 @@ class MuteResource(BaseResource):
 
         for user_id, mute_info in json.items():
             if 'room_id' not in mute_info and 'room_name' not in mute_info:
-                raise KeyError('missing target id for user id %s and request %s' % (user_id, mute_info))
+                raise KeyError(f'missing both room id and name in request: {mute_info}')
 
             try:
                 mute_info['duration']
             except KeyError:
                 raise KeyError('missing mute duration for user id %s and request %s' % (user_id, mute_info))
-
-            mute_info.get('reason')
-            mute_info.get('admin_id')
 
         return json
 
