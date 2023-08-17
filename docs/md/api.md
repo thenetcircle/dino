@@ -1326,7 +1326,8 @@ Response data if successful:
 
 ## `gn_mute`
 
-If a user is muted, the `gn_mute` event will be sent to the user. The `object.summary` field is the remaining seconds.
+If a user is muted (using the REST API), the `gn_mute` event will be sent to the user. The `object.summary` field is 
+the remaining seconds.
 
 Example event:
 
@@ -1356,7 +1357,7 @@ Example event:
 
 ## `gn_unmute`
 
-If a mute is removed for a user, the `gn_ummute` event will be sent to the user.
+If a mute is removed for a user (using the REST API), the `gn_ummute` event will be sent to the user.
 
 Example event:
 
