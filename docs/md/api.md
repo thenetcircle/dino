@@ -1034,28 +1034,6 @@ Response data if successful:
 
 Send a message to a `room` UUID (can be the user UUID or an actual room UUID).
 
-If the user is muted in this room, error `719` will be returned, along with a response json message with the remaining
-duration of the mute (`object.summary`, in seconds), e.g.:
-```json
-{
-    "status_code": 719,
-    "data": {
-        "id": "c42ebf01-3d50-4f27-a345-4ed213be045d",
-        "published": "2016-10-07T10:45:34Z",
-        "verb": "mute",
-        "object": {
-            "content": "",
-            "summary": "3600"
-        },
-        "target": {
-            "objectType": "room",
-            "id": "room-uuid",
-            "displayName": "<base64 room name>"
-        }
-    }
-}
-```
-
 Responds with event name `gn_message`.
 
 Request contains:
@@ -1344,4 +1322,61 @@ Response data if successful:
         "verb": "renamed"
     }
 }
+```
+
+## `gn_mute`
+
+If a user is muted, the `gn_mute` event will be sent to the user. The `object.summary` field is the remaining seconds.
+
+Example event:
+
+```json
+["gn_mute", {
+	"actor": {
+		"id": "0",
+		"objectType": "user"
+	},
+	"verb": "mute",
+	"object": {
+		"id": "5000439",
+		"summary": "1m",
+		"updated": "2023-08-17T07:05:33Z",
+		"objectType": "user",
+		"content": ""
+	},
+	"target": {
+		"id": "2e7d537e-bed5-47c5-a7f6-357075759e5d",
+		"objectType": "room",
+		"displayName": ""
+	},
+	"published": "2023-08-17T07:04:33Z",
+	"id": "039bc358-1034-4f1d-b716-7d014fa4bad5"
+}]
+```
+
+## `gn_unmute`
+
+If a mute is removed for a user, the `gn_ummute` event will be sent to the user.
+
+Example event:
+
+```json
+["gn_unmute", {
+	"actor": {
+		"id": "0",
+		"objectType": "user"
+	},
+	"verb": "unmute",
+	"object": {
+		"id": "5000439",
+		"objectType": "user"
+	},
+	"target": {
+		"objectType": "room",
+		"id": "2e7d537e-bed5-47c5-a7f6-357075759e5d",
+		"displayName": ""
+	},
+	"id": "c89dd0b0-3da0-4b24-9841-05adad714339",
+	"published": "2023-08-17T07:06:20Z"
+}]
 ```
