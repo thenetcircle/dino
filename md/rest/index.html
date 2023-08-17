@@ -8,7 +8,7 @@
     <title>REST - Dino</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
@@ -17,12 +17,11 @@
         var mkdocs_page_url = null;
       </script>
     
-    <script src="../../js/jquery-3.6.0.min.js" defer></script>
     <!--[if lt IE 9]>
       <script src="../../js/html5shiv.min.js"></script>
     <![endif]-->
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
-      <script>hljs.initHighlightingOnLoad();</script> 
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
 </head>
 
 <body class="wy-body-for-nav" role="document">
@@ -34,7 +33,7 @@
           <a href="../.." class="icon icon-home"> Dino
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
@@ -131,6 +130,18 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#get-banned">GET banned</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#post-mute">POST mute</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#delete-mute">DELETE mute</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-muted">GET muted</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#get-muted-users-in-one-room">Get muted users in one room</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#get-all-rooms-a-list-of-users-are-muted-in">Get all rooms a list of users are muted in</a>
+    </li>
+        </ul>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#post-status">POST status</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#post-send">POST send</a>
@@ -159,8 +170,8 @@
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-      <li>REST</li>
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+      <li class="breadcrumb-item active">REST</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -997,12 +1008,145 @@ specified, the response will only contain bans for that channel. Example request
     }
 }
 </code></pre>
+<h2 id="post-mute">POST mute</h2>
+<p>Mute a user in a room. Calling this API again with the same user ID and room ID will overwrite the previous mute 
+duration, but nothing else.</p>
+<p><code>duration</code> is a number followed by a char for the unit, which can be one of <code>d</code>, <code>h</code>, <code>m</code>, <code>s</code> (days, hours, minutes, 
+seconds).</p>
+<p><strong>Note:</strong> a mute is automatically removed when the timer runs out, and the user can then send messages again.</p>
+<p>Example request (<code>room_name</code> and <code>reason</code> must be in base64):</p>
+<pre><code class="language-json">{
+    &quot;4942530&quot;: {
+        &quot;room_name&quot;: &quot;MTY4Mjk5ODIwOA==&quot;,
+        &quot;duration&quot;: &quot;99m&quot;,
+        &quot;reason&quot;:&quot;c29tZSByZWFzb24=&quot;,
+        &quot;muter_user_id&quot;:&quot;1971&quot;
+    }
+}
+</code></pre>
+<p>Example response:</p>
+<pre><code class="language-json">{
+    &quot;status_code&quot;: 200, 
+    &quot;data&quot;: {
+        &quot;status&quot;: &quot;OK&quot;
+    }
+}
+</code></pre>
+<h2 id="delete-mute">DELETE mute</h2>
+<p>Unmute a user in a room. Calling this API again with the same user ID and room ID will remove the mute.</p>
+<p>Example request (<code>room_name</code> must be in base64):</p>
+<pre><code class="language-json">{
+    &quot;user_id&quot;: &quot;4942530&quot;,
+    &quot;room_name&quot;: &quot;Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl&quot;
+}
+</code></pre>
+<p>Alternatively, use <code>room_id</code> instead of <code>room_name</code>:</p>
+<pre><code class="language-json">{
+    &quot;user_id&quot;: &quot;4942530&quot;,
+    &quot;room_id&quot;: &quot;5482a95b-5330-4e2e-9e7e-7896d908c674&quot;
+}
+</code></pre>
+<p>Example response:</p>
+<pre><code class="language-json">{
+    &quot;status_code&quot;: 200, 
+    &quot;data&quot;: {
+        &quot;status&quot;: &quot;OK&quot;
+    }
+}
+</code></pre>
+<h2 id="get-muted">GET muted</h2>
+<p>Get muted users in one room, or get all the rooms a list of users are muted in. The request body must contain either
+<code>users</code>, or <code>room_id</code>/<code>room_name</code>.</p>
+<h3 id="get-muted-users-in-one-room">Get muted users in one room</h3>
+<p>Example request with room name:</p>
+<pre><code class="language-json">{
+    &quot;room_name&quot;: &quot;Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl&quot;
+}
+</code></pre>
+<p>Or with room ID:</p>
+<pre><code class="language-json">{
+    &quot;room_id&quot;: &quot;5482a95b-5330-4e2e-9e7e-7896d908c674&quot;
+}
+</code></pre>
+<p>Example response:</p>
+<pre><code class="language-json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;4942528&quot;: {
+            &quot;room_id&quot;: &quot;5482a95b-5330-4e2e-9e7e-7896d908c674&quot;,
+            &quot;room_name&quot;: &quot;Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl&quot;,
+            &quot;muter_user_id&quot;: &quot;&quot;,
+            &quot;duration&quot;: &quot;1h&quot;,
+            &quot;reason&quot;: &quot;&quot;,
+            &quot;timestamp&quot;: &quot;2023-08-17T07:04:05Z&quot;
+        },
+        &quot;4942529&quot;: {
+            &quot;room_id&quot;: &quot;5482a95b-5330-4e2e-9e7e-7896d908c674&quot;,
+            &quot;room_name&quot;: &quot;Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl&quot;,
+            &quot;muter_user_id&quot;: &quot;&quot;,
+            &quot;duration&quot;: &quot;30m&quot;,
+            &quot;reason&quot;: &quot;c29tZSByZWFzb24=&quot;,
+            &quot;timestamp&quot;: &quot;2023-08-17T07:04:16Z&quot;
+        }
+    }
+}
+</code></pre>
+<h3 id="get-all-rooms-a-list-of-users-are-muted-in">Get all rooms a list of users are muted in</h3>
+<p>Example request:</p>
+<pre><code class="language-json">{
+    &quot;user_ids&quot;: [
+        &quot;4942530&quot;,
+        &quot;4942529&quot;
+    ]
+}
+</code></pre>
+<p>Example response:</p>
+<pre><code class="language-json">{
+    &quot;status_code&quot;: 200,
+    &quot;data&quot;: {
+        &quot;4942530&quot;: {
+            &quot;5482a95b-5330-4e2e-9e7e-7896d908c674&quot;: {
+                &quot;muter_user_id&quot;: &quot;1971&quot;,
+                &quot;room_name&quot;: &quot;Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl&quot;,
+                &quot;duration&quot;: &quot;10m&quot;,
+                &quot;timestamp&quot;: &quot;2023-08-17T05:16:00Z&quot;,
+                &quot;reason&quot;: &quot;c29tZSByZWFzb24=&quot;
+            },
+            &quot;0ce88548-883a-4ab5-8e06-ca3eb67ae0f7&quot;: {
+                &quot;muter_user_id&quot;: &quot;1971&quot;,
+                &quot;room_name&quot;: &quot;OTIwMTE5ZmE5YmY5LTE2ODU2MDQ2NzI2OTYtMjA5ZDY4ZmUtYTVkZS00YmI0LWFhZTUtNWUxNzBjYzNmMGFh&quot;,
+                &quot;duration&quot;: &quot;99m&quot;,
+                &quot;timestamp&quot;: &quot;2023-08-17T06:46:21Z&quot;,
+                &quot;reason&quot;: &quot;c29tZSByZWFzb24=&quot;
+            }
+        },
+        &quot;4942529&quot;: {
+            &quot;5482a95b-5330-4e2e-9e7e-7896d908c674&quot;: {
+                &quot;muter_user_id&quot;: &quot;&quot;,
+                &quot;room_name&quot;: &quot;Y2ViNTdlMTkxZWI5LTE2ODc0MDM3MTgwMDktYjg4OGVmYjAtYzc1OS00N2Q1LWE5ZGQtMjYxZjRmMjg1ZjFl&quot;,
+                &quot;duration&quot;: &quot;2h&quot;,
+                &quot;timestamp&quot;: &quot;2023-08-17T07:04:16Z&quot;,
+                &quot;reason&quot;: &quot;c29tZSByZWFzb24=&quot;
+            }
+        }
+    }
+}
+</code></pre>
 <h2 id="post-status">POST status</h2>
 <p>Set the online status or visibility status of a user.</p>
+<p>When a user has been idle for X amount of time, you can set the status to <code>away</code> using this API. When the user is back,
+you can call this API with the status <code>back</code> to set the status back to <code>online</code>. Don't use <code>online</code> when a user is not
+away anymore, since <code>online</code> will trigger some other processing that's unnecessary for this case.</p>
+<p>If the user is invisible or offline, nothing happens when you call this API with <code>status</code> set to <code>away</code>. Similarly, if
+this user is <code>online</code> (that is, not <code>away</code>), nothing happens when you call this API with <code>status</code> set to <code>back</code>. For 
+<code>back</code> and <code>away</code>, we only check Redis, so there's no real performance hit for calling this API often with the status 
+set to <code>back</code> or <code>away</code>.</p>
+<p>The <code>stage</code> parameter is used to indicate if the user is logging in or changing status. If the user is logging in, the
+<code>stage</code> parameter should be set to <code>login</code>, otherwise it should be set to <code>status</code>.</p>
 <p>Request contains:</p>
 <pre><code class="language-json">{   
     &quot;id&quot;: &quot;&lt;user ID&gt;&quot;,
-    &quot;status&quot;: &quot;&lt;one of online/offline/invisible/visible&gt;&quot;,
+    &quot;status&quot;: &quot;&lt;one of online/offline/invisible/visible/away/back&gt;&quot;,
     &quot;stage&quot;: &quot;&lt;one of login/status&gt;&quot;
 }   
 </code></pre>
@@ -1105,14 +1249,15 @@ base64) that exists in redis (default is <code>false</code>).</p>
     
   </span>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme_extra.js" defer></script>
-    <script src="../../js/theme.js" defer></script>
-      <script src="../../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
             SphinxRtdTheme.Navigation.enable(true);
-        };
+        });
     </script>
 
 </body>
