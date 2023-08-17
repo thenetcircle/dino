@@ -1,3 +1,5 @@
+# Websocket API
+
 ## Error Codes
 
 ```ini
