@@ -2948,9 +2948,11 @@ class DatabaseRdbms(object):
         return {
             "room": {
                 mute.room_id: {
-                    'name': b64e(mute.room.name),
+                    'muter_user_id': mute.muter_id,
+                    'room_name': b64e(mute.room_name),
                     'duration': mute.duration,
-                    'timestamp': mute.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                    'timestamp': mute.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT),
+                    'reason': b64e(mute.reason)
                 }
                 for mute in mutes
             }
@@ -3181,6 +3183,32 @@ class DatabaseRdbms(object):
         session.delete(ban)
         session.commit()
 
+    def _get_muted_users(self, all_muted, encode_response: bool = False, session=None):
+        output = dict()
+        if all_muted is None or len(all_muted) == 0:
+            return output
+
+        should_commit = False
+        now = datetime.utcnow()
+
+        for mute in all_muted:
+            if now > mute.timestamp:
+                session.delete(mute)
+                should_commit = True
+                continue
+
+            output[mute.user_id] = {
+                'room_name': b64e(mute.room_name) if encode_response and mute.room_name else mute.room_name,
+                'muter_user_id': mute.muter_id,
+                'duration': mute.duration,
+                'reason': b64e(mute.reason) if encode_response and mute.reason else mute.reason,
+                'timestamp': mute.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+            }
+
+        if should_commit:
+            session.commit()
+        return output
+
     def _get_banned_users(self, all_bans, encode_response: bool = False, session=None):
         output = dict()
         if all_bans is None or len(all_bans) == 0:
@@ -3209,17 +3237,22 @@ class DatabaseRdbms(object):
     @with_session
     def get_banned_users_global(self, session=None) -> dict:
         all_bans = session.query(Bans).filter(Bans.is_global.is_(True)).all()
-        return self._get_banned_users(all_bans, session)
+        return self._get_banned_users(all_bans, session=session)
 
     @with_session
     def get_banned_users_for_channel(self, channel_id: str, session=None) -> dict:
         all_bans = session.query(Bans).join(Bans.channel).filter(Channels.uuid == channel_id).all()
-        return self._get_banned_users(all_bans, session)
+        return self._get_banned_users(all_bans, session=session)
 
     @with_session
     def get_banned_users_for_room(self, room_id: str, encode_response: bool = False, session=None) -> dict:
         all_bans = session.query(Bans).join(Bans.room).filter(Rooms.uuid == room_id).all()
         return self._get_banned_users(all_bans, encode_response=encode_response, session=session)
+
+    @with_session
+    def get_muted_users_for_room(self, room_id: str, encode_response: bool = False, session=None) -> dict:
+        all_mutes = session.query(Mutes).filter(Mutes.room_id == room_id).all()
+        return self._get_muted_users(all_mutes, encode_response=encode_response, session=session)
 
     def get_banned_users(self):
         @with_session

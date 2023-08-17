@@ -61,20 +61,24 @@ class MutedResource(BaseResource):
         if 'users' in json:
             for user_id in json['users']:
                 output[user_id] = self.do_get_with_params(user_id)
+            return output
 
-        elif 'room_id' in json:
-            output = environ.env.db.get_muted_users_for_room(json['room_id'], encode_response=True)
-
+        if 'room_id' in json:
+            room_id = json['room_id']
         elif 'room_name' in json:
             room_name = utils.b64d(json['room_name'])
             try:
                 room_id = utils.get_room_id(room_name)
-                output = environ.env.db.get_muted_users_for_room(room_id, encode_response=True)
             except NoSuchRoomException:
                 logger.error('no such room: %s' % json['room_name'])
                 return {
                     "code": ErrorCodes.NO_SUCH_ROOM,
-                    "message": "no room exists with name {}".format(room_name)
+                    "message": f"no room exists with name {room_name}"
                 }
+        else:
+            return {
+                "code": ErrorCodes.VALIDATION_ERROR,
+                "message": f"neither users, room_id or room_name in request: {json}"
+            }
 
-        return output
+        return environ.env.db.get_muted_users_for_room(room_id, encode_response=True)
