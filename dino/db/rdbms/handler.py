@@ -3196,6 +3196,7 @@ class DatabaseRdbms(object):
                 continue
 
             output[mute.user_id] = {
+                'room_id': mute.room_id,
                 'room_name': b64e(mute.room_name) if encode_response and mute.room_name else mute.room_name,
                 'muter_user_id': mute.muter_id,
                 'duration': mute.duration,
