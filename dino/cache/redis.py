@@ -1364,6 +1364,13 @@ class CacheRedis(object):
         self.cache.set(key, UserKeys.STATUS_AWAY, ttl=THIRTY_SECONDS)
         self.redis.set(key, UserKeys.STATUS_AWAY)
 
+        if self.status_topic is not None:
+            self.env.publish(
+                activity_for_status_change(user_id, "away"),
+                external=True,
+                topic=self.status_topic
+            )
+
     def set_user_online(self, user_id: str) -> None:
         try:
             user_id_str = str(user_id).strip()

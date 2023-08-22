@@ -33,28 +33,33 @@ class OnStatusHooks(object):
         if utils.is_super_user(user_id) or utils.is_global_moderator(user_id):
             OnStatusHooks.log_admin_activity(user_id, user_name, status)
 
+        # mostly for away/back, since they might be called a lot without changing the status,
+        # in which case we don't need to send an external event
+        status_changed = True
+
         if status == 'online':
             OnStatusHooks.set_online(user_id, user_name, image)
         elif status == 'invisible':
             stage = 'status'
             if hasattr(activity.actor, 'summary'):
                 stage = activity.actor.summary
-
             OnStatusHooks.set_invisible(user_id, user_name, stage=stage)
         elif status == 'visible':
             OnStatusHooks.set_visible(user_id, user_name)
         elif status == 'offline':
             OnStatusHooks.set_offline(user_id, user_name)
         elif status == 'away':
-            OnStatusHooks.set_away(user_id)
+            status_changed = OnStatusHooks.set_away(user_id)
         elif status == 'back':
-            OnStatusHooks.set_back(user_id)
+            status_changed = OnStatusHooks.set_back(user_id)
 
+        # for Solr
         if status in {"offline", "invisible"}:
             utils.add_last_online_at_to_event(data)
+        elif status == "away":
+            utils.add_last_active_at_to_event(data)
 
-        # don't need to send an event for these statuses
-        if status not in {'away', 'back'}:
+        if status_changed:
             environ.env.publish(data, external=True)
 
     @staticmethod
@@ -89,24 +94,30 @@ class OnStatusHooks(object):
                 include_self=False, namespace='/ws')
 
     @staticmethod
-    def set_away(user_id: str) -> None:
+    def set_away(user_id: str) -> bool:
+        """
+        returns True if we change the status, otherwise False
+        """
         user_status = utils.get_user_status(user_id, skip_cache=False)
 
         if user_status == UserKeys.STATUS_AVAILABLE:
-            # TODO: should we sync this to solr? otherwise it's not searchable
-            #  if not, saving to redis should be enough
             OnStatusHooks.logger.info(f"setting user {user_id} to away (was online)")
             environ.env.cache.set_user_away(user_id)
+            return True
+        return False
 
     @staticmethod
-    def set_back(user_id: str) -> None:
+    def set_back(user_id: str) -> bool:
+        """
+        returns True if we change the status, otherwise False
+        """
         user_status = utils.get_user_status(user_id, skip_cache=False)
 
         if user_status == UserKeys.STATUS_AWAY:
-            # TODO: should we sync this to solr? otherwise it's not searchable
-            #  if not, saving to redis should be enough
             OnStatusHooks.logger.info(f"setting user {user_id} back to online (was away)")
             environ.env.cache.set_user_online(user_id)
+            return True
+        return False
 
     @staticmethod
     def set_visible(user_id: str, user_name: str) -> None:

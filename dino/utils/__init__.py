@@ -148,6 +148,11 @@ def is_a_user_name(user_name: str) -> bool:
     return exists
 
 
+def add_last_active_at_to_event(data: dict):
+    last_active_at = datetime.utcnow().replace(tzinfo=pytz.utc)
+    data["updated"] = last_active_at.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+
+
 def add_last_online_at_to_event(data: dict, use_now: bool = False):
     last_online_at = None
 
