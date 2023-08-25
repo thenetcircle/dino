@@ -1252,6 +1252,8 @@ When a user has been idle for X amount of time, you can set the status to `away`
 you can call this API with the status `back` to set the status back to `online`. Don't use `online` when a user is not
 away anymore, since `online` will trigger some other processing that's unnecessary for this case.
 
+If a user reloads the page (i.e. websocket re-connection), the user will not be away anymore and will be online again.
+
 If the user is invisible or offline, nothing happens when you call this API with `status` set to `away`. Similarly, if
 this user is `online` (that is, not `away`), nothing happens when you call this API with `status` set to `back`. For 
 `back` and `away`, we only check Redis, so there's no real performance hit for calling this API often with the status 
