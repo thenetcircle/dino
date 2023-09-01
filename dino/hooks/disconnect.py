@@ -24,9 +24,8 @@ class OnDisconnectHooks(object):
         :return: nothing
         """
 
-        def set_user_offline(user_id, current_sid):
+        def set_user_offline(user_id, current_sid, user_status):
             all_sids = utils.get_sids_for_user_id(user_id)
-            user_status = utils.get_user_status(user_id, skip_cache=True)
 
             # update last_online on every session closure
             if user_status != UserKeys.STATUS_INVISIBLE:
@@ -158,7 +157,7 @@ class OnDisconnectHooks(object):
                 logger.exception(traceback.format_exc())
                 environ.env.capture_exception(sys.exc_info())
 
-        def emit_disconnect_event(user_id, current_sid) -> None:
+        def emit_disconnect_event(user_id, current_sid, user_status) -> None:
             try:
                 if is_socket_disconnect:
                     user_name = environ.env.session.get(SessionKeys.user_name.value)
@@ -210,7 +209,14 @@ class OnDisconnectHooks(object):
 
                 if user_id != '-1':
                     activity_json = utils.activity_for_disconnect(user_id, user_name)
-                    utils.add_last_online_at_to_event(activity_json, use_now=True)
+
+                    # update last_online on every session closure
+                    if user_status == UserKeys.STATUS_INVISIBLE:
+                        # invisible shouldn't get their last online at updated, so use the previous known time
+                        utils.add_last_online_at_to_event(activity_json, use_now=False)
+                    else:
+                        utils.add_last_online_at_to_event(activity_json, use_now=True)
+
                     environ.env.publish(activity_json, external=True)
 
             except Exception as e:
@@ -231,6 +237,7 @@ class OnDisconnectHooks(object):
 
         data, activity = arg
         _user_id = activity.actor.id
+        _user_status = utils.get_user_status(_user_id, skip_cache=False)
 
         if is_socket_disconnect:
             _current_sid = environ.env.request.sid
@@ -239,8 +246,8 @@ class OnDisconnectHooks(object):
         else:
             _current_sid = 'hb-{}'.format(_user_id)
 
-        emit_disconnect_event(_user_id, _current_sid)
-        set_user_offline(_user_id, _current_sid)
+        emit_disconnect_event(_user_id, _current_sid, _user_status)
+        set_user_offline(_user_id, _current_sid, _user_status)
 
 
 @environ.env.observer.on('on_disconnect')

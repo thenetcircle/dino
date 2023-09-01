@@ -82,7 +82,12 @@ class OnLoginHooks(object):
         activity_json = utils.activity_for_login(
             user_id, user_name, encode_attachments=False, user_status=user_status)
 
-        utils.add_last_online_at_to_event(activity_json)
+        # invisible shouldn't get their last online at updated, so use the previous known time
+        if user_status == UserKeys.STATUS_INVISIBLE:
+            utils.add_last_online_at_to_event(activity_json, use_now=False)
+        else:
+            utils.add_last_online_at_to_event(activity_json, use_now=True)
+
         environ.env.publish(activity_json, external=True)
 
     @staticmethod
