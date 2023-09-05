@@ -37,10 +37,19 @@ class OnMessageHooks(object):
 
         def publish_activity() -> None:
             user_name = activity.actor.display_name
+            room_id = activity.target.id
+
             if utils.is_base64(user_name):
                 user_name = utils.b64d(user_name)
 
             activity_json = utils.activity_for_message(user_id, user_name, message_id=activity.id)
+
+            if activity.target.object_type != 'private':
+                activity_json['target'] = {
+                    'objectType': 'room',
+                    'id': room_id
+                }
+
             environ.env.publish(activity_json, external=True)
 
         def broadcast():
