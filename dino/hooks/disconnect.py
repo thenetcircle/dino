@@ -237,7 +237,7 @@ class OnDisconnectHooks(object):
 
         data, activity = arg
         _user_id = activity.actor.id
-        _user_status = utils.get_user_status(_user_id, skip_cache=False)
+        _user_status = utils.get_user_status(_user_id, skip_cache=True)
 
         if is_socket_disconnect:
             _current_sid = environ.env.request.sid
