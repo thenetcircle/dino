@@ -237,6 +237,9 @@ class OnDisconnectHooks(object):
 
         data, activity = arg
         _user_id = activity.actor.id
+
+        # TODO: check why we NEED skip_cache=True here, when false, the value we get is not the value we have in
+        #  redis; could be the in-memory cache that's containing the incorrect value... check more
         _user_status = utils.get_user_status(_user_id, skip_cache=True)
 
         if is_socket_disconnect:
