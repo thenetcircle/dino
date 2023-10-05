@@ -9,6 +9,7 @@ common_config: &common_config
     request_log_location: '$DINO_REQ_LOG_LOC'
     spam_classifier: True
     validate_whispers: True
+    service_secret: '$FLASK_SECRET'
     auth:
         type: 'nutcracker'
         host: '$DINO_AUTH_HOST'

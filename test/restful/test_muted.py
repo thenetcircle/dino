@@ -5,6 +5,7 @@ from unittest import TestCase
 from dino import environ
 from dino.config import ConfigKeys
 from dino.rest.resources.mute import MuteResource
+from dino.rest.resources.muted import MutedResource
 
 
 class FakeDb(object):
@@ -45,7 +46,7 @@ class MutedUsersTest(TestCase):
     def setUp(self):
         environ.env.db = FakeDb()
         FakeDb._muted = {MutedUsersTest.USER_ID}
-        self.resource = MuteResource()
+        self.resource = MutedResource()
         self.resource.request = FakeRequest()
         FakeRequest._json = {
             'users': [MutedUsersTest.USER_ID]

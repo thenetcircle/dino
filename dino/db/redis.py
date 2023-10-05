@@ -26,6 +26,7 @@ from dino.config import RoleKeys
 from dino.config import UserKeys
 from dino.config import ApiActions
 from dino.utils import b64e
+from dino.utils import ban_duration_to_timestamp
 from dino import environ
 
 from dino.environ import GNEnvironment
@@ -147,6 +148,24 @@ class DatabaseRedis(object):
 
     def mark_spam_deleted_if_exists(self, message_id: str) -> None:
         return
+
+    def mark_spams_deleted_if_exists(self, message_ids: List[str]) -> None:
+        return
+
+    def get_room_mute_timestamp(self, room_id: str, user_id: str) -> (str, str):
+        raise NotImplementedError('not implemented in redis db backend')
+
+    def get_user_mute_status(self, room_id: str, user_id: str) -> dict:
+        raise NotImplementedError('not implemented in redis db backend')
+
+    def remove_room_mute(self, room_id: str, user_id: str, session=None) -> bool:
+        raise NotImplementedError('not implemented in redis db backend')
+
+    def get_last_online(self, user_id: str) -> Union[int, None]:
+        raise NotImplementedError('not implemented in redis db backend')
+
+    def get_muted_users_for_room(self, room_id: str, encode_response: bool = False) -> dict:
+        raise NotImplementedError('not implemented in redis db backend')
 
     def mark_spam_not_deleted_if_exists(self, message_id: str) -> None:
         return
@@ -1306,6 +1325,43 @@ class DatabaseRedis(object):
 
         self.redis.hset(RedisKeys.room_name_for_id(), room_id, room_name)
         self.redis.hset(RedisKeys.rooms(channel_id), room_id, room_name)
+
+    def mute_user(self, room_id, user_id, mute_duration, mute_timestamp, room_name, muter_id, reason) -> None:
+        room_name = b64e(room_name)
+        reason = b64e(reason)
+
+        self.redis.hset(RedisKeys.muted_users('all'), f"{room_id}|{user_id}|{muter_id}|{mute_duration}|{room_name}|{reason}", mute_timestamp)
+
+    def get_mutes_for_user(self, user_id: str, session=None) -> dict:
+        all_mutes = self.redis.hgetall(RedisKeys.muted_users('all'))
+        mutes_for_user = list()
+
+        for mute in all_mutes:
+            mute = str(mute, 'utf-8')
+            room_id, user_id_in_redis, muter_id, mute_duration, room_name, reason = mute.split('|', 5)
+
+            if user_id_in_redis != user_id:
+                continue
+
+            mutes_for_user.append((
+                room_id,
+                muter_id,
+                room_name,  # base64 encoded when stored in redis
+                mute_duration,
+                ban_duration_to_timestamp(mute_duration),
+                reason  # base64 encoded when stored in redis
+            ))
+
+        return {
+            room_id: {
+                'muter_user_id': muter_id,
+                'room_name': room_name,
+                'duration': duration,
+                'timestamp': timestamp,
+                'reason': reason
+            }
+            for room_id, muter_id, room_name, duration, timestamp, reason in mutes_for_user
+        }
 
     def type_of_rooms_in_channel(self, channel_id: str) -> str:
         return 'mix'

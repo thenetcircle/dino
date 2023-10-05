@@ -144,7 +144,9 @@ class RequestKickTest(TestCase):
         self.remove_owner()
         act = self.json_act()
         is_valid, code, msg = request.on_kick(as_parser(act))
-        self.assertTrue(is_valid)
+
+        # used to be True, but we've changed to only allowing owners to kick, so False now
+        self.assertFalse(is_valid)
 
     def test_kick_not_allowed(self):
         self.remove_owner()
@@ -167,7 +169,9 @@ class RequestKickTest(TestCase):
         act = self.json_act()
         FakeDb._room_acls[ApiActions.KICK] = {'gender': 'f'}
         is_valid, code, msg = request.on_kick(as_parser(act))
-        self.assertTrue(is_valid)
+
+        # used to be True, but we've changed to only allowing owners to kick, so False now
+        self.assertFalse(is_valid)
 
     def test_kick_no_target_id(self):
         self.remove_owner()

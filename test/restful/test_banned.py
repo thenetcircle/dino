@@ -17,6 +17,7 @@ from datetime import timedelta
 from unittest import TestCase
 
 from dino import environ
+from dino import utils
 from dino.config import ConfigKeys
 from dino.rest.resources.banned import BannedResource
 
@@ -32,13 +33,23 @@ class FakeDb(object):
     def get_banned_users(self):
         return FakeDb._banned
 
-    def get_mutes_for_user(self, user_id):
-        return  {
-            'room': {
-                'name': BannedUsersTest.ROOM_NAME,
-                'duration': '5m',
-                'timestamp': datetime.utcnow().strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
-            }
+    def get_bans_for_user(self, user_id: str):
+        output = {
+            'global': dict(),
+            'channel': dict(),
+            'room': dict()
+        }
+
+        if user_id != BannedUsersTest.USER_ID:
+            return output
+
+        duration = '10m'
+        timestamp = utils.ban_duration_to_datetime(duration)
+
+        output['room'][BannedUsersTest.ROOM_ID] = {
+            'name': utils.b64e(BannedUsersTest.ROOM_NAME),
+            'duration': duration,
+            'timestamp': timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
         }
 
 

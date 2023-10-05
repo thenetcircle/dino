@@ -48,7 +48,7 @@ class RequestLoginTest(BaseTest):
         else:
             bantime = datetime.datetime.utcnow() + datetime.timedelta(0, 240)  # 4 minutes left
 
-        bantime = bantime.strftime('%s')
+        bantime = str(int(bantime.timestamp()))
         environ.env.db.redis.hset(RedisKeys.banned_users(), BaseTest.USER_ID, 'asdf|%s' % bantime)
 
     def test_login(self):

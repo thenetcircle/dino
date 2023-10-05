@@ -63,7 +63,7 @@ class FakeCassandraDriver(object):
         if target_id not in self.msgs_to_user:
             self.msgs_to_user[target_id] = list()
 
-        time_stamp = int(datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT).strftime('%s'))
+        time_stamp = int(datetime.strptime(sent_time, ConfigKeys.DEFAULT_DATE_FORMAT).timestamp())
 
         self.msgs_to_user[target_id].append((
             msg_id, from_user_id, from_user_name, target_id, target_name, body, domain,

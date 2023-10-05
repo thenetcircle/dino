@@ -28,7 +28,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class OnKickHooks(object):
-    DEFAULT_BAN_DURATION = str(60 * 10)  # 10 minutes
+    DEFAULT_BAN_DURATION = str(60 * 10) + "s"  # 10 minutes
 
     @staticmethod
     def create_ban_and_publish_kick_activity(arg: tuple) -> None:

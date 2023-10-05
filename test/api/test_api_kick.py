@@ -15,7 +15,6 @@ from activitystreams import parse as as_parser
 import os
 os.environ['ENVIRONMENT'] = 'test'
 
-from dino import api
 from test.base import BaseTest
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
@@ -23,6 +22,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 class ApiKickTest(BaseTest):
     def test_kick(self):
+        from dino import api
         self.create_and_join_room()
         self.set_owner()
         act = self.activity_for_kick()

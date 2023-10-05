@@ -102,12 +102,14 @@ class DecoratorTest(TestCase):
 
     def test_respond_with(self):
         @respond_with('gn_test')
-        def foo(data: dict, activity: Activity=None): return 200, 'ok'
+        def foo(data: dict, activity: Activity=None):
+            return 200, 'ok'
 
         self.assertIsNone(DecoratorTest.emit_args)
-        response, msg = foo(self.get_activity())
-        self.assertEqual(response, 200)
-        self.assertIsNone(msg)
+        response = foo(self.get_activity())
+        self.assertEqual(200, response.get('status_code'))
+        self.assertIsNone(response.get('message'))
+        self.assertIsNotNone(response.get('data'))
         self.assertEqual(DecoratorTest.emit_args, ('gn_test', {'status_code': 200, 'data': 'ok'}))
 
     def test_respond_with_exception(self):

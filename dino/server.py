@@ -40,7 +40,7 @@ def create_app():
     _app = Flask(__name__)
 
     # used for encrypting cookies for handling sessions
-    _app.config['SECRET_KEY'] = environ.env.config.get(ConfigKeys.SERVICE_SECRET)
+    _app.config['SECRET_KEY'] = environ.env.config.get(ConfigKeys.SERVICE_SECRET, default='')
 
     message_queue_type = environ.env.config.get(ConfigKeys.TYPE, domain=ConfigKeys.COORDINATOR, default=None)
     if message_queue_type is None and not (len(environ.env.config) == 0 or environ.env.config.get(ConfigKeys.TESTING)):

@@ -20,6 +20,22 @@ class ICache(Interface):
         :return:
         """
 
+    def get_room_mute_timestamp(self, room_id: str, user_id: str) -> (str, str):
+        """
+        get the mute timestamp of the user in the given room, or empty string if no mute exist
+
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: (<duration>, <timestamp in ConfigKeys.DEFAULT_DATE_FORMAT format>), or (None, None) if no mute exist
+        """
+
+    def trim_user_changed_at(self):
+        """
+        trim the user changed at cache, only executed randomly, to not do it too often
+
+        :return:
+        """
+
     def set_room_owners(self, room_id, owners: Set[str]) -> None:
         """
         set room owners

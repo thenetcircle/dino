@@ -209,6 +209,71 @@ class IDatabase(Interface):
         :return: a dict of the configs
         """
 
+    def mark_spams_deleted_if_exists(self, message_ids: list) -> None:
+        """
+        mark as deleted
+
+        :param message_ids: the uuids of the messages stored in the message store
+        :return: nothing
+        """
+
+    def get_room_mute_timestamp(self, room_id: str, user_id: str) -> (str, str):
+        """
+        get the timestamp and duration for a room mute
+
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: (timestamp, duration) or (None, None) if no mute found
+        """
+
+    def get_user_mute_status(self, room_id: str, user_id: str) -> dict:
+        """
+        get the mute status for a user in a room
+
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: mute time, e.g. {'room': 1696451127}, or {'room': ''} if no mute found
+        """
+
+    def remove_room_mute(self, room_id: str, user_id: str, session=None) -> bool:
+        """
+        remove a room mute
+
+        :param room_id: the uuid of the room
+        :param user_id: the id of the user
+        :return: true if removed, false otherwise
+        """
+
+    def get_last_online(self, user_id: str) -> Union[int, None]:
+        """
+        get the last online timestamp for a user
+
+        :param user_id: the id of the user
+        :return: the timestamp, or None if not found
+        """
+
+    def get_muted_users_for_room(self, room_id: str, encode_response: bool = False) -> dict:
+        """
+        get all muted users for a room
+
+        example return format:
+
+            {
+                '<user_id>':
+                    'room_id': mute.room_id,
+                    'room_name': b64e(mute.room_name) if encode_response and mute.room_name else mute.room_name,
+                    'muter_user_id': mute.muter_id,
+                    'duration': mute.duration,
+                    'reason': b64e(mute.reason) if encode_response and mute.reason else mute.reason,
+                    'timestamp': mute.timestamp.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+                }
+            }
+
+        :param room_id: the uuid of the room
+        :param encode_response: whether or not to encode the response
+        :return: a dict of muted users
+        """
+
     def mark_spam_deleted_if_exists(self, message_id: str) -> None:
         """
         mark as deleted
@@ -695,6 +760,11 @@ class IDatabase(Interface):
         :param user_id: the id of the user
         :param room_id: the uuid of the room
         :return: (duration, timestamp, username) or (None, None, None) if no such ban
+        """
+
+    def mute_user(self, room_id, user_id, mute_duration, mute_timestamp, room_name, muter_id, reason) -> None:
+        """
+        mute a user in a room for a period of time
         """
 
     def get_mutes_for_user(self, user_id: str) -> dict:

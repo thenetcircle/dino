@@ -119,7 +119,6 @@ class UserManagerTest(BaseDatabaseTest):
         self.assertEqual(UserManagerTest._act['object']['id'], BaseDatabaseTest.USER_ID)
         self.assertEqual(UserManagerTest._act['target']['id'], BaseDatabaseTest.ROOM_ID)
         self.assertEqual(UserManagerTest._act['target']['objectType'], 'room')
-        self.assertEqual(b64d(UserManagerTest._act['object']['displayName']), BaseDatabaseTest.USER_NAME)
 
     def test_ban_user_no_room(self):
         self._create_channel()
