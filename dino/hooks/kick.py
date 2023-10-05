@@ -45,14 +45,15 @@ class OnKickHooks(object):
             reason = activity.object.content
 
         ban_datetime = utils.ban_duration_to_datetime(OnKickHooks.DEFAULT_BAN_DURATION)
-        ban_timestamp = str(int(ban_datetime.timestamp()))
+        ban_timestamp_int = str(int(ban_datetime.timestamp()))
+        ban_timestamp_str = ban_datetime.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
 
         # could be a global kick, not a single room kick
         if activity.target is not None:
             try:
                 environ.env.db.ban_user_room(
                     user_id=banned_id,
-                    ban_timestamp=ban_timestamp,
+                    ban_timestamp=ban_timestamp_int,
                     ban_duration=OnKickHooks.DEFAULT_BAN_DURATION,
                     room_id=room_id,
                     reason=reason,
@@ -76,7 +77,7 @@ class OnKickHooks(object):
             'object': {
                 'id': activity.object.id,
                 'summary': OnKickHooks.DEFAULT_BAN_DURATION,
-                'updated': ban_timestamp
+                'updated': ban_timestamp_str
             },
             'target': {
                 'url': namespace
