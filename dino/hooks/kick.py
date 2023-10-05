@@ -10,6 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import sys
+import traceback
 
 from activitystreams import parse as as_parser
 
@@ -34,9 +35,9 @@ class OnKickHooks(object):
     def create_ban_and_publish_kick_activity(arg: tuple) -> None:
         data, activity = arg
 
-        banned_id = activity.target.id
+        banned_id = activity.object.id
         banner_id = activity.actor.id
-        room_id = activity.object.id
+        room_id = activity.target.id
         reason = None
 
         # reason is already base64 encoded on the request
