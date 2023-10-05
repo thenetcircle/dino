@@ -9,6 +9,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import sys
 
 from activitystreams import parse as as_parser
 
@@ -45,14 +46,21 @@ class OnKickHooks(object):
         ban_datetime = utils.ban_duration_to_datetime(OnKickHooks.DEFAULT_BAN_DURATION)
         ban_timestamp = ban_datetime.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
 
-        environ.env.db.ban_user_room(
-            user_id=banned_id,
-            ban_timestamp=ban_timestamp,
-            ban_duration=OnKickHooks.DEFAULT_BAN_DURATION,
-            room_id=room_id,
-            reason=reason,
-            banner_id=banner_id
-        )
+        # could be a global kick, not a single room kick
+        if activity.target is not None:
+            try:
+                environ.env.db.ban_user_room(
+                    user_id=banned_id,
+                    ban_timestamp=ban_timestamp,
+                    ban_duration=OnKickHooks.DEFAULT_BAN_DURATION,
+                    room_id=room_id,
+                    reason=reason,
+                    banner_id=banner_id
+                )
+            except Exception as e:
+                logger.error('failed to ban user %s from room %s: %s' % (banned_id, room_id, str(e)))
+                environ.env.capture_exception(sys.exc_info())
+                # keep going, we still want to publish the kick activity
 
         namespace = activity.target.url
         if namespace is None or len(namespace.strip()) == 0:
