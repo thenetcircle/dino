@@ -13,6 +13,7 @@
 from activitystreams import parse as as_parser
 
 from dino import environ
+from dino import utils
 from dino.endpoint import sockets
 from dino.config import ConfigKeys
 
@@ -26,9 +27,32 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 
 class OnKickHooks(object):
+    DEFAULT_BAN_DURATION = str(60 * 10)  # 10 minutes
+
     @staticmethod
-    def publish_activity(arg: tuple) -> None:
+    def create_ban_and_publish_kick_activity(arg: tuple) -> None:
         data, activity = arg
+
+        banned_id = activity.target.id
+        banner_id = activity.actor.id
+        room_id = activity.object.id
+        reason = None
+
+        # reason is already base64 encoded on the request
+        if activity.object.content is not None:
+            reason = activity.object.content
+
+        ban_datetime = utils.ban_duration_to_datetime(OnKickHooks.DEFAULT_BAN_DURATION)
+        ban_timestamp = ban_datetime.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+
+        environ.env.db.ban_user_room(
+            user_id=banned_id,
+            ban_timestamp=ban_timestamp,
+            ban_duration=OnKickHooks.DEFAULT_BAN_DURATION,
+            room_id=room_id,
+            reason=reason,
+            banner_id=banner_id
+        )
 
         namespace = activity.target.url
         if namespace is None or len(namespace.strip()) == 0:
@@ -41,7 +65,9 @@ class OnKickHooks(object):
             },
             'verb': 'kick',
             'object': {
-                'id': activity.object.id
+                'id': activity.object.id,
+                'summary': OnKickHooks.DEFAULT_BAN_DURATION,
+                'updated': ban_timestamp
             },
             'target': {
                 'url': namespace
@@ -53,9 +79,8 @@ class OnKickHooks(object):
         if activity.object.display_name is not None:
             kick_activity['object']['displayName'] = activity.object.display_name
 
-        # reason
-        if activity.object.content is not None:
-            kick_activity['object']['content'] = activity.object.content
+        if reason is not None:
+            kick_activity['object']['content'] = reason
 
         # when banning globally, no target room is specified
         if activity.target is not None:
@@ -67,4 +92,4 @@ class OnKickHooks(object):
 
 @environ.env.observer.on('on_kick')
 def _on_kick_publish_activity(arg: tuple) -> None:
-    OnKickHooks.publish_activity(arg)
+    OnKickHooks.create_ban_and_publish_kick_activity(arg)

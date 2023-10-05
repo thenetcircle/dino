@@ -255,7 +255,7 @@ def on_whisper(data: dict, activity: Activity) -> (int, None):
 @timeit(logger, 'on_invite')
 def on_invite(data: dict, activity: Activity) -> (int, None):
     """
-    invite a user to the a room this user is in
+    invite another user to a room this user is in
 
     :param data: activity streams format
     :param activity: the parsed activity, supplied by @pre_process decorator, NOT by calling endpoint

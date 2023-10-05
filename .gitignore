@@ -13,7 +13,7 @@ setup.cfg
 /secrets/*.env
 /secrets/*.yaml
 !/secrets/default.yaml
-!/secrets/test.yaml
+/secrets/test.yaml
 pytype_output/
 
 # ansible inventory files
