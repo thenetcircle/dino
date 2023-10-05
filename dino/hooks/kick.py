@@ -45,7 +45,7 @@ class OnKickHooks(object):
             reason = activity.object.content
 
         ban_datetime = utils.ban_duration_to_datetime(OnKickHooks.DEFAULT_BAN_DURATION)
-        ban_timestamp = ban_datetime.strftime(ConfigKeys.DEFAULT_DATE_FORMAT)
+        ban_timestamp = str(int(ban_datetime.timestamp()))
 
         # could be a global kick, not a single room kick
         if activity.target is not None:
