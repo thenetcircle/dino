@@ -43,8 +43,9 @@ class OnJoinHooks(object):
         # row to the db, but not for any other sessions that are open
         skip_db_join = False
 
-        # also don't need to update the db if it's wio autojoin
-        if environ.env.node == 'wio':
+        # also don't need to update the db if it's wio autojoin;
+        # on the other hand, wio live-streaming still needs db join (wio but NOT autojoin)
+        if environ.env.node == 'wio' and is_autojoin(activity):
             skip_db_join = True
 
         # joins from rest api is outside the flask request scope
@@ -84,8 +85,8 @@ class OnJoinHooks(object):
 
     @staticmethod
     def emit_join_event(activity, user_id, user_name, image) -> None:
-        # no need if it's wio
-        if environ.env.node == 'wio':
+        # no need if it's wio and autojoin
+        if environ.env.node == 'wio' and is_autojoin(activity):
             return
 
         room_id = activity.target.id

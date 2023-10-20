@@ -103,8 +103,10 @@ class OnDisconnectHooks(object):
 
         def leave_all_public_rooms_and_emit_leave_events(user_id, current_sid):
             # we don't involve db join/leave for public rooms in wio, and don't emit events for it either
-            if environ.env.node == 'wio':
-                return
+            # TODO: commented this, since we still need it for live-streaming in wio nodes; double check it
+            #  doesn't cause other issues
+            # if environ.env.node == 'wio':
+            #     return
 
             try:
                 user_name = environ.env.session.get(SessionKeys.user_name.value)
