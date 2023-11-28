@@ -1050,7 +1050,7 @@ def activity_for_users_in_room(activity: Activity, users_orig: dict) -> dict:
         user_info = get_user_info_attachments_for(user_id)
 
         # for WIO we don't have the username in the db (so name equals id), so get it from redis instead
-        if (user_name == user_id or not len(user_name)) and len(user_info[SessionKeys.user_name.value]):
+        if user_name == user_id or not len(user_name):
             for att in user_info:
                 if att['objectType'] == SessionKeys.user_name.value:
                     user_name = b64d(att['content'])
