@@ -34,7 +34,7 @@ idna==2.7
 imagesize==1.0.0
 importlab==0.5
 itsdangerous==0.24
-Jinja2==2.10.1
+Jinja2==2.11.3
 joblib==0.12.2
 kafka-python==1.4.6
 kombu==4.6.3
