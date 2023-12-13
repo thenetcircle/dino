@@ -79,7 +79,7 @@ from dino.exceptions import RoomNameExistsForChannelException
 from dino.exceptions import MultipleRoomsFoundForNameException
 from dino.exceptions import UserExistsException
 from dino.exceptions import ValidationException
-from dino.utils import b64d
+from dino.utils import b64d, is_valid_id
 from dino.utils import b64e
 from dino.utils import is_base64
 
@@ -888,6 +888,11 @@ class DatabaseRdbms(object):
             def _user_statuses(_user_ids: set):
                 user_statuses = dict()
                 for user_id in _user_ids:
+                    if not is_valid_id(user_id):
+                        logger.warning('got invalid user id on rooms_for_channel: {}'.format(str(user_id)))
+                        # TODO: sentry
+                        return
+
                     user_statuses[user_id] = self.get_user_status(user_id)
                 return user_statuses
 

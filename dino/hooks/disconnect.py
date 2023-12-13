@@ -66,6 +66,11 @@ class OnDisconnectHooks(object):
                 environ.env.capture_exception(sys.exc_info())
 
         def leave_private_room(user_id, current_sid):
+            if not utils.is_valid_id(user_id):
+                logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
+                # TODO: sentry
+                return
+
             all_sids = utils.get_sids_for_user_id(user_id)
 
             # only one of the user sessions disconnected
@@ -228,6 +233,11 @@ class OnDisconnectHooks(object):
                 environ.env.capture_exception(sys.exc_info())
 
         def make_sure_current_sid_removed(all_sids, user_id, current_sid):
+            if not utils.is_valid_id(user_id):
+                logger.warning('got invalid id on disconnect for act: {}'.format(str(activity.id)))
+                # TODO: sentry
+                return
+
             if current_sid in all_sids:
                 try:
                     all_sids.remove(current_sid)
