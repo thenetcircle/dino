@@ -12,7 +12,6 @@
 
 import yaml
 import os
-import psycopg2
 import sys
 import redis
 
@@ -20,6 +19,7 @@ __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
 dino_env = os.getenv('DINO_ENVIRONMENT') or sys.argv[1]
 dino_home = os.getenv('DINO_HOME') or sys.argv[2]
+
 
 if dino_home is None:
     raise RuntimeError('need environment variable DINO_HOME')
@@ -59,18 +59,29 @@ if dbtype == 'redis':
     r_server = redis.Redis(host=r_host, port=r_port, db=r_db)
     r_server.flushdb()
 else:
+    dbdriver = config['database']['driver']
     dbname = config['database']['db']
     dbhost = config['database']['host']
     dbport = config['database']['port']
     dbuser = config['database']['user']
     dbpass = config['database']['password']
 
-    try:
-        conn = psycopg2.connect("dbname='%s' user='%s' host='%s' port='%s' password='%s'" % (
-            dbname, dbuser, dbhost, dbport, dbpass)
-        )
-    except:
-        raise RuntimeError('could not connect to db')
+    if dbdriver.startswith('postgres'):
+        try:
+            import psycopg2
+            conn = psycopg2.connect("dbname='%s' user='%s' host='%s' port='%s' password='%s'" % (
+                dbname, dbuser, dbhost, dbport, dbpass)
+            )
+        except:
+            raise RuntimeError('could not connect to db')
+    elif dbdriver.startswith('mysql'):
+        try:
+            import MySQLdb
+            conn = MySQLdb.connect(passwd=dbpass, db=dbname, user=dbuser, host=dbhost, port=dbport)
+        except:
+            raise RuntimeError('could not connect to db')
+    else:
+        raise RuntimeError('unknown dialect: %s' % dbdriver)
 
     cur = conn.cursor()
     # clean up old users

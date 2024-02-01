@@ -33,7 +33,7 @@ class JoinsInRoomResource(BaseResource):
     def do_get_with_params(self, room_id: str = None, room_name: str = None):
         return self._do_get(room_id, room_name)
 
-    @timeit(logger, 'on_rest_rooms_for_users')
+    @timeit(logger, 'on_rest_count_joins')
     def do_get(self):
         is_valid, msg, json = self.validate_json(self.request, silent=False)
         if not is_valid:
