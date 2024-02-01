@@ -686,6 +686,8 @@ class DatabaseRdbms(object):
         session.add(last_online)
         session.commit()
 
+        return unix_time
+
     def set_user_offline(self, user_id: str) -> None:
         @with_session
         def _set_user_offline(session=None):
@@ -721,7 +723,7 @@ class DatabaseRdbms(object):
                 logger.exception(traceback.format_exc())
                 self.env.capture_exception(sys.exc_info())
 
-    def set_user_online(self, user_id: str) -> None:
+    def set_user_online(self, user_id: str, update_last_online: bool = False) -> None:
         @with_session
         def _set_user_online(session=None):
             user_status = session.query(UserStatus).filter(UserStatus.uuid == user_id).first()
@@ -735,6 +737,17 @@ class DatabaseRdbms(object):
 
         # TODO: send to "status" topic that the user changed status
         self.env.cache.set_user_online(user_id)
+
+        if update_last_online:
+            # in case there's no time in the db from before, or it's very old, and there's issues updating it when
+            # disconnecting, we at least have something closer to the true value
+            try:
+                unix_time = self._set_last_online(user_id)
+                self.env.cache.set_last_online([(user_id, unix_time)])
+            except Exception as e:
+                logger.error('could not set last_online in db for user {}: {}'.format(user_id, str(e)))
+                logger.exception(traceback.format_exc())
+                self.env.capture_exception(sys.exc_info())
 
         try:
             _set_user_online()

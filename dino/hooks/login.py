@@ -133,7 +133,8 @@ class OnLoginHooks(object):
             environ.env.db.set_user_status_invisible(user_id)
         else:
             logger.info('setting user {} to online'.format(user_id))
-            environ.env.db.set_user_online(user_id)
+            # update last online as well, just in case there's an issue and we can't do it during disconnect
+            environ.env.db.set_user_online(user_id, update_last_online=True)
 
     @staticmethod
     def autojoin_rooms(arg: tuple) -> None:
