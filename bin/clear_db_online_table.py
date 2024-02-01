@@ -97,7 +97,7 @@ else:
         cur.execute("""
         delete from users where id in (
             select uid from (
-                select u.id from users u 
+                select u.id as uid from users u 
                     left outer join rooms_users_association_table ru 
                     on ru.user_id = u.id 
                 where ru.user_id is null
