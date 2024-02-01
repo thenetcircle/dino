@@ -12,7 +12,6 @@
 
 import yaml
 import os
-import psycopg2
 import sys
 import redis
 
@@ -52,6 +51,7 @@ config = yaml.safe_load(open(dino_home + '/dino.yaml'))[dino_env]
 config = load_secrets_file(config)
 
 dbtype = config['database']['type']
+dbdriver = config['database']['driver']
 
 if dbtype == 'redis':
     r_host, r_port = config['database']['host'].split(':')
@@ -65,12 +65,23 @@ else:
     dbuser = config['database']['user']
     dbpass = config['database']['password']
 
-    try:
-        conn = psycopg2.connect("dbname='%s' user='%s' host='%s' port='%s' password='%s'" % (
-            dbname, dbuser, dbhost, dbport, dbpass)
-        )
-    except:
-        raise RuntimeError('could not connect to db')
+    if dbdriver.startswith('postgres'):
+        try:
+            import psycopg2
+            conn = psycopg2.connect("dbname='%s' user='%s' host='%s' port='%s' password='%s'" % (
+                dbname, dbuser, dbhost, dbport, dbpass)
+            )
+        except:
+            raise RuntimeError('could not connect to db')
+
+    elif dbdriver.startswith('mysql'):
+        try:
+            import MySQLdb
+            conn = MySQLdb.connect(passwd=dbpass, db=dbname, user=dbuser, host=dbhost, port=dbport)
+        except:
+            raise RuntimeError('could not connect to db')
+    else:
+        raise RuntimeError('unknown db type: %s' % dbtype)
 
     cur = conn.cursor()
     cur.execute("""delete from sids""")
