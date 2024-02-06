@@ -979,8 +979,6 @@ def init_logging(gn_env: GNEnvironment) -> None:
 
     import sentry_sdk
     from sentry_sdk import capture_exception as sentry_capture_exception
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    from sentry_sdk.integrations.redis import RedisIntegration
 
     sample_rate = gn_env.config.get(
         ConfigKeys.TRACE_SAMPLE_RATE,
@@ -999,10 +997,7 @@ def init_logging(gn_env: GNEnvironment) -> None:
         environment=os.getenv(ENV_KEY_ENVIRONMENT),  # TODO: fix DINO_ENVIRONMENT / ENVIRONMENT discrepancy
         server_name=socket.gethostname(),
         release=tag_name,
-        integrations=[
-            SqlalchemyIntegration(),
-            RedisIntegration()
-        ],
+        integrations=[],
         traces_sample_rate=sample_rate
     )
 
