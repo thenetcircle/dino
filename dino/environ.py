@@ -66,26 +66,30 @@ logger = logging.getLogger(__name__)
 
 
 def find_bind_port():
-    import psutil
+    try:
+        import psutil
+    except ImportError:
+        logger.warning("could not import psutil, will not be able to find bind port"
+        return 0
 
     proc = psutil.Process(os.getpid())
-    conns = [x for x in proc.get_connections() if x.status == psutil.CONN_LISTEN]
+    conns = [x for x in proc.connections() if x.status == psutil.CONN_LISTEN]
 
     if not len(conns):
         logger.error(f"no connections found for proc: {proc}")
         return 0
 
-    if not hasattr(conns[0], 'local_address'):
-        logger.error(f"no local_address found in connection: {conns}")
+    if not hasattr(conns[0], 'laddr'):
+        logger.error(f"no laddr found in connection: {conns}")
         return 0
 
     try:
-        return int(conns[0].local_address[-1])
+        return int(conns[0].laddr[-1])
     except ValueError:
-        logger.error(f"could not parse port from connection: {conns[0].local_address}")
+        logger.error(f"could not parse port from connection: {conns[0].laddr}")
         return 0
     except IndexError:
-        logger.error(f"could not parse port from connection: {conns[0].local_address}")
+        logger.error(f"could not parse port from connection: {conns[0].laddr}")
         return 0
 
 
