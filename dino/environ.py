@@ -69,7 +69,7 @@ def find_bind_port():
     try:
         import psutil
     except ImportError:
-        logger.warning("could not import psutil, will not be able to find bind port"
+        logger.warning("could not import psutil, will not be able to find bind port")
         return 0
 
     proc = psutil.Process(os.getpid())
