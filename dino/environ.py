@@ -65,6 +65,30 @@ ENV_KEY_SECRETS = 'DINO_SECRETS'
 logger = logging.getLogger(__name__)
 
 
+def find_bind_port():
+    import psutil
+
+    proc = psutil.Process(os.getpid())
+    conns = [x for x in proc.get_connections() if x.status == psutil.CONN_LISTEN]
+
+    if not len(conns):
+        logger.error(f"no connections found for proc: {proc}")
+        return 0
+
+    if not hasattr(conns[0], 'local_address'):
+        logger.error(f"no local_address found in connection: {conns}")
+        return 0
+
+    try:
+        return int(conns[0].local_address[-1])
+    except ValueError:
+        logger.error(f"could not parse port from connection: {conns[0].local_address}")
+        return 0
+    except IndexError:
+        logger.error(f"could not parse port from connection: {conns[0].local_address}")
+        return 0
+
+
 class ConfigDict:
     class DefaultValue:
         def __init__(self):
@@ -440,9 +464,21 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     configure_request_log(gn_environment, config_dict)
 
     logging.basicConfig(
-            level=getattr(logging, log_level),
-            format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
+        level=getattr(logging, log_level),
+        format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT)
+    )
     logging.getLogger('cassandra').setLevel(logging.WARNING)
+
+    if ConfigKeys.LOG_DIR in config_dict:
+        logFormatter = logging.Formatter(config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
+        rootLogger = logging.getLogger()
+
+        # use the port as part of the filename to consistently use the same file every time
+        log_name = f"dino-stdout-{gn_environment}-{find_bind_port()}.log"
+
+        fileHandler = logging.FileHandler(f"{config_dict[ConfigKeys.LOG_DIR]}/{log_name}")
+        fileHandler.setFormatter(logFormatter)
+        rootLogger.addHandler(fileHandler)
 
     if ConfigKeys.HISTORY not in config_dict:
         config_dict[ConfigKeys.HISTORY] = {
