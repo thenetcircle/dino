@@ -14,6 +14,7 @@
 
 import logging
 import pytz
+import os
 
 from datetime import datetime
 from enum import Enum
@@ -368,19 +369,17 @@ class Driver(object):
                     """
             )
 
-        """
-        # create keyspace and tables for tests
-        create_test_key_space()
-        set_test_key_space()
-        create_tables()
-        create_views()
-
-        # create keyspace and tables for other
-        create_key_space()
-        set_key_space()
-        create_tables()
-        create_views()
-        """
+        if os.getenv("CREATE_DB") == "true":
+            # create keyspace and tables for tests
+            create_test_key_space()
+            set_test_key_space()
+            create_tables()
+            create_views()
+            # create keyspace and tables for other
+            create_key_space()
+            set_key_space()
+            create_tables()
+            create_views()
 
         set_key_space()
         prepare_statements()

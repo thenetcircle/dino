@@ -13,8 +13,12 @@ setup.cfg
 /secrets/*.env
 /secrets/*.yaml
 !/secrets/default.yaml
+!/secrets/dev.yaml
 /secrets/test.yaml
 pytype_output/
 
 # ansible inventory files
 inv-*
+data/cass1/*
+data/cass2/*
+mysql/*
