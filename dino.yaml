@@ -1,66 +1,41 @@
 common_config: &common_config
+    cors_origins: '*'
     testing: False
     log_level: 'DEBUG'
-    response_format: 'status_code,data,error'
     disconnect_on_failed_login: True
+    response_format: 'status_code,data,error'
     sender_can_delete: True
     delivery_guarantee: True
-    invisible_unrestricted: False
     request_log_location: '$DINO_REQ_LOG_LOC'
-    spam_classifier: True
-    validate_whispers: True
+    invisible_unrestricted: True
+    autojoin: True
+    validate_mutes: True
+    spam_classifier: False
     service_secret: '$FLASK_SECRET'
+    delayed_removal: True
+    count_cumulative_join: True
     auth:
-        type: 'nutcracker'
+        type: 'redis'
         host: '$DINO_AUTH_HOST'
-        backend_hosts: '$DINO_NUTCRACKER_AUTH_HOSTS'
+        db: 18
     cache:
-        type: 'nutcracker'
+        type: 'redis'
         host: '$DINO_CACHE_HOST'
-        backend_hosts: '$DINO_NUTCRACKER_CACHE_HOSTS'
-        warmup_days: '$DINO_WARMUP_DAYS'
+        db: 21
     coordinator:
         type: 'redis'
-        host: '$DINO_CACHE_HOST'
-        db: 9
-    queue:
-        type: 'redis'
-        host: '$DINO_QUEUE_HOST'
-        queue: 'node_queue'
-        db: 7
-    web:
-        root_url: '/'
-        type: 'oauth'
-        insecure: '$DINO_WEB_AUTH_INSECURE'
-        base: '$DINO_WEB_AUTH_BASE'
-        path: '$DINO_WEB_AUTH_PATH'
-        oauth_enabled: False
-        service_id: '$DINO_WEB_AUTH_SERVICE_ID'
-        service_secret: '$DINO_WEB_AUTH_SERVICE_SECRET'
-        authorized_url: '$DINO_WEB_AUTH_URL'
-        token_url: '$DINO_WEB_AUTH_TOKEN_URL'
-        callback_url: '$DINO_WEB_AUTH_CALLBACK_URL'
-        unauthorized_url: '$DINO_WEB_AUTH_UNAUTH_URL'
-        use_floating_menu: '$DINO_WEB_USE_FLOATING_MENU'
+        host: '$DINO_COORDINATOR_HOST'
+        db: 22
     stats:
         type: 'statsd'
         host: 'mock'
-    #logging:
-    #    type: 'sentry'
-    #    dsn: '$DINO_SENTRY_DSN'
     validation:
-        on_login:
-            - name: single_session
         on_create:
             - name: limit_length
               max_length: 120
               min_length: 3
-            - name: limit_amount
-              max_rooms: 300
         on_message:
             - name: no_empty
-            - name: limit_msg_length
-              max_length: 500
         on_join:
             - name: not_full
               max_users_low: 2
@@ -69,73 +44,6 @@ common_config: &common_config
     history:
         type: 'top'  # unread or top
         limit: 50
-
-default:
-    <<: *common_config
-    database:
-        type: 'rdbms'
-        driver: 'postgres+psycopg2'
-        host: '$DINO_DB_HOST'
-        port: 5432
-        db: '$DINO_DB_NAME'
-        user: '$DINO_DB_USER'
-        password: '$DINO_DB_PASS'
-        pool_size: 150
-    remote:
-        host: '$DINO_REMOTE_HOST'
-        path_can_whisper: '$DINO_PATH_CAN_WHISPER'
-        private_key: '$DINO_REMOTE_PRIVATE_KEY'
-    storage:
-        #type: 'redis'
-        #host: '127.0.0.1:6379'
-        type: 'cassandra'
-        host:
-            - '$DINO_CASSANDRA_HOST_1'
-    queue:
-        type: 'amqp'
-        host: '$DINO_QUEUE_HOST'
-        port: 5672
-        user: '$DINO_QUEUE_USER'
-        password: '$DINO_QUEUE_PASS'
-        vhost: '$DINO_QUEUE_VHOST'
-        exchange: 'chat_exchange'
-    #queue:
-    #    type: 'mock'
-    #    host: '$DINO_QUEUE_HOST'
-    #    queue: 'node_queue'
-    #    port: 6379
-    #    db: 7
-    #queue:
-    #    type: 'redis'
-    #    host: 'localhost'
-    #    queue: 'node_queue'
-    #    port: 6379
-    #    db: 7
-    #ext_queue:
-    #    type: 'kafka'
-    #    host:
-    #      - '$DINO_EXT_QUEUE_HOST_1'
-    #      - '$DINO_EXT_QUEUE_HOST_2'
-    #    queue: '$DINO_EXT_QUEUE_NAME'
-    #ext_queue:
-    #    type: 'amqp'
-    #    host: '$DINO_EXT_QUEUE_HOST'
-    #    port: 5672
-    #    user: '$DINO_EXT_QUEUE_USER'
-    #    password: '$DINO_EXT_QUEUE_PASS'
-    #    queue: 'chat'
-    #    vhost: '$DINO_EXT_QUEUE_VHOST'
-    #    exchange: 'chat_exchange'
-    ext_queue:
-        type: 'redis'
-        host: '$DINO_EXT_QUEUE_HOST'
-        db: 8
-    stats:
-      type: 'statsd'
-      host: '$DINO_STATSD_HOST'
-      port: 8125
-      prefix: 'dino'
-      include_hostname: 'true'
 
 dev:
     <<: *common_config
@@ -147,21 +55,28 @@ dev:
         db: '$DINO_DB_NAME'
         user: '$DINO_DB_USER'
         password: '$DINO_DB_PASS'
+    queue:
+        type: 'amqp'
+        host: '$DINO_QUEUE_HOST'
+        port: 5672
+        user: '$DINO_QUEUE_USER'
+        password: '$DINO_QUEUE_PASS'
+        vhost: '$DINO_QUEUE_VHOST'
+        exchange: 'chat_exchange'
+    remote:
+        host: '$DINO_REMOTE_HOST'
+        path_can_whisper: '$DINO_PATH_CAN_WHISPER'
+        private_key: '$DINO_REMOTE_PRIVATE_KEY'
     ext_queue:
         type: 'kafka'
         host:
-          - '$DINO_EXT_QUEUE_HOST_1'
-          - '$DINO_EXT_QUEUE_HOST_2'
+            - '$DINO_EXT_QUEUE_HOST_1'
+            - '$DINO_EXT_QUEUE_HOST_2'
         queue: '$DINO_EXT_QUEUE_NAME'
-#    ext_queue:
-#        type: 'amqp'
-#        host: '$DINO_EXT_QUEUE_HOST'
-#        port: 5672
-#        user: '$DINO_EXT_QUEUE_USER'
-#        password: '$DINO_EXT_QUEUE_PASS'
-#        queue: 'chat'
-#        vhost: '$DINO_EXT_QUEUE_VHOST'
-#        exchange: 'chat_exchange'
+        status_queue: '$DINO_EXT_STATUS_QUEUE'
+    enrich:
+        title:
+            prefix: 'dino.wio.'
     storage:
         type: 'cassandra'
         host:
@@ -171,35 +86,9 @@ dev:
         type: 'top'  # unread or top
         limit: 50
 
-integration:
-    <<: *common_config
-    request_log_location: False
-    database:
-        type: 'redis'
-        host: 'mock'
-        db: '12'
-    storage:
-        type: 'redis'
-        host: '$DINO_CACHE_HOST'
-        max_history: 200
-        db: 6
-    ext_queue:
-        type: 'rabbitmq'
-        host: '$DINO_EXT_QUEUE_HOST'
-        port: 5672
-        user: '$DINO_EXT_QUEUE_USER'
-        password: '$DINO_EXT_QUEUE_PASS'
-        queue: 'chat'
-        vhost: '/'
-        exchange: 'chat_exchange'
-    history:
-        type: 'top'  # unread or top
-        limit: 50
-
 test:
     <<: *common_config
     testing: True
-    request_log_location: False
     database:
         type: 'redis'
         host: '$DINO_DB_HOST'
@@ -209,9 +98,5 @@ test:
         host: 'localhost:6379'
         db: 0
         max_history: 200
-    coordinator:
-        type: 'redis'
-        host: '$DINO_CACHE_HOST'
-        db: 9
     auth:
         type: 'allowall'
