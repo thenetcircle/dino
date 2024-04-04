@@ -349,16 +349,27 @@ class QueueHandler(object):
 
         try:
             if len(rooms) == 0:
-                logger.warning('rooms to ban globally for is empty for user %s' % user_id)
+                logger.warning('rooms to ban globally for is empty for user %s, will only disconnect sids' % user_id)
+
             for room_id, room_name in rooms.items():
                 self.env.out_of_scope_emit(
                         'gn_user_banned', data, json=True, namespace=namespace, room=room_id, broadcast=True)
                 self.kick(data, act, room_id, user_id, user_sids, namespace)
         except Exception as e:
             logger.error('could not ban user %s globally: %s' % (user_id, str(e)))
-            logger.exception(traceback.format_exc(e))
+            logger.exception(traceback.format_exc())
             self.env.capture_exception(sys.exc_info())
             return
+
+        try:
+            for sid in user_sids:
+                if sid is not None:
+                    logger.info("disconnecting sid {} for banned user {}".format(sid, user_id))
+                    self.env.disconnect_by_sid(sid)
+        except Exception as e:
+            logger.error('could not disconnect banned user %s: %s' % (user_id, str(e)))
+            logger.exception(traceback.format_exc())
+            self.env.capture_exception(sys.exc_info())
 
     def delete_for_user_in_room(self, user_id: str, room_id: str):
         try:
