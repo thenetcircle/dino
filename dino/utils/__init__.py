@@ -186,9 +186,14 @@ def get_whisper_users_from_message(message) -> set:
 
     try:
         words = message.split()
-
-        users = [word for word in words if word.startswith('-')]
-        users = set([re.sub("[,.'!)(]", "", user.strip().lstrip('-')) for user in users])
+        users = [word.strip() for word in words if word.startswith('-')]
+        users = set([
+            re.sub(
+                "[,.'!)(]", "",
+                # only remove the first dash, in case the username starts with a dash as well
+                user[1:] if user.startswith('-') else user
+            )
+            for user in users])
     except Exception as e:
         logger.error("could not get users from message because {}, message was '{}'".format(str(e), str(message)))
         logger.exception(e)

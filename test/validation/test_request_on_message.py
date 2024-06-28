@@ -268,6 +268,12 @@ class RequestMessageTest(TestCase):
         is_valid, code, msg = self.validator.on_message(act)
         self.assertTrue(is_valid)
 
+    def test_whisper_ok_username_with_dash(self):
+        act = self.act()
+        act.object.content = b64e('{"text":" --kenobi- Hello there!"}')
+        is_valid, code, msg = self.validator.on_message(act)
+        self.assertTrue(is_valid)
+
     def test_no_whisper_ok(self):
         act = self.act()
         act.object.content = b64e('{"text":" kenobi Hello there!"}')

@@ -334,6 +334,28 @@ class UtilsSmallFunctionsTest(BaseWithDb):
         is_banned, msg = utils.is_banned(BaseWithDb.USER_ID, BaseWithDb.ROOM_ID)
         self.assertTrue(is_banned)
 
+    def test_parse_whisper_user_with_dash(self):
+        users = list(utils.get_whisper_users_from_message(" --kenobi- Hello there!"))
+        self.assertEqual(1, len(users))
+        self.assertEqual('-kenobi-', users[0])
+
+    def test_parse_whisper_user_without_dash(self):
+        users = list(utils.get_whisper_users_from_message(" -kenobi Hello there!"))
+        self.assertEqual(1, len(users))
+        self.assertEqual('kenobi', users[0])
+
+    def test_parse_whisper_user_with_dash(self):
+        users = sorted(list(utils.get_whisper_users_from_message(" --kenobi- --anakin- Hello there!")))
+        self.assertEqual(2, len(users))
+        self.assertEqual('-anakin-', users[0])
+        self.assertEqual('-kenobi-', users[1])
+
+    def test_parse_whisper_user_without_dash(self):
+        users = sorted(list(utils.get_whisper_users_from_message(" -kenobi -anakin Hello there!")))
+        self.assertEqual(2, len(users))
+        self.assertEqual('anakin', users[0])
+        self.assertEqual('kenobi', users[1])
+
     def test_is_banned_room(self):
         self.ban_user(target='room')
         is_banned, msg = utils.is_banned(BaseWithDb.USER_ID, BaseWithDb.ROOM_ID)
