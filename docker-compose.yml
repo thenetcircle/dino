@@ -1,0 +1,121 @@
+version: '3'
+services:
+    dino:
+      build:
+        dockerfile: ./Dockerfile
+        context: ./
+      expose:
+        - "5120"
+      environment:
+        DINO_DEBUG: 1
+        DINO_ENVIRONMENT: dev
+        CREATE_DB: true
+      volumes:
+        - .:/dino
+      depends_on:
+        - kafka-1
+        - kafka-2
+      restart: always
+
+    mysql:
+      image: mysql:latest
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: dino
+      volumes:
+        - ./mysql:/var/lib/mysql
+      expose:
+        - "3306"
+
+    redisdino:
+      image: redis:latest
+      expose:
+        - "6379"
+      volumes:
+        - ./redis.conf:/usr/local/etc/redis/redis.conf
+      command: redis-server /usr/local/etc/redis/redis.conf
+
+    rabbitmq:
+      image: rabbitmq:latest
+      expose:
+        - "5672"
+      environment:
+        - RABBITMQ_DEFAULT_PASS=dino
+        - RABBITMQ_DEFAULT_USER=dino
+        - RABBITMQ_DEFAULT_VHOST=/dino
+
+    zookeeper-1:
+      image: confluentinc/cp-zookeeper:latest
+      environment:
+        ZOOKEEPER_CLIENT_PORT: 2181
+        ZOOKEEPER_TICK_TIME: 2000
+      ports:
+        - 22181:2181
+      restart: always
+
+    zookeeper-2:
+      image: confluentinc/cp-zookeeper:latest
+      environment:
+        ZOOKEEPER_CLIENT_PORT: 2181
+        ZOOKEEPER_TICK_TIME: 2000
+      ports:
+        - 32181:2181
+      restart: always
+    
+    kafka-1:
+      image: confluentinc/cp-kafka:latest
+      depends_on:
+        - zookeeper-1
+        - zookeeper-2
+      ports:
+        - 29092:29092
+      environment:
+        KAFKA_BROKER_ID: 1
+        KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,PLAINTEXT_HOST://localhost:29092
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+        KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      restart: always
+
+    kafka-2:
+      image: confluentinc/cp-kafka:latest
+      depends_on:
+        - zookeeper-1
+        - zookeeper-2
+      ports:
+        - 39092:39092
+      environment:
+        KAFKA_BROKER_ID: 2
+        KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092,PLAINTEXT_HOST://localhost:39092
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+        KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      restart: always
+
+    cass1:
+      image: cassandra:3.11.8
+      expose:
+        - 9042
+        - 9160
+      volumes:
+        - ./data/cass1:/var/lib/cassandra    # This is the volume that will persist data for cass1 node
+      environment: &cassenvironment    # Declare and save environments variables into "environment"
+          CASSANDRA_SEEDS: "cass1"
+          CASSANDRA_CLUSTER_NAME: SolarSystem
+          CASSANDRA_DC: Mars
+          CASSANDRA_RACK: West
+          CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+          CASSANDRA_NUM_TOKENS: 128
+      restart: always
+
+    cass2:
+      image: cassandra:3.11.8
+      expose:
+        - 9042
+        - 9160
+      volumes:
+        - ./data/cass2:/var/lib/cassandra    # This is the volume that will persist data for cass2 node
+      environment: *cassenvironment    # point to "environment" to use the same environment variables as cass1
+      restart: always

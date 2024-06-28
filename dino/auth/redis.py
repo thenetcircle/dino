@@ -56,7 +56,7 @@ class AuthRedis(object):
             if type(val) == bytes:
                 val = str(val, 'utf-8')
 
-            if key in [SessionKeys.token.value, SessionKeys.user_name.value, SessionKeys.user_id.value]:
+            if key in [SessionKeys.token.value, SessionKeys.user_id.value]:
                 continue
             stored_session[key] = val
 

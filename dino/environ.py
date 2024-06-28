@@ -65,6 +65,34 @@ ENV_KEY_SECRETS = 'DINO_SECRETS'
 logger = logging.getLogger(__name__)
 
 
+def find_bind_port():
+    try:
+        import psutil
+    except ImportError:
+        logger.warning("could not import psutil, will not be able to find bind port")
+        return 0
+
+    proc = psutil.Process(os.getpid())
+    conns = [x for x in proc.connections() if x.status == psutil.CONN_LISTEN]
+
+    if not len(conns):
+        logger.error(f"no connections found for proc: {proc}")
+        return 0
+
+    if not hasattr(conns[0], 'laddr'):
+        logger.error(f"no laddr found in connection: {conns}")
+        return 0
+
+    try:
+        return int(conns[0].laddr[-1])
+    except ValueError:
+        logger.error(f"could not parse port from connection: {conns[0].laddr}")
+        return 0
+    except IndexError:
+        logger.error(f"could not parse port from connection: {conns[0].laddr}")
+        return 0
+
+
 class ConfigDict:
     class DefaultValue:
         def __init__(self):
@@ -440,9 +468,21 @@ def create_env(config_paths: list = None) -> GNEnvironment:
     configure_request_log(gn_environment, config_dict)
 
     logging.basicConfig(
-            level=getattr(logging, log_level),
-            format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
+        level=getattr(logging, log_level),
+        format=config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT)
+    )
     logging.getLogger('cassandra').setLevel(logging.WARNING)
+
+    if ConfigKeys.LOG_DIR in config_dict:
+        logFormatter = logging.Formatter(config_dict.get(ConfigKeys.LOG_FORMAT, ConfigKeys.DEFAULT_LOG_FORMAT))
+        rootLogger = logging.getLogger()
+
+        # use the port as part of the filename to consistently use the same file every time
+        log_name = f"dino-stdout-{gn_environment}-{find_bind_port()}.log"
+
+        fileHandler = logging.FileHandler(f"{config_dict[ConfigKeys.LOG_DIR]}/{log_name}")
+        fileHandler.setFormatter(logFormatter)
+        rootLogger.addHandler(fileHandler)
 
     if ConfigKeys.HISTORY not in config_dict:
         config_dict[ConfigKeys.HISTORY] = {
@@ -979,9 +1019,6 @@ def init_logging(gn_env: GNEnvironment) -> None:
 
     import sentry_sdk
     from sentry_sdk import capture_exception as sentry_capture_exception
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    from sentry_sdk.integrations.redis import RedisIntegration
-    from sentry_sdk.integrations.flask import FlaskIntegration
 
     sample_rate = gn_env.config.get(
         ConfigKeys.TRACE_SAMPLE_RATE,
@@ -1000,11 +1037,7 @@ def init_logging(gn_env: GNEnvironment) -> None:
         environment=os.getenv(ENV_KEY_ENVIRONMENT),  # TODO: fix DINO_ENVIRONMENT / ENVIRONMENT discrepancy
         server_name=socket.gethostname(),
         release=tag_name,
-        integrations=[
-            SqlalchemyIntegration(),
-            RedisIntegration(),
-            FlaskIntegration()
-        ],
+        integrations=[],
         traces_sample_rate=sample_rate
     )
 

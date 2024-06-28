@@ -100,7 +100,7 @@ class OnLoginHooks(object):
     def set_user_online_if_not_previously_invisible(arg: tuple) -> None:
         data, activity = arg
         user_id = activity.actor.id
-        user_status = utils.get_user_status(user_id)
+        user_status = utils.get_user_status(user_id, skip_cache=True)
         invisible_login = False
 
         # if the rest api is not called before login to set the status to invisible, it can be
@@ -133,7 +133,8 @@ class OnLoginHooks(object):
             environ.env.db.set_user_status_invisible(user_id)
         else:
             logger.info('setting user {} to online'.format(user_id))
-            environ.env.db.set_user_online(user_id)
+            # update last online as well, just in case there's an issue and we can't do it during disconnect
+            environ.env.db.set_user_online(user_id, update_last_online=True)
 
     @staticmethod
     def autojoin_rooms(arg: tuple) -> None:
