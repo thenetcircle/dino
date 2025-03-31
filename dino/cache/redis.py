@@ -24,7 +24,8 @@ import redis
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
-from dino.utils import activity_for_user_joined, activity_for_status_change, split_into_chunks
+from dino.utils import activity_for_user_joined, activity_for_status_change, split_into_chunks, \
+    add_last_online_at_to_event, get_user_status
 
 EIGHT_HOURS_IN_SECONDS = 8*60*60
 TEN_MINUTES = 10*60
@@ -1346,12 +1347,27 @@ class CacheRedis(object):
             p.zadd(RedisKeys.user_status_changed_at(), {user_id_str: now})
             p.execute()
 
+            offline_event = activity_for_status_change(user_id, "offline")
+
+            # to sync with wio api
             if self.status_topic is not None:
                 self.env.publish(
-                    activity_for_status_change(user_id, "offline"),
+                    offline_event,
                     external=True,
                     topic=self.status_topic
                 )
+
+            if get_user_status(user_id, skip_cache=True) == UserKeys.STATUS_INVISIBLE:
+                # invisible shouldn't get their last online at updated, so use the previous known time
+                add_last_online_at_to_event(offline_event, use_now=False)
+            else:
+                add_last_online_at_to_event(offline_event, use_now=True)
+
+            # to sync with solr
+            self.env.publish(
+                offline_event,
+                external=True
+            )
 
             self.trim_user_changed_at()
         except Exception as e:
