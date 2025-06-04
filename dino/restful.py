@@ -19,6 +19,7 @@ from dino.rest.resources.history import HistoryResource
 from dino.rest.resources.join import JoinRoomResource
 from dino.rest.resources.joins import JoinsInRoomResource
 from dino.rest.resources.kick import KickResource
+from dino.rest.resources.last_online import LastOnlineResource
 from dino.rest.resources.latest_history import LatestHistoryResource
 from dino.rest.resources.leave import LeaveRoomResource
 from dino.rest.resources.mute import MuteResource
@@ -115,3 +116,4 @@ api.add_resource(JoinsInRoomResource, '/count-joins')
 api.add_resource(CreateRoomResource, '/create')
 api.add_resource(JoinRoomResource, '/join')
 api.add_resource(LeaveRoomResource, '/leave')
+api.add_resource(LastOnlineResource, '/last-online')
