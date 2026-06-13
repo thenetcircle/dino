@@ -1336,6 +1336,9 @@ class CacheRedis(object):
             user_id_int = int(float(user_id))
             now = int(datetime.utcnow().timestamp())
 
+            # read before updating redis; skip_cache may backfill user:status from db
+            was_invisible = get_user_status(user_id, skip_cache=True) == UserKeys.STATUS_INVISIBLE
+
             self._set_last_online(user_id_str)
             self.cache.set(RedisKeys.user_status(user_id_str), UserKeys.STATUS_UNAVAILABLE, ttl=THIRTY_SECONDS)
 
@@ -1357,7 +1360,7 @@ class CacheRedis(object):
                     topic=self.status_topic
                 )
 
-            if get_user_status(user_id, skip_cache=True) == UserKeys.STATUS_INVISIBLE:
+            if was_invisible:
                 # invisible shouldn't get their last online at updated, so use the previous known time
                 add_last_online_at_to_event(offline_event, use_now=False)
             else:
