@@ -1,0 +1,47 @@
+---
+description: Keep CHANGELOG.md updated when making notable changes
+alwaysApply: true
+---
+
+# Changelog Maintenance
+
+When completing work that constitutes a **notable change**, add an entry to `CHANGELOG.md` under `## [Unreleased]` before finishing.
+
+## What counts as notable
+
+| Notable (update changelog) | Not notable (skip) |
+|---|---|
+| New feature or endpoint | Typo fixes, comment edits |
+| Bug fix affecting behavior | Internal refactors with no behavior change |
+| Breaking or deprecated API | Dev tooling / CI-only changes |
+| Dependency upgrade with impact | Test-only changes |
+| Security fix | Lint / formatting cleanup |
+| Schema or migration change | Documentation-only updates |
+
+## Format
+
+Follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) categories:
+
+- **Added** — new features or capabilities
+- **Changed** — changes to existing functionality
+- **Deprecated** — soon-to-be-removed features
+- **Removed** — removed features
+- **Fixed** — bug fixes
+- **Security** — vulnerability patches
+
+Each entry: `- **Scope**: Brief description of what changed and why`
+
+```markdown
+## [Unreleased]
+
+### Added
+
+- **Profiles**: Endpoint for bulk profile import via CSV
+```
+
+## Rules
+
+1. Always place entries under `## [Unreleased]` — never invent a version number.
+2. Create only the category subsections that have entries (don't add empty `- N/A` sections).
+3. Keep entries concise — one line per change, grouped by scope.
+4. When a release is cut, the user moves `[Unreleased]` items into a versioned section.

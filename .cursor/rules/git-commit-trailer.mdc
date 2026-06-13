@@ -1,0 +1,57 @@
+---
+description: Git commit conventions — trailer and message style
+alwaysApply: true
+---
+
+# Git Commit Conventions
+
+## Trailer
+
+Every commit MUST include a `Made-with: Cursor` trailer via the `--trailer` flag:
+
+```bash
+git commit --trailer "Made-with: Cursor" -m "fix null check in group handler"
+```
+
+With HEREDOC:
+
+```bash
+git commit --trailer "Made-with: Cursor" -m "$(cat <<'EOF'
+fix null check in group handler
+EOF
+)"
+```
+
+## Commit Message Style
+
+- **One line, under 72 characters.** No body unless the user explicitly asks for one.
+- **Lowercase**, no trailing period.
+- Start with a verb: `fix`, `add`, `remove`, `update`, `refactor`, `rename`, `move`, `extract`.
+- Focus on **why/what changed**, not how.
+
+### Examples
+
+```text
+fix race condition in broadcast consumer
+add pagination to group message history
+remove deprecated v1 auth endpoint
+update redis cache TTL for user sessions
+refactor message handler into smaller functions
+```
+
+### Anti-patterns
+
+```text
+# ❌ Too vague
+fix bug
+update code
+misc changes
+
+# ❌ Too verbose
+fix the bug where the group handler crashes when a null user id is passed in the request body
+
+# ❌ Wrong style
+Fixed a bug.
+FEAT: Add new feature
+[DINO-123] implemented thing
+```
