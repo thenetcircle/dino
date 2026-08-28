@@ -1,3 +1,6 @@
 [submodule "external/dino-wio-api"]
 	path = external/dino-wio-api
 	url = http://gitlab.thenetcircle.lab/tnc-service-team/dino-wio-api.git
+[submodule "external/dino-ansible-conf"]
+	path = external/dino-ansible-conf
+	url = http://gitlab.thenetcircle.lab/tnc-service-team/dino-ansible-conf.git

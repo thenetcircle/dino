@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **WIO invisible**: `gn_login` now returns `actor.summary` from the user's actual status after the login hook (e.g. `invisible` when Redis/DB is `3`), instead of always defaulting to `online`.
+- **WIO invisible**: Heartbeat restore of an invisible user no longer updates `last_online`; the first heartbeat login event also reports the real status.
+
 ## [0.23.16] - 2026-06-13
 
 ### Fixed

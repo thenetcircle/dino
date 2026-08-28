@@ -12,12 +12,15 @@
 
 __author__ = 'Oscar Eriksson <oscar.eriks@gmail.com>'
 
+from unittest.mock import patch
+
 from test.base import BaseTest
 from activitystreams import parse as as_parser
 
 from dino import api
 from dino import environ
 from dino.config import RedisKeys
+from dino.config import UserKeys
 
 
 class ApiLoginTest(BaseTest):
@@ -67,6 +70,19 @@ class ApiLoginTest(BaseTest):
         self.remove_from_auth('membership')
         data = self.activity_for_login(skip={'membership'})
         self.assert_login_succeeds(data)
+
+    def test_login_returns_invisible_summary_when_previously_invisible(self):
+        environ.env.redis.set(RedisKeys.user_status(BaseTest.USER_ID), UserKeys.STATUS_INVISIBLE)
+        with patch.object(environ.env.db, 'set_user_status_invisible'), \
+                patch.object(environ.env.cache, 'set_user_invisible'):
+            code, data = self.login()
+        self.assertEqual(200, code)
+        self.assertEqual('invisible', data['actor']['summary'])
+
+    def test_login_returns_online_summary_when_visible(self):
+        code, data = self.login()
+        self.assertEqual(200, code)
+        self.assertEqual('online', data['actor']['summary'])
 
     def assert_login_fails(self, data=None):
         self.assertEqual(400, self.response_code_for_login(data))

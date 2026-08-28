@@ -1528,11 +1528,12 @@ class IDatabase(Interface):
         :return: nothing
         """
 
-    def set_user_online(self, user_id: str) -> None:
+    def set_user_online(self, user_id: str, update_last_online: bool = False) -> None:
         """
         indicate a user is online
 
         :param user_id: id of the user
+        :param update_last_online: if True, also refresh last_online (rdbms backends)
         :return: nothing
         """
 

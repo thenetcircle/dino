@@ -149,6 +149,14 @@ Note that the request does not contain the `actor.content` field, so the login w
 the user was previously invisible, the user will now be online but invisible again, to preserve the visibility status. 
 To change to visible, we'll call the `status` api below.
 
+**Important:** `gn_login` / the login response includes `actor.summary` with the **actual** status after login
+(`online`, `invisible`, or `offline`). Clients must use that value for the UI toggle; do not assume `online`.
+
+A websocket reconnect that only re-sends `login` (without REST `/status`) keeps a previous invisible preference.
+To become visible after having been invisible, call REST or WS status with `visible` (for a new login session,
+REST `status=visible` with `stage=login` is the intended path). Do **not** treat a reconnect as "log in visible"
+unless the user chose that.
+
 Next, call the WS `status` api:
 
 ```json
@@ -162,3 +170,10 @@ Next, call the WS `status` api:
 
 **Note: the `summary` field is not required when setting a user `online`, so it can be omitted, but it's okay to 
 specify it too, as long as it's set to `login`.**
+
+### Heartbeat and last_online
+
+When a user is invisible, heartbeat (REST `/heartbeat`) restores or refreshes the invisible presence **without**
+updating `last_online_at`. Invisible users must not appear as "last active one minute ago" solely because of
+heartbeat. Going invisible while already online (WS `verb: invisible` without `stage: login`) still updates
+`last_online_at` as documented above.

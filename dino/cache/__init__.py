@@ -1070,10 +1070,13 @@ class ICache(Interface):
         :return:
         """
 
-    def set_user_invisible(self, user_id: str) -> None:
+    def set_user_invisible(self, user_id: str, update_last_online: bool = True) -> None:
         """
+        set the user as invisible; when update_last_online is False (e.g. heartbeat
+        restore after restart, or invisible login), last_online is left unchanged
 
         :param user_id:
+        :param update_last_online: whether to update last_online timestamp
         :return:
         """
 

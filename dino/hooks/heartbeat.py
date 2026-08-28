@@ -31,7 +31,9 @@ class OnHeartbeatHooks(object):
         if environ.env.heartbeat.has_heartbeat(user_id):
             return
 
-        activity_json = utils.activity_for_login(user_id, user_name, encode_attachments=False, heartbeat_sid=True)
+        user_status = utils.get_user_status(user_id)
+        activity_json = utils.activity_for_login(
+            user_id, user_name, encode_attachments=False, heartbeat_sid=True, user_status=user_status)
         environ.env.publish(activity_json, external=True)
 
     @staticmethod
@@ -61,15 +63,17 @@ class OnHeartbeatHooks(object):
         if user_status != UserKeys.STATUS_INVISIBLE:
             environ.env.db.set_user_online(user_id)
         else:
-            # if heartbeat after server restart the cache value user:status:<user id> is non-existent, set to invisible
-            environ.env.cache.set_user_invisible(user_id)
+            # restore invisible after restart without bumping last_online
+            logger.info(
+                'heartbeat restoring user {} as invisible without updating last_online'.format(user_id)
+            )
+            environ.env.cache.set_user_invisible(user_id, update_last_online=False)
 
 
 @environ.env.observer.on('on_heartbeat')
 def _on_heartbeat_publish_activity(arg: tuple) -> None:
     OnHeartbeatHooks.update_session(arg)
 
-    # need to publish before setting as online, as we won't publish if already online
-    OnHeartbeatHooks.publish_activity(arg)
-
+    # restore status first so the published login event reports the real status
     OnHeartbeatHooks.set_user_online_if_not_previously_invisible(arg)
+    OnHeartbeatHooks.publish_activity(arg)

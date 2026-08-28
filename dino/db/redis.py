@@ -1398,7 +1398,7 @@ class DatabaseRedis(object):
     def set_user_offline(self, user_id: str) -> None:
         self.env.cache.set_user_offline(user_id)
 
-    def set_user_online(self, user_id: str) -> None:
+    def set_user_online(self, user_id: str, update_last_online: bool = False) -> None:
         self.env.cache.set_user_online(user_id)
         self.redis.set(RedisKeys.user_status(user_id), UserKeys.STATUS_AVAILABLE)
 

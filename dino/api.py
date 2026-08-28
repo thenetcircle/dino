@@ -39,8 +39,15 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
     user_name = environ.env.session.get(SessionKeys.user_name.value)
     user_roles = utils.get_user_roles(user_id)
 
+    # restore/preserve status before building the response so gn_login.actor.summary
+    # reflects the real status (e.g. invisible), not the default "online"
+    environ.env.observer.emit('on_login', (data, activity))
+
+    user_name = environ.env.session.get(SessionKeys.user_name.value) or user_name
+    user_status = utils.get_user_status(user_id)
     unread_history = _get_history_type() == ConfigKeys.HISTORY_TYPE_UNREAD
-    response = utils.activity_for_login(user_id, user_name, include_unread_history=unread_history)
+    response = utils.activity_for_login(
+        user_id, user_name, include_unread_history=unread_history, user_status=user_status)
     response['actor']['attachments'] = list()
 
     if len(user_roles['global']) > 0:
@@ -63,7 +70,6 @@ def on_login(data: dict, activity: Activity) -> (int, Union[str, None]):
             'content': ','.join(roles)
         })
 
-    environ.env.observer.emit('on_login', (data, activity))
     return ECodes.OK, response
 
 

@@ -1,0 +1,48 @@
+---
+description: Production SSH safety — observe by default, never change remote state without explicit confirmation
+alwaysApply: true
+---
+
+# Production SSH Diagnostics
+
+Treat any remote host (SSH, docker exec on prod, kubectl, cloud consoles) as a live production system. Use it to inspect, debug, and read logs. Prefer observation over intervention.
+
+## Confirm before any change
+
+Do not modify production without the user clearly authorizing **that exact action**. If a change seems necessary, explain why and wait.
+
+Never without confirmation:
+
+- restart, recreate, stop, or start a service
+- `docker compose up` / `restart` / `down` (or equivalent systemd/k8s/rollout commands)
+- edit, copy, delete, or replace files on the remote host
+- change remote config
+- run upgrade, deploy, migration, or schema-changing steps
+- any other command that changes production state
+
+Make the fewest possible production changes, and only when they are absolutely necessary.
+
+## Allowed without extra confirmation
+
+- checking process/container/service status
+- reading logs
+- inspecting configuration (read-only)
+- verifying file presence
+- gathering diagnostic information (`ps`, `df`, `ss`/`netstat`, `docker ps`, `docker logs`, `kubectl get`/`describe`/`logs`, SQL `SELECT`, Redis `INFO`/`GET`/`LLEN`, etc.)
+
+If a command might still mutate state (e.g. `docker logs -f` is fine; `docker compose logs` is fine; `docker restart` is not), treat it as a change and ask first.
+
+## Examples
+
+```text
+# ✅ OK — inspect
+ssh prod "docker ps"
+ssh prod "journalctl -u dinoms -n 200 --no-pager"
+ssh prod "grep -n DINO_REDIS_HOST /opt/dinoms/.env"
+
+# ❌ NOT OK without explicit approval
+ssh prod "docker compose restart"
+ssh prod "systemctl restart dinoms"
+scp local.env prod:/opt/dinoms/.env
+ssh prod "alembic upgrade head"
+```
