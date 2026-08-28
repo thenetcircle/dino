@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.23.17] - 2026-08-28
+
 ### Fixed
 
 - **WIO invisible**: `gn_login` now returns `actor.summary` from the user's actual status after the login hook (e.g. `invisible` when Redis/DB is `3`), instead of always defaulting to `online`.
