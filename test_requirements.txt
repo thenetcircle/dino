@@ -91,7 +91,7 @@ tornado==6.0.3
 typing==3.6.4
 urllib3==1.25.3
 vine==1.1.4
-Werkzeug==0.15.6
+Werkzeug==2.2.3
 WTForms==2.2.1
 xgboost==0.80
 Yapsy==1.11.223
