@@ -4,7 +4,7 @@ amqp==2.5.0
 aniso8601==3.0.2
 anyjson==0.3.3
 appdirs==1.4.3
-Babel==2.6.0
+Babel==2.9.1
 basho-erlastic==2.1.1
 cassandra-driver==3.14.0
 certifi==2018.4.16
