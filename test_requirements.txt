@@ -35,7 +35,7 @@ imagesize==1.0.0
 importlab==0.5
 itsdangerous==0.24
 Jinja2==2.10.1
-joblib==0.12.2
+joblib==1.2.0
 kafka-python==1.4.6
 kombu==4.6.3
 livereload==2.5.2
